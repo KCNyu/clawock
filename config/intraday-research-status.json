@@ -1,35 +1,5004 @@
 {
   "schema": "intraday-research/v1",
+  "code": {
+    "commit": "063fe6bce",
+    "files": {
+      "src/clawock/strategy_lab/intraday_study.py": "sha256:98d024ae464523e2",
+      "src/clawock/costs.py": "sha256:0a0882e2b2809c17",
+      "src/clawock/strategies/plugins/intraday_reversion.py": "sha256:d6cd784258add76a",
+      "src/clawock/strategies/plugins/intraday_vwap.py": "sha256:dc85ca7966616c77",
+      "src/clawock/strategies/plugins/intraday_breakout.py": "sha256:dcf378500a09e354"
+    }
+  },
+  "generated_at": "2026-10-19T00:54:26.838541+00:00",
   "live_permission": false,
-  "validation": "insufficient_or_failed",
-  "generated_at": "2026-10-18T19:43:30.962704+00:00",
-  "as_of": "2026-10-16",
   "market": "us",
   "ticker": "SPY",
+  "as_of": "2026-10-16",
   "source": {
-    "provider": "FirstRate Data",
-    "url": "https://x01.frd-data.com/firstratedata_sample_SPY.zip",
-    "license_evidence": "https://firstratedata.com/about/license",
     "research_use": true,
     "derived_public_use": true,
+    "license_evidence": "Owner authorization supplied with this task on 2026-10-19: permits account data research and publication of derived conclusions; owner attestation, not a retrieved vendor license document.",
+    "provider": "Massive/Polygon",
+    "url": "https://api.polygon.io/v2/aggs/ticker/SPY/range/5/minute/2026-04-01/2026-10-16?adjusted=false&sort=asc&limit=50000",
+    "retrieved_at": "2026-10-19T00:52:29.380867+00:00",
+    "raw_sha256": "0ef4793a12d682154a38e61947864b77396b64b2ef4bf3c917bd49a67077d7c4",
     "synthetic": false,
-    "retrieved_at": "2026-10-18T19:43:30.766960+00:00",
-    "raw_sha256": "6249f8b279ab3e8efc438ab6ab1d06cf13c9851a1eddca503bfb0b234fa2d553",
-    "price_basis": "split_adjusted",
+    "price_basis": "unadjusted",
     "interval_minutes": 5
   },
-  "blockers": [
-    "split-adjusted samples are not verified unadjusted execution prices",
-    "fewer than training plus minimum OOS sessions"
+  "data_sha256": "29f22e76c74cba468544ecc6aab0a057068a9d753760fa9efdfc26c0b91aa4c9",
+  "manifest": {
+    "schema_version": 1,
+    "author_model": "gpt-6-astra",
+    "frozen_at": "2026-10-18T14:54:23.014708+00:00",
+    "knowledge_scope": "No strategy outcomes examined; SPY source availability only. Retrospective preregistration, not a historical model prediction.",
+    "universe": [
+      "SPY"
+    ],
+    "market": "us",
+    "start": "2026-04-01",
+    "end": "2026-10-16",
+    "train_sessions": 60,
+    "test_sessions": 20,
+    "minimum_oos": 60,
+    "shares": 1,
+    "base_shares": 10,
+    "lot_size": 1,
+    "cash_reserve": 2000,
+    "monthly_opening_used_hkd": 0,
+    "usd_hkd": 7.8,
+    "fx_basis": "explicit stress-accounting assumption, not observed FX",
+    "max_participation": 0.01,
+    "candidates": [
+      {
+        "service": "intraday_reversion",
+        "params": {
+          "window": 20,
+          "deviations": 2.0
+        }
+      },
+      {
+        "service": "intraday_vwap",
+        "params": {
+          "window": 20,
+          "deviations": 2.0
+        }
+      },
+      {
+        "service": "intraday_breakout",
+        "params": {
+          "window": 20,
+          "deviations": 2.0
+        }
+      }
+    ],
+    "mechanism": "Compare a prior-window band, cumulative session VWAP reversion and downside channel continuation using an existing base; select on past net timing increment, include hold.",
+    "counterexamples": [
+      "persistent trends defeat reversion",
+      "false breakouts defeat continuation",
+      "fees dominate small moves"
+    ],
+    "requirements": [
+      "unadjusted completed five-minute OHLCV",
+      "complete regular sessions",
+      "account waiver remaining"
+    ],
+    "selection": "highest training net cash increment including hold; deterministic declared-order tie break",
+    "presentation_focus": "validation",
+    "live_permission": false
+  },
+  "manifest_sha256": "1cb715761e492ac3007bbe7432c42165477a8713916864d595923d8c4726c1e8",
+  "cost_model": {
+    "assumed_commission_bps": {},
+    "assumed_minimum_commission": {},
+    "spread_source": "fixed",
+    "spread_bps": {
+      "hk": 12.0,
+      "us": 4.0
+    },
+    "spread_share": 0.5,
+    "impact_source": "off",
+    "registered_on": "2026-10-18",
+    "account_commission": {
+      "kind": "user_reported_fact",
+      "source": "kcn task instruction 2026-10-18",
+      "observed_on": "2026-10-18",
+      "monthly_allowance_hkd": 500000,
+      "markets": [
+        "hk",
+        "us"
+      ],
+      "commission_bps": {
+        "hk": 0,
+        "us": 0
+      },
+      "minimum_commission": {
+        "hk": 0,
+        "us": 0
+      },
+      "scenario": "within_monthly_allowance",
+      "usage_verified": false,
+      "scope": "Shared HKD-equivalent monthly turnover allowance for HK and US; conversion, reset rules and excess-allowance broker tariff unknown. This snapshot does not track or authorize allowance consumption."
+    },
+    "regulatory_fees": {
+      "kind": "verified_tariff_snapshot",
+      "as_of": "2026-10-18",
+      "basis": "Current-tariff counterfactual for every replay date, not historical fees. Exchange/clearing/member charges assumed passed through to the retail account without broker markup.",
+      "hk": {
+        "stamp_duty": {
+          "bps": 10.0,
+          "rounding": "ceil_dollar",
+          "effective_from": "2023-11-17",
+          "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+        },
+        "sfc": {
+          "bps": 0.27,
+          "rounding": "nearest_cent",
+          "effective_from": "2014-11-01",
+          "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+        },
+        "afrc": {
+          "bps": 0.015,
+          "rounding": "nearest_cent",
+          "effective_from": "2022-01-01",
+          "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+        },
+        "exchange": {
+          "bps": 0.565,
+          "rounding": "nearest_cent",
+          "effective_from": "2023-01-01",
+          "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+        },
+        "ccass": {
+          "bps": 0.42,
+          "minimum": 0,
+          "maximum": null,
+          "rounding": "nearest_cent",
+          "effective_from": "2025-06-30",
+          "source": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/HKSCC/2025/019_25_HKSCC_OP_stock-settlement-fee-restructure_e.pdf"
+        }
+      },
+      "us": {
+        "sec": {
+          "bps": 0.206,
+          "side": "sell",
+          "effective_from": "2026-04-04",
+          "source": "https://www.finra.org/rules-guidance/notices/information-notice-20260317"
+        },
+        "taf": {
+          "per_share": 0,
+          "maximum": 0,
+          "side": "sell",
+          "effective_from": "2026-10-01",
+          "effective_through": "2026-12-31",
+          "source": "https://www.finra.org/rules-guidance/rule-filings/sr-finra-2026-021",
+          "regular_2026": {
+            "per_share": 0.000195,
+            "maximum": 9.79,
+            "effective_from": "2026-01-01",
+            "source": "https://www.finra.org/rules-guidance/rule-filings/sr-finra-2024-019/fee-adjustment-schedule"
+          },
+          "note": "Immediate-effectiveness filing temporarily pauses TAF; broker pass-through remains unverified. Snapshot must be updated after holiday."
+        }
+      },
+      "pass_through_rounding_assumption": "US SEC/TAF rounded up separately to cents per order; actual retail rounding/aggregation requires broker statement."
+    },
+    "stamp_duty_exemptions": {
+      "verified_on": "2026-10-18",
+      "source": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Trading/Securities/Stamp-Duty-Reporting-and-Payment/Securities-exempt-from-stamp-duty/secstpduty.xlsx",
+      "source_sha256": "578442f2ca96d054ced5a4d1a9fa3e8fa56fbf1693e63821a83bf6b4c684555c",
+      "tickers": {
+        "02800": {
+          "type": "ETF",
+          "effective_from": "2015-02-13",
+          "source": "https://www.hkex.com.hk/News/Market-Communications/2015/150204news?sc_lang=en"
+        }
+      },
+      "unknown_policy": "Charge stamp duty unless a ticker is explicitly verified here. The sheet exempts ETFs and L&I as classes; no unverified ticker classification or blanket prefix exemption."
+    },
+    "assumed_reference_notional": {
+      "hk": 10000,
+      "us": 10000
+    },
+    "assumed_reference_share_price": {
+      "us": 100
+    },
+    "basis": "account_commission is user-reported fact, conditional on monthly allowance; regulatory_fees is a sourced current-tariff counterfactual; assumed_* fields and spread are assumptions, not an observation; impact is off because nothing here calibrates it",
+    "minimum_commission_applied": true,
+    "rank_cost_basis": "reference ticket; larger of buy/sell costs; not sized execution",
+    "side_bps": {
+      "hk": 17.28,
+      "us": 2.21
+    }
+  },
+  "folds": [
+    {
+      "train": [
+        "2026-04-01",
+        "2026-06-26"
+      ],
+      "test": [
+        "2026-06-29",
+        "2026-07-27"
+      ],
+      "selected": -1,
+      "training_net": [
+        -13.603770999999863,
+        -3.5512209223972233,
+        -20.50780699999963
+      ],
+      "llm_choice": -1
+    },
+    {
+      "train": [
+        "2026-04-30",
+        "2026-07-27"
+      ],
+      "test": [
+        "2026-07-28",
+        "2026-08-24"
+      ],
+      "selected": 1,
+      "training_net": [
+        -8.685391999999633,
+        1.6868885676962422,
+        -12.955068999999654
+      ],
+      "llm_choice": 1
+    },
+    {
+      "train": [
+        "2026-05-29",
+        "2026-08-24"
+      ],
+      "test": [
+        "2026-08-25",
+        "2026-09-22"
+      ],
+      "selected": 1,
+      "training_net": [
+        -12.867200999999193,
+        8.893501675925181,
+        -6.960101999999175
+      ],
+      "llm_choice": 1
+    },
+    {
+      "train": [
+        "2026-06-29",
+        "2026-09-22"
+      ],
+      "test": [
+        "2026-09-23",
+        "2026-10-16"
+      ],
+      "selected": -1,
+      "training_net": [
+        -15.584604000000025,
+        -1.3920768193195556,
+        -22.940783999999617
+      ],
+      "llm_choice": -1
+    }
   ],
-  "metrics": {},
+  "requests": [
+    {
+      "schema_version": 1,
+      "manifest_sha256": "1cb715761e492ac3007bbe7432c42165477a8713916864d595923d8c4726c1e8",
+      "train_first": "2026-04-01",
+      "train_last": "2026-06-26",
+      "test_first": "2026-06-29",
+      "training_net": [
+        -13.603770999999863,
+        -3.5512209223972233,
+        -20.50780699999963
+      ],
+      "training_input_sha256": "d9a8df4a93568aa2ecc5d256433730b65818bf83000a68c619f1a7c70496fe78",
+      "cost_model_sha256": "c7656af0e593666b0c6bf05c598bfebeabdbbadcea629cae9a6bbc8a668c462a",
+      "choices": [
+        -1,
+        0,
+        1,
+        2
+      ],
+      "rule_choice": -1,
+      "prompt": "Choose a research arm (-1 hold), mechanism, counterexample and focus. Cite this receipt hash. No test outcomes supplied; not a live action.",
+      "sha256": "c0dc6dda389cf9c87211a4baa8a54bde10d337c591b619914ee8b8c2885f853e"
+    },
+    {
+      "schema_version": 1,
+      "manifest_sha256": "1cb715761e492ac3007bbe7432c42165477a8713916864d595923d8c4726c1e8",
+      "train_first": "2026-04-30",
+      "train_last": "2026-07-27",
+      "test_first": "2026-07-28",
+      "training_net": [
+        -8.685391999999633,
+        1.6868885676962422,
+        -12.955068999999654
+      ],
+      "training_input_sha256": "375913f8b1646490ef26911b917382dce810bfd06fd5c04f7ccf122848635878",
+      "cost_model_sha256": "c7656af0e593666b0c6bf05c598bfebeabdbbadcea629cae9a6bbc8a668c462a",
+      "choices": [
+        -1,
+        0,
+        1,
+        2
+      ],
+      "rule_choice": 1,
+      "prompt": "Choose a research arm (-1 hold), mechanism, counterexample and focus. Cite this receipt hash. No test outcomes supplied; not a live action.",
+      "sha256": "6c09139ee5ccc0310d2f63d393bf9b38bf22adb94ccd267807982f04614eef5c"
+    },
+    {
+      "schema_version": 1,
+      "manifest_sha256": "1cb715761e492ac3007bbe7432c42165477a8713916864d595923d8c4726c1e8",
+      "train_first": "2026-05-29",
+      "train_last": "2026-08-24",
+      "test_first": "2026-08-25",
+      "training_net": [
+        -12.867200999999193,
+        8.893501675925181,
+        -6.960101999999175
+      ],
+      "training_input_sha256": "6ab9901d178de55c244bf4b51862b8d26c17d18e046ed30cc415694c3fefd334",
+      "cost_model_sha256": "c7656af0e593666b0c6bf05c598bfebeabdbbadcea629cae9a6bbc8a668c462a",
+      "choices": [
+        -1,
+        0,
+        1,
+        2
+      ],
+      "rule_choice": 1,
+      "prompt": "Choose a research arm (-1 hold), mechanism, counterexample and focus. Cite this receipt hash. No test outcomes supplied; not a live action.",
+      "sha256": "ef1be7033fa2e7622ecc7ba5ecb31afa2559c4a2bb1d6c5caf05936d8ed61e05"
+    },
+    {
+      "schema_version": 1,
+      "manifest_sha256": "1cb715761e492ac3007bbe7432c42165477a8713916864d595923d8c4726c1e8",
+      "train_first": "2026-06-29",
+      "train_last": "2026-09-22",
+      "test_first": "2026-09-23",
+      "training_net": [
+        -15.584604000000025,
+        -1.3920768193195556,
+        -22.940783999999617
+      ],
+      "training_input_sha256": "45a5a10f43e880f581ed1ca48a12ae131e3e1837942f25d279408eb37a9b0cc0",
+      "cost_model_sha256": "c7656af0e593666b0c6bf05c598bfebeabdbbadcea629cae9a6bbc8a668c462a",
+      "choices": [
+        -1,
+        0,
+        1,
+        2
+      ],
+      "rule_choice": -1,
+      "prompt": "Choose a research arm (-1 hold), mechanism, counterexample and focus. Cite this receipt hash. No test outcomes supplied; not a live action.",
+      "sha256": "96019946bc97022d7e590db538dcac1d849e95d5734b74736ed46455e202fdf8"
+    }
+  ],
+  "llm_responses": {
+    "2026-06-29": {
+      "request_sha256": "c0dc6dda389cf9c87211a4baa8a54bde10d337c591b619914ee8b8c2885f853e",
+      "candidate": -1,
+      "author_model": "GPT-6 (current Codex session)",
+      "mechanism": "All three training net increments are negative; retaining the base avoids an unsupported timing overlay.",
+      "counterexample": "A subsequent reversal regime could reward reversion, but training does not establish positive net timing value.",
+      "focus": "costs"
+    },
+    "2026-07-28": {
+      "request_sha256": "6c09139ee5ccc0310d2f63d393bf9b38bf22adb94ccd267807982f04614eef5c",
+      "candidate": 1,
+      "author_model": "GPT-6 (current Codex session)",
+      "mechanism": "VWAP reversion is the only candidate with positive training net increment; select the declared candidate without tuning.",
+      "counterexample": "The small training gain may be noise or disappear under extra fees and a persistent trend.",
+      "focus": "costs"
+    },
+    "2026-08-25": {
+      "request_sha256": "ef1be7033fa2e7622ecc7ba5ecb31afa2559c4a2bb1d6c5caf05936d8ed61e05",
+      "candidate": 1,
+      "author_model": "GPT-6 (current Codex session)",
+      "mechanism": "Only VWAP reversion has positive training net increment, consistent with temporary departures from session value; retain its frozen parameters.",
+      "counterexample": "Persistent directional flow can move VWAP and stop out a reversion sleeve; positive training net does not establish OOS value.",
+      "focus": "validation"
+    },
+    "2026-09-23": {
+      "request_sha256": "96019946bc97022d7e590db538dcac1d849e95d5734b74736ed46455e202fdf8",
+      "candidate": -1,
+      "author_model": "GPT-6 (current Codex session)",
+      "mechanism": "Every candidate has negative training net increment; retaining the base is preferable to adding an unsupported timing sleeve.",
+      "counterexample": "Future volatility could improve opportunities, but the supplied training receipt provides no positive candidate evidence.",
+      "focus": "validation"
+    }
+  },
+  "llm_errors": [],
+  "metrics": {
+    "hold": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 0,
+      "priced_trades": 0,
+      "known_fill_costs": 0.0,
+      "reasons": {},
+      "net_increment": 0.0,
+      "net_return_on_initial_base_plus_reserve": 0.0,
+      "max_session_close_drawdown": 0.0,
+      "turnover_notional": 0.0,
+      "turnover_over_initial_capital": 0.0,
+      "costs": 0.0,
+      "monthly_turnover_hkd_including_opening_usage": {},
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "fixed_band": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 43,
+      "priced_trades": 43,
+      "known_fill_costs": 13.905764999999995,
+      "reasons": {},
+      "net_increment": -21.134195000000233,
+      "net_return_on_initial_base_plus_reserve": -0.0022566610608366284,
+      "max_session_close_drawdown": 23.740926000000087,
+      "turnover_notional": 65228.82443000001,
+      "turnover_over_initial_capital": 6.9649848567843895,
+      "costs": 13.905764999999995,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-06": 11555.306061000001,
+        "2026-07": 209287.843245,
+        "2026-08": 95796.106731,
+        "2026-09": 107729.787243,
+        "2026-10": 84415.787274
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": -1.8057850000000335,
+          "cumulative_net": -1.8057850000000335,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": -1.8057850000000335,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 2.296060999999946,
+          "cumulative_net": 0.49027599999991267,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 1.304217999999918,
+          "cumulative_net": 1.7944939999998306,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": -1.525217999999977,
+          "cumulative_net": 0.2692759999998535,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": -1.645227999999946,
+          "cumulative_net": -1.3759520000000924,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": -1.8216519999999436,
+          "cumulative_net": -3.197604000000036,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": -1.9838660000000499,
+          "cumulative_net": -5.181470000000086,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": -5.181470000000086,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": -5.181470000000086,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.24913800000005004,
+          "cumulative_net": -4.932332000000036,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": -1.6616280000000319,
+          "cumulative_net": -6.593960000000068,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": -6.593960000000068,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": -6.593960000000068,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 1.1173249999999846,
+          "cumulative_net": -5.476635000000083,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": -0.6542590000000363,
+          "cumulative_net": -6.1308940000001195,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 1.012783000000057,
+          "cumulative_net": -5.118111000000063,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 1.5571450000000464,
+          "cumulative_net": -3.5609660000000165,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 2.614061999999963,
+          "cumulative_net": -0.9469040000000537,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": -0.7755160000000363,
+          "cumulative_net": -1.72242000000009,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": -0.5062659999999408,
+          "cumulative_net": -2.228686000000031,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": -2.5130629999999923,
+          "cumulative_net": -4.7417490000000235,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": -1.473958000000014,
+          "cumulative_net": -6.215707000000037,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": -2.4352079999999114,
+          "cumulative_net": -8.650914999999948,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": -1.4539979999999724,
+          "cumulative_net": -10.10491299999992,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": -2.7849469999999936,
+          "cumulative_net": -12.889859999999913,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": -12.889859999999913,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.7875810000000094,
+          "cumulative_net": -12.102278999999903,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 0.0,
+          "cumulative_net": -12.102278999999903,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": -12.102278999999903,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": -12.102278999999903,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": -12.102278999999903,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": -0.7260409999999818,
+          "cumulative_net": -12.828319999999886,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": -12.828319999999886,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": -12.828319999999886,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": -12.828319999999886,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": -12.828319999999886,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": -12.828319999999886,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": 1.0486130000000629,
+          "cumulative_net": -11.779706999999823,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 1.047875000000061,
+          "cumulative_net": -10.731831999999761,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": -10.731831999999761,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 1.157792999999937,
+          "cumulative_net": -9.574038999999823,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": 0.774670000000091,
+          "cumulative_net": -8.799368999999732,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": -8.799368999999732,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": -8.799368999999732,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": -8.799368999999732,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": -8.799368999999732,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -1.888928000000059,
+          "cumulative_net": -10.68829699999979,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": -10.68829699999979,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": -10.68829699999979,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": -10.68829699999979,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": -10.68829699999979,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": -10.68829699999979,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": -2.250363000000082,
+          "cumulative_net": -12.938659999999873,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": -12.938659999999873,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.0,
+          "cumulative_net": -12.938659999999873,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": -12.938659999999873,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -0.6745860000000228,
+          "cumulative_net": -13.613245999999895,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -1.9713580000001296,
+          "cumulative_net": -15.584604000000025,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.0,
+          "cumulative_net": -15.584604000000025,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.8925650000000145,
+          "cumulative_net": -14.692039000000012,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": -0.7268199999999773,
+          "cumulative_net": -15.418858999999989,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": -1.9683380000000243,
+          "cumulative_net": -17.387197000000015,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": -1.759838000000043,
+          "cumulative_net": -19.14703500000006,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.3241779999999772,
+          "cumulative_net": -18.82285700000008,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": -18.82285700000008,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.8996390000000338,
+          "cumulative_net": -17.92321800000005,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": -17.92321800000005,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": -1.6735030000000752,
+          "cumulative_net": -19.596721000000123,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 1.1863649999999542,
+          "cumulative_net": -18.41035600000017,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": -1.6292159999999776,
+          "cumulative_net": -20.03957200000015,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": -20.03957200000015,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": -1.5090260000000602,
+          "cumulative_net": -21.548598000000208,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": -21.548598000000208,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": -21.548598000000208,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": -0.39783400000005004,
+          "cumulative_net": -21.946432000000257,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.812237000000025,
+          "cumulative_net": -21.134195000000233,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": -21.134195000000233,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "simple_regime": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 51,
+      "priced_trades": 51,
+      "known_fill_costs": 16.519963999999995,
+      "reasons": {},
+      "net_increment": -35.7960590000004,
+      "net_return_on_initial_base_plus_reserve": -0.0038222214035931127,
+      "max_session_close_drawdown": 37.59055300000023,
+      "turnover_notional": 77499.822895,
+      "turnover_over_initial_capital": 8.275254039667923,
+      "costs": 16.519963999999995,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-06": 11555.306061000001,
+        "2026-07": 185869.087092,
+        "2026-08": 155782.576833,
+        "2026-09": 190877.293698,
+        "2026-10": 60414.354897
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": -1.8057850000000335,
+          "cumulative_net": -1.8057850000000335,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": -1.8057850000000335,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 2.296060999999946,
+          "cumulative_net": 0.49027599999991267,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 1.304217999999918,
+          "cumulative_net": 1.7944939999998306,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": -1.46586299999997,
+          "cumulative_net": 0.3286309999998607,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": -1.645227999999946,
+          "cumulative_net": -1.3165970000000853,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": -4.851962999999968,
+          "cumulative_net": -6.168560000000053,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": -1.9838660000000499,
+          "cumulative_net": -8.152426000000103,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": -8.152426000000103,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": -8.152426000000103,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": -8.152426000000103,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": -1.6616280000000319,
+          "cumulative_net": -9.814054000000136,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": -9.814054000000136,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 1.8009679999999262,
+          "cumulative_net": -8.013086000000209,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 1.1173249999999846,
+          "cumulative_net": -6.895761000000224,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": -6.895761000000224,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 1.012783000000057,
+          "cumulative_net": -5.882978000000167,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 1.5571450000000464,
+          "cumulative_net": -4.32583300000012,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 2.646131999999951,
+          "cumulative_net": -1.6797010000001693,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": -0.7755160000000363,
+          "cumulative_net": -2.4552170000002054,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": -0.28131100000003184,
+          "cumulative_net": -2.736528000000237,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": -2.5130629999999923,
+          "cumulative_net": -5.24959100000023,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": 0.0,
+          "cumulative_net": -5.24959100000023,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": -2.4352079999999114,
+          "cumulative_net": -7.684799000000141,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": -1.4539979999999724,
+          "cumulative_net": -9.138797000000114,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": -2.7849469999999936,
+          "cumulative_net": -11.923744000000108,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": -11.923744000000108,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.11749900000004998,
+          "cumulative_net": -11.806245000000057,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": -2.38410499999995,
+          "cumulative_net": -14.190350000000008,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": -14.190350000000008,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": -14.190350000000008,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": -14.190350000000008,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": -2.3907079999999454,
+          "cumulative_net": -16.581057999999953,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": -16.581057999999953,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.9805460000000592,
+          "cumulative_net": -15.600511999999894,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": -0.23698199999996816,
+          "cumulative_net": -15.837493999999861,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.49221200000005,
+          "cumulative_net": -15.345281999999811,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 1.0743399999999772,
+          "cumulative_net": -14.270941999999835,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": -0.4962420000000728,
+          "cumulative_net": -14.767183999999908,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": -1.6806990000000182,
+          "cumulative_net": -16.447882999999926,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": -16.447882999999926,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": -1.961244999999991,
+          "cumulative_net": -18.409127999999917,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": 0.774670000000091,
+          "cumulative_net": -17.634457999999825,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": -17.634457999999825,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": -17.634457999999825,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": -0.2746739999999318,
+          "cumulative_net": -17.909131999999758,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": -0.6159979999999636,
+          "cumulative_net": -18.52512999999972,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -1.888928000000059,
+          "cumulative_net": -20.41405799999978,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": -20.41405799999978,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": -20.41405799999978,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": -1.0247960000000456,
+          "cumulative_net": -21.438853999999825,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": -2.0585790000000137,
+          "cumulative_net": -23.497432999999837,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.5191529999999136,
+          "cumulative_net": -22.978279999999923,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": 0.5005230000000456,
+          "cumulative_net": -22.477756999999876,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": -22.477756999999876,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 1.6767359999999747,
+          "cumulative_net": -20.801020999999903,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": -20.801020999999903,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -1.5437800000000272,
+          "cumulative_net": -22.34480099999993,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -1.9713580000001296,
+          "cumulative_net": -24.31615900000006,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.0,
+          "cumulative_net": -24.31615900000006,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": -0.26711200000005453,
+          "cumulative_net": -24.583271000000114,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": -3.138408,
+          "cumulative_net": -27.721679000000115,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": -1.9683380000000243,
+          "cumulative_net": -29.69001700000014,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": -1.759838000000043,
+          "cumulative_net": -31.449855000000184,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": -1.2556060000000386,
+          "cumulative_net": -32.70546100000022,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 1.3086029999998772,
+          "cumulative_net": -31.396858000000343,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": -31.396858000000343,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": -1.3176620000000092,
+          "cumulative_net": -32.71452000000035,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": -32.71452000000035,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 1.1863649999999542,
+          "cumulative_net": -31.528155000000396,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": -1.6292159999999776,
+          "cumulative_net": -33.157371000000374,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": -33.157371000000374,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": -33.157371000000374,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": -33.157371000000374,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": -2.240853999999968,
+          "cumulative_net": -35.398225000000345,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": -0.39783400000005004,
+          "cumulative_net": -35.7960590000004,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": -35.7960590000004,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": -35.7960590000004,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "base": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 14,
+      "priced_trades": 14,
+      "known_fill_costs": 4.545339,
+      "reasons": {},
+      "net_increment": -2.2328980123870545,
+      "net_return_on_initial_base_plus_reserve": -0.00023842374868658653,
+      "max_session_close_drawdown": 7.130448129218813,
+      "turnover_notional": 21326.701359012386,
+      "turnover_over_initial_capital": 2.2772164500693934,
+      "costs": 4.545339,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-07": 34629.82890103971,
+        "2026-08": 59925.457905154086,
+        "2026-09": 71792.98379410282
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": -0.5062659999999408,
+          "cumulative_net": -0.5062659999999408,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": 4.423006020549784,
+          "cumulative_net": 3.9167400205498435,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": -2.086337999999982,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 1.418741893164587,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": -1.6589788920040136,
+          "cumulative_net": 1.590165021710435,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 1.1695685405439096,
+          "cumulative_net": 2.7597335622543446,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": 2.7597335622543446,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 1.3513859770021757,
+          "cumulative_net": 4.111119539256521,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": -0.5684800000000977,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -1.888928000000059,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": -1.9307887828599284,
+          "cumulative_net": -0.27707724360356445,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": -0.27707724360356445,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.8276428017881077,
+          "cumulative_net": 0.5505655581845432,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.5505655581845432,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -0.6745860000000228,
+          "cumulative_net": -0.12402044181547955,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -2.8953081481468126,
+          "cumulative_net": -3.019328589962292,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.7864305775752377,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "spread_x2": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 12,
+      "priced_trades": 12,
+      "known_fill_costs": 7.542357437020012,
+      "reasons": {},
+      "net_increment": -4.505742537075701,
+      "net_return_on_initial_base_plus_reserve": -0.0004811128946985613,
+      "max_session_close_drawdown": 9.493526222193122,
+      "turnover_notional": 18255.897185100053,
+      "turnover_over_initial_capital": 1.9493229956594915,
+      "costs": 7.542357437020012,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-07": 34629.82890103971,
+        "2026-08": 59911.01200647886,
+        "2026-09": 47855.15713626185
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": -0.802531999999941,
+          "cumulative_net": -0.802531999999941,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": 4.1276656897538935,
+          "cumulative_net": 3.3251336897539527,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": -2.3826759999999823,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 1.1096794539432198,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": 1.0269413831706364,
+          "cumulative_net": 3.0790785268678267,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 0.8638875904520182,
+          "cumulative_net": 3.9429661173198447,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": 3.9429661173198447,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 1.0448175677975762,
+          "cumulative_net": 4.987783685117421,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": -0.8768599800000977,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -2.1978560000000593,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": -2.2354328118165006,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.0,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -0.9791720000000228,
+          "cumulative_net": -1.3015371066992594,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -3.204205430376442,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "delay_one_bar": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 12,
+      "priced_trades": 12,
+      "known_fill_costs": 3.8917090000000005,
+      "reasons": {},
+      "net_increment": 1.7502582585370794,
+      "net_return_on_initial_base_plus_reserve": 0.0001868885783654552,
+      "max_session_close_drawdown": 7.283739931006866,
+      "turnover_notional": 18258.553032741464,
+      "turnover_over_initial_capital": 1.949606581003333,
+      "costs": 3.8917090000000005,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-07": 34644.21990103971,
+        "2026-08": 59908.783918081856,
+        "2026-09": 47863.709836261856
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": 0.28357600000002275,
+          "cumulative_net": 0.28357600000002275,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": 5.647761020549806,
+          "cumulative_net": 5.9313370205498295,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": -2.2563040000000547,
+          "cumulative_net": 3.6750330205497748,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": 0.0,
+          "cumulative_net": 3.6750330205497748,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": 0.0,
+          "cumulative_net": 3.6750330205497748,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": 0.0,
+          "cumulative_net": 3.6750330205497748,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": 3.6750330205497748,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.0,
+          "cumulative_net": 3.6750330205497748,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 1.5487158931645824,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": 5.223748913714357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": 1.5756808920039498,
+          "cumulative_net": 6.799429805718307,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 1.1881214068234118,
+          "cumulative_net": 7.987551212541719,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": 7.987551212541719,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 1.0464469770022256,
+          "cumulative_net": 9.033998189543945,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": -0.4184100000000318,
+          "cumulative_net": 8.615588189543914,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": 8.615588189543914,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": 8.615588189543914,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": 8.615588189543914,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": 8.615588189543914,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -1.4190220000000318,
+          "cumulative_net": 7.196566189543882,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": 7.196566189543882,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": 7.196566189543882,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": 7.196566189543882,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": 7.196566189543882,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": 7.196566189543882,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": -2.3440367828599395,
+          "cumulative_net": 4.852529406683942,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": 4.852529406683942,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.0,
+          "cumulative_net": 4.852529406683942,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": 4.852529406683942,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -0.4771250000000319,
+          "cumulative_net": 4.37540440668391,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -2.625146148146831,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": 1.7502582585370794,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "unknown_fee_2bps": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 12,
+      "priced_trades": 12,
+      "known_fill_costs": 7.542357437020012,
+      "reasons": {},
+      "net_increment": -4.505742537075701,
+      "net_return_on_initial_base_plus_reserve": -0.0004811128946985613,
+      "max_session_close_drawdown": 9.493526222193122,
+      "turnover_notional": 18255.897185100053,
+      "turnover_over_initial_capital": 1.9493229956594915,
+      "costs": 7.542357437020012,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-07": 34629.82890103971,
+        "2026-08": 59911.01200647886,
+        "2026-09": 47855.15713626185
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": -0.802531999999941,
+          "cumulative_net": -0.802531999999941,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": 4.1276656897538935,
+          "cumulative_net": 3.3251336897539527,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": -2.3826759999999823,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.9424576897539705,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 1.1096794539432198,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": 2.0521371436971902,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": 1.0269413831706364,
+          "cumulative_net": 3.0790785268678267,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 0.8638875904520182,
+          "cumulative_net": 3.9429661173198447,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": 3.9429661173198447,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 1.0448175677975762,
+          "cumulative_net": 4.987783685117421,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": -0.8768599800000977,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": 4.110923705117323,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -2.1978560000000593,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": 1.913067705117264,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": -2.2354328118165006,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.0,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": -0.32236510669923657,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -0.9791720000000228,
+          "cumulative_net": -1.3015371066992594,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -3.204205430376442,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": -4.505742537075701,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "regular_taf": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 14,
+      "priced_trades": 14,
+      "known_fill_costs": 4.685339000000001,
+      "reasons": {},
+      "net_increment": -2.3728980123870533,
+      "net_return_on_initial_base_plus_reserve": -0.0002533726288552952,
+      "max_session_close_drawdown": 7.1904481292188125,
+      "turnover_notional": 21326.701359012386,
+      "turnover_over_initial_capital": 2.2772164500693934,
+      "costs": 4.685339000000001,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-07": 34629.82890103971,
+        "2026-08": 59925.457905154086,
+        "2026-09": 71792.98379410282
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": -0.5162659999999408,
+          "cumulative_net": -0.5162659999999408,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": 4.413006020549784,
+          "cumulative_net": 3.8967400205498435,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": -2.0963379999999816,
+          "cumulative_net": 1.8004020205498619,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8004020205498619,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8004020205498619,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8004020205498619,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8004020205498619,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8004020205498619,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 1.408741893164587,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": 3.209143913714449,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": -1.6689788920040134,
+          "cumulative_net": 1.5401650217104357,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 1.1595685405439096,
+          "cumulative_net": 2.6997335622543455,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": 2.6997335622543455,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 1.3413859770021757,
+          "cumulative_net": 4.041119539256521,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": -0.5784800000000977,
+          "cumulative_net": 3.4626395392564238,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": 3.4626395392564238,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": 3.4626395392564238,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": 3.4626395392564238,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": 3.4626395392564238,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -1.898928000000059,
+          "cumulative_net": 1.5637115392563647,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.5637115392563647,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": 1.5637115392563647,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": 1.5637115392563647,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": 1.5637115392563647,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": 1.5637115392563647,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": -1.9407887828599284,
+          "cumulative_net": -0.37707724360356365,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": -0.37707724360356365,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.8176428017881077,
+          "cumulative_net": 0.440565558184544,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.440565558184544,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -0.6845860000000228,
+          "cumulative_net": -0.24402044181547877,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -2.9053081481468124,
+          "cumulative_net": -3.149328589962291,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.7764305775752377,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": -2.3728980123870533,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    },
+    "llm": {
+      "complete": true,
+      "sessions": 78,
+      "trades": 14,
+      "priced_trades": 14,
+      "known_fill_costs": 4.545339,
+      "reasons": {},
+      "net_increment": -2.2328980123870545,
+      "net_return_on_initial_base_plus_reserve": -0.00023842374868658653,
+      "max_session_close_drawdown": 7.130448129218813,
+      "turnover_notional": 21326.701359012386,
+      "turnover_over_initial_capital": 2.2772164500693934,
+      "costs": 4.545339,
+      "monthly_turnover_hkd_including_opening_usage": {
+        "2026-07": 34629.82890103971,
+        "2026-08": 59925.457905154086,
+        "2026-09": 71792.98379410282
+      },
+      "curve": [
+        {
+          "session": "2026-06-29",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-06-30",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-01",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-02",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-06",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-07",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-08",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-09",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-10",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-13",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-14",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-15",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-16",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-20",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-21",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-22",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-23",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-24",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-27",
+          "net_increment": 0.0,
+          "cumulative_net": 0.0,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-28",
+          "net_increment": -0.5062659999999408,
+          "cumulative_net": -0.5062659999999408,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-29",
+          "net_increment": 4.423006020549784,
+          "cumulative_net": 3.9167400205498435,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-30",
+          "net_increment": -2.086337999999982,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-07-31",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-03",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-05",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-06",
+          "net_increment": 0.0,
+          "cumulative_net": 1.8304020205498617,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-07",
+          "net_increment": 1.418741893164587,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-10",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-11",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-12",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-13",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-14",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-17",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-18",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-19",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-20",
+          "net_increment": 0.0,
+          "cumulative_net": 3.2491439137144487,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-21",
+          "net_increment": -1.6589788920040136,
+          "cumulative_net": 1.590165021710435,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-24",
+          "net_increment": 1.1695685405439096,
+          "cumulative_net": 2.7597335622543446,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-25",
+          "net_increment": 0.0,
+          "cumulative_net": 2.7597335622543446,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-26",
+          "net_increment": 1.3513859770021757,
+          "cumulative_net": 4.111119539256521,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-27",
+          "net_increment": -0.5684800000000977,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-28",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-08-31",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-01",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-02",
+          "net_increment": 0.0,
+          "cumulative_net": 3.542639539256423,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-03",
+          "net_increment": -1.888928000000059,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-04",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-08",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-09",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-10",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-11",
+          "net_increment": 0.0,
+          "cumulative_net": 1.653711539256364,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-14",
+          "net_increment": -1.9307887828599284,
+          "cumulative_net": -0.27707724360356445,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-15",
+          "net_increment": 0.0,
+          "cumulative_net": -0.27707724360356445,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-16",
+          "net_increment": 0.8276428017881077,
+          "cumulative_net": 0.5505655581845432,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-17",
+          "net_increment": 0.0,
+          "cumulative_net": 0.5505655581845432,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-18",
+          "net_increment": -0.6745860000000228,
+          "cumulative_net": -0.12402044181547955,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-21",
+          "net_increment": -2.8953081481468126,
+          "cumulative_net": -3.019328589962292,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-22",
+          "net_increment": 0.7864305775752377,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-23",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-24",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-25",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-28",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-29",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-09-30",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-01",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-02",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-05",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-06",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-07",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-08",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-09",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-12",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-13",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-14",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-15",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        },
+        {
+          "session": "2026-10-16",
+          "net_increment": 0.0,
+          "cumulative_net": -2.2328980123870545,
+          "unpriced_or_missing": false
+        }
+      ],
+      "metric_basis": "timing increment versus retaining base; not total account return; close-to-close drawdown only"
+    }
+  },
+  "simultaneous_net_lower": {
+    "fixed_band": -53.6175999999999,
+    "simple_regime": -73.81515099999979,
+    "base": -18.438795705702752,
+    "spread_x2": -19.10442036474932,
+    "delay_one_bar": -14.027637667871382,
+    "unknown_fee_2bps": -21.601529914762438,
+    "regular_taf": -13.578163157460487,
+    "llm": -15.00237502722108
+  },
+  "bootstrap": {
+    "seed": 20261018,
+    "replicates": 400,
+    "block_sessions": 5,
+    "adjustment": "Bonferroni over reported non-hold arms"
+  },
+  "oos_sessions": 78,
+  "missing_sessions": [],
+  "validation": "insufficient_or_failed",
   "prospective_status": "not_started",
-  "observed_range": [
-    "2026-10-05",
-    "2026-10-16"
+  "limitations": [
+    "retrospective selection, not historical LLM prediction",
+    "current tariff counterfactual, not historical invoice",
+    "monthly opening allowance usage and FX assumed; no account invoice",
+    "OHLC execution conditional; no order book/queue or intrabar drawdown",
+    "no prospective or live authorization"
   ],
-  "observed_sessions": 10,
-  "oos_sessions": 0,
-  "data_sha256": "b42250a8ba6270cce58c04a2954efca936f6237d273bb04ff3829a295a83edab",
-  "manifest_sha256": "1cb715761e492ac3007bbe7432c42165477a8713916864d595923d8c4726c1e8"
+  "last_replay": {
+    "market": "us",
+    "ticker": "SPY",
+    "session": "2026-10-16",
+    "currency": "USD",
+    "strategy": "intraday-reversion",
+    "live_permission": false,
+    "status": "no_trade",
+    "params": {
+      "window": 20,
+      "deviations": 2.0,
+      "cost_multiple": 2.0,
+      "min_net_bps": 10.0,
+      "max_base_fraction": 0.1
+    },
+    "trades": [],
+    "net_pnl": 0.0,
+    "cost_model": {
+      "assumed_commission_bps": {},
+      "assumed_minimum_commission": {},
+      "spread_source": "fixed",
+      "spread_bps": {
+        "hk": 12.0,
+        "us": 4.0
+      },
+      "spread_share": 0.5,
+      "impact_source": "off",
+      "registered_on": "2026-10-18",
+      "account_commission": {
+        "kind": "user_reported_fact",
+        "source": "kcn task instruction 2026-10-18",
+        "observed_on": "2026-10-18",
+        "monthly_allowance_hkd": 500000,
+        "markets": [
+          "hk",
+          "us"
+        ],
+        "commission_bps": {
+          "hk": 0,
+          "us": 0
+        },
+        "minimum_commission": {
+          "hk": 0,
+          "us": 0
+        },
+        "scenario": "within_monthly_allowance",
+        "usage_verified": false,
+        "scope": "Shared HKD-equivalent monthly turnover allowance for HK and US; conversion, reset rules and excess-allowance broker tariff unknown. This snapshot does not track or authorize allowance consumption."
+      },
+      "regulatory_fees": {
+        "kind": "verified_tariff_snapshot",
+        "as_of": "2026-10-18",
+        "basis": "Current-tariff counterfactual for every replay date, not historical fees. Exchange/clearing/member charges assumed passed through to the retail account without broker markup.",
+        "hk": {
+          "stamp_duty": {
+            "bps": 10.0,
+            "rounding": "ceil_dollar",
+            "effective_from": "2023-11-17",
+            "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+          },
+          "sfc": {
+            "bps": 0.27,
+            "rounding": "nearest_cent",
+            "effective_from": "2014-11-01",
+            "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+          },
+          "afrc": {
+            "bps": 0.015,
+            "rounding": "nearest_cent",
+            "effective_from": "2022-01-01",
+            "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+          },
+          "exchange": {
+            "bps": 0.565,
+            "rounding": "nearest_cent",
+            "effective_from": "2023-01-01",
+            "source": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"
+          },
+          "ccass": {
+            "bps": 0.42,
+            "minimum": 0,
+            "maximum": null,
+            "rounding": "nearest_cent",
+            "effective_from": "2025-06-30",
+            "source": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/HKSCC/2025/019_25_HKSCC_OP_stock-settlement-fee-restructure_e.pdf"
+          }
+        },
+        "us": {
+          "sec": {
+            "bps": 0.206,
+            "side": "sell",
+            "effective_from": "2026-04-04",
+            "source": "https://www.finra.org/rules-guidance/notices/information-notice-20260317"
+          },
+          "taf": {
+            "per_share": 0,
+            "maximum": 0,
+            "side": "sell",
+            "effective_from": "2026-10-01",
+            "effective_through": "2026-12-31",
+            "source": "https://www.finra.org/rules-guidance/rule-filings/sr-finra-2026-021",
+            "regular_2026": {
+              "per_share": 0.000195,
+              "maximum": 9.79,
+              "effective_from": "2026-01-01",
+              "source": "https://www.finra.org/rules-guidance/rule-filings/sr-finra-2024-019/fee-adjustment-schedule"
+            },
+            "note": "Immediate-effectiveness filing temporarily pauses TAF; broker pass-through remains unverified. Snapshot must be updated after holiday."
+          }
+        },
+        "pass_through_rounding_assumption": "US SEC/TAF rounded up separately to cents per order; actual retail rounding/aggregation requires broker statement."
+      },
+      "stamp_duty_exemptions": {
+        "verified_on": "2026-10-18",
+        "source": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Trading/Securities/Stamp-Duty-Reporting-and-Payment/Securities-exempt-from-stamp-duty/secstpduty.xlsx",
+        "source_sha256": "578442f2ca96d054ced5a4d1a9fa3e8fa56fbf1693e63821a83bf6b4c684555c",
+        "tickers": {
+          "02800": {
+            "type": "ETF",
+            "effective_from": "2015-02-13",
+            "source": "https://www.hkex.com.hk/News/Market-Communications/2015/150204news?sc_lang=en"
+          }
+        },
+        "unknown_policy": "Charge stamp duty unless a ticker is explicitly verified here. The sheet exempts ETFs and L&I as classes; no unverified ticker classification or blanket prefix exemption."
+      },
+      "assumed_reference_notional": {
+        "hk": 10000,
+        "us": 10000
+      },
+      "assumed_reference_share_price": {
+        "us": 100
+      },
+      "basis": "account_commission is user-reported fact, conditional on monthly allowance; regulatory_fees is a sourced current-tariff counterfactual; assumed_* fields and spread are assumptions, not an observation; impact is off because nothing here calibrates it",
+      "minimum_commission_applied": true,
+      "rank_cost_basis": "reference ticket; larger of buy/sell costs; not sized execution",
+      "side_bps": {
+        "hk": 17.28,
+        "us": 2.21
+      },
+      "study_spread_multiple": 1,
+      "study_extra_bps_per_leg": 0
+    },
+    "input_sha256": "2f3fba690877b2c3809d425b5b3486ca84c6198da85e24591305b028ccc99333",
+    "evidence_grade": "conditional_replay_not_walk_forward",
+    "reason": "no_cost_qualified_excursion"
+  },
+  "observed_sessions": 138,
+  "observed_range": [
+    "2026-04-01",
+    "2026-10-16"
+  ]
 }

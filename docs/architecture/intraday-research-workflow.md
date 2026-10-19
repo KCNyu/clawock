@@ -126,8 +126,9 @@ uncertainty; platform fees, financing and actual impact remain unmeasured.
 HK stocks retain stamp duty; only explicitly verified exemptions (currently
 02800) omit it. Current CCASS has no old minimum. The much lower assumed US
 spread and absence of stamp duty justify starting research with SPY, **not** a
-claim of superior observed performance. There are no real-data net results while
-the documented entitlement blocker remains unresolved.
+claim of superior observed performance. The shipped receipt now contains real-data
+net results under the owner-attested research authorization described below; the
+cost assumptions remain conditional and do not reconstruct account invoices.
 
 ## Card and LLM contract
 
@@ -158,14 +159,20 @@ model rerun does not substitute for a frozen future observation period.
 
 - 已实现三种 research 服务、严格 manifest、模型回执绑定、净 walk-forward、
   基准与压力场景、成交/现金约束、盘中研究卡及双语入口说明。
-- 实际分钟接口已探测：Massive 成功，Yahoo 429，Dukascopy 403。Massive
-  [行情条款 §5](https://massive.com/legal/market-data-terms-of-service) 对非展示研究、
-  衍生投资策略及分发另需许可；现有账户未提供该项授权证据。禁止把 HTTP 200
-  当许可证。LEAN 的代码 Apache 许可也不能自动替代交易所行情许可。
-- 没有用受限数据计算或发布净收益；没有把合成测试称作实证。较长数据仍为权限阻断；已取得的免费短样本以
-  `insufficient_or_failed` 显示（见下节），数值未知，而不是零收益。真实净 walk-forward、完整模型
-  比较和前瞻观察仍依赖合法历史数据及未来场次。账户实际月度额度和额外费率也
-  尚缺证据。不购买数据、不新增付费订阅、不改变 live/SPCH。
+- Massive/Polygon 已返回 `adjusted:false` 的完整历史，冻结窗口 138 场、每场
+  78 根、缺失日期为空；60 场训练后有 78 场 OOS。适配器的 50000 上限按底层
+  分钟条目计，不能由五分钟根数推断一次请求足够，实际须跟随分页。
+- 本次 owner 明确允许账号数据研究和衍生结论公开，`license_evidence` 采用
+  真实的 owner 授权陈述，非抓取的供应商许可证文件。没有独立核验账户档位或
+  供应商/交易所许可；HTTP 200 只证明接口可用，不证明许可证。
+  [行情条款 §5](https://massive.com/legal/market-data-terms-of-service) 的许可范围
+  仍须按实际账户理解，本次不公开原始行情。
+- 当前状态文件保存完整净 walk-forward、四个压力臂、四折模型回执与净结果，
+  费用仍为原冻结情景。主臂和模型臂净值为负，历史候选判据未通过，状态仍为
+  `insufficient_or_failed`，但指标不再为空。详见
+  [当前研究状态](../design/intraday-strategy-research.md#已落地的后续工作)。
+  账户实际月度额度、发票和额外费率尚缺证据；前瞻观察未开始。
+  不购买数据、不新增付费订阅、不改变 live/SPCH。
 
 ## Free sample audit / 免费样本核查
 
@@ -188,7 +195,7 @@ The page's advertised dates differed from the ZIP; use the actual timestamps and
 raw SHA256 in the receipt. Since the URL is rolling, a later download can change
 its hash and range. Retain the private ZIP for exact input reproduction.
 
-The shipped status and intraday card use this real sample's provenance and
-refusal, superseding the earlier all-sources-unavailable status. The longer
-Massive history still has unresolved non-display/derived-research rights. No
-fee-adjusted historical return is asserted from the short adjusted sample.
+This short adjusted sample remains an ineligible-data audit, not the current
+shipped status. The status and intraday card now use the longer unadjusted
+Massive/Polygon receipt under the owner attestation above. The adjusted sample
+was never used to assert fee-adjusted historical returns.
