@@ -68,16 +68,74 @@ function parse(rel: string, text: string): Topic {
   };
 }
 
-// One group per query word. A CJK run has no spaces, so it is matched through its two-character
-// pieces: a topic covers the word by the share of pieces it contains.
-function terms(query: string): string[][] {
-  const groups: string[][] = [];
-  for (const word of new Set(query.toLowerCase().match(/[\p{L}\p{N}_-]+/gu) ?? [])) {
-    if (/\p{Script=Han}/u.test(word) && word.length > 2) {
-      groups.push([...new Set(Array.from({ length: word.length - 1 }, (_, i) => word.slice(i, i + 2)))]);
-    } else if (word.length > 1 || /\p{Script=Han}/u.test(word)) groups.push([word]);
+// Query matching follows memory.py's search (the spec is in ../README.md § Search matching;
+// tests/test_shared_memory_corpus.py runs both on the same cases): words split on whitespace and
+// punctuation, a Han run of five or more characters is cut into the store's own words, a shorter
+// Han word must occur as written (a four-character one the store never writes may match as its two
+// halves in one topic), and a topic lacking a Han word as written earns partial credit from the
+// longest of the store's words inside it.
+const HAN = "\\u3400-\\u4dbf\\u4e00-\\u9fff\\uf900-\\ufaff";
+const QUERY_WORD_RE = new RegExp(`[${HAN}]+|[^\\s${HAN}\\u2000-\\u206f\\u3000-\\u303f\\uff01-\\uff0f\\uff1a-\\uff20\\uff3b-\\uff40\\uff5b-\\uff65]+`, "gu");
+const HAN_START = new RegExp(`^[${HAN}]`, "u");
+const HAN_LONG = new RegExp(`^[${HAN}]{3,}$`, "u");
+const HAN_WORD_MAX = 4;
+export const SEARCH_COVERAGE = 0.6;
+const MAX_QUERY = 256;
+const MAX_WORDS = 16;
+const EDGE_PUNCT = /^["'`()[\]{}<>,;:!?]+|["'`()[\]{}<>,;:!?]+$/g;
+
+type Frequency = (piece: string) => number;
+
+export function segmentHan(run: string, frequency: Frequency, longest = HAN_WORD_MAX): string[] {
+  type Option = [number, number, number, string[]];
+  const best: Option[] = [[0, 0, 0, []]];
+  for (let end = 1; end <= run.length; end++) {
+    const [dropped, count, rarity, pieces] = best[end - 1];
+    let pick: Option = [dropped + 1, count, rarity, pieces];
+    for (let size = 2; size <= Math.min(longest, end); size++) {
+      const piece = run.slice(end - size, end);
+      const df = frequency(piece);
+      if (!df) continue;
+      const [d, c, r, p] = best[end - size];
+      const option: Option = [d, c + 1, r - Math.log(df), [...p, piece]];
+      if (option[0] < pick[0] || (option[0] === pick[0] && (option[1] < pick[1] || (option[1] === pick[1] && option[2] < pick[2])))) pick = option;
+    }
+    best.push(pick);
   }
-  return groups.slice(0, 16);
+  return best[run.length][3];
+}
+
+export function queryWords(query: string, frequency: Frequency): { words: string[][]; missing: string[] } {
+  const words: string[][] = [];
+  const missing: string[] = [];
+  for (let token of query.toLowerCase().match(QUERY_WORD_RE) ?? []) {
+    if (!HAN_START.test(token)) {
+      token = token.replace(EDGE_PUNCT, "");
+      if (token) words.push([token]);
+    } else if (token.length <= HAN_WORD_MAX) {
+      const halves = [token.slice(0, 2), token.slice(2)];
+      if (token.length < 2 || frequency(token)) words.push([token]);
+      else if (token.length === 4 && halves.every((half) => frequency(half))) words.push(halves);
+      else missing.push(token);
+    } else {
+      const pieces = segmentHan(token, frequency);
+      words.push(...pieces.map((piece) => [piece]));
+      if (pieces.length === 0) missing.push(token);
+    }
+  }
+  const seen = new Set<string>();
+  return { words: words.filter((word) => !seen.has(word.join("\0")) && seen.add(word.join("\0"))), missing };
+}
+
+export function fallbackPieces(word: string[], frequency: Frequency): string[] {
+  if (word.length > 1) return word;
+  return HAN_LONG.test(word[0]) ? segmentHan(word[0], frequency, word[0].length - 1) : [];
+}
+
+export function wordCredit(haystack: string, word: string[], fallback: string[]): number {
+  if (word.every((piece) => haystack.includes(piece))) return 1;
+  const longest = Math.max(0, ...fallback.filter((piece) => haystack.includes(piece)).map((piece) => piece.length));
+  return longest / word.join("").length;
 }
 
 function count(haystack: string, needle: string): number {
@@ -127,38 +185,52 @@ export function createSharedMemoryCorpus(options: { root?: string; includeArchiv
     async search(params: { query: string; maxResults?: number; agentSessionKey?: string; corpus?: string }) {
       try {
         if ((params.corpus && params.corpus !== "all") || !sessionAllowed(params.agentSessionKey)) return [];
-        const wanted = terms(params.query ?? "");
-        if (wanted.length === 0) return [];
         const topics = [];
         for (const rel of await listing()) {
           const topic = await load(rel).catch(() => null);
-          if (topic) topics.push({ topic, name: topic.name.toLowerCase(), desc: topic.description.toLowerCase(), body: topic.body.toLowerCase() });
-        }
-        // Weight each word by how rare it is in the store; a word no topic covers drops out
-        // instead of diluting every topic's coverage.
-        const covers = (t: { name: string; desc: string; body: string }, group: string[]) =>
-          group.filter((part) => t.name.includes(part) || t.desc.includes(part) || t.body.includes(part)).length / group.length;
-        const idf = new Map<string[], number>();
-        for (const group of wanted) {
-          const df = topics.filter((t) => covers(t, group) >= 0.5).length;
-          if (df > 0) idf.set(group, Math.log(1 + topics.length / df));
-        }
-        const total = [...idf.values()].reduce((a, b) => a + b, 0);
-        const pieces = [...idf.keys()].flat();
-        const scored = [];
-        for (const { topic, name, desc, body } of total > 0 ? topics : []) {
-          let weight = 0, covered = 0;
-          for (const [group, w] of idf) {
-            const share = covers({ name, desc, body }, group);
-            if (share === 0) continue;
-            covered += w * share;
-            for (const part of group) weight += (w / group.length) * (4 * count(name, part) + 3 * count(desc, part) + count(body, part));
+          if (topic) {
+            const [name, desc, body] = [topic.name, topic.description, topic.body].map((t) => t.toLowerCase());
+            topics.push({ topic, name, desc, body, hay: `${name}\0${desc}\0${body}\0${rel.toLowerCase()}` });
           }
-          if (covered === 0) continue;
-          const coverage = covered / total;
+        }
+        const frequencies = new Map<string, number>();
+        const frequency = (piece: string) => {
+          if (!frequencies.has(piece)) frequencies.set(piece, topics.filter((t) => t.hay.includes(piece)).length);
+          return frequencies.get(piece)!;
+        };
+        const words = queryWords((params.query ?? "").slice(0, MAX_QUERY), frequency).words.slice(0, MAX_WORDS);
+        // Weight each word by how rare it is (BM25's idf); a word no topic contains drops out
+        // instead of diluting every topic's coverage.
+        const weights = new Map<string[], { w: number; fallback: string[] }>();
+        for (const word of words) {
+          const df = topics.filter((t) => word.every((piece) => t.hay.includes(piece))).length;
+          if (df) weights.set(word, { w: Math.log(1 + (topics.length - df + 0.5) / (df + 0.5)), fallback: fallbackPieces(word, frequency) });
+        }
+        const total = [...weights.values()].reduce((a, b) => a + b.w, 0);
+        const matched = [];
+        for (const t of total > 0 ? topics : []) {
+          let weight = 0, covered = 0, literal = false;
+          const pieces: string[] = [];
+          for (const [word, { w, fallback }] of weights) {
+            const credit = wordCredit(t.hay, word, fallback);
+            if (credit === 0) continue;
+            literal ||= credit === 1;
+            covered += w * credit;
+            // A partly matched word counts the longest of its pieces the topic contains.
+            const hit = credit === 1 ? word : [fallback.filter((p) => t.hay.includes(p)).sort((a, b) => b.length - a.length)[0]];
+            pieces.push(...hit);
+            for (const part of hit) weight += (w * credit / hit.length) * (4 * count(t.name, part) + 3 * count(t.desc, part) + count(t.body, part));
+          }
+          // A topic must contain some word as written; partial credit only adds to that.
+          if (literal) matched.push({ t, coverage: covered / total, weight, pieces });
+        }
+        // Keep the topics covering most of what the best one covers.
+        const best = Math.max(0, ...matched.map((m) => m.coverage));
+        const scored = [];
+        for (const { t: { topic }, coverage, weight, pieces } of matched.filter((m) => m.coverage >= SEARCH_COVERAGE * best - 1e-9)) {
           const score = coverage * coverage * (0.5 + 0.5 * Math.min(1, weight / 30)) * (topic.archived ? 0.6 : 1);
           const lines = topic.body.split("\n");
-          const first = Math.max(0, lines.findIndex((l) => pieces.some((t) => l.toLowerCase().includes(t))));
+          const first = Math.max(0, lines.findIndex((l) => pieces.some((p) => l.toLowerCase().includes(p))));
           const snippet = [topic.description, ...lines.slice(Math.max(0, first - 1), first + 3)].filter(Boolean).join("\n").slice(0, MAX_SNIPPET);
           scored.push({
             corpus: CORPUS, path: PREFIX + topic.rel, title: topic.name, kind: topic.kind, score, snippet,

@@ -261,16 +261,16 @@ HAN_WORD_MAX = 4
 SEARCH_COVERAGE = 0.6
 
 
-def segment_han(run: str, frequency) -> list[str]:
-    """Split a run of Han characters into the fewest pieces of 2-4 characters that occur in the
-    store, preferring common pieces on a tie (通知 + 没送到 over 通知没 + 送到); characters no such
+def segment_han(run: str, frequency, longest: int = HAN_WORD_MAX) -> list[str]:
+    """Split a run of Han characters into the fewest pieces of 2-`longest` characters that occur in
+    the store, preferring common pieces on a tie (通知 + 没送到 over 通知没 + 送到); characters no such
     piece covers (particles, words the store never uses) are dropped. `frequency(piece)` is the
     number of topics containing the piece."""
     best: list[tuple[int, int, float, list[str]]] = [(0, 0, 0.0, [])]
     for end in range(1, len(run) + 1):
         dropped, count, rarity, pieces = best[end - 1]
         options = [(dropped + 1, count, rarity, pieces)]
-        for size in range(2, min(HAN_WORD_MAX, end) + 1):
+        for size in range(2, min(longest, end) + 1):
             piece = run[end - size:end]
             if df := frequency(piece):
                 dropped, count, rarity, pieces = best[end - size]
@@ -305,6 +305,26 @@ def query_words(query: str, frequency) -> tuple[list[tuple[str, ...]], list[str]
             if not pieces:
                 missing.append(token)
     return list(dict.fromkeys(words)), missing
+
+
+def fallback_pieces(word: tuple[str, ...], frequency) -> tuple[str, ...]:
+    """Shorter pieces that earn a topic lacking a Han word as written partial credit: its two
+    halves if it is matched as halves, otherwise the store's own words inside it (被清空 -> 清空,
+    磁盘空间 -> 磁盘 + 空间). Other words have none."""
+    if len(word) > 1:
+        return word
+    if not re.fullmatch(f"[{HAN}]{{3,}}", word[0]):
+        return ()
+    return tuple(segment_han(word[0], frequency, len(word[0]) - 1))
+
+
+def word_credit(haystack: str, word: tuple[str, ...], fallback: tuple[str, ...]) -> float:
+    """1 for a word the text contains as written, else the share of its characters that the
+    longest of its fallback pieces in the text covers: pieces found apart are no stronger
+    evidence than the longest one, so the credit stays below 1."""
+    if all(piece in haystack for piece in word):
+        return 1.0
+    return max((len(piece) for piece in fallback if piece in haystack), default=0) / sum(map(len, word))
 
 
 def cmd_search(args: argparse.Namespace) -> int:
@@ -356,17 +376,25 @@ def cmd_search(args: argparse.Namespace) -> int:
     def share(line: str, word: tuple[str, ...]) -> float:
         return sum(piece in line for piece in word) / len(word)
 
+    # A topic lacking a Han word as written still earns part of its weight from the shorter
+    # words inside it, but only once it contains some other word as written.
+    fallbacks = {word: fallback_pieces(word, frequency) for word in weights}
     results = []
     for rel, text, description, haystack in docs:
         present = [word for word in weights if has(haystack, word)]
         if not present:
             continue
-        coverage = sum(weights[word] for word in present) / total
+        partial = {word: credit for word in weights if word not in present
+                   if (credit := word_credit(haystack, word, fallbacks[word]))}
+        coverage = (sum(weights[word] for word in present)
+                    + sum(weights[word] * credit for word, credit in partial.items())) / total
         lines = []
         header_end = text.find("\n---\n", 3) if text.startswith("---\n") else -1
         header_lines = text[:header_end].count("\n") + 2 if header_end >= 0 else 0
         for number, line in enumerate(text.splitlines(), 1):
-            hit = sum(share(line.lower(), word) for word in present)
+            low = line.lower()
+            hit = (sum(share(low, word) for word in present)
+                   + sum(word_credit(low, word, fallbacks[word]) for word in partial))
             if hit:
                 # Frontmatter is already shown as the description; prefer body snippets.
                 lines.append((hit - (0.5 if number <= header_lines else 0), number, line))
@@ -376,7 +404,9 @@ def cmd_search(args: argparse.Namespace) -> int:
                  + sum(6 * has(rel.lower(), word) + 4 * has(description.lower(), word) for word in present)
                  + min(sum(hit for hit, _, _ in lines), 15)
                  - (8 if rel.startswith("archive/") else 0))
-        lacking = ["+".join(word) for word in weights if word not in present]
+        lacking = ["+".join(word) + (f"({'+'.join(p for p in fallbacks[word] if p in haystack)})"
+                                     if word in partial else "")
+                   for word in weights if word not in present]
         marker = (f" [missing {' '.join(lacking)}]" if len(lacking) <= len(present)
                   else f" [only {' '.join('+'.join(word) for word in present)}]") if lacking else ""
         results.append((score, rel, description, lines, coverage, marker))

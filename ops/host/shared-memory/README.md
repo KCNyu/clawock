@@ -116,5 +116,38 @@ leaves it in place. The assistant's `memory_search` with `corpus=all` and `memor
   (`context.openclaw.no_shared_text`) when a line of the workspace's `public_files` repeats a
   line of the shared store.
 
+The plugin matches queries by the same rules as `memory.py search` (§ Search matching); only
+the score it reports differs, because OpenClaw ranks it next to its own corpora.
+
 Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
 `plugins.load.paths` and enable `plugins.entries.shared-memory-corpus`; a gateway restart loads it.
+
+## Search matching
+
+`scripts/memory.py search` and `openclaw/index.ts` implement one set of matching rules, each in
+its own language with no shared build step; `tests/test_shared_memory_corpus.py` runs both on
+the same queries and requires the same words, credits and kept topics. Change both together.
+
+1. **Words.** The lowercased query splits on whitespace and CJK / full-width punctuation;
+   `MEMORY.md`, `T+0` and `check-clawock-guide` stay whole, and Han and non-Han runs separate
+   (`T+0回放` is `t+0` + `回放`). Quotes and brackets are trimmed from non-Han words.
+2. **Han words.** A Han run of up to four characters must occur in the store as written; a
+   four-character run the store never writes may match as its two halves, both in one topic
+   (`单日跌幅` is `单日` + `跌幅`); otherwise it is reported missing. A run of five or more is cut
+   into the fewest store words of two to four characters, preferring common ones on a tie
+   (`通知没送到` is `通知` + `没送到`); characters no store word covers drop out.
+3. **Weights.** Each word weighs its BM25 idf, `log(1 + (N - df + 0.5) / (df + 0.5))`, over the
+   topics searched; a word no topic contains drops out.
+4. **Credit.** A topic containing a word as written gets its whole weight. A topic lacking a
+   Han word of three or more characters gets the share of its characters that the longest of
+   the store's shorter words inside it covers (`被清空` → `清空`, 2/3; `磁盘空间` → `磁盘` or
+   `空间`, 1/2); pieces found apart never add up to the word. Only a topic that contains at least
+   one word as written is listed.
+5. **Kept topics.** Coverage is a topic's credited weight over the query's total; a topic is kept
+   when its coverage is at least 0.6 × the best topic's.
+
+What each tool adds on top: `memory.py` searches every `.md` under the root (indexes included),
+lists topics containing every word first, scores filename, description and line hits, and lifts
+an active digest above its archived full text. The plugin searches top-level and `archive/`
+topics, reads at most 256 query characters and 16 words, and reports a score in 0–1.
+
