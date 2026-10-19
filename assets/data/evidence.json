@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-10-16T04:06:13+08:00",
+  "generated_at": "2026-10-17T04:05:28+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -44,7 +44,7 @@
       "verdict": "⚪ 尚不可判",
       "verdict_key": "undecided",
       "tone": "idle",
-      "sample": "留痕 93 天",
+      "sample": "留痕 94 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 0/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -58,11 +58,11 @@
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 60.2% · CI95 [49.4%, 69.8%] · n=374（74 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 60.7% · CI95 [49.8%, 70.7%] · n=379（75 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 58.3% · CI95 [47.8%, 68.0%] · n=525（85 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 58.8% · CI95 [48.5%, 68.0%] · n=531（86 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_on_follow`",
@@ -70,7 +70,7 @@
         },
         {
           "label": "`zscore_extreme_revert`",
-          "value": "命中率 60.0% · CI95 [31.2%, 90.9%] · n=30（16 日 × 6 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 58.1% · CI95 [29.3%, 88.5%] · n=31（17 日 × 6 标的）· ⚪ CI 跨 50%，锁定"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "37 / 需要 24 · ✅"
+          "value": "38 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -105,7 +105,7 @@
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.04455, 0.0102] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.04045, 0.01168] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
@@ -165,5 +165,5 @@
       ]
     }
   ],
-  "built_at": "2026-10-16T00:04:58.669995+00:00"
+  "built_at": "2026-10-19T00:05:04.991039+00:00"
 }

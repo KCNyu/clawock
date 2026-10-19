@@ -12,3 +12,4 @@
 {"as_of":"2026-10-14","generation_id":"18ce9da5ed63ee44","rows":{}}
 {"as_of":"2026-10-15","generation_id":"719fc91e66e2daad","rows":{}}
 {"as_of":"2026-10-16","generation_id":"f5708e255bd6dceb","rows":{"CRCL":{"leg":"US","mode":"observe","gate":"thesis_unrecorded","rungs":[88.2117,82.3325,76.4533],"invalidation_price":70.5741,"trend_floor":86.07,"depth_atr":2.21,"close":86.97,"authorization":null}}}
+{"as_of":"2026-10-19","generation_id":"4e5479589f845eff","rows":{}}

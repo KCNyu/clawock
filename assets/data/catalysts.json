@@ -1,14 +1,26 @@
 {
-  "generated_at": "2026-10-16T08:03:49.769126+08:00",
+  "generated_at": "2026-10-19T08:04:01.083663+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-16",
-  "window_end": "2026-10-30",
+  "window_start": "2026-10-19",
+  "window_end": "2026-11-02",
   "earnings_queried": [
     "CRCL",
     "RKLB",
     "SPCX"
   ],
-  "earnings": [],
+  "earnings": [
+    {
+      "ticker": "SPCX",
+      "name": "SPCX",
+      "date": "2026-10-20",
+      "time": "unknown",
+      "eps_estimate": 0.139,
+      "eps_actual": null,
+      "revenue_estimate_m": 12962.36,
+      "quarter": 3,
+      "year": 2026
+    }
+  ],
   "recent_earnings": [],
   "fomc": [
     {
@@ -31,11 +43,11 @@
   ],
   "scheduled_events": [],
   "summary": {
-    "earnings_count": 0,
+    "earnings_count": 1,
     "fomc_in_window": 1,
     "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": null
+    "highest_impact_within_7d": "SPCX earnings 2026-10-20 (unknown)"
   }
 }
