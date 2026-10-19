@@ -2537,8 +2537,9 @@ async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
 // 这块牌三层：判词 + 四个领域读数 → 定时任务监测板 → 选中后就地展开的明细。
 // payload 由用例自己造（形状固定，不随当日数据时灵时不灵），量的是浏览器
 // 真排出来的东西。
-function dataHealthFixture(json, { stale = false, outcomes = null } = {}) {
+function dataHealthFixture(json, { stale = false, outcomes = null, preserved = null } = {}) {
   json.build_status = json.build_status || {};
+  if (preserved) json.build_status.previous_payload = { source: "previous.json", preserved };
   json.build_status.integrity = { error_count: 0, warn_count: 1, top: [
     { level: "WARN", code: "quote.us_stale", msg: "SKHY 报价 3 小时未更新" }] };
   json.build_status.files = (json.build_status.files || []).map(f => ({ ...f, present: true, stale: false }));
@@ -2624,6 +2625,25 @@ async function testUncountedDueSlotsAreNotAllDelivered(browser, base) {
   assert.equal(uncounted.tone, "warn");
   assert.ok(!uncounted.note.includes("全部按时送达") && uncounted.note.includes("未核对"), uncounted.note);
   assert.deepEqual(await cellOf(0), { tone: "ok", note: "全部按时送达" });
+}
+
+// #3071：投递读数整块抄自上一代（preserved 点名 workflow_outcomes）时，抄来的
+// 「1/1 送达 · 全部按时送达」曾照印成正常；现在说明来源并降成观察，页脚同样标出。
+async function testACopiedDeliveryReadingSaysSo(browser, base) {
+  const { context, page } = await openDataHealth(browser, base, 1280, {
+    preserved: ["workflow_outcomes"],
+    outcomes: { window_hours: 36, counts: { success: 1 }, due_no_record: 0, no_record_slots: [],
+      generated_at: "2026-10-18T14:40:04+08:00" } });
+  const seen = await page.evaluate(() => {
+    const el = document.querySelector('#dh-cells .dh-cell[data-key="delivery"]');
+    return { tone: el.dataset.tone, note: el.querySelector(".dh-cell-note").textContent.trim(),
+      footer: document.getElementById("build-status").textContent };
+  });
+  assert.equal(seen.tone, "warn");
+  assert.ok(seen.note.includes("来自上一次发布") && seen.note.includes("14:40 HKT")
+    && !seen.note.includes("全部按时送达"), seen.note);
+  assert.ok(seen.footer.includes("成品读数来自上一次发布"), seen.footer);
+  await context.close();
 }
 
 // #2056：artifact_only（产物在、投递未确认）曾整类掉出分母，1 成功 + 2 未确认
@@ -4476,6 +4496,7 @@ async function main() {
     await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
     await run("testUnconfirmedDeliveryIsNotAllDelivered", () => testUnconfirmedDeliveryIsNotAllDelivered(browser, base));
     await run("testUncountedDueSlotsAreNotAllDelivered", () => testUncountedDueSlotsAreNotAllDelivered(browser, base));
+    await run("testACopiedDeliveryReadingSaysSo", () => testACopiedDeliveryReadingSaysSo(browser, base));
     await run("testFooterDegradationsCountOnlyTheWindow", () => testFooterDegradationsCountOnlyTheWindow(browser, base));
     await run("testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh", () => testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh(browser, base));
     await run("testAnOldScheduleIsOneWatchItemNotOnePerJob", () => testAnOldScheduleIsOneWatchItemNotOnePerJob(browser, base));

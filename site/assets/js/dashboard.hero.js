@@ -503,6 +503,18 @@
     return oldest === newest ? String(newest) : `${oldest} → ${newest}`;
   }
 
+  // 投递读数是否整块抄自上一代：`build_status.previous_payload.preserved` 点了
+  // `workflow_outcomes`。返回那一代折叠时刻的 HKT 文本（读不到则「时刻未知」），否则 ""。
+  function workflowOutcomesCopied(wf) {
+    const preserved = safe(DATA, "build_status", "previous_payload", "preserved");
+    if (!Array.isArray(preserved) || !preserved.includes("workflow_outcomes")) return "";
+    const at = new Date(safe(wf, "generated_at") || "");
+    return isNaN(at) ? "时刻未知" : at.toLocaleString("zh-CN", {
+      month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+      hour12: false, timeZone: "Asia/Hong_Kong",
+    }) + " HKT";
+  }
+
   // ── A2 系统健康卡（页脚）──
   // 数据新鲜度 + 体检结论（A1）的被动展示。不推送（遵 feedback_no_individual_cron_alerts），
   // 让 stale / 体检异常一眼可见。绿=全新鲜且体检过；黄=有 stale 或 WARN；红=体检 ERROR。
@@ -548,6 +560,11 @@
       if (degradationCount) bits.push(`${degWinH}h 内 ${degradationUnknown ? "至少 " : ""}${degradationCount} 次降级记录${degradationUnknown ? "（旧历史不完整）" : ""}`);
       label = bits.join(' · ');
     } else { dot = 'ok'; label = '数据健康 · 体检通过'; }
+    const wfCopied = workflowOutcomesCopied(wf);
+    if (wfCopied) {
+      if (dot === 'ok') { dot = 'warn'; label = `成品读数来自上一次发布（${wfCopied}）`; }
+      else label += ` · 成品读数来自上一次发布（${wfCopied}）`;
+    }
     if (wf.raw_error_but_product_usable) {
       label += ` · ${wf.raw_error_but_product_usable} 执行红/成品可用`;
     }
@@ -1357,6 +1374,9 @@
     const late = files.filter(f => f.present === false || f.stale);
     const wf = safe(DATA, "workflow_outcomes") || {};
     const wc = wf.counts || {};
+    // 这一块不是本代算的：构建时读不到台账，整块从上一次发布抄回（#3071）。
+    // 抄来的「全部按时送达」不能当今天的读数印成正常。
+    const wfCopied = workflowOutcomesCopied(wf);
     const failed = wc.failed || 0;
     const soft = (wc.recovered || 0) + (wc.degraded || 0);
     const okCount = wc.success || 0;
@@ -1508,10 +1528,11 @@
         note: igFinding ? String(igFinding.msg || igFinding.code || "")
           : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
-        tone: failed || noRecord ? "bad" : (soft || unconfirmed || noRecordUnknown || !slotTotal ? "warn" : "ok"),
-        state: failed || noRecord ? "需处理" : (soft || unconfirmed || noRecordUnknown || !slotTotal ? "观察" : "正常"),
+        tone: failed || noRecord ? "bad" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "warn" : "ok"),
+        state: failed || noRecord ? "需处理" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "观察" : "正常"),
         value: slotTotal ? `${deliveredCount}/${slotTotal}` : DASH, unit: "送达",
-        note: failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
+        note: wfCopied ? `这一格来自上一次发布（${wfCopied}），本次构建没读到投递台账`
+          : failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
           : noRecord ? `${noRecord} 档到期无记录${noRecordNames ? `（${noRecordNames}${noRecord > (wf.no_record_slots || []).length ? " 等" : ""}）` : ""}`
           : unconfirmed ? `${nameThem(unconfirmed, slotsWith("artifact_only")) || `${unconfirmed} 档仅存档`}，投递未确认`
           : soft ? `${nameThem(soft, slotsWith("recovered", "degraded")) || `${soft} 档恢复或降级`}，成品已送达`
