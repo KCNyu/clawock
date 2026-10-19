@@ -318,6 +318,7 @@ as live.
 
 | Part | Status |
 |---|---|
+| independent manual-confirmation recommendations; negative evidence, inventory, freshness and traceability (`test_conditional_advice_preserves_negative_evidence_and_is_traceable`, `test_refusals_do_not_invent_orders`) | implemented; research authority unchanged |
 | field-name gate, fold regression gate | live (#1870) |
 | this contract | live (#1871) |
 | core packet + reference tool | live (#1882) |
@@ -381,3 +382,16 @@ regime and uncertainty; numbers, labels and delivery remain harness-owned.
 [Research workflow](intraday-research-workflow.md) defines frozen proposals,
 training-only model receipts, data rights, net metrics and the card's fail-closed
 states. A missing model response is recorded, never substituted as measured hold.
+
+
+### Conditional order recommendations
+
+`intraday_recommendations` is a separate core mixed field, rendered immediately
+after historical evidence. Its advisory contract can propose a studied-ticker
+inventory roundtrip under fresh completed-bar conditions even when historical
+validation failed. It carries that adverse result and absent forward evidence
+beside each row. Only manual confirmation is authorized; no execution, new
+position, live strategy composition or SPCH change. The historical field still
+cannot authorize an action. Formula, sizing, expiration, refusal states and
+replayable source hashes are defined in the
+[workflow](intraday-research-workflow.md#conditional-recommendation-layer--独立条件推荐层).

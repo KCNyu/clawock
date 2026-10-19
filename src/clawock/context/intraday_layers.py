@@ -56,7 +56,7 @@ CORE_FIELDS = {
     # 异动归因与资讯
     'information': 'evidence', 'mover_thesis': 'evidence', 'mover_news': 'evidence',
     'anomaly_search': 'evidence', 'active_information_candidates': 'evidence',
-    'known_catalysts': 'evidence', 'intraday_research': 'evidence',
+    'known_catalysts': 'evidence', 'intraday_research': 'evidence', 'intraday_recommendations': 'evidence',
 }
 
 
@@ -82,7 +82,7 @@ POLICY_FIELDS = (
 MIXED_FIELDS = (
     'analyzer_block', 'raw_wechat_block', 'semantic_state', 'semantic_delta',
     'prior_semantic_state', 'mover_thesis', 'mover_news', 'anomaly_search',
-    'active_information_candidates', 'intraday_research',
+    'active_information_candidates', 'intraday_research', 'intraday_recommendations',
 )
 
 

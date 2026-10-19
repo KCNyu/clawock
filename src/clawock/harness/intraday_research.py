@@ -2,6 +2,7 @@
 from datetime import datetime, timezone
 import json
 import math
+import hashlib
 
 STATUSES = {'blocked_data_rights', 'insufficient_or_failed', 'retrospective_candidate',
             'synthetic_test_only'}
@@ -69,6 +70,14 @@ def snapshot(workspace, market, *, now=None):
                 'report_age_hours': round((now-stamp).total_seconds()/3600, 1),
                 'historical_only': True, 'metrics': metrics, 'focus': focus, 'trace': trace, 'economics': economics,
                 'manifest_sha256': report.get('manifest_sha256'),
+                'data_sha256': report.get('data_sha256'),
+                'recommendation_candidate': (report.get('manifest', {}).get('candidates') or [None])[0],
+                'recommendation_evidence_ok': (public and source.get('synthetic') is False
+                    and source.get('price_basis') == 'unadjusted' and not report.get('blockers')
+                    and report.get('market') == report.get('manifest', {}).get('market')
+                    and report.get('ticker') in report.get('manifest', {}).get('universe', [])
+                    and report.get('manifest_sha256') == hashlib.sha256(json.dumps(
+                        report.get('manifest'), sort_keys=True, allow_nan=False).encode()).hexdigest()),
                 'metrics_withheld_for_rights': not public,
                 'blockers': report.get('blockers', []), 'llm_missing_or_invalid': len(report.get('llm_errors', [])),
                 'prospective_status': report.get('prospective_status', 'not_started')}
@@ -117,5 +126,5 @@ def render(ctx):
             bar = '▮' * min(20, int(abs(value)/5))
             lines.append(f'{label} {value:+.2f} bps {bar}（每格5bps，最多20格）')
         lines.append(f"研究底仓 {economics['base_shares']} 股｜回转 {economics['sleeve_shares']} 股；不是今日建议尺寸")
-    lines.append('前瞻验证未完成；尚无实盘授权，原持仓策略不变。')
+    lines.append('前瞻验证未完成；研究回执不授予交易执行权限，原持仓策略不变。')
     return '\n'.join(lines)

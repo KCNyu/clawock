@@ -107,4 +107,4 @@ have no such constraint and therefore live under `site/`.
 - [Intraday research contract](design/intraday-strategy-research.md): mounted replay service, LLM boundaries and presentation design.
 
 - [Intraday research / 盘中研究验证与卡片](architecture/intraday-research-workflow.md)：
-  三种 research 插件、模型回执、净 walk-forward、数据许可和历史研究展示。
+  三种 research 插件、模型回执、净 walk-forward、数据许可、历史研究展示及独立人工条件推荐 / independent manual conditional recommendations。
