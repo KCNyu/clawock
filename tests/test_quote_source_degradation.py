@@ -195,3 +195,45 @@ def test_provider_parsing_survives_every_stamp_format_in_use():
         (None, None),
     ):
         assert integrity._quote_provider(stamp) == want
+
+
+@pytest.mark.parametrize('previous', [None, '-', 0, -1, 'nan', 'bad'])
+def test_eastmoney_missing_close_never_becomes_current_price(previous, monkeypatch, tmp_path):
+    class Response:
+        def json(self):
+            return {'data': {'diff': [{'f12': '00100', 'f2': 299.6,
+                                     'f18': previous, 'f3': 2.73}]}}
+    monkeypatch.setattr(hk, 'em_get', lambda *a, **k: Response())
+    quote = hk._fetch_eastmoney_hk(['00100'])['00100']
+    assert quote['pc'] is None and quote['_pc_quality'] == 'missing'
+    _book(tmp_path, monkeypatch, {
+        'ticker': '00100', 'shares': 100, 'cost_basis': 300,
+    })
+    monkeypatch.setattr(hk, 'fetch_hk_quotes', lambda codes: {'00100': quote})
+    holding = hk.update_hk_portfolio(dry_run=True)['portfolios']['hk_stocks']['holdings'][0]
+    assert holding['quote_incomplete']
+    assert holding['today_change'] is None
+    assert holding['today_change_pct'] is None
+    assert 'prev_close' not in holding
+
+
+def test_eastmoney_missing_close_reuses_only_a_dated_real_close(monkeypatch, tmp_path):
+    _, prior = _sessions()
+    _book(tmp_path, monkeypatch, {
+        'ticker': '00100', 'shares': 100, 'cost_basis': 300,
+        'prev_close': 290, 'prev_close_date': prior,
+    })
+    quote = {'c': 299.6, 'pc': None, 'dp': 2.73, '_pc_quality': 'missing'}
+    monkeypatch.setattr(hk, 'fetch_hk_quotes', lambda codes: {'00100': quote})
+    holding = hk.update_hk_portfolio(dry_run=True)['portfolios']['hk_stocks']['holdings'][0]
+    assert holding['prev_close'] == 290
+    assert holding['today_change'] == 960
+    assert not holding.get('quote_incomplete')
+
+
+def test_missing_eastmoney_close_does_not_break_tencent_cross_check(monkeypatch):
+    monkeypatch.setattr(hk, '_fetch_tencent_hk', lambda codes: {
+        '00100': {'c': 299.6, 'pc': 290, 'dp': 3.31}})
+    monkeypatch.setattr(hk, '_fetch_eastmoney_hk', lambda codes: {
+        '00100': {'c': 299.6, 'pc': None, 'dp': 2.73, '_pc_quality': 'missing'}})
+    assert hk.fetch_hk_quotes(['00100'])['00100']['pc'] == 290

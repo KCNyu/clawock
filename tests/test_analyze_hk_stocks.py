@@ -376,6 +376,8 @@ def test_news_sentiment_uses_documented_two_hit_margin(articles, expected):
     ],
 )
 def test_signal_thresholds_and_priority_are_definitional(holding, expected):
+    if 'today_change_pct' in holding:
+        holding = dict(holding, prev_close=100, current_price=100 + holding['today_change_pct'])
     assert hk.signal(holding) == expected
 
 

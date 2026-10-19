@@ -122,6 +122,11 @@ def _resettle(args) -> int:
     print("   Excluding hard cases is exactly how a record gets prettier for free, so")
     print("   the coverage is published next to the rate rather than rounded away.")
 
+    coverage = m["coverage_passive"]
+    print("--- passive episode coverage, last 30d")
+    print(f"   total {coverage['episodes_total']} | fully graded {coverage['episodes_graded']} | partially graded {coverage['episodes_partial']} | unresolved {coverage['episodes_unresolved']}")
+    print(f"   graded coverage {coverage['graded_pct']}% | reasons {coverage['unresolved_reasons']}")
+
     if args.write:
         dv2.write_decisions(decisions)
         print(f"\n✓ wrote {dv2.LEDGER}")

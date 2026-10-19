@@ -18,7 +18,7 @@ Usage:
 """
 
 from clawock.safe_io import to_number as _share_number
-from clawock.safe_io import carried_value
+from clawock.safe_io import carried_value, to_finite_number
 
 import copy
 import json
@@ -35,6 +35,7 @@ from clawock.market_data.eastmoney_http import em_get
 from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
+from clawock.portfolio.math import session_change_pct
 from clawock.portfolio.math import number, day_pnl, ledger_date, ledger_rows, session_date
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
@@ -140,12 +141,15 @@ def _fetch_eastmoney_hk(codes: List[str]) -> Dict[str, Dict]:
                 continue
             c = float(c)
             pc_raw = item.get('f18')
-            pc = float(pc_raw) if pc_raw not in (None, '-') else c
+            pc = to_finite_number(pc_raw)
+            missing_pc = pc is None or pc <= 0
+            pc = None if missing_pc else pc
             out[t] = {
                 'name': item.get('f14') or t,
                 'c': c, 'pc': pc,
                 'o': float(item.get('f17') or c),
-                'dp': float(item.get('f3') or _pct(c, pc)),
+                'dp': to_finite_number(item.get('f3')) if missing_pc else _pct(c, pc),
+                **({'_pc_quality': 'missing'} if missing_pc else {}),
             }
         return out
     except Exception as e:
@@ -257,7 +261,8 @@ def fetch_hk_quotes(codes: List[str]) -> Dict[str, Dict]:
         eq = eastmoney.get(code)
         if tq and eq:
             c_div = abs(tq['c'] - eq['c']) / max(tq['c'], 0.001) * 100
-            pc_div = abs(tq['pc'] - eq['pc']) / max(tq['pc'], 0.001) * 100
+            pc_div = (abs(tq['pc'] - eq['pc']) / max(tq['pc'], 0.001) * 100
+                      if tq.get('pc') and eq.get('pc') else 0)
             tq['_src'] = 'Tencent+Eastmoney'
             if c_div > 1.0 or pc_div > 1.0:
                 tq['_divergence'] = {
@@ -360,25 +365,30 @@ def news_sentiment(articles: List[Dict]) -> str:
     return 'neutral'
 
 
+def _day_text(value, digits=1):
+    return f'{value:+.{digits}f}%' if value is not None else '—'
+
+
 # ── signal generation ─────────────────────────────────────────────────────────
 
 def signal(holding: Dict) -> str:
-    dp    = holding.get('today_change_pct', 0)
+    dp    = session_change_pct(holding)
+    dp = round(dp, 2) if dp is not None else None
     pnl_p = holding.get('pnl_percent', 0)
     # Only 07226 (XL二南方恒科, 2x) is leveraged; 03032/03033 are plain 1x HSTECH
     # ETFs and must NOT be flagged 2x. Use the canonical LEVERAGED set.
 
-    if dp <= -8:
+    if dp is not None and dp <= -8:
         return '⚠️ ALERT'
-    if dp <= -5:
+    if dp is not None and dp <= -5:
         return '△ WATCH'
-    if pnl_p >= 50 and dp >= 0:
+    if pnl_p >= 50 and dp is not None and dp >= 0:
         return '▽ TRIM'
     if pnl_p <= -20:
         return '✋ STOP?'
     if pnl_p <= -10:
         return '─ HOLD'
-    if dp >= 5:
+    if dp is not None and dp >= 5:
         return '▲ HOLD+'
     return '─ HOLD'
 
@@ -425,7 +435,7 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     # not today's, and the holding says so through the same
     # `quote_incomplete` flag the US path already sets and integrity
     # already surfaces.
-    approximated_pc = q.get('_pc_quality') == 'open-as-pc'
+    approximated_pc = q.get('_pc_quality') in ('open-as-pc', 'missing')
     raw_pc = h.get('prev_close')
     stored_pc = float(raw_pc) if isinstance(raw_pc, (int, float)) and raw_pc > 0 else None
     if approximated_pc and stored_pc:
@@ -677,12 +687,12 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
         code  = h['ticker']
         name  = h.get('stock_name', code)[:6]
         price = h.get('current_price', 0)
-        dp    = h.get('today_change_pct', 0)
+        dp    = session_change_pct(h)
         cost  = h.get('cost_basis', 0)
         pnl_p = h.get('pnl_percent', 0)
         sig   = signal(h)
         pnl_s = '+' if pnl_p >= 0 else ''
-        dp_s  = f'{dp:+.2f}%'
+        dp_s  = _day_text(dp, 2)
         print(f"  {code:6s} {name:8s} HK${price:>6.3f} {dp_s:>7} HK${cost:>5.2f} {pnl_s}{pnl_p:>6.1f}% {sig}")
 
     print(f"{'─'*62}")
@@ -693,7 +703,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
     print(f"  {'─'*58}")
     for h in active:
         sig   = signal(h)
-        dp    = h.get('today_change_pct', 0)
+        dp    = session_change_pct(h)
         pnl   = h.get('pnl_percent', 0)
         name  = h.get('stock_name', h['ticker'])[:8]
         price = h.get('current_price', 0)
@@ -701,10 +711,10 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
         articles = (news_map or {}).get(code, [])
         sentiment = news_sentiment(articles) if articles else ''
 
-        print(f"  {sig} [{code}] {name}  HK${price:.3f}  今日{dp:+.1f}%  浮盈{pnl:+.1f}%")
+        print(f"  {sig} [{code}] {name}  HK${price:.3f}  今日{_day_text(dp)}  浮盈{pnl:+.1f}%")
         notes = []
-        if abs(dp) >= 5:
-            notes.append(f"今日{'大涨' if dp > 0 else '大跌'} {dp:+.1f}%")
+        if dp is not None and abs(dp) >= 5:
+            notes.append(f"今日{'大涨' if dp is not None and dp > 0 else '大跌'} {_day_text(dp)}")
         if pnl >= 50:
             notes.append(f"浮盈 {pnl:.0f}%，可考虑减仓")
         if pnl <= -15:
@@ -792,7 +802,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
             'shares':    h.get('shares', 0),
             'cost':      h.get('cost_basis'),
             'price':     h.get('current_price', 0),
-            'today_pct': h.get('today_change_pct', 0),
+            'today_pct': session_change_pct(h),
             'pnl_pct':   h.get('pnl_percent', 0),
             'pnl_abs':   h.get('pnl_abs', 0),
         } for h in active]
@@ -802,11 +812,10 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
             code  = h['ticker']
             name  = h.get('stock_name', code).replace('-W', '')[:5]
             price = h.get('current_price', 0)
-            dp    = h.get('today_change_pct', 0)
+            dp    = session_change_pct(h)
             pnl_p = h.get('pnl_percent', 0)
-            arrow = '▲' if dp >= 0 else '▼'
             pnl_emoji = '🟢' if pnl_p >= 0 else '🔴'
-            lines.append(f"{pnl_emoji} {code} {name}  {price:.3f}  {arrow}{abs(dp):.1f}%  浮{pnl_p:+.1f}%")
+            lines.append(f"{pnl_emoji} {code} {name}  {price:.3f}  {_day_text(dp)}  浮{pnl_p:+.1f}%")
 
     # Actionable signals only (skip plain HOLD)
     alerts: List[str] = []
@@ -814,10 +823,10 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
         sig = signal(h)
         if 'HOLD' in sig and 'HOLD+' not in sig:
             continue
-        dp    = h.get('today_change_pct', 0)
+        dp    = session_change_pct(h)
         pnl   = h.get('pnl_percent', 0)
         name  = h.get('stock_name', h['ticker']).replace('-W','')[:6]
-        alerts.append(f"  {sig} {h['ticker']} {name} | 今日{dp:+.1f}% 浮{pnl:+.1f}%")
+        alerts.append(f"  {sig} {h['ticker']} {name} | 今日{_day_text(dp)} 浮{pnl:+.1f}%")
     if alerts:
         lines.append('')
         lines.append('⚠️ 信号')

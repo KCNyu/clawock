@@ -1230,9 +1230,11 @@ def append_plan_trigger_section(block, triggered):
             carried = f"｜自 {row['open_since']} 起未执行"
         elif (row.get('restated_count') or 1) > 1:
             carried = f"｜已重挂 ×{row['restated_count']}"
+        distance = (f"破线 {row['through_pct']:+g}%" if row['through_pct'] is not None
+                    else '触发价为 0，超出百分比未知')
         lines.append(
             f"  ◆ {row['ticker']} {action} {shares} | 触发 {arrow}{row['condition_price']:g}"
-            f" | 现价 {row['last']:g}（破线 {row['through_pct']:+g}%）| {status}{carried}"
+            f" | 现价 {row['last']:g}（{distance}）| {status}{carried}"
         )
     return block + '\n' + '\n'.join(lines)
 

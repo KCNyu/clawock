@@ -554,7 +554,7 @@ def holdings_section(context):
                 money(row.get("pnl_abs"), digits=0),
             ])
         rows.append([f"**小计 {leg.upper()}**", "", "", "",
-                     f'{money(book.get("today_total_change"), digits=0)} {currency}',
+                     f'仓位当日 {money(book.get("today_total_change"), digits=0)} {currency}',
                      pct(book.get("total_pnl_percent")),
                      f"**{money(book.get('total_pnl'), digits=0)}**"])
         # A quote stamp is free text off the feed ("Tencent+Eastmoney Oct 16 09:50

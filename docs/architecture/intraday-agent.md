@@ -318,7 +318,7 @@ as live.
 
 | Part | Status |
 |---|---|
-| independent manual-confirmation recommendations; negative evidence, inventory, freshness and traceability (`test_conditional_advice_preserves_negative_evidence_and_is_traceable`, `test_refusals_do_not_invent_orders`) | implemented; research authority unchanged |
+| independent manual-confirmation recommendations; negative evidence, inventory, freshness and traceability (`test_conditional_advice_preserves_negative_evidence_and_is_traceable`, `test_refusals_do_not_invent_orders`) | implemented; human card preserves adverse net evidence and stop-price buyback; research authority unchanged |
 | field-name gate, fold regression gate | live (#1870) |
 | this contract | live (#1871) |
 | core packet + reference tool | live (#1882) |

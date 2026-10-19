@@ -1313,8 +1313,8 @@
           <td class="num">${fmtMoney(h.current_value, ccy)}</td>
           <td class="num spark-cell col-p3">${sparklineSVG((safe(DATA, "holdings_history", h.ticker) || []), 56, 18)}</td>
           <td class="num cell-stack">
-            <div class="${pnlClass(h.today_change)}">${fmtMoney(h.today_change, ccy)}</div>
-            <div class="cell-sub ${pnlClass(h.today_change_pct)}">${fmtPct(h.today_change_pct)}</div>
+            <div class="${pnlClass(h.today_change)}">仓位当日 ${fmtMoney(h.today_change, ccy)}</div>
+            <div class="cell-sub ${pnlClass(h.today_change_pct)}">标的涨跌 ${fmtPct(h.today_change_pct)}</div>
             <div class="cell-sub">${escapeHtml(h.day_session_date || safe(DATA, "delta", h.region, "session_date") || "日期未核实")}</div>
           </td>
           <td class="num cell-stack">
@@ -2687,6 +2687,14 @@
           : "";
       }
     }
+
+    const passiveCoverage = calib.coverage_passive || {};
+    const passiveReasons = Object.entries(passiveCoverage.unresolved_reasons || {})
+      .map(([reason, count]) => `${unresolvedReasonLabel(reason)} ${count}`).join(" / ");
+    const passiveCoverageNote = passiveCoverage.episodes_total == null ? "" :
+      ` · 被动胜率 ${calib.passive?.win_rate == null ? "—" : fixed(calib.passive.win_rate * 100, 2) + "%"}（n=${calib.passive?.n_episodes ?? 0}）；可判覆盖 ${passiveCoverage.graded_pct ?? "—"}%：${passiveCoverage.episodes_graded} 可判 / ${passiveCoverage.episodes_partial} 半判 / ${passiveCoverage.episodes_total} 总数；${passiveCoverage.episodes_unresolved} 判不了${passiveReasons ? `（${passiveReasons}）` : ""}`;
+    const winSub = document.getElementById("plan-winrate-sub");
+    if (winSub) winSub.textContent += passiveCoverageNote;
 
     if (brier == null) {
       setVal("plan-brier", DASH);
