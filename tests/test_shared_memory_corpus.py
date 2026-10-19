@@ -181,3 +181,79 @@ def test_words_no_topic_contains_do_not_dilute_the_score(store):
     noisy = node(corpus(store, f"await c.search({{query: 'sandbox zzqxv 鸡鸭鹅狗', agentSessionKey: '{DIRECT}'}})"))
     assert [h["path"] for h in noisy] == [h["path"] for h in plain]
     assert noisy[0]["score"] == pytest.approx(plain[0]["score"])
+
+
+# --- the plugin and memory.py match queries the same way ------------------------------
+
+MEMORY_PY = ROOT / "ops/host/shared-memory/scripts/memory.py"
+# Topics containing each piece; anything else occurs nowhere.
+VOCABULARY = {"通知": 9, "没送到": 2, "通知没": 1, "送到": 4, "消息": 7, "用户": 6, "手上": 2, "投递": 5,
+              "失败": 8, "投递失败": 2, "排查": 3, "清空": 6, "被清空": 1, "被清": 1, "磁盘": 5, "空间": 3,
+              "磁盘空间": 1, "单日": 2, "跌幅": 2, "清理": 4, "主机": 6, "内存": 3, "不够": 2, "很慢": 1, "回放": 2}
+QUERIES = ["通知没送到", "通知 没送到", "怎么保证消息真的送到用户手上 投递失败怎么排查", "crontab 被清空",
+           "清理磁盘空间", "单日跌幅", "受控写", "主机内存不够很慢", "MEMORY.md (dreaming)", "T+0回放", "check-clawock-guide",
+           "「被清空」，磁盘空间！", "dispatch, quota; resume?"]
+
+
+def memory_py():
+    loader = importlib.machinery.SourceFileLoader("shared_memory_cli", str(MEMORY_PY))
+    spec = importlib.util.spec_from_loader("shared_memory_cli", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def test_the_plugin_splits_queries_and_credits_words_as_memory_py_does():
+    py = memory_py()
+    frequency = lambda piece: VOCABULARY.get(piece, 0)
+    texts = ["crontab 被清空", "清空 crontab", "磁盘 不足", "空间 与 磁盘", "单日 最大", "无关"]
+    expected = []
+    for query in QUERIES:
+        words, missing = py.query_words(query, frequency)
+        fallbacks = [list(py.fallback_pieces(word, frequency)) for word in words]
+        credits = [[py.word_credit(text, word, fallback) for text in texts] for word, fallback in zip(words, fallbacks)]
+        expected.append({"words": [list(word) for word in words], "missing": missing, "fallbacks": fallbacks, "credits": credits})
+    got = node(f"""
+const vocabulary = {json.dumps(VOCABULARY, ensure_ascii=False)};
+const frequency = (piece) => vocabulary[piece] ?? 0;
+console.log(JSON.stringify({json.dumps(QUERIES, ensure_ascii=False)}.map((query) => {{
+  const {{ words, missing }} = m.queryWords(query, frequency);
+  const fallbacks = words.map((word) => m.fallbackPieces(word, frequency));
+  const credits = words.map((word, i) => {json.dumps(texts, ensure_ascii=False)}.map((text) => m.wordCredit(text, word, fallbacks[i])));
+  return {{ words, missing, fallbacks, credits }};
+}})));""")
+    assert got == expected
+    # The cases the rules exist for.
+    assert expected[0]["words"] == [["通知"], ["没送到"]] and expected[5]["words"] == [["单日", "跌幅"]]
+    assert expected[3]["fallbacks"][1] == ["清空"] and expected[4]["fallbacks"][1] == ["磁盘", "空间"]
+    assert expected[3]["credits"][1][:2] == [1.0, 2 / 3] and expected[4]["credits"][1][2:4] == [0.5, 0.5]
+    assert expected[6] == {"words": [], "missing": ["受控写"], "fallbacks": [], "credits": []}
+    assert expected[8]["words"] == [["memory.md"], ["dreaming"]] and expected[9]["words"] == [["t+0"], ["回放"]]
+
+
+def test_the_plugin_keeps_the_topics_memory_py_lists(tmp_path):
+    root = tmp_path / "store"
+    root.mkdir()
+    topics = {f"feedback-filler-{i}": ("unrelated", "处理 失败 用户 出去") for i in range(6)}
+    topics.update({
+        "incident-crontab-wiped": ("crontab 清空事故", "整张 crontab 被管道清空了"),
+        "archive-like-wipe": ("worktree 被清空", "worktree 被清空的记录"),
+        "reference-disk-cleanup": ("清理磁盘", "清理 磁盘 前先量"),
+        "feedback-no-bulk-delete": ("清理要克制", "腾磁盘空间时只清理缓存"),
+        "lessons-host-ops": ("主机经验", "主机 内存 不够 时 swap 很慢"),
+        "project-quotes": ("", "直连 行情 失败"),
+    })
+    for slug, (desc, body) in topics.items():
+        (root / f"{slug}.md").write_text(f"---\nname: {slug}\ndescription: \"{desc}\"\n---\n\n{body}\n")
+    for query in ("crontab 被清空", "清理磁盘空间", "主机内存不够很慢", "直连 行情 失败 处理", "单日跌幅", "被清空"):
+        proc = subprocess.run([sys.executable, str(MEMORY_PY), "search", query, "--limit", "100", "--lines", "0"],
+                              env={**os.environ, "SHARED_MEMORY_DIR": str(root)}, capture_output=True, text=True, timeout=60)
+        listed = {line.split(" — ")[0].split(" [")[0] for line in proc.stdout.splitlines() if line}
+        hits = node(corpus(root, f"await c.search({{query: {json.dumps(query, ensure_ascii=False)}, agentSessionKey: '{DIRECT}', maxResults: 20}})"))
+        assert {h["path"].removeprefix("shared-memory/") for h in hits} == listed, query
+        if query == "crontab 被清空":
+            assert hits[0]["path"] == "shared-memory/incident-crontab-wiped.md"
+        if query == "清理磁盘空间":
+            assert "reference-disk-cleanup.md" in listed
+        if query == "主机内存不够很慢":
+            assert hits and hits[0]["path"] == "shared-memory/lessons-host-ops.md"

@@ -306,6 +306,16 @@ def test_every_word_ranks_first_and_a_missing_common_word_does_not_hide_a_topic(
     code, hits, err = search(topics, "直连 行情 失败 处理")
     assert hits == ["project-quotes-all.md", "project-quotes.md [missing 处理]"]
     assert "[missing" in err
+    # A topic lacking a rare Han word as written is credited for the longest store word inside it.
+    topics = FILLER + [("incident-crontab-wiped", "crontab 事故", "crontab 从空输入读入，整张表清空"),
+                       ("archive-worktree-wipe", "", "worktree 被清空"),
+                       ("feedback-cron-a", "", "crontab 定时"), ("feedback-cron-b", "", "crontab 排程"),
+                       ("reference-disk-cleanup", "清理磁盘", "清理 磁盘 前先量"),
+                       ("feedback-no-bulk-delete", "", "腾磁盘空间时只清理缓存")]
+    code, hits, _ = search(topics, "crontab 被清空")
+    assert hits[0] == "incident-crontab-wiped.md [missing 被清空(清空)]"
+    code, hits, _ = search(topics, "清理磁盘空间")
+    assert hits[:2] == ["feedback-no-bulk-delete.md", "reference-disk-cleanup.md [missing 磁盘空间(磁盘)]"]
     # English words keep plain substring AND when every word co-occurs.
     code, hits, _ = search([("reference-a", "dispatch quota", "resume"), ("reference-b", "", "dispatch")],
                            "dispatch quota resume")
