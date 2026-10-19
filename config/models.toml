@@ -36,6 +36,13 @@ api = "anthropic-messages"
 # ── Models ───────────────────────────────────────────────────────────────────
 # `ref` is provider/id. `params` and `runtime` become OpenClaw's per-model
 # defaults; everything else is the provider model-table entry.
+#
+# MiniMax: only MiniMax-M3.1-Flash is used (kcn, 2026-10-20). Per MiniMax's
+# Anthropic API reference (platform.minimax.cn/docs/api-reference/text-anthropic-api,
+# "Thinking 控制" and "思考深度控制"), its thinking is always on: omitted or
+# `{"type": "adaptive"}` both think, `disabled` is HTTP 400. Depth is a separate
+# knob, `output_config.effort` = low | medium | high | xhigh | max, default max
+# when omitted. In OpenClaw's level vocabulary that leaves exactly `adaptive`.
 
 [models.flash]
 ref = "minimax/MiniMax-M3.1-Flash"
@@ -44,16 +51,7 @@ contextWindow = 1048576
 maxTokens = 131072
 input = ["text"]
 reasoning = true
-params = { thinking = "high" }
-
-[models.m3]  # rollback: switch flash back by pointing chains here
-ref = "minimax/MiniMax-M3"
-name = "MiniMax M3"
-contextWindow = 1048576
-maxTokens = 131072
-input = ["text"]
-reasoning = true
-params = { thinking = "high" }
+params = { thinking = "adaptive" }
 
 [models.deepseek]
 ref = "deepseek/deepseek-flash"
@@ -111,7 +109,9 @@ runtime = "claude-cli"
 # ── Chains: which scenario uses which models ─────────────────────────────────
 # `models` is the rotation, first = primary. `name@alias` runs that model under
 # a provider alias. `also_allowed` may be swapped in by hand without a contract
-# change. `thinking` is the scenario's level (OpenClaw clamps it per model).
+# change. `thinking` is the scenario's level for the whole turn: OpenClaw resolves
+# it once and clamps it per fallback candidate to a level that model has, with
+# a warning. A chain without `thinking` takes each model's `params.thinking`.
 
 [chains.chat]  # direct chat with the assistant
 models = ["flash", "deepseek"]
@@ -128,6 +128,10 @@ models = ["flash"]
 [chains.cron]  # strategy crons: report / intraday / brief
 models = ["flash", "flash@minimax-2", "luna"]
 also_allowed = ["sol"]
+# One level serves the MiniMax hops and Luna, and they share no level but off.
+# `max` is Luna's top (kcn 2026-09-13: Luna max as the backstop); on the MiniMax
+# hops OpenClaw clamps it to `adaptive` and sends no effort, which the endpoint
+# runs at its default `max`. `adaptive` here would clamp Luna to `medium`.
 thinking = "max"
 
 [chains.memory-cron]  # Memory Dreaming Promotion
@@ -136,3 +140,16 @@ models = ["flash"]
 # clawock's own MiniMax client (src/clawock/automation/llm.py)
 [chains.clawock-llm]
 models = ["flash"]
+
+# ── OpenClaw-wide settings ───────────────────────────────────────────────────
+# Copied into ~/.openclaw/openclaw.json at the same path. Values not listed here
+# stay hand-set on the host.
+
+[openclaw.agents.defaults]
+# The level for a model without `params.thinking`: deepseek (chat fallback),
+# luna, sonnet. MiniMax-M3.1-Flash has its own above.
+thinkingDefault = "high"
+
+[openclaw.talk]
+# Talk consults run the chat chain, MiniMax-M3.1-Flash first.
+consultThinkingLevel = "adaptive"

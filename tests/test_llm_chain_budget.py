@@ -16,7 +16,7 @@ import time
 
 import pytest
 
-from clawock.automation import llm
+from clawock.automation import llm, weekly_review
 
 
 @pytest.fixture
@@ -308,14 +308,17 @@ def test_thinking_off_is_sent_in_the_shape_the_model_accepts(monkeypatch, model,
 
 
 @pytest.mark.parametrize("model,effort,thinking,config", [
-    ("MiniMax-M3.1-Flash", "medium", {"type": "adaptive"}, {"effort": "medium"}),
-    ("MiniMax-M3.1-Flash", None, {"type": "enabled", "budget_tokens": 16000}, None),
+    ("MiniMax-M3.1-Flash", weekly_review.WEEKLY_LLM_THINKING_EFFORT, {"type": "adaptive"},
+     {"effort": weekly_review.WEEKLY_LLM_THINKING_EFFORT}),
+    ("MiniMax-M3.1-Flash", None, {"type": "adaptive"}, None),
     ("MiniMax-M3", "medium", {"type": "enabled", "budget_tokens": 16000}, None),
 ])
 def test_a_thinking_call_can_bound_the_reasoning_of_an_adaptive_only_model(
         monkeypatch, model, effort, thinking, config):
     """M3.1 does not hold to budget_tokens: the weekly review spent 25.6K output
-    tokens on a 3.9K-character answer and lost two scheduled weeks to it."""
+    tokens on a 3.9K-character answer and lost two scheduled weeks to it. Its
+    API reference documents adaptive thinking only, with depth in
+    output_config.effort (omitted = the endpoint's default, max)."""
     sent = []
     monkeypatch.setattr(llm._SESSION, "post",
                         lambda url, json=None, **kw: sent.append(json) or _Reply())
@@ -324,3 +327,16 @@ def test_a_thinking_call_can_bound_the_reasoning_of_an_adaptive_only_model(
     llm.chat(user="hi", thinking_effort=effort)
     assert sent[0]["thinking"] == thinking
     assert sent[0].get("output_config") == config
+
+
+@pytest.mark.parametrize("effort", ["adaptive", "none", "Medium"])
+def test_an_effort_minimax_does_not_take_fails_before_the_request(monkeypatch, effort):
+    """The endpoint answers these with HTTP 400 (`none` is called out in its
+    reference); the weekly review would spend all three attempts learning that."""
+    sent = []
+    monkeypatch.setattr(llm._SESSION, "post",
+                        lambda url, json=None, **kw: sent.append(json) or _Reply())
+    monkeypatch.setenv("MINIMAX_API_KEY", "test")
+    with pytest.raises(ValueError, match="thinking_effort"):
+        llm.chat(user="hi", thinking_effort=effort)
+    assert sent == []

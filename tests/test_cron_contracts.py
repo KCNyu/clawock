@@ -526,6 +526,12 @@ def test_strategy_crons_request_max_reasoning_clamped_per_candidate():
     would clamp Luna down to `medium`. The clamp is logged per run but never written
     back into the live job (the dreaming job logged it five times since 09-10
     with its payload unchanged), so it cannot make the contract drift.
+
+    On the MiniMax hops OpenClaw sends `{"type": "adaptive"}` and no
+    `output_config.effort`; MiniMax's Anthropic API reference makes an omitted
+    effort `max` for M3.1-Flash, so `max` is also the depth those hops run at.
+    The cron executor resolves the level once for the turn and re-clamps it per
+    candidate; no per-candidate level exists that would make both hops exact.
     """
     profiles = contract()['payload_profiles']
     assert {

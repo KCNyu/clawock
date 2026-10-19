@@ -84,8 +84,9 @@ WEEKLY_LLM_TIMEOUT_SECONDS = 420
 # 118-148s -- and the 10-06 backfill of W40 got through on its second attempt
 # after the first ran the full 420s (25.6K output tokens for a 3.9K-character
 # review). The numbers the review argues from are computed before the prompt is
-# built; what is left to the model is the synthesis.
-WEEKLY_LLM_THINKING_EFFORT = 'medium'
+# built; what is left to the model is the synthesis. `high` (kcn 2026-10-20),
+# one step under the endpoint's default `max`.
+WEEKLY_LLM_THINKING_EFFORT = 'high'
 
 # Machine-owned fields on decision / episode records that no review question
 # consumes; the harness already distills them into decision_episodes /

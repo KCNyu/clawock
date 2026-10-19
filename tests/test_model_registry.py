@@ -57,6 +57,29 @@ def test_clawock_client_follows_the_registry(registry):
         model.id, registry.providers[model.provider]['baseUrl'], model.entry['maxTokens'])
 
 
+def test_minimax_means_m31_flash_and_its_one_thinking_level(registry):
+    """kcn 2026-10-20: MiniMax-M3.1-Flash is the only MiniMax model in use. Its
+    Anthropic API reference: thinking cannot be turned off (`disabled` is HTTP
+    400), depth is `output_config.effort`. OpenClaw's levels for it are off and
+    adaptive, so anything else is clamped with a warning and only claims a depth
+    that is not sent (#174 fixed that once; the `high` labels came back)."""
+    from clawock.automation import llm
+    minimax = [m for m in registry.models.values() if m.provider == 'minimax']
+    assert minimax
+    for model in minimax:
+        assert llm._ADAPTIVE_ONLY.match(model.id), model.id
+        assert model.params.get('thinking') == 'adaptive', model.key
+    settings = registry.openclaw_settings()
+    # Talk consults run the chat chain; a chain made of MiniMax hops alone has
+    # no other model to pick a level for.
+    if registry.model(registry.chains['chat']['models'][0]).provider == 'minimax':
+        assert settings['talk.consultThinkingLevel'] == 'adaptive'
+    for name, spec in registry.chains.items():
+        if spec.get('thinking') and all(registry.model(item).provider == 'minimax'
+                                        for item in spec['models'] + spec.get('also_allowed', [])):
+            assert spec['thinking'] == 'adaptive', name
+
+
 def test_an_alias_must_belong_to_the_models_provider():
     data = {'providers': {'minimax': {'aliases': ['minimax-2']}, 'openai': {}},
             'models': {'luna': {'ref': 'openai/gpt-6-luna'}},
@@ -73,8 +96,16 @@ def test_openclaw_sections_are_rendered_and_credentials_kept(registry):
         'agents': {'defaults': {'model': {'primary': 'old/old'}, 'models': {'old/old': {}},
                                 'heartbeat': {'every': '1h', 'model': 'old/old'}, 'subagents': {}}},
         'plugins': {'entries': {'memory-core': {'enabled': True}}},
+        'talk': {'provider': 'minimax', 'consultThinkingLevel': 'medium'},
     }
     out = sync.render_openclaw(config, registry)
+    settings = registry.openclaw_settings()
+    assert out['talk'] == {'provider': 'minimax',
+                           'consultThinkingLevel': settings['talk.consultThinkingLevel']}
+    assert out['agents']['defaults']['thinkingDefault'] == settings['agents.defaults.thinkingDefault']
+    changed = {name for name, value in sync.openclaw_sections(out, registry).items()
+               if sync.openclaw_sections(config, registry).get(name) != value}
+    assert {'talk.consultThinkingLevel', 'agents.defaults.thinkingDefault'} <= changed
     minimax = out['models']['providers']['minimax']
     assert minimax['apiKey'] == 'SECRET' and minimax['baseUrl'] == registry.providers['minimax']['baseUrl']
     assert [m['id'] for m in minimax['models']] == [m.id for m in registry.models.values()
