@@ -13,6 +13,7 @@ PATCH_SCRIPTS=(
   "$PATCH_ROOT/patch-minimax-response-header-timeout.sh"
   "$PATCH_ROOT/patch-dreaming-narrative-race.sh"
   "$PATCH_ROOT/patch-minimax-m3x-adaptive-thinking.sh"
+  "$PATCH_ROOT/patch-hook-relay-exec.sh"
 )
 
 case "$RUN_MODE" in
@@ -56,6 +57,7 @@ PATCH_MARKERS=(
   "MiniMax response-header timeout after 60000ms"
   "clawock-dreaming-race-v2"
   "clawock-minimax-m3x-adaptive-thinking"
+  "clawock-hook-relay-exec"
 )
 PATCH_LABELS=(
   "single-thread local embeddings"
@@ -64,6 +66,7 @@ PATCH_LABELS=(
   "MiniMax response-header deadline value"
   "concurrent dreaming sweep reclaims a running phase"
   "MiniMax-M3.x always-adaptive thinking"
+  "Codex native hook relays exec (upstream #109446 backport)"
 )
 
 declare -a syntax_targets=()

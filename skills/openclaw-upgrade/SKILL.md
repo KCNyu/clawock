@@ -43,6 +43,8 @@ The wrapper applies these idempotent host scripts in order:
 3. `/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh`
 4. `/root/tools/openclaw/current/patch-dreaming-narrative-race.sh`
 5. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
+6. `/root/tools/openclaw/current/patch-hook-relay-exec.sh` (backport of upstream #109446; it exits
+   cleanly once the new OpenClaw already execs native hook relays)
 
 MiniMax `service_tier: "priority"` was retired on 2026-10-19: MiniMax bills it at
 1.5x the standard rate against the Token Plan. Do not reapply

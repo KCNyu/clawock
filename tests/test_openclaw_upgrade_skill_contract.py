@@ -18,6 +18,7 @@ PATCH_SCRIPTS = (
     "/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh",
     "/root/tools/openclaw/current/patch-dreaming-narrative-race.sh",
     "/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh",
+    "/root/tools/openclaw/current/patch-hook-relay-exec.sh",
 )
 PATCH_BASENAMES = tuple(Path(script).name for script in PATCH_SCRIPTS)
 PATCH_MARKERS = (
@@ -27,6 +28,7 @@ PATCH_MARKERS = (
     "MiniMax response-header timeout after 60000ms",
     "clawock-dreaming-race-v2",
     "clawock-minimax-m3x-adaptive-thinking",
+    "clawock-hook-relay-exec",
 )
 
 
@@ -84,7 +86,9 @@ def test_check_only_requires_adaptive_thinking_in_installed_bundle(tmp_path, ada
     install = tmp_path / "openclaw"
     dist = install / "dist"
     dist.mkdir(parents=True)
-    markers = PATCH_MARKERS if adaptive_present else PATCH_MARKERS[:-1]
+    markers = PATCH_MARKERS if adaptive_present else tuple(
+        marker for marker in PATCH_MARKERS if marker != "clawock-minimax-m3x-adaptive-thinking"
+    )
     (dist / "bundle.js").write_text("\n".join(f"// {marker}" for marker in markers))
     shims = tmp_path / "bin"
     shims.mkdir()
