@@ -52,6 +52,7 @@ class Registry:
         self.chains = data.get('chains') or {}
         for name in self.chains:
             self.chain(name)  # validate every reference up front
+        self.openclaw = data.get('openclaw') or {}
 
     # ── references ───────────────────────────────────────────────────────────
 
@@ -111,6 +112,19 @@ class Registry:
                 value['params'] = copy.deepcopy(model.params)
             if value:
                 out[model.ref] = value
+        return out
+
+    def openclaw_settings(self) -> dict:
+        """`[openclaw.*]` as {dotted openclaw.json path: value}."""
+        out = {}
+
+        def walk(prefix, table):
+            for key, value in table.items():
+                if isinstance(value, dict):
+                    walk(f'{prefix}{key}.', value)
+                else:
+                    out[prefix + key] = copy.deepcopy(value)
+        walk('', self.openclaw)
         return out
 
 

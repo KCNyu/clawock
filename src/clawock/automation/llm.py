@@ -69,8 +69,11 @@ def _registry_minimax():
 
 
 MINIMAX_BASE, MINIMAX_MODEL, MINIMAX_MAX_TOKENS = _registry_minimax()
-# Models that answer thinking.type=disabled with HTTP 400; M3 accepted it.
+# MiniMax-M3.1-Flash always thinks: its Anthropic API reference documents
+# `thinking: {"type": "adaptive"}` (or omitted) and answers `disabled` with HTTP
+# 400. Depth is `output_config.effort`, one of MINIMAX_EFFORTS; omitted = `max`.
 _ADAPTIVE_ONLY = re.compile(r'^MiniMax-M3\.[1-9]')
+MINIMAX_EFFORTS = ('low', 'medium', 'high', 'xhigh', 'max')
 ANTHROPIC_VERSION = '2023-06-01'
 TIMEOUT = 180  # 3 min per call
 MAX_RETRIES = 3
@@ -254,17 +257,19 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
         # Anthropic requires temperature==1 when thinking is enabled, and
         # budget_tokens strictly less than max_tokens.
         body['temperature'] = 1.0
-        body['thinking'] = {
-            'type': 'enabled',
-            'budget_tokens': max(1024, min(max_tokens - 1024, 16000)),
-        }
-        # An adaptive-only model does not hold to budget_tokens: the weekly
-        # review's 3.9K-character answer cost 25.6K output tokens on M3.1
-        # (2026-10-06). `effort` is the bound it does take, for a caller that
-        # has to finish inside a deadline.
-        if thinking.get('effort') and _ADAPTIVE_ONLY.match(model):
+        if _ADAPTIVE_ONLY.match(model):
+            # No budget_tokens: an adaptive-only model does not hold to it (the
+            # weekly review's 3.9K-character answer cost 25.6K output tokens on
+            # M3.1, 2026-10-06). `effort` is the bound it does take, for a caller
+            # that has to finish inside a deadline; without one it runs at `max`.
             body['thinking'] = {'type': 'adaptive'}
-            body['output_config'] = {'effort': thinking['effort']}
+            if thinking.get('effort'):
+                body['output_config'] = {'effort': thinking['effort']}
+        else:
+            body['thinking'] = {
+                'type': 'enabled',
+                'budget_tokens': max(1024, min(max_tokens - 1024, 16000)),
+            }
     else:
         body['temperature'] = temperature
         # Some Anthropic-compatible endpoints default thinking ON when the field
@@ -333,9 +338,12 @@ def chat(system: str = '', user: str = '', messages: list = None,
     stats_out: when given, receives {'legs': [{provider, model, ok, attempts, wall_s,
     error?}]} so a job log can say what the call actually cost (C-F3a).
 
-    thinking_effort: 'low' / 'medium' / 'high' for a thinking call on a model
-    that only takes adaptive thinking (M3.1). Unset leaves the request as it was.
+    thinking_effort: one of MINIMAX_EFFORTS, the `output_config.effort` of a
+    thinking call on M3.1. Unset sends none: the endpoint's default, `max`.
     """
+    if thinking_effort is not None and thinking_effort not in MINIMAX_EFFORTS:
+        raise ValueError(f'thinking_effort {thinking_effort!r}: MiniMax takes one of '
+                         f'{", ".join(MINIMAX_EFFORTS)}')
     if MINIMAX_MODEL is None:
         raise RuntimeError('all LLM providers failed: config/models.toml not found '
                            '(set CLAWOCK_WORKSPACE to the clawock checkout)')

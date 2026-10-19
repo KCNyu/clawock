@@ -3,7 +3,7 @@
 
     sync_models.py              # check: which sections differ, exit 1 if any
     sync_models.py --apply      # write them, then say what to restart
-    sync_models.py --effective  # what chat, every cron job and dsh use right now
+    sync_models.py --effective  # what chat, every cron job and dsh use right now, thinking levels
 
 Owned and rewritten from the registry:
 
@@ -11,7 +11,8 @@ Owned and rewritten from the registry:
   `timeoutSeconds`/`models` (credentials and any other key are kept);
   `agents.defaults.models`; `agents.defaults.model` (chain `chat`);
   heartbeat / subagents model; memory-core dreaming model and its subagent
-  allowlist (chain `dreaming`).
+  allowlist (chain `dreaming`); every key under `[openclaw.*]`
+  (`agents.defaults.thinkingDefault`, `talk.consultThinkingLevel`).
 - each dsh profile's MiniMax provider: `baseURL` and the `models` list.
 
 The cron contract and clawock's MiniMax client read the registry themselves
@@ -60,10 +61,25 @@ def render_openclaw(config: dict, registry) -> dict:
     memory = out.setdefault('plugins', {}).setdefault('entries', {}).setdefault('memory-core', {})
     memory.setdefault('config', {}).setdefault('dreaming', {})['model'] = dreaming['model']
     memory.setdefault('subagent', {})['allowedModels'] = [dreaming['model'], *dreaming['fallbacks']]
+    for path, value in registry.openclaw_settings().items():
+        *parents, leaf = path.split('.')
+        node = out
+        for key in parents:
+            node = node.setdefault(key, {})
+        node[leaf] = value
     return out
 
 
-def openclaw_sections(config: dict) -> dict:
+def _leaf(config: dict, path: str):
+    node = config
+    for key in path.split('.'):
+        if not isinstance(node, dict):
+            return None
+        node = node.get(key)
+    return node
+
+
+def openclaw_sections(config: dict, registry) -> dict:
     """The owned sections, for a readable diff."""
     defaults = config.get('agents', {}).get('defaults', {})
     memory = config.get('plugins', {}).get('entries', {}).get('memory-core', {})
@@ -77,6 +93,7 @@ def openclaw_sections(config: dict) -> dict:
         'memory-core dreaming.model': memory.get('config', {}).get('dreaming', {}).get('model'),
         'memory-core subagent.allowedModels': memory.get('subagent', {}).get('allowedModels'),
     })
+    out.update({path: _leaf(config, path) for path in registry.openclaw_settings()})
     return out
 
 
@@ -134,7 +151,7 @@ def plan(registry, openclaw_config: Path | None = None, dsh_profiles: Path = DSH
         current = config_path.read_text()
         config = json.loads(current)
         rendered = render_openclaw(config, registry)
-        before, after = openclaw_sections(config), openclaw_sections(rendered)
+        before, after = openclaw_sections(config, registry), openclaw_sections(rendered, registry)
         changed = [name for name in after if before.get(name) != after[name]]
         out.append((config_path, current,
                     json.dumps(rendered, indent=2, ensure_ascii=False) + '\n' if changed else current,
@@ -159,15 +176,20 @@ def effective(registry, openclaw_config: Path | None = None) -> dict:
     out = {}
     config_path = openclaw_config or runtime_paths().config_file
     if config_path.exists():
-        out['chat'] = json.loads(config_path.read_text()).get('agents', {}).get(
-            'defaults', {}).get('model')
+        config = json.loads(config_path.read_text())
+        defaults = config.get('agents', {}).get('defaults', {})
+        out['chat'] = defaults.get('model')
+        out['thinking'] = {
+            **{ref: entry['params']['thinking'] for ref, entry in (defaults.get('models') or {}).items()
+               if 'thinking' in (entry.get('params') or {})},
+            **{path: _leaf(config, path) for path in registry.openclaw_settings()}}
     cron = []
     for job in read_jobs('sqlite').entries:
         payload = job.get('payload') or {}
         runs = read_runs(job.get('id') or '', 'sqlite').entries
         last = runs[-1] if runs else {}
         cron.append({'name': job.get('name'), 'model': payload.get('model'),
-                     'fallbacks': payload.get('fallbacks'),
+                     'fallbacks': payload.get('fallbacks'), 'thinking': payload.get('thinking'),
                      'last_run': '/'.join(str(last.get(k)) for k in ('provider', 'model'))
                                  + f" ({last.get('status')})" if last else None})
     out['cron'] = sorted(cron, key=lambda job: job['name'] or '')
