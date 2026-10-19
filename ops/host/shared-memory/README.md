@@ -126,7 +126,8 @@ Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
 
 `scripts/memory.py search` and `openclaw/index.ts` implement one set of matching rules, each in
 its own language with no shared build step; `tests/test_shared_memory_corpus.py` runs both on
-the same queries and requires the same words, credits and kept topics. Change both together.
+the same queries and requires the same words, credits and kept topics. Change both together, and
+judge a change on the repository's held-out queries (`ops/host/shared-memory-eval/`, not installed).
 
 1. **Words.** The lowercased query splits on whitespace and CJK / full-width punctuation;
    `MEMORY.md`, `T+0` and `check-clawock-guide` stay whole, and Han and non-Han runs separate
