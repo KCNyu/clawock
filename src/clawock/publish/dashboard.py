@@ -355,6 +355,9 @@ def compile_overview_projection(dashboard):
                 'wechat_dropped_slots', 'degraded_slots',
                 # Due slots with no record at all, and which ones (#2546).
                 'due_no_record', 'no_record_slots',
+                # When the fold ran; on a block restored from the previous
+                # generation it is that generation's time (#3071).
+                'generated_at',
             )),
             'degradations': [
                 {key: row[key] for key in ('kind', 'group', 'count', 'first_at', 'last_at', 'hits', 'hits_incomplete') if key in row}
@@ -4898,8 +4901,12 @@ def build_projection(previous_source=None, shadow_previous=None):
     # `preserved: ['workflow_outcomes']`, which made the telemetry that decides
     # whether the merge can be retired report a recovery that never happened.
     out['workflow_outcomes'] = compute_workflow_outcomes()
-    _presence['workflow_outcomes'] = bool(
-        (out.get('workflow_outcomes') or {}).get('recent'))
+    # Present means the ledger is in this checkout and folded, not that its window
+    # has records: a quiet weekend is an empty window, and restoring the previous
+    # generation's fold over it printed 「全部按时送达」 for slots nobody counted (#3071).
+    _presence['workflow_outcomes'] = (
+        out.get('workflow_outcomes') is not None
+        and (WS_ROOT / 'assets' / 'data' / 'workflow-outcomes.json').is_file())
 
     # Today's timetable, one light per slot. Built from the same ledger the card
     # above folds — the panel must not develop a second opinion about whether a

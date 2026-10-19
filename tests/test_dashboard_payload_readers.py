@@ -86,6 +86,16 @@ def test_every_published_block_has_a_reader_on_the_page(freshly_built_dashboard)
         "does show.")
 
 
+def test_the_preserved_list_inside_build_status_has_a_reader():
+    """The gate above walks top-level keys only. `build_status.previous_payload.preserved`
+    is the one field saying a block was copied from the previous generation; it was
+    written, tested and read by nothing under site/ while the delivery cell printed a
+    copied 「全部按时送达」 as today's reading (#3071)."""
+    site = _site_text()
+    assert re.search(r"previous_payload\W+preserved", site), (
+        "nothing under site/ reads build_status.previous_payload.preserved")
+
+
 def test_the_metadata_allowlist_does_not_outlive_its_keys():
     """An allowlist that keeps names the payload no longer has stops describing
     anything, and quietly grants an exemption to whatever is added with that

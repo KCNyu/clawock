@@ -386,6 +386,30 @@ def test_a_checkout_without_the_ledger_republishes_the_last_workflow_card(
     assert "workflow_outcomes" in payload["build_status"]["previous_payload"]["preserved"]
 
 
+def test_a_present_ledger_with_a_quiet_window_is_not_replaced_by_the_last_card(
+        monkeypatch, tmp_path):
+    """An empty 36h window is a reading, not a missing source (#3071).
+
+    The ledger was on disk but its last slot was a weekend away, so the window was
+    empty; presence used to ask the window, and the previous generation's
+    「全部按时送达」 was published over it with `preserved` read by nobody."""
+    (tmp_path / "assets" / "data").mkdir(parents=True)
+    (tmp_path / "memory" / "snapshots").mkdir(parents=True)
+    (tmp_path / "portfolio.json").write_text(json.dumps(_portfolio()))
+    (tmp_path / "assets" / "data" / "workflow-outcomes.json").write_text(json.dumps({
+        "records": [{"slot": "2026-01-02T04:03:00+08:00", "job": "old", "status": "success"}]}))
+    previous = tmp_path / "previous.json"
+    previous.write_text(json.dumps({"workflow_outcomes": {
+        "counts": {"success": 9}, "recent": [{"job": "last good"}]}}))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    payload = json.loads(dashboard.build_projection(previous_source=previous)["dashboard"])
+
+    assert payload["workflow_outcomes"]["counts"] != {"success": 9}
+    assert payload["workflow_outcomes"]["recent"] == []
+    assert "workflow_outcomes" not in payload["build_status"]["previous_payload"]["preserved"]
+
+
 def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypatch):
     previous = {
         "as_of": "2026-07-16T23:00:00+08:00",
