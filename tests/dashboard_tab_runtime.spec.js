@@ -1799,7 +1799,16 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
   for (const [width, height] of [[1200, 900], [390, 844]]) {
     const context = await browser.newContext({ viewport: { width, height } });
     const page = await context.newPage();
-    await stubLiveOrigin(page);
+    // The test measures chart layout, so it supplies bars even on a quiet session.
+    await stubLiveOrigin(page, { patch: (name, payload) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      payload.today_movers = [
+        {ticker: "NVDA", region: "us", today_change_pct: 3.5},
+        {ticker: "07226", region: "hk", today_change_pct: -2.5},
+        {ticker: "07709", region: "hk", today_change_pct: 1.5},
+      ];
+      return payload;
+    } });
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
     await page.waitForSelector("#today-movers .hl-movers", { timeout: 5000 });
