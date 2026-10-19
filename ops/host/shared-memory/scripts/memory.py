@@ -22,6 +22,7 @@ import fcntl
 import os
 from pathlib import Path
 import fnmatch
+import math
 import re
 import stat
 import subprocess
@@ -250,12 +251,65 @@ def cmd_read(args: argparse.Namespace) -> int:
     return 0
 
 
+HAN = "\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff"
+# A query word is a run of Han characters or a run of anything else up to whitespace or CJK /
+# full-width punctuation, so `MEMORY.md`, `T+0` and `check-clawock-guide` stay whole.
+QUERY_WORD_RE = re.compile(f"[{HAN}]+|[^\\s{HAN}\u2000-\u206f\u3000-\u303f\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40\uff5b-\uff65]+")
+# Chinese words rarely run past four characters; a longer run is several words typed without spaces.
+HAN_WORD_MAX = 4
+# A topic must cover this share of the query's weight that the best-covering topic does.
+SEARCH_COVERAGE = 0.6
+
+
+def segment_han(run: str, frequency) -> list[str]:
+    """Split a run of Han characters into the fewest pieces of 2-4 characters that occur in the
+    store, preferring common pieces on a tie (通知 + 没送到 over 通知没 + 送到); characters no such
+    piece covers (particles, words the store never uses) are dropped. `frequency(piece)` is the
+    number of topics containing the piece."""
+    best: list[tuple[int, int, float, list[str]]] = [(0, 0, 0.0, [])]
+    for end in range(1, len(run) + 1):
+        dropped, count, rarity, pieces = best[end - 1]
+        options = [(dropped + 1, count, rarity, pieces)]
+        for size in range(2, min(HAN_WORD_MAX, end) + 1):
+            piece = run[end - size:end]
+            if df := frequency(piece):
+                dropped, count, rarity, pieces = best[end - size]
+                options.append((dropped, count + 1, rarity - math.log(df), pieces + [piece]))
+        best.append(min(options, key=lambda option: option[:3]))
+    return best[-1][3]
+
+
+def query_words(query: str, frequency) -> tuple[list[tuple[str, ...]], list[str]]:
+    """Turn a query into words, each a tuple of pieces a topic must all contain, plus the words
+    the store never uses. A Han word of up to four characters must occur as written; a four-character
+    one the store never writes may still match as its two halves (单日跌幅 -> 单日 + 跌幅) in one
+    topic. A longer Han run is segmented into the store's own words (segment_han)."""
+    words: list[tuple[str, ...]] = []
+    missing: list[str] = []
+    for token in QUERY_WORD_RE.findall(query.lower()):
+        if not re.match(f"[{HAN}]", token):
+            token = token.strip("\"'`()[]{}<>,;:!?")
+            if token:
+                words.append((token,))
+        elif len(token) <= HAN_WORD_MAX:
+            halves = (token[:2], token[2:])
+            if len(token) < 2 or frequency(token):
+                words.append((token,))
+            elif len(token) == 4 and all(map(frequency, halves)):
+                words.append(halves)
+            else:
+                missing.append(token)
+        else:
+            pieces = segment_han(token, frequency)
+            words.extend((piece,) for piece in pieces)
+            if not pieces:
+                missing.append(token)
+    return list(dict.fromkeys(words)), missing
+
+
 def cmd_search(args: argparse.Namespace) -> int:
     root = memory_root()
     moved = redirects(root)
-    terms = [args.query.lower()] if args.exact else list(dict.fromkeys(args.query.lower().split()))
-    if not terms:
-        raise SystemExit("query cannot be empty")
     docs = []
     for path in sorted(root.rglob("*.md")):
         rel = str(path.relative_to(root))
@@ -265,49 +319,94 @@ def cmd_search(args: argparse.Namespace) -> int:
         except ValueError:
             parsed = None
         description = parsed[0].get("description", "") if parsed else ""
-        docs.append((rel, text, description))
+        docs.append((rel, text, description, f"{text.lower()}\0{rel.lower()}"))
+    frequencies: dict[str, int] = {}
 
-    def rank(require_all: bool):
-        results = []
-        for rel, text, description in docs:
-            lower = text.lower()
-            present = [t for t in terms if t in lower or t in rel.lower()]
-            if not present or (require_all and len(present) < len(terms)):
-                continue
-            lines = []
-            header_end = text.find("\n---\n", 3) if text.startswith("---\n") else -1
-            header_lines = text[:header_end].count("\n") + 2 if header_end >= 0 else 0
-            for number, line in enumerate(text.splitlines(), 1):
-                hit = sum(t in line.lower() for t in terms)
-                if hit:
-                    # Frontmatter is already shown as the description; prefer body snippets.
-                    lines.append((hit - (0.5 if number <= header_lines else 0), number, line))
-            score = (10 * len(present)
-                     + 6 * sum(t in rel.lower() for t in terms)
-                     + 4 * sum(t in description.lower() for t in terms)
-                     + min(sum(hit for hit, _, _ in lines), 15)
-                     - (8 if rel.startswith("archive/") else 0))
-            results.append((score, rel, description, lines))
-        # An archived full text whose name redirects to an active digest ranks just below that
-        # digest, so the reader lands on the current conclusions first.
-        by_rel = {rel: [score, rel, description, lines] for score, rel, description, lines in results}
-        descriptions = {rel: description for rel, _, description in docs}
-        for score, rel, description, lines in results:
-            target = moved.get(Path(rel).stem) if rel.startswith("archive/") else None
-            if target and f"{target}.md" in descriptions:
-                digest = by_rel.setdefault(f"{target}.md", [score, f"{target}.md", descriptions[f"{target}.md"], []])
-                digest[0] = max(digest[0], score + 1)
-                by_rel[rel][2] = f"(full text behind {target}.md) {description}"
-        return sorted((tuple(v) for v in by_rel.values()), key=lambda item: (-item[0], item[1]))
+    def frequency(piece: str) -> int:
+        if piece not in frequencies:
+            frequencies[piece] = sum(piece in doc[3] for doc in docs)
+        return frequencies[piece]
 
-    results = rank(require_all=True)
-    if not results and len(terms) > 1:
-        results = rank(require_all=False)
-        if results:
-            print("# no topic contains every term; showing topics matching some terms", file=sys.stderr)
-    for score, rel, description, lines in results[: args.limit]:
+    if args.exact:
+        words, missing = ([(args.query.lower(),)] if args.query.strip() else []), []
+    else:
+        words, missing = query_words(args.query, frequency)
+    if not words and not missing:
+        raise SystemExit("query cannot be empty")
+
+    # Weight each word by how rare it is (BM25's idf); a word no topic contains drops out instead
+    # of failing every topic.
+    def has(haystack: str, word: tuple[str, ...]) -> bool:
+        return all(piece in haystack for piece in word)
+
+    weights = {}
+    for word in words:
+        df = sum(has(doc[3], word) for doc in docs)
+        if df:
+            weights[word] = math.log(1 + (len(docs) - df + 0.5) / (df + 0.5))
+        else:
+            missing.append("+".join(word))
+    if missing:
+        print(f"# no topic contains: {' '.join(missing)}", file=sys.stderr)
+    searching = " ".join("+".join(word) for word in weights)
+    if searching and searching != " ".join(args.query.lower().split()):
+        print(f"# searching: {searching}", file=sys.stderr)
+    total = sum(weights.values())
+
+    def share(line: str, word: tuple[str, ...]) -> float:
+        return sum(piece in line for piece in word) / len(word)
+
+    results = []
+    for rel, text, description, haystack in docs:
+        present = [word for word in weights if has(haystack, word)]
+        if not present:
+            continue
+        coverage = sum(weights[word] for word in present) / total
+        lines = []
+        header_end = text.find("\n---\n", 3) if text.startswith("---\n") else -1
+        header_lines = text[:header_end].count("\n") + 2 if header_end >= 0 else 0
+        for number, line in enumerate(text.splitlines(), 1):
+            hit = sum(share(line.lower(), word) for word in present)
+            if hit:
+                # Frontmatter is already shown as the description; prefer body snippets.
+                lines.append((hit - (0.5 if number <= header_lines else 0), number, line))
+        # A topic containing every word scores 10 per word, as a plain term count would; rarity
+        # only decides how much a missing word costs.
+        score = (10 * len(weights) * coverage
+                 + sum(6 * has(rel.lower(), word) + 4 * has(description.lower(), word) for word in present)
+                 + min(sum(hit for hit, _, _ in lines), 15)
+                 - (8 if rel.startswith("archive/") else 0))
+        lacking = ["+".join(word) for word in weights if word not in present]
+        marker = (f" [missing {' '.join(lacking)}]" if len(lacking) <= len(present)
+                  else f" [only {' '.join('+'.join(word) for word in present)}]") if lacking else ""
+        results.append((score, rel, description, lines, coverage, marker))
+    scored = {result[1]: result for result in results}
+    # Keep the topics covering most of what the best one covers.
+    best = max((result[4] for result in results), default=0)
+    results = [result for result in results if result[4] >= SEARCH_COVERAGE * best - 1e-9]
+    if results and best < SEARCH_COVERAGE:
+        print("# no topic contains most of the query; showing topics matching some terms", file=sys.stderr)
+    elif any(result[4] < 1 - 1e-9 for result in results):
+        print("# topics marked [missing ...] lack some terms; any containing every term come first", file=sys.stderr)
+
+    # An archived full text whose name redirects to an active digest ranks just below that
+    # digest, so the reader lands on the current conclusions first.
+    by_rel = {result[1]: list(result) for result in results}
+    descriptions = {rel: description for rel, _, description, _ in docs}
+    for score, rel, description, lines, coverage, marker in results:
+        target = moved.get(Path(rel).stem) if rel.startswith("archive/") else None
+        if target and f"{target}.md" in descriptions:
+            own = scored.get(f"{target}.md", (score, f"{target}.md", descriptions[f"{target}.md"], [], coverage, f" [via {rel}]"))
+            digest = by_rel.setdefault(f"{target}.md", list(own))
+            digest[0] = max(digest[0], score + 1)
+            digest[4] = max(digest[4], coverage)
+            by_rel[rel][2] = f"(full text behind {target}.md) {description}"
+    # Topics containing every word come first, then partial matches.
+    results = sorted(by_rel.values(), key=lambda item: (item[4] < 1 - 1e-9, -item[0], item[1]))
+
+    for score, rel, description, lines, _, marker in results[: args.limit]:
         suffix = f" — {one_line(description)[:160]}" if description else ""
-        print(f"{rel}{suffix}")
+        print(f"{rel}{marker}{suffix}")
         for _, number, line in sorted(lines, key=lambda item: (-item[0], item[1]))[: args.lines]:
             print(f"  {number}: {line.strip()[:200]}")
     if len(results) > args.limit:
@@ -673,7 +772,7 @@ def build_parser() -> argparse.ArgumentParser:
     read.add_argument("topic")
     read.set_defaults(func=cmd_read)
 
-    search = sub.add_parser("search", help="rank topics containing every whitespace-separated term (archives included, ranked lower)")
+    search = sub.add_parser("search", help="rank topics by the query words they contain, rarer words weighing more (archives included, ranked lower)")
     search.add_argument("query")
     search.add_argument("--exact", action="store_true", help="match the query as one literal phrase")
     search.add_argument("--limit", type=int, default=10, help="topics to show")

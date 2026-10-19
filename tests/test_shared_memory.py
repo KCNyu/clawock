@@ -262,6 +262,56 @@ def test_bash_filter_skips_unrelated_tool_calls(kit):
     assert (proc.returncode, proc.stdout) == (0, "")
 
 
+# --- search ----------------------------------------------------------------------
+
+@pytest.fixture
+def search(tmp_path):
+    """`memory.py search` over a throwaway store: one topic per (slug, description, body)."""
+    store = tmp_path / "store"
+    (store / "indexes").mkdir(parents=True)
+    (store / "MEMORY.md").write_text("# Index\n")
+
+    def run(topics, *args):
+        for slug, desc, body in topics:
+            (store / f"{slug}.md").write_text(TOPIC.format(slug=slug, desc=desc, body=body))
+        proc = subprocess.run([sys.executable, str(MEMORY_PY), "search", *args, "--lines", "0"],
+                              env={**os.environ, "SHARED_MEMORY_DIR": str(store)}, text=True,
+                              capture_output=True, timeout=60)
+        return proc.returncode, [line.split(" — ")[0] for line in proc.stdout.splitlines()], proc.stderr
+
+    return run
+
+
+FILLER = [(f"feedback-filler-{i}", "unrelated", "处理 失败 用户") for i in range(8)]
+
+
+def test_a_chinese_sentence_finds_the_topic_by_the_stores_own_words(search):
+    topics = FILLER + [("incident-wechat-delivery", "微信掉投", "消息没送到用户手上，投递失败先查日志")]
+    code, hits, _ = search(topics, "怎么保证消息真的送到用户手上 投递失败怎么排查")
+    assert code == 0 and hits[0].startswith("incident-wechat-delivery.md")
+    # A word the store never writes matches nothing, not its fragments; a four-character
+    # word may match as its two halves, but only in one topic.
+    topics += [("feedback-half-a", "单日", "单日"), ("feedback-half-b", "跌幅", "跌幅")]
+    for query in ("受控写", "单日跌幅"):
+        code, hits, err = search(topics, query)
+        assert (code, hits) == (1, []) and "no topic contains" in err
+    code, hits, _ = search(topics + [("feedback-both", "", "单日最大跌幅")], "单日跌幅")
+    assert hits == ["feedback-both.md"]
+
+
+def test_every_word_ranks_first_and_a_missing_common_word_does_not_hide_a_topic(search):
+    topics = FILLER + [("project-quotes", "", "直连 行情 失败"),
+                       ("project-quotes-all", "", "直连 行情 失败 处理"),
+                       ("project-common-only", "", "失败 处理")]
+    code, hits, err = search(topics, "直连 行情 失败 处理")
+    assert hits == ["project-quotes-all.md", "project-quotes.md [missing 处理]"]
+    assert "[missing" in err
+    # English words keep plain substring AND when every word co-occurs.
+    code, hits, _ = search([("reference-a", "dispatch quota", "resume"), ("reference-b", "", "dispatch")],
+                           "dispatch quota resume")
+    assert hits == ["reference-a.md"]
+
+
 # --- what ships ------------------------------------------------------------------
 
 def installer_list(name):
