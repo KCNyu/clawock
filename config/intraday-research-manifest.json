@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "author_model": "gpt-6-astra",
+  "frozen_at": "2026-10-18T14:54:23.014708+00:00",
+  "knowledge_scope": "No strategy outcomes examined; SPY source availability only. Retrospective preregistration, not a historical model prediction.",
+  "universe": [
+    "SPY"
+  ],
+  "market": "us",
+  "start": "2026-04-01",
+  "end": "2026-10-16",
+  "train_sessions": 60,
+  "test_sessions": 20,
+  "minimum_oos": 60,
+  "shares": 1,
+  "base_shares": 10,
+  "lot_size": 1,
+  "cash_reserve": 2000,
+  "monthly_opening_used_hkd": 0,
+  "usd_hkd": 7.8,
+  "fx_basis": "explicit stress-accounting assumption, not observed FX",
+  "max_participation": 0.01,
+  "candidates": [
+    {
+      "service": "intraday_reversion",
+      "params": {
+        "window": 20,
+        "deviations": 2.0
+      }
+    },
+    {
+      "service": "intraday_vwap",
+      "params": {
+        "window": 20,
+        "deviations": 2.0
+      }
+    },
+    {
+      "service": "intraday_breakout",
+      "params": {
+        "window": 20,
+        "deviations": 2.0
+      }
+    }
+  ],
+  "mechanism": "Compare a prior-window band, cumulative session VWAP reversion and downside channel continuation using an existing base; select on past net timing increment, include hold.",
+  "counterexamples": [
+    "persistent trends defeat reversion",
+    "false breakouts defeat continuation",
+    "fees dominate small moves"
+  ],
+  "requirements": [
+    "unadjusted completed five-minute OHLCV",
+    "complete regular sessions",
+    "account waiver remaining"
+  ],
+  "selection": "highest training net cash increment including hold; deterministic declared-order tie break",
+  "presentation_focus": "validation",
+  "live_permission": false
+}

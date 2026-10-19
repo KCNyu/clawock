@@ -401,3 +401,8 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 <sub>由 <a href="https://github.com/KCNyu">Shengyu Li (kcn)</a> 与 Rick 构建维护 · 2026</sub>
 
 </div>
+
+盘中研究已有独立的带状回归、场次 VWAP、向下通道插件，以及
+`clawock strategy-lab intraday-study` 净 walk-forward 和 harness 渲染的盘中研究卡。
+卡片区分历史研究与实时信号，显示来源、时效和验证状态。已取得合法免费真实样本，但只有十个场次且为复权价，仍缺足够可用历史；没有实证盈利结论，也没有 live/SPCH 或交易权限变更。
+[工作流、复现命令与外部缺口](https://github.com/KCNyu/clawock/blob/master/docs/architecture/intraday-research-workflow.md)。

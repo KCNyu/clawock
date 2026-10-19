@@ -25,6 +25,21 @@ def _number(value, name, *, zero=False):
 
 
 class Reversion:
+    strategy = name
+
+    def configured(self, params):
+        return type(self)(self.costs, {**self.params, **params})
+
+    def target(self, bars, index):
+        history = [b["close"] for b in bars[index-self.params["window"]:index]]
+        mean, sigma = fmean(history), pstdev(history)
+        if sigma > 0 and bars[index]["close"] > mean + self.params["deviations"] * sigma:
+            return mean
+        return None
+
+    def entry_valid(self, bars, index, entry, target):
+        return entry > target
+
     def __init__(self, costs, config):
         if set(config) - set(DEFAULTS):
             raise ValueError('unknown intraday-reversion config')
@@ -44,7 +59,7 @@ class Reversion:
         result = {'market': packet.get('market'), 'ticker': packet.get('ticker'),
                   'session': packet.get('session'),
                   'currency': {'hk': 'HKD', 'us': 'USD'}.get(packet.get('market')),
-                  'strategy': name, 'live_permission': False, 'status': 'refused',
+                  'strategy': self.strategy, 'live_permission': False, 'status': 'refused',
                   'params': dict(self.params), 'trades': [], 'net_pnl': 0.0,
                   'cost_model': self.costs.describe(),
                   'input_sha256': hashlib.sha256(json.dumps(
@@ -103,15 +118,31 @@ class Reversion:
             if gap != 300 and not (lunch and gap == 3900):
                 return {**result, 'reason': 'missing_duplicate_or_unordered_bars'}
         result.update(status='no_trade', reason='no_cost_qualified_excursion')
+        execution = packet.get('execution')
+        delay = 0
+        if execution is not None:
+            if set(execution) != {'delay_bars', 'participation', 'cash_reserve'}:
+                raise ValueError('execution requires delay_bars, participation, cash_reserve')
+            delay = execution['delay_bars']
+            if type(delay) is not int or not 0 <= delay <= 3:
+                raise ValueError('delay_bars must be 0..3')
+            _number(execution['participation'], 'participation')
+            _number(execution['cash_reserve'], 'cash_reserve', zero=True)
+            if execution['participation'] > 0.01:
+                raise ValueError('participation may not exceed one percent')
+            for bar in bars:
+                _number(bar.get('volume'), 'volume', zero=True)
         window = self.params['window']
-        for index in range(window, len(bars) - 2):
-            history = [b['close'] for b in bars[index-window:index]]
-            target, sigma = fmean(history), pstdev(history)
-            if sigma <= 0 or bars[index]['close'] <= target + self.params['deviations'] * sigma:
+        for index in range(window, len(bars) - 2 - delay):
+            target = self.target(bars, index)
+            if target is None:
                 continue
             # Decision made at completed close; execution only at the next open.
-            entry = bars[index+1]['open']
-            if entry <= target:
+            entry_index = index + 1 + delay
+            entry = bars[entry_index]['open']
+            if execution and qty > bars[entry_index-1]['volume'] * execution['participation']:
+                continue
+            if not self.entry_valid(bars, index, entry, target):
                 continue
             sell = self.costs.fill(qty * entry, market, packet['session'], direction='sell', ticker=packet.get('ticker'), shares=qty)
             buy_estimate = self.costs.fill(qty * target, market, packet['session'], direction='buy', ticker=packet.get('ticker'), shares=qty)
@@ -122,7 +153,7 @@ class Reversion:
                 continue
             stop = entry + (entry - target)
             exit_price, exit_index, reason = bars[-1]['close'], len(bars)-1, 'session_close'
-            for j in range(index+1, len(bars)):
+            for j in range(entry_index, len(bars)):
                 bar = bars[j]
                 # Adverse opening gaps first; stop first when OHLC cannot order touches.
                 if bar['open'] >= stop:
@@ -135,10 +166,22 @@ class Reversion:
                     exit_price, exit_index, reason = target, j, 'target'
                     break
             buy = self.costs.fill(qty * exit_price, market, packet['session'], direction='buy', ticker=packet.get('ticker'), shares=qty)
+            if execution:
+                # Realised volume is an execution feasibility check, never a signal.
+                # Failure leaves the path unresolved, not a profitable skipped trade.
+                liquid = all((qty * (2 if entry_index == exit_index else 1))
+                             <= bars[j]['volume'] * execution['participation']
+                             for j in (entry_index, exit_index))
+                funded = (execution['cash_reserve'] + qty * entry - sell['total']
+                          >= qty * exit_price + buy['total'])
+                if not liquid or not funded:
+                    return {**result, 'status': 'unresolved', 'net_pnl': None,
+                            'reason': 'fill_volume_or_buyback_funding',
+                            'failed_entry_bar_end': bars[entry_index]['end']}
             net = qty * (entry - exit_price) - sell['total'] - buy['total']
             result.update(status='replayed', reason='one_round_trip', net_pnl=net)
             result['trades'] = [{'shares': qty, 'signal_at': bars[index]['end'],
-                                 'entry_bar_end': bars[index+1]['end'], 'sell_price': entry,
+                                 'entry_bar_end': bars[entry_index]['end'], 'sell_price': entry,
                                  'exit_bar_end': bars[exit_index]['end'], 'buy_price': exit_price,
                                  'target': target, 'stop': stop, 'exit_reason': reason,
                                  'sell_cost': sell, 'buy_cost': buy, 'net_pnl': net,

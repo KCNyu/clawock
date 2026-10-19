@@ -268,11 +268,12 @@ def test_every_context_field_declares_its_semantics():
     assert len(labelled) == len(set(labelled)), "a field is in both tables"
     assert set(labelled) <= known, "a semantics table names a field no layer has"
     assert not set(labelled) & set(layers.CONTROL_ENTRIES)
+    assert layers.field_semantics("intraday_research") == "mixed"
     counts = {}
     for field in known:
         counts[layers.field_semantics(field)] = counts.get(
             layers.field_semantics(field), 0) + 1
-    assert counts == {"observation": len(known) - 22, "policy": 11, "mixed": 9, "control": 2}
+    assert counts == {"observation": len(known) - 23, "policy": 11, "mixed": 10, "control": 2}
 
 
 def test_the_intraday_index_names_the_rule_outputs_present():

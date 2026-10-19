@@ -285,6 +285,12 @@ def main(argv=None) -> int:
     sub.add_parser('list', help='mounted plugins, services and strategies')
     replay_parser = sub.add_parser('intraday-replay', help='research-only five-minute session replay')
     replay_parser.add_argument('input', type=Path, help='complete session JSON packet')
+    study = sub.add_parser('intraday-study', help='bounded net research walk-forward; no live permission')
+    study.add_argument('manifest', type=Path)
+    study.add_argument('data', type=Path)
+    study.add_argument('--requests-only', action='store_true', help='expose training receipts only to the model')
+    study.add_argument('--selections', type=Path, help='model responses bound to training request hashes')
+    study.add_argument('--output', type=Path, help='write full reproducible research receipt')
     optimize = sub.add_parser(
         'optimize', help='walk-forward parameter search; prints a proposal')
     optimize.add_argument('strategy')
@@ -374,6 +380,25 @@ def main(argv=None) -> int:
                     spec = registry.get(strategy)
                     print(f"strategy {strategy}: params={spec.params} space={spec.space}")
             return 0
+        if args.action == 'intraday-study':
+            from clawock.strategy_lab.intraday_study import run
+            try:
+                report = run(kernel, json.loads(args.manifest.read_text()), json.loads(args.data.read_text()),
+                             json.loads(args.selections.read_text()) if args.selections else None)
+                output = report
+                if args.requests_only:
+                    pending = {row['test_first'] for row in report.get('llm_errors', [])}
+                    output = {'request': next((row for row in report['requests']
+                               if row['test_first'] in pending), None),
+                              'instruction': 'Freeze this response before requesting the next fold; no future-fold training receipts are exposed.'}
+                payload = json.dumps(output, ensure_ascii=False, indent=2, allow_nan=False)
+                if args.output:
+                    from clawock.safe_io import safe_write_text
+                    safe_write_text(str(args.output), payload)
+                print(payload)
+                return 0
+            except (ValueError, KeyError, TypeError, OSError) as exc:
+                parser.exit(2, f'invalid intraday study input: {exc}\n')
         if args.action == 'intraday-replay':
             from clawock.decision.intraday_reversion import replay
             try:

@@ -2137,6 +2137,7 @@ HOST_ROWS = {
              ('morning-scans', 'morning_scans'), ('strategy-scores', 'strategy_scores')),
     'plugins': (('strategies', 'registry'), ('factors', 'quant_factors'), ('bars', 'adjusted_bars'),
                 ('costs', 'registered_costs'), ('intraday-reversion', 'intraday_reversion'),
+                ('intraday-vwap', 'intraday_vwap'), ('intraday-breakout', 'intraday_breakout'),
                 ('promoter', 'row_edits'), ('rsi', 'rsi'),
                 ('optimizer', 'walkforward')),
 }
@@ -2145,7 +2146,7 @@ HOST_ROWS = {
 #: undone, the row that declared it waits, the others are not stopped.
 PULL = {'row': 'bars', 'undone': 'provide(bars)', 'waits': 'optimizer',
         'declared': ('strategies', 'bars', 'costs'),
-        'untouched': ('strategies', 'factors', 'costs', 'intraday-reversion', 'promoter', 'rsi')}
+        'untouched': ('strategies', 'factors', 'costs', 'intraday-reversion', 'intraday-vwap', 'intraday-breakout', 'promoter', 'rsi')}
 #: The one setting on the live `daily-bars` row, and the value its docs name as the way back.
 EDIT = {'row': 'daily-bars', 'key': 'adjustment', 'now': 'qfq', 'then': 'raw', 'undone': 'provide(daily_bars)'}
 LIGHTS = ('#e58a80', '#e2b65a', '#69bd96')        # a window's three title-bar lights
@@ -2220,14 +2221,14 @@ def plugin_system():
     """site/assets/plugin-system.svg — the whole plugin system as a rack you can pull a row out of."""
     pull, edit = PULL, EDIT
     live, lab = HOST_ROWS['live'], HOST_ROWS['plugins']
-    d = D('The plugin system: twenty-one rows in one file, on a host you can pull a row out of while it runs',
+    d = D('The plugin system: twenty-three rows in one file, on a host you can pull a row out of while it runs',
           'A layered picture of the plugin system, in seven numbered parts. One: whatever agent runs '
           'the desk, Claude Code, Codex, OpenClaw, dsh or any command line, calls the brief, report, '
           'intraday and strategy-lab commands. Two: one file, strategy-plugins.json, lists every row: '
-          'thirteen live rows and eight research rows, each an id, a module and its settings. Three: '
-          'the host mounts every row into a socket; the picture shows all twenty-one by name, with the '
+          'thirteen live rows and ten research rows, each an id, a module and its settings. Three: '
+          'the host mounts every row into a socket; the picture shows all twenty-three by name, with the '
           'research row called bars pulled out of its socket. Four: pulling bars undoes its one '
-          'registration, the optimizer row that declared it needs bars waits, and the other six '
+          'registration, the optimizer row that declared it needs bars waits, and the other eight '
           'rows are not stopped; pushed back in, the optimizer starts by itself. Five: changing a '
           'setting, here the adjustment on the daily-bars row from qfq to raw, stops that row, undoes '
           'what it registered and starts it again under the new setting. Six: the same five primitives '
@@ -2235,7 +2236,7 @@ def plugin_system():
           'Seven: what has no socket: settlement, the ledger and the risk limits.')
     y = d.header('CLAWOCK · THE PLUGIN SYSTEM',
                  ['Pull a row out. Everything else keeps running.'],
-                 ['Twenty-one rows in one file, mounted on a host built from the primitives dsh runs on.'],
+                 ['Twenty-three rows in one file, mounted on a host built from the primitives dsh runs on.'],
                  [('your agent', 'slate'), ('rows · the file', 'blue'), ('the host · code', 'green'),
                   ('unplugged · waiting', 'warm'), ('the same in dsh', 'violet')])
     d.logo('clawock', d.pw - M - 44, 30, 44)
@@ -2289,11 +2290,11 @@ def plugin_system():
     # --- 03: the rack ---------------------------------------------------------------
     a_bottom = y + ah
     y = a_bottom + 48
-    rh = 492 + BLADE + 6
+    rh = 492 + (max(7, len(lab)) - 7) * (BLADE + 6)
     d.down(M + aw - 60, a_bottom, y, pulses=(0, 1.2), kind='data', carry='terminal')
     d.down(ax2 + aw2 / 2 + 40, a_bottom, y, pulses=(.5,), kind='task', carry='config')
     d.section(y - 12, '03 · THE HOST MOUNTS EVERY ROW')
-    top = _panel(d, M, y, full, rh, 'green', 'rows', 'One host, twenty-one sockets', 'CODE · NOT A ROW')
+    top = _panel(d, M, y, full, rh, 'green', 'rows', 'One host, twenty-three sockets', 'CODE · NOT A ROW')
     by, pitch = top + 22, BLADE + 6
     bays = ((M + 12, 630, 'blue', f'LIVE · {len(live)} ROWS · BRIEF, REPORT, INTRADAY'),
             (M + 12 + 630 + 14, 300, 'violet', f'RESEARCH · {len(lab)} ROWS · THE LAB'))

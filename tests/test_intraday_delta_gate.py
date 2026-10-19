@@ -703,8 +703,11 @@ def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_
     head = lines.index(preflight.ADD_SIDE_HEADER)
     word = preflight.ADD_SIDE_WORDS[rows[0]["verdict"]]
     assert lines[head + 1].startswith(f"  · SPCH {word}：")
-    # The add-side block closes the data block, after ▎持续状态 when there is one.
-    assert lines[head - 1] == "" and head + 1 == len(lines) - 1
+    # Historical research follows the unchanged add-side block, separated and labelled.
+    research = lines.index("▎策略研究 · 非实盘指令")
+    assert lines[head - 1] == "" and head + 3 == research
+    assert lines[research - 1] == ""
+    assert ctx["intraday_research"]["live_permission"] is False
     assert preflight.STATUS_HEADER not in lines[head:]
 
 
@@ -763,7 +766,9 @@ def test_preflight_prints_the_leverage_line_from_the_t0_map(monkeypatch, tmp_pat
     ctx = run(copy.deepcopy(current))
     lines = ctx["raw_wechat_block"].splitlines()
     assert lines[lines.index(table[0]):lines.index(table[0]) + 2] == table
-    assert lines[lines.index(preflight.STATUS_HEADER) + 1:] == [
+    research = lines.index("▎策略研究 · 非实盘指令")
+    assert lines[research - 1] == ""
+    assert lines[lines.index(preflight.STATUS_HEADER) + 1:research - 1] == [
         "亏损持仓 1/2", "SPCH：SPCX -1.0% → 2x 应 -2.0%，实测 -2.3%，差 -0.30pp"]
     assert ctx["leverage_legs"][0]["gap_pp"] == -0.3
     assert ctx["analyzer_block"] == block
