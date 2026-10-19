@@ -625,7 +625,7 @@ def test_preflight_main_never_rewrites_the_analyzer_table(monkeypatch, tmp_path)
     # The same kinds reach postflight, which bolds the `new` rows for WeChat.
     assert ctx["card_marks"] == {"new": ["SPCH"], "stale": ["RKLX"]}
     # Data health sits under the title/book lines, before any section.
-    assert lines[0].startswith("## 🇺🇸")
+    assert lines[0].startswith("**🇺🇸")
     assert lines.index("⛔ 数据降级：RKLX 行情未证实（沿用上一笔）") < lines.index("**本档变化**")
     # The model keeps the analyzer's output whole, whatever the card folds.
     assert ctx["analyzer_block"] == block

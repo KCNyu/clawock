@@ -65,7 +65,7 @@ def _no_dangling_dot(lines):
 
 def test_hk_intraday_card_keeps_hk_money_hkt_and_the_index_strip():
     lines = chat_card.render(analyzer=HK).splitlines()
-    assert lines[:3] == ['## 🇭🇰 港股盯盘 · 10/16 10:33 HKT',
+    assert lines[:3] == ['**🇭🇰 港股盯盘 · 10/16 10:33 HKT**',
                          '**今日 +1,691** · 浮亏 -60,275（-52.6%）',
                          '市值 HK$54,416 · 亏损 3/3 · 2x杠杆敞口 38%']
     # HK P&L has no `$`; the card must not invent one (HK$ lives on 市值).
@@ -78,7 +78,7 @@ def test_hk_intraday_card_keeps_hk_money_hkt_and_the_index_strip():
 
 def test_us_intraday_card_keeps_dollars_et_and_has_no_strip():
     lines = chat_card.render(analyzer=US).splitlines()
-    assert lines[:3] == ['## 🇺🇸 美股盯盘 · 10/19 14:03 ET',
+    assert lines[:3] == ['**🇺🇸 美股盯盘 · 10/19 14:03 ET**',
                          '**今日 +$58** · 浮亏 -$1,227（-27.6%）',
                          '市值 $3,210 · 已实现 +$2,376 · 亏损 2/2 · 杠杆 90%']
     assert lines[3] == ''
@@ -105,7 +105,8 @@ def test_hk_reports_put_orders_and_stops_first_and_keep_the_strip(phase):
     title = TITLE_TEMPLATES[('hk', phase)].format(date='2026-10-16')
     card = chat_card.render_report(title, HK + ORDERS, PROSE)
     lines = card.splitlines()
-    assert lines[0] == '## ' + title.replace('2026-10-16', '10/16').replace('｜', ' · ')
+    # WeChat shows `## ` literally and unbolded; the title is a bold line.
+    assert lines[0] == '**' + title.replace('2026-10-16', '10/16').replace('｜', ' · ') + '**'
     assert lines[1:3] == ['**今日 +1,691** · 浮亏 -60,275（-52.6%）',
                           '市值 HK$54,416 · 亏损 3/3 · 2x杠杆敞口 38%']
     assert '恒指 24,321 ▲1.07%  恒科 4,130 ▲1.70%' in lines
@@ -127,8 +128,34 @@ def test_hk_reports_put_orders_and_stops_first_and_keep_the_strip(phase):
 def test_us_reports_read_their_signal_glyphs_too(phase):
     title = TITLE_TEMPLATES[('us', phase)].format(date='2026-10-19')
     lines = chat_card.render_report(title, US, PROSE).splitlines()
-    assert lines[0].startswith('## ') and '10/19' in lines[0] and '｜' not in lines[0]
+    assert lines[0].startswith('**') and lines[0].endswith('**') and '10/19' in lines[0] and '｜' not in lines[0]
     assert '- **RKLX** 止损线已破 · 今日+4.1% 浮-81.8% · 浮亏 -81.8% 警惕止损' in lines
     assert '- **SPCX** WATCH · 今日+1.0% 浮-0.0%' in lines
     assert '- **SPCX** · 5 条 · Top Midday Stories' in lines
     assert '****' not in '\n'.join(lines)
+
+
+def test_report_prose_bolds_only_the_paragraph_labels():
+    """kcn 2026-10-20 「太多加粗了」: a ▎ line is a small bold label; the
+    paragraph after it — inline after `｜` (US) or on the next lines (HK) — is plain."""
+    prose = ('▎情绪面｜同业齐涨，反弹不代表扭转。\n加密端偏弱。\n'
+             '▎技术面\nRSI 超卖。\n▎操作建议：纪律单照走。')
+    lines = chat_card.render_report('🌙 美股收盘日报｜2026-10-19', US, prose).splitlines()
+    body = lines[lines.index('**情绪面**'):]
+    assert body == ['**情绪面**', '同业齐涨，反弹不代表扭转。', '加密端偏弱。', '',
+                    '**技术面**', 'RSI 超卖。', '', '**操作建议**', '纪律单照走。']
+
+
+def test_report_news_keeps_each_sentiment_mark_on_its_own_ticker():
+    """`📰✅`/`📰⚠️` are the analyzer's sentiment marks; a marked line is a
+    ticker of its own, not a stray line whose headlines join the ticker above."""
+    block = US + ('\n   · SpaceX midday\n📰⚠️ SPCH (2条)\n   · SPCH leverage decay\n'
+                  '📰✅ RKLX (1条)\n   · RKLX bounce')
+    parts = chat_card.parse_report_block(block)
+    assert [(item['ticker'], item['mark'], item['titles']) for item in parts['news']] == [
+        ('SPCX', '', ['Top Midday Stories', 'SpaceX midday']),
+        ('SPCH', '⚠️', ['SPCH leverage decay']),
+        ('RKLX', '✅', ['RKLX bounce'])]
+    assert not any('📰' in line for line in parts['other'])
+    lines = chat_card.render_report('🌙 美股收盘日报｜2026-10-19', block, PROSE).splitlines()
+    assert '- **SPCH** ⚠️ · 2 条 · SPCH leverage decay' in lines
