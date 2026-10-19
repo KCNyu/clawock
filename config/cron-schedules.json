@@ -18,13 +18,12 @@
       "model_candidates": [
         "minimax/MiniMax-M3.1-Flash",
         "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna",
-        "openai/gpt-6.1-sol",
+        "deepseek/deepseek-flash",
         "anthropic/claude-sonnet-4-6"
       ],
       "fallbacks": [
         "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna"
+        "deepseek/deepseek-flash"
       ],
       "thinking": "max",
       "message_template": "config/cron-payloads/report.md",
@@ -69,13 +68,12 @@
       "model_candidates": [
         "minimax/MiniMax-M3.1-Flash",
         "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna",
-        "openai/gpt-6.1-sol",
+        "deepseek/deepseek-flash",
         "anthropic/claude-sonnet-4-6"
       ],
       "fallbacks": [
         "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna"
+        "deepseek/deepseek-flash"
       ],
       "thinking": "max",
       "message_template": "config/cron-payloads/intraday.md",
@@ -139,13 +137,12 @@
       "model_candidates": [
         "minimax/MiniMax-M3.1-Flash",
         "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna",
-        "openai/gpt-6.1-sol",
+        "deepseek/deepseek-flash",
         "anthropic/claude-sonnet-4-6"
       ],
       "fallbacks": [
         "minimax-2/MiniMax-M3.1-Flash",
-        "openai/gpt-6-luna"
+        "deepseek/deepseek-flash"
       ],
       "thinking": "max",
       "message_template": "config/cron-payloads/brief.md",

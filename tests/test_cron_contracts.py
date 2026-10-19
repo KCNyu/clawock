@@ -561,6 +561,13 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     # The host's Codex runtime is now 0.155.1, which serves the gpt-6 family on
     # the same local subscription login (still no metered billing). Smoke-tested
     # through OpenClaw with thinking=max: gpt-6-luna and gpt-6-sol both answered.
+    #
+    # 2026-10-19 (kcn「直接干掉codex就默认deepseek」): with the MiniMax Token Plan
+    # exhausted every turn fell back to Codex, and each Codex tool call spawned an
+    # `openclaw hooks relay` CLI process (40-300MB). On OpenClaw 2026.7.1 timed-out
+    # relays are orphaned (upstream fix #109446 landed after 7.1), they piled up
+    # to ~20 and froze the 2GB host. The Codex hop is replaced by DeepSeek V4.1
+    # Flash (metered, direct API) and the Codex plugin is disabled on the host.
     assert {
         name: {
             'model': profiles[name].get('model'),
@@ -571,34 +578,31 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     } == {
         'report': {
             'model': 'minimax/MiniMax-M3.1-Flash',
-            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'openai/gpt-6-luna'],
+            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'deepseek/deepseek-flash'],
             'model_candidates': [
                 'minimax/MiniMax-M3.1-Flash',
                 'minimax-2/MiniMax-M3.1-Flash',
-                'openai/gpt-6-luna',
-                'openai/gpt-6.1-sol',
+                'deepseek/deepseek-flash',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'intraday': {
             'model': 'minimax/MiniMax-M3.1-Flash',
-            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'openai/gpt-6-luna'],
+            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'deepseek/deepseek-flash'],
             'model_candidates': [
                 'minimax/MiniMax-M3.1-Flash',
                 'minimax-2/MiniMax-M3.1-Flash',
-                'openai/gpt-6-luna',
-                'openai/gpt-6.1-sol',
+                'deepseek/deepseek-flash',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'brief': {
             'model': 'minimax/MiniMax-M3.1-Flash',
-            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'openai/gpt-6-luna'],
+            'fallbacks': ['minimax-2/MiniMax-M3.1-Flash', 'deepseek/deepseek-flash'],
             'model_candidates': [
                 'minimax/MiniMax-M3.1-Flash',
                 'minimax-2/MiniMax-M3.1-Flash',
-                'openai/gpt-6-luna',
-                'openai/gpt-6.1-sol',
+                'deepseek/deepseek-flash',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
