@@ -1,0 +1,76 @@
+# Held-out search evaluation: real queries, each with the topics a reader needs (see README.md).
+# id	kind	query	expect	source	why
+q01	colloquial	现在patrol是什么模型呀 突然又能产出issues了	project-clawock-patrol.md	chat	patrol model pool lives in the patrol topic
+q02	synonym	为什么actions每个都重复了一遍是不是有bug	reference-clawock-gha-run-attribution.md	chat	the store says GHA 重复/放大, not actions
+q03	colloquial	为啥磁盘这么满，派codex astra按照之前的决策清理一波吧	reference-vps-disk-cleanup.md lessons-host-ops.md	chat	disk retention rules
+q04	synonym	最近opencode没有可以白嫖的新模型吗	project-clawock-patrol.md	chat	the store says 免费模型 / free-pool
+q05	zh-sentence	我想知道 我minimax额度00:00就会恢复，会自动切回去吗还是我要手动new一个新的	project-openclaw-model-fallback-chain.md decision-clawock-provider-order.md	chat	fallback chain and fixed order
+q06	colloquial	然后我想看看dreaming今天3:00跑成功了吗	incident-openclaw-dreaming.md	chat	
+q07	zh-sentence	为什么每次dreaming完之后会有什么a memory trace surfaced的那个	incident-openclaw-dreaming.md	chat	
+q08	colloquial	我的shared memory那套skills不在GitHub里面吗	project-shared-memory-wiring.md	chat	
+q09	synonym	我想知道 这里dsh是转化成了美金吗？因为dsh的余额都是rmb	project-clawock-dsh-balance-chip.md project-agent-dispatch.md reference-agent-token-usage-audit.md	chat	the store says CNY / ¥ / 美元
+q10	colloquial	我发现是不是dispatch然后发出去这个信息重复进上下文了呀	decision-dispatch-reports-to-origin-session.md	chat	
+q11	zh-sentence	然后telegram的应该不会进入session吧，那个只是兜底对吧	decision-dispatch-reports-to-origin-session.md project-openclaw-wechat-delivery.md	chat	
+q12	colloquial	我的意思是对于google相关的能搜到吗？你觉得质量对比tavily怎么样	reference-openclaw-tavily-budget.md	chat	
+q13	zh-sentence	为什么我更新了那套自进化的patrol还是没啥issues产生呀 免费的模型也都不能用吗	project-clawock-patrol.md	chat	
+q14	colloquial	不能强制resume第一个会话吗	project-agent-dispatch.md	chat	
+q15	colloquial	诶 codex又重置了吗？额度什么情况	reference-agent-token-usage-audit.md project-agent-dispatch.md	chat	
+q16	zh-sentence	现在是不是支持免费模型自动迭代呀 讲一下现在的机制	project-clawock-patrol.md	chat	free-pool auto discovery
+q17	zh-sentence	headless的也都要能读呀 不只是web的能读记得，因为我们委派任务很多时候都是headless的	project-shared-memory-wiring.md	chat	
+q18	zh-sentence	然后记得我们mem一般是root目录在用，委派也是。但是openclaw是在专门的workspace记得，这块要捋清楚。	project-shared-memory-wiring.md	chat	
+q19	colloquial	所以memory上了啥	project-shared-memory-wiring.md	chat	
+q20	absent	我很早之前做了一个ci提速的 效果怎么样呀	-	chat	no topic records the CI speed-up
+q21	absent	CI 提速效果怎么样	-	brief	no topic records the CI speed-up
+q22	synonym	为什么我的通知发不出去	project-openclaw-wechat-delivery.md	brief	the store says 掉投 / 投递失败
+q23	absent	帮我看看持仓	-	brief	live holdings are not in memory
+q24	absent	港股今天开盘情况	-	brief	market data is not in memory
+q25	colloquial	量化模型哪个更准	project-clawock-signal-calibration.md	brief	calibration / hit_rate
+q26	zh-phrase	README 任务 文档 PR 待办	project-clawock-readme.md	assistant	
+q27	absent	Muse 模型 nano opus cowork 主动通知	-	assistant	asks about a proactive-notification product; the store only names a muse-spark model
+q28	zh-phrase	shared-memory 核心进仓库 Rick 只读插件 派发 memory-core-into-repo	project-shared-memory-wiring.md	assistant	
+q29	absent	CI 提速 加速 测试耗时 优化 pytest 分片 并行	-	assistant	no topic records the CI speed-up
+q30	zh-phrase	磁盘清理 保留策略 retention dispatch 日志清理 cleanup	reference-vps-disk-cleanup.md	assistant	
+q31	zh-phrase	runner 不入库 agent-dispatch	project-agent-dispatch.md	agent	
+q32	id-symbol	clawock-dsh node_modules 手工安装 typert-protocol	project-clawock-dsh-plugin-build-deploy.md project-clawock-dsh-balance-chip.md	agent	
+q33	en-words	commit identity	feedback-commit-identity-kcnyu.md	agent	
+q34	en-words	patrol free pool nemotron	project-clawock-patrol.md	agent	
+q35	zh-phrase	云端 cloud session	reference-claude-cloud-sessions.md	agent	
+q36	en-words	MEMORY.md 公开仓库 rick memory	project-shared-memory-wiring.md	agent	
+q37	zh-phrase	dist patch 升级	project-openclaw-upgrade-runbook.md	agent	
+q38	zh-phrase	清盘 cleanup disk	reference-vps-disk-cleanup.md lessons-host-ops.md feedback-no-bulk-delete-scratch-dirs.md	agent	
+q39	id-symbol	M3.1 thinking disabled influencer	incident-minimax-model-quirks.md project-clawock-influencer-radar.md	agent	
+q40	zh-phrase	wechat 告警	feedback-no-individual-cron-alerts.md	agent	
+q41	zh-phrase	preflight 延迟 latency	reference-clawock-intraday-latency.md	agent	
+q42	id-symbol	gh run list --commit	reference-clawock-gha-run-attribution.md	agent	
+q43	id-symbol	detect-but-never-silence	feedback-detect-but-never-silence.md	agent	
+q44	id-symbol	dsh 8443	project-dsh-deployment.md	agent	
+q45	en-words	thinking off minimax adaptive	incident-minimax-model-quirks.md	agent	
+q46	en-words	Telegram 自签证书 webhook setWebhook certificate	archive/openclaw-telegram-webhook.md	agent	
+q47	zh-phrase	instructions 过程话语 根目录 md	feedback-clawock-instruction-files-rules-only.md	agent	
+q48	zh-phrase	819 突破加仓 回测 28 票	decision-clawock-add-side-strategy.md	agent	
+q49	zh-phrase	照抄 发挥空间 事实 判断 模型	feedback-clawock-facts-by-code-judgment-by-model.md	agent	
+q50	zh-phrase	盘中卡片 版式 ↑ 指向	feedback-intraday-card-layout.md	agent	
+q51	en-words	cloud teleport	reference-claude-cloud-sessions.md	agent	
+q52	en-words	snapshot realized phantom drawdown	incident-clawock-snapshot-pnl.md	agent	
+q53	en-words	statusline Claude status 常驻 status line	reference-claude-code-ccstatusline.md	agent	
+q54	synonym	top of hour scheduled delay Cron Health	lessons-timeouts-and-schedules.md	agent	the store says 整点, in Chinese
+q55	zh-phrase	发现问题 先提 issue GitHub issue 再修复	feedback-clawock-issue-first.md	agent	
+q56	synonym	provider 探活 模型顺序 token 自动换序	decision-clawock-provider-order.md	agent	the store says 定时探测重排
+q57	synonym	AI味	feedback-social-post-human-tone.md project-clawock-readme.md	agent	the store says AI 腔 / AI 味儿
+q58	zh-phrase	数据健康	project-clawock-data-health-card.md	agent	
+q59	absent	Unsafe fallback OpenClaw temp dir	-	agent	no topic records this error
+q60	id-symbol	nvm	archive/nvm-node-upgrade-drops-globals.md	agent	
+q61	en-words	IndexNow Pages sitemap public key	project-clawock-seo.md	agent	
+q62	id-symbol	改/补 trades 后必跑 recompute_cash	reference-clawock-price-integrity-checks.md	agent	
+q63	id-symbol	quota-resumes	project-agent-dispatch.md	agent	
+q64	id-symbol	deepseek-flash	project-openclaw-model-fallback-chain.md	agent	
+q65	zh-phrase	tools/invoke 实调	project-shared-memory-wiring.md	agent	
+q66	absent	decision-preview-data	-	agent	an identifier the store never writes
+q67	absent	claim-credit	-	agent	an identifier the store never writes
+q68	absent	clawock-dreaming-race-v2	-	agent	an identifier the store never writes
+q69	absent	skill workshop	-	agent	the store never writes workshop
+q70	absent	retired-branches	-	agent	an identifier the store never writes
+q71	zh-phrase	盘中 静默 always_full 回执	feedback-detect-but-never-silence.md feedback-intraday-card-layout.md project-clawock-intraday-add-side.md	agent	
+q72	en-words	wake hook session dispatch notify	decision-dispatch-reports-to-origin-session.md	agent	
+q73	zh-phrase	dsh 升级 dsh-patch	project-dsh-deployment.md	agent	
+q74	en-words	patrol 巡检 issue	project-clawock-patrol.md	agent	
