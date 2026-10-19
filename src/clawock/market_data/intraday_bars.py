@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 from clawock.credentials import load_api_keys
+from clawock.sessions import MARKET_TZ
 
 
 def fetch(workspace, ticker, day):
@@ -23,7 +24,7 @@ def fetch(workspace, ticker, day):
         raise ValueError('Polygon raw complete response unavailable')
     bars = []
     for row in page.get('results', []):
-        start = datetime.fromtimestamp(row['t'] / 1000, timezone.utc).astimezone(ZoneInfo('America/New_York'))
+        start = datetime.fromtimestamp(row['t'] / 1000, timezone.utc).astimezone(ZoneInfo(MARKET_TZ['us']))
         if start.date().isoformat() == day and 570 <= start.hour * 60 + start.minute < 960:
             bars.append({'end': (start + timedelta(minutes=5)).isoformat(),
                          **{key: row[src] for key, src in [('open', 'o'), ('high', 'h'),

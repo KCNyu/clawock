@@ -65,7 +65,7 @@ def build(workspace, market, research, policies, plan_context, *, now=None, fetc
             return refuse('该标的已有未完成计划；先核对成交和剩余持仓')
         if not sessions.in_session(market, now):
             return refuse('当前非美股常规交易时段')
-        local = now.astimezone(ZoneInfo('America/New_York'))
+        local = now.astimezone(ZoneInfo(sessions.MARKET_TZ[market]))
         # Regular full sessions only. Conservatively exclude July 2/3,
         # Christmas Eve and the Friday after US Thanksgiving.
         day_of_month = local.day
