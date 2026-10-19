@@ -59,6 +59,7 @@ belongs here.
 
 - [`release.md`](operations/release.md) — publishing to PyPI/npm, and running the
   latest code on the host without a release.
+- [`model-refs.md`](operations/model-refs.md) — one source of truth for model ids and the MiniMax endpoint across repo, OpenClaw and dsh.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of
   the tracked cron contract.
 - [`research-cadence.md`](operations/research-cadence.md) — which research

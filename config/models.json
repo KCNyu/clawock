@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "description": "Single source of truth for model ids and the MiniMax endpoint that are repeated across the repo and this host. Edit `values`, then run `python3 ops/host/sync_model_refs.py --apply` (repo files and, on the host, openclaw.json and the dsh profiles). `bindings` declares every location, including ids that live in a JSON key; `--check` fails on any drift and `--effective` prints what is actually configured and what the last cron runs used. Intentional duplicates are not bound: MiniMax-M3 stays in both provider model tables as the rollback id, and minimax/minimax-2 are the same account on purpose (second-hop retry).",
+  "values": {
+    "minimax_model": "MiniMax-M3.1-Flash",
+    "minimax_model_name": "MiniMax M3.1 Flash",
+    "minimax_anthropic_base": "https://api.minimaxi.com/anthropic",
+    "codex_cron_model": "gpt-6-luna",
+    "codex_candidate_model": "gpt-6.1-sol",
+    "chat_fallback": "deepseek/deepseek-flash"
+  },
+  "bindings": [
+    {"file": "config/cron-schedules.json", "kind": "json", "path": "payload_profiles.*.model", "value": "minimax/{minimax_model}"},
+    {"file": "config/cron-schedules.json", "kind": "json", "path": "payload_profiles.*.fallbacks[0]", "value": "minimax-2/{minimax_model}"},
+    {"file": "config/cron-schedules.json", "kind": "json", "path": "payload_profiles.*.fallbacks[1]", "value": "openai/{codex_cron_model}"},
+    {"file": "config/cron-schedules.json", "kind": "json", "path": "payload_profiles.*.model_candidates[0]", "value": "minimax/{minimax_model}"},
+    {"file": "config/cron-schedules.json", "kind": "json", "path": "payload_profiles.*.model_candidates[1]", "value": "minimax-2/{minimax_model}"},
+    {"file": "config/cron-schedules.json", "kind": "json", "path": "payload_profiles.*.model_candidates[2]", "value": "openai/{codex_cron_model}"},
+    {"file": "config/cron-schedules.json", "kind": "json", "path": "payload_profiles.*.model_candidates[3]", "value": "openai/{codex_candidate_model}"},
+
+    {"file": "src/clawock/automation/llm.py", "kind": "line", "match": "^(?P<pre>MINIMAX_MODEL = ')(?P<value>[^']*)(?P<post>')$", "value": "{minimax_model}"},
+    {"file": "src/clawock/automation/llm.py", "kind": "line", "match": "^(?P<pre>MINIMAX_BASE = ')(?P<value>[^']*)(?P<post>')$", "value": "{minimax_anthropic_base}"},
+
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "models.providers.minimax.models[0].id", "value": "{minimax_model}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "models.providers.minimax.models[0].name", "value": "{minimax_model_name}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "models.providers.minimax-2.models[0].id", "value": "{minimax_model}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "models.providers.minimax-2.models[0].name", "value": "{minimax_model_name}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "models.providers.minimax.baseUrl", "value": "{minimax_anthropic_base}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "models.providers.minimax-2.baseUrl", "value": "{minimax_anthropic_base}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "agents.defaults.model.primary", "value": "minimax/{minimax_model}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "agents.defaults.model.fallbacks[0]", "value": "{chat_fallback}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "agents.defaults.heartbeat.model", "value": "minimax/{minimax_model}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "agents.defaults.subagents.model", "value": "minimax/{minimax_model}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "plugins.entries.memory-core.config.dreaming.model", "value": "minimax/{minimax_model}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json", "path": "plugins.entries.memory-core.subagent.allowedModels[0]", "value": "minimax/{minimax_model}"},
+    {"file": "~/.openclaw/openclaw.json", "host": true, "kind": "json_key", "path": "agents.defaults.models", "match": "^minimax/MiniMax-M3\\.", "value": "minimax/{minimax_model}"},
+
+    {"file": "~/.dsh/profiles/web/cordis.patch.yml", "host": true, "kind": "line", "match": "^(?P<pre>\\s*- id: )(?P<value>MiniMax-M3\\.\\S+)(?P<post>)$", "value": "{minimax_model}"},
+    {"file": "~/.dsh/profiles/web/cordis.patch.yml", "host": true, "kind": "line", "match": "^(?P<pre>\\s*name: )(?P<value>MiniMax-M3\\.\\S+)(?P<post>)$", "value": "{minimax_model}"},
+    {"file": "~/.dsh/profiles/web/cordis.patch.yml", "host": true, "kind": "line", "match": "^(?P<pre>\\s*baseURL: )(?P<value>\\S*minimax\\S*)(?P<post>)$", "value": "{minimax_anthropic_base}"},
+    {"file": "~/.dsh/profiles/headless/cordis.patch.yml", "host": true, "kind": "line", "match": "^(?P<pre>\\s*- id: )(?P<value>MiniMax-M3\\.\\S+)(?P<post>)$", "value": "{minimax_model}"},
+    {"file": "~/.dsh/profiles/headless/cordis.patch.yml", "host": true, "kind": "line", "match": "^(?P<pre>\\s*name: )(?P<value>MiniMax-M3\\.\\S+)(?P<post>)$", "value": "{minimax_model}"},
+    {"file": "~/.dsh/profiles/headless/cordis.patch.yml", "host": true, "kind": "line", "match": "^(?P<pre>\\s*baseURL: )(?P<value>\\S*minimax\\S*)(?P<post>)$", "value": "{minimax_anthropic_base}"}
+  ]
+}
