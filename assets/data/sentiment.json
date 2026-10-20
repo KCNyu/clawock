@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T00:31:50.263658+00:00",
+  "generated_at": "2026-10-20T00:45:47.661865+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -131,8 +131,26 @@
       "ticker": "SPCX",
       "name": "SpaceX",
       "region": "us_stocks",
-      "reddit_mentions_7d": 7,
+      "reddit_mentions_7d": 10,
       "reddit_posts": [
+        {
+          "sub": "ProfessorFinance",
+          "title": "A BIG THANK YOU to our legendary friend, @ElonMusk, for his incredible generosity in giving SpaceX Stock to millions of American children through TRUMP ACCOUNTS. President Donald J. Trump 🇺🇸 🫡",
+          "url": "https://www.reddit.com/r/ProfessorFinance/comments/1xadw8d/a_big_thank_you_to_our_legendary_friend_elonmusk/",
+          "created": "2026-10-20T00:31:32+00:00"
+        },
+        {
+          "sub": "wallstreetbets",
+          "title": "Elon Musk Investing in America’s kids! SpaceX",
+          "url": "https://www.reddit.com/r/wallstreetbets/comments/1xadvdf/elon_musk_investing_in_americas_kids_spacex/",
+          "created": "2026-10-20T00:30:27+00:00"
+        },
+        {
+          "sub": "StockLaunchers",
+          "title": "A BIG THANK YOU to our legendary friend, @ElonMusk, for his incredible generosity in giving SpaceX Stock to millions of American children through TRUMP ACCOUNTS. President Donald J. Trump 🇺🇸 🫡",
+          "url": "https://www.reddit.com/r/StockLaunchers/comments/1xaduob/a_big_thank_you_to_our_legendary_friend_elonmusk/",
+          "created": "2026-10-20T00:29:36+00:00"
+        },
         {
           "sub": "SPCXInvestors",
           "title": "Google energy chief reveals its SpaceX compute contract is a short-term bridge for \"huge\" Gemini Enterprise demand, and says Gemini grew from 400 million to 1 billion users in three months",
@@ -150,24 +168,6 @@
           "title": "Bobby Breakdown 10/19/2026",
           "url": "https://www.reddit.com/r/IBDInvesting/comments/1xaddbf/bobby_breakdown_10192026/",
           "created": "2026-10-20T00:07:01+00:00"
-        },
-        {
-          "sub": "wallstreetbets",
-          "title": "SpaceX and Trump Accounts “Donation”",
-          "url": "https://www.reddit.com/r/wallstreetbets/comments/1xadaja/spacex_and_trump_accounts_donation/",
-          "created": "2026-10-20T00:03:28+00:00"
-        },
-        {
-          "sub": "wallstreetbets",
-          "title": "Surprise SpaceX Earnings Tomorrow",
-          "url": "https://www.reddit.com/r/wallstreetbets/comments/1xad35t/surprise_spacex_earnings_tomorrow/",
-          "created": "2026-10-19T23:55:15+00:00"
-        },
-        {
-          "sub": "RepublicanValues",
-          "title": "Elon Musk’s proposed SpaceX stock giveaway would go into ‘Trump Accounts’ | The White House said 60 million of the tax-advantaged accounts for kids were created automatically in October.",
-          "url": "https://www.reddit.com/r/RepublicanValues/comments/1xac06i/elon_musks_proposed_spacex_stock_giveaway_would/",
-          "created": "2026-10-19T23:05:26+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -220,8 +220,26 @@
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us_stocks",
-      "reddit_mentions_7d": 7,
+      "reddit_mentions_7d": 10,
       "reddit_posts": [
+        {
+          "sub": "ProfessorFinance",
+          "title": "A BIG THANK YOU to our legendary friend, @ElonMusk, for his incredible generosity in giving SpaceX Stock to millions of American children through TRUMP ACCOUNTS. President Donald J. Trump 🇺🇸 🫡",
+          "url": "https://www.reddit.com/r/ProfessorFinance/comments/1xadw8d/a_big_thank_you_to_our_legendary_friend_elonmusk/",
+          "created": "2026-10-20T00:31:32+00:00"
+        },
+        {
+          "sub": "wallstreetbets",
+          "title": "Elon Musk Investing in America’s kids! SpaceX",
+          "url": "https://www.reddit.com/r/wallstreetbets/comments/1xadvdf/elon_musk_investing_in_americas_kids_spacex/",
+          "created": "2026-10-20T00:30:27+00:00"
+        },
+        {
+          "sub": "StockLaunchers",
+          "title": "A BIG THANK YOU to our legendary friend, @ElonMusk, for his incredible generosity in giving SpaceX Stock to millions of American children through TRUMP ACCOUNTS. President Donald J. Trump 🇺🇸 🫡",
+          "url": "https://www.reddit.com/r/StockLaunchers/comments/1xaduob/a_big_thank_you_to_our_legendary_friend_elonmusk/",
+          "created": "2026-10-20T00:29:36+00:00"
+        },
         {
           "sub": "SPCXInvestors",
           "title": "Google energy chief reveals its SpaceX compute contract is a short-term bridge for \"huge\" Gemini Enterprise demand, and says Gemini grew from 400 million to 1 billion users in three months",
@@ -239,24 +257,6 @@
           "title": "Bobby Breakdown 10/19/2026",
           "url": "https://www.reddit.com/r/IBDInvesting/comments/1xaddbf/bobby_breakdown_10192026/",
           "created": "2026-10-20T00:07:01+00:00"
-        },
-        {
-          "sub": "wallstreetbets",
-          "title": "SpaceX and Trump Accounts “Donation”",
-          "url": "https://www.reddit.com/r/wallstreetbets/comments/1xadaja/spacex_and_trump_accounts_donation/",
-          "created": "2026-10-20T00:03:28+00:00"
-        },
-        {
-          "sub": "wallstreetbets",
-          "title": "Surprise SpaceX Earnings Tomorrow",
-          "url": "https://www.reddit.com/r/wallstreetbets/comments/1xad35t/surprise_spacex_earnings_tomorrow/",
-          "created": "2026-10-19T23:55:15+00:00"
-        },
-        {
-          "sub": "RepublicanValues",
-          "title": "Elon Musk’s proposed SpaceX stock giveaway would go into ‘Trump Accounts’ | The White House said 60 million of the tax-advantaged accounts for kids were created automatically in October.",
-          "url": "https://www.reddit.com/r/RepublicanValues/comments/1xac06i/elon_musks_proposed_spacex_stock_giveaway_would/",
-          "created": "2026-10-19T23:05:26+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -432,10 +432,10 @@
           "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
         },
         {
-          "title": "【大行報告】大摩升金風科技目標價40%",
+          "title": "財律指揮｜中美科技處處角力 金風科技不只做風電 火箭概念有排炒｜曲鳴",
           "source": "Yahoo 財經",
-          "published": "Mon, 19 Jan 2026 08:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxPbEFJVElQdTdOeWdTODBRT1BzODJCSTltYzNJMnZHNWVRNFBUWFBiWmlGWTRvdmNZNWxZUEZseld1UDhONzZfTUh1bGx0X2dGMjBNUHFPN1dUQUxBN0p4eEtONFY1UVhscGtreXlwUF9FOFJqMUhpSlhzNGJfSXYwMldXSmxHR2dGSWRoT3I1Q19Nam9vUW9NbXN4TEZBcS1EbDFDcDlsQ01QSnNobGt2VDhyWklDMWlrOGE4QldBQnQ4N1dmY2hIZVQ1TWczbTVGOWQ0QWVQZlJBUGJENTAxRHRxWkRTbndHUkJtRVVqd1VJVTh2Y1dRWHlaM0FGbTI2QUtGSEZlcGxXeEE?oc=5"
+          "published": "Sun, 11 Jan 2026 08:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiywNBVV95cUxNLThUME1aUm5lQU9nSUpVdlJKem9NT2stQzB4MzFtVWVqaUNKYTZCdmJuODlYOWFCYTNRbUhRVFl2Z1MwLTFsLXZGalM4ZlVCcWlHbENvRzZvVlprN3JHSlJMQTVBeTlTQUZzX0MyOUNGOTI1Y196R3NrSTZaUjBCOXFzdnd4ZkVkQjREZDJVMXhlOEtjaWZZSGt5R0NkYzBPVll3bmdFLTVSMU9ZOHA2dEttTWFZeVE3bUhrbF84RHJXMzdWWTFCLUtGWWJHQmk0N2tXQldCTGdEb2J1ZzdoTVpGemtVZHBoUHY3ZVg4d29ENmszajZ4TmxFOVE3NFJrcURHNk1aUXEwcmJNVVhxX2VKREFwZUl3STlVMWN0bEtGQ21EaW01cWl6dWEwUnI2bkxLU1ppckhwXzlKZDEyMWVHMmpTVmthc0RBSTk3YlBnLWxKRnVCWXM0ZGdlZ01LR3NjYzZUVzJ2OVI5YzZTeGdJOEx0bGJpdVhTWGRDOUswdC1ybHBvdmdIQ1p1Nk9tNzlKejBMRkd2UGlGVW1yUFRLTGdQcGVBc1JBLUc5N0dMb2Q5OU5yNHo2WVEtUmhGQXBmUDEwQmtRT1U?oc=5"
         },
         {
           "title": "歐盟宣佈對中國清潔能源巨頭金風科技展開反補貼深入調查",
@@ -444,16 +444,16 @@
           "url": "https://news.google.com/rss/articles/CBMihwNBVV95cUxPZzg2YURBNW9BLUduTUpQTkdTLWZScVJMaHhFUHA0eWM5Q0xXZFplOU9LV3ZLczFsbFJteHVxc2U0emhiQnQ4eEdYN18xdi1SYlJpejFqMV9kcVlzellzTWt0WmRNNjM2REp6Qk4zVzdEb0VRSlBNbmpRclJ0VDJ3ZGJpcHFTcURiUlRQOGR1bmE2Wkxmcm5DZXFkcVNQc0p5Z2xTdE9EQW9UTFQ3cjV2UnM1SDFZOEV3Qlp2ZlhDZGtNdk1uU0k4QS1YYUhjXzMwang0MkZVaktrdHZsZ2N0cV84OFpVYWJ0aUs3Uk15cmtpa3R2aVIwRlNCRUJCVHlJc0xhdXduSDgtWUZxWlpRZEpuZk8xWWtEdFVMeUhJaUNLblV5QXlVb3MwVGtrbkh6RDRtdEZ3Q09TSjlOUFVUZ3Q5RkZvZ0RrY01pUC1nSkVlbG9iY2o1OVR1ZURGUExQWXFqdVdTaWhYcmNma0Z5S1ZCUU1acW85akcycFV2NEhGdzJOWWVN0gGHA0FVX3lxTFA1VVlXSlZzUXJhbjhJS1hkOUJBUklWZmtNTmwzYkowcVF1UGxtck1kcnViYVJVTkc3TndGVEZ1eXdSVGhSSUpNeG8wMXRjcU02YXRWNmJpSEVyZ3hySGpCX0hnaE16S0FhdTlsNzNmR0IzY0NmYjNvV2NHVnZGcERFV2twOWx5cjYxVGhnNVhfbkx0S0pEVVhKMGdxOE5tWm5zN3hSS3BOZUM5NUQzemNSM0tuYkxySDM0a2laMFY1OEFPaFlNRjhqMzhENG5uN2hickJvM0pMVXFsejNwQXBQWHVmQjRFWUtMT1lOS0p3clpZaE93MnJ2OGxab0FZdFh3VHRCUl9DdnZidUlZODdITmVNZHF4ZlFGUUFjaS1UcjM5OHRTa05QNDRJdmVSUFNWeW80VDRTeGtQaUxiS0hJU3NIVUtnUGd3bjVrSWlJMEFqRjY0WlMzajMzVWNMbUcxU0wxSUJfZ253MFRTOUd0bUFOaVBBTlY5dUI2YkJjWWpNYnNZNFk?oc=5"
         },
         {
-          "title": "港股異動| 金風科技(02208)漲超4% 可再生能源發展“十五五”規劃發佈國內風電裝機將迎旺季作者智通財經 - Investing.com 香港",
-          "source": "Investing.com 香港 - 股市報價& 財經新聞",
-          "published": "Thu, 23 Jul 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzWkx4azhiUjRaVVUxNThzWU1jMU5IeEVPRTFiaWM2YU0zWlFKQS0xUEpPeS1MT1kzOGlDcURMSEo1Wl9XeXFvWWVMU21WZE9abjg5X2puSW9Ra2oyNFNwSjU4SkltcklBSnRhM2pQeDc?oc=5"
-        },
-        {
           "title": "【投資觀察】金風科技業務受惠全球能源轉型- 投資",
           "source": "香港文匯報",
           "published": "Mon, 26 Jan 2026 08:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMid0FVX3lxTFBCT09sWm9zbm55QVNZeEk3ODZEdjdIbmQ1ZjRFcTdZODYtcHRyS1lCc1NVeTlTalR0Q0VGRDBhZTE4YTNZeWNnRWZ4TXMzQnRQYkhVdmVlSVF6NDNWUkNBQmNhUmRMNTRRQXFZYXFGSkU5MnZXbU1N?oc=5"
+        },
+        {
+          "title": "港股異動| 金風科技(02208)漲超4% 可再生能源發展“十五五”規劃發佈國內風電裝機將迎旺季作者智通財經 - Investing.com 香港",
+          "source": "Investing.com 香港 - 股市報價& 財經新聞",
+          "published": "Thu, 23 Jul 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBzWkx4azhiUjRaVVUxNThzWU1jMU5IeEVPRTFiaWM2YU0zWlFKQS0xUEpPeS1MT1kzOGlDcURMSEo1Wl9XeXFvWWVMU21WZE9abjg5X2puSW9Ra2oyNFNwSjU4SkltcklBSnRhM2pQeDc?oc=5"
         }
       ]
     },
