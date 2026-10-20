@@ -508,6 +508,10 @@ def main(argv=None):
 
     skill = (root / 'skills/daily-deep-brief/SKILL.md').read_text()
     soul = (root / 'SOUL.md').read_text()
+    # BOOTSTRAP.md goes in whole. Its brief rules (§B.3, §C) name judgment
+    # fields, not report sections: this turn can only return plan + judgment,
+    # so an instruction to write a section here is one the reply cannot follow
+    # (#3117).
     bootstrap = (root / 'BOOTSTRAP.md').read_text()
 
     system = build_system_prompt(soul, bootstrap)

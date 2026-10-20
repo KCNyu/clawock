@@ -23,27 +23,32 @@ cron payload 和对应 skill 里。所有路径只用安装后的 `clawock` 入�
 2. **读 context.json**：FX rate、book total、concentration、anomalies 等数字只从这份
    JSON 取。`raw_wechat_block` 由 harness 拥有：report / intraday 的模型只写散文，
    postflight 在投递前拼装，模型不重排、不重算其中数字。
-3. **合成**：按对应 `SKILL.md` 的 Mode 模板写 markdown 报告。
-   - daily-deep-brief 另写 `memory/{date}-plan.json`，schema 在其 SKILL.md。
-   - 报告至少提到一个 `anomalies` 里的异动票。
-   - `needs_risk_section=true` 时必须有 `▎风险提示` 段。
+3. **合成**：
+   - report / intraday：按对应 `SKILL.md` 的 Mode 模板写散文；至少提到一个 `anomalies`
+     里的异动票；`needs_risk_section=true` 时必须有 `▎风险提示` 段。
+   - daily-deep-brief：只写 `memory/{date}-plan.json` 和 judgment（schema 与字段规则在其
+     SKILL.md 的 Step 4），不写报告。报告的段落、表格和标题由 harness 从 context + judgment
+     + plan 渲染；judgment 字段是纯文本，出现 `|`、`#`、`**`、`▎` 会被 postflight 拒收。
 4. **Postflight**：`clawock {brief|report|intraday} postflight [args]`。校验通过或 warn
    时自动 commit；fail 时加红 banner。
 
 ## C. 简报必须用上的 context 字段（daily-deep-brief）
 
+下面每段的表由 harness 印；这里说的是读这些字段之后写进哪个 judgment 字段。
+
 1. **`peer_scan`**：每个持仓的同题材竞品（listed、private、ETF proxy）。
-   - 输出 `▎同行扫描` 段，用表格。
+   - 每票的结论写进该票的 `peer_read`。
    - 出现 `divergence_signal` 时，Judge 必须考虑 rotation trigger。
    - 写「减 X 股 → 加 Y 股」，不写「考虑减仓」。
 2. **`decision_metrics`**：v2 strategy episode 的 confidence 与 benefit 审计。
    - 只结算 condition 实际触发的 episode；同策略连续重申不重复计样本。
-   - 输出 `▎Decision v2 校准`：Brier、active/passive、by_strategy / by_driver /
-     by_condition 与 date-cluster CI。
+   - 从校准表（Brier、by_strategy / by_driver / by_condition 与 date-cluster CI）
+     读出的结论写进 `narrative.calibration_read`。
    - 给 decision 定 confidence 前参考同策略 episode。CI 跨 0 只能称方向性，不称稳定 edge。
    - execution 与建议质量分开。手动标记：`clawock mark-followed DECISION_ID [--no]`。
 3. **`risk_metrics`**：组合风险量化（β、Vol、Max DD、Sharpe、leverage、margin_at_risk）。
-   - `alerts[]` 非空时输出 `▎风险警报` 段，逐条列 `alert.type` 与 detail。
+   - `alerts[]` 非空时，在 `narrative.conservative` 或相关持仓的 `assessment` 里点名
+     `alert.type` 并引用 detail 的数值。
    - alert 类型：`high_beta` / `high_vol` / `deep_dd` / `high_leverage` / `negative_sharpe`。
    - 引用具体数值，例如「30d 年化 56.5% > 50% 阈值」，不写「波动较大」。
 
@@ -65,6 +70,8 @@ cron payload 和对应 skill 里。所有路径只用安装后的 `clawock` 入�
   仓位、失效 artifact，简报要讲出来。节奏见 `docs/operations/research-cadence.md`。
 
 ## E. 输出
+
+本节约束 report / intraday 散文与直聊回答；daily-deep-brief 的 judgment 字段按 B.3 只写纯文本。
 
 - 段标记用全角竖线：`▎情绪面` `▎技术面` `▎操作建议` `▎风险提示` `▎我的看法`。
 - Mode 6 / Mode 7 不设字数目标。只有一道防复读的上限：超过 5000 字 warn，超过 6000 字
