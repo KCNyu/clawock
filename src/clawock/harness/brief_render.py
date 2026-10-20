@@ -765,6 +765,40 @@ def _unsaid(extra, said):
     return "；".join(kept)
 
 
+_PERCENT_FIGURE = re.compile(r"[+\-−]?(\d+(?:\.\d+)?)\s*%")
+_ATTRIBUTION_CLAUSE = re.compile(r"([,，;；。]+)")
+
+
+def _drop_quoted_figure(attribution, figure):
+    """`attribution` without the clauses that quote `figure` as a percentage.
+
+    The figure is the one the model wrote in the row's own column and the
+    harness has just replaced, so a clause repeating it ("10-16 收 19.19 跌
+    4.24%") is a second, contrary statement of the same session (#3116). The
+    sign is not compared: the model writes 跌 4.24% as often as -4.24%. Returns
+    `(kept, dropped)`; separators stay with the clause they close.
+    """
+    if not isinstance(attribution, str) or not attribution:
+        return attribution, []
+    try:
+        magnitude = abs(float(figure))
+    except (TypeError, ValueError):
+        return attribution, []
+    pieces = _ATTRIBUTION_CLAUSE.split(attribution)
+    kept, dropped = [], []
+    for i in range(0, len(pieces), 2):
+        clause = pieces[i]
+        tail = pieces[i + 1] if i + 1 < len(pieces) else ""
+        if any(abs(float(m.group(1)) - magnitude) < 0.005
+               for m in _PERCENT_FIGURE.finditer(clause)):
+            dropped.append(clause.strip())
+        else:
+            kept.append(clause + tail)
+    if not dropped:
+        return attribution, []
+    return "".join(kept).strip().rstrip("，,；;").strip(), dropped
+
+
 def bind_sector_self(sector_scan, context):
     """Put the session's own change on each held row of the sector sweep.
 
@@ -773,7 +807,12 @@ def bind_sector_self(sector_scan, context):
     session) where the session was +2.73% (#3107). The number is the harness's:
     `session_change_pct` of this generation's book, the same one 仓位明细 and
     the peer scan print, `None` when the quote cannot say. Rows for names the
-    book does not hold are left as written. Returns `[(ticker, written, bound)]`
+    book does not hold are left as written.
+
+    The same row's `attribution` had said "10-16 收 19.19 跌 4.24%" (#3116):
+    on a row whose number was replaced, the clauses that quote the replaced
+    figure are dropped, so the column and the sentence no longer state two
+    different sessions. Returns `[(ticker, written, bound, dropped_clauses)]`
     for the rows it changed.
     """
     sessions = {}
@@ -790,8 +829,12 @@ def bind_sector_self(sector_scan, context):
                 continue
             ticker = str(own.get("ticker") or "")
             if ticker in sessions and own.get("pct") != sessions[ticker]:
-                changed.append((ticker, own.get("pct"), sessions[ticker]))
+                written = own.get("pct")
                 own["pct"] = sessions[ticker]
+                kept, dropped = _drop_quoted_figure(own.get("attribution"), written)
+                if dropped:
+                    own["attribution"] = kept
+                changed.append((ticker, written, sessions[ticker], dropped))
     return changed
 
 
@@ -1357,7 +1400,9 @@ def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=Tr
         rebound = bind_sector_self(sector_scan, context)
         if rebound:
             issues.append("板块全景 持仓涨跌改用场次口径（模型所写→场次）: " + "；".join(
-                f"{ticker} {written}→{bound}" for ticker, written, bound in rebound))
+                f"{ticker} {written}→{bound}" + (
+                    f"（归因删去「{'；'.join(dropped)}」）" if dropped else "")
+                for ticker, written, bound, dropped in rebound))
             # The dashboard card reads this file, so it says the same number.
             if write:
                 safe_write_json(str(paths["sector_scan"]), sector_scan)

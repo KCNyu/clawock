@@ -289,7 +289,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
     "narrative": "今天港股 AI 板块全面爆发，主角不是 MINIMAX 而是..."
   }
   ```
-  - `self[].pct` 是持仓上一场的场次涨跌（packet `facts.session_change_pct`），不是 `today_change_pct`（那是含新成交的仓位当日盈亏）；postflight 渲染前会用同代账本的场次涨跌覆盖持仓行，归因句里引用的涨跌也用场次口径
+  - `self[].pct` 是持仓上一场的场次涨跌（packet `facts.session_change_pct`），不是 `today_change_pct`（那是含新成交的仓位当日盈亏）；postflight 渲染前会用同代账本的场次涨跌覆盖持仓行；`attribution` 只写原因，不复述这一格的涨跌（被覆盖的那个数若出现在归因里，含它的分句会被删掉）
   - 缺失/解析失败 dashboard 容错（market_context 退回 portfolio.json 的 {}），不影响 brief 投递
 
 #### Tier 2 — Bull vs Bear（必须有真分歧）
