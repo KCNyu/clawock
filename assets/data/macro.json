@@ -1,79 +1,74 @@
 {
-  "generated_at": "2026-10-20T00:45:15.718361+00:00",
+  "generated_at": "2026-10-20T23:20:23.964406+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 18.44,
-    "prev": 19.99,
-    "change_pct": -7.75,
+    "price": 17.31,
+    "prev": 18.44,
+    "change_pct": -6.13,
     "source": "yahoo",
-    "as_of": 1792440901
+    "as_of": 1792527301
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 5.136,
-    "prev": 5.098,
-    "change_pct": 0.75,
+    "price": 5.117,
+    "prev": 5.136,
+    "change_pct": -0.37,
     "source": "yahoo",
-    "as_of": 1792436393,
-    "yield_pct": 5.136
+    "as_of": 1792522794,
+    "yield_pct": 5.117
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.924,
-    "prev": 101.98,
-    "change_pct": -0.05,
+    "price": 101.73,
+    "prev": 101.701,
+    "change_pct": 0.03,
     "source": "yahoo",
-    "as_of": 1792456514
+    "as_of": 1792533899
   },
   "fear_greed": {
-    "score": 23.1,
-    "rating": "extreme fear",
-    "prev_close": 17.9,
-    "prev_1_week": 46.3,
-    "as_of": "2026-10-19T23:59:54+00:00"
+    "score": 27.2,
+    "rating": "fear",
+    "prev_close": 23.1,
+    "prev_1_week": 44.1,
+    "as_of": "2026-10-20T22:59:55+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24186.83,
-    "prev": 24062.72,
-    "change_pct": 0.52,
+    "price": 23867.74,
+    "prev": 24186.83,
+    "change_pct": -1.32,
     "source": "tencent",
-    "as_of": "2026-10-16"
+    "as_of": "2026-10-20"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4108.24,
-    "prev": 4060.99,
-    "change_pct": 1.16,
+    "price": 4045.91,
+    "prev": 4108.24,
+    "change_pct": -1.52,
     "source": "tencent",
-    "as_of": "2026-10-16"
+    "as_of": "2026-10-20"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7690.73,
-    "prev": 7659.44,
-    "change_pct": 0.41,
+    "price": 7712.57,
+    "prev": 7690.73,
+    "change_pct": 0.28,
     "source": "yahoo",
-    "as_of": 1792442654
+    "as_of": 1792529145
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26430.89,
-    "prev": 26140.03,
-    "change_pct": 1.11,
+    "price": 26424.82,
+    "prev": 26430.89,
+    "change_pct": -0.02,
     "source": "tencent",
-    "as_of": "2026-10-19"
+    "as_of": "2026-10-20"
   },
   "fed_press": [
     {
       "date": "2026-10-16",
       "title": "Federal Reserve Board announces termination of enforcement actions with Gardner Bancshares, Inc. and Small Business Bank",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261016a.htm"
-    },
-    {
-      "date": "2026-10-13",
-      "title": "Minutes of the Board's discount rate meetings on August 17, September 9, and September 16, 2026",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261013a.htm"
     }
   ]
 }
