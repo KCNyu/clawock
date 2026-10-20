@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-19T18:51:09.161933+00:00",
+  "generated_at": "2026-10-20T00:35:52.446980+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -21,16 +21,931 @@
     "burry": "success",
     "pelosi": "success"
   },
-  "llm_filtered": false,
-  "llm_filter_status": "failed",
+  "llm_filtered": true,
+  "llm_filter_status": "ok",
   "counts": {
-    "total": 0,
+    "total": 22,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "new_ideas": 9,
+    "sector_hits": 7
   },
-  "items": [],
+  "items": [
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 670,746 股（最大单只 ETF 占比 0.50%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4969,
+      "tickers": [
+        "PSNL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSNL"
+      ],
+      "sectors": [
+        "生物科技",
+        "精准医疗"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 74,
+      "summary_cn": "ARK Invest在ARKG中卖出Personalis 670,746股，占单只ETF权重0.50%，属于规模较明显的机构减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 59,477 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1789,
+      "tickers": [
+        "CDNA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CDNA"
+      ],
+      "sectors": [
+        "生物科技",
+        "诊断检测"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest在ARKG中卖出CareDx 59,477股，占单只ETF权重0.18%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：Freenome, Inc.(FRNM) 买入 ARKG 254,668 股（最大单只 ETF 占比 0.14%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1418,
+      "tickers": [
+        "FRNM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "FRNM"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因检测"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 68,
+      "summary_cn": "ARK Invest在ARKG中买入Freenome 254,668股，占单只ETF权重0.14%。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Where Trump’s Portfolio Meets His Power: Nvidia, Palantir, Dell and More",
+      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5mYWt1UjhmSU5fS01WekNsVm9reFNQTUd2dWdVb1FrS1JEamVDX2lNSDZjWFh6bFpqRHRTYTNmRW1mV1NKQzBpQ1pCV3k3VVNpUDlrR25jLUZSMnRzMmpiRnBudDh5MjFG?oc=5",
+      "published": "2026-10-19T11:30:36+00:00",
+      "origin": "gnews-rss",
+      "source": "TradingView",
+      "tickers": [
+        "NVDA",
+        "PLNT",
+        "DELL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DELL",
+        "NVDA",
+        "PLNT"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "国防科技",
+        "科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道，相关报道梳理特朗普持有的英伟达、Palantir、戴尔等股票，将总统持仓与其政策影响力同时置于市场关注之下。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Can Uber (UBER) Keep Growing as Robotaxis Spread?",
+      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQOE94YlJOV3M0bERlZm1qY3IwTzNDb3VjTmw0cnI0UXBudXhZUERsNEVOcDlEZWFYUGtGbC0yaEZrSmhnaElxU05WSjFjVzNONGQ1TzJneEZZY0Vuc1lwRWdOUG9kYmo0TUhSZjFJNXRCbzdxQ2stNDFxV1dkVFZnYTdFUjNZR2Jvd2xzMGUzd3RKQWdI?oc=5",
+      "published": "2026-10-19T13:27:55+00:00",
+      "origin": "gnews-rss",
+      "source": "Insider Monkey",
+      "tickers": [
+        "UBER"
+      ],
+      "held": [],
+      "new_ideas": [
+        "UBER"
+      ],
+      "sectors": [
+        "自动驾驶",
+        "Robotaxi",
+        "出行平台"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，随着Robotaxi扩张，Uber能否持续增长成为关注焦点，但报道标题本身未提供明确的多空结论。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 29,416 股（最大单只 ETF 占比 0.03%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0276,
+      "tickers": [
+        "SCTX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SCTX"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因治疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 52,
+      "summary_cn": "ARK Invest在ARKG中买入Scribe Therapeutics 29,416股，占单只ETF权重0.03%，属于规模较小的常规加仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Equity-Based Tesla Pay Was $158 Billion In 2025—2.5 Million Times Median Employee Pay",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 16:33:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "公司治理",
+        "薪酬"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "据报道，马斯克2025年基于股权的特斯拉薪酬达1580亿美元，为美国员工薪酬中位数的250万倍，凸显治理及股东利益关注点。"
+    },
+    {
+      "author": "Musk",
+      "text": "I Think I Know the Real Reason Elon Unveiled the Flying Tesla",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 16:52:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Slate",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航空出行",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道，马斯克展示了一款“飞行特斯拉”，体现其继续探索电动车与航空出行技术融合。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla CEO Elon Musk reminds everyone about Roadster’s true meaning",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 17:53:14 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "产品营销"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 45,
+      "summary_cn": "据报道，马斯克借Roadster重新宣传特斯拉及其产品使命，但没有披露新的财务或业务行动。"
+    },
+    {
+      "author": "洪灏",
+      "text": "洪灝：港股處於抛售尾聲",
+      "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxPdlljSzVfWXBjRjhCcEd2a1hlTUgycFR5bFVzVmpEY1czN3hzdTFQNld6SllYdlFtU0xqQ1V3Wk1yRFJ0eVdRdmZNWWFrUzdZbVNhWTRCUm9hMGJxWXRfbWFWbE5jenNVTk15NFVFaVRXTGw2YnVQRFhuR0pDQlpWS0JHUnAxeGV5bkdJS1E2NUp6ZmcxQ01ETjRlS085d0lQMDF0VjFMdkExMXNudVczdDlUa0JpQ21NdXhwcE1mWEQ3bDMyZnVqNlduMVhnWHVCVVlHM29xOUFfbnM?oc=5",
+      "published": "2026-10-19T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "港股",
+        "股票市场"
+      ],
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 79,
+      "summary_cn": "据媒体转述，洪灏判断港股已处于抛售尾声，释放偏多及接近阶段性底部的中期市场信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "A BIG THANK YOU to our legendary friend, Elon Musk, for his incredible generosity in giving SpaceX Stock to millions of American children through TRUMP ACCOUNTS! This is exactly what was envisioned when we created TRUMP ACCOUNTS — Bringing together the GREAT PRIVATE SECTOR, Elon and so many more, to invest in our children, by far our greatest and most important asset, and give every American Child a piece of the American Dream. Thank you Elon! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42444",
+      "published": "2026-10-19T20:41:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "特朗普感谢马斯克通过“TRUMP ACCOUNTS”向数百万美国儿童赠送SpaceX股票，释放其持续推广持股型普惠账户的信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says One ‘Timeless’ Investing Question Helped Him Spot The Dot-Com Bubble – And Applies To AI Today",
+      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxNVU9HRjRHYjY2OEo2Z0VfN1Zjc1hHcjZnOWIyWDRhM2FwWGdrN1JNS0dfVFpkZWptUHlPcG9qNVlMWFU4RHlLV2FuX2xLSnNlcXJfOUk0WlFVbEpIOWN2M1FEaVkxd0MwMUJEY183RWFMbDZsemE3dmtlS21hNW9ER0drbTdISDZYcUtoMzVPN1FsbXhrajR0Z0NXRXgtNFFkZ01wRWh3NVhFamE2bUdMdnRDU3dmWkQ3YVVFY1J2OFk1alcySzZ1UlZnSzY?oc=5",
+      "published": "2026-10-19T03:56:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "美股",
+        "估值泡沫"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道，Michael Burry认为其识别互联网泡沫的经典问题同样适用于当前AI热潮，暗示AI资产可能存在泡沫风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "Universal Basic Capital: Elon Musk Giving Out SpaceX Shares Is Part Of Broader AI Plan",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 16:45:34 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "据报道，马斯克赠送SpaceX股票属于其更广泛AI与普惠投资安排的一部分，强化公众持股及AI主题关注。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Giving Away $10 Billion in SpaceX Stock—To Your Kids.",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 20:17:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "据报道，马斯克将向美国儿童赠送价值约100亿美元的SpaceX股票。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says he is going to give SpaceX stock away to kids",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 09:03:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克确认将向美国儿童赠送SpaceX股票。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says he'll give a SpaceX share to every child in America next year",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 08:39:30 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克计划明年向美国每位儿童赠送一股SpaceX股票，扩大SpaceX股权的公众持有基础。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Warns Stocks Could Face 15-20 Years of Poor Real Returns: ‘Speculation Has Overrun Investin",
+      "url": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxNTEVlWkUxUWtfejQ1b2RLMk03d1UwX1NfaG9PNFY2Tl9SMzlCN25JMFRYZkNMZXo0dWY1bFRFSmZPc1doUEpBVzdxZlhFYndCTXljeTBzS1dFLTZmeGhobHZlV0txZDZpVlI2RHYtQTJOaWl1NHFPNVF0Qmp4MkVMVmFySDFvdXZxczFTWE03eTQ4eXd4czNFY0ptN0llRGNRMHMzcl9JS0hfZWhwek5wY0lkc1h6U0l2aGIzbW16UTZZWEd0LXYzYlBmZkN5Zkd1a2VYZV9GSkZ5U2lENjhjNWJzUURseGJpZzBwV2c0YUJ4TGhsMmZQeDdobw?oc=5",
+      "published": "2026-10-19T08:52:50+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "估值泡沫",
+        "长期回报"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "据报道，Michael Burry警告股票可能经历长达15至20年的低回报期，因为投机已明显压过投资。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Warns of a Stock Market ‘Supervolcano’",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOUTJEQXBCeFBNT0YtRFJzaVZmdnAycXBOX0lRUVI3QTZ1N2FtRWFybGxNYTlpZUZ6TEdLQ2loYUpfMkpYME5hNFEwZmFQSUJOVlBua3d1TEg1azQ2d0w2MDllb08wUGZ1d2s1VGo5NXBLazQ3N3UzUWs4Q2xVNnB5a25NeXMyT05CaFNXNk54eUYwSDZpVlFmU2xOc0lQQQ?oc=5",
+      "published": "2026-10-18T09:13:56+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "系统性风险"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 74,
+      "summary_cn": "据报道，Michael Burry警告股票市场可能面临如“超级火山”般的大幅回撤风险。"
+    },
+    {
+      "author": "洪灏",
+      "text": "MSCI突提出降級累股市暴瀉 印尼擬會晤該指數機構高層",
+      "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTFBlRjhTMURNelZUVnh6OVBwNGhpWVN1RUQzTUc2d2FqeGpKV0gwM1ZnUktjYW1JTTBfRWhZLWl5cEktZFZwZ1VRa2FyLTFpUQ?oc=5",
+      "published": "2026-10-19T07:14:29+00:00",
+      "origin": "gnews-rss",
+      "source": "香港01",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "新兴市场",
+        "指数编制",
+        "股票市场"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "据媒体转述，MSCI拟下调部分新兴市场指数评级引发股市暴跌，印尼拟与MSCI高层会晤，显示指数调整带来显著资金面压力。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "US House passes USMCA trade deal",
+      "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE5VNlU3SW9CUlJ6RTlLZExPaU95dUllaEtTMGoybExXSVUzODdCUFl3bUVEQ3dkbVVySUhFbVRRX1hYWUk2Q0NsMmpsWXM3R082c04zaV9PdmFmSjdKSEdEa3ZkWDVUOG5xQXQ2NTdHQUpYaUxFbXB1RTQxZw?oc=5",
+      "published": "2026-10-18T09:59:27+00:00",
+      "origin": "gnews-rss",
+      "source": "Yeni Şafak English",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "贸易",
+        "关税",
+        "北美经济"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，美国众议院通过USMCA贸易协议，为美墨加贸易环境提供立法支持并降低相关政策不确定性。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Democrats gave us the Highest Inflation in History, and the Highest Prices to go with it and, as soon as l came into Office, they started screaming, \"AFFORDABILITY.\" They are the ones that created the Affordability Crisis. I'm the one who created the Greatest Economy, and am bringing the prices down. It's just another Fake News CON JOB! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42443",
+      "published": "2026-10-19T19:05:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "通胀",
+        "消费价格"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特朗普宣称其政府已降低物价、将带回美国历史上最强经济，并指责民主党制造通胀与可负担性危机。"
+    },
+    {
+      "author": "Burry",
+      "text": "Abridged Version Foundations: Performance in the Next Bear Market & the Caldera Under S. Park & Wall",
+      "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxOQ0hzTUhwMWlKM2lvNGJJaXNFMWhiZDVqYmdEQzVRYkdhZUlVeDduVlp1SzV0UzRQenB6TU1mSGRvMEFzZVpzME1zRjI1bzY3cjFKQmtFT3V4UEpiOXlnNXZBMHlLV21Od3pjbm5PLVJEMTRBYWtvZXRsMEE1WVBpU0xLRQ?oc=5",
+      "published": "2026-10-19T13:13:24+00:00",
+      "origin": "gnews-rss",
+      "source": "Cassandra Unchained | Michael Burry",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "熊市",
+        "资产配置"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "据报道，Michael Burry发布下一轮熊市投资框架，强调在极端市场环境下控制风险和资产配置。"
+    }
+  ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  "new_ideas": [
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 670,746 股（最大单只 ETF 占比 0.50%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4969,
+      "tickers": [
+        "PSNL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSNL"
+      ],
+      "sectors": [
+        "生物科技",
+        "精准医疗"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 74,
+      "summary_cn": "ARK Invest在ARKG中卖出Personalis 670,746股，占单只ETF权重0.50%，属于规模较明显的机构减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 59,477 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1789,
+      "tickers": [
+        "CDNA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CDNA"
+      ],
+      "sectors": [
+        "生物科技",
+        "诊断检测"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest在ARKG中卖出CareDx 59,477股，占单只ETF权重0.18%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：Freenome, Inc.(FRNM) 买入 ARKG 254,668 股（最大单只 ETF 占比 0.14%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1418,
+      "tickers": [
+        "FRNM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "FRNM"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因检测"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 68,
+      "summary_cn": "ARK Invest在ARKG中买入Freenome 254,668股，占单只ETF权重0.14%。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Where Trump’s Portfolio Meets His Power: Nvidia, Palantir, Dell and More",
+      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5mYWt1UjhmSU5fS01WekNsVm9reFNQTUd2dWdVb1FrS1JEamVDX2lNSDZjWFh6bFpqRHRTYTNmRW1mV1NKQzBpQ1pCV3k3VVNpUDlrR25jLUZSMnRzMmpiRnBudDh5MjFG?oc=5",
+      "published": "2026-10-19T11:30:36+00:00",
+      "origin": "gnews-rss",
+      "source": "TradingView",
+      "tickers": [
+        "NVDA",
+        "PLNT",
+        "DELL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "DELL",
+        "NVDA",
+        "PLNT"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "国防科技",
+        "科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道，相关报道梳理特朗普持有的英伟达、Palantir、戴尔等股票，将总统持仓与其政策影响力同时置于市场关注之下。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Can Uber (UBER) Keep Growing as Robotaxis Spread?",
+      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQOE94YlJOV3M0bERlZm1qY3IwTzNDb3VjTmw0cnI0UXBudXhZUERsNEVOcDlEZWFYUGtGbC0yaEZrSmhnaElxU05WSjFjVzNONGQ1TzJneEZZY0Vuc1lwRWdOUG9kYmo0TUhSZjFJNXRCbzdxQ2stNDFxV1dkVFZnYTdFUjNZR2Jvd2xzMGUzd3RKQWdI?oc=5",
+      "published": "2026-10-19T13:27:55+00:00",
+      "origin": "gnews-rss",
+      "source": "Insider Monkey",
+      "tickers": [
+        "UBER"
+      ],
+      "held": [],
+      "new_ideas": [
+        "UBER"
+      ],
+      "sectors": [
+        "自动驾驶",
+        "Robotaxi",
+        "出行平台"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，随着Robotaxi扩张，Uber能否持续增长成为关注焦点，但报道标题本身未提供明确的多空结论。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-16 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 29,416 股（最大单只 ETF 占比 0.03%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-16T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0276,
+      "tickers": [
+        "SCTX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SCTX"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因治疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 52,
+      "summary_cn": "ARK Invest在ARKG中买入Scribe Therapeutics 29,416股，占单只ETF权重0.03%，属于规模较小的常规加仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Equity-Based Tesla Pay Was $158 Billion In 2025—2.5 Million Times Median Employee Pay",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 16:33:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "公司治理",
+        "薪酬"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "据报道，马斯克2025年基于股权的特斯拉薪酬达1580亿美元，为美国员工薪酬中位数的250万倍，凸显治理及股东利益关注点。"
+    },
+    {
+      "author": "Musk",
+      "text": "I Think I Know the Real Reason Elon Unveiled the Flying Tesla",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 16:52:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Slate",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航空出行",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道，马斯克展示了一款“飞行特斯拉”，体现其继续探索电动车与航空出行技术融合。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla CEO Elon Musk reminds everyone about Roadster’s true meaning",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 17:53:14 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "产品营销"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 45,
+      "summary_cn": "据报道，马斯克借Roadster重新宣传特斯拉及其产品使命，但没有披露新的财务或业务行动。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "洪灏",
+      "text": "洪灝：港股處於抛售尾聲",
+      "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxPdlljSzVfWXBjRjhCcEd2a1hlTUgycFR5bFVzVmpEY1czN3hzdTFQNld6SllYdlFtU0xqQ1V3Wk1yRFJ0eVdRdmZNWWFrUzdZbVNhWTRCUm9hMGJxWXRfbWFWbE5jenNVTk15NFVFaVRXTGw2YnVQRFhuR0pDQlpWS0JHUnAxeGV5bkdJS1E2NUp6ZmcxQ01ETjRlS085d0lQMDF0VjFMdkExMXNudVczdDlUa0JpQ21NdXhwcE1mWEQ3bDMyZnVqNlduMVhnWHVCVVlHM29xOUFfbnM?oc=5",
+      "published": "2026-10-19T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "港股",
+        "股票市场"
+      ],
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 79,
+      "summary_cn": "据媒体转述，洪灏判断港股已处于抛售尾声，释放偏多及接近阶段性底部的中期市场信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "A BIG THANK YOU to our legendary friend, Elon Musk, for his incredible generosity in giving SpaceX Stock to millions of American children through TRUMP ACCOUNTS! This is exactly what was envisioned when we created TRUMP ACCOUNTS — Bringing together the GREAT PRIVATE SECTOR, Elon and so many more, to invest in our children, by far our greatest and most important asset, and give every American Child a piece of the American Dream. Thank you Elon! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/42444",
+      "published": "2026-10-19T20:41:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "特朗普感谢马斯克通过“TRUMP ACCOUNTS”向数百万美国儿童赠送SpaceX股票，释放其持续推广持股型普惠账户的信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says One ‘Timeless’ Investing Question Helped Him Spot The Dot-Com Bubble – And Applies To AI Today",
+      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxNVU9HRjRHYjY2OEo2Z0VfN1Zjc1hHcjZnOWIyWDRhM2FwWGdrN1JNS0dfVFpkZWptUHlPcG9qNVlMWFU4RHlLV2FuX2xLSnNlcXJfOUk0WlFVbEpIOWN2M1FEaVkxd0MwMUJEY183RWFMbDZsemE3dmtlS21hNW9ER0drbTdISDZYcUtoMzVPN1FsbXhrajR0Z0NXRXgtNFFkZ01wRWh3NVhFamE2bUdMdnRDU3dmWkQ3YVVFY1J2OFk1alcySzZ1UlZnSzY?oc=5",
+      "published": "2026-10-19T03:56:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "美股",
+        "估值泡沫"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道，Michael Burry认为其识别互联网泡沫的经典问题同样适用于当前AI热潮，暗示AI资产可能存在泡沫风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "Universal Basic Capital: Elon Musk Giving Out SpaceX Shares Is Part Of Broader AI Plan",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 16:45:34 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "据报道，马斯克赠送SpaceX股票属于其更广泛AI与普惠投资安排的一部分，强化公众持股及AI主题关注。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Giving Away $10 Billion in SpaceX Stock—To Your Kids.",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 20:17:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "据报道，马斯克将向美国儿童赠送价值约100亿美元的SpaceX股票。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says he is going to give SpaceX stock away to kids",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 09:03:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克确认将向美国儿童赠送SpaceX股票。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk says he'll give a SpaceX share to every child in America next year",
+      "url": "",
+      "published": "Mon, 19 Oct 2026 08:39:30 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "普惠投资"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克计划明年向美国每位儿童赠送一股SpaceX股票，扩大SpaceX股权的公众持有基础。"
+    }
+  ]
 }
