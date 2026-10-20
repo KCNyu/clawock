@@ -568,7 +568,8 @@ def test_the_sweeps_own_column_is_the_session_change_not_the_position_day(tmp_pa
         json.dumps(context, ensure_ascii=False), encoding="utf-8")
     scan = {"date": date, "sectors": [{
         "theme": "存储芯片", "top_movers": [{"ticker": "SNDK", "name": "闪迪", "pct": 7.23}],
-        "self": [{"ticker": "07709", "pct": -4.24, "rank_text": "落后"},
+        "self": [{"ticker": "07709", "pct": -4.24, "rank_text": "落后",
+                  "attribution": "港股两倍壳 10-16 收 19.19 跌 4.24%，5 日 -45.8% 对正股同周 -16%"},
                  {"ticker": "07226", "pct": -0.8, "rank_text": "中位"},
                  {"ticker": "00700", "pct": 1.65, "rank_text": "领涨"}]}]}
     (tmp / f"sector-scan-{date}.json").write_text(json.dumps(scan), encoding="utf-8")
@@ -576,12 +577,35 @@ def test_the_sweeps_own_column_is_the_session_change_not_the_position_day(tmp_pa
     issues, body = render.render_from_workspace(ws, date)
 
     row = next(line for line in body.splitlines() if line.startswith("| 存储芯片 | 07709"))
-    assert "+2.73%" in row and "-4.24" not in row
+    assert "+2.73%" in row and "4.24" not in row
+    # #3116: the attribution's clause quoting the replaced figure goes with it;
+    # the rest of the sentence stays.
+    assert "5 日 -45.8% 对正股同周 -16%" in row and "跌" not in row
     # 07226 has no prior close in the book: no session figure, not a guess.
     assert any(line.startswith("| 存储芯片 | 07226 | —") for line in body.splitlines())
     written = json.loads((tmp / f"sector-scan-{date}.json").read_text(encoding="utf-8"))
     assert [own["pct"] for own in written["sectors"][0]["self"]] == [2.73, None, 1.65]
-    assert any("07709 -4.24→2.73" in issue for issue in issues)
+    assert written["sectors"][0]["self"][0]["attribution"] == "5 日 -45.8% 对正股同周 -16%"
+    assert any("07709 -4.24→2.73（归因删去「港股两倍壳 10-16 收 19.19 跌 4.24%」）" in issue
+               for issue in issues)
+
+
+def test_an_attribution_keeps_its_clauses_when_the_number_was_not_replaced():
+    """Only the figure the harness overrode is dropped: a row whose written pct
+    was already the session's, or another percentage in the sentence, stays."""
+    scan = {"sectors": [{"theme": "t", "self": [
+        {"ticker": "00700", "pct": 1.65, "attribution": "回购，涨 1.65%"},
+        {"ticker": "07709", "pct": -4.24, "attribution": "跌 4.24%，正股 14.24%，同周 -4.2%"}]}]}
+    context = copy.deepcopy(CONTEXT)
+    context["portfolio"]["portfolios"]["hk_stocks"]["holdings"].append(
+        {"ticker": "07709", "shares": 100, "current_price": 19.19, "prev_close": 18.68})
+
+    changed = render.bind_sector_self(scan, context)
+
+    own = scan["sectors"][0]["self"]
+    assert [c[0] for c in changed] == ["07709"]
+    assert own[0]["attribution"] == "回购，涨 1.65%"
+    assert own[1]["attribution"] == "正股 14.24%，同周 -4.2%"
 
 
 # ── tables for numbers, entries for prose, one card per subsection ───────────
