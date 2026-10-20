@@ -221,6 +221,7 @@ def _run_with_retries(label, timeout, deadline, once, attempts_sink=None):
             last_err = f'timeout after {per_attempt}s'
             print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
         except _RateLimited as rl:
+            last_err = str(rl)
             print(f'  {label}: 429 rate limit, sleeping {rl.wait}s', file=sys.stderr)
             _backoff(rl.wait, deadline, label)
             continue

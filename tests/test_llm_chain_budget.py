@@ -184,6 +184,22 @@ def test_rate_limit_429_sleeps_then_succeeds(monkeypatch):
     assert sleeps == [5]
 
 
+def test_a_ladder_of_429s_names_the_rate_limit_not_none(monkeypatch):
+    """#3110: every attempt 429 ended in `failed after 3 attempts: None`."""
+    session, _calls = _fake_session([429])
+    monkeypatch.setattr(llm, "_SESSION", session)
+    monkeypatch.setattr(llm.time, "sleep", lambda s: None)
+
+    with pytest.raises(RuntimeError) as raised:
+        llm._call_provider(
+            label="minimax", base_url="https://p.example", api_key="k",
+            model="m", messages=[{"role": "user", "content": "hi"}],
+            max_tokens=8, timeout=30, temperature=0.5,
+            json_response=False, thinking=None)
+
+    assert str(raised.value) == "minimax failed after 3 attempts: 429 rate limit"
+
+
 def test_a_reply_with_only_a_thinking_block_is_a_failed_attempt_not_an_answer(
         monkeypatch):
     """#1923: with no text block the thinking block was returned as the
