@@ -157,10 +157,13 @@ def mover_rows(movers, legs, news) -> list[str]:
         bits = [f'**{name} {pct:+.1f}%**' if pct is not None else ticker(name)]
         leg = legs.get(name)
         if leg:
-            under = f"{leg['underlying']} {leg['underlying_pct']:+.{leg.get('decimals', 1)}f}%"
-            gap = leg.get('gap_pp')
-            if gap is not None and abs(gap) >= LEVERAGE_GAP_PP:
-                under += f"（偏离 {gap:+.1f}pp）"
+            if leg.get('underlying_pct') is None:
+                under = f"{leg['underlying']} 今日涨跌本档未取到"
+            else:
+                under = f"{leg['underlying']} {leg['underlying_pct']:+.{leg.get('decimals', 1)}f}%"
+                gap = leg.get('gap_pp')
+                if gap is not None and abs(gap) >= LEVERAGE_GAP_PP:
+                    under += f"（偏离 {gap:+.1f}pp）"
             bits.append(under)
         status = ((news or {}).get(name) or {}).get('status')
         if status in ('no_recent_filing', 'no_recent_disclosure'):

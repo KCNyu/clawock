@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 
 from clawock.decision.plans import ORDER_BLOCK_HEADER
-from clawock.harness import chat_card
+from clawock.harness import chat_card, intraday_preflight
 from clawock.harness.report_preflight import TITLE_TEMPLATES
 
 HK = """🇭🇰 港股盯盘 | 10/16 10:33 HKT
@@ -83,6 +83,28 @@ def test_us_intraday_card_keeps_dollars_et_and_has_no_strip():
                          '市值 $3,210 · 已实现 +$2,376 · 亏损 2/2 · 杠杆 90%']
     assert lines[3] == ''
     assert not any('恒指' in line for line in lines)
+
+
+@pytest.mark.parametrize('name, underlying', [('07226', 'HSTECH'), ('07709', 'SKHY')])
+def test_mover_row_keeps_missing_underlying_move_explicit(name, underlying):
+    legs = intraday_preflight.leverage_legs(
+        'hk', [{'ticker': name, 'pct_1d': 3.5}],
+        {'rows': {name: {'leveraged': f'2x {underlying}'}}}, '', {},
+        bars=lambda *_a: [], session_date='2026-10-20')
+    assert legs[0]['underlying_pct'] is None
+    assert legs[0]['expected_pct'] is None and legs[0]['gap_pp'] is None
+    rows = chat_card.mover_rows(
+        [(name, 3.5)], legs, {name: {'status': 'no_recent_disclosure'}})
+    assert rows == [f'- **{name} +3.5%** · {underlying} 今日涨跌本档未取到 · 无公告']
+    assert rows[0] in chat_card.render(analyzer=HK, changes=rows).splitlines()
+
+
+@pytest.mark.parametrize('gap, suffix', [(None, ''), (0.3, ''), (1.5, '（偏离 +1.5pp）')])
+def test_mover_row_with_underlying_move_and_optional_gap(gap, suffix):
+    legs = [{'ticker': '07226', 'underlying': 'HSTECH', 'underlying_pct': 1.23,
+             'decimals': 2, 'gap_pp': gap}]
+    assert chat_card.mover_rows([('07226', 3.5)], legs, {}) == [
+        f'- **07226 +3.5%** · HSTECH +1.23%{suffix}']
 
 
 @pytest.mark.parametrize('book, risk, expected', [
