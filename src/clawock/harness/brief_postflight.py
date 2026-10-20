@@ -26,6 +26,7 @@ Side effects:
     messages, or write the delivery marker
 """
 
+import hashlib
 import json
 import os
 import re
@@ -1223,6 +1224,118 @@ def _ensure_jekyll_front_matter(md_path, date):
     safe_write_text(str(md_path), fm + content)
 
 
+# A re-run after the card shipped re-renders the report, and the skill sends
+# the agent back exactly once to do that (`projection_status: invalid`). The
+# card kcn already has then links to a page that no longer says what it said
+# at delivery, and nothing said so: the 2026-10-20 card warned that the
+# judgment layer was dropped while the page behind its link had it restored
+# five minutes later, unsourced figures removed (#3105). The re-send stays
+# skipped (2026-07-11 dup fix); the revision is said on the page and counted.
+REVISION_NOTICE_PREFIX = '> 📝 **投递后修订**'
+
+
+def _without_revision_notice(text):
+    lines = text.split('\n')
+    out = []
+    for i, line in enumerate(lines):
+        if line.startswith(REVISION_NOTICE_PREFIX):
+            continue
+        if line == '' and i and lines[i - 1].startswith(REVISION_NOTICE_PREFIX):
+            continue
+        out.append(line)
+    return '\n'.join(out)
+
+
+def report_sha256(md_path):
+    """The rendered report's digest, without any revision notice this module added."""
+    try:
+        text = Path(md_path).read_text(encoding='utf-8')
+    except OSError:
+        return None
+    return hashlib.sha256(_without_revision_notice(text).encode('utf-8')).hexdigest()
+
+
+def _hkt_clock(at):
+    return at.astimezone(workflow_outcomes.HKT).strftime('%H:%M')
+
+
+def _write_revision_notice(md_path, notice):
+    """Put `notice` under the page title (None: take any notice out)."""
+    original = md_path.read_text(encoding='utf-8')
+    lines = _without_revision_notice(original).split('\n')
+    if notice:
+        # Under the title: the first thing a reader arriving from the card sees.
+        at = next((i + 1 for i, line in enumerate(lines) if line.startswith('# ')), None)
+        if at is None:
+            at = (lines.index('---', 1) + 1
+                  if lines and lines[0] == '---' and '---' in lines[1:] else 0)
+        if at < len(lines) and lines[at] == '':
+            at += 1
+        lines[at:at] = [notice, '']
+    updated = '\n'.join(lines)
+    if updated != original:
+        safe_write_text(str(md_path), updated)
+
+
+def note_revision_after_delivery(md_path, receipt_path, today, *, job_name):
+    """Say so when the report about to be committed is not the one delivered.
+
+    The receipt carries `report_sha256` from the delivering run. A different
+    digest now gets a notice under the page title (re-added on every later
+    re-run of that version) and one `content_revised_after_delivery`
+    degradation per distinct revision; `brief-revision-{date}.json` remembers
+    which versions were counted. An older receipt without the digest says
+    nothing here: what was delivered cannot be told.
+    """
+    receipt = delivery_receipts.read_receipt(receipt_path) or {}
+    delivered = receipt.get('report_sha256')
+    current = report_sha256(md_path)
+    if not delivered or not current:
+        return None
+    if current == delivered:
+        # Back to the delivered text (or a render that kept the old file):
+        # nothing to say, and no stale notice either.
+        _write_revision_notice(md_path, None)
+        return None
+    state_path = Path(receipt_path).parent / f'brief-revision-{today}.json'
+    try:
+        state = json.loads(state_path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        state = {}
+    if not isinstance(state, dict) or state.get('delivered_report_sha256') != delivered:
+        state = {'delivered_report_sha256': delivered, 'revisions': []}
+    revisions = [row for row in state.get('revisions') or [] if isinstance(row, dict)]
+    revision = next((row for row in revisions if row.get('report_sha256') == current), None)
+    first_seen = revision is None
+    if first_seen:
+        revision = {'at': datetime.now(workflow_outcomes.HKT).isoformat(timespec='seconds'),
+                    'report_sha256': current}
+        revisions.append(revision)
+        state['revisions'] = revisions
+        safe_write_json(str(state_path), state)
+    try:
+        sent = datetime.fromtimestamp(int(receipt['ts']) / 1000, workflow_outcomes.HKT)
+        sent_at = _hkt_clock(sent)
+    except (KeyError, TypeError, ValueError, OverflowError, OSError):
+        sent_at = None
+    revised_at = _hkt_clock(datetime.fromisoformat(revision['at']))
+    _write_revision_notice(md_path, (
+        f'{REVISION_NOTICE_PREFIX}：'
+        + (f'今天的卡片 {sent_at} HKT 送达后，' if sent_at else '今天的卡片送达后，')
+        + f'本页于 {revised_at} HKT 按修正后的判断重新生成；'
+        + '卡片里的内容和校验提示是送达时的版本，与本页如有出入，以本页为准。'))
+    if first_seen:
+        workflow_outcomes.note_degradation(
+            None, 'content_revised_after_delivery',
+            f'{today} 简报卡{f" {sent_at}" if sent_at else ""} 送达后报告被改写'
+            f'（{delivered[:12]} → {current[:12]}，第 {len(revisions)} 版修订）；'
+            f'未重发卡片，页面已加修订说明',
+            group=job_name)
+    return {'delivered_at': sent_at, 'revised_at': revision['at'],
+            'delivered_report_sha256': delivered, 'report_sha256': current,
+            'revision': len(revisions), 'counted': first_seen}
+
+
 def _judgment_gap_issues(judgment_path, decision_packet):
     """What the reader will be missing, said before the brief ships.
 
@@ -1645,6 +1758,7 @@ def main(argv=None):
     # already_delivered (2026-07-11 retry-storm dup fix). A prior run that landed
     # only Telegram is NOT a delivery (2026-09-17): this run re-sends WeChat alone.
     _, telegram_done = delivered_channels(brief_marker)
+    revision = None
     if status in ('pass', 'warn') and already_delivered(brief_marker):
         print('idempotency: brief already delivered today — skip re-send', file=sys.stderr)
         wechat_sent = True
@@ -1652,6 +1766,17 @@ def main(argv=None):
             tg_ok = json.loads(brief_marker.read_text()).get('tg_ok')
         except Exception:
             pass
+        # Not re-sent is not the same as unchanged: this commit may publish a
+        # different report behind the delivered card's link (#3105).
+        if not args.dry_run:
+            try:
+                revision = note_revision_after_delivery(
+                    md_path, brief_marker, today, job_name=job_name)
+            except Exception as exc:
+                workflow_outcomes.note_degradation(
+                    None, 'content_revised_after_delivery',
+                    f'{today} 修订核对失败: {type(exc).__name__}: {exc}',
+                    group=f'{job_name}/check_failed')
     elif status in ('pass', 'warn'):
         card = build_brief_card(today, decision_packet=decision_packet)
         message = (wechat_prefix + card).strip()
@@ -1702,7 +1827,9 @@ def main(argv=None):
                     delivery_receipts.build_receipt(
                         ts=int(datetime.now().timestamp() * 1000),
                         sent_ok=wechat_ok, tg_ok=telegram_ok, out=out,
-                        first_line=first_line),
+                        first_line=first_line,
+                        # What the card's link showed when it went out (#3105).
+                        report_sha256=report_sha256(md_path)),
                     ensure_ascii=False))
                 return True
 
@@ -1742,6 +1869,7 @@ def main(argv=None):
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
         'wechat_sent':   wechat_sent,
+        'content_revised_after_delivery': revision,
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
         'data_plane_status': data_plane_status,
