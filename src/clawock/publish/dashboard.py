@@ -1333,9 +1333,16 @@ def build_decision_traces(limit=40, workspace=None, *, portfolio=None):
                     'decision': None,
                     'holdPnl': None,
                 }
+                # A pre-ledger opening lot (#462) is not a fill: its date is a
+                # sort placeholder and its price is solved from cost, so it
+                # gets no T+1 verdict and says what it is (#3118; the plugin's
+                # `enrichTrade` does the same).
+                reconstructed = tr.get('reconstructed') is True
+                if reconstructed:
+                    t['reconstructed'] = True
                 # T+1 verdict. `tone` ships with the verdict so the rendered
                 # chip cannot colour a move the words call 持平 (#739).
-                fc = _future_close(prices, ticker, t['date'], 1)
+                fc = None if reconstructed else _future_close(prices, ticker, t['date'], 1)
                 if fc and t.get('price'):
                     delta = round((fc[1] - t['price']) / t['price'] * 100, 2)
                     kind = _t1_verdict_kind(t['action'], delta)

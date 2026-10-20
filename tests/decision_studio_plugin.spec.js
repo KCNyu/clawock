@@ -533,6 +533,51 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
   assert.equal(bare.decision, null);
   assert.equal(bare.t1, null);
   assert.equal(bare.realizedPnl, null);
+  assert.equal(bare.reconstructed, false);
+});
+
+test("readTraces: a reconstructed opening lot is labelled, never T+1-judged (#3118)", async () => {
+  // portfolio.json carries nine pre-ledger lots (#462): price solved from cost,
+  // date a sort placeholder. Marked against the next close, 07747's 81.85 lot
+  // read as 「跌 64.9%」 on a −0.28% session.
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-recon-"));
+  try {
+    fs.mkdirSync(path.join(root, "memory", "bars"), { recursive: true });
+    fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({
+      portfolios: { hk_stocks: { currency: "HKD", holdings: [
+        { ticker: "07747", shares: 400, current_price: 30, trades: [
+          { date: "2025-12-23", action: "buy", shares: 200, price: 81.85, reconstructed: true,
+            note: "建仓早于本账本;日期为排序占位" },
+          { date: "2025-12-29", action: "buy", shares: 200, price: 28.5 },
+        ] },
+      ] } },
+    }));
+    const bar = (close) => ({ open: close, high: close, low: close, close });
+    fs.writeFileSync(path.join(root, "memory", "bars", "07747.json"), JSON.stringify({ bars: {
+      "2025-12-23": bar(28.8), "2025-12-24": bar(28.72), "2025-12-30": bar(29.07) } }));
+    const trades = ledger.readTraces(root).trades;
+    const lot = trades.find((t) => t.date === "2025-12-23");
+    const fill = trades.find((t) => t.date === "2025-12-29");
+    assert.equal(lot.reconstructed, true);
+    assert.equal(lot.t1, null, "an opening lot has no fill for the next close to mark");
+    assert.equal(fill.reconstructed, undefined, "a real fill carries no flag");
+    assert.ok(fill.t1, "a real fill beside it is still judged");
+
+    const loaded = await loadClient();
+    const api = loaded.factory((s) => {
+      if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+      if (s === "react") return makeReactStub();
+      throw new Error(`unexpected require: ${s}`);
+    });
+    const shown = api._displayEntry(lot);
+    assert.equal(shown.reconstructed, true);
+    const t = translatorFor(api);
+    assert.match(t("trace.reconstructedFill"), /建仓占位/);
+    assert.match(t("trace.t1Reconstructed"), /不判 T\+1/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("client: P&L formatting matches the dashboard", async () => {
@@ -1721,7 +1766,7 @@ test("locale: the same number renders in the active language", async () => {
   // verbatim — a provider's error text is not ours to translate.
   const stale = { ...answer(), status: "stale", message: "429 too many requests" };
   assert.match(api._balanceNote(stale, api.createTranslator(api.dictionaries.en)),
-    /Refresh failed, showing the last reading: 429 too many requests/);
+    /Refresh failed \(429 too many requests\); showing the reading of .*\d{2}:\d{2}/);
 });
 
 test("locale: a previous-version host omits the structured fields and still renders", async () => {
@@ -3121,6 +3166,16 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   assert.equal(api._balanceNote(answer(), translatorFor(api)), null);
   assert.match(api._balanceNote(answer({ snapshot: snap("5.00"), low: true }), translatorFor(api)), /低于阈值 ¥20/);
   assert.match(api._balanceNote(answer({ status: "stale", message: "请求过于频繁" }), translatorFor(api)), /刷新失败.*请求过于频繁/);
+  // A stale row says when the reading it still shows was taken, on the folded
+  // row and in its title — not only in the open panel (#3119).
+  const now = Date.now();
+  const staleRow = answer({ status: "stale", message: "fetch failed",
+    snapshot: snap("110.00", { asOf: new Date(now - 3 * 3600_000).toISOString() }) });
+  const readAt = new Date(now - 3 * 3600_000);
+  const clock = String(readAt.getHours()).padStart(2, "0") + ":" + String(readAt.getMinutes()).padStart(2, "0");
+  assert.ok(api._balanceNote(staleRow, translatorFor(api), now).includes(clock), "the folded note names the reading's clock");
+  assert.ok(api._rowDisplay(staleRow, translatorFor(api), now).title.includes(clock), "so does the hover title");
+  assert.match(api._balanceNote({ ...staleRow, message: null }, translatorFor(api), now), /刷新失败,显示 .* 的读数/);
   assert.match(api._balanceNote({ configured: false, snapshot: null, status: "no-key", low: false, message: "未配置 DeepSeek API Key", threshold: 20, refreshMs: 60000 }, translatorFor(api)), /未配置/);
   assert.match(api._balanceNote(answer({ snapshot: null, status: "failed", message: "网络请求失败" }), translatorFor(api)), /网络请求失败/);
   assert.match(api._balanceNote(answer({ snapshot: snap("9.00", { isAvailable: false }) }), translatorFor(api)), /余额不足/);

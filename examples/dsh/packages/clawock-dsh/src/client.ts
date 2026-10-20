@@ -273,6 +273,8 @@ export interface DisplayEntry {
    * sides and makes the header say how many it could not place.
    */
   side: 'add' | 'reduce' | null
+  /** A pre-ledger opening lot, not a fill: labelled as such, never T+1-judged (#3118). */
+  reconstructed: boolean
 }
 
 /** Display projection of one trace (test seam). */
@@ -297,6 +299,7 @@ export function _displayEntry(trace: EnrichedTrade): DisplayEntry {
     // not own a second copy of the action set (#739), and an absent side is
     // reported as absent rather than guessed.
     side: trace.side === 'reduce' || trace.side === 'add' ? trace.side : null,
+    reconstructed: trace.reconstructed === true,
   }
 }
 
@@ -326,11 +329,12 @@ function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactE
           h('div', { className: cx('v'), style: { color: 'var(--cap)' } }, t('trace.noPlanRecord'))),
         h('div', { className: cx('tnode', 'follow') },
           h('div', { className: cx('tw') }, trace.date ?? ''),
-          h('div', { className: cx('n') }, t('trace.realFill')),
+          h('div', { className: cx('n') }, t(trace.reconstructed ? 'trace.reconstructedFill' : 'trace.realFill')),
           h('div', { className: cx('v') }, fillText)),
         t1miss),
       trace.note === null ? null : h('div', { className: cx('tnote') }, esc(trace.note)),
-      h('div', { className: cx('tmiss') }, t('trace.unpaired')))
+      // "成交是真的" is exactly what an opening lot is not; its note says what it is.
+      trace.reconstructed ? null : h('div', { className: cx('tmiss') }, t('trace.unpaired')))
   }
   const [alignKey, alignTone] = ALIGN[decision.alignment ?? ''] ?? ['', '']
   const alignLabel = alignKey === '' ? '' : t(alignKey)
@@ -381,7 +385,7 @@ function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactE
         h('div', { className: cx('v') }, planned)),
       h('div', { className: cx('tnode', alignTone) },
         h('div', { className: cx('tw') }, trace.date ?? ''),
-        h('div', { className: cx('n') }, t('trace.realFill')),
+        h('div', { className: cx('n') }, t(trace.reconstructed ? 'trace.reconstructedFill' : 'trace.realFill')),
         h('div', { className: cx('v', 'fill-v') }, fillText,
           alignLabel === '' ? null : h('span', { className: cx('pc', alignTone) }, alignLabel))),
       t1node,
@@ -433,8 +437,10 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
   } else {
     // Said out loud for every unjudged fill, not just sells: no canonical close
     // inside the T+1 window means there is no verdict, and silence there reads
-    // like the fill was fine.
-    t1tag = h('span', { className: cx('t1', 'flat'), 'data-tone': 'flat' }, t('trace.t1Pending'))
+    // like the fill was fine. An opening lot is not waiting for a close; it
+    // has none to wait for.
+    t1tag = h('span', { className: cx('t1', 'flat'), 'data-tone': 'flat' },
+      t(trace.reconstructed ? 'trace.t1Reconstructed' : 'trace.t1Pending'))
   }
   // A fill that ran against its own plan is the single most load-bearing
   // signal on this board (SPCH: 37 planned cuts, 22 actual buys) — it must be

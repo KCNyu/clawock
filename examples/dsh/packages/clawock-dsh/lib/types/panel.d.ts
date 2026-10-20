@@ -34,8 +34,9 @@ export declare const MINUS = "\u2212";
  * Display projection of ONE provider's answer (test seam, like _displayEntry):
  * the chip and panel render only these fields, so the view never keeps
  * a second copy of the tone rules — the host already decided status and low.
- * The title is the whole hover story: split, quota windows, stale reason,
- * fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
+ * The title is the whole hover story: split, quota windows, and — when the
+ * refresh failed — the reason and the time of the reading still shown
+ * (`staleNote`). Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
  * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
  * muted pill suffix — both limits visible at the header without opening the
  * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
@@ -56,7 +57,7 @@ export declare function _rowDisplay(result: BalanceResult | null, t: Translate, 
  * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
  * rows are the message; a caption would only replace them.
  */
-export declare function _balanceNote(result: BalanceResult | null, t: Translate): string | null;
+export declare function _balanceNote(result: BalanceResult | null, t: Translate, now?: number): string | null;
 /** One provider row as the chip, the foot button and the panel render it. */
 export type BalanceRow = BalancesResult['providers'][number] & {
     view: ReturnType<typeof _rowDisplay>;

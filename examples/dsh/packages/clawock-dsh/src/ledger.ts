@@ -204,6 +204,7 @@ export function readPortfolio(workspace: string): PortfolioResult {
             price: num(trObj['price']),
             realizedPnl: num(trObj['realized_pnl']),
             note: typeof trObj['note'] === 'string' ? trObj['note'] : null,
+            ...(trObj['reconstructed'] === true ? { reconstructed: true as const } : {}),
           })
         }
       }
@@ -473,8 +474,11 @@ function enrichTrade(
   } as EnrichedTrade
   // T+1 reading: tone and verdict both come from the shared dead zone in
   // `t1ToneOf`/`t1VerdictOf`, so the chip, the trace node and the text can
-  // never disagree about the same fill.
-  const t1 = futureClose(byTicker, trade.ticker, trade.date, 1)
+  // never disagree about the same fill. A reconstructed opening lot has no
+  // fill to mark: its date is a sort placeholder and its price is solved from
+  // cost, so the next close against it read 07747 as "跌 64.9%" on a −0.28%
+  // session (#3118).
+  const t1 = trade.reconstructed === true ? null : futureClose(byTicker, trade.ticker, trade.date, 1)
   if (t1 !== null && trade.price != null && trade.price > 0) {
     const delta = Math.round(((t1.price - trade.price) / trade.price) * 100 * 100) / 100
     out.t1 = {

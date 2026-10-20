@@ -136,6 +136,8 @@ export interface DisplayEntry {
      * sides and makes the header say how many it could not place.
      */
     side: 'add' | 'reduce' | null;
+    /** A pre-ledger opening lot, not a fill: labelled as such, never T+1-judged (#3118). */
+    reconstructed: boolean;
 }
 /** Display projection of one trace (test seam). */
 export declare function _displayEntry(trace: EnrichedTrade): DisplayEntry;

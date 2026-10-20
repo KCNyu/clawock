@@ -44,8 +44,9 @@ export const MINUS = '−'
  * Display projection of ONE provider's answer (test seam, like _displayEntry):
  * the chip and panel render only these fields, so the view never keeps
  * a second copy of the tone rules — the host already decided status and low.
- * The title is the whole hover story: split, quota windows, stale reason,
- * fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
+ * The title is the whole hover story: split, quota windows, and — when the
+ * refresh failed — the reason and the time of the reading still shown
+ * (`staleNote`). Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
  * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
  * muted pill suffix — both limits visible at the header without opening the
  * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
@@ -84,7 +85,8 @@ export function _rowDisplay(result: BalanceResult | null, t: Translate, now: num
   const tone: BalanceTone = result.status === 'stale'
     ? 'stale'
     : (result.low || !snapshot.isAvailable ? 'low' : 'ok')
-  // 更新时间不重复展示:轮询是静默的,手动刷新有 ✓ 反馈——时间戳只增加噪音。
+  // 新鲜读数不展示更新时间:轮询是静默的,手动刷新有 ✓ 反馈——时间戳只增加噪音。
+  // 刷新失败时不一样:那时要说的是「显示的是几点的读数」,由 staleNote 带上(#3119)。
   // The quota line is composed from the structured windows, not from the
   // host's `note`: that string is built in the host's language, and it is the
   // one place the panel would otherwise stay monolingual. A snapshot without
@@ -111,7 +113,7 @@ export function _rowDisplay(result: BalanceResult | null, t: Translate, now: num
     // 用尽不再说话(kcn 反馈):配额行的进度条(100%)+重置时间自己会讲,
     // 一句「已用尽」只会把那两样顶掉。金额行没有条可讲,保留原句。
     snapshot.isAvailable || isPct ? null : t('balance.insufficient'),
-    result.status === 'stale' && result.message !== null ? t('balance.staleWith', { message: result.message }) : null,
+    result.status === 'stale' ? staleNote(result, t, now) : null,
   ].filter((part): part is string => part !== null)
   // 头条数字的用量档位(染色用):配额行按实际显示的那个数取档;金额行
   // 没有用量语义,level 为 null,颜色仍走 tone(money low = 红)。
@@ -121,21 +123,37 @@ export function _rowDisplay(result: BalanceResult | null, t: Translate, now: num
 }
 
 /**
+ * What a provider row says when its refresh failed: the reason, and when the
+ * reading it still shows was taken. Without the time, a five-hour-old balance
+ * and a one-minute-old one read the same on the folded row, next to a quota
+ * window's own reset clock (#3119). One sentence for the folded row, its hover
+ * title and the open panel, so the three cannot disagree.
+ */
+function staleNote(result: BalanceResult, t: Translate, now: number): string {
+  const asOf = result.snapshot?.asOf ? Date.parse(result.snapshot.asOf) : NaN
+  if (Number.isFinite(asOf)) {
+    const time = resetStampOf(t, { resetAt: '', resetAtMs: asOf }, now)
+    return result.message !== null
+      ? t('panel.staleAt', { message: result.message, time })
+      : t('balance.staleAt', { time })
+  }
+  return result.message !== null
+    ? t('balance.staleWith', { message: result.message })
+    : t('balance.stale')
+}
+
+/**
  * The one line a panel row says out loud when something is wrong — stale
  * reason, unconfigured key, insufficient money balance. A healthy number
  * earns no caption at all; null means silence. An exhausted quota window
  * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
  * rows are the message; a caption would only replace them.
  */
-export function _balanceNote(result: BalanceResult | null, t: Translate): string | null {
+export function _balanceNote(result: BalanceResult | null, t: Translate, now: number = Date.now()): string | null {
   if (result === null) return null
   if (!result.configured) return result.message ?? t('balance.unconfiguredKey')
   if (result.snapshot === null) return result.message ?? t('balance.fetchFailed')
-  if (result.status === 'stale') {
-    return result.message !== null
-      ? t('balance.staleWith', { message: result.message })
-      : t('balance.stale')
-  }
+  if (result.status === 'stale') return staleNote(result, t, now)
   if (!result.snapshot.isAvailable) {
     return result.snapshot.unit === 'pct' ? null : t('balance.insufficient')
   }
@@ -944,7 +962,7 @@ export function balanceRows(result: BalancesResult | null, t: Translate, now: nu
   return (result?.providers ?? []).map((provider) => ({
     ...provider,
     view: _rowDisplay(provider.result, t, now),
-    note: _balanceNote(provider.result, t),
+    note: _balanceNote(provider.result, t, now),
   }))
 }
 
@@ -1023,11 +1041,8 @@ export function panelGroup(source: PanelSource, result: TaskQueueResult | null, 
     notes.push(queue.holder !== '' ? t('queue.holderOther', { id: queue.holder }) : t('queue.holderUnnamed'))
   }
   if (queue?.quotaUntilMs) notes.push(t('queue.quotaHint', { time: resetStampOf(t, { resetAt: '', resetAtMs: queue.quotaUntilMs }, now), by: queue.quotaBy }))
-  const snapshotAt = row?.result.snapshot?.asOf ? Date.parse(row.result.snapshot.asOf) : NaN
-  const balanceNote = row === undefined || row.note === null ? null
-    : row.result.status === 'stale' && Number.isFinite(snapshotAt)
-      ? t('panel.staleAt', { message: row.result.message ?? '—', time: resetStampOf(t, { resetAt: '', resetAtMs: snapshotAt }, now) })
-      : row.note
+  // The row's note already carries a stale reading's time (`staleNote`).
+  const balanceNote = row === undefined ? null : row.note
   const { reading: _reading, queue: _queue, ...view } = sourceView(source, row, result, t)
   return {
     source,

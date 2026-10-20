@@ -3091,7 +3091,12 @@
       const pnl = pnlNode(t);
       const pnlHTML = `<div class="tr-node ${pnl.c}"><div class="tr-n">${pnl.n}</div><div class="tr-v">${pnl.v}</div></div>`;
       let t1 = "";
-      if (t.t1) {
+      // A pre-ledger opening lot (`reconstructed`, #3118) has no fill to mark.
+      const fillLabel = t.reconstructed ? "建仓占位(账本之前已持有,无成交)" : "真实成交";
+      if (t.reconstructed) {
+        t1 = `<div class="tr-node na"><div class="tr-n">T+1 收盘</div>` +
+          `<div class="tr-v muted">${DASH} 建仓占位不判 T+1</div></div>`;
+      } else if (t.t1) {
         t1 = `<div class="tr-node ${t1Cls(t)}"><div class="tr-n">T+1 收盘 · ${esc(t.t1.date)}</div>` +
           `<div class="tr-v">${fmtPct(t.t1.delta, 1)} · ${esc(t.t1.verdict)}</div></div>`;
       } else {
@@ -3101,11 +3106,11 @@
       if (!d) {
         return `<div class="trace-line">
           <div class="tr-node na"><div class="tr-n">当时的计划</div><div class="tr-v muted">这一天没有该标的的计划记录</div></div>
-          <div class="tr-node dec"><div class="tr-n">真实成交</div><div class="tr-v">${fillNode(t)}</div></div>
+          <div class="tr-node dec"><div class="tr-n">${fillLabel}</div><div class="tr-v">${fillNode(t)}</div></div>
           ${t1}
           ${pnlHTML}
         </div>${t.note ? `<div class="tr-note">${esc(t.note)}</div>` : ""}
-        <div class="tr-miss">这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。</div>`;
+        ${t.reconstructed ? "" : `<div class="tr-miss">这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。</div>`}`;
       }
       // The plan-vs-fill relation, stated instead of left to be inferred: 22 of
       // 40 published rows were outright reversals of their own plan and the card
@@ -3132,7 +3137,7 @@
       if (d.execution) chips += `<span class="tr-chip">账本自评: ${esc((EXE[d.execution] || [d.execution])[0])}</span>`;
       return `<div class="trace-line">
         <div class="tr-node dec"><div class="tr-n">当时的计划 · ${esc(d.planDate || "")}</div><div class="tr-v">${decV}</div></div>
-        <div class="tr-node ${al ? al[1] : "dec"}"><div class="tr-n">真实成交</div><div class="tr-v">${fillNode(t)}${al ? ` <span class="tr-align ${al[1]}">${al[0]}</span>` : ""}</div></div>
+        <div class="tr-node ${al ? al[1] : "dec"}"><div class="tr-n">${fillLabel}</div><div class="tr-v">${fillNode(t)}${al ? ` <span class="tr-align ${al[1]}">${al[0]}</span>` : ""}</div></div>
         ${t1}
         ${pnlHTML}
       </div>
