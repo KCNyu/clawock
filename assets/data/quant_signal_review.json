@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-10-19",
-  "days_logged": 94,
+  "as_of": "2026-10-20",
+  "days_logged": 95,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "frozen_feed_excluded": 57,
   "closed_market_rows_excluded": 7,
@@ -22,13 +22,13 @@
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "trend_off_avoid": {
-      "n_events": 531,
-      "n_dates": 86,
+      "n_events": 533,
+      "n_dates": 87,
       "n_tickers": 10,
-      "hit_rate": 0.588,
+      "hit_rate": 0.589,
       "ci95": [
-        0.485,
-        0.68
+        0.487,
+        0.681
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -98,13 +98,13 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n_events": 379,
-      "n_dates": 75,
+      "n_events": 380,
+      "n_dates": 76,
       "n_tickers": 11,
-      "hit_rate": 0.607,
+      "hit_rate": 0.608,
       "ci95": [
         0.498,
-        0.707
+        0.702
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -117,6 +117,6 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "没有因子通过聚类 CI 50% 闸（94 天留痕）——结论未解锁",
+  "summary": "没有因子通过聚类 CI 50% 闸（95 天留痕）——结论未解锁",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

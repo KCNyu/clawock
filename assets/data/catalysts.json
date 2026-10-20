@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-19T08:04:01.083663+08:00",
+  "generated_at": "2026-10-20T08:03:47.147999+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-19",
-  "window_end": "2026-11-02",
+  "window_start": "2026-10-20",
+  "window_end": "2026-11-03",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -14,9 +14,9 @@
       "name": "SPCX",
       "date": "2026-10-20",
       "time": "unknown",
-      "eps_estimate": 0.139,
+      "eps_estimate": 0.1361,
       "eps_actual": null,
-      "revenue_estimate_m": 12962.36,
+      "revenue_estimate_m": 12974.73,
       "quarter": 3,
       "year": 2026
     }

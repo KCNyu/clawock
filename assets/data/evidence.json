@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-10-17T04:05:28+08:00",
+  "generated_at": "2026-10-20T04:06:27+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -44,7 +44,7 @@
       "verdict": "⚪ 尚不可判",
       "verdict_key": "undecided",
       "tone": "idle",
-      "sample": "留痕 94 天",
+      "sample": "留痕 95 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 0/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -58,11 +58,11 @@
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 60.7% · CI95 [49.8%, 70.7%] · n=379（75 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 60.8% · CI95 [49.8%, 70.2%] · n=380（76 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 58.8% · CI95 [48.5%, 68.0%] · n=531（86 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 58.9% · CI95 [48.7%, 68.1%] · n=533（87 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`trend_on_follow`",
@@ -81,11 +81,11 @@
       "tone": "idle",
       "sample": "预注册于 2026-07-26",
       "source": "`assets/data/cross_sectional_factor.json`",
-      "reading": "这一层只用 `registered_at` 之后记录的快照做样本外验证，回溯结果永远不能激活它。目前仍未达标，因此不参与任何决策。「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。",
+      "reading": "这一层只用 `registered_at` 之后记录的快照做样本外验证，回溯结果永远不能激活它。目前仍未达标，因此不参与任何决策。「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。 当前阻断项：clustered_edge、membership_history。",
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "38 / 需要 24 · ✅"
+          "value": "39 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -105,7 +105,7 @@
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.04045, 0.01168] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.04199, 0.01134] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
@@ -165,5 +165,5 @@
       ]
     }
   ],
-  "built_at": "2026-10-19T00:05:04.991039+00:00"
+  "built_at": "2026-10-20T00:04:34.978108+00:00"
 }

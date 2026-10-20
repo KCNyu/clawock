@@ -105,3 +105,4 @@
 {"day": "2026-10-15", "fallback_used": false, "fetched_at": "2026-10-15T00:03:23.709862+00:00", "pair": "USDHKD", "rate": 7.8481, "source": "Frankfurter"}
 {"day": "2026-10-16", "fallback_used": false, "fetched_at": "2026-10-16T00:03:35.974697+00:00", "pair": "USDHKD", "rate": 7.8473, "source": "Frankfurter"}
 {"day": "2026-10-19", "fallback_used": false, "fetched_at": "2026-10-19T00:03:47.887988+00:00", "pair": "USDHKD", "rate": 7.8482, "source": "Frankfurter"}
+{"day": "2026-10-20", "fallback_used": false, "fetched_at": "2026-10-20T00:03:33.979914+00:00", "pair": "USDHKD", "rate": 7.8483, "source": "Frankfurter"}
