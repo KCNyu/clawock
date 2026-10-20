@@ -54,10 +54,18 @@ class DecisionPacketSummary(BaseTool):
         # actually calls, and it kept the 24KB default — so the fix was live in
         # the source and still dead in production, which is the exact shape the
         # inert-fix rule exists for. The test below pins this call site.
-        return brief_decision_packet.bounded_payload(
-            brief_decision_packet.summary_view(packet),
-            brief_decision_packet.MAX_SUMMARY_BYTES,
-        )
+        try:
+            return brief_decision_packet.bounded_payload(
+                brief_decision_packet.summary_view(packet),
+                brief_decision_packet.MAX_SUMMARY_BYTES,
+            )
+        except ValueError as exc:
+            # The one way forward has to reach the model, not only stderr: on
+            # 2026-08-17 a refused summary burned the turn on tool help (#3109).
+            raise ToolError(
+                f"{exc}; the whole-book summary does not fit even folded — read "
+                "each ticker with decision_packet_query (ticker=<T>, "
+                "section=status|constraints|technical) instead") from exc
 
 
 class DecisionPacketQuery(BaseTool):

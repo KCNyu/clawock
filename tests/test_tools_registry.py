@@ -240,3 +240,17 @@ def test_a_real_sized_summary_survives_the_tool_layer(tmp_path, monkeypatch):
         "the fixture has to be past the old cap or this proves nothing"
     )
     assert size < context_tools.brief_decision_packet.MAX_SUMMARY_BYTES
+
+
+def test_a_refused_summary_tells_the_model_the_way_forward(tmp_path, monkeypatch):
+    """#3109: the refusal text is the only thing the model sees; the per-ticker
+    route used to be printed on stderr at 08:03 and nowhere else."""
+    monkeypatch.setattr(context_tools.brief_decision_packet, "read_packet", lambda path: {"tickers": {}})
+    monkeypatch.setattr(context_tools.brief_decision_packet, "summary_view",
+                        lambda packet: {"blob": "x" * 2_000})
+    monkeypatch.setattr(context_tools.brief_decision_packet, "MAX_SUMMARY_BYTES", 100)
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text("{}")
+
+    with pytest.raises(ToolError, match="decision_packet_query"):
+        context_tools.DecisionPacketSummary().execute(tmp_path, manifest=str(manifest))

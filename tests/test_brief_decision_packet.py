@@ -1121,6 +1121,48 @@ def test_the_summary_budget_is_measured_against_a_real_sized_book():
     assert report["bytes"] < len(packet_mod._compact(packet).encode())
 
 
+def test_the_summary_prints_each_bound_once_and_each_constant_once():
+    """#3109: a row's `constraints` copies six sizing keys from `execution`,
+    and two discipline sentences are one code constant on every row; the
+    summary printed all of them per holding. The full row still has them."""
+    context = _book_with(3)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    summary = packet_mod.summary_view(packet)
+    row = summary["tickers"][0]
+    full = packet["tickers"][row["ticker"]]
+    for key in packet_mod._EXECUTION_IN_CONSTRAINTS:
+        assert key not in row["execution"]
+        assert row["constraints"][key] == full["execution"][key] == full["constraints"][key]
+    assert "discipline" not in row["early_trend"]
+    assert summary["row_notes"]["early_trend.discipline"] == (
+        full["quant"]["early_trend"]["discipline"])
+    assert "folded" not in summary
+
+
+def test_a_book_past_the_summary_budget_folds_instead_of_refusing(monkeypatch):
+    """#3109: twice the full summary was met by a higher ceiling (#723, #2816)
+    while the summary stayed O(holdings). Past the line it now folds reference
+    detail behind the section query that carries it, says so, and still fits;
+    the near-budget warning keeps measuring the unfolded book."""
+    context = _book_with(12)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    full = packet_mod.summary_budget_report(packet)["bytes"]
+    monkeypatch.setattr(packet_mod, "MAX_SUMMARY_BYTES", full - 1)
+
+    summary = packet_mod.summary_view(packet)
+    assert packet_mod._printed_bytes(summary) <= full - 1
+    assert summary["folded"]["execution"].endswith("section=execution")
+    assert all("execution" not in row for row in summary["tickers"])
+    report = packet_mod.read_budget_report(packet)
+    assert report["over_budget"] == [] and "summary" in report["near_budget"]
+    row = report["reads"][0]
+    assert row["full_bytes"] == full and row["folded"] == ["execution"]
+
+    # Nothing left to fold: the read is over, and the tool says what to do.
+    monkeypatch.setattr(packet_mod, "MAX_SUMMARY_BYTES", 1000)
+    assert "summary" in packet_mod.read_budget_report(packet)["over_budget"]
+
+
 def test_the_summary_warning_is_wired_to_something_that_runs(capsys):
     """The warning existed and nothing ever asked for it.
 

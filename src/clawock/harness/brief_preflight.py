@@ -2243,6 +2243,14 @@ def _collect(argv=None):
     except Exception as exc:  # noqa: BLE001
         print(f'   ⚠ left_side_history not written: {type(exc).__name__}: {exc}'[:200])
 
+    read_budget = brief_decision_packet.read_budget_report(decision_packet)
+    # A read the tool will refuse is known now, not after the model's turn has
+    # started (#3109). It stays an issue rather than a failed generation: the
+    # off-host fallback inlines the whole packet and can still write the brief.
+    for read in read_budget['over_budget']:
+        issues.append(f'decision packet read `{read}` 超出预算，工具会拒读；'
+                      '模型只能逐票 decision_packet_query')
+
     print(f'\n═════ preflight done | {len(issues)} issues ═════')
     print(f'context: {ctx_path}')
     print(
@@ -2256,10 +2264,10 @@ def _collect(argv=None):
             bundle_manifest['source_section_bytes'].items(),
             key=lambda item: item[1], reverse=True):
         print(f'  context bytes {section}: {size:,}')
-    read_budget = brief_decision_packet.read_budget_report(decision_packet)
     for row in read_budget['reads']:
         print(f"  model read {row['read']}: {row['bytes']:,} / {row['budget']:,} bytes "
-              f"({row['ratio']:.0%})" + (' ⚠️ near budget' if row['near_budget'] else ''))
+              f"({row['ratio']:.0%})" + (' ⚠️ near budget' if row['near_budget'] else '')
+              + (f" · folded {', '.join(row['folded'])}" if row.get('folded') else ''))
     if issues:
         for i in issues:
             print(f'  ⚠️  {i}')

@@ -146,6 +146,7 @@ summary 的 `stock_discovery` 是独立于持仓/peer-map 的持仓外研究队�
 「Nasdaq 未取到」，不能解释为「没有机会」。港股跨板块发现、analyst 一致预期尚缺。
 
 summary 包含 book/concentration、每票 deterministic status、技术/因子可用性、风险计数、allowed actions 与 evidence IDs。它不要求模型加载原始持仓交易流水或整张因子表。
+每票的整手、单批上限、仓位空间只在 `constraints` 里印一次（`--section execution` 有完整尺寸明细）；`row_notes` 里的说明对每一行同名字段都成立。持仓多到 summary 装不下时，harness 会把参考明细收进逐票查询，顶层 `folded` 写明收起了哪一段、用哪个 `section` 查——要用到时按它逐票查，不要当成该票没有这段。
 
 需要分析某票时才查该票；需要单一维度时必须带 `--section`：
 
@@ -1124,7 +1125,7 @@ US: HHI 0.171 偏集中 | SOXL 22.2% + ROBN 21.1% = Top2 43.3%
 
 逐票检查 `quant.preposition` / `technical.setups` 的 `preposition_scale_in`，不要只找突破。
 这是 kcn 授权的前瞻试验，不是已验证 alpha。可按给出的 `price_below`、失效位、campaign、
-下一档编号和 `execution.max_add_shares` 写 `add_only_on_trigger`；须写可证伪的 hypothesis
+下一档编号和 `constraints.max_add_shares` 写 `add_only_on_trigger`；须写可证伪的 hypothesis
 和 method，说明尺寸取自持仓比例×资讯倾斜，以及 `evidence_strength` 中支持/不支持的范围。
 unknown 论点不冒充 intact；已有 damaged/broken 状态不自动洗白。两档成交后不因换日重置。
 每个可用试验候选必须明确选择：写有尺寸的单，或在该票判断中说明本次不买的原因，

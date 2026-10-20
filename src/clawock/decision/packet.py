@@ -1651,6 +1651,8 @@ def _warn_read_budgets(packet: dict) -> None:
               f"({report['tickers']} tickers) — "
               + ("the tool refuses this read as it stands"
                  if row["over_budget"] else
+                 f"folded {', '.join(row['folded'])} behind per-ticker queries"
+                 if row.get("folded") else
                  "trim a projection or move reference detail behind a query "
                  "before the next holding lands"),
               file=sys.stderr)
@@ -2009,53 +2011,128 @@ def _summary_technical(technical):
     return view
 
 
-def summary_view(packet: dict) -> dict:
+#: Keys a held row's `constraints` copies from its `execution` (`_constraints`).
+#: The summary prints each once, under `constraints` — the boundary the plan
+#: is checked against; `--section execution` still carries the full block.
+_EXECUTION_IN_CONSTRAINTS = ("lot_size", "max_add_shares", "max_add_value",
+                             "min_tranche_shares", "position_room_shares",
+                             "target_max_pct")
+
+#: What the summary folds away, in this order, when the whole book no longer
+#: fits `MAX_SUMMARY_BYTES`, and the query section that still carries it.
+#: Twice the fix for a full summary was a higher ceiling (#723, #2816); the
+#: summary is O(holdings), so the line only moved. A fold keeps the read
+#: alive at any book size and says where the folded detail went (#3109).
+SUMMARY_FOLDS = (
+    ("execution", "execution"),
+    ("early_trend", "quant"),
+    ("live", "information"),
+)
+#: The early-trend keys SKILL.md Step 2 acts on; the rest is measurement.
+_EARLY_TREND_DECISION_KEYS = ("state", "observed", "exploration_ready",
+                              "blockers", "primary_event_ids")
+
+
+def _shared_text(rows, path):
+    """The text every row carries at `path`, when it is one constant, else None."""
+    values = set()
+    for row in rows:
+        value = row
+        for key in path:
+            value = value.get(key) if isinstance(value, dict) else None
+        values.add(value if isinstance(value, str) else None)
+    return values.pop() if len(values) == 1 and None not in values else None
+
+
+def _summary_row(row: dict, notes: dict) -> dict:
+    constraints = row.get("constraints") or {}
+    execution = {key: value for key, value in (row.get("execution") or {}).items()
+                 if not (key in _EXECUTION_IN_CONSTRAINTS and key in constraints
+                         and constraints[key] == value)}
+    overlay = execution.get("information_overlay")
+    if isinstance(overlay, dict) and overlay.get("discipline") == notes.get(
+            "execution.information_overlay.discipline"):
+        execution["information_overlay"] = {
+            key: value for key, value in overlay.items() if key != "discipline"}
+    early_trend = {key: value for key, value in
+                   ((row.get("quant") or {}).get("early_trend") or {}).items()
+                   if key not in ("schema_version", "market")
+                   and not (key == "discipline"
+                            and value == notes.get("early_trend.discipline"))}
+    return {
+        "ticker": row.get("ticker"),
+        "name": row.get("name"),
+        "leg": row.get("leg"),
+        "status": row.get("status"),
+        "technical": _summary_technical(row.get("technical") or {}),
+        "thesis": row.get("thesis"),
+        "execution": execution,
+        "quant_usable": {
+            "factor": ((row.get("quant") or {}).get("factor") or {})
+            .get("usable_for_decisions"),
+            "peer": ((row.get("quant") or {}).get("peer_residual") or {})
+            .get("usable_for_decisions"),
+        },
+        "early_trend": early_trend,
+        # The summary — not the full packet — is what SKILL.md Step 2
+        # calls the model's 唯一常驻输入, so a field added to
+        # `compile_packet` and not to this projection reaches nobody.
+        "history": row.get("history"),
+        # Two live cites per name (full rows: `--section information`).
+        "live": [item.get("cite") for item in
+                 ((row.get("information") or {}).get("live") or [])[:2]],
+        "risk_count": len(row.get("risk") or []),
+        # Closed actions by code; the reason is in the row
+        # (`--section constraints`).
+        "constraints": {
+            **constraints,
+            "closed_actions": {
+                action: why.get("code") for action, why in
+                (constraints.get("closed_actions") or {}).items()
+            },
+        },
+    }
+
+
+def _fold(rows: list, key: str) -> None:
+    for row in rows:
+        if key == "early_trend":
+            row[key] = {k: v for k, v in (row.get(key) or {}).items()
+                        if k in _EARLY_TREND_DECISION_KEYS}
+        else:
+            row.pop(key, None)
+
+
+def summary_view(packet: dict, budget: int | None = None) -> dict:
+    """The resident whole-book read (SKILL.md Step 2), fitted to its budget.
+
+    Per-row text that is one code constant for every row is printed once in
+    `row_notes`. When the book outgrows `budget` (default `MAX_SUMMARY_BYTES`),
+    `SUMMARY_FOLDS` move reference detail behind its section query one block
+    at a time, and `folded` names each block and where it now is.
+    """
+    budget = MAX_SUMMARY_BYTES if budget is None else budget
     evidence = next((s["evidence_strength"] for r in (packet.get("tickers") or {}).values()
                      for s in (r.get("technical") or {}).get("setups") or []
                      if s.get("setup_id") == preposition.SETUP_ID), None)
-    return {
+    held = list((packet.get("tickers") or {}).values())
+    notes = {
+        name: text for name, path in (
+            ("early_trend.discipline", ("quant", "early_trend", "discipline")),
+            ("execution.information_overlay.discipline",
+             ("execution", "information_overlay", "discipline")))
+        if (text := _shared_text(held, path)) is not None}
+    rows = [_summary_row(row, notes) for row in held]
+    view = {
         "preposition_evidence": evidence,
         "stock_discovery": _discovery_summary(packet.get("stock_discovery") or {}),
         "_meta": packet.get("_meta"),
         "date": packet.get("date"),
         "integrity": packet.get("integrity"),
         "portfolio": packet.get("portfolio"),
-        "tickers": [
-            {
-                "ticker": row.get("ticker"),
-                "name": row.get("name"),
-                "leg": row.get("leg"),
-                "status": row.get("status"),
-                "technical": _summary_technical(row.get("technical") or {}),
-                "thesis": row.get("thesis"),
-                "execution": row.get("execution"),
-                "quant_usable": {
-                    "factor": ((row.get("quant") or {}).get("factor") or {})
-                    .get("usable_for_decisions"),
-                    "peer": ((row.get("quant") or {}).get("peer_residual") or {})
-                    .get("usable_for_decisions"),
-                },
-                "early_trend": ((row.get("quant") or {}).get("early_trend") or {}),
-                # The summary — not the full packet — is what SKILL.md Step 2
-                # calls the model's 唯一常驻输入, so a field added to
-                # `compile_packet` and not to this projection reaches nobody.
-                "history": row.get("history"),
-                # Two live cites per name (full rows: `--section information`).
-                "live": [item.get("cite") for item in
-                         ((row.get("information") or {}).get("live") or [])[:2]],
-                "risk_count": len(row.get("risk") or []),
-                # Closed actions by code; the reason is in the row
-                # (`--section constraints`).
-                "constraints": {
-                    **(row.get("constraints") or {}),
-                    "closed_actions": {
-                        action: why.get("code") for action, why in
-                        ((row.get("constraints") or {}).get("closed_actions") or {}).items()
-                    },
-                },
-            }
-            for row in packet.get("tickers", {}).values()
-        ],
+        # Applies to every row's field of that name.
+        "row_notes": notes,
+        "tickers": rows,
         # Swap targets the book does not hold: writable as the buy leg of
         # their mandate, and nothing else.
         "swap_targets": packet.get("swap_targets") or {},
@@ -2079,6 +2156,13 @@ def summary_view(packet: dict) -> dict:
         "live_information": packet.get("live_information"),
         "judgment_contract": packet.get("judgment_contract"),
     }
+    for key, section in SUMMARY_FOLDS:
+        if _printed_bytes(view) <= budget:
+            break
+        _fold(rows, key)
+        view.setdefault("folded", {})[key] = (
+            f"decision_packet_query ticker=<T> section={section}")
+    return view
 
 
 def judgment_template(packet: dict) -> dict:
@@ -3064,6 +3148,22 @@ def _budget_row(read: str, value, budget: int) -> dict:
     }
 
 
+def _summary_budget_row(packet) -> dict:
+    """The summary's row: what the model is served, and what the book needs.
+
+    `bytes`/`ratio`/`over_budget` are the read as served, after any fold;
+    `full_bytes` is the unfolded projection, and `near_budget` is measured on
+    it, so the growth that leads to folding is a warning before it happens and
+    a standing one while it lasts (`folded` names the blocks).
+    """
+    served = summary_view(packet)
+    full = _printed_bytes(summary_view(packet, budget=sys.maxsize))
+    row = _budget_row("summary", served, MAX_SUMMARY_BYTES)
+    return {**row, "full_bytes": full,
+            "near_budget": full > MAX_SUMMARY_BYTES * READ_BUDGET_WARN_RATIO,
+            "folded": list(served.get("folded") or {})}
+
+
 def summary_budget_report(packet) -> dict:
     """How close the whole-book summary is to its budget.
 
@@ -3073,7 +3173,7 @@ def summary_budget_report(packet) -> dict:
     anybody thinks to run the packet tests for.
     """
     return {
-        **_budget_row("summary", summary_view(packet), MAX_SUMMARY_BYTES),
+        **_summary_budget_row(packet),
         "tickers": len(packet.get("tickers") or {}),
     }
 
@@ -3088,7 +3188,7 @@ def read_budget_report(packet: dict) -> dict:
     """
     tickers = packet.get("tickers") or {}
     reads = [
-        _budget_row("summary", summary_view(packet), MAX_SUMMARY_BYTES),
+        _summary_budget_row(packet),
         _budget_row("judgment_template", judgment_template(packet), MAX_QUERY_BYTES),
     ]
     rows = [_budget_row(f"ticker:{ticker}", query_view(packet, ticker), MAX_QUERY_BYTES)
