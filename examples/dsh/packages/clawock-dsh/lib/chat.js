@@ -76,6 +76,8 @@ const dictionaries = {
 		"trace.realFill": "真实成交",
 		"trace.t1Close": "T+1 收盘",
 		"trace.t1Pending": "T+1 未判",
+		"trace.reconstructedFill": "建仓占位(账本之前已持有,无成交)",
+		"trace.t1Reconstructed": "建仓占位 · 不判 T+1",
 		"trace.unpaired": "这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。",
 		"trace.sharesAt": " 股 @ ",
 		"trace.shares": " 股",
@@ -114,6 +116,7 @@ const dictionaries = {
 		"balance.insufficient": "官方接口判定余额不足",
 		"balance.staleWith": "刷新失败,显示最近一次: {message}",
 		"balance.stale": "刷新失败,显示最近一次",
+		"balance.staleAt": "刷新失败,显示 {time} 的读数",
 		"balance.windowAt": "窗口已使用达 {percent}%",
 		"balance.lowMoney": "余额偏低,低于阈值 {amount}",
 		"balance.panelTitle": "各模型服务余额",
@@ -614,6 +617,8 @@ const dictionaries = {
 		"trace.realFill": "Real fill",
 		"trace.t1Close": "T+1 close",
 		"trace.t1Pending": "T+1 unjudged",
+		"trace.reconstructedFill": "Opening lot (held before the ledger, no fill)",
+		"trace.t1Reconstructed": "Opening lot · no T+1",
 		"trace.unpaired": "No plan for this ticker within ±3 days in the decision ledger: the fill is real, the thinking left no record.",
 		"trace.sharesAt": " shares @ ",
 		"trace.shares": " shares",
@@ -652,6 +657,7 @@ const dictionaries = {
 		"balance.insufficient": "The provider reports insufficient balance",
 		"balance.staleWith": "Refresh failed, showing the last reading: {message}",
 		"balance.stale": "Refresh failed, showing the last reading",
+		"balance.staleAt": "Refresh failed; showing the reading of {time}",
 		"balance.windowAt": "A window is at {percent}% used",
 		"balance.lowMoney": "Balance low, below the {amount} threshold",
 		"balance.panelTitle": "Model service balances",
@@ -1237,8 +1243,9 @@ function _usedLevel(percent, threshold) {
 * Display projection of ONE provider's answer (test seam, like _displayEntry):
 * the chip and panel render only these fields, so the view never keeps
 * a second copy of the tone rules — the host already decided status and low.
-* The title is the whole hover story: split, quota windows, stale reason,
-* fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
+* The title is the whole hover story: split, quota windows, and — when the
+* refresh failed — the reason and the time of the reading still shown
+* (`staleNote`). Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
 * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
 * muted pill suffix — both limits visible at the header without opening the
 * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
@@ -1296,7 +1303,7 @@ function _rowDisplay(result, t, now = Date.now()) {
 		!isPct && snapshot.grantedBalance !== "" ? t("balance.granted") + symbol + snapshot.grantedBalance : null,
 		!isPct && snapshot.toppedUpBalance !== "" ? t("balance.toppedUp") + symbol + snapshot.toppedUpBalance : null,
 		snapshot.isAvailable || isPct ? null : t("balance.insufficient"),
-		result.status === "stale" && result.message !== null ? t("balance.staleWith", { message: result.message }) : null
+		result.status === "stale" ? staleNote(result, t, now) : null
 	].filter((part) => part !== null);
 	const shownPct = isPct ? isFinite(parsed) ? parsed : pctWins.length > 0 ? pctWins[0].percent : null : null;
 	return {
@@ -1309,17 +1316,38 @@ function _rowDisplay(result, t, now = Date.now()) {
 	};
 }
 /**
+* What a provider row says when its refresh failed: the reason, and when the
+* reading it still shows was taken. Without the time, a five-hour-old balance
+* and a one-minute-old one read the same on the folded row, next to a quota
+* window's own reset clock (#3119). One sentence for the folded row, its hover
+* title and the open panel, so the three cannot disagree.
+*/
+function staleNote(result, t, now) {
+	const asOf = result.snapshot?.asOf ? Date.parse(result.snapshot.asOf) : NaN;
+	if (Number.isFinite(asOf)) {
+		const time = resetStampOf(t, {
+			resetAt: "",
+			resetAtMs: asOf
+		}, now);
+		return result.message !== null ? t("panel.staleAt", {
+			message: result.message,
+			time
+		}) : t("balance.staleAt", { time });
+	}
+	return result.message !== null ? t("balance.staleWith", { message: result.message }) : t("balance.stale");
+}
+/**
 * The one line a panel row says out loud when something is wrong — stale
 * reason, unconfigured key, insufficient money balance. A healthy number
 * earns no caption at all; null means silence. An exhausted quota window
 * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
 * rows are the message; a caption would only replace them.
 */
-function _balanceNote(result, t) {
+function _balanceNote(result, t, now = Date.now()) {
 	if (result === null) return null;
 	if (!result.configured) return result.message ?? t("balance.unconfiguredKey");
 	if (result.snapshot === null) return result.message ?? t("balance.fetchFailed");
-	if (result.status === "stale") return result.message !== null ? t("balance.staleWith", { message: result.message }) : t("balance.stale");
+	if (result.status === "stale") return staleNote(result, t, now);
 	if (!result.snapshot.isAvailable) return result.snapshot.unit === "pct" ? null : t("balance.insufficient");
 	if (result.low) {
 		if (result.snapshot.unit === "pct") return (result.snapshot.windows ?? []).length > 0 ? null : t("balance.windowAt", { percent: 100 - result.threshold });
@@ -2228,7 +2256,7 @@ function balanceRows(result, t, now) {
 	return (result?.providers ?? []).map((provider) => ({
 		...provider,
 		view: _rowDisplay(provider.result, t, now),
-		note: _balanceNote(provider.result, t)
+		note: _balanceNote(provider.result, t, now)
 	}));
 }
 /** The provider windows of an agent (a quota wait names the reset it waits for). */
@@ -2274,14 +2302,7 @@ function panelGroup(source, result, rows, t, now, open) {
 		}, now),
 		by: queue.quotaBy
 	}));
-	const snapshotAt = row?.result.snapshot?.asOf ? Date.parse(row.result.snapshot.asOf) : NaN;
-	const balanceNote = row === void 0 || row.note === null ? null : row.result.status === "stale" && Number.isFinite(snapshotAt) ? t("panel.staleAt", {
-		message: row.result.message ?? "—",
-		time: resetStampOf(t, {
-			resetAt: "",
-			resetAtMs: snapshotAt
-		}, now)
-	}) : row.note;
+	const balanceNote = row === void 0 ? null : row.note;
 	const { reading: _reading, queue: _queue, ...view } = sourceView(source, row, result, t);
 	return {
 		source,

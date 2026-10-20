@@ -58,6 +58,13 @@ export interface Trade {
   price: number | null
   realizedPnl: number | null
   note: string | null
+  /**
+   * An opening lot that predates the ledger (`"reconstructed": true` in
+   * portfolio.json, #462): the price is solved back from cost, the date is a
+   * sort placeholder, and no fill happened. Present only when true. The trace
+   * view gives these no T+1 verdict (#3118).
+   */
+  reconstructed?: true
 }
 
 export interface Book {

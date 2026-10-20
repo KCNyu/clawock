@@ -156,7 +156,8 @@ function readPortfolio(workspace) {
 					shares,
 					price: num(trObj["price"]),
 					realizedPnl: num(trObj["realized_pnl"]),
-					note: typeof trObj["note"] === "string" ? trObj["note"] : null
+					note: typeof trObj["note"] === "string" ? trObj["note"] : null,
+					...trObj["reconstructed"] === true ? { reconstructed: true } : {}
 				});
 			}
 		}
@@ -383,7 +384,7 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 		decision: null,
 		side: isSellAction(trade.action) ? "reduce" : ADD_ACTIONS.has(trade.action) ? "add" : null
 	};
-	const t1 = futureClose(byTicker, trade.ticker, trade.date, 1);
+	const t1 = trade.reconstructed === true ? null : futureClose(byTicker, trade.ticker, trade.date, 1);
 	if (t1 !== null && trade.price != null && trade.price > 0) {
 		const delta = Math.round((t1.price - trade.price) / trade.price * 100 * 100) / 100;
 		out.t1 = {

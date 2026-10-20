@@ -203,6 +203,23 @@ def test_t1_refuses_a_close_beyond_the_gap_ceiling(ws, tmp_path):
     assert pltu["t1"] is None, "an 11-day-later close is not T+1"
 
 
+def test_a_reconstructed_opening_lot_gets_no_t1_and_says_so(ws, tmp_path):
+    """#3118: a pre-ledger lot (#462) has a placeholder date and a price solved
+    from cost. Marked against the next close it reads as a fill that moved
+    tens of percent overnight. The plugin's `enrichTrade` skips it the same way."""
+    pf = json.loads((tmp_path / "portfolio.json").read_text())
+    hk = pf["portfolios"]["hk_stocks"]["holdings"][0]
+    hk["trades"].append({"date": "2026-08-04", "action": "buy", "shares": 100,
+                         "price": 400.0, "reconstructed": True, "note": "建仓占位"})
+    (tmp_path / "portfolio.json").write_text(json.dumps(pf), encoding="utf-8")
+    traces = dashboard.build_decision_traces()
+    on_day = [t for t in traces if t["ticker"] == "00100" and t["date"] == "2026-08-04"]
+    lot = next(t for t in on_day if t.get("reconstructed"))
+    fill = next(t for t in on_day if not t.get("reconstructed"))
+    assert lot["t1"] is None and lot["reconstructed"] is True
+    assert fill["t1"] is not None and "reconstructed" not in fill
+
+
 def test_t1_accepts_a_weekend_gap(ws, tmp_path):
     """Friday fill settling against Monday is 3 calendar days — still T+1."""
     bars = tmp_path / "memory" / "bars" / "PLTU.json"
