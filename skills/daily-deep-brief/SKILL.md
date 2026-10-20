@@ -1033,7 +1033,8 @@ clawock brief postflight
 - 唯一例外是 `projection_status: invalid`（issue 以 `judgment 未通过校验` 开头）：Pages 会丢掉整个
   判断层（见 C 节），值得修**一次**。先 `read` 当前 judgment，按 `projection_issues` 一次改完所有
   点名字段，其余字段原样保留（整份 `write` 时最容易把没点名的字段弄丢），再重跑一次 postflight。
-  这一次之后不论结果如何都结束本轮。
+  这一次之后不论结果如何都结束本轮。重跑改写了已投递的报告时，postflight 自己会在页面标题下加
+  「投递后修订」说明并记一条 `content_revised_after_delivery`（不重发卡片）；不要自己写说明或补发。
 
 > **2026-09-17 教训**：首轮 warn 已 commit；模型先按 judgment 超长重写整份 judgment，重跑后
 > 发现重写时丢了一个 `peer_read`，又顺手改 plan 里的 advisory 术语再跑一次，三次 postflight
