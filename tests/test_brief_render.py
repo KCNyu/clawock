@@ -551,6 +551,39 @@ def test_a_sweep_with_no_sectors_counts_as_missing(tmp_path):
     assert render.SECTOR_SCAN_MISSING in issues
 
 
+def test_the_sweeps_own_column_is_the_session_change_not_the_position_day(tmp_path):
+    """#3107: 07709 was bought on 10-16. Its position-day change against the
+    fill was -4.24% and the session was +2.73% (18.68 -> 19.19); the model
+    copied the first under 「上一场收盘」 while 仓位明细 printed the second.
+    The harness writes that column now, and the dashboard's file agrees."""
+    date = "2026-08-31"
+    ws = _workspace_without_a_sweep(tmp_path, date)
+    context = copy.deepcopy(CONTEXT)
+    context["portfolio"]["portfolios"]["hk_stocks"]["holdings"].append(
+        {"ticker": "07709", "name": "XL二南方海力士", "shares": 100, "cost_basis": 20.04,
+         "current_price": 19.19, "prev_close": 18.68, "today_change_pct": -4.24,
+         "pnl_percent": -4.24, "pnl_abs": -85.0, "data_source": "Tencent"})
+    tmp = ws / "memory" / ".tmp"
+    (tmp / f"brief-context-{date}.json").write_text(
+        json.dumps(context, ensure_ascii=False), encoding="utf-8")
+    scan = {"date": date, "sectors": [{
+        "theme": "存储芯片", "top_movers": [{"ticker": "SNDK", "name": "闪迪", "pct": 7.23}],
+        "self": [{"ticker": "07709", "pct": -4.24, "rank_text": "落后"},
+                 {"ticker": "07226", "pct": -0.8, "rank_text": "中位"},
+                 {"ticker": "00700", "pct": 1.65, "rank_text": "领涨"}]}]}
+    (tmp / f"sector-scan-{date}.json").write_text(json.dumps(scan), encoding="utf-8")
+
+    issues, body = render.render_from_workspace(ws, date)
+
+    row = next(line for line in body.splitlines() if line.startswith("| 存储芯片 | 07709"))
+    assert "+2.73%" in row and "-4.24" not in row
+    # 07226 has no prior close in the book: no session figure, not a guess.
+    assert any(line.startswith("| 存储芯片 | 07226 | —") for line in body.splitlines())
+    written = json.loads((tmp / f"sector-scan-{date}.json").read_text(encoding="utf-8"))
+    assert [own["pct"] for own in written["sectors"][0]["self"]] == [2.73, None, 1.65]
+    assert any("07709 -4.24→2.73" in issue for issue in issues)
+
+
 # ── tables for numbers, entries for prose, one card per subsection ───────────
 #    (2026-09-11: "在 dashboard 里看 brief 也很丑，也没什么卡片区块感，数据排版也很杂乱")
 

@@ -36,7 +36,7 @@ from clawock import sessions as _cal, instruments as instrument_registry
 from clawock.portfolio.math import ledger_rows, session_change_pct
 from clawock.automation.output_validate import escape_raw_html
 from clawock.prose_validation import check_identifier_leak, check_pipeline_self_reference
-from clawock.safe_io import safe_write_text
+from clawock.safe_io import safe_write_json, safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
 WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
@@ -765,6 +765,36 @@ def _unsaid(extra, said):
     return "；".join(kept)
 
 
+def bind_sector_self(sector_scan, context):
+    """Put the session's own change on each held row of the sector sweep.
+
+    The model writes `sectors[].self[].pct` under a 「上一场收盘」 label, and on
+    2026-10-20 copied 07709's position-day figure (-4.24%, a lot bought that
+    session) where the session was +2.73% (#3107). The number is the harness's:
+    `session_change_pct` of this generation's book, the same one 仓位明细 and
+    the peer scan print, `None` when the quote cannot say. Rows for names the
+    book does not hold are left as written. Returns `[(ticker, written, bound)]`
+    for the rows it changed.
+    """
+    sessions = {}
+    for leg in ("hk", "us"):
+        for row in _holdings(context, leg)[1]:
+            change = session_change_pct(row)
+            sessions[str(row.get("ticker"))] = None if change is None else round(change, 2)
+    changed = []
+    for sector in (sector_scan or {}).get("sectors") or []:
+        if not isinstance(sector, dict):
+            continue
+        for own in sector.get("self") or []:
+            if not isinstance(own, dict):
+                continue
+            ticker = str(own.get("ticker") or "")
+            if ticker in sessions and own.get("pct") != sessions[ticker]:
+                changed.append((ticker, own.get("pct"), sessions[ticker]))
+                own["pct"] = sessions[ticker]
+    return changed
+
+
 def sector_section(sector_scan, judgment):
     """板块全景 — the sweep the model runs with web search, laid out here.
 
@@ -1323,6 +1353,14 @@ def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=Tr
         sector_scan = None
     if not (sector_scan or {}).get("sectors"):
         issues.append(SECTOR_SCAN_MISSING)
+    else:
+        rebound = bind_sector_self(sector_scan, context)
+        if rebound:
+            issues.append("板块全景 持仓涨跌改用场次口径（模型所写→场次）: " + "；".join(
+                f"{ticker} {written}→{bound}" for ticker, written, bound in rebound))
+            # The dashboard card reads this file, so it says the same number.
+            if write:
+                safe_write_json(str(paths["sector_scan"]), sector_scan)
 
     body = render_brief(context, judgment, plan, date=date, sector_scan=sector_scan)
     card = render_card(context, judgment, plan, date=date, page_url=page_url)
