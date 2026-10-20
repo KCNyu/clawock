@@ -1635,3 +1635,16 @@ def test_the_health_check_names_a_brief_day_that_has_no_plan(monkeypatch, tmp_pa
     assert verdict(sunday)[1] == system_check.OK and "5/5" in verdict(sunday)[2]
     # the day itself belongs to the watchdog: Monday morning does not accuse Monday
     assert "2026-10-12" not in verdict(date(2026, 10, 12))[2]
+
+
+def test_a_rows_facts_carry_the_session_change_beside_the_position_day():
+    """#3107: a lot bought in the session makes `today_change_pct` the
+    position's day P&L against its fill (#3036); the model needs the session's
+    own change to cite under 「上一场收盘」, from the one implementation."""
+    context = _context()
+    holding = context["portfolio"]["portfolios"]["hk_stocks"]["holdings"][0]
+    holding.update({"current_price": 19.19, "prev_close": 18.68, "today_change_pct": -4.24})
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    facts = packet["tickers"][holding["ticker"]]["facts"]
+    assert facts["today_change_pct"] == -4.24
+    assert facts["session_change_pct"] == 2.73

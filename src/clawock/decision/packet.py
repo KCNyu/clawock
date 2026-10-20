@@ -34,6 +34,7 @@ from clawock.decision.actions import is_risk_swap_buy, positive_whole_shares
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.safe_io import to_strict_finite_number
 from clawock.safe_io import carried_value
+from clawock.portfolio.math import session_change_pct
 from clawock.workspace import workspace_root
 
 
@@ -1495,7 +1496,11 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
                 "cost_basis": _number(holding.get("cost_basis"), 4),
                 "current_price": _number(holding.get("current_price"), 4),
                 "pnl_pct": _number(holding.get("pnl_percent"), 2),
+                # Position day P&L: new lots count from their fill (#3036).
                 "today_change_pct": _number(holding.get("today_change_pct"), 2),
+                # The quote against the prior close, what a 「上一场收盘」 column
+                # means (#3107).
+                "session_change_pct": _number(session_change_pct(holding), 2),
                 "day_high": _number(holding.get("day_high"), 4),
                 "day_low": _number(holding.get("day_low"), 4),
                 "data_source": holding.get("data_source"),

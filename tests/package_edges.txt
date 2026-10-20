@@ -34,6 +34,7 @@ decision -> history_store
 decision -> instruments
 decision -> market_data
 decision -> plugin_host
+decision -> portfolio
 decision -> provenance
 decision -> safe_io
 decision -> scorecard_provenance
