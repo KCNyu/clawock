@@ -234,6 +234,8 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 |---|---|---|---|---|
 | {ticker} | 距成本 / RSI / MA stance / 1 行评级 | EDGAR latest period 或 ETF underlying | 散户温度 / news 异动 | 跟随 / 背离 |
 
+这张表由 harness 渲染：Market 列取自 packet，其余三列是你写的每票 `fundamentals`、`sentiment_read`、`cross_market`（纯文本）。
+
 - Fundamentals 优先用 EDGAR（preflight 已抓），其次 web search peer/历史 P/E
 - Sentiment：US 看 r/wallstreetbets + Tavily；HK 看雪球 + 富途 + 南向资金
 - Cross-Market：纳指→恒科链路当日是否工作；US 隔夜 vs HK 即将开盘
@@ -513,162 +515,74 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 | 20-39% | 信号冲突，疑似 regime change，多段数据 stale |
 | < 20% | 不要按这个 read 行动；等清晰 |
 
-#### Retrospective markdown 模板
+#### 报告各段：harness 印数据，你只写判断字段
 
-把 calibration bundle 的 `retrospective` 字段渲染成下面这段，**插在 brief 顶部**（TL;DR 之后，Header 之前）：
+下面这些段落的表格、读数、标题和顺序都由 harness 从 context 渲染（Step 4 A）。你写的只是
+右列的 judgment 字段：纯文本，不画表，不写 `▎`，字数上限见 Step 4 C。字段留空，发布出去的
+报告就空一段。
 
-```
-▎昨日 plan 兑现度（{上次 plan 日期}）
+| 报告段 | harness 印什么 | 你写什么 |
+|---|---|---|
+| 昨日 plan 兑现度 | `context.retrospective` 逐条兑现表 | 教训并入 `narrative.calibration_read` |
+| 同行扫描 | `context.peer_scan`：上一场收盘、最强同行、差距 | 每票 `peer_read` |
+| 大盘速读 | `context.macro` 读数；页眉印 regime 标签 | `narrative.macro_read`、`narrative.regime_read` |
+| 社交舆情 | `context.sentiment.tickers` 的提及数、新闻、近 N 日涨跌 | 每票 `sentiment_read` |
+| 名人异动/政策风向 | `context.influencer` 全段 | 无专门字段；在别的段落引用时按下面的口径 |
+| 决策校准 | `decision_metrics` 校准表 | `narrative.calibration_read` |
+| 下一时段 | — | `narrative.next_session` |
 
-| Action | Plan | 实际 | 模拟 ±$ | 评 |
-|---|---|---|---|---|
-| Cut 50% ROBN @开盘 | 砍 20股 | 砍 N股 @${px} | ±$X vs hold | ✓/✗/⊘ |
-| Trim 30% 07226 @4.10 | 减1860股 | 未触发 (high 4.05) | -HK$Y (机会成本) | ✗ trigger 过紧 |
+#### 同行扫描：每票 `peer_read`
 
-▎Confidence calibration (累计)
-- conf 80%+: N/M 触发 (X%)
-- conf 60-79%: ...
-- conf <60%: ...
-
-▎Lesson (1-2 行)
-{什么 trigger 设过紧/松；什么 thesis 站住/破；哪个 confidence 区间过自信}
-```
-
-评符号：✓=执行准、✗=未触发或反向、⊘=trigger 设了但 plan 本身就是中性。
-机会成本可能为正（trigger 未触发 = 错过 alpha）或负（trigger 未触发 = 躲过损失）。
-
-#### ▎同行扫描 (REQUIRED — postflight 校验)
-
-**preflight 给了 `peer_scan` 字段**，每个持仓有 listed_peers（带 pct_1d / pct_5d）+ private_peers（待 IPO 名单）。
-
-格式：
-
-```
-▎同行扫描
-
-| 持仓 | 主题 | 今日 self | 最强同行 | 差距 | 判断 |
-|---|---|---|---|---|---|
-| 00100 MINIMAX | HK AI 大模型 | -6.6% | 02273 智云健康 -0.2% | +6.4pp | ⚠️ 题材弱但同行更强 — 个股 alpha 在掉 |
-| 07226 2x恒科 | HSTECH 杠杆 | -5.2% | 00700 腾讯 +0.3% | +5.5pp | ⚠️ 杠杆放大 underlying 弱势 — 减仓换 1x |
-| ... | | | | | |
-
-私域同行追踪（仅信息层）：
-- 智谱 Zhipu D 轮估值 220 亿
-- 月之暗面 Kimi 用户数 ...
-```
-
-**判断模板**（必给一个）：
+一句判断，按题材与自己的方向四选一起头：
 - 题材+ 自己+ → "alpha 抓住了"
 - 题材+ 自己- → "考虑切换：peer 比我强"
 - 题材- 自己- → "持有合理，等题材轮回"
 - 题材- 自己+ → "稀有，珍惜"
 
-**如果出现 ⚠️ 切换信号 → Tier 3 Judge 给 rotation trigger**（例："00100 反弹至 800 减 20 股，换入 0020 商汤")。
+出现「考虑切换」→ Tier 3 Judge 给 rotation trigger（例："00100 反弹至 800 减 20 股，换入 0020 商汤"）。
 
-#### ▎大盘速读 (REQUIRED if `context.macro` 非空)
+#### 大盘速读：`macro_read` 与 `regime_read`
 
-从 `context.macro` 抓数，写**一段 5 行以内**的市场 context（不是论文）。每行 1 个指标 + 1 句"对我持仓意味什么"。
+`macro_read` 不超过 5 句，每句一个指标 + 它对**当前持仓**意味什么（不是教科书定义）。Fed 最新发布
+与利率无关（如人事任命）时不提。
 
-格式：
-
-```
-▎大盘速读
-
-- VIX 17.0 (+2.5%) · F&G 60.8 greed → 风险偏好仍在但开始降温, leveraged 仓位 (SOXL/RKLX/7226) 注意
-- SPX 7519 (+0.1%) / NDX 30001 (+0.5%) → 美股小幅向上, 不构成 regime 切换
-- HSI 25612 (+0.05%) / HSTECH 4989 (+0.85%) → HSTECH 4900 支撑确认, 07226 杠杆暴露 OK
-- 10Y yield 4.49% (-1.4%) · DXY 99.1 → 利率回落小幅利好成长股
-- Fed 最新动态: {fed_press[0].title 截断到 80 字符}
-```
-
-规则：
 - `context.macro` 为空 = preflight 判过期（超过 36h，或指数收盘落后最近一场已收盘 session）或缺失：`macro_read` 只写一句"⚠️ 宏观快照过期，本段不印读数"，不引用任何指数读数；postflight 不 fail
-- 每行末尾 → 后必须是**对当前持仓**的具体含义（不是教科书定义）
-- Fed press 段，如果今日无新发布或与利率无关（如人事任命）可省略最后一行
 
-**🧭 Regime guard(REQUIRED — 本段第一行)**：`context.macro.regime` 给出 `label`(risk_on/neutral/risk_off)+ `reasons`。本段开头必须写一行：
-```
-🧭 Regime: {label}({reasons 拼接}) → {该 regime 下的决策默认}
-```
-据 regime 收敛主动操作：
+**🧭 Regime guard（REQUIRED）**：`context.macro.regime` 给出 `label`(risk_on/neutral/risk_off)+ `reasons`。
+页眉由 harness 印 label；`regime_read` 写 reasons 拼成的一句 → 该 regime 下的决策默认。据 regime 收敛主动操作：
 - **risk_on** → core_position 默认 HOLD；择时 cut/trim 要说明证据与机会成本，偏离登记策略照收照档。`risk_rebalance` 是独立策略，可因组合政策在 risk_on 中减杠杆，不与 core thesis 混为一谈。
 - **neutral** → 正常按 frame 判断,无额外封顶。
 - **risk_off** → 防御优先,cut/trim 门槛放宽(可信度提高),add 需更强触发;杠杆仓位优先减。
 - regime 缺失(null,数据 stale)→ 写"regime 未知,主动操作按常规谨慎"并跳过封顶。
 
-#### ▎社交舆情速读 (REQUIRED if `context.sentiment.tickers` 非空)
+#### 社交舆情：每票 `sentiment_read`
 
-从 `context.sentiment.tickers` 抓数，**只列有信号的票**（context 已剔掉 0 mention + 0 news 的）。
+`context.sentiment.tickers` 只含有信号的票（0 mention + 0 news 的已剔掉）。
+- **price-in 判断必做**：近 N 日涨跌取自 `recent_move`（`px_pct` over `n_sessions`，可能为 null=无快照）。利好 + 该票近期已大涨 → 多半"已在价"，追/不减都行但别当新理由出手；利好 + 没动 → 才有"未反应"的可操作空间；利空 + 已大跌 = 部分消化，利空 + 没跌 = 风险未释放要警惕
+- 新闻只抽 2-3 个动词/名词短语，不复制全标题
+- 判断必须连到**你今天对这个票的具体 strategy/action**（一致 / 矛盾要点出来）
+- 可标 `[confirming]` 或 `[disconfirming]` 说明它与 thesis 的关系；两者都不限制动作，异议按「谁决定什么」记账
+- 该票 news_top + reddit_top 命中负面关键词（`miss/SEC/probe/fraud/lawsuit/downgrade/halt/recall/short report`）时，在它的 `sentiment_read` 里点名是哪个
+- sentiment 数据 age_hours > 36：写"⚠️ sentiment 数据 stale"，不据此下判断
 
-格式：
+#### 名人异动/政策风向：引用口径
 
-```
-▎社交舆情速读
+这一段由 harness 从 `context.influencer` 全部印出（Trump 原帖 + Musk/段永平/洪灏/Burry/Pelosi 的港美媒体报道 +
+ARK 日度调仓 + Serenity 选股帖，LLM 已筛市场相关性并交叉匹配过持仓）。你在辩论、判断或下一时段里引用这些条目时：
+- 优先级 **撞持仓 > 新机会 > 板块相关**；撞持仓的条目要连到该持仓今天的 action
+- 新机会是 kcn 没持有但被点名/推荐的票——选股线索，点出 stance 和是否值得进 watchlist；stance=attack/sell 是**规避/做空**信号，不是买入信号
+- Musk / 段永平 / 洪灏 / Burry / Pelosi 条目是"新闻代理"(二手)，可信度低于 Trump 原帖；Pelosi 的成交发生在 30-45 天前、新闻点是**披露**本身，别写成"今天买入"
+- ARK(Cathie Wood) 是机构日度成交记录：`买入`= 加仓、`卖出`= 减仓，**不是**看空/抨击；周末与港股假期看到的是上一个美股交易日的动作
+- Serenity 来自 Substack(一手但低频)，多为微盘/小票选股 idea：当线索看，**别当买入指令**，需自查基本面/一手证据(见 [[serenity-skill]])
+- `source_status` 有 `failed` 的来源是没取到，不能写成该作者没有动向；age_hours > 36 或 counts.total=0 时不引用
 
-| 票 | Reddit 7d | 新闻关键词 | 近5日 | 信号判断 |
-|---|---|---|---|---|
-| RKLB | 0 mentions | "$90M Space Force deal" "52-week high" | +12% | 利好已在价(已涨12%)— 追高无 edge,观望 [confirming] |
-| CRCL | 0 mentions | "crypto cool" "Q1 miss" "insider sell" | -3% | ⚠️ 利空硬催化(Q1 miss)+ 尚未反应 — 严守止损 [disconfirming] |
-| SOXL | 12 mentions ↑ | "TSMC capex beat" | +4% | 散户温度上升(软情绪)— 维持 hold,不据此加仓 [confirming] |
+#### 决策校准：`calibration_read`
 
-异常关注（必带）:
-- {ticker}: Reddit mention 突然飙升或新闻里出现 "miss / SEC / probe / fraud / lawsuit / downgrade" 关键词
-```
-
-规则：
-- **近5日列**取自 `context.sentiment.tickers[].recent_move`(`px_pct` over `n_sessions`,可能为 null=无快照)。**price-in 判断必做**:利好 + 该票近5日已大涨 → 多半"已在价",追/不减都行但别当新理由出手;利好 + 近5日没动 → 才有"未反应"的可操作空间;利空 + 已大跌 = 部分消化,利空 + 没跌 = 风险未释放要警惕
-- 新闻关键词只抽 2-3 个动词/名词短语，不要复制全标题
-- 信号判断必须连到**你今天对这个票的具体 strategy/action**（一致 / 矛盾要点出来）
-- 每条信号判断可标 `[confirming]` 或 `[disconfirming]` 说明它与 thesis 的关系；两者都不限制动作，异议按「谁决定什么」记账
-- "异常关注"段：扫所有 ticker 的 news_top + reddit_top 文本，命中负面关键词 (`miss/SEC/probe/fraud/lawsuit/downgrade/halt/recall/short report`) 必列；无命中写"无"
-- sentiment 数据 age_hours > 36 整段写"⚠️ sentiment 数据 stale, 跳过本段"
-
-#### ▎名人异动/政策风向 (REQUIRED if `context.influencer.counts.total > 0` 且 age_hours ≤ 36)
-
-从 `context.influencer` 抓数。这是 Trump 原帖 + Musk/段永平/洪灏/Burry/Pelosi 的港美媒体报道(二手代理) + ARK(Cathie Wood) 日度调仓(一手成交) + Serenity(AI/半导体供应链选股，Substack 公开帖)，LLM 已筛市场相关性并交叉匹配过持仓。三档优先级：**撞持仓 > 新机会 > 板块相关**。
-
-若 `source_status` 有 `failed`，在本段注明失败来源（用 `sources` 查名称）；不能把抓取失败写成该作者没有动向。
-
-格式：
-
-```
-▎名人异动/政策风向
-
-撞持仓:
-- 🔴 Trump 看多加密 → 你的 CRCL 直接受益, 关注开盘资金流 (rel 75)
-
-新机会(他们推荐/点名但你没持仓):
-- 🟡 Musk 看空 TSLA(robotaxi 兑现不及预期) → 若考虑做空/规避 EV 板块可纳入观察
-- 🟡 Trump 点名 XYZ "great company" → 政策受益标的, 评估是否进 watchlist
-
-板块相关(主题级, 非直接点名):
-- Trump 挺加密货币 → 涉及你的 CRCL 板块敞口
-```
-
-规则：
-- **撞持仓**(`held_hits`)必列且置顶，每条连到"对该持仓今天的 action 含义"
-- **新机会**(`new_ideas`)是 kcn 没持有但被点名/推荐的票——这是选股线索，点出 stance(看多/看空)和是否值得进 watchlist；kcn 明确说过"不一定有买，要看他们推荐什么"
-- **板块相关**(`sector_hits`)只在前两档为空或想补充主题背景时写，1-2 条即可，别灌水
-- stance=attack/sell 的"新机会"是**规避/做空**信号，不是买入信号，措辞要分清
-- Musk / 段永平 / 洪灏 / Burry / Pelosi 条目标注是"新闻代理"(二手)，可信度低于 Trump 原帖，措辞留余地；Pelosi 的成交发生在 30-45 天前、新闻点是**披露**本身，别写成"今天买入"
-- ARK(Cathie Wood) 条目是机构日度调仓的成交记录：`买入`= 她在加仓、`卖出`= 减仓，**不是**看空/抨击；周末与港股假期看到的是上一个美股交易日的动作（条目里带交易日）
-- Serenity 条目来自 Substack(一手但低频，几周才一篇)，多为微盘/小票选股 idea：当"新机会"线索看，**别当买入指令**，措辞强调需自查基本面/一手证据(见 [[serenity-skill]])
-- influencer 数据 age_hours > 36 或 counts.total=0 整段写"⚠️ 名人异动数据 stale/无信号, 跳过本段"；postflight 不 fail
-
-#### ▎Confidence / episode 校准（REQUIRED）
-
-calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实际触发**的决策；同一 `ticker + strategy_id` 的连续同类决策合并为一个 episode，只取一次代表样本，避免每日重复建议放大样本量。
-
-格式：
-```
-▎Decision v2 校准
-
-过去 30 天：全体已结算 {settled_episodes} 个 episode；主动校准样本 {calibration.active.n} 个
-- 主动决策：n=N，平均 benefit=X%，date-cluster CI=[L,U]
-- 主动口径信心校准（n={calibration.active.n}）：嘴上平均 {mean_confidence}，实际胜率 {base_rate}；Brier {brier} vs 闭眼总报 {base_rate} 的 {brier_baseline_loo}
+calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实际触发**的决策；同一 `ticker + strategy_id` 的连续同类决策合并为一个 episode，只取一次代表样本，避免每日重复建议放大样本量。校准表由 harness 印；`calibration_read` 写你从表里读出的结论：
+- 主动决策 n、平均 benefit、date-cluster CI；主动口径信心校准对 `brier_baseline_loo` 的比较
 - 按 strategy / action / driven_by 点出最强与最弱各一项
-- 执行状态：**要动手的** {execution_by_kind.active.rate}（{followed}/{known}）与 **不用动的** {execution_by_kind.passive.rate} 分开写；执行率不等于建议质量。两条腿各自的 `{stranded}` **必须同句写出来**（「另有 N 条永远验不了，不在分母」）——那是窗口早已关闭、`_detect_followed` 每次重试都答 unknown 的行，标的从没进过 holdings，被丢掉的样本偏向「没执行」，所以裸报的执行率系统性偏高
-```
+- 执行状态：**要动手的**与**不用动的**两条腿分开写，执行率不等于建议质量。两条腿各自的 `stranded` **必须同句写出来**（「另有 N 条永远验不了，不在分母」）——那是窗口早已关闭、`_detect_followed` 每次重试都答 unknown 的行，标的从没进过 holdings，被丢掉的样本偏向「没执行」，所以裸报的执行率系统性偏高
+- 昨日 plan 兑现度的教训 1-2 句：什么 trigger 设过紧/松；什么 thesis 站住/破；哪个 confidence 区间过自信。trigger 未触发的机会成本可能为正（错过 alpha）或负（躲过损失）
 
 规则：
 - `calibration.active.n < 8` 或主动 n 缺失：明确写样本未填满，只作方向性参考。
@@ -682,23 +596,17 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 - `event` / `manual` 条件若无可验证触发证据，状态为 `not_evaluable`，不进入胜率和 Brier。
 - `execution` 与 `evaluation` 分离：建议是否有利和 kcn 是否执行是两个问题，报告时不得混写。
 
-#### ▎决策记忆 (reflections — REQUIRED if `context.reflections` 非空)
+#### 决策记忆 (reflections — REQUIRED if `context.reflections` 非空)
 
 `context.reflections[ticker]` 是每个持仓的历史同类决策战绩(`bucket_history` 如 "清×9 胜3" / `recent` / `lesson`)。**给某标的下主动 call 前必须先看它的 reflection**:
 - 若该票 `bucket_history` 显示你**反复做某动作且多半错**(如 ROBN "清×9 胜3")→ 这次别再机械重复,要么换论据要么降级为 hold,并在 rationale 里引"过去 N 次清 ROBN 错 M 次"。
 - `win_rate < 0.5` 的票 → 主动 call 需要比平时更强的新证据才出手。
 
-#### Next-Session Plan（可交易，不是观察清单）
+#### 下一时段：`narrative.next_session`（可交易，不是观察清单）
 
 **决策优先(decision-first)**:先用 `reflections` + `decision_metrics` 为每个持仓按 strategy 定 action + condition + confidence，**再**写叙事论证决策。决策是主角，叙事是理由。宁可 1-3 个高确信主动策略，其余 core hold，也不要 8 个摊薄的逐票评级。
 
-格式：
-```
-1. {时点 + 时区}: {具体观察 / 触发}
-2. {时点 + 时区}: ...
-```
-
-包含：
+每条一个字符串：`{时点 + 时区}: {具体观察 / 触发}`，不加序号（harness 编号）。包含：
 - HK 开盘前 09:00 HKT 查什么消息
 - HK 开盘后 09:30 HKT 关注哪个票什么价位
 - US 盘前（09:30 ET 之前）查什么
@@ -1069,7 +977,7 @@ clawock brief postflight
 
 ## Style rules
 
-- 表格优先（3+ 数据点必表格化）
+- judgment 是纯文本：3+ 个数据点写成一句里的并列数字，表格由 harness 画
 - ⚠️ stale 任何数据必前置标注
 - 没有"小心地"、"建议关注"这种废话 — 拍 strategy/action，拍条件与价位
 - 每个 claim 钉到具体 ticker + 数字，没有泛论
@@ -1095,30 +1003,14 @@ clawock brief postflight
 | 0.25-0.40 | 60-75% | 集中风险 ⚠️ |
 | > 0.40 | > 75% | 危险集中，单一事件可炸 book 🔴 |
 
-### 输出格式（加在 book 段后，必填）
+集中度段（每腿 HHI、Top2、verdict）由 harness 印在 book 部分。散文里谈集中度时引用
+`concentration.{hk,us}.verdict` 与 Top2 数字，不自己重算（港股 book 双仓集中 86% 曾是
+2026-05-16 之前简报漏报的盲点）。
 
-```
-▎集中度风险 (2026-05-16 实测)
-HK: HHI 0.418 🔴 危险 | 00100 57.2% + 07226 28.8% = Top2 86.0%
-   → 单一事件风险高（00100 财报雷 / 07226 流动性问题）
-   → 若 00100 或 07226 单日 -15%，HK book 立即 -8.5% 到 -12.9%
-US: HHI 0.171 偏集中 | SOXL 22.2% + ROBN 21.1% = Top2 43.3%
-   → 多仓分散但 SOXL 3x 杠杆 + ROBN 2x 杠杆双高仓需注意
-```
+## ⚠️ 货币铁律
 
-历史教训：港股 book 双仓集中 86% 是 2026-05-16 之前 brief **漏报的盲点** — preflight 现在
-强制算这个，brief 必须显式引用 `concentration.{hk,us}.verdict`。
-
-## ⚠️ 货币铁律（core 已换算，但你输出时仍要双视角）
-
-港币 + 美元 **不能直接相加**。book 段必须**两个 view 都给**：
-
-```
-真实总浮盈亏: USD${book.usd_total_pnl}  ≈  HKD${book.hkd_total_pnl}
-   (USDHKD = {fx.rate}, 来源 {fx.source}, 抓取于 {fx.fetched_at})
-  ├─ HK 段：HKD${book.hk_leg_hkd}  ≈  USD${book.hk_leg_hkd / fx.rate}
-  └─ US 段：USD${book.us_leg_usd}  ≈  HKD${book.us_leg_usd * fx.rate}
-```
+港币 + 美元 **不能直接相加**。book 段的双币视角（真实总浮盈亏 USD/HKD 两个 view、两条腿各自换算）
+由 harness 印；你在散文里写金额时同样只在同一币种内加减，换算时写明 `fx.rate`、`fx.source` 与 `fx.fetched_at`。
 
 历史教训：2026-05-16 那次"合计 -4,423"直接把 -4936 HKD 和 +513 USD 相加 → 毫无意义。kcn 当场指出。
 
