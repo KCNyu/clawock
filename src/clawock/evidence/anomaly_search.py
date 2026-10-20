@@ -26,12 +26,14 @@ is never the other's.
 from __future__ import annotations
 
 import json
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from clawock.evidence import web_search
 from clawock.evidence.web_search import parse_tavily as _parse_tavily
+from clawock.safe_io import safe_write_json
 
 BUCKET = 'intraday'
 MONTHLY_CAP = 120
@@ -140,7 +142,12 @@ def search_anomalies(workspace, market, session, anomalies, *, names=None, targe
                                      / f'intraday-anomaly-search-{market}.json'))
     try:
         cache = json.loads(cache_path.read_text(encoding='utf-8'))
-    except (OSError, ValueError):
+    except FileNotFoundError:
+        cache = {}
+    except (OSError, ValueError) as error:
+        # A cache that is there but unreadable means this session's movers
+        # are searched again (and Tavily is billed again), so say it.
+        print(f'⚠ anomaly-search cache unreadable ({cache_path}): {error}', file=sys.stderr)
         cache = {}
     if cache.get('session') != session or cache.get('schema') != 2:
         cache = {'schema': 2, 'session': session, 'tickers': {}}
@@ -214,10 +221,11 @@ def search_anomalies(workspace, market, session, anomalies, *, names=None, targe
                        'providers': states, 'bucket': BUCKET,
                        'cached': all(v.get('cached') for v in view.values()) if view else False}
     try:
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        cache_path.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding='utf-8')
-    except OSError:
-        pass
+        safe_write_json(str(cache_path), cache, indent=1)
+    except OSError as error:
+        # The cache is an optimisation and this slot's answers stand, but the
+        # next slot searches every mover again, so say it.
+        print(f'⚠ anomaly-search cache not written ({cache_path}): {error}', file=sys.stderr)
     return out
 
 

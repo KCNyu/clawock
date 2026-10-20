@@ -104,6 +104,30 @@ def test_each_provider_keeps_its_own_call_policy(tmp_path):
     assert search.monthly_estimate(1) == 44 <= search.MONTHLY_CAP
 
 
+def test_the_session_cache_is_written_whole_and_a_bad_one_is_said(tmp_path, capsys):
+    """#3111: a truncated cache silently re-searched every mover (Tavily billed
+    again), and a failed write said nothing."""
+    asked = []
+    anomalies = [{'ticker': '07226', 'move_pct': -4.7}]
+    cache = tmp_path / 'c.json'
+    kwargs = dict(cache_path=cache, runners=_runners(asked))
+    search.search_anomalies(tmp_path, 'hk', 'hk:2026-09-25', anomalies, now=NOW, **kwargs)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ['c.json']  # no temp file left
+    assert capsys.readouterr().err == ''
+
+    cache.write_text(cache.read_text()[:40], encoding='utf-8')  # killed mid-write
+    search.search_anomalies(tmp_path, 'hk', 'hk:2026-09-25', anomalies,
+                            now=NOW + timedelta(minutes=30), **kwargs)
+    assert 'anomaly-search cache unreadable' in capsys.readouterr().err
+
+    blocked = tmp_path / 'not-a-dir'
+    blocked.write_text('', encoding='utf-8')
+    out = search.search_anomalies(tmp_path, 'hk', 'hk:2026-09-25', anomalies, now=NOW,
+                                  cache_path=blocked / 'c.json', runners=_runners([]))
+    assert out['07226']['status'] == 'ok'
+    assert 'anomaly-search cache not written' in capsys.readouterr().err
+
+
 def test_one_provider_failing_is_its_own_gap_and_not_the_others(tmp_path):
     asked = []
     anomalies = [{'ticker': 'RKLB', 'move_pct': 6.0}]
