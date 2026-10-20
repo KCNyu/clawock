@@ -1740,8 +1740,11 @@ def check_brief_read_budgets(r):
               f"fullest read {fullest['read']} {fullest['bytes']:,}/{fullest['budget']:,} "
               f"({fullest['ratio']:.0%})")
     flagged = report['over_budget'] or report['near_budget']
+    folded = next((row.get('folded') for row in report['reads'] if row.get('folded')), None)
     if flagged:
-        state = 'over budget, the tool refuses it' if report['over_budget'] else 'near budget'
+        state = ('over budget, the tool refuses it' if report['over_budget'] else
+                 f"near budget (folded {', '.join(folded)} behind per-ticker queries)"
+                 if folded else 'near budget')
         r.add('brief read budgets', WARNING,
               f"{detail} — {', '.join(flagged)} {state}; trim a projection or move "
               'reference detail behind a query (src/clawock/decision/packet.py)')
