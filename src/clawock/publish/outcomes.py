@@ -72,6 +72,7 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
 
     counts: dict[str, int] = {}
     false_reds = 0
+    fallback_only = 0
     wechat_dropped = 0
     # Which slots, not just how many. `recent` is capped, so a card that scans
     # it can only name what fits in the tail — on a busy day the answer is
@@ -82,15 +83,18 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
     for record in recent:
         final = (record.get("final_product") or {}).get("status", "pending")
         counts[final] = counts.get(final, 0) + 1
+        only_fallback = bool((record.get("final_product") or {}).get("fallback_only"))
+        fallback_only += int(only_fallback)
         if final in SOFT_PRODUCT_STATES and len(degraded_slots) < MAX_NAMED:
             degraded_slots.append({
                 "job": record.get("job"),
                 "slot": record.get("slot"),
                 "status": final,
+                **({"fallback_only": True} if only_fallback else {}),
                 "reason": str((record.get("final_product") or {}).get("reason") or "")[:120],
             })
         if ((record.get("raw_execution") or {}).get("status") == "error"
-                and final in USABLE_PRODUCT_STATES):
+                and final in USABLE_PRODUCT_STATES and not only_fallback):
             false_reds += 1
         # WeChat drops slots to an upstream-wontfix `ret=-2 prepare failed` and
         # Telegram covers them, so the product is fine and nothing shows it. This
@@ -111,6 +115,7 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
         "generated_at": now.isoformat(),
         "window_hours": hours,
         "counts": counts,
+        "fallback_only": fallback_only,
         "raw_error_but_product_usable": false_reds,
         "wechat_dropped_telegram_covered": wechat_dropped,
         "wechat_dropped_slots": wechat_dropped_slots,

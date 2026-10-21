@@ -267,13 +267,13 @@ def test_commit_evidence_is_fetched_once_not_once_per_job(monkeypatch):
         stamp = datetime.now(HKT).isoformat()
         return SimpleNamespace(
             returncode=0,
-            stdout=f"{stamp}\x00dashboard: 港股收盘报告 (hk 15:06 HKT)\n",
+            stdout=f"{stamp}\x00portfolio: 港股收盘价格更新\n",
         )
 
     monkeypatch.setattr(cron_health_check.subprocess, "run", fake_run)
     monkeypatch.setattr(cron_health_check, "_commit_log_cache", None)
 
-    patterns = ["港股收盘报告", "港股收盘报告", "美股.*收盘", "no-such-pattern"]
+    patterns = ["港股收盘价格更新", "港股收盘价格更新", "美股.*收盘", "no-such-pattern"]
     counts = [cron_health_check.commit_count_today(p) for p in patterns]
 
     assert counts == [1, 1, 0, 0]
@@ -368,7 +368,7 @@ def test_saturday_run_verifies_the_friday_session_slots(monkeypatch, capsys):
         monkeypatch, capsys,
         datetime(2026, 8, 22, 9, 17, tzinfo=timezone.utc),
         heartbeats=_overnight_slots(),
-        commit_stamps=[("2026-08-22T04:09:00+08:00", "dashboard: 美股收盘报告 (us close)")],
+        commit_stamps=[("2026-08-22T04:09:00+08:00", "portfolio: 美股收盘价格更新")],
     )
     overnight = rows["美股盘中盯盘-overnight"]
     assert overnight["status"] == "ok-heartbeat", overnight
@@ -421,7 +421,7 @@ def test_the_next_days_run_verifies_the_previous_evening_products(monkeypatch, c
         datetime(2026, 8, 25, 9, 17, tzinfo=timezone.utc),
         heartbeats=_evening_slots(),
         commit_stamps=[("2026-08-24T21:36:00+08:00",
-                        "dashboard: 美股开盘报告 (us open 21:33 HKT)")],
+                        "portfolio: 美股开盘价格更新")],
     )
     open_row = rows["美股开盘报告"]
     assert open_row["status"] == "ok", open_row
@@ -433,7 +433,7 @@ def test_the_next_days_run_verifies_the_previous_evening_products(monkeypatch, c
 
 def test_more_commits_than_slots_is_a_warning_not_ok(monkeypatch, capsys):
     """#2635: three brief commits for one slot printed `✓ 3/1 commits OK`."""
-    stamps = [(f"2026-08-24T21:{minute}:00+08:00", "dashboard: 美股开盘报告 (us open 21:33 HKT)")
+    stamps = [(f"2026-08-24T21:{minute}:00+08:00", "portfolio: 美股开盘价格更新")
               for minute in (36, 38, 41)]
     rows = _run_health_at(
         monkeypatch, capsys,
@@ -453,7 +453,7 @@ def test_a_missing_previous_evening_commit_is_a_miss_not_idle(monkeypatch, capsy
         monkeypatch, capsys,
         datetime(2026, 8, 25, 9, 17, tzinfo=timezone.utc),
         heartbeats=_evening_slots(),
-        commit_stamps=[("2026-08-24T21:36:00+08:00", "dashboard: 港股收盘报告")],
+        commit_stamps=[("2026-08-24T21:36:00+08:00", "portfolio: 港股收盘价格更新")],
     )
     assert rows["美股开盘报告"]["status"] == "missing", rows["美股开盘报告"]
 
@@ -607,14 +607,14 @@ def test_health_reads_failed_publication_details_even_in_a_previously_clobbered_
 def test_hk_half_day_skips_only_afternoon_reports(monkeypatch, capsys):
     rows = _run_health_at(
         monkeypatch, capsys, datetime(2026, 12, 24, 9, 17, tzinfo=timezone.utc),
-        commit_stamps=[('2026-12-24T12:09:00+08:00', 'dashboard: 港股午盘报告')])
+        commit_stamps=[('2026-12-24T12:09:00+08:00', 'portfolio: 港股午盘价格更新')])
     assert rows['港股午盘报告']['status'] == 'ok'
     assert rows['港股午后快报']['status'] == 'holiday'
     assert rows['港股收盘报告']['status'] == 'holiday'
     # A normal full day still owes both afternoon products.
     rows = _run_health_at(
         monkeypatch, capsys, datetime(2026, 12, 23, 9, 17, tzinfo=timezone.utc),
-        commit_stamps=[('2026-12-23T12:09:00+08:00', 'dashboard: 港股午盘报告')])
+        commit_stamps=[('2026-12-23T12:09:00+08:00', 'portfolio: 港股午盘价格更新')])
     assert rows['港股午后快报']['status'] == 'missing'
     assert rows['港股收盘报告']['status'] == 'missing'
 
@@ -686,3 +686,25 @@ def test_default_execution_reader_distinguishes_unavailable_from_no_runs(monkeyp
         monkeypatch.setattr(cron_health_check.openclaw, 'read_runs',
                             lambda _job: SimpleNamespace(source=source, entries=[]))
         assert cron_health_check.runs_finished_today('dreaming') == expected
+
+
+def test_commit_contract_excludes_runtime_refresh_reverts_and_preserves_real_duplicates(monkeypatch):
+    day = datetime(2026, 10, 20, tzinfo=HKT).date()
+    stamp = '2026-10-20T10:00:00+08:00'
+    for name, phase in [('港股开盘报告', '港股开盘'), ('港股午盘报告', '港股午盘'),
+                        ('港股午后快报', '港股午后'), ('港股收盘报告', '港股收盘'),
+                        ('美股开盘报告', '美股开盘'), ('美股收盘报告', '美股收盘')]:
+        refreshes = [(stamp, f'portfolio: 2026-10-20 09:50 HKT {phase}价格刷新'),
+                     (stamp, f'Revert "portfolio: {phase}价格更新"')]
+        monkeypatch.setattr(cron_health_check, '_commit_log_entries', lambda: refreshes)
+        pattern = cron_health_check.COMMIT_PATTERNS[name]
+        assert cron_health_check.commit_count_on(pattern, day) == 0
+        refreshes.append((stamp, f'portfolio: {phase}价格更新'))
+        assert cron_health_check.commit_count_on(pattern, day) == 1
+        refreshes.append((stamp, f'portfolio: {phase}价格更新'))
+        assert cron_health_check.commit_count_on(pattern, day) == 2
+    monkeypatch.setattr(cron_health_check, '_commit_log_entries', lambda: [
+        (stamp, 'memory: daily deep brief 2026-10-20'),
+        (stamp, 'memory: daily deep brief 2026-10-20 (validation warnings)'),
+        (stamp, 'fix: daily deep brief preflight')])
+    assert cron_health_check.commit_count_on(cron_health_check.COMMIT_PATTERNS['盘前深度简报'], day) == 2

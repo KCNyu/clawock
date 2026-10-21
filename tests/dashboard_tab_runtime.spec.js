@@ -2687,6 +2687,21 @@ async function testUnconfirmedDeliveryIsNotAllDelivered(browser, base) {
   await context.close();
 }
 
+async function testCrashedCollectionFallbackNeedsAttention(browser, base) {
+  const { context, page } = await openDataHealth(browser, base, 1280, { outcomes: {
+    window_hours: 36, counts: { degraded: 1 }, fallback_only: 1, due_no_record: 0,
+    degraded_slots: [{ job: "盘中盯盘", slot: "2026-10-20T10:00:00+08:00",
+      status: "degraded", fallback_only: true, reason: "采集崩了，兜底卡代替" }],
+  } });
+  const cell = page.locator('#dh-cells .dh-cell[data-key="delivery"]');
+  assert.equal(await cell.getAttribute("data-tone"), "bad");
+  assert.equal((await cell.locator(".dh-cell-value").textContent()).trim(), "0/1送达");
+  const text = await cell.textContent();
+  assert.ok(text.includes("采集崩了，兜底卡代替") && !text.includes("成品已送达"), text);
+  assert.ok((await page.locator("#dh-title").textContent()).includes("需处理"));
+  await context.close();
+}
+
 // #2058：降级台账是终身、按条数轮换的事故史。页脚那一位曾把 5~26 天前的旧行
 // 全部加起来印「24 次降级记录」、黄点永远灭不掉；现在只数与成品同窗的那几条。
 async function testFooterDegradationsCountOnlyTheWindow(browser, base) {
@@ -4560,6 +4575,7 @@ async function main() {
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
     await run("testALossReadsWithOneMinusOnEveryTab", () => testALossReadsWithOneMinusOnEveryTab(browser, base));
     await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
+    await run("testCrashedCollectionFallbackNeedsAttention", () => testCrashedCollectionFallbackNeedsAttention(browser, base));
     await run("testUnconfirmedDeliveryIsNotAllDelivered", () => testUnconfirmedDeliveryIsNotAllDelivered(browser, base));
     await run("testUncountedDueSlotsAreNotAllDelivered", () => testUncountedDueSlotsAreNotAllDelivered(browser, base));
     await run("testACopiedDeliveryReadingSaysSo", () => testACopiedDeliveryReadingSaysSo(browser, base));

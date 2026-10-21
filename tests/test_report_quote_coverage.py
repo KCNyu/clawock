@@ -2,7 +2,7 @@
 
 The analyzer keeps the previous price for a holding no provider answered, and
 its one "Failed:" line is swallowed in --wechat mode, so the block the report
-delivers read as today's numbers. Drives the real `report_preflight.main()`
+delivers read as today's numbers. Drives the real `report_preflight._collect()`
 with the analyzer and network seams stubbed.
 """
 import json
@@ -42,7 +42,7 @@ def test_a_carried_price_is_named_in_the_block_and_the_context(tmp_path, monkeyp
     monkeypatch.setattr(preflight, 'parse_anomalies', lambda stdout: [
         {'ticker': '02208', 'move_pct': -3.5}, {'ticker': '00100', 'move_pct': 4.0}])
 
-    assert preflight.main(['--market', 'hk', '--phase', 'open']) == 0
+    assert preflight._collect(['--market', 'hk', '--phase', 'open']) == 0
     ctx = json.loads(next(tmp_path.glob('report-context-hk-open-*.json')).read_text())
 
     assert ctx['quote_coverage'] == {'refreshed': 1, 'active': 2, 'unrefreshed': ['02208']}

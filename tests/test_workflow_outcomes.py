@@ -1483,3 +1483,22 @@ def test_production_stage_failures_group_by_job_and_stage(tmp_path, monkeypatch)
     rows = _degradations(ws)
     assert {(row['group'], row['count']) for row in rows} == {
         ('港股开盘报告/preflight', 2), ('美股收盘报告/postflight', 1)}
+
+
+def test_collector_death_survives_manual_preflight_success(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    job, slot = '盘中盯盘', FROZEN_NOW.isoformat()
+    outcomes.record_stage(job, 'preflight', 'failed', slot=slot,
+                          reason='preflight_crashed', return_code=1)
+    outcomes.record_stage(job, 'preflight', 'pending', slot=slot)
+    row = outcomes.record_stage(job, 'preflight', 'success', slot=slot)
+    assert row['stages']['preflight']['reason'] == 'preflight_crashed'
+    row = outcomes.record_stage(job, 'watchdog_delivery', 'success', slot=slot)
+    assert row['final_product'] == {'status': 'degraded', 'reason': '采集崩了，兜底卡代替', 'fallback_only': True}
+    assert summarize_records([row], now=FROZEN_NOW)['fallback_only'] == 1
+    from clawock.publish.cron_schedule import _narrate_degraded
+    assert _narrate_degraded(row)['disposition'] == 'needs_action'
+    # A later real product is represented by its downstream evidence.
+    outcomes.record_stage(job, 'llm', 'success', slot=slot)
+    row = outcomes.record_stage(job, 'postflight', 'success', slot=slot)
+    assert row['final_product']['status'] == 'recovered'

@@ -435,6 +435,10 @@ def _derive_final(record):
 
     if preflight == "skipped":
         status, reason = "skipped", "market/session closed"
+    elif (watchdog == "success" and preflight == "failed"
+          and llm in {"unknown", "pending"} and postflight in {"unknown", "pending"}
+          and primary in {"unknown", "pending"}):
+        return {"status": "degraded", "reason": "采集崩了，兜底卡代替", "fallback_only": True}
     elif watchdog == "success":
         status, reason = "recovered", "watchdog delivered a usable product"
     elif primary == "not_required" and postflight in {"success", "warning"}:
@@ -584,6 +588,12 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
             if ((status == "pending" and previous.get("status") in TERMINAL_STAGE_STATUSES)
                     or (unless_terminal_since is not None
                         and _terminal_since(previous, unless_terminal_since))):
+                return current
+            if (stage == "preflight" and previous.get("status") == "failed"
+                    and previous.get("reason") == "preflight_crashed"
+                    and status in {"success", "warning", "skipped"}):
+                # A diagnostic re-run cannot erase the scheduled collector death.
+                # Genuine recovery is represented by postflight/delivery stages.
                 return current
             # The ledger is published: a caller's reason or exception text
             # carries this host's absolute paths (#2334).

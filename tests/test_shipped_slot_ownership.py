@@ -140,7 +140,7 @@ def test_a_report_preflight_failure_files_only_when_nothing_shipped(
     monkeypatch.setattr(report_preflight, 'TMP', tmp_path)
     monkeypatch.setattr(report_preflight.trading_calendar, 'hkt_today',
                         lambda: date(2026, 10, 14))
-    monkeypatch.setattr(report_preflight.workflow_outcomes, 'slot_for_job', lambda job: SLOT)
+    monkeypatch.setattr(report_preflight.workflow_outcomes, 'slot_for_job', lambda job, at=None: SLOT)
     monkeypatch.setattr(report_preflight.workflow_outcomes, 'record_stage',
                         lambda job, stage, status, **kw: stages.append((stage, status)))
     monkeypatch.setattr(report_preflight, '_market_closed_reason', lambda *a: None)
@@ -148,7 +148,7 @@ def test_a_report_preflight_failure_files_only_when_nothing_shipped(
     if shipped:
         _receipt(tmp_path / 'report-sent-hk-open-2026-10-14.json')
 
-    assert report_preflight.main(['--market', 'hk', '--phase', 'open']) == 1
+    assert report_preflight._collect(['--market', 'hk', '--phase', 'open']) == 1
     assert stages == ([] if shipped else [('preflight', 'pending'), ('preflight', 'failed')])
 
 
@@ -172,7 +172,7 @@ def test_an_intraday_preflight_failure_files_only_when_nothing_shipped(
     if shipped:
         _receipt(tmp_path / 'intraday-sent-hk.json', slot=SLOT)
 
-    assert intraday_preflight.main(['--market', 'hk']) == 1
+    assert intraday_preflight._collect(['--market', 'hk']) == 1
     assert rows == ([] if shipped else ['started', 'preflight_failed'])
 
 
