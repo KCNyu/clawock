@@ -336,7 +336,7 @@ BAR_CONFLICT_WINDOW_DAYS = 30
 
 
 
-def _kind_of(row) -> str:
+def _kind_of(row, bars_of=None) -> str | None:
     """The kind of one logged refusal, classified from the row's own payload.
 
     A row carries `stored` and `fetched`, and `kind` is what the classifier
@@ -353,6 +353,30 @@ def _kind_of(row) -> str:
     (older rows, a hand-written line), because inventing a classification from
     nothing is the one answer worse than a stale one.
     """
+    if row.get('kind') == 'implausible_move' and bars_of is not None:
+        from clawock.bar_conflicts import leveraged_move_explained
+        from clawock.instruments import get
+        from clawock.safe_io import to_finite_number
+
+        ticker, day = row.get('ticker'), row.get('date')
+        try:
+            meta = get(ticker) or {}
+            bars = bars_of(ticker)
+            prior_days = [d for d in bars if d < day]
+            if day in bars and prior_days and meta.get('underlying'):
+                previous = max(prior_days)
+                underlying = bars_of(meta['underlying'])
+                values = [to_finite_number(source.get(d, {}).get('close'))
+                          for source, d in [(bars, previous), (bars, day),
+                                            (underlying, previous), (underlying, day)]]
+                if all(v is not None and v > 0 for v in values):
+                    prior, close, before, after = values
+                    if leveraged_move_explained((close / prior - 1) * 100,
+                                                (after / before - 1) * 100,
+                                                meta.get('leverage_multiple')):
+                        return None  # Keep the log; today's evidence explains it.
+        except (OSError, ValueError, TypeError, KeyError):
+            pass  # Missing evidence cannot clear a historical finding.
     stored, fetched = row.get('stored'), row.get('fetched')
     if isinstance(stored, dict) and isinstance(fetched, dict):
         try:
@@ -418,7 +442,8 @@ def summarize_bar_gaps(bars_dir=None, *, sessions=BAR_COVERAGE_SESSIONS,
 def summarize_bar_staleness(bars_dir=None, *, markets=(), now=None):
     """Compare the store with an independent calendar, even for an empty leg.
 
-    Only completed sessions count. Retired symbols do not make a stopped active
+    Only sessions available at the latest due brief writer slot count.
+    Retired symbols do not make a stopped active
     leg look current. An absent/empty store is unknown, never zero missing bars.
     """
     root = pathlib.Path(bars_dir) if bars_dir is not None else (
@@ -446,9 +471,11 @@ def summarize_bar_staleness(bars_dir=None, *, markets=(), now=None):
                 continue
             if is_trading_day(market, parsed):
                 dates.add(parsed)
+    from clawock.scheduling import latest_brief_bar_refresh
+    refresh_at = latest_brief_bar_refresh(now)
     rows = []
     for market, dates in sorted(held.items()):
-        last = latest_completed_session(market, at=now)
+        last = latest_completed_session(market, at=refresh_at)
         completed = [day for day in dates if last and day <= last]
         newest = max(completed) if completed else None
         if last and newest == last:
@@ -571,6 +598,14 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     # own zone put the edge a day early whenever UTC and HKT dates differ —
     # e.g. weekly-health's dashboard-build at 23:00 UTC counted 31 days (#1560).
     cutoff = (hkt_today(now) - timedelta(days=window_days)).isoformat()
+    cache = {}
+
+    def bars_of(ticker):
+        if ticker not in cache:
+            doc = json.loads((path.parent / 'bars' / f'{ticker}.json').read_text())
+            cache[ticker] = doc.get('bars') or {}
+        return cache[ticker]
+
     seen = set()
     for line in path.read_text(encoding='utf-8').splitlines():
         line = line.strip()
@@ -583,7 +618,9 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
         seen_at = str(row.get('seen_at') or '')
         if seen_at[:10] < cutoff:
             continue
-        kind = _kind_of(row)
+        kind = _kind_of(row, bars_of)
+        if kind is None:
+            continue
         ticker = str(row.get('ticker') or 'unknown')
         if summary['last_seen_at'] is None or seen_at > summary['last_seen_at']:
             summary['last_seen_at'] = seen_at
@@ -640,8 +677,8 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
     bar_staleness = summarize_bar_staleness(markets=set(region_market.values()))
     for row in bar_staleness:
         add('BAR_STALENESS', 'WARN',
-            f"canonical bar store behind calendar: {row['market'].upper()} newest bar "
-            f"{row['newest_bar']} vs last closed session {row['last_completed_session']}; "
+            f"canonical bar store behind scheduled refresh: {row['market'].upper()} newest bar "
+            f"{row['newest_bar']} vs expected closed session {row['last_completed_session']}; "
             f"missing sessions={row['missing_sessions']} ({row['status']})")
 
     for region, port in P.items():

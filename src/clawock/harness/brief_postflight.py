@@ -1069,7 +1069,7 @@ def record_strategy_lab():
     return done.returncode == 0
 
 
-def maybe_commit(status, today, dry_run=False):
+def maybe_commit(status, today, dry_run=False, *, after_delivery=False):
     if status == 'fail':
         return False, 'skipped (status=fail)'
     # --dry-run used to reach ONLY send_wechat/cosend_telegram, so `postflight --dry-run`
@@ -1156,7 +1156,8 @@ def maybe_commit(status, today, dry_run=False):
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
 
-    commit_ok, commit_out = _git('commit', '-m', f'memory: daily deep brief {today}{msg_suffix}')
+    subject = 'revise daily deep brief' if after_delivery else 'daily deep brief'
+    commit_ok, commit_out = _git('commit', '-m', f'memory: {subject} {today}{msg_suffix}')
     if not commit_ok:
         # git words "nothing staged" by whatever else is dirty in the checkout
         # ("no changes added to commit" on the live host), so the index is
@@ -1330,7 +1331,7 @@ def note_revision_after_delivery(md_path, receipt_path, today, *, job_name):
             None, 'content_revised_after_delivery',
             f'{today} 简报卡{f" {sent_at}" if sent_at else ""} 送达后报告被改写'
             f'（{delivered[:12]} → {current[:12]}，第 {len(revisions)} 版修订）；'
-            f'未重发卡片，页面已加修订说明',
+            f'原投递版本保留，页面已加修订说明',
             group=job_name)
     return {'delivered_at': sent_at, 'revised_at': revision['at'],
             'delivered_report_sha256': delivered, 'report_sha256': current,
@@ -1760,9 +1761,22 @@ def main(argv=None):
     # WeChat delivery this run is an openclaw auto-retry of a turn that errored only
     # in post-turn summary-gen — the card already went out. Skip re-send. See
     # already_delivered (2026-07-11 retry-storm dup fix). A prior run that landed
-    # only Telegram is NOT a delivery (2026-09-17): this run re-sends WeChat alone.
-    _, telegram_done = delivered_channels(brief_marker)
+    # only Telegram still needs WeChat (2026-09-17), but counts for revision notices.
+    wechat_done, telegram_done = delivered_channels(brief_marker)
     revision = None
+    prior_receipt = delivery_receipts.read_receipt(brief_marker) or {}
+    after_delivery = wechat_done or telegram_done
+    # Not re-sent is not the same as unchanged: this commit may publish a
+    # different report behind the delivered card's link (#3105).
+    if status in ('pass', 'warn') and after_delivery and not args.dry_run:
+        try:
+            revision = note_revision_after_delivery(
+                md_path, brief_marker, today, job_name=job_name)
+        except Exception as exc:
+            workflow_outcomes.note_degradation(
+                None, 'content_revised_after_delivery',
+                f'{today} 修订核对失败: {type(exc).__name__}: {exc}',
+                group=f'{job_name}/check_failed')
     if status in ('pass', 'warn') and already_delivered(brief_marker):
         print('idempotency: brief already delivered today — skip re-send', file=sys.stderr)
         wechat_sent = True
@@ -1770,17 +1784,6 @@ def main(argv=None):
             tg_ok = json.loads(brief_marker.read_text()).get('tg_ok')
         except Exception:
             pass
-        # Not re-sent is not the same as unchanged: this commit may publish a
-        # different report behind the delivered card's link (#3105).
-        if not args.dry_run:
-            try:
-                revision = note_revision_after_delivery(
-                    md_path, brief_marker, today, job_name=job_name)
-            except Exception as exc:
-                workflow_outcomes.note_degradation(
-                    None, 'content_revised_after_delivery',
-                    f'{today} 修订核对失败: {type(exc).__name__}: {exc}',
-                    group=f'{job_name}/check_failed')
     elif status in ('pass', 'warn'):
         card = build_brief_card(today, decision_packet=decision_packet)
         message = (wechat_prefix + card).strip()
@@ -1829,11 +1832,13 @@ def main(argv=None):
                 brief_marker.parent.mkdir(parents=True, exist_ok=True)
                 safe_write_text(str(brief_marker), json.dumps(
                     delivery_receipts.build_receipt(
-                        ts=int(datetime.now().timestamp() * 1000),
+                        ts=(prior_receipt.get('ts') if after_delivery
+                            else int(datetime.now().timestamp() * 1000)),
                         sent_ok=wechat_ok, tg_ok=telegram_ok, out=out,
                         first_line=first_line,
                         # What the card's link showed when it went out (#3105).
-                        report_sha256=report_sha256(md_path)),
+                        report_sha256=(prior_receipt.get('report_sha256') if after_delivery
+                                       else report_sha256(md_path))),
                     ensure_ascii=False))
                 return True
 
@@ -1856,7 +1861,7 @@ def main(argv=None):
     # the LLM's brief-card file, or plan fields (book/decisions) that
     # log_decisions never rewrites.
     commit_ok, commit_msg = maybe_commit(
-        publication_status, today, dry_run=args.dry_run
+        publication_status, today, dry_run=args.dry_run, after_delivery=after_delivery
     )
     settled = classify_commit_outcome(commit_ok, commit_msg)
     if settled is not None:

@@ -372,6 +372,32 @@ def grade_stored(ticker: str) -> int:
     return len(flagged)
 
 
+
+def dependency_order(tickers):
+    """Merge selected underlyings before their funds; keep --ticker scope intact."""
+    from clawock import instruments as registry
+
+    selected = set(tickers)
+    ordered, visiting, visited = [], set(), set()
+
+    def visit(ticker):
+        if ticker in visited:
+            return
+        if ticker in visiting:
+            raise ValueError(f'cyclic bar dependency: {ticker}')
+        visiting.add(ticker)
+        underlying = (registry.get(ticker) or {}).get('underlying')
+        if underlying in selected:
+            visit(underlying)
+        visiting.remove(ticker)
+        visited.add(ticker)
+        ordered.append(ticker)
+
+    for ticker in tickers:
+        visit(ticker)
+    return ordered
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="clawock daily-bars")
     ap.add_argument("--backfill", action="store_true", help=f"fetch from {START_DATE}")
@@ -396,7 +422,7 @@ def main(argv=None) -> int:
     total_add = total_rev = 0
     all_conflicts: list[str] = []
     actionable_conflicts: list[str] = []
-    for t in tickers:
+    for t in dependency_order(tickers):
         m = MANIFEST[t]
         beg = START_DATE if args.backfill else incremental_beg(t)
         fresh = fetch_tencent(m["tencent"], beg, end)

@@ -783,6 +783,9 @@ def main():
         commit_pat = COMMIT_PATTERNS.get(name)
         verify_date = expected_day.astimezone(HKT).date()
         commit_n = commit_count_on(commit_pat, verify_date)
+        revision_n = (commit_count_on(
+            r'^memory: revise daily deep brief \d{4}-\d{2}-\d{2}(?: \(.*\))?$',
+            verify_date) if name == '盘前深度简报' else 0)
         # Secondary execution evidence (#262); authoritative only for no-change Dreaming.
         runs_n = runs_finished_today(job.get('id'), day=verify_date)
 
@@ -858,6 +861,8 @@ def main():
                 has_warn = True
             else:
                 detail = f'{commit_n}/{len(expected_past)} commits OK'
+                if revision_n:
+                    detail += f'; {revision_n} post-delivery revision commit(s)'
         elif name in ('盘中盯盘', '美股盘中盯盘', '美股盘中盯盘-overnight'):
             coverage = heartbeat_coverage(name, expected_past, tz, now,
                                           heartbeat_ledger, day=verify_date)

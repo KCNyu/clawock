@@ -653,3 +653,19 @@ def test_evidence_cap_discards_are_counted(tmp_path, monkeypatch):
     assert [kind for kind, _ in noted] == ["debate_citation_unresolved"]
     assert "2 debate evidence ref(s)" in noted[0][1]
     assert "above the 6-ref cap" in noted[0][1]
+
+
+def test_post_delivery_commit_subject_is_distinct(monkeypatch):
+    for name in ('log_decisions', 'record_risk_stances', 'record_strategy_lab', 'rebuild_dashboard'):
+        monkeypatch.setattr(brief_postflight, name, lambda *_a, **_k: True)
+    subjects = []
+    def git(*args):
+        if args[0] == 'commit':
+            subjects.append(args[2])
+            return False, 'nothing to commit'
+        return True, ''
+    monkeypatch.setattr(brief_postflight, '_git', git)
+    brief_postflight.maybe_commit('warn', '2026-10-21', after_delivery=True)
+    brief_postflight.maybe_commit('warn', '2026-10-21')
+    assert subjects == ['memory: revise daily deep brief 2026-10-21 (validation warnings)',
+                        'memory: daily deep brief 2026-10-21 (validation warnings)']

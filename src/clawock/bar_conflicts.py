@@ -108,3 +108,17 @@ def classify_conflict(old: dict, fetched: dict) -> str:
         if rescaled and spread <= RESCALE_REL_TOL * max(abs(r) for r in ratios):
             return "uniform_rescale"
     return "bar_revision"
+
+
+#: A daily-reset leveraged product tracks `multiple` × its underlying's session
+#: move, give or take fees, financing and the close-to-close mismatch. Inside
+#: this band the underlying explains the move; outside it, it does not.
+LEVERAGE_TRACKING_TOLERANCE = 0.25
+
+
+def leveraged_move_explained(move_pct, underlying_move_pct, multiple):
+    """Did the underlying's own session move produce this one? Signed percents."""
+    if not multiple or multiple <= 1 or not underlying_move_pct:
+        return False
+    ratio = move_pct / underlying_move_pct
+    return abs(ratio - multiple) <= LEVERAGE_TRACKING_TOLERANCE * multiple

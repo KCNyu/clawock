@@ -99,7 +99,7 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, pri
         monkeypatch.setattr(postflight, 'categorize', lambda _issues: 'fail')
     monkeypatch.setattr(postflight, 'already_delivered', lambda _path: True)
 
-    def maybe_commit(status, _today, dry_run=False):
+    def maybe_commit(status, _today, dry_run=False, **_kw):
         commits.append((status, dry_run))
         return ((True, 'committed + pushed') if status != 'fail'
                 else (False, 'skipped (status=fail)'))

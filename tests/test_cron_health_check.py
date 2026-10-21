@@ -708,3 +708,16 @@ def test_commit_contract_excludes_runtime_refresh_reverts_and_preserves_real_dup
         (stamp, 'memory: daily deep brief 2026-10-20 (validation warnings)'),
         (stamp, 'fix: daily deep brief preflight')])
     assert cron_health_check.commit_count_on(cron_health_check.COMMIT_PATTERNS['盘前深度简报'], day) == 2
+
+
+def test_brief_revision_is_reported_without_hiding_duplicate_initial_commit(monkeypatch, capsys):
+    now = datetime(2026, 10, 21, 9, 17, tzinfo=timezone.utc)
+    initial = ('2026-10-21T08:28:00+08:00', 'memory: daily deep brief 2026-10-21 (validation warnings)')
+    revision = ('2026-10-21T08:35:00+08:00', 'memory: revise daily deep brief 2026-10-21 (validation warnings)')
+    rows = _run_health_at(monkeypatch, capsys, now, commit_stamps=[initial, revision])
+    assert rows['盘前深度简报']['status'] == 'ok'
+    assert '1 post-delivery revision' in rows['盘前深度简报']['detail']
+    rows = _run_health_at(monkeypatch, capsys, now, commit_stamps=[initial, initial])
+    assert rows['盘前深度简报']['status'] == 'over'
+    rows = _run_health_at(monkeypatch, capsys, now, commit_stamps=[revision])
+    assert rows['盘前深度简报']['status'] == 'missing'

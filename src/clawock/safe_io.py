@@ -121,11 +121,11 @@ def json_safe(data, _path: str = '$', _found=None):
 def jsonl_line(record, *, label: str, strict: bool = False) -> str:
     """One JSONL line, sanitized the way `safe_write_json` sanitizes a document.
 
-    The two JSONL logs in this repository — the decision ledger and the bar
-    conflict log — were the only writers that went straight to `json.dumps`.
+    Append-only logs (including decisions, proposals and bar conflicts) must
+    use this writer instead of bare `json.dumps`.
     Python emits bare `NaN`/`Infinity` tokens for non-finite floats, which the
     rest of the world's parsers reject: `JSON.parse` in the browser, Go's
-    `encoding/json`, and our own `json.loads(..., allow_nan=False)` all refuse
+    `encoding/json`, and strict `json.loads(..., parse_constant=...)` all refuse
     the file, so one degenerate evaluation takes the whole ledger with it
     (#1733).
 
