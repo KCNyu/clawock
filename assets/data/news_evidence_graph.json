@@ -42,7 +42,8 @@
       "status": "upcoming",
       "expiry_days": 1,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -98,6 +99,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -154,6 +156,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -210,6 +213,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -266,6 +270,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -322,6 +327,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -378,6 +384,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -434,6 +441,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -490,6 +498,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -546,6 +555,7 @@
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -607,7 +617,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -664,7 +675,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -720,7 +732,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -777,7 +790,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -833,7 +847,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -889,7 +904,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -952,6 +968,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1014,7 +1031,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -1070,7 +1088,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1133,6 +1152,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1188,7 +1208,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1252,6 +1273,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1307,7 +1329,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -1363,7 +1386,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1443,7 +1467,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -1500,7 +1525,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1556,7 +1582,8 @@
       "status": "active",
       "expiry_days": 3,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": true,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -1612,7 +1639,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1673,7 +1701,8 @@
       "status": "active",
       "expiry_days": 7,
       "confirmation": {
-        "price_change_pct": -0.1149,
+        "price_change_pct": -0.11489591781563835,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8516,
@@ -1734,6 +1763,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1797,6 +1827,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1860,6 +1891,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1923,6 +1955,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -1986,6 +2019,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -2048,6 +2082,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -2104,7 +2139,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -2161,7 +2197,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -2219,7 +2256,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.46,
+        "price_change_pct": -1.4627011214042085,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8763,
@@ -2275,7 +2313,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -2340,7 +2379,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.2651,
+        "price_change_pct": -0.2651113467656452,
+        "price_change_basis": "session",
         "price_proxy_ticker": "SPCH",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -2397,7 +2437,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -2453,7 +2494,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -2517,6 +2559,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -2579,6 +2622,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -2641,6 +2685,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -2696,7 +2741,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -2753,7 +2799,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -2818,7 +2865,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -2882,6 +2930,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -2937,7 +2986,8 @@
       "status": "active",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 0.34,
+        "price_change_pct": 0.33512064343164116,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.9241,
@@ -2993,7 +3043,8 @@
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.2651,
+        "price_change_pct": -0.2651113467656452,
+        "price_change_basis": "session",
         "price_proxy_ticker": "SPCH",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3050,7 +3101,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3108,7 +3160,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.46,
+        "price_change_pct": -1.4627011214042085,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8763,
@@ -3170,7 +3223,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3228,7 +3282,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -3286,7 +3341,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.2651,
+        "price_change_pct": -0.2651113467656452,
+        "price_change_basis": "session",
         "price_proxy_ticker": "SPCH",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3351,7 +3407,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.24,
+        "price_change_pct": -1.2413108242303683,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1392,
@@ -3416,6 +3473,7 @@
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3473,7 +3531,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3531,7 +3590,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.92,
+        "price_change_pct": -2.9156816390858875,
+        "price_change_basis": "session",
         "price_proxy_ticker": "07226",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3589,7 +3649,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -10.21,
+        "price_change_pct": -10.21365294424179,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3647,7 +3708,8 @@
       "status": "expired",
       "expiry_days": 1,
       "confirmation": {
-        "price_change_pct": -10.21,
+        "price_change_pct": -10.21365294424179,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3705,7 +3767,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -3763,7 +3826,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 0.34,
+        "price_change_pct": 0.33512064343164116,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.9241,
@@ -3821,7 +3885,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.46,
+        "price_change_pct": -1.4627011214042085,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8763,
@@ -3883,7 +3948,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -10.21,
+        "price_change_pct": -10.21365294424179,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -3941,7 +4007,8 @@
       "status": "expired",
       "expiry_days": 1,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -3999,7 +4066,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 0.34,
+        "price_change_pct": 0.33512064343164116,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.9241,
@@ -4057,7 +4125,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 0.34,
+        "price_change_pct": 0.33512064343164116,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.9241,
@@ -4115,7 +4184,8 @@
       "status": "expired",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 0.34,
+        "price_change_pct": 0.33512064343164116,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.9241,
@@ -4176,7 +4246,8 @@
       "status": "expired",
       "expiry_days": 7,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -4232,7 +4303,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.0247,
+        "price_change_pct": -2.0247469066366652,
+        "price_change_basis": "session",
         "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -4290,7 +4362,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.46,
+        "price_change_pct": -1.4627011214042085,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8763,
@@ -4348,7 +4421,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.46,
+        "price_change_pct": -1.4627011214042085,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8763,
@@ -4406,7 +4480,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.46,
+        "price_change_pct": -1.4627011214042085,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8763,
@@ -4464,7 +4539,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -4522,7 +4598,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.24,
+        "price_change_pct": -1.2413108242303683,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1392,
@@ -4580,7 +4657,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -4638,7 +4716,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -10.21,
+        "price_change_pct": -10.21365294424179,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
@@ -4696,7 +4775,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -5.82,
+        "price_change_pct": -5.820977484898404,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1302,
@@ -4754,7 +4834,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.46,
+        "price_change_pct": -1.4627011214042085,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.8763,
@@ -4812,7 +4893,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.24,
+        "price_change_pct": -1.2413108242303683,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1392,
@@ -4870,7 +4952,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 0.34,
+        "price_change_pct": 0.33512064343164116,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.9241,
@@ -4934,7 +5017,8 @@
       "status": "expired",
       "expiry_days": 7,
       "confirmation": {
-        "price_change_pct": 5.5303,
+        "price_change_pct": 5.530293720044233,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 0.0717,
@@ -4996,7 +5080,8 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.24,
+        "price_change_pct": -1.2413108242303683,
+        "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": 1.1392,
