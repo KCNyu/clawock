@@ -3886,6 +3886,21 @@ test("client: one provider cell carries the queue under each agent's provider an
   }
 
 
+  // #3133: a warm failed read discloses the actual last successful timestamp.
+  for (const asOf of ['2026-10-21T07:42:00+08:00', '', 'not-a-date']) {
+    answer = { ...QUEUE, status: 'stale', message: 'queue probe failed', asOf };
+    find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
+    await tick(); await tick();
+    const notice = texts(render());
+    if (asOf.startsWith('2026')) {
+      const stamp = api.resetStampOf(translatorFor(api), { resetAt: '', resetAtMs: Date.parse(asOf) }, Date.now());
+      assert.ok(notice.includes(`刷新失败（queue probe failed），显示 ${stamp} 的读数`));
+    } else {
+      assert.match(notice, /刷新失败,显示最近一次: queue probe failed/);
+      assert.doesNotMatch(notice, /Invalid Date|NaN/);
+    }
+  }
+
   // #2053: a cold IN-BAND failure (status 'failed': nothing was ever read) is a read failure,
   // not "showing the last read" — the same judgement the balance half makes on its rows.
   answer = { available: false, status: "failed", message: "EACCES: permission denied", asOf: "", refreshMs: 15000, maxRunning: 0,

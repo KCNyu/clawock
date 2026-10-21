@@ -9499,11 +9499,22 @@ function panelNotices(input, t) {
 	const { queue, queueError, balances, balanceError, rowCount } = input;
 	const queueProblem = queueError ?? (queue !== null && (queue.status === "stale" || queue.status === "failed") ? queue.message : null);
 	const out = [];
-	if (queueProblem !== null && queueProblem !== "") out.push({
-		key: "qerr",
-		bad: true,
-		text: t(queue === null || queue.status === "failed" ? "queue.readFailed" : "queue.staleWith", { message: queueProblem })
-	});
+	if (queueProblem !== null && queueProblem !== "") {
+		const cold = queue === null || queue.status === "failed";
+		const asOf = queue?.asOf ? Date.parse(queue.asOf) : NaN;
+		const text = !cold && Number.isFinite(asOf) ? t("panel.staleAt", {
+			message: queueProblem,
+			time: resetStampOf(t, {
+				resetAt: "",
+				resetAtMs: asOf
+			}, Date.now())
+		}) : t(cold ? "queue.readFailed" : "queue.staleWith", { message: queueProblem });
+		out.push({
+			key: "qerr",
+			bad: true,
+			text
+		});
+	}
 	if (queueProblem === null && queue === null) out.push({
 		key: "qloading",
 		bad: false,
