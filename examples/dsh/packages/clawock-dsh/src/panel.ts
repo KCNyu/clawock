@@ -1524,7 +1524,12 @@ export function panelNotices(input: { queue: TaskQueueResult | null; queueError:
   const out: Array<{ key: string; text: string; bad: boolean }> = []
   if (queueProblem !== null && queueProblem !== '') {
     // 'failed' is a cold in-band failure: nothing was ever read, so there is no "last read" to show (#2053).
-    out.push({ key: 'qerr', bad: true, text: t(queue === null || queue.status === 'failed' ? 'queue.readFailed' : 'queue.staleWith', { message: queueProblem }) })
+    const cold = queue === null || queue.status === 'failed'
+    const asOf = queue?.asOf ? Date.parse(queue.asOf) : NaN
+    const text = !cold && Number.isFinite(asOf)
+      ? t('panel.staleAt', { message: queueProblem, time: resetStampOf(t, { resetAt: '', resetAtMs: asOf }, Date.now()) })
+      : t(cold ? 'queue.readFailed' : 'queue.staleWith', { message: queueProblem })
+    out.push({ key: 'qerr', bad: true, text })
   }
   if (queueProblem === null && queue === null) out.push({ key: 'qloading', bad: false, text: t('panel.queueLoading') })
   if (queueProblem === null && queue !== null && !queue.available) out.push({ key: 'qunavailable', bad: false, text: t('panel.queueUnavailable') })
