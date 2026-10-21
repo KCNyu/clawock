@@ -70,6 +70,21 @@ def test_empty_leg_has_no_invented_zero_percent():
     assert result['shares'] == 100 and result['post_trim_weight_pct'] is None
 
 
+def test_price_return_in_same_sentence_is_not_a_concentration_claim(tmp_path):
+    ctx, plan = scenario()
+    ctx['quote_return_pct'] = -2.3
+    plan['decisions'][0]['rationale'] = (
+        '00100 下跌 -2.3%，港股腿支配度为 46.84%，卖 40 股后回到 39.53%。')
+    assert not brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+
+
+def test_review_line_cannot_authorize_a_false_post_sale_result(tmp_path):
+    ctx, plan = scenario()
+    plan['decisions'][0]['rationale'] = '00100 卖 40 股后回到 35%。'
+    issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    assert brief_postflight.categorize(issues) == 'fail'
+
+
 def test_historical_record_is_only_read_for_regression():
     root = Path(__file__).resolve().parents[1]
     snap = json.loads((root / 'memory/snapshots/2026-10-20.json').read_text())

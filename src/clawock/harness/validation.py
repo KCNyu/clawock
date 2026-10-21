@@ -536,9 +536,23 @@ def _concentration_claim_issues(text, ctx):
                 if not (concentration or post):
                     continue
                 for match in _UNIT_CLAIMS['percent'].finditer(sentence):
+                    prefix = sentence[:match.start()]
+                    direct = re.search(
+                        r'(?:支配度|集中度|仓位占比|占[^，,。；;%％]{0,8}腿)'
+                        r'[^，,。；;%％]{0,12}$', prefix)
+                    after_sale = (post and match.start() >= post.end()
+                                  and re.fullmatch(r'\s*(?:约)?\s*',
+                                                   sentence[post.end():match.start()]))
+                    destination = concentration and re.search(
+                        r'(?:压回|回到|降至|降到)\s*(?:约)?\s*$', prefix)
+                    # A quote return, revenue growth, etc. in the same sentence
+                    # is not a concentration claim merely because it has a %.
+                    if not (direct or after_sale or destination):
+                        continue
                     raw = match.group(1)
                     value = _as_number(raw)
-                    if not _states(allowed, value, _rounding_tolerance(raw)):
+                    values = [expected] if after_sale and expected is not None else allowed
+                    if not _states(values, value, _rounding_tolerance(raw)):
                         issues.append(f'仓位支配度不符: {ticker} {raw}%，请引用减仓联立计算')
                 if (expected is not None and expected > review['review_pct']
                         and re.search(r'(?:压回|降至|降到).{0,12}复核线(?:下方|以下)', sentence)
