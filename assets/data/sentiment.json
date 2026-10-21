@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T23:22:58.641462+00:00",
+  "generated_at": "2026-10-21T00:01:46.456959+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -49,12 +49,6 @@
           "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxQaU1pRDN3VmVGMmY3bWd3RDZoUml5bGM2NlRKRm5lTlR3ZzQ0Y1NSbm9sOS00elRwVC1wWHdUMkpxbzhQTHRrVjVSRWpSYmFoRmw0d0kyRjlkNzdBSHNhOGdLVDZ5THUwWHkyVXk0T01ZNjhFNkZPSHBtOUNIek5fY1lxTS0tOXk1eEZIcDYtUHlKZGc?oc=5"
         },
         {
-          "title": "Circle: Wall Street Is Pricing In Twice The Earnings Analysts Expect",
-          "source": "Seeking Alpha",
-          "published": "Tue, 20 Oct 2026 15:22:39 GMT",
-          "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNVFR1UW9YZzhCamIxc2pZZ05yREdiMEV6Qm9UbGwwZVNyNmFiamFvTHQ4eG1TT2lXYXJBdS02NEROM1dUMXV4TWZ1VUtkVm5FbGdCZHZWa2t3ZnA1V28xS3NjSE0wVFE3WVlrdlRCTVNQUFV4eXAzTkZYcEY3VFc2NW9YUXVqd3VMelJHNzZEenpNbEV0UWJoS0NxNWlpTTczNFVaYlljMFZzTFVt?oc=5"
-        },
-        {
           "title": "Stablecoin Giant Circle Expands Into 40 Emerging Markets Amid Global Adoption",
           "source": "TIKR.com",
           "published": "Sun, 18 Oct 2026 14:02:40 GMT",
@@ -71,6 +65,12 @@
           "source": "MarketBeat",
           "published": "Mon, 19 Oct 2026 07:54:26 GMT",
           "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxPSTRjX0loelJYSHhrYjc1WVBMVDF4LUVUYzBwSWZpZ0tMdGt0ZUluM0lYbmw1OC1wT1YycWRDVi1EeUZiYzRUdXZlVlowdzhxamlwSm51UFV3ZHlmcjdtcnBJS05SX1hSLWZVN253SmdoejM2RGEwZE9aZmxaUWVwalR1WVlCendHRjVwTVB1V0ozNTR4cFFrU01kY0RBcDU0djYtOVlVaDZfUGhBanMtWVpFOUVTNW53MlVqU2VSMTctdU8xZkFleGZUbV9uS29XRTR3?oc=5"
+        },
+        {
+          "title": "CRCL Stock Steadies As CFTC Targets Unified Crypto Rules",
+          "source": "StocksToTrade",
+          "published": "Thu, 15 Oct 2026 19:03:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOZnl5MjNsekZUcTVUbFlrS0wxVlVDejQ3NE9tQU9TOExKSHFxamxMWHdLNkJQb2g0WDBRR004U04xVXNPRlpnOUdKNW9FVWtpM1dLWDB4aTFCWmNxMzRLaXNtQTE3czRKVHhMSnZhblBRd3VNWlI2akFLdXdTNC1EZGIxcW8wTU0?oc=5"
         }
       ],
       "google_news_zh": []
@@ -131,8 +131,26 @@
       "ticker": "SPCX",
       "name": "SpaceX",
       "region": "us_stocks",
-      "reddit_mentions_7d": 10,
+      "reddit_mentions_7d": 9,
       "reddit_posts": [
+        {
+          "sub": "marketpredictioncodes",
+          "title": "New Bloomberg Podcasts Upload: Earnings Special: SpaceX Profit Beats Estimates on Big Jump in AI Revenue | Bloomberg Tech",
+          "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xb7w4n/new_bloomberg_podcasts_upload_earnings_special/",
+          "created": "2026-10-20T23:46:17+00:00"
+        },
+        {
+          "sub": "marketpredictioncodes",
+          "title": "New Bloomberg Podcasts Upload: Earnings Special: SpaceX Profit Beats Estimates on Big Jump in AI Revenue | Bloomberg Talks",
+          "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xb7ulz/new_bloomberg_podcasts_upload_earnings_special/",
+          "created": "2026-10-20T23:44:17+00:00"
+        },
+        {
+          "sub": "dividends",
+          "title": "I have been rethinking dividends",
+          "url": "https://www.reddit.com/r/dividends/comments/1xb7si8/i_have_been_rethinking_dividends/",
+          "created": "2026-10-20T23:41:34+00:00"
+        },
         {
           "sub": "marketpredictioncodes",
           "title": "New Bloomberg Podcasts Upload: Earnings Special: SpaceX Profit Beats Estimates on Big Jump in AI Revenue | Bloomberg Surveillance",
@@ -150,24 +168,6 @@
           "title": "$SPCX says Q4 capex will be $35-40 billion versus $18-19 billion from sell-side estimates.",
           "url": "https://www.reddit.com/r/MU_Stock/comments/1xb6sgc/spcx_says_q4_capex_will_be_3540_billion_versus/",
           "created": "2026-10-20T22:55:33+00:00"
-        },
-        {
-          "sub": "SpaceInvestorsDaily",
-          "title": "SpaceX Q3: AI revenue overtook Starlink ($7.6B vs $5.2B), first profit as a public company, and 1.3B shares unlock Thursday",
-          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1xb6mqa/spacex_q3_ai_revenue_overtook_starlink_76b_vs_52b/",
-          "created": "2026-10-20T22:48:28+00:00"
-        },
-        {
-          "sub": "optionstrading",
-          "title": "Same earnings night, two very different evenings",
-          "url": "https://www.reddit.com/r/optionstrading/comments/1xb6lwy/same_earnings_night_two_very_different_evenings/",
-          "created": "2026-10-20T22:47:26+00:00"
-        },
-        {
-          "sub": "FinanceNews",
-          "title": "Musk says Tesla and SpaceX formed special committees to discuss merger: Live updates",
-          "url": "https://www.reddit.com/r/FinanceNews/comments/1xb6fih/musk_says_tesla_and_spacex_formed_special/",
-          "created": "2026-10-20T22:39:28+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -184,10 +184,22 @@
           "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxQMEVVd3RFb3M0MFpJelFtS3o0ekhENlpaT1hrSFpIZzc5NGhoTTZUb2Q5RjNpbU13cVhESjhhSkhyM2lrcHFGYjNVZFN0Sy00bm1fb2JMSTdsbnE5ZWFXeVdoZ1BvSWs4dTZJYzNMemVUSU13d2VHS1VPVURCdlM5WjlVNlhfSHJEeExPcEF2OVZQTmFidFlBZzd0ZFU1aGNtbWZfS01Fam51WTdBQl9BMHBuNkoyNkh6VzBteUVYTDBvZlFo?oc=5"
         },
         {
+          "title": "SpaceX Stock (SPCX) Rises After Company Smashes Q3 Earnings Estimates",
+          "source": "TipRanks",
+          "published": "Tue, 20 Oct 2026 20:19:55 GMT",
+          "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNM2xUZDhraWE5VW1EeEtXdW80SmFlUDNtMzZ6cWM4c3RuUEtQaU9pc3F0QmFhZnB4a3M2RnFUTmJVcTN6TzQxMHBJdFppRndOald4OFA5bVJnX0ExRlg1YXlOTDRjVnNmZG9XV3FvbHBJWjFLSkJxUU1Hc3BFcFVlUWJpby0tYURKWmwtVHVR?oc=5"
+        },
+        {
           "title": "Musk says Tesla and SpaceX formed special committees to discuss merger: Live updates",
           "source": "CNBC",
           "published": "Tue, 20 Oct 2026 22:03:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQQVllYUJGN3ZlUlBmalFoOHpVTG9UVV9Eb1owUlBzWGRQeDlHeWU5UlRKT2FTS0FaQ3l5eW0zTV9pa3gwOFlyM3JGZHBoakNVb0RMNVhEelBWRkJSNWVWRjNvMlYwalRLUEQ2Sml0dXRZTU5wZGN2V0Q1ckZBNmNlYnluTnU2eG1BMWfSAY8BQVVfeXFMTVBhQUVkdTRhMnlwSmlpS2VrV09rUFA0c3lSZkI2Vmg5SFRGam5UVVpNcFRwMnNlUmJaVlJqVXZ5cHZkLTFtcTlsOFp2RDZkY294QXdmR2VndnJtZ29tdS03WW5aWXgxU21MVUV6VnFfelpvOFByMUdTRTVaamtoZHdOZ3JtZm5oMEFvQkZoN00?oc=5"
+        },
+        {
+          "title": "SpaceX earnings are out and the stock is rising. Here's what investors need to know.",
+          "source": "MarketWatch",
+          "published": "Tue, 20 Oct 2026 23:02:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNc252WHdoNlRPaHBPRDFiXzM3MVNiZkpqWGJFTERXTGtMRkU2MVU4eTA4WkNMaFdCMmhsSnZ2RWlueU5GenIwNEVmeVhXSGFBUUxsVzhKUHloa2oxYUJJbmJHb2p3b3NaRWlxUHhRckc2Ukl6SmNqWGtOb1oteUtvUGF2YlIzVlU?oc=5"
         },
         {
           "title": "Here’s How Much SpaceX Stock Is Expected to Move After Earnings",
@@ -200,18 +212,6 @@
           "source": "Bloomberg.com",
           "published": "Tue, 20 Oct 2026 18:54:28 GMT",
           "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOcmhtdU5tcDFqS1pRNm1mR1FfWGpjSlRnS2RVSTkwcENyc2RYT2JTNUYyTDhpSnRkZVd2N1B2U0ZaMXZOcC1TTHBjT2ZnYU9PQjg2WlVOcGJMbkNJVDF4MEgwMEJITFVRNDVWYTduT3FmN1pCd3JpeElDS3UzWVFXaktPa3BnbDB0NlYxdGpDWURhelJZOGFQOUliYw?oc=5"
-        },
-        {
-          "title": "SpaceX shares rise as earnings, revenue beat estimates on AI (SPCX:NASDAQ)",
-          "source": "Seeking Alpha",
-          "published": "Tue, 20 Oct 2026 20:19:01 GMT",
-          "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxORVo2c1JUak1RcjZ4QlBWY3RSUmNjcWo3QVNrUF83aWNaRFE5bHI2QU1scDZyMExZR3ZYdlZVT09fTmgtTktsUXVjV01rbkdITTluTXpfUThBMnMzazVWRmtKUDNON0NKMGpnUGFhWWtLbGhsZFpqYnM0MjFYOVR0dXhKTjB1S2MyanRCMFc1bVg2b3JrMWl3Z3E1X0pUZw?oc=5"
-        },
-        {
-          "title": "SpaceX earnings Live: SpaceX beats on earnings, capex comes in less than expected",
-          "source": "Yahoo Finance",
-          "published": "Tue, 20 Oct 2026 21:30:07 GMT",
-          "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNNjhzeUhySVRoTW55OTZHWjYwYy1QOGRKN09weGFTTUdGc09hM0E0ajNLajF4elNucldwU2Jad18yOWl6MjRWMlVlbTdTVm9xZFl2YkFCbmMzeVI2U01EYXBnRnFWQWZMTV85Nk1xUl9ReVJCUnM4NnFKcDhEenlUQ2Jad0huVEVlOEpwNjNMVVl2aVE?oc=5"
         }
       ],
       "google_news_zh": []
@@ -220,8 +220,26 @@
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us_stocks",
-      "reddit_mentions_7d": 10,
+      "reddit_mentions_7d": 9,
       "reddit_posts": [
+        {
+          "sub": "marketpredictioncodes",
+          "title": "New Bloomberg Podcasts Upload: Earnings Special: SpaceX Profit Beats Estimates on Big Jump in AI Revenue | Bloomberg Tech",
+          "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xb7w4n/new_bloomberg_podcasts_upload_earnings_special/",
+          "created": "2026-10-20T23:46:17+00:00"
+        },
+        {
+          "sub": "marketpredictioncodes",
+          "title": "New Bloomberg Podcasts Upload: Earnings Special: SpaceX Profit Beats Estimates on Big Jump in AI Revenue | Bloomberg Talks",
+          "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xb7ulz/new_bloomberg_podcasts_upload_earnings_special/",
+          "created": "2026-10-20T23:44:17+00:00"
+        },
+        {
+          "sub": "dividends",
+          "title": "I have been rethinking dividends",
+          "url": "https://www.reddit.com/r/dividends/comments/1xb7si8/i_have_been_rethinking_dividends/",
+          "created": "2026-10-20T23:41:34+00:00"
+        },
         {
           "sub": "marketpredictioncodes",
           "title": "New Bloomberg Podcasts Upload: Earnings Special: SpaceX Profit Beats Estimates on Big Jump in AI Revenue | Bloomberg Surveillance",
@@ -239,24 +257,6 @@
           "title": "$SPCX says Q4 capex will be $35-40 billion versus $18-19 billion from sell-side estimates.",
           "url": "https://www.reddit.com/r/MU_Stock/comments/1xb6sgc/spcx_says_q4_capex_will_be_3540_billion_versus/",
           "created": "2026-10-20T22:55:33+00:00"
-        },
-        {
-          "sub": "SpaceInvestorsDaily",
-          "title": "SpaceX Q3: AI revenue overtook Starlink ($7.6B vs $5.2B), first profit as a public company, and 1.3B shares unlock Thursday",
-          "url": "https://www.reddit.com/r/SpaceInvestorsDaily/comments/1xb6mqa/spacex_q3_ai_revenue_overtook_starlink_76b_vs_52b/",
-          "created": "2026-10-20T22:48:28+00:00"
-        },
-        {
-          "sub": "optionstrading",
-          "title": "Same earnings night, two very different evenings",
-          "url": "https://www.reddit.com/r/optionstrading/comments/1xb6lwy/same_earnings_night_two_very_different_evenings/",
-          "created": "2026-10-20T22:47:26+00:00"
-        },
-        {
-          "sub": "FinanceNews",
-          "title": "Musk says Tesla and SpaceX formed special committees to discuss merger: Live updates",
-          "url": "https://www.reddit.com/r/FinanceNews/comments/1xb6fih/musk_says_tesla_and_spacex_formed_special/",
-          "created": "2026-10-20T22:39:28+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -273,16 +273,16 @@
           "url": "https://news.google.com/rss/articles/CBMiTEFVX3lxTE5zZU5MYjJhZFhRZkZ2Mm1LdTBkTmN0cEE3ZmxWR3QzZTk5SWVFS2NodFA4UEZlMVpTQ1duMGFmT0xnY1ZsTU9fLWx0SHY?oc=5"
         },
         {
-          "title": "The Technical Signals Behind (SPCH) That Institutions Follow",
-          "source": "Stock Traders Daily",
-          "published": "Mon, 19 Oct 2026 02:36:01 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxQajJVUTBmMmRmUmVSV1M3QjUyX3ppc1M5UXY2M19NbmpTS0RIeHRFUlh1OUZGd2xNUzdjNy1ZNkdCTktMYnhqcFF6Qnk4NGZ0V1g4emV4QVBKVXpxNlc2SXBfYXFxZjlCWGtxLUNJeXNtemphSlZoNlpRNV8yM0tDRkNDcHVVWXJRU3h0T3E4VWVPU3E3VElIS2dJMnNyY29Qdms3WE9rOWwxVXB4VXV5QmNydV9hWU11X0tmZHFYTGV0VE5qZ29YUTFsZF85VDFOdUZkdg?oc=5"
-        },
-        {
           "title": "SPCH Oct 2026 8.500 put (SPCH261023P00008500) Stock Price, News, Quote & History",
           "source": "Yahoo! Finance Canada",
           "published": "Sat, 17 Oct 2026 07:18:31 GMT",
           "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTFBXSXlSZDd4cW5VSW5KekNTanZvdVRFNWhPVDhiUEV0OWpXaWp0cFNVem9wa1VhN2JyaGs4SXduNXFROUJMMG1BUjkyazBjVzc4OEtpMDNlay1fMU0zY3FSQXZXYnctZw?oc=5"
+        },
+        {
+          "title": "The Technical Signals Behind (SPCH) That Institutions Follow",
+          "source": "Stock Traders Daily",
+          "published": "Mon, 19 Oct 2026 02:36:01 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxQajJVUTBmMmRmUmVSV1M3QjUyX3ppc1M5UXY2M19NbmpTS0RIeHRFUlh1OUZGd2xNUzdjNy1ZNkdCTktMYnhqcFF6Qnk4NGZ0V1g4emV4QVBKVXpxNlc2SXBfYXFxZjlCWGtxLUNJeXNtemphSlZoNlpRNV8yM0tDRkNDcHVVWXJRU3h0T3E4VWVPU3E3VElIS2dJMnNyY29Qdms3WE9rOWwxVXB4VXV5QmNydV9hWU11X0tmZHFYTGV0VE5qZ29YUTFsZF85VDFOdUZkdg?oc=5"
         },
         {
           "title": "$Leverage Shares 2X Long SpaceX Daily ETF (SPCH.US)$$Direxion Daily TSLA Bull 2X Shares (TSLL.US)$ Keep up with the rocket!",
@@ -692,8 +692,15 @@
       "ticker": "07709",
       "name": "XL二南方海力士",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 0,
-      "reddit_posts": [],
+      "reddit_mentions_7d": 1,
+      "reddit_posts": [
+        {
+          "sub": "stockstobuytoday",
+          "title": "AMKR deep-dive",
+          "url": "https://www.reddit.com/r/stockstobuytoday/comments/1xb7q7v/amkr_deepdive/",
+          "created": "2026-10-20T23:38:42+00:00"
+        }
+      ],
       "reddit_status": "ok",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
@@ -702,22 +709,22 @@
       ],
       "google_news_en": [
         {
-          "title": "CSOP SK HYNIX DAILY (2X) LEVERAGED PRODUCT (7709.HK) Stock Price, News, Quote & History",
-          "source": "Yahoo! Finance Canada",
-          "published": "Wed, 15 Oct 2025 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFBla29wbVpYS1pBY0hXcVVRemZaeEdMZGRnbFdVOW5nX3M5MW9XTjVUVFNRUW9MUzV3aTZxM25Mdk5RMGdkTEVHQi1fU19rZmwzOWVVVDlB?oc=5"
-        },
-        {
           "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$",
           "source": "Moomoo",
           "published": "Mon, 31 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQRmRqbkRzOC1rMXBKTzBiQ0E4UTcxYjFyUGc0WXRuOXB2Qk9TRUQ4NFFlYlRDdl9wSEJIR0hLNF9PdVRldEM0cV9WUkowX0tkTjRjZUlmUi1tcTJsbGJvM2k0bDFuc0poYmpsdnEwbkRsdUlDTzVoSHZ2d1pxS0RWR25hYzY4V2dnTUZ1bDlwdHA0VmZab2ZnRHFMX1FiclUzLTNUSldueTlvTUk?oc=5"
         },
         {
-          "title": "CSOP SK HYNIX DAILY (2X) LEVERAGED PRODUCT (7709.HK)",
-          "source": "Yahoo Finance UK",
+          "title": "SK Hynix ADR Honeymoon Turns Into Shock Therapy; Hong Kong Leveraged ETF Plunges Over 22% in Single Day",
+          "source": "BigGo Finance",
+          "published": "Sun, 12 Jul 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBYRUp5SmFULTlkRGJzU25xQ2xXSkllN2hua1VpMEJEWkk5YzRWdTRjU0djZjduZGNxdUZPa01HVkxWOGtic01ORlFBMTZ2cUJtOXQ3dk0tNGxHZXd2MEFlbFJwNE9TSDYwNGRoUFFUMTlCNGlwcnc?oc=5"
+        },
+        {
+          "title": "CSOP SK HYNIX DAILY (2X) LEVERAGED PRODUCT (7709.HK) Stock Price, News, Quote & History",
+          "source": "Yahoo! Finance Canada",
           "published": "Wed, 15 Oct 2025 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1EaHF0Tl9LVzdnM0tDSUFxSXdxRHk5aWZ1T3h6MmdRWjhEVWRvX3FLMVR6OHNWXzV2N2lJQ2E1LUJPcHNqdFZhUmJCYVRvVWhIcGJoVm5B?oc=5"
+          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFBla29wbVpYS1pBY0hXcVVRemZaeEdMZGRnbFdVOW5nX3M5MW9XTjVUVFNRUW9MUzV3aTZxM25Mdk5RMGdkTEVHQi1fU19rZmwzOWVVVDlB?oc=5"
         },
         {
           "title": "Tech rally cools off! Asia-Pacific equities declined across the board, with South Korean stocks briefly triggering a circuit breaker and the Hang Seng Tech Index dropping more than 3%. What other risks lie ahead?",
