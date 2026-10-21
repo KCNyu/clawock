@@ -18,7 +18,7 @@ strict date-`<` branch handles later sell→rebuy cycles without false negatives
 """
 
 from clawock.safe_io import to_number as _share_number
-from clawock.portfolio.math import ledger_date, ledger_rows, session_date
+from clawock.portfolio.math import ledger_date, ledger_rows, session_date, trade_session_date  # noqa: F401 session_date re-export
 
 
 def _ledger_sells(holdings):
@@ -44,6 +44,7 @@ def _ledger_sells(holdings):
                 if t.get('realized_pnl') is not None:
                     sells.append({
                         'date': ledger_date(t.get('date')),
+                        'note': t.get('note'),
                         'ticker': ticker,
                         'shares': shares,
                         'price': t.get('price', 0),
@@ -72,7 +73,7 @@ def realized_as_of(holdings, snap_date, snap_shares, *, market=None):
     for ticker, sells in by_ticker.items():
         held = snap_shares.get(ticker, 0) or 0
         for s in sells:
-            when = session_date(market, s['date'])
+            when = trade_session_date(market, s)
             # A negative post-sell balance means this holding's trade list is
             # missing a buy (RKLB records a 5-share sell with no buy beside it),
             # so the level is offset by a constant nobody can recover. Shares

@@ -309,7 +309,7 @@ class CanonicalBarSettlementTest(unittest.TestCase):
 
 
 class DecisionAuditSidecarTest(unittest.TestCase):
-    def _executed(self, ticker, leg, action, shares, price, close, day="2026-07-01"):
+    def _executed(self, ticker, leg, action, shares, price, close, day="2026-07-06"):
         row = dv2.legacy_action_to_decision({
             "ticker": ticker,
             "leg": leg,
@@ -330,8 +330,8 @@ class DecisionAuditSidecarTest(unittest.TestCase):
             "fill_assumed": True,
             "fill_reason": "intraday_cross",
             "fill_model": "daily_ohlc_gap_aware_v1",
-            "mark_t1_session": "2026-07-02",
-            "mark_t5_session": "2026-07-03",
+            "mark_t1_session": "2026-07-07",
+            "mark_t5_session": "2026-07-08",
         }
         row["execution"] = {"status": "followed", "source": "manual"}
         trade_action = "sell" if action in dv2.SELL_ACTIONS else "buy"
@@ -343,8 +343,8 @@ class DecisionAuditSidecarTest(unittest.TestCase):
         }
         bars = {
             day: _bar(close, close + 1, close - 1, close),
-            "2026-07-02": _bar(close + 1),
-            "2026-07-03": _bar(close + 2),
+            "2026-07-07": _bar(close + 1),
+            "2026-07-08": _bar(close + 2),
         }
         return row, holding, bars
 
@@ -433,18 +433,18 @@ class DecisionAuditSidecarTest(unittest.TestCase):
         self.assertEqual(diagnostic["by_currency"]["HKD"]["n_events"], 0)
 
     def test_resettling_twice_is_idempotent(self):
-        bars = {"2026-07-01": _bar(10.0), "2026-07-02": _bar(9.0)}
+        bars = {"2026-07-06": _bar(10.0), "2026-07-07": _bar(9.0)}
         row = dv2.legacy_action_to_decision({
             "ticker": "AAA", "strategy_id": "core_position", "action": "cut",
             "condition": {"type": "open"}, "confidence": 0.6, "driven_by": "technical",
-        }, "2026-07-01")
+        }, "2026-07-06")
         patches = _with_bars(bars)
         for p in patches:
             p.start()
         try:
-            dv2.settle_decisions([row], now_date="2026-07-03")
+            dv2.settle_decisions([row], now_date="2026-07-08")
             first = copy.deepcopy(row["evaluation"])
-            dv2.settle_decisions([row], now_date="2026-07-03")
+            dv2.settle_decisions([row], now_date="2026-07-08")
         finally:
             for p in patches:
                 p.stop()

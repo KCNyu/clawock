@@ -36,7 +36,7 @@ from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import session_change_pct
-from clawock.portfolio.math import number, day_pnl, ledger_date, ledger_rows, session_date
+from clawock.portfolio.math import number, day_pnl, ledger_rows, trade_session_date
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
 
@@ -488,7 +488,7 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
         # Same folded session as `day_pnl` and `aggregates`: a fill dated
         # on a closed day belongs to the session before it (#2630).
         if any(t.get('action') == 'buy'
-               and session_date('hk', ledger_date(t.get('date'))) == quote_day.isoformat()
+               and trade_session_date('hk', t) == quote_day.isoformat()
                for t in ledger_rows(h.get('trades'))):
             h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
     h.pop('today_change_abs', None)

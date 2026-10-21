@@ -40,6 +40,8 @@ def _confirmed(events, *, price_change=-3.0, peer=None):
                     'ticker': 'ABC',
                     'shares': 1,
                     'today_change_pct': price_change,
+                    'current_price': None if price_change is None else 100 + price_change,
+                    'prev_close': 100,
                 }],
             },
             'hk_stocks': {'holdings': []},
@@ -62,7 +64,7 @@ def test_underlying_event_uses_held_leveraged_proxy_price_without_proxy_volume()
              'impact_direction': 'positive'}
     portfolio = {'portfolios': {'us_stocks': {'holdings': [
         {'ticker': 'RKLX', 'shares': 1, 'today_change_pct': 9.35,
-         'volume': 1_000_000, 'current_price': 20}]}}}
+         'volume': 1_000_000, 'current_price': 20, 'prev_close': 20 / 1.0935}]}}}
     graph.apply_confirmation(POLICY, [event], portfolio, {}, {})
     assert event['confirmation']['price_change_pct'] == pytest.approx(9.35)
     assert event['confirmation']['price_proxy_ticker'] == 'RKLX'
@@ -478,6 +480,7 @@ def test_leveraged_product_volume_is_not_compared_with_underlying_liquidity():
                     'today_change_pct': -3.0,
                     'volume': 1_000_000,
                     'current_price': 25.0,
+                    'prev_close': 25 / 0.97,
                 }],
             },
             'hk_stocks': {'holdings': []},
@@ -674,7 +677,7 @@ def test_stock_connect_membership_gets_a_type_and_a_direction():
     }
     portfolio = {'portfolios': {'hk_stocks': {'holdings': [
         {'ticker': '00100', 'today_change_pct': 10.25,
-         'current_price': 253.8, 'volume': 38060, 'shares': 120}]}}}
+         'current_price': 253.8, 'prev_close': 253.8 / 1.1025, 'volume': 38060, 'shares': 120}]}}}
     graph.apply_confirmation(POLICY, [event], portfolio, {}, {})
     graph.gate_events(POLICY, [event])
     assert event['confirmation']['price_aligned'] is True

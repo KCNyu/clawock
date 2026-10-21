@@ -12,6 +12,7 @@ Writes:
   assets/data/news_evidence_history.jsonl
 """
 
+from clawock.portfolio.math import session_change_pct
 from clawock.plugin_host import live as live_plugins
 from clawock.safe_io import to_number as _share_number
 
@@ -849,7 +850,7 @@ def apply_confirmation(policy, events, portfolio, peer_payload, factor_payload):
                           and row['leverage'] > 0), None)
             if proxy:
                 holding = holdings[proxy['ticker']]
-        price_pct = holding.get('today_change_pct')
+        price_pct = session_change_pct(holding)
         expected_sign = (
             1 if event['impact_direction'] == 'positive'
             else -1 if event['impact_direction'] == 'negative'
@@ -894,6 +895,7 @@ def apply_confirmation(policy, events, portfolio, peer_payload, factor_payload):
         peer_usable = bool(peer_observed and usable_peer_rules)
         event['confirmation'] = {
             'price_change_pct': price_pct,
+            'price_change_basis': 'session',
             'price_proxy_ticker': proxy['ticker'] if proxy else None,
             'price_aligned': price_aligned,
             'volume_ratio_vs_20d_median': (
