@@ -250,7 +250,7 @@ def test_report_preflight_publishes_plan_context(report_preflight, monkeypatch, 
     monkeypatch.setattr(module.workflow_outcomes, "record_stage", lambda *a, **k: None)
     monkeypatch.setattr(sys, "argv", ["report_preflight.py", "--market", "hk", "--phase", "open"])
 
-    assert module.main() == 0
+    assert module._collect() == 0
     written = json.loads(next(tmp_path.glob("report-context-hk-open-*.json")).read_text())
     assert written["plan_context"]["open"][0]["ticker"] == "07226"
     # HK phase must not be handed the US leg's swaps.
@@ -266,7 +266,7 @@ def test_intraday_preflight_publishes_plan_context(intraday_preflight, monkeypat
     monkeypatch.setattr(module, "collect_peers", lambda market: {})
     monkeypatch.setattr(sys, "argv", ["intraday_preflight.py", "--market", "us"])
 
-    assert module.main() == 0
+    assert module._collect() == 0
     written = json.loads((tmp_path / "intraday-context-us-latest.json").read_text())
     assert written["plan_context"]["open"][0]["ticker"] == "07226"
     assert written["plan_context"]["_leg"] == "US"
@@ -336,7 +336,7 @@ def test_report_block_carries_the_orders_under_the_analyzer_block(
     monkeypatch.setattr(module, "_market_closed_reason", lambda *a: None)
     monkeypatch.setattr(sys, "argv", ["report_preflight.py", "--market", "hk", "--phase", "open"])
 
-    assert module.main() == 0
+    assert module._collect() == 0
     written = json.loads(next(tmp_path.glob("report-context-hk-open-*.json")).read_text())
     block = written["raw_wechat_block"].splitlines()
     assert block[0] == "🇭🇰 港股开盘 | data"
