@@ -123,9 +123,12 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 查 cron / dreaming：`openclaw cron list --json`。
 - coding agent 额度随时变，派发前先查，不要信 MEMORY.md 里的旧记录：
   `cd /root/tools/agent-dispatch && node quota.mjs codex`（或 `claude`）。
-  额度耗尽的 worker 会 `state=quota` 直接收尾且没有报告 —— 派发授权要一次写全
-  （含合并/部署），别指望它第二轮补。大任务把 `--quota-resumes` 调高（默认 1 不够，
-  一个 README 重构轮就烧掉 3 次重试）。
+- 额度耗尽不等于收尾：runner 默认 `--quota-resumes 3`，额度窗口重置后（codex 5h 窗约
+  13:54 HKT）在同一会话自动续跑并重放上下文。派发授权仍要一次写全（含合并/部署），
+  但「worker 直接交白卷」只发生在续跑次数用完时。
+- codex `gpt-6-astra` + high 是额度老虎：2026-10-21 一次 6 条 issue 的 sweep 15 分钟烧完
+  整个 5h 窗（6.95M tokens，约 $11.6）。默认的 `gpt-6.1-sol`/medium 慢而省；派 astra 前
+  先估算要几个额度窗口。
 - 跨调度源的 HKT 时间线：`bash ops/host/check_crons.sh --timeline`。
 - 查 gateway：`curl http://127.0.0.1:18789/health`。
 - cron contract 是 `config/cron-schedules.json`，它驱动 DST 同步、payload / watchdog 校验

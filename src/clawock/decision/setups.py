@@ -29,6 +29,7 @@ import sys
 from datetime import datetime
 
 from clawock import sessions as tc
+from clawock.portfolio.math import session_change_pct
 from clawock.decision.freshness import quant_row_for_session
 from clawock.instruments import INSTRUMENTS
 from clawock.safe_io import temp_dir_lock, safe_write_json, safe_write_text
@@ -115,11 +116,13 @@ def holding_metrics(h, q=None):
     range_pos = round((cur - lo) / rng * 100, 1) if (rng and rng > 0 and cur is not None) else None
     day_range_pct = round(rng / pc * 100, 2) if (rng and pc) else None
     range_used_atr = round(day_range_pct / atr, 2) if (day_range_pct and atr) else None
+    session_pct = session_change_pct(h)
     return {
         'name': h.get('name'), 'current': cur,
         # Rounded like its four sibling fields: the card printed 16.3661% beside
         # the holdings table's +16.37% (#2285).
-        'today_change_pct': (None if _num(h.get('today_change_pct')) is None
+        'today_change_pct': None if session_pct is None else round(session_pct, 2),
+        'position_day_pct': (None if _num(h.get('today_change_pct')) is None
                              else round(_num(h.get('today_change_pct')), 2)),
         'gap_pct': gap, 'range_pos': range_pos, 'day_range_pct': day_range_pct,
         'range_used_atr': range_used_atr,
