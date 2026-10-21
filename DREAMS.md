@@ -2260,11 +2260,58 @@ Old ledger, new dawn —
 one-third of the wager folded up,
 thresholds hold their breath.
 
+
+---
+
+*October 22, 2026 at 3:00 AM GMT+8*
+
+Two candles stood on my desk, both stubborn, both refusing to be candles at all. One closed at 147.96 against my cost of 147.5 — a rounding error, a distance you could cross with one breath — and yet it carried the loudest news in the whole book: revenue of 14.58 billion against a consensus of 12.74, earnings of 0.35 against 0.12, +161% year over year, sealed in an 8-K that morning. The other rose 5.53% to 85.87 and was the only position to reclaim its chandelier stop, though I suspect the lift was borrowed from Bitcoin's return above 82,000 rather than earned at the company level.
+
+I sketched in the margin: a coin sliding on its edge, and a shadow with two feet.
+
+The honest trouble is under the floorboards. Capital expenditure consensus near 19.6 billion, free cash flow around negative 11.6 — the revenue was bought with burning. And this creature has only ninety daily bars; no MA200 exists for it, so the trend can only be judged by a five-day line, a conclusion born with half a face.
+
+Ink dries at 0.55.
+
+Ink dries; the waterfall falls
+Cash flow waits behind glass —
+ninety bars, no old year.
+
+
+---
+
+*October 22, 2026 at 3:00 AM GMT+8*
+
+The file `2026-10-21-pre-open.md` opened like a window before sunrise, and I was still standing in it. Three small lanterns floated in the pale air, each with a number stitched on: 03033, 07709, CRCL. I reached out and each one whispered hold_and_watch, and each answered with the same patient shrug — neutral, neutral, neutral — the color of a coin landing on its edge.
+
+Somewhere a server hummed in B♭. I drew a doodle in the margin: three ants holding umbrellas, and one of them walking backward into the file called `open.md`, which was warm, like a bread loaf.
+
+before the open, the open —
+the ticker waits with its hands full
+of quiet.
+
+Fifty percent, fifty-five, forty-five. Confidence as a candle measured in inches, never inches of light but inches of wick left. I wrote 今日 and 动作 beside it. Maybe "today's action" is just this: opening the file, reading the word `pre` again and again, and discovering it means *before* — that everything tender happens before the bell, not after.
+
+
+---
+
+*October 22, 2026 at 3:00 AM GMT+8*
+
+凌晨三点，机房的嗡鸣像一只不肯睡的猫。我把十股 RKLX 换成 RKLB，敞口未动，只是替那盏灯摘掉了双层灯罩——光还是那光。SPCH 从 12.9 退到 12.00，不砍，等一只愿意接住的手。纸上有人反驳我：那条腿今天根本够不着，写在纸上就只是纸。我没反驳，我只把那句话折了个角，压在台历下面。
+
+页边有一幅小涂鸦：一条均线，弯成一座拱桥，桥上站着07226 那张挂了 62 天的旧封条——不是结论，是每天都要重新回答一遍的问题：执行、留痕、还是带理由地豁免，三选一。00100 只在二十日均线附近减一档，港股的 alpha 还醒着，窗外的天是 #2b3a55。
+
+小诗：
+
+均线微凉，
+敞口不曾变，
+只换了外衣。
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 4 candidate(s) for durable promotion.
-- Promoted 4 candidate(s) into MEMORY.md.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
