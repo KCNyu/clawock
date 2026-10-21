@@ -22,3 +22,28 @@ def run_bounded(argv, *, timeout, cwd, env=None):
                 child.kill()
             child.wait()
             raise
+
+
+def supervise_preflight(module, argv, *, workspace, job, slot, started, shipped):
+    """Record collector deaths outside the collector, including SIGKILL.
+
+    The worker owns normal terminal outcomes. The parent only fills a missing
+    outcome for this attempt, and never alters a previously delivered slot.
+    """
+    import sys
+    from clawock.automation import workflow_outcomes
+
+    command = [sys.executable, '-u', '-c',
+               f'from {module} import _collect; import sys; '
+               'raise SystemExit(_collect(sys.argv[1:]))',
+               *(sys.argv[1:] if argv is None else argv)]
+    code = run_bounded(command, timeout=None, cwd=workspace,
+                       env={**os.environ, 'CLAWOCK_PREFLIGHT_STARTED_AT': started.isoformat()})
+    if code and not shipped:
+        died = (f'signal {signal.Signals(-code).name}'
+                if -code in set(signal.Signals) else f'exit {code}')
+        workflow_outcomes.record_stage(
+            job, 'preflight', 'failed', slot=slot, reason='preflight_crashed',
+            detail=f'collector ended without an outcome ({died})', return_code=code,
+            unless_terminal_since=started)
+    return code

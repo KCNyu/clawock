@@ -447,7 +447,8 @@ def attempt_still_running(context, last_run):
     already been superseded. The preflight context is the signal that is already
     on disk: it is written at the start of an attempt, so a context generated
     AFTER the newest finished run ended means another attempt began after that
-    run and has not finished.
+    run and may not have finished. Read live job state first: a manual preflight
+    can write a newer context after the scheduled agent has already ended.
 
     2026-08-11 00:00 US is the case this exists for: attempts at 00:00, 00:01:55
     and 00:03:30 all errored, the fourth started 00:07:14 and ran 275s, and the
@@ -465,6 +466,27 @@ def attempt_still_running(context, last_run):
     drift the same_generation_window sharing note (#458) already warned about.
     """
     generated_at = (context or {}).get('generated_at')
+    job_name = ((context or {}).get('heartbeat') or {}).get('job')
+    if not job_name and (context or {}).get('market') and (context or {}).get('phase'):
+        from clawock.automation.workflow_outcomes import job_for
+        job_name = job_for(context['market'], context['phase'])
+    if generated_at and job_name:
+        runtime = _openclaw.read_jobs('sqlite')
+        if runtime.source == 'sqlite':
+            job = next((row for row in runtime.entries if row.get('name') == job_name), None)
+            state = (job or {}).get('state') or {}
+            running_at = state.get('runningAtMs')
+            if (job or {}).get('status') == 'running' or running_at is not None:
+                heartbeat = (context or {}).get('heartbeat') or {}
+                if isinstance(running_at, (int, float)) and heartbeat.get('slot'):
+                    from clawock.automation.cron_heartbeat import slot_for
+                    active = datetime.fromtimestamp(running_at / 1000, HKT)
+                    return slot_for(context.get('market'), active)[1] == heartbeat['slot']
+                return True
+            if isinstance(state.get('lastRunAtMs'), (int, float)):
+                # An idle runtime is affirmative evidence, unlike an old finished
+                # run or preflight_ok (the scheduled agent can still be writing).
+                return False
     if last_run is UNFINISHED_RUN:
         # No attempt of this slot has finished at all, and the slot's own
         # preflight context is already on disk: the first attempt is the one
@@ -506,8 +528,8 @@ def wait_out_inflight(context, last, *, refresh, budget_s, poll_s, tag,
     waited = 0
     while attempt_still_running(context, last) and waited < budget_s:
         log({'tag': tag, 'action': 'wait-inflight',
-             'reason': 'a newer attempt is still running — preflight context '
-                       'postdates the newest finished run',
+             'reason': 'runtime reports an active attempt, or a newer context '
+                       'has no authoritative completion evidence',
              **lead,
              'context_generated_at': context.get('generated_at'),
              'last_finished_ms': last.get('ts'),

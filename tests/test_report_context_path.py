@@ -120,7 +120,7 @@ def test_market_closed_run_announces_context_path_as_final_line(
     stale = tmp_context_dir / 'report-context-us-close-2026-07-23.json'
     stale.write_text('{"stale": true}')
 
-    assert preflight.main() == 0
+    assert preflight._collect() == 0
 
     lines = capsys.readouterr().out.strip().splitlines()
     assert lines[-1].startswith('context_path: ')
@@ -142,7 +142,7 @@ def test_preflight_failure_run_also_announces_context_path(
     monkeypatch.setattr(sys, 'argv',
                         ['report_preflight.py', '--market', 'us', '--phase', 'close'])
 
-    assert preflight.main() == 1
+    assert preflight._collect() == 1
 
     lines = capsys.readouterr().out.strip().splitlines()
     assert lines[-1].startswith('context_path: ')

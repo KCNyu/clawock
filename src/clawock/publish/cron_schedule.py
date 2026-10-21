@@ -96,6 +96,8 @@ def _narrate_recovered(record):
 
 
 def _narrate_degraded(record):
+    if (record.get("final_product") or {}).get("fallback_only"):
+        return _note(NEEDS_ACTION, "采集崩了，兜底卡代替；查 preflight 失败原因")
     postflight = (record.get('stages') or {}).get('postflight') or {}
     delivery = (record.get('stages') or {}).get('primary_delivery') or {}
     wechat_ok = delivery.get('wechat_ok')

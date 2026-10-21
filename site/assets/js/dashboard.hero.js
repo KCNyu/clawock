@@ -1408,7 +1408,7 @@
     const slotsWith = (...states) => (wf.degraded_slots || [])
       .filter(r => states.includes((r || {}).status))
       .map(r => ({ job: r.job || "未具名任务", what: SOFT_CN[r.status] || r.status || "",
-                   status: r.status, reason: String(r.reason || ""), slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
+                   status: r.status, fallback_only: !!r.fallback_only, reason: String(r.reason || ""), slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
     // 同一个任务的几档合成一条：「A 降级 2 档、B 降级」，而不是把 A 念两遍。
     const nameThem = (total, rows) => {
       if (!rows.length) return "";
@@ -1460,6 +1460,7 @@
 
     // ── 需处理：整块牌上唯一「你该动手」的地方 ─────────────────────────
     const todo = [];
+    const crashedFallbacks = slotsWith("degraded").filter(r => r.fallback_only);
     late.forEach(f => todo.push({ name: dataFileCn(f.name), where: f.name, why: detailOf(f),
       next: f.present === false ? "文件没生成，查它的生成任务" : "页面上这块是旧数字，查它的生成任务" }));
     igTop.filter(t => levelOf(t) === "ERROR").forEach(t => todo.push({
@@ -1470,6 +1471,9 @@
     slotsWith("failed").filter(r => !seen.has(`${r.job}@${r.slot}`)).forEach(r => todo.push({
       name: r.job, where: r.slot, why: "成品未落地（final_product=failed）",
       next: "看 workflow-outcomes.json 里这一槽的 stages" }));
+    crashedFallbacks.filter(r => !seen.has(`${r.job}@${r.slot}`)).forEach(r => todo.push({
+      name: r.job, where: r.slot, why: r.reason,
+      next: "看 workflow-outcomes.json 里这一槽的 preflight" }));
     cronTodo.forEach(c => todo.push({
       name: c.job, where: c.at, why: (c.slot.note || {}).text || `${DH_SLOT[c.state][1]}`,
       next: c.state === "missed" ? "看 openclaw cron 有没有卡住" : "看 workflow-outcomes.json 这一槽的 stages" }));
@@ -1512,7 +1516,8 @@
 
     // ── 四个领域读数：数据面 / 体检 / 成品 / 定时任务 ──────────────────
     const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
-    const deliveredCount = okCount + soft;
+    const fallbackOnly = Number(wf.fallback_only) || crashedFallbacks.length;
+    const deliveredCount = okCount + soft - fallbackOnly;
     const landed = n("ok") + n("recovered") + n("degraded") + n("quiet");
     const due = cells.length - n("upcoming") - n("running") - n("unmonitored") - n("closed");
     const nowAt = dhHktClock(now);
@@ -1534,13 +1539,14 @@
         note: igFinding ? String(igFinding.msg || igFinding.code || "")
           : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
-        tone: failed || noRecord ? "bad" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "warn" : "ok"),
-        state: failed || noRecord ? "需处理" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "观察" : "正常"),
+        tone: failed || noRecord || fallbackOnly ? "bad" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "warn" : "ok"),
+        state: failed || noRecord || fallbackOnly ? "需处理" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "观察" : "正常"),
         value: slotTotal ? `${deliveredCount}/${slotTotal}` : DASH, unit: "送达",
         note: wfCopied ? `这一格来自上一次发布（${wfCopied}），本次构建没读到投递台账`
           : failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
           : noRecord ? `${noRecord} 档到期无记录${noRecordNames ? `（${noRecordNames}${noRecord > (wf.no_record_slots || []).length ? " 等" : ""}）` : ""}`
           : unconfirmed ? `${nameThem(unconfirmed, slotsWith("artifact_only")) || `${unconfirmed} 档仅存档`}，投递未确认`
+          : fallbackOnly ? `${nameThem(fallbackOnly, crashedFallbacks) || `${fallbackOnly} 档采集失败、只有兜底卡`}，需处理`
           : soft ? `${nameThem(soft, slotsWith("recovered", "degraded")) || `${soft} 档恢复或降级`}，成品已送达`
           : noRecordUnknown && slotTotal ? "到期槽位未核对（排程契约读不到），只数了已有记录"
           : (pending ? `${pending} 档进行中` : (slotTotal ? "全部按时送达" : "窗口内没有成品投递记录")) },

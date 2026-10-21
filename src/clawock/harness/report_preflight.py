@@ -49,7 +49,10 @@ from clawock.automation import delivery_receipts
 from clawock.safe_io import safe_write_text
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
+from clawock.harness.deadline import supervise_preflight
+
 import argparse
+import os
 import json
 import re
 import sys
@@ -299,11 +302,15 @@ def live_information(market, *, now=None):
             'summary': live_sources.summarize(result.get('tickers'), per_ticker=4)}
 
 
-def main(argv=None):
+def _parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
-    args = parser.parse_args(argv)
+    return parser.parse_args(argv)
+
+
+def _collect(argv=None):
+    args = _parse_args(argv)
 
     if (args.market, args.phase) not in TITLE_TEMPLATES:
         print(f'❌ invalid market+phase combo: {args.market}/{args.phase}', file=sys.stderr)
@@ -311,7 +318,7 @@ def main(argv=None):
 
     today = trading_calendar.hkt_today().isoformat()
     job_name = workflow_outcomes.job_for(args.market, args.phase)
-    slot = workflow_outcomes.slot_for_job(job_name)
+    slot = workflow_outcomes.slot_for_job(job_name, datetime.fromisoformat(os.environ['CLAWOCK_PREFLIGHT_STARTED_AT']) if os.environ.get('CLAWOCK_PREFLIGHT_STARTED_AT') else None)
     # A re-run of a slot an earlier attempt already delivered still rebuilds the
     # context, but files no preflight stage: the slot's row belongs to the
     # attempt that delivered it (see slot_shipped).
@@ -473,6 +480,20 @@ def main(argv=None):
     print(json.dumps(result, ensure_ascii=False, indent=2))
     announce_context_path(out_path)
     return 0
+
+
+def main(argv=None):
+    # The parent records preflight_crashed if the collector leaves no outcome.
+    args = _parse_args(argv)
+    if (args.market, args.phase) not in TITLE_TEMPLATES:
+        return 2
+    now = datetime.now(trading_calendar.HKT)
+    job = workflow_outcomes.job_for(args.market, args.phase)
+    slot = workflow_outcomes.slot_for_job(job, now)
+    shipped = slot_shipped(TMP, 'report', market=args.market, phase=args.phase,
+                           date=now.date().isoformat())
+    return supervise_preflight('clawock.harness.report_preflight', argv, workspace=WS, job=job,
+                               slot=slot, started=now, shipped=shipped)
 
 
 if __name__ == '__main__':

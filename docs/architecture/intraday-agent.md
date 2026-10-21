@@ -53,12 +53,12 @@ cron slot ─► preflight ───────────► model ───�
 | Step | Owner | Does | On failure |
 |---|---|---|---|
 | cron slot | OpenClaw cron (`config/cron-schedules.json`, payload `config/cron-payloads/intraday.md`) | starts the turn at the slot time | watchdog judges the exact slot |
-| preflight | harness | analyzer run → `analyzer_block`; signals/anomalies; plans, setups, radar, add-side reads; information lane; delta vs last delivery; soft candidates; card blocks; writes the context and prints the core packet | analyzer failure → `preflight_failed` (watchdog sends); any source failure → full card with a `⛔` line, never silence |
+| preflight | harness | analyzer run → `analyzer_block`; signals/anomalies; plans, setups, radar, add-side reads; information lane; delta vs last delivery; soft candidates; card blocks; writes the context and prints the core packet | analyzer failure → `preflight_failed`; parent supervision records `preflight_crashed` on an unrecorded collector exit/signal (watchdog sends); any source failure → full card with a `⛔` line, never silence |
 | model | LLM | reads the core packet, fetches references it needs, writes `▎我的看法` and the `下一触发：` line | no prose / stale prose → postflight `input_error`, watchdog sends the data block |
 | postflight | harness | validates the prose (§7), assembles blocks per channel, sends, records | validation fail → data block + top banner (never empty); warn → sent with a banner |
 | delivery | harness via OpenClaw channels | WeChat (primary), Telegram (mirror and backstop), each retried on its own | a failed channel is recorded per channel; the other still sends |
-| watchdog | harness (`intraday_watchdog`) | checks the exact slot marker; resends the channel that did not land | WeChat-failed alert to Telegram at most once per market per day (#1861) |
-| ledgers | harness | heartbeat, workflow outcomes, delivered-state cursor, dashboard data plane | a failed publish is its own state (`publish_failed`); watchdog delivery confirmation cannot clear it (#2234) |
+| watchdog | harness (`intraday_watchdog`) | checks the exact slot marker and live cron running state (a completed manual preflight does not consume the in-flight wait); resends the channel that did not land | WeChat-failed alert to Telegram at most once per market per day (#1861) |
+| ledgers | harness | heartbeat, workflow outcomes, delivered-state cursor, dashboard data plane | collector crashes survive diagnostic preflight retries; a fallback without judgment/postflight is degraded and needs attention; a failed publish is its own state (`publish_failed`); watchdog delivery confirmation cannot clear it (#2234) |
 
 ### Prompt files a slot loads
 

@@ -77,3 +77,36 @@ def test_each_watchdog_keeps_its_own_log_fields(logged):
     assert waiting['expected_slot'] == slot['expected_slot'] and waiting['run_at'] == 1
     assert verdict['action'] == 'attempt-finished'
     assert verdict['expected_job'] == slot['expected_job'] and verdict['waited_s'] == 30
+
+
+@pytest.mark.parametrize('mode', ['intraday', 'report'])
+def test_manual_context_after_finished_cron_does_not_wait(monkeypatch, logged, mode):
+    from clawock.providers.openclaw import CronRead
+    job = '盘中盯盘' if mode == 'intraday' else '港股开盘报告'
+    context = {**CONTEXT, 'market': 'hk'}
+    if mode == 'intraday':
+        context['heartbeat'] = {'job': job, 'slot': '2026-08-11T00:00:00+08:00'}
+    else:
+        context['phase'] = 'open'
+    monkeypatch.setattr(common._openclaw, 'read_jobs', lambda *_: CronRead([
+        {'name': job, 'state': {'lastRunAtMs': BEFORE['ts'], 'lastStatus': 'ok'}}], 'sqlite'))
+    _, _, waited = common.wait_out_inflight(
+        context, BEFORE, refresh=lambda c, r: (c, r), budget_s=600, poll_s=30,
+        tag=mode, sleep=lambda _: pytest.fail('completed manual context consumed budget'))
+    assert waited == 0
+    # Completion of collection must not release a still-running scheduled agent.
+    monkeypatch.setattr(common._openclaw, 'read_jobs', lambda *_: CronRead([
+        {'name': job, 'state': {'runningAtMs': BEFORE['ts']}}], 'sqlite'))
+    assert common.attempt_still_running(context, BEFORE)
+    monkeypatch.setattr(common._openclaw, 'read_jobs', lambda *_: CronRead([], 'empty'))
+    assert common.attempt_still_running(context, BEFORE)
+
+
+def test_next_intraday_slot_does_not_hold_previous_slot_open(monkeypatch):
+    from clawock.providers.openclaw import CronRead
+    context = {**CONTEXT, 'market': 'hk',
+               'heartbeat': {'job': '盘中盯盘', 'slot': '2026-08-11T00:00:00+08:00'}}
+    next_run = int(datetime(2026, 8, 11, 0, 33, tzinfo=HKT).timestamp() * 1000)
+    monkeypatch.setattr(common._openclaw, 'read_jobs', lambda *_: CronRead([
+        {'name': '盘中盯盘', 'state': {'runningAtMs': next_run}}], 'sqlite'))
+    assert not common.attempt_still_running(context, BEFORE)

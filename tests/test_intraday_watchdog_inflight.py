@@ -329,3 +329,11 @@ def test_only_an_earlier_slots_run_still_waits_for_this_slots_attempt(
     sent, slept = _drive(wd, tmp_path, monkeypatch, script=[earlier, earlier])
 
     assert slept and sent
+
+
+@pytest.fixture(autouse=True)
+def isolate_live_cron_state(monkeypatch):
+    from clawock.providers.openclaw import CronRead
+    from clawock.harness import _watchdog_common
+    monkeypatch.setattr(_watchdog_common._openclaw, 'read_jobs',
+                        lambda *a, **kw: CronRead([], 'empty'))

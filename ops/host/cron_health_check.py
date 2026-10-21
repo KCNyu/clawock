@@ -82,13 +82,13 @@ DASHBOARD_STATE_ICONS = {
 
 # Cron name → identifying commit msg patterns
 COMMIT_PATTERNS = {
-    '港股开盘报告': r'港股开盘',
-    '港股午盘报告': r'港股午盘',
-    '港股午后快报': r'港股午后',
-    '港股收盘报告': r'港股收盘',
-    '美股开盘报告': r'美股开盘',
-    '美股收盘报告': r'美股收盘',
-    '盘前深度简报': r'daily deep brief',
+    '港股开盘报告': r'^portfolio: 港股开盘价格更新$',
+    '港股午盘报告': r'^portfolio: 港股午盘价格更新$',
+    '港股午后快报': r'^portfolio: 港股午后价格更新$',
+    '港股收盘报告': r'^portfolio: 港股收盘价格更新$',
+    '美股开盘报告': r'^portfolio: 美股开盘价格更新$',
+    '美股收盘报告': r'^portfolio: 美股收盘价格更新$',
+    '盘前深度简报': r'^memory: daily deep brief \d{4}-\d{2}-\d{2}(?: \(.*\))?$',
     '盘中盯盘': None,        # Mode 7 dashboard commit 不是 one-per-slot contract
     '美股盘中盯盘': None,    # same
     '美股盘中盯盘-overnight': None,

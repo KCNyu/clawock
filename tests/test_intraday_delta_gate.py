@@ -333,7 +333,7 @@ def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"state": previous}))
         with redirect_stdout(io.StringIO()):
-            assert preflight.main(["--market", "us"]) == 0
+            assert preflight._collect(["--market", "us"]) == 0
         return json.loads((preflight.TMP / "intraday-context-us-latest.json").read_text())
 
     return current, run
@@ -413,7 +413,7 @@ def test_the_live_information_lane_waits_alongside_the_analyzer_and_states_its_g
     path.write_text(json.dumps({"state": copy.deepcopy(current)}))
     out = io.StringIO()
     with redirect_stdout(out):
-        assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
+        assert preflight._collect(["--market", "us", "--judgment-packet"]) == 0
     packet = json.loads(out.getvalue())
 
     banner = [line for line in packet["raw_wechat_block"].splitlines()
@@ -700,7 +700,7 @@ def test_the_model_packet_keeps_reason_lines_the_card_folded(monkeypatch, tmp_pa
     path.write_text(json.dumps({"state": previous}))
     out = io.StringIO()
     with redirect_stdout(out):
-        assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
+        assert preflight._collect(["--market", "us", "--judgment-packet"]) == 0
     packet = json.loads(out.getvalue())
 
     assert '- 仍在止损线下：**RKLX**' in packet["raw_wechat_block"]
@@ -744,7 +744,7 @@ def test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet
     path.write_text(json.dumps({"state": copy.deepcopy(current)}))
     out = io.StringIO()
     with redirect_stdout(out):
-        assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
+        assert preflight._collect(["--market", "us", "--judgment-packet"]) == 0
     packet = json.loads(out.getvalue())
     assert "⛔ 资讯缺口：东财7×24 未取到（不是无消息）" in \
         packet["raw_wechat_block"].splitlines()
@@ -764,7 +764,7 @@ def test_a_search_that_did_not_answer_is_on_the_card(monkeypatch, tmp_path):
     path.write_text(json.dumps({"state": copy.deepcopy(current)}))
     out = io.StringIO()
     with redirect_stdout(out):
-        assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
+        assert preflight._collect(["--market", "us", "--judgment-packet"]) == 0
     packet = json.loads(out.getvalue())
     assert "⛔ 数据降级：异动检索：SPCH（未取到）（不是无消息）" in packet["raw_wechat_block"].splitlines()
     assert packet["anomaly_search"]["SPCH"]["status"] == "unavailable"

@@ -29,7 +29,10 @@ NB: Mode 7 is lightweight on purpose (8 HK + 10 US slots per trading day).
 from clawock.harness import chat_card
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
+from clawock.harness.deadline import supervise_preflight
+
 import argparse
+import os
 import json
 import re
 import subprocess
@@ -1531,13 +1534,17 @@ def decision_sweep(stdout, coverage, plan_context, radar, t0_setups):
     return holdings, candidates
 
 
-def main(argv=None):
+def _parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--judgment-packet', action='store_true')
-    args = parser.parse_args(argv)
+    return parser.parse_args(argv)
 
-    now = datetime.now(trading_calendar.HKT)
+
+def _collect(argv=None):
+    args = _parse_args(argv)
+
+    now = datetime.fromisoformat(os.environ['CLAWOCK_PREFLIGHT_STARTED_AT']) if os.environ.get('CLAWOCK_PREFLIGHT_STARTED_AT') else datetime.now(trading_calendar.HKT)
     stamp = now.strftime('%Y-%m-%d_%H%M')
     job_name, slot = cron_heartbeat.slot_for(args.market, now)
     # A re-run of a slot an earlier attempt already delivered keeps building its
@@ -2054,6 +2061,16 @@ def main(argv=None):
     print(json.dumps(judgment_packet(result) if args.judgment_packet else result,
                      ensure_ascii=False, indent=2))
     return 0
+
+
+def main(argv=None):
+    # The parent records preflight_crashed if the collector leaves no outcome.
+    args = _parse_args(argv)
+    now = datetime.now(trading_calendar.HKT)
+    job, slot = cron_heartbeat.slot_for(args.market, now)
+    shipped = slot_shipped(TMP, 'intraday', market=args.market, slot=slot)
+    return supervise_preflight('clawock.harness.intraday_preflight', argv, workspace=WS, job=job,
+                               slot=slot, started=now, shipped=shipped)
 
 
 if __name__ == '__main__':

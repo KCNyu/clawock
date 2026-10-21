@@ -294,3 +294,11 @@ def test_no_run_and_no_report_block_is_still_a_quiet_skip(wd, tmp_path, monkeypa
     assert wd.main() == 0
     assert sent == []
     assert events[-1]['reason'] == 'no completed run recorded today'
+
+
+@pytest.fixture(autouse=True)
+def isolate_live_cron_state(monkeypatch):
+    from clawock.providers.openclaw import CronRead
+    from clawock.harness import _watchdog_common
+    monkeypatch.setattr(_watchdog_common._openclaw, 'read_jobs',
+                        lambda *a, **kw: CronRead([], 'empty'))
