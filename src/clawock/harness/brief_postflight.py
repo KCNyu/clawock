@@ -884,6 +884,7 @@ CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id', '敷衍词',
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
     'book inputs invalid', 'book totals mismatch:',
+    '仓位支配度不符',
 ]  # table mismatch, cross-generation output and placeholder prose are critical
 
 
@@ -1452,6 +1453,9 @@ def _plan_self_reference_issues(plan):
 
 def _brief_numeric_issues(judgment_path, plan, context):
     """Check all published model prose, with each ticker row's identity intact."""
+    from clawock.portfolio.guardrail import plan_trim_projections
+    context = {**(context or {}),
+               'plan_trim_projections': plan_trim_projections(context or {}, plan)}
     try:
         overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
     except (OSError, ValueError):

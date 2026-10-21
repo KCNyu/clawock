@@ -371,6 +371,7 @@ Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 **回撤复盘的最大教训:亏不是因为"没听 LLM",是因为组合构造**(US β≈4.4、73% 杠杆 ETF、HK 85% 单因子)。任何一个 driven_by 面都没提前叫出来——这不是信号问题,是**风控纪律层缺失**。所以在所有 driven_by/regime 逻辑之上,先过一道仓位硬闸。
 
 preflight 已算好,直接读 `context.risk_guardrail`:
+- `concentration_reviews[].trim_to_review_line` 是按当前价、卖出同时缩小持仓腿分母、整手向上取整的情景尺寸，不是卖出授权。`trim_inputs` 给出复算输入。不能把原占比按剩余股数等比缩放；不同触发价须重算该票剩余市值与腿总市值。postflight 按 plan 的卖出股数及触发价生成减仓后支配度，未核算的百分比不要写进理由或导语；高于复核线不得声称已压回线下。
 - `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
 - `directive` — 本次总指令；`caps` — 当前阈值（2026-10-11 kcn：集中与杠杆 ETF 敞口不设上限。单名超过 35% 只进 `concentration_reviews`，杠杆与否都不算 breach；单名、相关 cluster、杠杆 ETF 占比上限都是整段 100%，杠杆 ETF 占比仍按港股制度乘数收紧；US β 6.0；杠杆止损 −18%）。持仓策略带 `forbid_reduce_advice` 的票（现为 `infinite_ammo_dca`）不出硬止损和 `regime_delever` 行。Top2 仅展示，不再冒充同因子。
