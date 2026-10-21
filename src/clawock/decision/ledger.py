@@ -30,6 +30,7 @@ from pathlib import Path
 
 from clawock import seeds
 from clawock import sessions as _cal
+from clawock.portfolio.math import trade_session_date
 from clawock.decision import proposals
 from clawock.decision.mind_record import validate_mind_record
 from clawock.decision.book import plan_totals, validate_plan_book
@@ -1558,7 +1559,7 @@ def match_real_executions(decisions: list[dict], portfolio: dict) -> dict[str, d
         rows = [
             t for t in trades
             if t.get("ticker") == decision.get("ticker")
-            and t.get("date") == session
+            and trade_session_date(t["leg"].lower(), t) == session
             and str(t.get("action") or "").lower() == direction
             and _int(t.get("shares")) == shares
             and _float(t.get("price")) is not None

@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from typing import Any
-from datetime import date
+from datetime import date, datetime, time
+from zoneinfo import ZoneInfo
 import re
 
 # The ledger's float-or-None reading is the shared one (#2625).
@@ -178,7 +179,8 @@ def session_date(market, day):
     that raw date against a snapshot named for the session drops the fill from
     the very session that contains it.
 
-    Only non-session dates move, and only when the calendar covers that year —
+    This date-only fallback moves non-session dates when the calendar covers that year.
+    Fill readers use `trade_session_date` to also resolve an explicit HKT clock —
     a real session date, an unknown market, or a year the holiday tables do not
     reach is returned unchanged rather than guessed at.
     """
@@ -199,6 +201,41 @@ def session_date(market, day):
     return previous_trading_day(market, parsed).isoformat()
 
 
+def trade_session_date(market, trade):
+    """Resolve a fill's session without changing its recorded calendar date.
+
+    Legacy notes carry an explicit HKT clock, sometimes with their own date
+    (the ledger date may already be a session date). Prefer that dated stamp;
+    a clock alone uses the ledger date. Missing/ambiguous clocks keep the
+    existing holiday/weekend rule. No clock is inferred from a bare date.
+    """
+    market = {'us_stocks': 'us', 'hk_stocks': 'hk'}.get(market, market)
+    day = ledger_date(trade.get('date'))
+    from clawock.sessions import MARKET_TZ, covered_years, previous_trading_day
+    if market not in MARKET_TZ:
+        return day
+    note = trade.get('note') or ''
+    if not isinstance(note, str):
+        return session_date(market, day)
+    stamps = list(re.finditer(
+        r'(?:(\d{4}-\d{2}-\d{2})[^0-9]{0,12})?(?<![\d:])(\d{1,2}):(\d{2})\s*HKT', note))
+    if len(stamps) != 1:
+        return session_date(market, day)
+    stamp = stamps[0]
+    try:
+        moment = datetime.combine(date.fromisoformat(stamp[1] or day),
+                                  time(int(stamp[2]), int(stamp[3])),
+                                  ZoneInfo(MARKET_TZ['hk']))
+    except ValueError:
+        return session_date(market, day)
+    local = moment.astimezone(ZoneInfo(MARKET_TZ[market]))
+    if local.year not in covered_years(market):
+        return day
+    if local.time() < time(9, 30):
+        return previous_trading_day(market, local.date()).isoformat()
+    return session_date(market, local.date().isoformat())
+
+
 def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None, market=None) -> tuple[float, float]:
     """Day P&L of the remaining position and its matching reference capital.
 
@@ -211,7 +248,7 @@ def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None, ma
     current = number(holding.get('current_price') if current is None else current) or 0
     prev = number(holding.get('prev_close')) or 0
     trades = [t for t in ledger_rows(holding.get('trades'))
-              if session and session_date(market, ledger_date(t.get('date'))) == session
+              if session and trade_session_date(market, t) == session
               and t.get('action') in ('buy', 'sell')
               and (number(t.get('shares')) or 0) > 0
               and number(t.get('price')) is not None]
