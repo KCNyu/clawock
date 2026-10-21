@@ -483,7 +483,10 @@ def test_dashboard_source_survives_unpublished_and_rewritten_local_head(tmp_path
     assert private_block['ledger']['public_source_verified'] is False
     # The runner cloned just before a newly public commit arrived. Only the
     # missing object is fetched; the public source digest still has to match.
+    from clawock.publish.dashboard import dashboard_input_fingerprint
+    before = dashboard_input_fingerprint(desk)
     git(desk, 'push', 'origin', 'master')
+    assert dashboard_input_fingerprint(desk) != before
     prov.verify_public_source(private_block, desk)
     prov.verify_committed_source(private_block, runner, fetch_missing=True)
     assert prov.committed_source(runner, private_ref) == (private_rows, private_ref)

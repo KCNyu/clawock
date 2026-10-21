@@ -243,11 +243,16 @@ def settlement_source_digest(rows):
     return hashlib.sha256('\n'.join(sorted(projected)).encode()).hexdigest()
 
 
-def committed_source(workspace, ref='HEAD'):
-    """Read one immutable ledger generation; never consume uncommitted execution edits."""
-    commit = subprocess.run(
+def committed_ref(workspace, ref):
+    """Resolve a ref once, shared by source reads and the input fingerprint."""
+    return subprocess.run(
         ['git', 'rev-parse', '--verify', '--end-of-options', f'{ref}^{{commit}}'], cwd=workspace,
         capture_output=True, text=True, timeout=15, check=True).stdout.strip()
+
+
+def committed_source(workspace, ref='HEAD'):
+    """Read one immutable ledger generation; never consume uncommitted execution edits."""
+    commit = committed_ref(workspace, ref)
     raw = subprocess.run(
         ['git', 'show', f'{commit}:{LEDGER_PATH}'], cwd=workspace,
         capture_output=True, text=True, timeout=15, check=True).stdout

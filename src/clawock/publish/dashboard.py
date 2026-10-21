@@ -4385,9 +4385,14 @@ FINGERPRINT_SELF_WRITTEN = (PRESERVE_ABSENT_PREFIX,)
 def dashboard_input_fingerprint(ws: Path, now=None, *, previous_source=None,
                                 output_paths=None) -> str:
     h = hashlib.sha1()
-    # Committing an already-dirty ledger changes the public scorecard input
-    # even if none of the working files change their stat metadata.
+    # HEAD identifies running code; the public ledger can advance on fetch
+    # without changing HEAD or any working file's stat metadata.
     h.update(f'committed_source:{scorecard_provenance.git_commit(ws)}\n'.encode())
+    try:
+        public_ref = scorecard_provenance.committed_ref(ws, 'refs/remotes/origin/master')
+    except (OSError, subprocess.SubprocessError):
+        public_ref = None
+    h.update(f'public_ledger:{public_ref}\n'.encode())
     # Build options are inputs too: the same workspace can restore an older
     # card or write to a different generation directory.
     h.update(('outputs:' + json.dumps(
