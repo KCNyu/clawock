@@ -53,7 +53,7 @@ def desk(tmp_path, monkeypatch):
     monkeypatch.setattr(postflight, 'build_brief_card', lambda *_a, **_k: 'card')
     monkeypatch.setattr(postflight, 'send_per_policy',
                         lambda *a, **_k: sends.append(a) or (True, 'ok', True))
-    monkeypatch.setattr(postflight, 'maybe_commit', lambda status, _today, dry_run=False:
+    monkeypatch.setattr(postflight, 'maybe_commit', lambda status, _today, dry_run=False, **_kw:
                         commits.append(status) or (True, 'committed + pushed'))
     monkeypatch.setattr(postflight, 'dashboard_publication_state', lambda _ws: 'published')
 
@@ -151,3 +151,36 @@ def test_a_receipt_from_before_the_digest_cannot_tell_and_says_nothing(desk, cap
     assert result['content_revised_after_delivery'] is None
     assert desk.degradations == []
     assert postflight.REVISION_NOTICE_PREFIX not in desk.md.read_text(encoding='utf-8')
+
+
+@pytest.mark.parametrize('claim_won', [False, True])
+def test_telegram_only_delivery_revision_precedes_wechat_claim(desk, capsys, monkeypatch, claim_won):
+    monkeypatch.setattr(postflight, 'send_per_policy', lambda *a, **k: (False, 'ret=-2', True))
+    desk.run(capsys)
+    marker = desk.tmp / f'brief-sent-{TODAY}.json'
+    original = json.loads(marker.read_text())
+    desk.rendered['body'] = '修正后的判断'
+    monkeypatch.setattr(postflight, 'claim_send', lambda *_: (claim_won, 'fixture'))
+    calls = []
+    monkeypatch.setattr(postflight, 'send_per_policy',
+                        lambda *a, **k: calls.append(k) or (True, 'ok', True))
+    code, result = desk.run(capsys)
+    assert code == 0
+    assert result['content_revised_after_delivery']['delivered_report_sha256'] == original['report_sha256']
+    assert postflight.REVISION_NOTICE_PREFIX in desk.md.read_text()
+    assert len(desk.degradations) == 1
+    assert len(calls) == int(claim_won)
+    if calls:
+        assert calls[0]['telegram_done'] is True
+    assert json.loads(marker.read_text())['report_sha256'] == original['report_sha256']
+    desk.run(capsys)
+    assert len(desk.degradations) == 1
+
+
+def test_no_revision_when_both_channels_failed(desk, capsys, monkeypatch):
+    monkeypatch.setattr(postflight, 'send_per_policy', lambda *a, **k: (False, 'failed', False))
+    desk.run(capsys)
+    desk.rendered['body'] = '尚未送达的修正稿'
+    _, result = desk.run(capsys)
+    assert result['content_revised_after_delivery'] is None
+    assert postflight.REVISION_NOTICE_PREFIX not in desk.md.read_text()

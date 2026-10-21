@@ -175,3 +175,24 @@ def test_corrupt_latest_bar_is_not_silently_replaced_by_an_older_signal(tmp_path
     result = preposition.measurements(tmp_path, context()['portfolio'],
                                      at=datetime(2026, 7, 21, 0, tzinfo=timezone.utc))
     assert result['SPCH']['reason'] == 'suspect_own_instrument_bars'
+
+
+def test_historical_leverage_flag_is_regraded_without_changing_archive(tmp_path):
+    from datetime import datetime, timezone, timedelta
+    store = tmp_path / 'memory/bars'
+    store.mkdir(parents=True)
+    end = datetime(2026, 7, 20, tzinfo=timezone.utc)
+    rows = {(end - timedelta(days=i)).date().isoformat():
+            {'open': 94, 'high': 100, 'low': 92, 'close': 95} for i in range(35)}
+    rows['2026-07-20'] = {'open': 147, 'high': 150, 'low': 146, 'close': 147.25,
+                          'implausible_move': '55.0%'}
+    path = store / 'SPCH.json'
+    path.write_text(json.dumps({'bars': rows}))
+    before = path.read_bytes()
+    underlying = {'2026-07-19': {'close': 100}, '2026-07-20': {'close': 127.5}}
+    (store / 'SPCX.json').write_text(json.dumps({'bars': underlying}))
+    at = datetime(2026, 7, 21, 0, tzinfo=timezone.utc)
+    assert preposition.measurements(tmp_path, context()['portfolio'], at=at)['SPCH']['status'] == 'fresh'
+    assert path.read_bytes() == before
+    (store / 'SPCX.json').unlink()
+    assert preposition.measurements(tmp_path, context()['portfolio'], at=at)['SPCH']['reason'] == 'suspect_own_instrument_bars'

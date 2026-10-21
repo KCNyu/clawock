@@ -38,6 +38,23 @@ screen does not prove that master ledger commits reached GitHub. Generated
 files ignored on master must be published as a complete generation rather than
 added individually to a ledger commit.
 
+A brief re-run checks the first delivered report digest whenever either channel
+has succeeded, before acquiring another send claim. Changed pages carry a revision
+notice and one `content_revised_after_delivery` entry per distinct version.
+WeChat-only recovery retains that original digest and skips Telegram if it already
+succeeded. Post-delivery commits use `memory: revise daily deep brief <date>`;
+cron health counts them separately from the initial brief commit, so unexplained
+duplicate initial commits still warn.
+
+Canonical raw bars are refreshed by the weekday brief preflight. Store freshness
+compares against the last expected brief slot plus a 20-minute completion grace,
+excluding days both markets are closed; it does not require an evening session
+before the next writer has run. The writer orders selected underlyings before
+leveraged funds. Conflict summaries and preposition inputs re-evaluate leverage
+flags against the same-session underlying evidence without rewriting archived bars
+or conflict records. No historical reconciliation is needed for these reporting
+and ingestion changes; the next dashboard generation uses the updated rules.
+
 ## Ownership
 
 | Layer | Owns | Current location |

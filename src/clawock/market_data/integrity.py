@@ -45,6 +45,8 @@ from __future__ import annotations
 
 import math
 
+from clawock.bar_conflicts import leveraged_move_explained as leveraged_move_explained
+
 # A live quote may sit this far outside its own reported [low, high] before it
 # counts as a bad tick — absolute floor plus a relative term, so a HK$0.5 name
 # is not flagged by rounding alone. Taken from the existing analyze_hk_stocks
@@ -203,20 +205,6 @@ def gap_safe_returns(bars, *, skip_degenerate: bool = True):
     for (_, previous), (date, close) in zip(usable, usable[1:]):
         out.append((date, close / previous - 1))
     return out
-
-
-#: A daily-reset leveraged product tracks `multiple` × its underlying's session
-#: move, give or take fees, financing and the close-to-close mismatch. Inside
-#: this band the underlying explains the move; outside it, it does not.
-LEVERAGE_TRACKING_TOLERANCE = 0.25
-
-
-def leveraged_move_explained(move_pct, underlying_move_pct, multiple):
-    """Did the underlying's own session move produce this one? Signed percents."""
-    if not multiple or multiple <= 1 or not underlying_move_pct:
-        return False
-    ratio = move_pct / underlying_move_pct
-    return abs(ratio - multiple) <= LEVERAGE_TRACKING_TOLERANCE * multiple
 
 
 def flag_implausible_moves(bars, *, multiple=1.0, underlying=None):

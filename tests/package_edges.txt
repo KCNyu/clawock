@@ -159,3 +159,4 @@ harness -> run_budgets
 publish -> run_budgets
 scheduling -> run_budgets
 scheduling -> model_registry
+portfolio -> scheduling

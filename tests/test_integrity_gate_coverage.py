@@ -25,14 +25,14 @@ def test_whole_leg_stopped_is_visible_even_when_union_has_no_gaps(tmp_path, mark
               'bars': {'2026-10-07': {'close': 10}}})
     assert integrity.summarize_bar_gaps(bars) == []
     rows = integrity.summarize_bar_staleness(
-        bars, markets=[market], now=datetime(2026, 10, 11, tzinfo=timezone.utc))
+        bars, markets=[market], now=datetime(2026, 10, 12, 1, tzinfo=timezone.utc))
     assert rows == [{'market': market, 'newest_bar': '2026-10-07',
                      'last_completed_session': '2026-10-09',
                      'missing_sessions': ['2026-10-08', '2026-10-09'], 'status': 'behind'}]
 
 
 def test_empty_store_and_retired_only_leg_are_not_healthy(tmp_path):
-    now = datetime(2026, 10, 11, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 12, 1, tzinfo=timezone.utc)
     write(tmp_path / 'retired.json', {'leg': 'US', 'retired': True,
           'bars': {'2026-10-09': {'close': 10}}})
     rows = integrity.summarize_bar_staleness(tmp_path, markets=['hk', 'us'], now=now)
@@ -146,7 +146,7 @@ def test_money_publication_covers_new_errors_but_not_freshness_warnings():
 def test_market_filter_excludes_unrequested_stale_store(tmp_path):
     write(tmp_path / 'A.json', {'leg': 'HK', 'bars': {'2026-10-09': {'close': 10}}})
     write(tmp_path / 'B.json', {'leg': 'US', 'bars': {'2026-10-07': {'close': 10}}})
-    now = datetime(2026, 10, 11, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 12, 1, tzinfo=timezone.utc)
     assert integrity.summarize_bar_staleness(tmp_path, markets=['hk'], now=now) == []
     assert [r['market'] for r in integrity.summarize_bar_staleness(tmp_path, now=now)] == ['us']
 
@@ -164,7 +164,7 @@ def test_auxiliary_defaults_use_module_workspace_from_foreign_cwd(tmp_path, monk
     log = root / 'memory/bar-conflicts.jsonl'
     log.write_text(json.dumps({'seen_at': '2026-10-10', 'kind': 'impossible_bar',
                               'ticker': 'B', 'date': '2026-10-09', 'fetched': {'close': -1}}) + '\n')
-    now = datetime(2026, 10, 11, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 12, 1, tzinfo=timezone.utc)
     assert integrity._bar_close('A', '2026-10-09') == 12
     assert integrity.summarize_bar_staleness(markets=['us'], now=now) == []
     assert len(integrity.summarize_bar_gaps()) == 2

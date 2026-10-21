@@ -29,6 +29,27 @@ from clawock.run_budgets import POST_DELIVERY_BUDGET_SECONDS, pre_delivery_reser
 BRIEF_JOB_NAME = '盘前深度简报'
 BRIEF_SLOT_HKT = '08:03'
 
+
+def latest_brief_bar_refresh(at: datetime | None = None) -> datetime:
+    """Latest due daily-bar writer slot, with 20 minutes for preflight to finish.
+
+    The brief runs on weekdays when either market trades. Bars are fetched at
+    that slot, not at the following exchange close. Never use fetched_at as
+    the reference: a stopped writer would then remain fresh forever.
+    """
+    from clawock.sessions import brief_closed_reasons
+
+    cutoff = (at or datetime.now(HKT)).astimezone(HKT) - timedelta(minutes=20)
+    hour, minute = map(int, BRIEF_SLOT_HKT.split(':'))
+    for days_back in range(21):
+        day = cutoff.date() - timedelta(days=days_back)
+        candidate = datetime(day.year, day.month, day.day, hour, minute, tzinfo=HKT)
+        if (candidate <= cutoff and day.weekday() < 5
+                and not all(brief_closed_reasons(day))):
+            return candidate
+    raise ValueError('no brief bar refresh slot in the last three weeks')
+
+
 TEMPLATE_TOKEN = re.compile(r"\{\{([a-z][a-z0-9_]*)\}\}")
 #: `{{include:<name>.md}}` on a line of its own pulls a sibling fragment into a
 #: payload template. A rule several cron jobs must all obey has one text and is

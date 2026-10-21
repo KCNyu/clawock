@@ -36,7 +36,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from clawock.decision import receipts
-from clawock.safe_io import safe_write_json, temp_dir_lock
+from clawock.safe_io import json_safe, jsonl_line, safe_write_json, temp_dir_lock
 
 SCHEMA_VERSION = 1
 UNKNOWN = "unknown"
@@ -142,7 +142,7 @@ def _identity(body: dict) -> str:
     if isinstance(author, dict):
         body = {**body, "authorship": {k: v for k, v in author.items() if k != "code"}}
     digest = hashlib.sha256(json.dumps(
-        body, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+        json_safe(body)[0], allow_nan=False, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
     return f"prop-{digest[:16]}"
 
 
@@ -230,7 +230,7 @@ def record(workspace, plan: dict, findings: list[dict], *, plan_status: str,
                         raise ValueError("proposal log has an unterminated final line")
             with path.open("a", encoding="utf-8") as handle:
                 for row in fresh:
-                    handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+                    handle.write(jsonl_line(row, label=f"proposals.jsonl:{row.get('record_id', '?')}"))
                 handle.flush()
                 os.fsync(handle.fileno())
     return fresh

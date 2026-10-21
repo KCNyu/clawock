@@ -87,7 +87,12 @@ def measurements(workspace, portfolio, *, at=None):
     """
     from pathlib import Path
     from clawock.sessions import latest_completed_session
-    from clawock.market_data.integrity import check_bar
+    from clawock.market_data.integrity import check_bar, flag_implausible_moves
+    from clawock.market_data.bars import leverage_context
+
+    def bars_of(ticker):
+        doc = json.loads((Path(workspace) / "memory/bars" / f"{ticker}.json").read_text())
+        return doc.get("bars") or {}
 
     result = {}
     for key, book in portfolio.get("portfolios", {}).items():
@@ -104,6 +109,7 @@ def measurements(workspace, portfolio, *, at=None):
                 bars = doc.get("bars") or {}
                 if doc.get("retired") or not bars or expected is None or max(bars) != expected.isoformat():
                     continue
+                bars = flag_implausible_moves(bars, **leverage_context(ticker, bars_of))
                 rows = [{"date": d, **bars[d]} for d in sorted(bars)[-220:]]
                 if any(r.get("implausible_move") or r.get("degenerate")
                        or check_bar(r)["fatal"] or check_bar(r)["flags"] for r in rows[-30:]):
