@@ -1,0 +1,74 @@
+{
+  "generated_at": "2026-10-21T23:20:24.296210+00:00",
+  "vix": {
+    "symbol": "^VIX",
+    "price": 16.68,
+    "prev": 17.31,
+    "change_pct": -3.64,
+    "source": "yahoo",
+    "as_of": 1792613701
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 5.146,
+    "prev": 5.117,
+    "change_pct": 0.57,
+    "source": "yahoo",
+    "as_of": 1792609194,
+    "yield_pct": 5.146
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 101.691,
+    "prev": 101.78,
+    "change_pct": -0.09,
+    "source": "yahoo",
+    "as_of": 1792620298
+  },
+  "fear_greed": {
+    "score": 31.4,
+    "rating": "fear",
+    "prev_close": 27.2,
+    "prev_1_week": 26.7,
+    "as_of": "2026-10-21T23:00:32+00:00"
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 23651.87,
+    "prev": 23867.74,
+    "change_pct": -0.9,
+    "source": "tencent",
+    "as_of": "2026-10-21"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 3994.77,
+    "prev": 4045.91,
+    "change_pct": -1.26,
+    "source": "tencent",
+    "as_of": "2026-10-21"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7757.17,
+    "prev": 7712.57,
+    "change_pct": 0.58,
+    "source": "yahoo",
+    "as_of": 1792614681
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 26702.86,
+    "prev": 26424.82,
+    "change_pct": 1.05,
+    "source": "tencent",
+    "as_of": "2026-10-21"
+  },
+  "fed_press": [
+    {
+      "date": "2026-10-16",
+      "title": "Federal Reserve Board announces termination of enforcement actions with Gardner Bancshares, Inc. and Small Business Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261016a.htm"
+    }
+  ]
+}
