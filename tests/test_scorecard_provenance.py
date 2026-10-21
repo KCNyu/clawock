@@ -434,3 +434,62 @@ def test_brief_score_names_its_execution_writeback(tmp_path, monkeypatch, ledger
     assert before['settlement_source_digest'] == prov.settlement_source_digest(ledger)
     assert (tmp_path / before['source_ref']).exists()
     assert prov.verify(block, written)['ok']
+
+
+def test_dashboard_source_survives_unpublished_and_rewritten_local_head(tmp_path, ledger):
+    """The publisher and a fresh runner clone can resolve exactly the same rows."""
+    import subprocess
+
+    def git(cwd, *args):
+        return subprocess.run(['git', *args], cwd=cwd, check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    remote, desk, runner = [tmp_path / name for name in ('remote', 'desk', 'runner')]
+    git(tmp_path, 'init', '--bare', '--initial-branch=master', str(remote))
+    git(tmp_path, 'clone', str(remote), str(desk))
+    git(desk, 'config', 'user.email', 'test@example.invalid')
+    git(desk, 'config', 'user.name', 'test')
+    path = desk / prov.LEDGER_PATH
+    path.parent.mkdir()
+    path.write_text(''.join(json.dumps(r) + '\n' for r in ledger))
+    git(desk, 'add', '.')
+    git(desk, 'commit', '-m', 'public ledger')
+    git(desk, 'push', 'origin', 'master')
+    public = git(desk, 'rev-parse', 'HEAD')
+    path.write_text(json.dumps(decision('2026-07-05')) + '\n')
+    git(desk, 'commit', '-am', 'unpublished runtime ledger')
+    unpublished = git(desk, 'rev-parse', 'HEAD')
+    rows, ref = prov.dashboard_source(desk)
+    assert ref == public and rows == ledger
+    # Rewriting the local runtime commit cannot change the published source.
+    git(desk, 'commit', '--amend', '-m', 'rewritten runtime ledger')
+    assert git(desk, 'rev-parse', 'HEAD') != unpublished
+    assert prov.dashboard_source(desk) == (rows, ref)
+    git(tmp_path, 'clone', str(remote), str(runner))
+    assert prov.committed_source(runner, ref) == (rows, ref)
+    block = metrics_for(rows)['provenance']
+    prov.record_settlement_view(block, rows, source_ref=ref)
+    prov.verify_committed_source(block, runner)
+    assert subprocess.run(['git', 'cat-file', '-e', unpublished], cwd=runner,
+                          capture_output=True).returncode != 0
+
+    prov.verify_public_source(block, desk)
+    assert block['ledger']['public_source_verified'] is True
+    private_rows, private_ref = prov.committed_source(desk)
+    private_block = metrics_for(private_rows)['provenance']
+    prov.record_settlement_view(private_block, private_rows, source_ref=private_ref)
+    with pytest.raises(subprocess.CalledProcessError):
+        prov.verify_public_source(private_block, desk)
+    assert private_block['ledger']['public_source_verified'] is False
+    # The runner cloned just before a newly public commit arrived. Only the
+    # missing object is fetched; the public source digest still has to match.
+    from clawock.publish.dashboard import dashboard_input_fingerprint
+    before = dashboard_input_fingerprint(desk)
+    git(desk, 'push', 'origin', 'master')
+    assert dashboard_input_fingerprint(desk) != before
+    prov.verify_public_source(private_block, desk)
+    prov.verify_committed_source(private_block, runner, fetch_missing=True)
+    assert prov.committed_source(runner, private_ref) == (private_rows, private_ref)
+    private_block['ledger']['source_digest'] = 'wrong'
+    with pytest.raises(ValueError, match='source_digest'):
+        prov.verify_committed_source(private_block, runner, fetch_missing=True)

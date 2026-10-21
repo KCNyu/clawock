@@ -666,7 +666,9 @@ def test_leverage_direction_ignores_exact_noise_floor_and_warns_just_over(run_ch
     _assert_clean(run_check(exact))
 
     over = copy.deepcopy(exact)
-    _port(over, "hk_stocks")["holdings"][1]["today_change_pct"] = -0.0501
+    # Move the quote, not position P&L; recompute its accounting derivatives.
+    over = _portfolio_data(region="hk_stocks", holdings=[exact_holdings[0],
+        _holding(ticker="03033", current=99.9499, previous=100.0)])
     _assert_only(run_check(over), "LEV_DIRECTION", "WARN", "方向矛盾")
 
 
@@ -951,8 +953,8 @@ def test_unknown_invalid_book_is_not_silently_ignored(run_check):
 
 @pytest.mark.parametrize("region,new_name", [("us_stocks", "america"), ("hk_stocks", "hong_kong")])
 def test_renaming_keeps_all_market_money_and_direction_gates(run_check, tmp_path, region, new_name):
-    rows = [_holding(ticker="07226", today_change_pct=2),
-            _holding(ticker="03033", today_change_pct=-2)]
+    rows = [_holding(ticker="07226", current=102, previous=100, today_change_pct=2),
+            _holding(ticker="03033", current=98, previous=100, today_change_pct=-2)]
     rows[0]['day_session_date'] = '2026-07-16'
     rows[1]['day_session_date'] = '2026-07-17'
     data = _portfolio_data(region=region, holdings=rows)
@@ -972,3 +974,18 @@ def test_renaming_keeps_all_market_money_and_direction_gates(run_check, tmp_path
             'US_ASOF' if region == 'us_stocks' else 'HK_ASOF'} <= codes
     assert codes == {f['code'] for f in baseline['findings']}
     assert renamed['error_count'] == baseline['error_count']
+
+
+def test_leverage_direction_uses_quotes_not_new_lot_pnl(run_check):
+    holdings = [
+        _holding(ticker='07226', current=102, previous=100, today_change_pct=-8),
+        _holding(ticker='03033', current=101, previous=100, today_change_pct=1),
+    ]
+    report = run_check(_portfolio_data(region='hk_stocks', holdings=holdings))
+    assert not any(i['code'] == 'LEV_DIRECTION' for i in report['findings'])
+    holdings[0] = _holding(ticker='07226', current=98, previous=100, today_change_pct=8)
+    report = run_check(_portfolio_data(region='hk_stocks', holdings=holdings))
+    assert any(i['code'] == 'LEV_DIRECTION' for i in report['findings'])
+    holdings[0]['quote_incomplete'] = True
+    report = run_check(_portfolio_data(region='hk_stocks', holdings=holdings))
+    assert not any(i['code'] == 'LEV_DIRECTION' for i in report['findings'])

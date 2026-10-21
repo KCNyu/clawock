@@ -243,11 +243,16 @@ def settlement_source_digest(rows):
     return hashlib.sha256('\n'.join(sorted(projected)).encode()).hexdigest()
 
 
-def committed_source(workspace, ref='HEAD'):
-    """Read one immutable ledger generation; never consume uncommitted execution edits."""
-    commit = subprocess.run(
+def committed_ref(workspace, ref):
+    """Resolve a ref once, shared by source reads and the input fingerprint."""
+    return subprocess.run(
         ['git', 'rev-parse', '--verify', '--end-of-options', f'{ref}^{{commit}}'], cwd=workspace,
         capture_output=True, text=True, timeout=15, check=True).stdout.strip()
+
+
+def committed_source(workspace, ref='HEAD'):
+    """Read one immutable ledger generation; never consume uncommitted execution edits."""
+    commit = committed_ref(workspace, ref)
     raw = subprocess.run(
         ['git', 'show', f'{commit}:{LEDGER_PATH}'], cwd=workspace,
         capture_output=True, text=True, timeout=15, check=True).stdout
@@ -255,9 +260,15 @@ def committed_source(workspace, ref='HEAD'):
 
 
 def dashboard_source(workspace):
-    """Portable desks without Git keep an explicitly unversioned source."""
+    """Publish only a ledger generation already fetched from the public master.
+
+    A local runtime HEAD can still be unpushed, or disappear in a rebase. The
+    remote-tracking ref is immutable once resolved by committed_source; a stale
+    fetch merely delays new ledger rows. A Git checkout without that ref fails
+    closed. Portable desks without Git remain explicitly unversioned.
+    """
     if git_commit(workspace) is not None:
-        return committed_source(workspace)
+        return committed_source(workspace, ref='refs/remotes/origin/master')
     path = Path(workspace) / LEDGER_PATH
     text = path.read_text(encoding='utf-8') if path.exists() else ''
     return [json.loads(line) for line in text.splitlines() if line.strip()], None
@@ -313,7 +324,7 @@ def load_live_snapshot(provenance, workspace):
     return [json.loads(line) for line in raw.splitlines() if line.strip()]
 
 
-def verify_committed_source(provenance, workspace):
+def verify_committed_source(provenance, workspace, *, fetch_missing=False):
     """The artifact gate checks source identity without re-grading against newer bars."""
     ledger = provenance.get('ledger') or {}
     if ledger.get('source_kind') == 'live_snapshot':
@@ -321,13 +332,37 @@ def verify_committed_source(provenance, workspace):
         return
     if not ledger.get('source_ref'):
         return  # Legacy generations predate the pinned-source contract.
-    rows, _ = committed_source(workspace, ledger['source_ref'])
+    ref = ledger['source_ref']
+    if fetch_missing:
+        # Fetch only missing commit objects, never on a digest mismatch. Accept
+        # full SHA identities, not arbitrary refs/options from a public payload.
+        if not isinstance(ref, str) or len(ref) != 40 or any(c not in '0123456789abcdef' for c in ref):
+            raise ValueError('ledger.source_ref must be a full commit SHA')
+        exists = subprocess.run(['git', 'cat-file', '-e', f'{ref}^{{commit}}'],
+                                cwd=workspace, capture_output=True, timeout=15)
+        if exists.returncode:
+            subprocess.run(['git', 'fetch', '--no-tags', 'origin', ref], cwd=workspace,
+                           capture_output=True, text=True, timeout=30, check=True)
+    rows, _ = committed_source(workspace, ref)
     if settlement_source_digest(rows) != ledger.get('source_digest'):
         raise ValueError('ledger.source_digest does not match source_ref')
     window = provenance['window']
     sliced = slice_rows(rows, window['cutoff'], window.get('last_plan_date'))
     if settlement_source_digest(sliced) != ledger.get('source_slice_digest'):
         raise ValueError('ledger.source_slice_digest does not match source_ref')
+
+
+def verify_public_source(provenance, workspace):
+    """Publish a public-source promise only after both identity and ancestry pass."""
+    verify_committed_source(provenance, workspace)
+    ledger = provenance.get('ledger') or {}
+    ledger['public_source_verified'] = False
+    if ledger.get('source_kind') != 'committed' or not ledger.get('source_ref'):
+        return
+    subprocess.run(['git', 'merge-base', '--is-ancestor', ledger['source_ref'],
+                    'refs/remotes/origin/master'], cwd=workspace,
+                   capture_output=True, text=True, timeout=15, check=True)
+    ledger['public_source_verified'] = True
 
 
 def record_settlement_view(provenance, source_rows, *, settlement_day=None, source_ref=None):

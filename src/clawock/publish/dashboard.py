@@ -15,6 +15,7 @@ import argparse
 import copy
 import glob
 import hashlib
+import subprocess
 import json
 import math
 import os
@@ -1580,6 +1581,7 @@ def build_decision_trace_scope(traces, workspace=None, limit=40, *, portfolio=No
     pf_doc = (portfolio if portfolio is not None
               else load_json(str(ws / 'portfolio.json')) or {})
     all_fills = 0
+    placeholders = 0
     realized_all = {}
     for leg in resolve_legs(pf_doc):
         for h in (pf_doc.get('portfolios') or {}).get(leg.bucket, {}).get('holdings', []):
@@ -1588,10 +1590,14 @@ def build_decision_trace_scope(traces, workspace=None, limit=40, *, portfolio=No
             for tr in (h.get('trades') or []):
                 if not isinstance(tr, dict) or not isinstance(tr.get('date'), str):
                     continue
+                if tr.get('reconstructed') is True:
+                    placeholders += 1
+                    continue
                 all_fills += 1
                 if isinstance(tr.get('realized_pnl'), (int, float)):
                     realized_all[leg.currency] = realized_all.get(leg.currency, 0) + tr['realized_pnl']
-    shown = list(traces or [])
+    shown_placeholders = sum(t.get('reconstructed') is True for t in traces or [])
+    shown = [t for t in traces or [] if t.get('reconstructed') is not True]
     realized_shown = {}
     closed_shown = 0
     for t in shown:
@@ -1618,6 +1624,8 @@ def build_decision_trace_scope(traces, workspace=None, limit=40, *, portfolio=No
             verdicts[side][v] = verdicts[side].get(v, 0) + 1
     return {
         'fillsTotal': all_fills,
+        'placeholdersTotal': placeholders,
+        'placeholdersShown': shown_placeholders,
         'fillsShown': len(shown),
         'limit': limit,
         'closedShown': closed_shown,
@@ -2854,7 +2862,7 @@ def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None, concentration=None):
             h_live = holdings_by_ticker.get(tk_str) or holdings_by_ticker.get(str(ticker))
             if isinstance(h_live, dict) and h_live.get('pnl_percent') is not None:
                 self_pnl = h_live.get('pnl_percent')
-                self_today = h_live.get('today_change_pct')
+                self_today = session_change_pct(h_live)
             else:
                 self_pnl = v.get('self_pnl_pct')
                 self_today = v.get('self_pct_1d')
@@ -2965,7 +2973,7 @@ def extract_peer_divergence(brief_ctx, us_h=None, hk_h=None):
             if peer_pct_v == 0.0:
                 continue
             h_live = holdings_by_ticker.get(str(ticker).upper()) or holdings_by_ticker.get(str(ticker))
-            live_today = h_live.get('today_change_pct') if isinstance(h_live, dict) else None
+            live_today = session_change_pct(h_live) if isinstance(h_live, dict) else None
             if (isinstance(live_today, (int, float)) and isinstance(self_pct_v, (int, float))
                     and live_today * self_pct_v < 0 and abs(live_today - self_pct_v) >= 4):
                 continue
@@ -4378,9 +4386,14 @@ FINGERPRINT_SELF_WRITTEN = (PRESERVE_ABSENT_PREFIX,)
 def dashboard_input_fingerprint(ws: Path, now=None, *, previous_source=None,
                                 output_paths=None) -> str:
     h = hashlib.sha1()
-    # Committing an already-dirty ledger changes the public scorecard input
-    # even if none of the working files change their stat metadata.
+    # HEAD identifies running code; the public ledger can advance on fetch
+    # without changing HEAD or any working file's stat metadata.
     h.update(f'committed_source:{scorecard_provenance.git_commit(ws)}\n'.encode())
+    try:
+        public_ref = scorecard_provenance.committed_ref(ws, 'refs/remotes/origin/master')
+    except (OSError, subprocess.SubprocessError):
+        public_ref = None
+    h.update(f'public_ledger:{public_ref}\n'.encode())
     # Build options are inputs too: the same workspace can restore an older
     # card or write to a different generation directory.
     h.update(('outputs:' + json.dumps(
@@ -4964,7 +4977,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     scorecard_provenance.record_settlement_view(
         out['decision_metrics']['provenance'], _source_decisions, settlement_day=_settlement_day,
         source_ref=_source_ref)
-    scorecard_provenance.verify_committed_source(
+    scorecard_provenance.verify_public_source(
         out['decision_metrics']['provenance'], WS_ROOT)
     # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
     # chart while still shipping the numbers would be a distinction only a reader of

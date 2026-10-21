@@ -67,3 +67,22 @@ def test_consumers_use_quote_return_even_when_new_position_loses(ticker, reporte
                        {'portfolios': {'hk_stocks': {'holdings': [holding]}}}, {}, {})
     assert events[0]['confirmation']['price_change_pct'] is None
     assert events[0]['confirmation']['price_aligned'] is False
+
+
+def test_dashboard_guards_use_quote_return_for_new_lots():
+    from clawock.publish.dashboard import extract_anomalies, extract_peer_divergence
+
+    h = dict(ticker='07226', shares=100, current_price=90, prev_close=100,
+             pnl_percent=1, today_change_pct=5)
+    ctx = {'peer_scan': {'07226': {'divergence_signal': True, 'self_pct_1d': -10,
+                                  'listed_peers': [{'ticker': '03033', 'pct_1d': -5}]}}}
+    assert any(r['type'] == 'leveraged_etf_stop' and 'today -10.0%' in r['detail']
+               for r in extract_anomalies(ctx, us_h=[], hk_h=[h]))
+    assert extract_peer_divergence(ctx, hk_h=[h])
+    # A profitable session with a losing fresh lot is not a session stop.
+    h.update(current_price=110, today_change_pct=-10)
+    assert not any(r['type'] == 'leveraged_etf_stop' for r in extract_anomalies(ctx, us_h=[], hk_h=[h]))
+    assert not extract_peer_divergence(ctx, hk_h=[h])
+    h['quote_incomplete'] = True
+    assert not any(r['type'] == 'leveraged_etf_stop' for r in extract_anomalies(ctx, us_h=[], hk_h=[h]))
+    assert extract_peer_divergence(ctx, hk_h=[h])  # unknown quote cannot prove opposite signs

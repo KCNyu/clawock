@@ -1167,7 +1167,8 @@ def validate_dashboard(
         'decision_metrics must be an object')
     from clawock.scorecard_provenance import verify_committed_source
     try:
-        verify_committed_source(data['decision_metrics'].get('provenance') or {}, ROOT)
+        verify_committed_source(data['decision_metrics'].get('provenance') or {}, ROOT,
+                                fetch_missing=True)
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         raise AssertionError(f'scorecard source verification failed: {exc}') from exc
     assert isinstance(data['decision_delta'], dict), (

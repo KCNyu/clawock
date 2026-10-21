@@ -1310,7 +1310,8 @@ def test_dashboard_artifact_gate_checks_pinned_scorecard_source(tmp_path, monkey
     payload['decision_metrics']['provenance'] = {'ledger': {'source_ref': 'bad'}}
     path = tmp_path / 'dashboard.json'
     path.write_text(json.dumps(payload))
-    def reject(block, workspace):
+    def reject(block, workspace, *, fetch_missing=False):
+        assert fetch_missing
         assert block['ledger']['source_ref'] == 'bad'
         raise ValueError('ledger.source_digest does not match source_ref')
     monkeypatch.setattr(scorecard_provenance, 'verify_committed_source', reject)
