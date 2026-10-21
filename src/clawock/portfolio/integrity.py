@@ -120,6 +120,7 @@ from clawock.portfolio.math import (
     derive_cash,
     day_pnl,
     holding_session,
+    session_change_pct,
     ledger_date as _ledger_date,
     ledger_rows as _ledger_rows,
     moving_average_cost as _moving_avg_cost,
@@ -817,7 +818,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
             cost = _num(h.get('cost_basis'))
             pnl = _num(h.get('pnl_abs'))
             pnl_pct = _num(h.get('pnl_percent'))
-            chg = _num(h.get('today_change_pct'))
+            chg = session_change_pct(h)
 
             # An active row's cost basis is an input, not a derived leaf: no
             # writer can recompute it, so a missing or zero one stays wrong
@@ -988,7 +989,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
             }
 
         # LEV_DIRECTION：恒科族两只以上且方向不一致
-        nz = {k: v for k, v in sib_dirs.items() if abs(v) > 0.05}
+        nz = {k: v for k, v in sib_dirs.items() if abs(v) > 0.05 + 1e-10}
         if len(nz) >= 2:
             signs = {1 if v > 0 else -1 for v in nz.values()}
             if len(signs) > 1:

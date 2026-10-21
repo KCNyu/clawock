@@ -513,3 +513,22 @@ def test_traces_and_scope_use_supplied_book_even_when_disk_changes(ws):
     assert len(traces) == scope['fillsTotal'] == 4
     assert dashboard.build_decision_traces(portfolio={}) == []
     assert dashboard.build_decision_trace_scope([], portfolio={})['fillsTotal'] == 0
+
+
+def test_opening_placeholders_are_not_fills_or_t1_denominators():
+    book = {'portfolios': {'hk_stocks': {'currency': 'HKD', 'holdings': [{
+        'ticker': '00100', 'trades': [
+            {'date': '2025-12-23', 'reconstructed': True},
+            {'date': '2026-10-20', 'realized_pnl': 17},
+        ]}]}}}
+    traces = [
+        {'reconstructed': True, 'action': 'buy', 't1': {'verdict': '涨'}},
+        {'action': 'sell', 'currency': 'HKD', 'realizedPnl': 17,
+         't1': {'verdict': '卖对'}},
+    ]
+    scope = dashboard.build_decision_trace_scope(traces, portfolio=book, limit=1000)
+    assert scope['fillsTotal'] == scope['fillsShown'] == 1
+    assert scope['placeholdersTotal'] == scope['placeholdersShown'] == 1
+    assert scope['t1Sides'] == {'reduce': 1}
+    assert scope['t1Shown'] == 1
+    assert scope['realizedAll'] == scope['realizedShown'] == {'HKD': 17}

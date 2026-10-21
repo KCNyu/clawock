@@ -2776,11 +2776,13 @@
       provEl.textContent = led.slice_digest
         ? `这些数出自 ${led.path} 的 ${numText(led.slice_rows)} 行`
           + `（${win.first_plan_date} → ${win.last_plan_date}）`
-          + (led.source_ref ? ` · 账本 ${led.source_ref.slice(0, 12)}（仅已提交记录）`
-             : (led.source_kind === "unversioned_working_copy" ? " · 账本：未版本化工作副本" : ""))
+          + (led.source_ref && led.public_source_verified === true
+             ? ` · 账本 ${led.source_ref.slice(0, 12)}（仅已提交记录）`
+             : " · 账本：公开出处未核实")
           + ` · 代码 ${prov.code_commit || "—"}`
           + ` · 切片指纹 ${led.slice_digest}`
-          + ` · 自己复算：${prov.verify || "clawock scorecard-provenance --check"}`
+          + (led.public_source_verified === true
+             ? ` · 自己复算：${prov.verify || "clawock scorecard-provenance --check"}` : "")
         : "";
       provEl.hidden = !led.slice_digest;
     }
@@ -3017,8 +3019,8 @@
     // an unqualified 已实现 total is how it came to print $926.3 while the
     // ledger held US $2,347.68 + HK$7,259.16 (#737).
     const sc = trail("decision_trace_scope") || {};
-    const shown = sc.fillsShown || list.length;
-    const total = sc.fillsTotal || shown;
+    const shown = sc.fillsShown ?? list.filter(t => t.reconstructed !== true).length;
+    const total = sc.fillsTotal ?? shown;
     const realShown = sc.realizedShown || {};
     const realAll = sc.realizedAll || {};
     // USD first, then the rest — the desk reports in USD-eq, and the two legs
@@ -3049,6 +3051,7 @@
         .filter(Boolean).join(" · ");
       statsEl.innerHTML =
         `<span>本卡显示 <b>最近 ${shown}</b> 笔成交 <span class="muted">/ 全部 ${total} 笔</span></span>` +
+        (sc.placeholdersTotal ? `<span class="muted">另有 ${numText(sc.placeholdersTotal)} 笔建仓占位（无成交），本卡显示 ${numText(sc.placeholdersShown || 0)} 笔</span>` : "") +
         `<span>其中 <b>${sc.closedShown != null ? sc.closedShown : DASH}</b> 笔已平仓,已实现 ${money(realShown)} ` +
         `<span class="muted">(全期 ${money(realAll)},不只这 ${shown} 笔)</span></span>` +
         (t1line ? `<span>T+1 ${t1line}</span>` : "") +
