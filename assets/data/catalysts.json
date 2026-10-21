@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-20T08:03:47.147999+08:00",
+  "generated_at": "2026-10-21T08:03:54.709910+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-20",
-  "window_end": "2026-11-03",
+  "window_start": "2026-10-21",
+  "window_end": "2026-11-04",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -10,18 +10,30 @@
   ],
   "earnings": [
     {
+      "ticker": "CRCL",
+      "name": "CRCL",
+      "date": "2026-11-04",
+      "time": "unknown",
+      "eps_estimate": 0.3696,
+      "eps_actual": null,
+      "revenue_estimate_m": 797.27,
+      "quarter": 3,
+      "year": 2026
+    }
+  ],
+  "recent_earnings": [
+    {
       "ticker": "SPCX",
       "name": "SPCX",
       "date": "2026-10-20",
-      "time": "unknown",
+      "time": "amc",
       "eps_estimate": 0.1361,
-      "eps_actual": null,
+      "eps_actual": 0.35,
       "revenue_estimate_m": 12974.73,
       "quarter": 3,
       "year": 2026
     }
   ],
-  "recent_earnings": [],
   "fomc": [
     {
       "date": "2026-10-28",
@@ -48,6 +60,6 @@
     "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "SPCX earnings 2026-10-20 (unknown)"
+    "highest_impact_within_7d": "FOMC 2026-10-28 (rate decision)"
   }
 }
