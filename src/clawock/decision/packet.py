@@ -1501,6 +1501,9 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
                 # The quote against the prior close, what a 「上一场收盘」 column
                 # means (#3107).
                 "session_change_pct": _number(session_change_pct(holding), 2),
+                "concentration_review": next((review for review in
+                    (context.get("risk_guardrail") or {}).get("concentration_reviews") or []
+                    if review.get("ticker") == ticker), None),
                 "day_high": _number(holding.get("day_high"), 4),
                 "day_low": _number(holding.get("day_low"), 4),
                 "data_source": holding.get("data_source"),

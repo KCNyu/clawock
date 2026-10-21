@@ -130,6 +130,62 @@ def _directive(*, type, leg, ticker, severity, detail, action, required_reductio
                 action=action, required_reduction=required_reduction, **extra)
 
 
+def trim_projection(*, shares, value, total, price, lot_size=1, target_pct=35,
+                    sell_shares=None):
+    """Cash leaves the invested leg; reprice only this name at the scenario price.
+
+    This is sizing arithmetic, never an instruction to trade. Other holdings
+    stay at their input marks; fees and a subsequent reinvestment are excluded.
+    """
+    values = (shares, value, total, price, lot_size, target_pct)
+    if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v)
+           for v in values):
+        return None
+    if not (shares > 0 and price > 0 and total >= value > 0
+            and lot_size > 0 and 0 <= target_pct < 100):
+        return None
+    other = total - value
+    target = target_pct / 100
+    # Solve remaining / (other + remaining) <= target, then round sells up.
+    need = max(0, shares - target * other / ((1 - target) * price))
+    trim = min(shares, math.ceil(need / lot_size - 1e-10) * lot_size)
+    sold = trim if sell_shares is None else sell_shares
+    if not 0 <= sold <= shares:
+        return None
+    remaining = (shares - sold) * price
+    return {'shares': sold, 'value': round(sold * price, 2), 'price': price,
+            'target_pct': target_pct, 'shares_to_review_line': trim,
+            'post_trim_weight_pct': round(remaining / (other + remaining) * 100, 2)
+            if other + remaining else None}
+
+
+def plan_trim_projections(context, plan):
+    """Deterministic review arithmetic for the authored plan's sell scenarios."""
+    reviews = {r['ticker']: r for r in
+               (context.get('risk_guardrail') or {}).get('concentration_reviews') or []}
+    out = []
+    for decision in (plan or {}).get('decisions') or []:
+        review = reviews.get(decision.get('ticker'))
+        if not review or decision.get('action') not in ('cut', 'trim', 'trim_on_rebound'):
+            continue
+        inputs = review.get('trim_inputs')
+        sold = _share_number((decision.get('size') or {}).get('shares'))
+        if not inputs or sold is None:
+            continue
+        inputs = dict(inputs)
+        condition = decision.get('condition') or {}
+        if condition.get('type') in ('price_above', 'price_below'):
+            price = _share_number(condition.get('price'))
+            if price is None:
+                continue
+            inputs['price'] = price
+        result = trim_projection(**inputs, sell_shares=sold)
+        if result:
+            out.append({'ticker': review['ticker'], 'leg': review['leg'],
+                        'currency': review['currency'], **result})
+    return out
+
+
 def _single_name_policy(leg, ws, hold, total, ccy):
     caps = GUARDRAIL_CAPS
     breaches, reviews = [], []
@@ -143,7 +199,7 @@ def _single_name_policy(leg, ws, hold, total, ccy):
             caps['leveraged_single_name_pct'] if leveraged
             else caps['single_name_mandatory_pct']
         )
-        if w['weight_pct'] > mandatory_cap and total:
+        if mandatory_cap < 100 and w['weight_pct'] > mandatory_cap and total:
             # Selling changes both the position and the leg denominator.
             # Solve (value - sell) / (total - sell) <= target rather than
             # subtracting the current excess from an unchanged denominator.
@@ -168,9 +224,18 @@ def _single_name_policy(leg, ws, hold, total, ccy):
                 },
             ))
         elif w['weight_pct'] > caps['single_name_review_pct']:
+            shares = _share_number(holding.get('shares')) or 0
+            inputs = dict(shares=shares, value=w['value'], total=total,
+                          price=w['value'] / shares if shares else 0,
+                          lot_size=_share_number(holding.get('lot_size')) or 1,
+                          target_pct=caps['single_name_review_pct'])
             reviews.append({
                 'type': 'single_name_review', 'leg': leg,
                 'ticker': w['ticker'], 'severity': 'advisory',
+                'weight_pct': w['weight_pct'], 'currency': ccy,
+                'review_pct': caps['single_name_review_pct'],
+                'trim_inputs': inputs,
+                'trim_to_review_line': trim_projection(**inputs),
                 'detail': (f"{w['ticker']} = {w['weight_pct']}% of {leg}"
                            f"{' (2x/3x)' if leveraged else ''}; above the "
                            f"{caps['single_name_review_pct']}% review line, "

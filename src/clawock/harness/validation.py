@@ -506,6 +506,47 @@ def with_compute_receipts(ctx, workspace):
         for receipt in receipts]}
 
 
+def _concentration_claim_issues(text, ctx):
+    """Check named review percentages separately from the advisory number pool."""
+    reviews = (ctx.get('risk_guardrail') or {}).get('concentration_reviews') or []
+    projections = {r['ticker']: r for r in ctx.get('plan_trim_projections') or []}
+    issues = []
+    for review in reviews:
+        ticker = review.get('ticker')
+        if not ticker or review.get('weight_pct') is None or review.get('review_pct') is None:
+            continue
+        projection = projections.get(ticker) or {}
+        expected = projection.get('post_trim_weight_pct')
+        allowed = [review['weight_pct'], review['review_pct']]
+        if expected is not None:
+            allowed.append(expected)
+        # Plan/judgment prose arrives under its ticker heading; standalone
+        # paragraphs must name the ticker themselves. Never infer a name from
+        # an unrelated percentage elsewhere in the context.
+        active = False
+        for paragraph in text.splitlines():
+            if paragraph.startswith('- **'):
+                active = paragraph.startswith(f'- **{ticker}**')
+            named = active or re.search(rf'(?<!\w){re.escape(ticker)}(?!\w)', paragraph)
+            if not named:
+                continue
+            for sentence in re.split(r'[。；;]', paragraph):
+                concentration = re.search(r'支配度|集中度|占.{0,8}腿|仓位占比', sentence)
+                post = re.search(r'(?:卖|减).{0,18}股后.{0,8}(?:回到|降至|降到|剩|占)', sentence)
+                if not (concentration or post):
+                    continue
+                for match in _UNIT_CLAIMS['percent'].finditer(sentence):
+                    raw = match.group(1)
+                    value = _as_number(raw)
+                    if not _states(allowed, value, _rounding_tolerance(raw)):
+                        issues.append(f'仓位支配度不符: {ticker} {raw}%，请引用减仓联立计算')
+                if (expected is not None and expected > review['review_pct']
+                        and re.search(r'(?:压回|降至|降到).{0,12}复核线(?:下方|以下)', sentence)
+                        and not re.search(r'不能|无法|未能|不再声称', sentence)):
+                    issues.append(f'仓位支配度不符: {ticker} 减仓后 {expected}% 仍高于复核线')
+    return list(dict.fromkeys(issues))
+
+
 def check_numeric_claims(text, ctx):
     """Flag unit-bearing magnitudes the context never states, and impossible
     percentage ranges.
@@ -516,6 +557,7 @@ def check_numeric_claims(text, ctx):
     that line would convert a cosmetic problem into a missed report, which is the
     strictly worse failure. One aggregated line keeps the gate advisory.
     """
+    concentration_issues = _concentration_claim_issues(text, ctx or {})
     known_by_unit = _context_unit_numbers(ctx)
     known_quantities = _context_quantity_numbers(ctx)
     shown_products = _shown_product_results(text, known_quantities)
@@ -593,8 +635,8 @@ def check_numeric_claims(text, ctx):
     if impossible:
         parts.append(f'区间自相矛盾: {", ".join(impossible[:MAX_NUMERIC_SAMPLES])}')
     if not parts:
-        return []
-    return [f'{"；".join(parts)} —— 数字只能引用 context，不许心算 {ADVISORY_MARK}']
+        return concentration_issues
+    return concentration_issues + [f'{"；".join(parts)} —— 数字只能引用 context，不许心算 {ADVISORY_MARK}']
 
 
 
