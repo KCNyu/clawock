@@ -185,3 +185,14 @@ def test_a_proxy_priced_row_keeps_its_distance_and_can_be_the_nearest(monkeypatc
     add_side = dashboard.compute_add_side(shape_cards_dir=tmp_path)
     closest = dashboard.compile_overview_projection({"add_side": add_side})["add_side"]["closest"]
     assert closest["ticker"] == "RKLX" and closest["pct_from_high"] == -2.0
+
+
+def test_flat_outcome_survives_both_public_projections(monkeypatch):
+    from clawock.harness.brief_render import _track_record_line
+    context = {'action_track_record': {'by_action': {'add_only_on_trigger': {
+        'win': 12, 'loss': 20, 'flat': 1, 'settled': 33, 'hit_rate': 0.3636, 'not_triggered': 12}}}}
+    monkeypatch.setattr(dashboard, '_latest_brief_context', lambda: (None, context))
+    row = dashboard.compute_add_side()['track_record']['add_only_on_trigger']
+    assert row['win'] + row['loss'] + row['flat'] == row['settled']
+    text = _track_record_line(context, ['add_only_on_trigger'])
+    assert '持平 1' in text and 'n=33' in text and '36.4%' in text

@@ -2596,12 +2596,15 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
         for d in rows:
             if d.get("episode_id"):
                 by_ep[d["episode_id"]].append(d)
-        graded = partial = unresolved = 0
+        graded = partial = unresolved = not_triggered = 0
         for members in by_ep.values():
             ok = [r for r in members if _float((r.get("evaluation") or {}).get("benefit_t1_pct")) is not None]
             bad = [r for r in members if (r.get("evaluation") or {}).get("status") == "not_evaluable"]
             if not ok:
-                unresolved += 1
+                if all((r.get("evaluation") or {}).get("status") == "not_triggered" for r in members):
+                    not_triggered += 1
+                else:
+                    unresolved += 1
             elif bad:
                 partial += 1
             else:
@@ -2609,6 +2612,7 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
         total = len(by_ep)
         return {"episodes_total": total, "episodes_graded": graded,
                 "episodes_partial": partial, "episodes_unresolved": unresolved,
+                "episodes_not_triggered": not_triggered,
                 "graded_pct": round(100 * (graded + partial) / total, 1) if total else None,
                 "unresolved_reasons": dict(Counter(
                     reason

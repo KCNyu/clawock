@@ -989,3 +989,19 @@ def test_leverage_direction_uses_quotes_not_new_lot_pnl(run_check):
     holdings[0]['quote_incomplete'] = True
     report = run_check(_portfolio_data(region='hk_stocks', holdings=holdings))
     assert not any(i['code'] == 'LEV_DIRECTION' for i in report['findings'])
+
+
+@pytest.mark.parametrize(('previous', 'warn'), [(9.405, False), (9.40499, True), (9.415, False), (9.41501, True)])
+def test_prev_close_tolerance_includes_float_boundary(run_check, previous, warn):
+    row = _holding(ticker='SPCH', current=10.72, previous=previous)
+    report = run_check(_portfolio_data(holdings=[row]), bars={('SPCH', '2026-07-16'): 9.41})
+    assert any(f['code'] == 'PREV_CLOSE_SESSION' for f in report['findings']) == warn
+
+
+def test_two_source_divergence_is_visible_but_nonblocking(run_check):
+    row = _holding(ticker='00100', current=100, previous=99)
+    row['quote_divergence'] = {'c_div_pct': 3, 'pc_div_pct': 0}
+    report = run_check(_portfolio_data(region='hk_stocks', holdings=[row]))
+    findings = [f for f in report['findings'] if f['code'] == 'QUOTE_DIVERGENCE']
+    assert len(findings) == 1
+    assert findings[0]['level'] == 'WARN' and findings[0]['ticker'] == '00100'

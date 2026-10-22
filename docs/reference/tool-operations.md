@@ -62,7 +62,7 @@ clawock analyze-us
 
 ### 港股 fallback 链（脚本实现，2026-05-18 加 Eastmoney HK 双源对账）
 1. **腾讯财经** `qt.gtimg.cn/q=r_hkXXXXX` — 主源，覆盖最全
-2. **东方财富 HK** `push2.eastmoney.com/.../ulist.np/get` (secid prefix 116) — 独立第二源，跟 Tencent **并行抓取**做交叉校验：当两源都成功时，c/pc 偏差 > 1% 会在 `_divergence` 字段标 WARN + stdout 提示，作为 stale-data 漂移的 trip-wire
+2. **东方财富 HK** `push2.eastmoney.com/.../ulist.np/get` (secid prefix 116) — 独立第二源，跟 Tencent **并行抓取**做交叉校验：当两源都成功时，c/pc 偏差 > 1% 会落到持仓 `quote_divergence`、来源标签标明分歧，并由 integrity 报 `QUOTE_DIVERGENCE` WARN + stdout 提示，作为 stale-data 漂移的 trip-wire
 3. **stooq.com** CSV — 同日 OHLCV，新 IPO 无覆盖；prev_close 用 open 近似（低置信度）
 4. **yfinance** — 经常被限速，最后兜底
 
