@@ -99,3 +99,29 @@ def test_the_warning_stays_quiet_with_room_to_spare(capsys):
     ctx = copy.deepcopy(_context())
     packet_mod.compile_packet(ctx, generation_id="t")
     assert "ceiling" not in capsys.readouterr().err
+
+
+def test_a_flat_episode_counts_in_the_ticker_win_rate_denominator(monkeypatch):
+    """#3157: flat is a settled outcome, same as on the track-record card (#3154).
+
+    Dropping it shrinks n and lifts the win rate the writer reads.
+    """
+    from clawock.harness import brief_preflight
+
+    def row(day, outcome):
+        return {"ticker": "LEVX", "plan_date": day, "action": "hold_and_watch",
+                "evaluation": {"outcome": outcome}}
+
+    rows = [row("2026-09-01", "win"), row("2026-09-02", "loss"), row("2026-09-03", "flat")]
+    monkeypatch.setattr(brief_preflight.decision_v2, "load_decisions", lambda: rows)
+    monkeypatch.setattr(brief_preflight.decision_v2, "episode_representatives", lambda rs, _h: rs)
+    portfolio = {"portfolios": {
+        "hk_stocks": {"holdings": []},
+        "us_stocks": {"holdings": [{"ticker": "LEVX", "shares": 10}]},
+    }}
+
+    out = brief_preflight.compute_reflections(portfolio)["LEVX"]
+    assert out["n"] == 3
+    assert out["win_rate"] == 0.33
+    assert out["bucket_history"] == "持×3 胜1"
+    assert [r["outcome"] for r in out["recent"]] == ["win", "loss", "flat"]

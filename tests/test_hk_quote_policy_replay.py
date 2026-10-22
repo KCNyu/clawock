@@ -96,3 +96,39 @@ def test_divergence_survives_fetch_write_and_clears_on_new_quote(monkeypatch, tm
     assert row['current_price'] == round(quote['c'], 3)
     hk._hk_apply_quote(row, quote, datetime.fromisoformat(case['now']), '2026-09-01', [])
     assert 'quote_divergence' not in row and '分歧' not in row['data_source']
+
+
+def test_fallback_quote_on_a_new_session_drops_the_previous_range():
+    """#3158: a source without high/low must not carry yesterday's range into today."""
+    case = next(c for c in CASES if c['name'] == 'approx-absent')
+    holding = copy.deepcopy(case['portfolio']['portfolios']['hk_stocks']['holdings'][0])
+    now = datetime.fromisoformat(case['now'])
+    session = hk._hk_quote_session(now).isoformat()
+    quote = {'name': 'X', 'c': 10.0, 'pc': 10.2, 'o': 10.1, 'dp': -1.96, '_src': 'yfinance'}
+
+    holding.update(day_session_date='2000-01-03', day_low=12.0, day_high=13.0)
+    hk._hk_apply_quote(holding, copy.deepcopy(quote), now, '2026-09-01', [])
+    assert holding['day_session_date'] == session
+    assert 'day_low' not in holding and 'day_high' not in holding
+    assert holding['day_open'] == 10.1
+
+    holding.update(day_low=9.8, day_high=10.4)
+    hk._hk_apply_quote(holding, copy.deepcopy(quote), now, '2026-09-01', [])
+    assert (holding['day_low'], holding['day_high']) == (9.8, 10.4), (
+        'within one session the last real range stays')
+
+
+def test_eastmoney_quote_keeps_the_session_high_and_low(monkeypatch):
+    class Reply:
+        def json(self):
+            return {'data': {'diff': [
+                {'f12': '00100', 'f14': 'X', 'f2': 160.7, 'f3': -6.5, 'f15': 172.2,
+                 'f16': 158.1, 'f17': 171.0, 'f18': 171.9},
+                {'f12': '02208', 'f14': 'Y', 'f2': 9.1, 'f3': 0.0, 'f15': '-',
+                 'f16': '-', 'f17': 9.1, 'f18': 9.1},
+            ]}}
+
+    monkeypatch.setattr(hk, 'em_get', lambda *a, **k: Reply())
+    out = hk._fetch_eastmoney_hk(['00100', '02208'])
+    assert (out['00100']['h'], out['00100']['l']) == (172.2, 158.1)
+    assert 'h' not in out['02208'] and 'l' not in out['02208']

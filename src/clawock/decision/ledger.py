@@ -1747,6 +1747,10 @@ def build_audit_sidecar(decisions: list[dict], portfolio: dict,
     weight. Callers that actually want the trail (tests, ad-hoc recompute) keep
     the default and get it back with no recomputation cost.
     """
+    # schema_version 0 is the mind ledger (see validate_mind_record): it has no
+    # evaluation, so counting it here would read as one more pending plan (#3159).
+    mind_records = sum(1 for d in decisions if d.get("schema_version") == 0)
+    decisions = [d for d in decisions if d.get("schema_version") != 0]
     matched = match_real_executions(decisions, portfolio)
     records = []
     for decision in sorted(
@@ -1818,6 +1822,7 @@ def build_audit_sidecar(decisions: list[dict], portfolio: dict,
         "episode_role": "grouping_only",
         "price_source": "memory/bars canonical raw OHLC only",
         "state_counts": dict(Counter(row["state"] for row in records)),
+        "mind_records": mind_records,
         "timing_diagnostic": compute_timing_diagnostic(
             decisions, portfolio, matched=matched),
     }

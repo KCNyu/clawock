@@ -664,7 +664,8 @@ def compute_reflections(portfolio):
             for h in ledger_rows(portfolio['portfolios'][leg]['holdings']) if (_share_number(h.get('shares', 0)) or 0) > 0}
     out = {}
     for tk in sorted(held):
-        settled = [r for r in rows if r['ticker'] == tk and (r.get('evaluation') or {}).get('outcome') in ('win', 'loss')]
+        # flat is a settled outcome: it counts in n, never as a win (#3154/#3157).
+        settled = [r for r in rows if r['ticker'] == tk and (r.get('evaluation') or {}).get('outcome') in ('win', 'loss', 'flat')]
         if not settled:
             continue
         settled.sort(key=lambda r: r['plan_date'])

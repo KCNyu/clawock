@@ -144,11 +144,14 @@ def _fetch_eastmoney_hk(codes: List[str]) -> Dict[str, Dict]:
             pc = to_finite_number(pc_raw)
             missing_pc = pc is None or pc <= 0
             pc = None if missing_pc else pc
+            # f15/f16 are the session high/low ('-' before the first trade).
+            hi, lo = to_finite_number(item.get('f15')), to_finite_number(item.get('f16'))
             out[t] = {
                 'name': item.get('f14') or t,
                 'c': c, 'pc': pc,
                 'o': float(item.get('f17') or c),
                 'dp': to_finite_number(item.get('f3')) if missing_pc else _pct(c, pc),
+                **({'h': hi, 'l': lo} if hi and lo and hi > 0 and lo > 0 else {}),
                 **({'_pc_quality': 'missing'} if missing_pc else {}),
             }
         return out
@@ -493,6 +496,7 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
             h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
     h.pop('today_change_abs', None)
     h['stock_name']       = q.get('name', h.get('stock_name', code))
+    same_session = h.get('day_session_date') == _hk_quote_session(now_hkt).isoformat()
     h['day_session_date'] = _hk_quote_session(now_hkt).isoformat()
     source = q.get('_src', 'Tencent')
     divergence = q.get('_divergence')
@@ -513,11 +517,15 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     if q.get('volume'):
         h['volume'] = int(q['volume'])
 
-    # 日内区间 — 仅当本次行情带 open/high/low 时覆盖，避免旧交易日残留值
-    # （Tencent 主源有；stooq/yfinance fallback 没有则保持上次真值不写脏数据）
-    if q.get('o'): h['day_open'] = round(q['o'], 3)
-    if q.get('h'): h['day_high'] = round(q['h'], 3)
-    if q.get('l'): h['day_low']  = round(q['l'], 3)
+    # 日内区间 — 仅当本次行情带 open/high/low 时覆盖（Tencent/东财有；stooq/yfinance
+    # 没有）。同一场次缺字段时保留上次真值；换了场次就清掉，否则 integrity 的
+    # PRICE_RANGE 和面板 Today's Range 会拿上一场的区间判今天的价（#3158，与美股
+    # `_accumulate_day_range` 的 same_session 同一规则）。
+    for key, field in (('o', 'day_open'), ('h', 'day_high'), ('l', 'day_low')):
+        if q.get(key):
+            h[field] = round(q[key], 3)
+        elif not same_session:
+            h.pop(field, None)
 
     pnl_s = '+' if h['pnl_abs'] >= 0 else ''
     # 没有可信前收时这一格就是空的，不拿别的数顶上（顶上去的那一刻它就
