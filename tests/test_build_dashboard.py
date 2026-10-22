@@ -2431,3 +2431,34 @@ def test_peer_divergence_uses_frozen_quote_provenance_not_scan_time():
     del ctx['portfolio']
     del ctx['generated_at']
     assert dashboard.extract_peer_divergence(ctx)[0]['session'] is None
+
+
+def test_built_timeline_uses_the_same_generation_risk_inputs(monkeypatch, tmp_path):
+    """A helper-only check misses risk cards being assembled after the timeline."""
+    for relative in ('assets/data', 'memory/snapshots', 'memory/.tmp'):
+        (tmp_path / relative).mkdir(parents=True, exist_ok=True)
+    holding = {'ticker': '00100', 'name': 'MINIMAX-W', 'shares': 140, 'lot_size': 20,
+               'cost_basis': 200, 'current_price': 171.5, 'current_value': 24010,
+               'pnl_abs': -3990, 'pnl_percent': -14.25, 'trades': []}
+    other = {'ticker': '00700', 'shares': 100, 'cost_basis': 272.442,
+             'current_price': 272.442, 'current_value': 27244.2, 'trades': []}
+    (tmp_path / 'portfolio.json').write_text(json.dumps(_portfolio(hk={'holdings': [holding, other]})))
+    row = {'ticker': '00100', 'action': 'trim_on_rebound', 'size': {'shares': 40},
+           'condition': {'type': 'price_above', 'price': 178.1},
+           'rationale': '卖 40 股后回到 33% 附近。', 'plan_date': '2026-10-21'}
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda *args, **kwargs: [row])
+    from clawock.decision import intraday_policy
+    monkeypatch.setattr(intraday_policy, 'reduce_exempt_strategies', lambda *args: set())
+    built = dashboard.build_projection()
+    trail = json.loads(built['trail'])['plan_timeline'][0]
+    risk = next(r for r in json.loads(built['dashboard'])['risk_guardrail']['concentration_reviews']
+                if r['ticker'] == '00100')
+    from clawock.portfolio.guardrail import trim_projection
+    inputs = dict(risk['trim_inputs'], price=178.1)
+    expected = trim_projection(**inputs, sell_shares=40)
+    assert trail['trim_projection'] is not None
+    assert trail['trim_projection']['post_trim_weight_pct'] == expected['post_trim_weight_pct'] == 39.53
+    assert trail['trim_projection']['shares_to_review_line'] == 60
+    assert trail['rationale'] == row['rationale']
+    assert trail['plan_warnings']
