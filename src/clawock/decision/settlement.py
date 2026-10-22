@@ -116,16 +116,19 @@ def _resettle(args) -> int:
     print(f"   fully graded            {coverage['episodes_graded']:4}")
     print(f"   partially graded        {coverage['episodes_partial']:4}  (some members dropped → episode mean shifts)")
     print(f"   fully unresolved        {coverage['episodes_unresolved']:4}  (excluded from the rate entirely)")
+    print(f"   never triggered         {coverage['episodes_not_triggered']:4}  (no member fired; not a call to grade)")
     print(f"   total active episodes   {coverage['episodes_total']:4}")
     print(f"   graded coverage         {coverage['graded_pct']}%")
-    print(f"   unresolved episode reasons: {coverage['unresolved_reasons']}")
+    # Reasons are per distinct reason per ungraded episode (#3151), so they
+    # overlap and need not sum to the unresolved + never-triggered rows.
+    print(f"   ungraded episode reasons (overlapping): {coverage['unresolved_reasons']}")
     print("   Excluding hard cases is exactly how a record gets prettier for free, so")
     print("   the coverage is published next to the rate rather than rounded away.")
 
     coverage = m["coverage_passive"]
     print("--- passive episode coverage, last 30d")
-    print(f"   total {coverage['episodes_total']} | fully graded {coverage['episodes_graded']} | partially graded {coverage['episodes_partial']} | unresolved {coverage['episodes_unresolved']}")
-    print(f"   graded coverage {coverage['graded_pct']}% | reasons {coverage['unresolved_reasons']}")
+    print(f"   total {coverage['episodes_total']} | fully graded {coverage['episodes_graded']} | partially graded {coverage['episodes_partial']} | unresolved {coverage['episodes_unresolved']} | never triggered {coverage['episodes_not_triggered']}")
+    print(f"   graded coverage {coverage['graded_pct']}% | reasons (overlapping) {coverage['unresolved_reasons']}")
 
     if args.write:
         dv2.write_decisions(decisions)

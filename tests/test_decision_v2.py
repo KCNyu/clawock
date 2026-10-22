@@ -348,6 +348,28 @@ class DecisionAuditSidecarTest(unittest.TestCase):
         }
         return row, holding, bars
 
+    def test_audit_counts_mind_records_apart_from_pending_plans(self):
+        """#3159: a schema_version 0 mind row has no evaluation; it is not a pending plan."""
+        settled, holding, bars = self._executed(
+            "00100", "HK", "cut", 20, 105, 100)
+        mind = {"schema_version": 0, "decision_id": "dec-conversation-test",
+                "action": "reject", "mind": "m", "emotion": "calm"}
+        portfolio = {
+            "portfolios": {
+                "hk_stocks": {"holdings": [holding]},
+                "us_stocks": {"holdings": []},
+            }
+        }
+
+        with mock.patch.object(dv2, "load_ticker_bars", return_value=bars):
+            sidecar = dv2.build_audit_sidecar(
+                [settled, mind], portfolio, as_of="2026-07-17T12:00:00+08:00")
+
+        self.assertEqual(sidecar["state_counts"], {"settled": 1})
+        self.assertEqual(sidecar["mind_records"], 1)
+        self.assertNotIn("dec-conversation-test",
+                         {r["decision_id"] for r in sidecar["records"]})
+
     def test_audit_preserves_authored_text_all_states_and_canonical_path(self):
         settled, holding, bars = self._executed(
             "00100", "HK", "cut", 20, 105, 100)
