@@ -2007,15 +2007,45 @@ def _discovery_summary(discovery: dict) -> dict:
     }
 
 
-def _summary_technical(technical):
+def _setup_shared(held: list) -> dict:
+    """Per setup_id, the fields every row's copy of that setup carries alike.
+
+    One registered setup on most of the book (kcn's preposition experiment sat
+    on 8 of 10 rows on 2026-10-22) printed its label, detail, authority and
+    tranche rules once per row, ~0.6KB each, and was most of the summary's
+    growth toward its budget. Same rule as `candidate_shared`: a key moves only
+    when every copy holds the identical value, and the packet keeps rows whole.
+    """
+    by_id: dict = {}
+    for row in held:
+        for setup in (row.get("technical") or {}).get("setups") or []:
+            if isinstance(setup, dict) and setup.get("setup_id"):
+                by_id.setdefault(setup["setup_id"], []).append(setup)
+    shared = {}
+    for setup_id, copies in by_id.items():
+        if len(copies) < 2:
+            continue
+        common = {key: value for key, value in copies[0].items()
+                  if key not in ("setup_id", "evidence_strength")
+                  and all(key in other and other[key] == value for other in copies[1:])}
+        if common:
+            shared[setup_id] = common
+    return shared
+
+
+def _summary_technical(technical, setup_shared=None):
     view = {key: technical.get(key) for key in
             ("source_ticker", "is_proxy", "as_of", "tag", "trend",
              "rsi_state", "stop_state", "setups", "usable")}
-    view["setups"] = [
-        {**{k: v for k, v in s.items() if k != "evidence_strength"},
-         "evidence_strength_ref": "preposition_evidence"}
-        if s.get("setup_id") == preposition.SETUP_ID else s
-        for s in technical.get("setups") or []]
+    setups = []
+    for s in technical.get("setups") or []:
+        common = (setup_shared or {}).get(s.get("setup_id")) or {}
+        s = {k: v for k, v in s.items() if k not in common}
+        if s.get("setup_id") == preposition.SETUP_ID:
+            s = {**{k: v for k, v in s.items() if k != "evidence_strength"},
+                 "evidence_strength_ref": "preposition_evidence"}
+        setups.append(s)
+    view["setups"] = setups
     return view
 
 
@@ -2052,7 +2082,7 @@ def _shared_text(rows, path):
     return values.pop() if len(values) == 1 and None not in values else None
 
 
-def _summary_row(row: dict, notes: dict) -> dict:
+def _summary_row(row: dict, notes: dict, setup_shared: dict | None = None) -> dict:
     constraints = row.get("constraints") or {}
     execution = {key: value for key, value in (row.get("execution") or {}).items()
                  if not (key in _EXECUTION_IN_CONSTRAINTS and key in constraints
@@ -2072,7 +2102,7 @@ def _summary_row(row: dict, notes: dict) -> dict:
         "name": row.get("name"),
         "leg": row.get("leg"),
         "status": row.get("status"),
-        "technical": _summary_technical(row.get("technical") or {}),
+        "technical": _summary_technical(row.get("technical") or {}, setup_shared),
         "thesis": row.get("thesis"),
         "execution": execution,
         "quant_usable": {
@@ -2130,9 +2160,12 @@ def summary_view(packet: dict, budget: int | None = None) -> dict:
             ("execution.information_overlay.discipline",
              ("execution", "information_overlay", "discipline")))
         if (text := _shared_text(held, path)) is not None}
-    rows = [_summary_row(row, notes) for row in held]
+    setup_shared = _setup_shared(held)
+    rows = [_summary_row(row, notes, setup_shared) for row in held]
     view = {
         "preposition_evidence": evidence,
+        # Fields every row's copy of that setup_id shares; rows keep the rest.
+        "setup_shared": setup_shared,
         "stock_discovery": _discovery_summary(packet.get("stock_discovery") or {}),
         "_meta": packet.get("_meta"),
         "date": packet.get("date"),

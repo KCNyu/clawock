@@ -1139,6 +1139,30 @@ def test_the_summary_prints_each_bound_once_and_each_constant_once():
     assert "folded" not in summary
 
 
+def test_a_setup_on_many_rows_prints_its_shared_fields_once():
+    """2026-10-22: one registered setup on 8 of 10 rows repeated its label,
+    detail and tranche rules per row and pushed the summary to 96% of budget.
+    Fields every copy shares print once in `setup_shared`; what differs stays."""
+    def row(ticker, price, extra=None):
+        setup = {"setup_id": "alpha_confirmation", "label": "确认", "detail": "same text",
+                 "max_tranches": 1, "entry_price": price, **(extra or {})}
+        return {"ticker": ticker, "technical": {"setups": [setup]}}
+
+    packet = {"tickers": {"A": row("A", 10.0), "B": row("B", 20.0, {"label": "other"}),
+                          "C": {"ticker": "C", "technical": {"setups": [
+                              {"setup_id": "solo", "label": "only one"}]}}}}
+    summary = packet_mod.summary_view(packet)
+
+    assert summary["setup_shared"] == {
+        "alpha_confirmation": {"detail": "same text", "max_tranches": 1}}
+    setups = {r["ticker"]: r["technical"]["setups"] for r in summary["tickers"]}
+    assert setups["A"] == [{"setup_id": "alpha_confirmation", "label": "确认", "entry_price": 10.0}]
+    assert setups["B"] == [{"setup_id": "alpha_confirmation", "label": "other", "entry_price": 20.0}]
+    assert setups["C"] == [{"setup_id": "solo", "label": "only one"}]
+    assert packet["tickers"]["A"]["technical"]["setups"][0]["detail"] == "same text", (
+        "the stored packet keeps rows whole")
+
+
 def test_a_book_past_the_summary_budget_folds_instead_of_refusing(monkeypatch):
     """#3109: twice the full summary was met by a higher ceiling (#723, #2816)
     while the summary stayed O(holdings). Past the line it now folds reference

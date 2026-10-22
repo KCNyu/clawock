@@ -146,7 +146,7 @@ summary 的 `stock_discovery` 是独立于持仓/peer-map 的持仓外研究队�
 「Nasdaq 未取到」，不能解释为「没有机会」。港股跨板块发现、analyst 一致预期尚缺。
 
 summary 包含 book/concentration、每票 deterministic status、技术/因子可用性、风险计数、allowed actions 与 evidence IDs。它不要求模型加载原始持仓交易流水或整张因子表。
-每票的整手、单批上限、仓位空间只在 `constraints` 里印一次（`--section execution` 有完整尺寸明细）；`row_notes` 里的说明对每一行同名字段都成立。持仓多到 summary 装不下时，harness 会把参考明细收进逐票查询，顶层 `folded` 写明收起了哪一段、用哪个 `section` 查——要用到时按它逐票查，不要当成该票没有这段。
+每票的整手、单批上限、仓位空间只在 `constraints` 里印一次（`--section execution` 有完整尺寸明细）；`row_notes` 里的说明对每一行同名字段都成立；`setup_shared` 按 `setup_id` 列出该 setup 在每一行都相同的字段（文案、授权、批次规则），每票 `technical.setups` 只留随票变化的价位与计数，读一条 setup 时把两处合起来读。持仓多到 summary 装不下时，harness 会把参考明细收进逐票查询，顶层 `folded` 写明收起了哪一段、用哪个 `section` 查——要用到时按它逐票查，不要当成该票没有这段。
 
 需要分析某票时才查该票；需要单一维度时必须带 `--section`：
 
