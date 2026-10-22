@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T00:07:20.138477+00:00",
+  "generated_at": "2026-10-22T00:16:15.504687+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -50,12 +50,6 @@
           "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQSXFCdHYydFN2VXNQNUR1RHduallpdTlxdWdHYzZlS0Z3NGdSRzNnWFRGeEIyQldYeGRWSXlRSHRmU05xVHhXcVNnajE1bXpxcHhEN3VNOHpFaUYtQ1pYSm9fRE9FdTlLNU5YNjlqMzlrY01QUUc1NFc0dzdHQ0hkM0JyQVRwNUlHaE5LRE9keDdQME9ZU3RwQVBReUFwQnR2RnNR?oc=5"
         },
         {
-          "title": "Officer Jeremy D. Fox-Geen proposes selling 15,000 Circle Internet Group (CRCL) shares.",
-          "source": "Stock Titan",
-          "published": "Wed, 21 Oct 2026 16:57:34 GMT",
-          "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNUGRWUFUzdGNPVXNsYW5LX09fZmJsQ093X1ZySTZVQVpnOHVOaGZYTXlRRnhrS0IzVHJFSmtzU0cwSlFHZ19SS0hVbHB4bmhISDIzZ0NQVkdYZmFDQlFNVUxFNTUyMXBtcXhpTWw2TWNYQ0p4SWx0S01xeGVfMzZKb1dCbUdyR1hJRVczVFNEWkFMajBLRnI4aFd2eEJrOVluWXpXeg?oc=5"
-        },
-        {
           "title": "Circle Internet Group (NYSE:CRCL) Stock Gets Price Target Increase from Needham & Company LLC",
           "source": "MarketBeat",
           "published": "Wed, 21 Oct 2026 12:42:02 GMT",
@@ -66,6 +60,12 @@
           "source": "Quiver Quantitative",
           "published": "Wed, 21 Oct 2026 16:21:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQeklYcVoyS3k0bGhCWkNpQWdqelQ2cTFQc0dyTkhNeEJCZ1lvMl9BdmJsT0g2Y2xsU2NfeDRZWldtUDd4T3dzeHVrX21KUGMzWDlVOGFfeEJBS0NOV2ZfWV93UWQzNzVUa0ZfelBYS3JmdE9Qa19Zd0VTX1hmRm5lZE9vUUxUM2dUbzNvdXZtOFJLWl9pelhwN1p0UTQ4TVR0Wkk5aFlsWQ?oc=5"
+        },
+        {
+          "title": "Circle (CRCL) Stock Looks Fairly Valued Despite Fresh USDC Partnership News",
+          "source": "Yahoo Finance",
+          "published": "Wed, 30 Sep 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPTFUzbHQ0WGhoV1VOX2lRenlSQkIyemN3THJvaDBYUktzdWIwQ1dnNHFhTUlSV1Robm9uYjZ0YXEwdkpUV00tcUJRSDVSTi1ycUhoWFNCVjMyMEFrb2NrVFQ5b2kxWVhSallZY1Y3VnFJdXJST2NRZjgxamZCQWhnQ0p0c1I2UENSdWFaVmJ3aVUzcXJNRC1lQXU4OA?oc=5"
         },
         {
           "title": "Circle Internet Jumps 6% as OCC Finalizes GENIUS Act Stablecoin Rules; Strategy Surges 8%, Coinbase Climbs 5%",
@@ -133,10 +133,10 @@
           "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNdFFGSVFTaWJiUF9uNnZXSmVLTGhzcEtfRC13X25ZM0dvQjFUeWZKRlBZQ0RxM25yTzdDdVQxYTVHRnRiR1o5ZktaZ1k3a2NQdlpUZklHMEwwckRQaW55MTRZRG5SUzJxaXV4TmN5d3hhSHoybVJIUlcyTlY2WU05cElQRXpTSk5rckk2dlRjN0IwcTNqQnRFblZMalJHVEIyZUR5ci1Taw?oc=5"
         },
         {
-          "title": "RKLX Oct 2026 15.000 put (RKLX261016P00015000) Stock Price, News, Quote & History",
+          "title": "RKLX Oct 2026 35.000 call (RKLX261016C00035000) Interactive Stock Chart - Yahoo Finance",
           "source": "Yahoo! Finance Canada",
-          "published": "Thu, 15 Oct 2026 16:26:50 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5OcDlPTml1Mnd5cjluSWpRSVhRbjh4bDBoX1h2Rk9jRnFOSVJIYUxDS0lPdUNMY2lBLWFZc3lNZHVaazFNLXJoWWJLSFRPcENQcU9OTnJiT3dkdVN5ZllkUG1LdXVrZw?oc=5"
+          "published": "Fri, 16 Oct 2026 14:43:39 GMT",
+          "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBUUnl4VDVNcmdEN3R5NWlsRUF4X0dKTG1YcTlmZkt1aDk4Ym44VlRXbG9VZE1KdnNBNjV0cUE2SVFTV3VyNmcwVnp6OE92YWNETnF2bDd1b0JRMGdiY2tVbzJQS3E3NzZLbnczdDZR?oc=5"
         }
       ],
       "google_news_zh": []
@@ -257,6 +257,12 @@
           "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxNRDhpUEsyVHlybXBhSWdJQjVPWnoxbmZRcHNTRlNxQ08xNDFYY25CVWh1SXhMeGhLWVdPekhPdjdjalRINXA3ekhCbmxmMjJ3dXUxdXpKclVjWlp2dS15RWoyckduZ3Z2SXBVN3h1aXpsVzdDSlVsd1B5LWxjX2JsZi1PYTZ2RWZqMmo0SWxzYmZJdl9ya05r?oc=5"
         },
         {
+          "title": "SPCH Oct 2026 8.500 call (SPCH261023C00008500) Interactive Stock Chart",
+          "source": "Yahoo! Finance Canada",
+          "published": "Wed, 21 Oct 2026 12:37:42 GMT",
+          "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1lNVFFMXdvUk0tWkJta2YxOVpkMHJzT0N1MDJmNm4zTXMyY0JBellVNEluZDBLU2pRdjhYaU1fSmJqaUhLMEpVZjVnVGd3bEVwU3MtOV9BTk5LQlhyMmlvQ1NZVEhSbmx1bVdKQXNR?oc=5"
+        },
+        {
           "title": "SPCH Stock Pulls Back As Volatility Grips Leveraged Trade",
           "source": "StocksToTrade",
           "published": "Wed, 21 Oct 2026 13:20:00 GMT",
@@ -273,12 +279,6 @@
           "source": "Timothy Sykes",
           "published": "Wed, 21 Oct 2026 11:48:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQZHlLMzAyc09iajBxTUJLVGVKOUtsNkJFbkw4OHNIMm0wQ09ESDc4VzJlY0Fwblo0bXJwMkRvSGwtSjhjYkVjNGNQQ0NBMkljMUJrZUVoZ2R2ejZOeG9Ba1RqQjZlZ095YmNRbzBud2N3T2VPcXdwOFVfZHB1VTFRRTdLNEtMQ2E4TW93ZU9rX215VmZn?oc=5"
-        },
-        {
-          "title": "$Leverage Shares 2X Long SpaceX Daily ETF (SPCH.US)$$Direxion Daily TSLA Bull 2X Shares (TSLL.US)$ Keep up with the rocket!",
-          "source": "Moomoo",
-          "published": "Fri, 16 Oct 2026 02:23:31 GMT",
-          "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOT01aLXg1WTlFejlsY3pYdllDZktCcy1MakZrSzNzSnl4V1FETU45djllV05LTGdpWWctbVZ1VlNlOWlQUG5FMnA5cGR0eXFxMzJzMFYzZEdtRjhXWGRWRHRLZEhKTG9CUDVVUVJWcjlZcFlKNmNzcFZGZjRRMGVBUldWMEM3SHV5SmV3N3BVUktsRjF2M3NTVWVTUVIzT0syOFR5N01QN2o3eVBWVHFwcw?oc=5"
         }
       ],
       "google_news_zh": []
