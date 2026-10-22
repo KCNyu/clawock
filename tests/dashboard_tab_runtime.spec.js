@@ -2986,7 +2986,9 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
     null, { timeout: 15000 })
     .catch(() => { throw new Error("the plan timeline never rendered") });
 
-  const scenarioText = await page.locator("#plan-timeline .pt-row").first().innerText();
+  const scenarioRow = page.locator("#plan-timeline .pt-row").first();
+  await scenarioRow.scrollIntoViewIfNeeded();
+  const scenarioText = await scenarioRow.innerText();
   assert.match(scenarioText, /按当前账本测算：卖 40 股 @ 178.1 → 投资腿占比 39.53%/);
   assert.match(scenarioText, /到 35% 复核线需卖 60 股/);
   assert.match(scenarioText, /作者减仓后占比 33%/);
