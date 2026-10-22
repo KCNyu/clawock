@@ -18,6 +18,7 @@ from clawock.scheduling import BRIEF_SLOT_HKT
 from clawock.decision import add_policy
 from clawock.decision.book import plan_totals
 from clawock.workspace import workspace_root
+from clawock.harness.chat_card import table
 
 WS = workspace_root()
 
@@ -201,8 +202,10 @@ def build_brief_card(today, decision_packet=None):
                 bk = {}
                 lines.append('账面金额未核验，见完整报告')
         if bk:
-            lines.append(f"**账面 USD${bk.get('usd_total_pnl', '?')}** · 港股 HKD${bk.get('hk_leg_hkd', '?')}"
-                         f" · 美股 USD${bk.get('us_leg_usd', '?')}")
+            # Whole-line bold, legs in a `$`-free table (see chat_card.summary_lines).
+            lines.append(f"**账面 USD${bk.get('usd_total_pnl', '?')}**")
+            lines += ['', *table(['港股 HKD', '美股 USD'],
+                                 [[str(bk.get('hk_leg_hkd', '?')), str(bk.get('us_leg_usd', '?'))]]), '']
             lines.append(f"USDHKD {plan['fx_rate_usdhkd']}")
         acts = [a for a in (plan.get('decisions') or []) if isinstance(a, dict)
                 and a.get('action') not in ('hold_and_watch', 'watch')][:4]

@@ -904,3 +904,15 @@ def test_judgment_confidence_difference_and_required_thoughts_are_visible():
     assert '判断信心 62%（与行动信心不同）' in section
     for key in ('assessment', 'counterargument', 'next_evidence'):
         assert judgment['ticker_judgments'][0][key].rstrip('。') in section
+
+
+def test_card_book_total_is_a_whole_bold_line_and_the_legs_a_table():
+    """2026-10-22: WeChat did not bold a half-bold line with `$` on both sides
+    of the closing `**`. The total is its own bold line; the legs sit in a
+    table whose header names the currency, so no line carries two `$`."""
+    lines = render.render_card(CONTEXT, _judgment(), PLAN, date="2026-08-31").splitlines()
+    assert lines[1].startswith("**账面 USD$") and lines[1].endswith("**")
+    assert lines[2] == "" and lines[3] == "|  | 港 HKD | 美 USD |"
+    assert lines[5].startswith("| 盈亏 |") and lines[6].startswith("| 集中度 |")
+    assert lines[7] == "" and lines[8].startswith("USDHKD ")
+    assert all(line.count("$") <= 1 for line in lines[:9])

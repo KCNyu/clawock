@@ -5,7 +5,7 @@ and rewritten pass by pass (变化 lead, ↑ pointer, ▎持续状态, 🛰️ �
 answered "what changed" in five places and "what do I do" in none. This card
 is built from the slot's structured data, in the order a reader asks:
 
-    title, then today's P&L and the book/risk totals as two short lines
+    title, today's P&L as a bold line, the book/risk totals as a one-row table
     ⛔ data health            only when something is degraded
     **⚠️ 待你处理**           P0 questions, unfilled plan orders, broken plan lines,
                               a stop newly broken today, the T+0 order if any
@@ -18,7 +18,7 @@ is built from the slot's structured data, in the order a reader asks:
 
 WeChat renders markdown bold, tables and lists but not headings: `## title`
 arrives as literal `## ` in plain weight (kcn 2026-10-20), so every title here
-is a whole-line bold. Telegram gets the same text.
+is a whole-line bold. Telegram gets the same text (its tables arrive as code blocks).
 Everything the card leaves out stays in the context for the model
 (`analyzer_block`, `leverage_legs`, `add_side_reads`, …).
 """
@@ -90,39 +90,61 @@ def title_line(title: str) -> str:
     return f'**{title}**' if title else ''
 
 
-def summary_lines(book: str, risk: str = '') -> list[str]:
-    """The 📊 and 📉 lines as two short lines: today's P&L first and bold, then
-    the standing totals and risk (318px bubble: one long line wrapped mid-word).
+# Labels shortened for a 318px bubble; the numbers are untouched.
+_SUMMARY_LABELS = {'亏损持仓': '亏损', '杠杆ETF敞口': '杠杆', '2x杠杆敞口': '2x杠杆'}
 
-    `📊 市值 $3,318 | 浮盈 $-1,118 (-25.2%) | 今日 +$167 | ✅ 已实现 +$2,376`
-    + `📉 亏损持仓 3/4  |  杠杆ETF敞口 90%`
-    → `**今日 +$167** · 浮亏 -$1,118（-25.2%）`
-      `市值 $3,318 · 已实现 +$2,376 · 亏损持仓 3/4 · 杠杆ETF敞口 90%`
+
+def table(header, rows, first='---:') -> list[str]:
+    """A markdown table, numbers right-aligned (`first` aligns column one).
+
+    WeChat renders it; Telegram's channel turns it into an aligned code block
+    (`channels.telegram.markdown.tables = code`, padded by East Asian width),
+    the same way the holdings table already arrives."""
+    align = [first] + ['---:'] * (len(header) - 1)
+    return [f"| {' | '.join(header)} |", f"|{'|'.join(align)}|",
+            *(f"| {' | '.join(row)} |" for row in rows)]
+
+
+def summary_lines(book: str, risk: str = '') -> list[str]:
+    """Today's P&L as its own bold line, then the standing totals as a one-row table.
+
+    `📊 市值 $3,403 | 浮盈 $-1,033 (-23.3%) | 今日 $-284 | ✅ 已实现 +$2,376`
+    + `📉 亏损持仓 2/4  |  杠杆ETF敞口 90%`
+    → `**今日 -$284**`, blank, then
+      `| 市值 | 浮亏 | 已实现 | 亏损 | 杠杆 |` / `| 3,403 | -1,033（-23.3%） | +2,376 | 2/4 | 90% |`
+
+    WeChat did not bold `**今日 $-284** · 浮亏 -$1,027（…）` (kcn 2026-10-22): the
+    one bold line that was not a whole line, and the one with a `$` on each
+    side of its closing `**`. A whole line with a single `$` is safe on either
+    reading, and the table row carries no `$` at all (the flag and the 今日
+    line name the currency, as the holdings table's 浮$ column does). A blank line separates the
+    table from the bold line (a table cannot interrupt a paragraph) and the
+    caller always opens the next block with a blank line (a plain line right
+    under a table would be read as another row).
     """
     chunks = [c for c in re.split(r'\s*\|\s*', (book or '').lstrip('📊').strip()) if c]
-
-    def find(key):
-        return next((chunk for chunk in chunks if key in chunk), None)
-
-    first, second = [], []
-    today = find('今日')
-    if today:
-        first.append(f'**{today.strip()}**')
-    pnl = find('浮盈')
-    if pnl:
-        # US: `浮盈 $-1,118 (-25.2%)`; HK: `浮盈 -61,313 (-53.5%)` (HK$ is in 市值).
-        match = re.search(r'浮盈\s*(\$?)(-?)\$?([\d,.]+)\s*\(([^)]*)\)', pnl)
-        first.append(f"{'浮亏 -' if match.group(2) else '浮盈 +'}{match.group(1)}{match.group(3)}"
-                     f"（{match.group(4)}）" if match else pnl)
-    for key in ('市值', '已实现'):
-        chunk = find(key)
-        if chunk:
-            second.append(re.sub(r'^✅\s*', '', chunk))
-    second += [c.replace('亏损持仓', '亏损').replace('杠杆ETF敞口', '杠杆')
-               for c in re.split(r'\s*\|\s*', (risk or '').lstrip('📉').strip()) if c]
-    known = {c for c in (today, pnl, find('市值'), find('已实现')) if c}
-    second += [c for c in chunks if c not in known]
-    return [' · '.join(part) for part in (first, second) if part]
+    risks = [c for c in re.split(r'\s*\|\s*', (risk or '').lstrip('📉').strip()) if c]
+    lines, header, row = [], [], []
+    for chunk in chunks + risks:
+        chunk = re.sub(r'^✅\s*', '', chunk.strip())
+        if chunk.startswith('今日'):
+            # US writes a loss as `$-284`; the sign goes first, as on 浮亏.
+            lines.append('**' + re.sub(r'\$-', '-$', chunk) + '**')
+            continue
+        match = re.search(r'浮盈\s*(\$?)(-?)\$?([\d,.]+)\s*\(([^)]*)\)', chunk)
+        if match:
+            # US: `浮盈 $-1,118 (-25.2%)`; HK: `浮盈 -61,313 (-53.5%)` (HK$ is in 市值).
+            label = '浮亏' if match.group(2) else '浮盈'
+            value = f"{'-' if match.group(2) else '+'}{match.group(3)}（{match.group(4)}）"
+        else:
+            label, _, value = chunk.partition(' ')
+        header.append(_SUMMARY_LABELS.get(label, label))
+        # No currency inside the row: the flag and the 今日 line already say
+        # it, and a row of `$` cells is the shape the bold line broke on.
+        row.append(re.sub(r'(?:HK)?\$', '', value).strip() or '—')
+    if header:
+        lines += (['', *table(header, [row])] if lines else table(header, [row]))
+    return lines
 
 
 # ── sections ─────────────────────────────────────────────────────────────────
