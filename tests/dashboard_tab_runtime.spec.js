@@ -3067,8 +3067,8 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
     target_pct: 35, shares_to_review_line: 60 };
   plan[0].plan_warnings = ["作者减仓后占比 33% 与当前账本联立解 39.53% 不一致；请复核"];
   await page.reload({ waitUntil: "networkidle" });
-  await waitForData(page);
-  await clickTab(page, "plan");
+  // Reload retains #plan and its full projection; the overview-only wait is
+  // deliberately inapplicable once a detail tab is selected.
   await waitForTab(page, "plan");
   const scenarioRow = page.locator("#plan-timeline .pt-row").first();
   await scenarioRow.scrollIntoViewIfNeeded();
