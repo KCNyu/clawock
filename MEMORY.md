@@ -109,6 +109,22 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 ---
 
+## 发版版本号
+
+- 版本号的词以 **kcn 的口径**为准：他说「大版本 / 小小版本」两档，**他说的 minor = 小小版本 = 0.4.1**
+  （SemVer 里叫 patch；SemVer 的 minor 专指 0.5.0 那一档）。别拿 SemVer 术语去纠正他，
+  也别把 worker 报「这更像 minor」当成待决问题往他面前推 —— 那是 worker 用 SemVer 术语说「小小版本」，
+  跟他要 0.4.1 本来就不冲突。
+- 版本号策略以**仓库惯例**为准：**patch 号允许带新功能**，minor 留给里程碑。
+  0.3.1 是 patch，跨 57 个 PR、含 2 条 Added 新功能；0.1.9 同理；0.4.0/0.4.1 各 6 条 Added。
+- 若 kcn 想改成「面向用户的新功能一律 bump 中版本（0.5.0）」，先改 `docs/operations/release.md`，
+  再改版本号（`tests/test_versions_agree.py` 要求 CHANGELOG 标题与 `pyproject.toml` 一致，CI 才过）。
+- `v*` tag 一旦推了不能改（ruleset `21184290`）：v0.4.1 已发布，PyPI/npm 已收副本，
+  同一份内容不再另切 0.5.0。
+- 发版检查：**推 tag ≠ 发布完成**。必须 `gh run list --workflow release.yml` 确认有 run；
+  Actions 降级会静默吞掉 tag 触发事件（不报错）。没有 run 就补
+  `gh workflow run release.yml --ref <tag> -f repository=pypi`（必须 tag ref，`pypi` 环境只放行 `v*`）。
+
 ## 关键市场联动
 
 - 油价↓（地缘缓和）↔ 加密/科技涨
@@ -175,17 +191,6 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-21)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-10-16-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-10-16 周五 08:03 HKT: 今天动刀，只动一处：清掉港股腿 35% 的两倍恒科，换成同因子的一倍南方恒科，方向不换、衰减停掉，等 10-28 的利率决议。00100 的反弹减仓挪到破位日高点 197.9 才等得到，两倍太空腿减三成，RKLX 这一百多美元维持不动，02208 不砍在 RSI 18.8，CRCL 是全账唯一站上 200 日线的仓位但不追。整本账的问题从来不是选股，是两只两倍腿加一只占半本的 AI 股把同一个赌注押了三遍；今天先把这个结构改一处，剩下九成押注仍然要等一个信号。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-16-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-16-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-10-16 周五 08:03 HKT: **反方**：最强反方会说这是又一条站了六十四天的砍单换了个说法：恒科月度横盘衰减只有 0.46 个点，是全账最便宜的杠杆成本，卖出换仓的收益可能只是一个季度的省下来的手续费，而这些钱如果留在两倍层里遇到反弹，赚的是两倍。反方还有一条更硬的：这本账主动决策的执行率是 0.0，24 条已知没有一条被执行过，所以今天这条砍单很可能也是第 65 次空转；既然如此，保留敞口至少不会因为一笔不成交的决定而错过反弹。这两点都成立，唯一不成立的是它们默认了定价环境没变——上一次重提时市场还在赌降息，现在 9 月 CPI 3.7% 超预期、10 月加息押注 43.7%、纪要 19 位官员一致支持加息，10-28 就在十二天后。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-16-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-16-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-16-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-16-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-16 周五 08:03 HKT description: "clawock 盘前深度简报 2026-10-16：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-16-pre-open.md:2-4]
-
 ## Promoted From Short-Term Memory (2026-10-22)
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:11:11 -->
@@ -200,3 +205,10 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:23-23]
 <!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:9:9 -->
 - 盘前深度简报｜2026-10-14 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-10-23)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-15-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.815 recalls=0 avg=0.620 source=memory/2026-10-15-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-15-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-10-15 周四 08:03 HKT description: "clawock 盘前深度简报 2026-10-15：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.815 recalls=0 avg=0.620 source=memory/2026-10-15-pre-open.md:2-4]
