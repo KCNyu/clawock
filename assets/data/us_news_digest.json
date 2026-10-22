@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T17:50:26.145324+00:00",
+  "generated_at": "2026-10-22T17:44:36.332897+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: Q3 三大业务均超预期，AI 基础设施转型获市场认可，Super Intelligence 分部已盈利，报道时股价涨逾 10%。  \n  **Implication for kcn's position**: kcn 持有 **SPCH（SPCX 2x）**；2x 会放大盈利与 AI 叙事带来的上行，也会放大财报后的估值回吐。\n- **CRCL**: EBA 将 USDC 认定为欧洲首个“重要”MiCA EMT，11 月 12 日起实行双重监督；OCC 另敲定支付稳定币发行人的周/季度报告表。  \n  **Implication for kcn's position**: 对 kcn 的 CRCL 持仓是合规里程碑、偏利好，但持续报告与双监管执行将成为新的股价变量。\n- **SPCX**: SpaceX 与 Tesla 被报正探索潜在合并，交易尚未确认。  \n  **Implication for kcn's position**: kcn 持有 **SPCH（SPCX 2x）**；2x 会放大并购消息引发的跳涨与回撤，不能按已落地交易定价。\n- **RKLB**: SpaceX 财报后 RKLB 盘前涨 3.9% 至 $52，但该新闻未提供新的 RKLB 财务数据。  \n  **Implication for kcn's position**: kcn 持有 **RKLX（RKLB 2x）**；2x 会放大板块情绪驱动行情及其反转，本条不足以确认独立基本面重估。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: USDC 获 EBA 首个“重要”MiCA EMT 认定并进入双重监督，OCC 敲定周/季度报告收集，Needham 将目标价由 $130 上调至 $134 — 合规进展偏利好，卖方上调提供情绪支撑，报告执行仍是风险。\n- **RKLB**: SpaceX 财报带动板块情绪，RKLB 盘前涨 3.9% 至 $52；另有评论文章称旗舰火箭仍延期 — 短线情绪偏正，但 RKLX 2x 会同步放大执行风险。\n- **SPCX**: Q3 三业务超预期、AI 基础设施与 Super Intelligence 盈利推动股价涨逾 10%；Tesla 潜在合并仍处探索阶段且 capex 上升 — 基本面催化强，但 SPCH 2x 放大双向波动。\n\n### 风险 watch (若有)\n- **CRCL｜监管/执行**: OCC 周/季度报告表及 MiCA 双重监督增加持续合规变量；EBA 认定本身未改变 USDC 产品。\n- **SPCX｜资本开支/事件**: AI 基础设施扩张伴随 capex 上升；Tesla 合并尚未确认，SPCH 2x 会放大消息反转。\n- **RKLB｜进度/执行**: 评论文章称旗舰火箭延期，RKLX 2x 会放大时间表失望造成的跌幅。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n\n- **SPCX**: 科技股避险抛售中早盘跌 6% 至 $150.23，回吐首次盈利季度后的多数涨幅。  \n  **Implication（kcn / SPCH）**：通过 2x 杠杆 ETF SPCH 持有，空头周期与单日波动将被同步放大。\n- **RKLB**: Neutron 发射进度延至 2027 年，估值仍处高位，报道给出的 forward EV/sales 为 SpaceX 的约 1.89 倍。  \n  **Implication（kcn / RKLX）**：通过 2x 杠杆 ETF RKLX 持有，延期与高估值带来的下修将被放大。\n- **SPCX**: BofA 将目标价上调至 $275，较当时收盘价高 73%；第三季度营收增长 161%。  \n  **Implication（kcn / SPCH）**：基本面预期提供中期支撑，但 SPCH 的 2x 结构也会放大任何重估波动。\n- **CRCL**: OCC 完成 GENIUS Act 实施规则，交易所目前可继续提供类收益稳定币奖励，USDC/USDT 进入新监管与分发竞争阶段。  \n  **Implication（kcn / CRCL）**：监管可见度提高，但 USDC 相对 USDT 的获客优势及奖励成本仍未确定，净影响暂偏中性。\n\n### Per-ticker 简报 (有新闻才列)\n\n- **CRCL**: GENIUS Act 规则落地并允许稳定币奖励，清晰了合规框架，但加剧 USDC 与 USDT 的用户奖励竞争。\n- **RKLB**: Neutron 延至 2027 年叠加科技股避险，RKLB 一度下跌 5%，执行风险与估值溢价同时受关注。\n- **SPCX**: 盈利季报后的涨势快速回吐，但 BofA 上调目标价；Tesla 财报重新点燃合并猜测，尚无已确认交易。\n\n### 风险 watch (若有)\n\n- **CRCL**: 监管规则执行、USDC 对 USDT 的竞争及类收益奖励成本可能压缩分发经济性。\n- **RKLB**: Neutron 延期与高估值组合意味着任何进一步时间表恶化都可能触发放大回撤。\n- **SPCX**: 盈利后仍单日跌 6%，显示预期波动高；Tesla–SpaceX 合并目前仅为猜测，不应视为已落地催化。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Reported Earlier, U.S. OCC Finalizes Information Collection To Include Weekly And Quarterly Reporting Forms By Permitted Payment Stablecoin Issuers And Foreign Payment Stablecoin Issuers Under The Sta",
-        "datetime": 1792570929,
+        "headline": "'Long Coins, Short Stocks': Expert Bullish on Bitcoin, Cautious on XRP, Coinbase, Circle",
+        "datetime": 1792661604,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ada38a69666c2b4e48633a0c98720911193327d1dc217665dded6aedb37191b2"
+        "url": "https://finnhub.io/api/news?id=c8858ce86c29d2ca3500977a65d5dbfd845e5a785418f5d368141aabc266a5ab"
       },
       {
-        "headline": "Crypto and Beyond? Here's Why Robinhood is a Better Buy Than Coinbase Today",
-        "datetime": 1792570802,
+        "headline": "GENIUS Act Rules Are Reshaping the USDC vs. USDT Battle",
+        "datetime": 1792655136,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7061e038a556e4d7e75c5b9eb4150e923569d74741eed8ae03be7c2d89f7891f"
+        "url": "https://finnhub.io/api/news?id=f1c6fd2bb26941a096f17a3b76c3eeaadd5ab7610f0db1ee8f2188596f814a95"
       },
       {
-        "headline": "How XRP’s ‘Banker Coin’ Reputation Is Challenged by Ethereum, Solana",
-        "datetime": 1792570556,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ed0e6dce08e7809ccac33956a27f12a63982c68afcd96991f2c1b714e84f6428"
-      },
-      {
-        "headline": "Needham Maintains Buy on Circle Internet Group, Raises Price Target to $134",
-        "datetime": 1792566151,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=915a26ef94632fb2280ec6075c1b5d733bd04f3ecf5e7fc00a3007201ad9c74e"
-      },
-      {
-        "headline": "EBA Designates Circle’s USDC as Europe’s First ‘Significant’ MiCA EMT, Bringing Dual Supervision From Nov. 12",
-        "datetime": 1792550064,
+        "headline": "Circle CEO Shrugs Off Bitcoin's Slump and Pitches Digital Dollars for the AI Era",
+        "datetime": 1792638780,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f88ee539d6383b7b71b4657f50ec1bbb8ade781790c44048047a95d38e6382f4"
+        "url": "https://finnhub.io/api/news?id=dc01ea5713adf403e2c12f8a728b124febf2e711a941b42af7560622a6b649a1"
+      },
+      {
+        "headline": "OCC Says Crypto Platforms Can Keep Offering Yield-Like Rewards",
+        "datetime": 1792630440,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f2962004fb47eacac8de2dc37b3dd1254041badcacb46ada290ba5343476eb35"
+      },
+      {
+        "headline": "Proof and Circle Demonstrate End-to-End Agentic Commerce: The x401/x402 Handshake",
+        "datetime": 1792626912,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=8136a16214f85079e8c9c509c10a3837e706ac07b7b2e780d6cbc642a1480c01"
       }
     ],
     "RKLB": [
       {
-        "headline": "1 Unprofitable Stock on Our Buy List and 2 We Turn Down",
-        "datetime": 1792596399,
+        "headline": "SpaceX and AST SpaceMobile Sink 6%, Rocket Lab Falls 5% as Tech Selloff Hits High-Flying Space Stocks",
+        "datetime": 1792684590,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9a11cdbc4a1a4cb3fc675a0687735b5d0b1e4154844d8da133745abf7909b0ba"
+        "url": "https://finnhub.io/api/news?id=3585fc1514cd1317afac9d1b4764fa6cf2739fd78b449a1708d9a985ac768eff"
       },
       {
-        "headline": "SpaceX Jumps 8% on Q3 Revenue Beat as Musk Backs Tesla Merger Idea; Rocket Lab and AST SpaceMobile Edge Higher",
-        "datetime": 1792587694,
+        "headline": "Brown Advisory Sees Long-Term Potential in Rocket Lab Corporation (RKLB)",
+        "datetime": 1792676625,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=355c0adb2041c26c339c7393384566a7d97844969314a9e2a346efadefc5dc76"
+        "url": "https://finnhub.io/api/news?id=bd3bbeba4ce4c1261ef2214379afb9a22df7fe64ce10ba4113422a090dc1b883"
       },
       {
-        "headline": "Rocket Lab Just Had Another Setback. Here’s Why I’m Finally Buying the Stock Anyway",
-        "datetime": 1792579262,
+        "headline": "SpaceX Rallied, but These 6 Space Stocks Are Still Waiting for Liftoff",
+        "datetime": 1792675215,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5e81a515fe831c3fa4dd0f816b3843605995fe307c58485bcce986c89bc8a63c"
+        "url": "https://finnhub.io/api/news?id=8e68f72a2278b951e856ebbecc2ab7fc6282eea75c85f832c6f2eeb3c6821a69"
       },
       {
-        "headline": "Why Is Rocket Lab Stock Rising in Pre-Market Trading?",
-        "datetime": 1792577938,
+        "headline": "RKLB Is Among Nasdaq’s Top 5 Losers So Far This Month, Yet Analysts See 90% Upside — Can Neutron Justify Its SpaceX Premium?",
+        "datetime": 1792652512,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a7887d5aa433a6fa1af39a356922826b14b46c80fc4c48eabd4b2d044540ae02"
+        "url": "https://finnhub.io/api/news?id=4f5e53531702b6fd12aa424dba5a8ffdfe92e41b9d93ba4daeb1f892ae8f3f67"
       },
       {
-        "headline": "2 Nasdaq-100 Stocks to Buy Before They Soar 105% and 130%, According to Wall Street",
-        "datetime": 1792573682,
+        "headline": "Rocket Lab (RKLB) Stock Could Be Above Fair Value As Neutron Launch Slips To 2027",
+        "datetime": 1792635520,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ca69c7559c78cb0e1b6f1e0f6fa85e731e3273e7e65170a2e69e254474c299a5"
+        "url": "https://finnhub.io/api/news?id=92281ff703c29573c7f1ee119eba045e637e3b816c6e6b40447c56ee66086d78"
       }
     ],
     "SPCX": [
       {
-        "headline": "Why SpaceX Stock Popped After Earnings",
-        "datetime": 1792598357,
+        "headline": "SpaceX stock slips as tech trade tumbles",
+        "datetime": 1792684740,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2a63846725054932d104e4b43c2d2c7a8fe71e80e46ec7a3bd90a2ccb101afc0"
+        "url": "https://finnhub.io/api/news?id=9e2e383b8a9560788369641e3b7e844e3ab2f8416b303326c3fa3bdb130bf091"
       },
       {
-        "headline": "SpaceX swings to profit on AI infrastructure boom, but capex bill is climbing",
-        "datetime": 1792598280,
+        "headline": "SpaceX and AST SpaceMobile Sink 6%, Rocket Lab Falls 5% as Tech Selloff Hits High-Flying Space Stocks",
+        "datetime": 1792684590,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9d7511a1896437f7e48907acf639d298e39b5f7ec8bba30957afa49e1f029aba"
+        "url": "https://finnhub.io/api/news?id=3585fc1514cd1317afac9d1b4764fa6cf2739fd78b449a1708d9a985ac768eff"
       },
       {
-        "headline": "Bloom Energy Jumps 7% Ahead of Q3 Report as Musk Calls Power AI’s Real Bottleneck; FuelCell Ticks Up, Plug Power Barely Moves",
-        "datetime": 1792598240,
+        "headline": "Tesla earnings beat puts SpaceX merger speculation back in focus",
+        "datetime": 1792684500,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=187206829111b0f57847b728d3d2ca9b43fd23c440f08a79ed58acdb8c899a1d"
+        "url": "https://finnhub.io/api/news?id=e763bbb7a884910a3a896c60f9a4fee1a7c1c91a2b1f0df9e48faf7ad82ca38e"
       },
       {
-        "headline": "Elon Musk Says ‘I’ve Never Seen Anything Grow This Fast.’ One Product is the Key to Musk’s Plans to Cross $1 Trillion in Revenue.",
-        "datetime": 1792598128,
+        "headline": "Tesla Is Just A Car Company",
+        "datetime": 1792684260,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3dc852816abfa526f24b5a3a0f58526519ac68d2a8c710a5e090888a421f8121"
+        "url": "https://finnhub.io/api/news?id=14dca2af3604357a7cf9f437081b7fc2c7b4076c7671e4fc396da486ae1074c8"
       },
       {
-        "headline": "Top Midday Stories: SpaceX, Tesla Explore Potential Merger; Abbott to Separate Nutrition Business Into Independent Publicly Traded Firm",
-        "datetime": 1792597669,
+        "headline": "SpaceX Just Got Another Vote of Confidence: 73% Upside Potential from BofA",
+        "datetime": 1792683259,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1c732fdbb0be8c0dc880e0c6a89cbd1d4975af32dc7e49ef0da79f7aec04546d"
+        "url": "https://finnhub.io/api/news?id=4a0d88cf64f4b19bee3b5a033cdbe36c19c69c86efe6f45325d11c6e5ef3610f"
       }
     ]
   },
