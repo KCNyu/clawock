@@ -2855,7 +2855,7 @@
             <div class="pt-trigger">${escapeHtml(trig)}</div>
             ${cond}
             ${rationale}
-            ${a.trim_projection ? `<div class="bd-note">按当前账本测算：卖 ${escapeHtml(a.trim_projection.shares)} 股 @ ${escapeHtml(a.trim_projection.price)} → 投资腿占比 ${escapeHtml(a.trim_projection.post_trim_weight_pct ?? DASH)}%；到 ${escapeHtml(a.trim_projection.target_pct)}% 复核线需卖 ${escapeHtml(a.trim_projection.shares_to_review_line)} 股（其余价格不变，未计费用）</div>` : ""}
+            ${a.trim_projection ? `<div class="bd-note">按当前账本、${a.trim_projection.price_basis === "plan_trigger" ? "计划触发价" : "现价"} ${escapeHtml(a.trim_projection.price)} 测算：卖 ${escapeHtml(a.trim_projection.shares)} 股 → 投资腿占比 ${escapeHtml(a.trim_projection.post_trim_weight_pct ?? DASH)}%；到 ${escapeHtml(a.trim_projection.target_pct)}% 复核线需卖 ${escapeHtml(a.trim_projection.shares_to_review_line)} 股（其余价格不变，未计费用）</div>` : ""}
             ${(a.plan_warnings || []).map(w => `<div class="bd-note">⚠ ${escapeHtml(w)}</div>`).join("")}
           </div>
           <div class="pt-side">

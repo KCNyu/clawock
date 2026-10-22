@@ -472,10 +472,11 @@ def risk_section(context, plan=None):
         pct = row['post_trim_weight_pct']
         result = (f"{pct:.2f}%" if pct is not None else "空腿，无占比")
         relation = ("仍高于" if pct is not None and pct > row['target_pct'] else "不高于")
-        lines += ["", f"{row['ticker']}：按 {row['price']:g} {row['currency']} 卖 {row['shares']:g} 股，"
+        price = ("计划触发价" if row.get('price_basis') == 'plan_trigger' else "简报时现价")
+        lines += ["", f"{row['ticker']}：按{price} {row['price']:g} {row['currency']} 卖 {row['shares']:g} 股，"
                   f"减仓后 {row['leg']} 腿支配度 {result}，{relation} {row['target_pct']:g}% 复核线；"
                   f"达到该线需卖 {row['shares_to_review_line']:g} 股。"
-                  "（其余持仓价格不变，卖出款留现金；仅情景计算，不强制减仓。）"]
+                  "（账本取本次简报生成时，其余持仓价格不变，卖出款留现金；仅情景计算，不强制减仓。）"]
     return "\n".join(lines)
 
 

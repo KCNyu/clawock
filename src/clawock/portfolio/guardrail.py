@@ -161,7 +161,13 @@ def trim_projection(*, shares, value, total, price, lot_size=1, target_pct=35,
 
 
 def plan_trim_projections(context, plan):
-    """Deterministic review arithmetic for the authored plan's sell scenarios."""
+    """Deterministic review arithmetic for the authored plan's sell scenarios.
+
+    The book is whatever `context` carries (the brief's own generation, or the
+    current book on the dashboard timeline), so the same plan can print two
+    weights on two books. `price_basis` says which price this name was sold at:
+    the plan's trigger (`plan_trigger`) or the book's own mark (`book_mark`).
+    """
     reviews = {r['ticker']: r for r in
                (context.get('risk_guardrail') or {}).get('concentration_reviews') or []}
     out = []
@@ -175,15 +181,17 @@ def plan_trim_projections(context, plan):
             continue
         inputs = dict(inputs)
         condition = decision.get('condition') or {}
+        basis = 'book_mark'
         if condition.get('type') in ('price_above', 'price_below'):
             price = _share_number(condition.get('price'))
             if price is None:
                 continue
             inputs['price'] = price
+            basis = 'plan_trigger'
         result = trim_projection(**inputs, sell_shares=sold)
         if result:
             out.append({'ticker': review['ticker'], 'leg': review['leg'],
-                        'currency': review['currency'], **result})
+                        'currency': review['currency'], **result, 'price_basis': basis})
     return out
 
 

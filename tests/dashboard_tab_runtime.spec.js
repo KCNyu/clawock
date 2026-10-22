@@ -3064,7 +3064,7 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
 
   // Keep the baseline clamp/height contract above; now exercise the added scenario.
   plan[0].trim_projection = { shares: 40, price: 178.1, post_trim_weight_pct: 39.53,
-    target_pct: 35, shares_to_review_line: 60 };
+    target_pct: 35, shares_to_review_line: 60, price_basis: "plan_trigger" };
   plan[0].plan_warnings = ["作者减仓后占比 33% 与当前账本联立解 39.53% 不一致；请复核"];
   await page.reload({ waitUntil: "networkidle" });
   // Reload retains #plan and its full projection; the overview-only wait is
@@ -3073,7 +3073,7 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
   const scenarioRow = page.locator("#plan-timeline .pt-row").first();
   await scenarioRow.scrollIntoViewIfNeeded();
   const scenarioText = await scenarioRow.innerText();
-  assert.match(scenarioText, /按当前账本测算：卖 40 股 @ 178.1 → 投资腿占比 39.53%/);
+  assert.match(scenarioText, /按当前账本、计划触发价 178.1 测算：卖 40 股 → 投资腿占比 39.53%/);
   assert.match(scenarioText, /到 35% 复核线需卖 60 股/);
   assert.match(scenarioText, /作者减仓后占比 33%/);
 

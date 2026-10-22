@@ -135,3 +135,15 @@ def test_timeline_discloses_current_scenario_without_rewriting_or_rejecting(monk
     assert not dashboard.compute_plan_timeline([], context=ctx)[0]['plan_warnings']
     row['size']['shares'] = 1000
     assert dashboard.compute_plan_timeline([], context=ctx)[0]['trim_projection'] is None
+
+
+def test_each_projection_says_which_price_it_sold_at():
+    """2026-10-22: the brief (morning book) and the timeline (current book) printed
+    33.78% and 35.89% for one plan; each line now names its price and book."""
+    ctx, plan = scenario()
+    assert plan_trim_projections(ctx, plan)[0]['price_basis'] == 'plan_trigger'
+    rendered = brief_render.risk_section(ctx, plan)
+    assert '按计划触发价 178.1 HKD 卖 40 股' in rendered and '账本取本次简报生成时' in rendered
+    plan['decisions'][0]['condition'] = {'type': 'open'}
+    assert plan_trim_projections(ctx, plan)[0]['price_basis'] == 'book_mark'
+    assert '按简报时现价' in brief_render.risk_section(ctx, plan)
