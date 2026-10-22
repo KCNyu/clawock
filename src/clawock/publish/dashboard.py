@@ -5005,9 +5005,10 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40, portfolio=portfolio)
     out['debate_metrics'] = compute_debate_metrics()
     out['magnitude_metrics'] = compute_magnitude_metrics()
-    out['plan_timeline'] = compute_plan_timeline(plans, limit=15, context=out)
     out['weight_confidence'] = compute_weight_confidence(portfolio)
     _risk_cards(out, portfolio, snapshots, fx_rate)
+    # Timeline scenarios consume the risk inputs from this same generation.
+    out['plan_timeline'] = compute_plan_timeline(plans, limit=15, context=out)
 
     # Embed GH Action outputs into dashboard.json so the static page can render them
     def _embed(key, fname):
