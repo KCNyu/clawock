@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clawock"
-version = "0.4.0"
+version = "0.4.1"
 description = "Investment workflows for AI agents: evidence, opposing cases, and outcomes checked by Python."
 readme = "README.md"
 requires-python = ">=3.11"
