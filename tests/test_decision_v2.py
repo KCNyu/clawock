@@ -1518,3 +1518,17 @@ def test_passive_coverage_discloses_unresolved_and_partial_episodes():
     assert cov['episodes_partial'] == metrics['passive']['n_episodes'] == 1
     assert cov['episodes_unresolved'] == 2
     assert cov['unresolved_reasons'] == {'market_closed': 1, 'pending:session_not_final': 1}
+
+
+def test_coverage_separates_all_untriggered_from_mixed_unresolved_episodes():
+    rows = [decision('2026-07-01', ticker=t, action='trim_on_rebound') for t in ('AAA', 'BBB', 'CCC')]
+    dv2.assign_episode_ids(rows)
+    rows[1]['evaluation'] = {'status': 'not_triggered', 'outcome': 'not_triggered'}
+    rows[2]['evaluation'] = {'status': 'not_triggered', 'outcome': 'not_triggered'}
+    rows.append(dict(rows[2], evaluation={'status': 'pending', 'pending_reason': 'session_not_final'}))
+    metrics = dv2.compute_metrics(rows, cutoff='2026-01-01')
+    cov = metrics['coverage_active']
+    assert cov['episodes_total'] == 3
+    assert cov['episodes_graded'] == metrics['active']['n_episodes'] == 1
+    assert cov['episodes_not_triggered'] == cov['episodes_unresolved'] == 1
+    assert cov['unresolved_reasons'] == {'not_triggered': 2, 'pending:session_not_final': 1}

@@ -510,6 +510,16 @@ def _concentration_claim_issues(text, ctx):
     """Check named review percentages separately from the advisory number pool."""
     reviews = (ctx.get('risk_guardrail') or {}).get('concentration_reviews') or []
     projections = {r['ticker']: r for r in ctx.get('plan_trim_projections') or []}
+    # Match only names supplied by this generation's holdings. HK share-class
+    # suffixes are not normally used in prose (MINIMAX-W -> MiniMax).
+    aliases = {}
+    for row in reviews:
+        for name in (row.get('ticker'), row.get('name')):
+            if name:
+                aliases[name.casefold()] = row['ticker']
+                aliases[re.sub(r'-(?:SW|W|S|B)$', '', name, flags=re.I).casefold()] = row['ticker']
+    names = re.compile(r'(?<![0-9A-Za-z])(?:' + '|'.join(
+        re.escape(a) for a in sorted(aliases, key=len, reverse=True)) + r')(?![0-9A-Za-z])', re.I) if aliases else None
     issues = []
     for review in reviews:
         ticker = review.get('ticker')
@@ -520,17 +530,25 @@ def _concentration_claim_issues(text, ctx):
         allowed = [review['weight_pct'], review['review_pct']]
         if expected is not None:
             allowed.append(expected)
-        # Plan/judgment prose arrives under its ticker heading; standalone
-        # paragraphs must name the ticker themselves. Never infer a name from
-        # an unrelated percentage elsewhere in the context.
-        active = False
+        active = None
         for paragraph in text.splitlines():
             if paragraph.startswith('- **'):
-                active = paragraph.startswith(f'- **{ticker}**')
-            named = active or re.search(rf'(?<!\w){re.escape(ticker)}(?!\w)', paragraph)
-            if not named:
-                continue
-            for sentence in re.split(r'[。；;]', paragraph):
+                heading = re.match(r'- \*\*([^*]+)\*\*', paragraph)
+                active = aliases.get(heading[1].casefold()) if heading else None
+            elif paragraph.startswith('#') or not paragraph.strip():
+                active = None
+            fragments = []
+            for sentence in re.split(r'[。；;！？!?]', paragraph):
+                mentions = list(names.finditer(sentence)) if names else []
+                if not mentions:
+                    if active == ticker:
+                        fragments.append(sentence)
+                    continue
+                for i, mention in enumerate(mentions):
+                    if aliases[mention[0].casefold()] == ticker:
+                        end = mentions[i + 1].start() if i + 1 < len(mentions) else len(sentence)
+                        fragments.append(sentence[mention.start():end])
+            for sentence in fragments:
                 concentration = re.search(r'支配度|集中度|占.{0,8}腿|仓位占比', sentence)
                 post = re.search(r'(?:卖|减).{0,18}股后.{0,8}(?:回到|降至|降到|剩|占)', sentence)
                 if not (concentration or post):

@@ -494,7 +494,15 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     h.pop('today_change_abs', None)
     h['stock_name']       = q.get('name', h.get('stock_name', code))
     h['day_session_date'] = _hk_quote_session(now_hkt).isoformat()
-    h['data_source']      = f"{q.get('_src', 'Tencent')} {now_hkt.strftime('%b %d %H:%M HKT')}"
+    source = q.get('_src', 'Tencent')
+    divergence = q.get('_divergence')
+    if divergence:
+        h['quote_divergence'] = dict(divergence)
+        source += (f"(分歧 c {divergence['c_div_pct']}% / pc {divergence['pc_div_pct']}%)")
+    else:
+        # A new quote replaces the old verdict, including a single-source fallback.
+        h.pop('quote_divergence', None)
+    h['data_source'] = f"{source} {now_hkt.strftime('%b %d %H:%M HKT')}"
     # Fallback sources do not consistently expose board lots. Preserve a
     # prior verified lot when absent, but never invent a one-share HK lot.
     if q.get('lot_size'):

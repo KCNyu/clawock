@@ -230,7 +230,7 @@
       .filter(([, seat]) => seat && seat.settled)
       .map(([action, seat]) =>
         `<code>${escapeHtml(action)}</code> ${fixed(seat.hit_rate * 100, 1)}% ` +
-        `<span class="muted">(${seat.win}胜/${seat.loss}负, n=${seat.settled})</span>`);
+        `<span class="muted">(${seat.win}胜/${seat.loss}负${seat.flat ? `/持平${seat.flat}` : ""}, n=${seat.settled})</span>`);
     if (trackParts.length) {
       parts.push(`<p class="chart-hint"><b>这几类建议的历史命中率</b>（T+1，假设成交）：` +
         `${trackParts.join(" · ")} —— 命中率不是执行理由，是读建议时的先验。</p>`);
@@ -2669,8 +2669,9 @@
       const ci = active.cluster_ci95 ? ` · 方向分CI [${fixed(active.cluster_ci95[0], 2)}, ${fixed(active.cluster_ci95[1], 2)}]` : "";
       setVal("plan-winrate", fixed(wr, 1) + "%");
       const cov = calib.coverage_active || {};
-      const covNote = cov.episodes_unresolved
-        ? ` · 另有 ${cov.episodes_unresolved} 条判不了（${Object.keys(cov.unresolved_reasons || {}).map(reason => unresolvedReasonLabel(reason)).join(" / ") || "原因未记录"}）`
+      const unscored = (cov.episodes_unresolved || 0) + (cov.episodes_not_triggered || 0);
+      const covNote = unscored
+        ? ` · 另有 ${unscored} 条没进胜率：${cov.episodes_not_triggered || 0} 条全部未触发 / ${cov.episodes_unresolved || 0} 条待判（原因可重叠：${Object.entries(cov.unresolved_reasons || {}).map(([reason, count]) => `${unresolvedReasonLabel(reason)} ${count}`).join(" / ") || "原因未记录"}）`
         : "";
       setSub("plan-winrate-sub", `n=${active.n_episodes}${wrCi} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + fixed(avg, 2) + "%"}${ci}${covNote}`);
       // 颜色只在区间整条落在 50% 一侧时才表态。区间跨过 50% 的胜率与抛硬币在
@@ -2692,7 +2693,7 @@
     const passiveReasons = Object.entries(passiveCoverage.unresolved_reasons || {})
       .map(([reason, count]) => `${unresolvedReasonLabel(reason)} ${count}`).join(" / ");
     const passiveCoverageNote = passiveCoverage.episodes_total == null ? "" :
-      ` · 被动胜率 ${calib.passive?.win_rate == null ? "—" : fixed(calib.passive.win_rate * 100, 2) + "%"}（n=${calib.passive?.n_episodes ?? 0}）；可判覆盖 ${passiveCoverage.graded_pct ?? "—"}%：${passiveCoverage.episodes_graded} 可判 / ${passiveCoverage.episodes_partial} 半判 / ${passiveCoverage.episodes_total} 总数；${passiveCoverage.episodes_unresolved} 判不了${passiveReasons ? `（${passiveReasons}）` : ""}`;
+      ` · 被动胜率 ${calib.passive?.win_rate == null ? "—" : fixed(calib.passive.win_rate * 100, 2) + "%"}（n=${calib.passive?.n_episodes ?? 0}）；可判覆盖 ${passiveCoverage.graded_pct ?? "—"}%：${passiveCoverage.episodes_graded} 可判 / ${passiveCoverage.episodes_partial} 半判 / ${passiveCoverage.episodes_total} 总数；${passiveCoverage.episodes_not_triggered || 0} 全部未触发 / ${passiveCoverage.episodes_unresolved} 待判${passiveReasons ? `（${passiveReasons}）` : ""}`;
     const winSub = document.getElementById("plan-winrate-sub");
     if (winSub) winSub.textContent += passiveCoverageNote;
 
@@ -2854,6 +2855,8 @@
             <div class="pt-trigger">${escapeHtml(trig)}</div>
             ${cond}
             ${rationale}
+            ${a.trim_projection ? `<div class="bd-note">按当前账本测算：卖 ${escapeHtml(a.trim_projection.shares)} 股 @ ${escapeHtml(a.trim_projection.price)} → 投资腿占比 ${escapeHtml(a.trim_projection.post_trim_weight_pct ?? DASH)}%；到 ${escapeHtml(a.trim_projection.target_pct)}% 复核线需卖 ${escapeHtml(a.trim_projection.shares_to_review_line)} 股（其余价格不变，未计费用）</div>` : ""}
+            ${(a.plan_warnings || []).map(w => `<div class="bd-note">⚠ ${escapeHtml(w)}</div>`).join("")}
           </div>
           <div class="pt-side">
             <div class="pt-conf">conf ${fmtConf(a.confidence)}</div>

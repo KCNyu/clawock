@@ -2050,7 +2050,7 @@ async function testAddSideCardExplainsWhyThereIsNoAdd(browser, base) {
           },
           baseline: { t1: [3135, .506, .26], t5: [3035, .486, 1.13], t20: [2660, .501, 5.24] },
         },
-        track_record: { cut: { hit_rate: .5258, win: 112, loss: 101, settled: 213 } },
+        track_record: { cut: { hit_rate: .3636, win: 12, loss: 20, flat: 1, settled: 33 } },
       };
       return json;
     },
@@ -2069,6 +2069,7 @@ async function testAddSideCardExplainsWhyThereIsNoAdd(browser, base) {
   assert.match(text, /ROBN z=2\.96/, "the reason lost the names and numbers behind it");
   assert.match(text, /基线 · 随便哪一天/,
     "the shape table lost its baseline row — every hit rate now reads as better than it is");
+  assert.match(text, /12胜\/20负\/持平1, n=33/);
   assert.match(text, /冷启动/, "the cold-start state was not surfaced");
   assert.match(text, /8\/24|16\/24/, "the family warm-up counters are not rendered");
 
@@ -2958,6 +2959,9 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
       rationale: i === total - 1 ? "一句话就说完了。" : `第 ${i + 1} 条：${long}`,
     });
   }
+  plan[0].trim_projection = { shares: 40, price: 178.1, post_trim_weight_pct: 39.53,
+    target_pct: 35, shares_to_review_line: 60 };
+  plan[0].plan_warnings = ["作者减仓后占比 33% 与当前账本联立解 39.53% 不一致；请复核"];
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
   });
@@ -2982,6 +2986,10 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
     null, { timeout: 15000 })
     .catch(() => { throw new Error("the plan timeline never rendered") });
 
+  const scenarioText = await page.locator("#plan-timeline .pt-row").first().innerText();
+  assert.match(scenarioText, /按当前账本测算：卖 40 股 @ 178.1 → 投资腿占比 39.53%/);
+  assert.match(scenarioText, /到 35% 复核线需卖 60 股/);
+  assert.match(scenarioText, /作者减仓后占比 33%/);
   const outcomes = await page.evaluate(() => {
     const read = selector => [...document.querySelectorAll(selector)].map(el => ({
       label: el.textContent, color: getComputedStyle(el).color,
@@ -4434,7 +4442,10 @@ async function testSessionMoneyAndPassiveCoverageAreExplicit(browser, base) {
     await stubLiveOrigin(page, { patch: (name, payload) => {
       if (name !== "dashboard.json") return null;
       payload.decision_metrics = {
-        active: {win_rate: null}, passive: {win_rate: 0.1923, n_episodes: 26},
+        active: {win_rate: 0.5714, n_episodes: 14}, passive: {win_rate: 0.1923, n_episodes: 26},
+        coverage_active: {episodes_total: 22, episodes_graded: 14, episodes_partial: 0,
+          episodes_not_triggered: 6, episodes_unresolved: 2,
+          unresolved_reasons: {not_triggered: 7, market_closed: 2, "pending:session_not_final": 1}},
         coverage_passive: {episodes_total: 29, episodes_graded: 20, episodes_partial: 6,
           episodes_unresolved: 3, graded_pct: 89.7,
           unresolved_reasons: {market_closed: 2, "pending:session_not_final": 1}},
@@ -4447,8 +4458,10 @@ async function testSessionMoneyAndPassiveCoverageAreExplicit(browser, base) {
     await waitForTab(page, "reflect");
     const coverage = await page.locator("#plan-winrate-sub").textContent();
     assert.match(coverage, /被动胜率 19\.23%（n=26）/);
-    assert.match(coverage, /20 可判 \/ 6 半判 \/ 29 总数；3 判不了/);
+    assert.match(coverage, /20 可判 \/ 6 半判 \/ 29 总数；0 全部未触发 \/ 3 待判/);
     assert.match(coverage, /89\.7%/);
+    assert.match(coverage, /8 条没进胜率：6 条全部未触发 \/ 2 条待判/);
+    assert.match(coverage, /未触发 7 \/ 休市 2 \/ 未收盘 1/);
     await clickTab(page, "drill");
     await waitForTab(page, "drill");
     const book = await page.locator("#book-tbody").textContent();

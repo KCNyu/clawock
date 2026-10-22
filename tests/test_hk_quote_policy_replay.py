@@ -76,3 +76,23 @@ def test_missing_fallback_prior_close_clears_previous_day_change():
     assert holding['quote_incomplete']
     assert holding['today_change'] is None and holding['today_change_pct'] is None
     assert 'today_change_abs' not in holding
+
+
+def test_divergence_survives_fetch_write_and_clears_on_new_quote(monkeypatch, tmp_path, capsys):
+    case = copy.deepcopy(CASES[0])
+    code, quote = next(iter(case['quotes'].items()))
+    monkeypatch.setattr(hk, '_fetch_tencent_hk', lambda codes: {code: dict(quote)})
+    alternate = dict(quote, c=quote['c'] * 1.03)
+    monkeypatch.setattr(hk, '_fetch_eastmoney_hk', lambda codes: {code: alternate})
+    fetched = hk.fetch_hk_quotes([code])[code]
+    assert fetched['_divergence']['c_div_pct'] == 3
+    alternate['c'] = quote['c']
+    assert '_divergence' not in hk.fetch_hk_quotes([code])[code]
+    case['quotes'][code] = fetched
+    actual = run_case(hk, case, monkeypatch, tmp_path / 'portfolio.json', capsys)
+    row = next(h for h in actual['written']['portfolios']['hk_stocks']['holdings'] if h['ticker'] == code)
+    assert row['quote_divergence']['c_div_pct'] == 3
+    assert '分歧 c 3' in row['data_source']
+    assert row['current_price'] == round(quote['c'], 3)
+    hk._hk_apply_quote(row, quote, datetime.fromisoformat(case['now']), '2026-09-01', [])
+    assert 'quote_divergence' not in row and '分歧' not in row['data_source']

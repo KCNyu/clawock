@@ -95,3 +95,43 @@ def test_historical_record_is_only_read_for_regression():
                              lot_size=h['lot_size'], sell_shares=40)
     assert result['post_trim_weight_pct'] == 39.53
     assert result['shares_to_review_line'] == 60
+
+
+def test_historical_lede_aliases_do_not_leak_between_names():
+    import re
+    from clawock.portfolio.guardrail import compute_concentration, compute_risk_guardrail
+    from clawock.harness.validation import _concentration_claim_issues
+    root = Path(__file__).resolve().parents[1]
+    snap = json.loads((root / 'memory/snapshots/2026-10-20.json').read_text())
+    hk = snap['portfolios']['hk_stocks']['holdings']
+    us = snap['portfolios']['us_stocks']['holdings']
+    guard = compute_risk_guardrail(hk, us, compute_concentration(hk), compute_concentration(us), {})
+    plan = json.loads((root / 'memory/2026-10-21-plan.json').read_text())
+    ctx = {'risk_guardrail': guard}
+    ctx['plan_trim_projections'] = plan_trim_projections(ctx, plan)
+    md = (root / 'memory/2026-10-21-pre-open.md').read_text()
+    lede = re.search(r'brief-lede" markdown="1">\n\n(.*?)\n\n\*\*反方', md, re.S)[1]
+    issues = _concentration_claim_issues(lede, ctx)
+    assert issues == ['仓位支配度不符: 00100 减仓后 39.53% 仍高于复核线']
+    old_claim = next(line for line in md.splitlines() if '卖 40 股后回到 33%' in line)
+    assert any('00100' in i for i in _concentration_claim_issues('- **00100**\n' + old_claim, ctx))
+    assert not _concentration_claim_issues(
+        '- **SPCH** MiniMax 港股腿支配度 46.84%，SPCH 仓位占比 87.22%。', ctx)
+    assert not _concentration_claim_issues('MiniMax 收入增长 161%。SPCH 上涨 20.8%。', ctx)
+    assert not _concentration_claim_issues('XMINIMAX 收入增长 161%，支配度 3%。', ctx)
+
+
+def test_timeline_discloses_current_scenario_without_rewriting_or_rejecting(monkeypatch):
+    from clawock.publish import dashboard
+    ctx, plan = scenario()
+    row = dict(plan['decisions'][0], decision_id='audit', rationale='卖 40 股后回到 33% 附近。')
+    monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda: [row])
+    result = dashboard.compute_plan_timeline([], context=ctx)[0]
+    assert result['rationale'] == row['rationale']
+    assert result['trim_projection']['post_trim_weight_pct'] == 39.53
+    assert result['trim_projection']['shares_to_review_line'] == 60
+    assert result['plan_warnings'] and '33%' in result['plan_warnings'][0]
+    row['rationale'] = '卖 40 股后回到 39.53%，收入增长 33%。'
+    assert not dashboard.compute_plan_timeline([], context=ctx)[0]['plan_warnings']
+    row['size']['shares'] = 1000
+    assert dashboard.compute_plan_timeline([], context=ctx)[0]['trim_projection'] is None

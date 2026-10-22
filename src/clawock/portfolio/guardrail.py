@@ -19,6 +19,7 @@ from clawock.portfolio.math import ledger_rows
 from clawock.portfolio.math import carried_value
 
 import math
+import re
 
 from clawock.instruments import is_leveraged_holding, one_x_swap_map
 
@@ -186,6 +187,26 @@ def plan_trim_projections(context, plan):
     return out
 
 
+def plan_trim_warnings(decision, projection):
+    """Advisory plan check only; never changes authored text or rejects a plan.
+
+    Match explicit post-sale weights, not returns or the current weight. The
+    deterministic scenario is shown even when the author's wording is unknown.
+    """
+    expected = projection.get('post_trim_weight_pct')
+    if expected is None:
+        return []
+    text = decision.get('rationale') or ''
+    warnings = []
+    for match in re.finditer(
+            r'(?:卖|减).{0,18}股后.{0,8}(?:回到|降至|降到|剩|占)\s*(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]', text):
+        raw = match[1]
+        precision = len(raw.split('.')[1]) if '.' in raw else 0
+        if abs(float(raw) - expected) > 0.5 * 10 ** -precision + 1e-9:
+            warnings.append(f'作者减仓后占比 {raw}% 与当前账本联立解 {expected}% 不一致；请复核')
+    return warnings
+
+
 def _single_name_policy(leg, ws, hold, total, ccy):
     caps = GUARDRAIL_CAPS
     breaches, reviews = [], []
@@ -231,7 +252,8 @@ def _single_name_policy(leg, ws, hold, total, ccy):
                           target_pct=caps['single_name_review_pct'])
             reviews.append({
                 'type': 'single_name_review', 'leg': leg,
-                'ticker': w['ticker'], 'severity': 'advisory',
+                'ticker': w['ticker'], 'name': holding.get('name') or holding.get('stock_name'),
+                'severity': 'advisory',
                 'weight_pct': w['weight_pct'], 'currency': ccy,
                 'review_pct': caps['single_name_review_pct'],
                 'trim_inputs': inputs,

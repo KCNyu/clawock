@@ -312,6 +312,7 @@ def _track_record_line(context, actions):
             continue
         parts.append(f"`{action}` {seat['hit_rate'] * 100:.1f}% "
                      f"({seat['win']}胜/{seat['loss']}负, n={seat['settled']}"
+                     + (f", 持平 {seat['flat']}" if seat.get("flat") else "")
                      + (f", 未触发 {seat['not_triggered']}" if seat.get("not_triggered") else "")
                      + ")")
     if not parts:

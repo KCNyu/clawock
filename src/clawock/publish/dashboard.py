@@ -2207,7 +2207,8 @@ def compute_add_side(shape_cards_dir=None):
         'shapes': shapes,
         'track_record': {
             action: {'hit_rate': seat.get('hit_rate'), 'win': seat.get('win'),
-                     'loss': seat.get('loss'), 'settled': seat.get('settled')}
+                     'loss': seat.get('loss'), 'flat': seat.get('flat', 0),
+                     'not_triggered': seat.get('not_triggered', 0), 'settled': seat.get('settled')}
             for action, seat in track.items()
             if action in ('cut', 'trim_on_rebound', 'add_only_on_trigger')
         },
@@ -3083,13 +3084,16 @@ def compute_weight_confidence(portfolio, window_days=30):
         return []
 
 
-def compute_plan_timeline(plans, limit=15):
-    """V2 strategy-aware decision timeline, most recent first."""
+def compute_plan_timeline(plans, limit=15, context=None):
+    """V2 timeline with current-book scenarios beside immutable authored prose."""
+    from clawock.portfolio.guardrail import plan_trim_projections, plan_trim_warnings
     try:
         out = []
         rows = sorted(decision_v2.load_decisions(),
                       key=lambda d: (d.get('created_at', ''), d.get('decision_id', '')), reverse=True)
         for d in rows[:limit]:
+            projections = plan_trim_projections(context or {}, {'decisions': [d]})
+            projection = projections[0] if projections else None
             ev, ex, cond, size = (d.get('evaluation') or {}, d.get('execution') or {},
                                   d.get('condition') or {}, d.get('size') or {})
             out.append({
@@ -3100,6 +3104,8 @@ def compute_plan_timeline(plans, limit=15):
                 'rationale': d.get('rationale'), 'status': ev.get('status'),
                 'outcome': ev.get('outcome'), 'benefit_t1_pct': ev.get('benefit_t1_pct'),
                 'execution': ex.get('status', 'unknown'), 'override': d.get('override'),
+                'trim_projection': projection,
+                'plan_warnings': plan_trim_warnings(d, projection) if projection else [],
             })
         return out
     except Exception as e:
@@ -4999,7 +5005,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40, portfolio=portfolio)
     out['debate_metrics'] = compute_debate_metrics()
     out['magnitude_metrics'] = compute_magnitude_metrics()
-    out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
+    out['plan_timeline'] = compute_plan_timeline(plans, limit=15, context=out)
     out['weight_confidence'] = compute_weight_confidence(portfolio)
     _risk_cards(out, portfolio, snapshots, fx_rate)
 

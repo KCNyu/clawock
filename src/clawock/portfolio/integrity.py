@@ -60,6 +60,7 @@ data_source 里的 provider 名，而在这之前没有任何消费者读过那�
 2026-08-19..28 美股整本账天天走 Finnhub（Nasdaq 的 /info 端点不带前收，
 _quote_is_complete 因此弃用它——链在正常工作），逐日报警只会喂出一条没人看的
 黄灯。真正的降级另有其闸：报价源给不出前收 → quote_incomplete → STALE_PRICE。
+  QUOTE_DIVERGENCE 港股 Tencent/Eastmoney 现价或前收偏差 >1%             WARN
   PREV_CLOSE_SESSION prev_close == memory/bars 在 prev_close_date 那天的收盘  WARN
                  → 休市日抓价把前收日盖成报价自己那一场（#2270）
   LEDGER_ROW_INVALID trades[] / cash_adjustments[] 每行是 JSON 对象          ERROR
@@ -892,7 +893,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
             cv = _num(h.get('current_value'))
             if cur is not None and sh and cv is not None:
                 want_cv = sh * cur
-                if abs(cv - want_cv) > max(PCT_TOL, abs(want_cv) * 0.01):
+                if abs(cv - want_cv) > max(PCT_TOL, abs(want_cv) * 0.01) + 1e-9:
                     add('VALUE_LEG', 'ERROR',
                         f'{t} current_value={cv:.2f} ≠ shares×current_price={want_cv:.2f}'
                         f'（差 {cv - want_cv:+.2f}）；手工记仓漏重算市值 → equity 失真', region, t)
@@ -900,7 +901,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
             # PNL_LEG
             if cur is not None and sh and cost is not None and pnl is not None:
                 want_pnl = sh * (cur - cost)
-                if abs(pnl - want_pnl) > max(PCT_TOL, abs(want_pnl) * 0.01):
+                if abs(pnl - want_pnl) > max(PCT_TOL, abs(want_pnl) * 0.01) + 1e-9:
                     add('PNL_LEG', 'WARN',
                         f'{t} pnl_abs={pnl:.2f} ≠ shares×(cur−cost)={want_pnl:.2f}', region, t)
 
@@ -918,7 +919,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
                     'STALE_PRICE 与跨 session 校验缺少依据', region, t)
             if cur is not None and sh and prev is not None and tchg is not None:
                 want_tc, _ = day_pnl(h, sess_date, market=market)
-                if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02):
+                if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02) + 1e-9:
                     add('TODAY_LEG', 'ERROR',
                         f'{t} today_change={tchg:.2f} ≠ 按批当日盈亏={want_tc:.2f}'
                         f'（差 {tchg - want_tc:+.2f}）；改过 shares/trades 后未重算，'
@@ -996,7 +997,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
                 else:
                     prev_close_coverage['checked'] += 1
                 if bar_close is not None and abs(prev - bar_close) > max(
-                        0.005, abs(bar_close) * 0.0005):
+                        0.005, abs(bar_close) * 0.0005) + 1e-9:
                     add('PREV_CLOSE_SESSION', 'WARN',
                         f'{t} prev_close={prev:.4f} 标为 {pcd} 的收盘，但 canonical bar '
                         f'当日收盘是 {bar_close:.4f}；前收日戳错了 session，当日涨跌的基准日不可信',
@@ -1008,6 +1009,12 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
                 add('STALE_PRICE', 'WARN',
                     f'{t} 报价源返回 {rp.get("reported")} == 昨收，已按 {rp.get("basis")} '
                     f'重建为 {rp.get("repaired")}（{rp.get("source")} @ {rp.get("at")}）',
+                    region, t)
+            if h.get('quote_divergence'):
+                divergence = h['quote_divergence']
+                add('QUOTE_DIVERGENCE', 'WARN',
+                    f"{t} Tencent 与 Eastmoney 报价分歧：现价 {divergence.get('c_div_pct')}%，"
+                    f"前收 {divergence.get('pc_div_pct')}%；仍采用 Tencent，请复核（{h.get('data_source')}）",
                     region, t)
             if h.get('quote_incomplete'):
                 add('STALE_PRICE', 'WARN',

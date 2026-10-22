@@ -39,7 +39,7 @@ In this order:
 
 **HK fallback chain (inside script):**
 1. **Tencent** `qt.gtimg.cn/q=r_hk{CODE}` — primary; batch first, then single-code retry for misses
-2. **Eastmoney HK** `push2.eastmoney.com/.../ulist.np/get` (secid prefix 116) — requested for **every ticker** as an independent batch, even when Tencent succeeded. When both succeed, prefer Tencent but compare `c` and `pc`; divergence >1% is stored in `_divergence` and warned on stdout. When Tencent misses, Eastmoney is the first fallback.
+2. **Eastmoney HK** `push2.eastmoney.com/.../ulist.np/get` (secid prefix 116) — requested for **every ticker** as an independent batch, even when Tencent succeeded. When both succeed, prefer Tencent but compare `c` and `pc`; divergence >1% is persisted as holding `quote_divergence`, disclosed in `data_source`, and surfaced as an integrity `QUOTE_DIVERGENCE` WARN (also printed on stdout); a fresh quote clears the prior verdict when no divergence is reported. When Tencent misses, Eastmoney is the first fallback.
 3. **stooq.com** CSV — only for tickers still unresolved; same-day OHLCV; **caveat**: new IPOs (e.g. 00100) not covered, `prev_close` approximated from `open`
 4. **yfinance** — only for tickers still unresolved; frequently rate-limited, last-resort fallback
 
