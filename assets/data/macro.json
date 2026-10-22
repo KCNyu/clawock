@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T00:14:29.812607+00:00",
+  "generated_at": "2026-10-22T00:16:49.177752+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 16.68,
@@ -23,14 +23,14 @@
     "prev": 101.78,
     "change_pct": -0.09,
     "source": "yahoo",
-    "as_of": 1792627468
+    "as_of": 1792627607
   },
   "fear_greed": {
     "score": 31.4,
     "rating": "fear",
     "prev_close": 27.2,
     "prev_1_week": 26.7,
-    "as_of": "2026-10-21T23:55:42+00:00"
+    "as_of": "2026-10-21T23:59:57+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
