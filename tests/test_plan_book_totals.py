@@ -54,7 +54,7 @@ def test_historical_fallback_recomputes_total_without_rewriting_plan(tmp_path, m
     before = path.read_bytes()
     card = brief_card.build_brief_card('2026-09-30', decision_packet={})
     assert '**账面 USD$-7474.41**' in card
-    assert '港股 HKD$-50801.64' in card
+    assert '| 港股 HKD | 美股 USD |' in card and '| -50801.64 |' in card
     assert path.read_bytes() == before
     plan = _plan()
     plan['fx_rate_usdhkd'] = 0

@@ -63,26 +63,72 @@ def _no_dangling_dot(lines):
                and '· ·' not in line for line in lines)
 
 
+HK_SUMMARY = ['**今日 +1,691**', '',
+              '| 市值 | 浮亏 | 亏损 | 2x杠杆 |', '|---:|---:|---:|---:|',
+              '| 54,416 | -60,275（-52.6%） | 3/3 | 38% |']
+US_SUMMARY = ['**今日 +$58**', '',
+              '| 市值 | 浮亏 | 已实现 | 亏损 | 杠杆 |', '|---:|---:|---:|---:|---:|',
+              '| 3,210 | -1,227（-27.6%） | +2,376 | 2/2 | 90% |']
+
+
 def test_hk_intraday_card_keeps_hk_money_hkt_and_the_index_strip():
     lines = chat_card.render(analyzer=HK).splitlines()
-    assert lines[:3] == ['**🇭🇰 港股盯盘 · 10/16 10:33 HKT**',
-                         '**今日 +1,691** · 浮亏 -60,275（-52.6%）',
-                         '市值 HK$54,416 · 亏损 3/3 · 2x杠杆敞口 38%']
-    # HK P&L has no `$`; the card must not invent one (HK$ lives on 市值).
-    assert '$-' not in lines[1] and '-$' not in lines[1]
-    # The 恒指/恒科 strip is data: it stays, under the totals and above the table.
+    assert lines[0] == '**🇭🇰 港股盯盘 · 10/16 10:33 HKT**'
+    assert lines[1:6] == HK_SUMMARY
+    # HK P&L has no `$`; the card must not invent one.
+    assert not any('$' in line for line in lines[1:6])
+    # The 恒指/恒科 strip is data: it stays, under the totals and above the table,
+    # after a blank line (a plain line under a table would be read as a row).
     strip = lines.index('恒指 24,321 ▲1.07%  恒科 4,130 ▲1.70%')
-    assert 2 < strip < lines.index(TABLE_HEAD)
-    assert _no_dangling_dot(lines[:3])
+    assert lines[strip - 1] == '' and 5 < strip < lines.index(TABLE_HEAD)
 
 
 def test_us_intraday_card_keeps_dollars_et_and_has_no_strip():
     lines = chat_card.render(analyzer=US).splitlines()
-    assert lines[:3] == ['**🇺🇸 美股盯盘 · 10/19 14:03 ET**',
-                         '**今日 +$58** · 浮亏 -$1,227（-27.6%）',
-                         '市值 $3,210 · 已实现 +$2,376 · 亏损 2/2 · 杠杆 90%']
-    assert lines[3] == ''
+    assert lines[0] == '**🇺🇸 美股盯盘 · 10/19 14:03 ET**'
+    assert lines[1:6] == US_SUMMARY
+    assert lines[6] == ''
     assert not any('恒指' in line for line in lines)
+
+
+def test_wechat_bolds_today_as_a_whole_line_with_at_most_one_dollar():
+    """kcn 2026-10-22: `**今日 $-284** · 浮亏 -$1,027（-23.1%）` never rendered bold
+    in WeChat, while whole-line bold titles did. Today is its own whole bold
+    line, its sign leads the `$`, and no summary line carries a second `$`."""
+    book = '📊 市值 $3,403 | 浮盈 $-1,033 (-23.3%) | 今日 $-284 | ✅ 已实现 +$2,376'
+    lines = chat_card.summary_lines(book, '📉 亏损持仓 2/4  |  杠杆ETF敞口 90%')
+    assert lines[0] == '**今日 -$284**'
+    assert all(line.count('$') <= 1 for line in lines)
+    bold = [line for line in lines if '**' in line]
+    assert bold == ['**今日 -$284**'], 'only whole-line bold in the summary'
+
+
+@pytest.mark.parametrize('block', [US, HK])
+def test_every_summary_number_survives_the_layout(block):
+    parts = chat_card.split_analyzer(block)
+    card = '\n'.join(chat_card.summary_lines(parts['book'], parts['risk']))
+    import re
+    source = parts['book'] + ' ' + parts['risk']
+    for number in re.findall(r'\d[\d,.]*', source.replace('2x', '')):
+        assert number in card, f'{number} from {source!r} is missing'
+
+
+def test_hk_card_has_no_us_leverage_or_realised_column():
+    lines = chat_card.render(analyzer=HK).splitlines()
+    assert '已实现' not in lines[3] and '| 杠杆 |' not in lines[3]
+    # The HK analyzer's own 2x exposure is kept (it is HK data), under its own label.
+    assert '2x杠杆' in lines[3]
+
+
+def test_telegram_receives_the_same_text_as_a_code_block_table():
+    """One text for both channels: Telegram's `markdown.tables = code` sends the
+    summary table as an aligned code block, like the holdings table under it,
+    and the whole-line bold renders there too. The table stays a well-formed
+    single-row table with a blank line on both sides."""
+    lines = chat_card.render(analyzer=US).splitlines()
+    head = lines.index('| 市值 | 浮亏 | 已实现 | 亏损 | 杠杆 |')
+    assert lines[head - 1] == '' and lines[head + 3] == ''
+    assert lines[head + 1].count('|') == lines[head].count('|') == lines[head + 2].count('|')
 
 
 @pytest.mark.parametrize('name, underlying', [('07226', 'HSTECH'), ('07709', 'SKHY')])
@@ -109,17 +155,18 @@ def test_mover_row_with_underlying_move_and_optional_gap(gap, suffix):
 
 @pytest.mark.parametrize('book, risk, expected', [
     ('📊 市值 HK$54,416 | 浮盈 -60,275 (-52.6%) | 今日 +1,691', '',
-     ['**今日 +1,691** · 浮亏 -60,275（-52.6%）', '市值 HK$54,416']),
+     ['**今日 +1,691**', '', '| 市值 | 浮亏 |', '|---:|---:|', '| 54,416 | -60,275（-52.6%） |']),
     ('📊 市值 HK$54,416 | 浮盈 1,200 (2.1%)', '📉 亏损持仓 0/3',
-     ['浮盈 +1,200（2.1%）', '市值 HK$54,416 · 亏损 0/3']),
-    ('📊 浮盈 $-1,227 (-27.6%)', '', ['浮亏 -$1,227（-27.6%）']),
-    ('', '📉 亏损持仓 3/3  |  2x杠杆敞口 38%', ['亏损 3/3 · 2x杠杆敞口 38%']),
+     ['| 市值 | 浮盈 | 亏损 |', '|---:|---:|---:|', '| 54,416 | +1,200（2.1%） | 0/3 |']),
+    ('📊 浮盈 $-1,227 (-27.6%)', '', ['| 浮亏 |', '|---:|', '| -1,227（-27.6%） |']),
+    ('', '📉 亏损持仓 3/3  |  2x杠杆敞口 38%', ['| 亏损 | 2x杠杆 |', '|---:|---:|', '| 3/3 | 38% |']),
+    ('📊 今日 +$7', '', ['**今日 +$7**']),
     ('', '', []),
 ])
 def test_summary_lines_hold_their_shape_when_fields_are_missing(book, risk, expected):
     lines = chat_card.summary_lines(book, risk)
     assert lines == expected
-    assert all(lines) and _no_dangling_dot(lines)
+    assert _no_dangling_dot(lines)
 
 
 @pytest.mark.parametrize('phase', ['open', 'mid', 'pm', 'close'])
@@ -129,8 +176,7 @@ def test_hk_reports_put_orders_and_stops_first_and_keep_the_strip(phase):
     lines = card.splitlines()
     # WeChat shows `## ` literally and unbolded; the title is a bold line.
     assert lines[0] == '**' + title.replace('2026-10-16', '10/16').replace('｜', ' · ') + '**'
-    assert lines[1:3] == ['**今日 +1,691** · 浮亏 -60,275（-52.6%）',
-                          '市值 HK$54,416 · 亏损 3/3 · 2x杠杆敞口 38%']
+    assert lines[1:6] == HK_SUMMARY
     assert '恒指 24,321 ▲1.07%  恒科 4,130 ▲1.70%' in lines
     # `✋ STOP?` is a stop: it goes under 待你处理 with its ticker; a stop
     # whose ticker already has an order is that order, not a second row.

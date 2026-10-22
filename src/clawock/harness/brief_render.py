@@ -1302,22 +1302,26 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
     """
     from clawock.decision.plans import (ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS,
                                         PRICE_CONDITIONS)
-    from clawock.harness.chat_card import bullet, quote, title_line
+    from clawock.harness.chat_card import bullet, quote, table, title_line
     date = date or context.get("date") or ""
     book = context.get("book_totals") or {}
     fx = context.get("fx") or {}
     concentration = context.get("concentration") or {}
     # kcn 2026-10-19: same chat style as the intraday and report cards — a
-    # title, two summary lines, small bold labels, `-` rows that open with the
+    # title, a bold total and a small table, small bold labels, `-` rows that open with the
     # ticker in bold; no strategy ids or `driven_by=` enums on a reader's card.
     short_date = date[5:].replace("-", "/") if len(date) == 10 else date
+    # The book total is a whole bold line and the legs a table with the
+    # currency in the header: WeChat did not bold a line that was half bold
+    # with `$` on both sides of the closing `**` (2026-10-22, chat_card.summary_lines).
     lines = [title_line(f"📊 盘前简报 · {short_date} {BRIEF_SLOT_HKT} HKT"),
-             f"**账面 USD${money(book.get('usd_base_total'), digits=0)}**"
-             f" · 港 HK${money(book.get('hk_pnl_hkd'), digits=0)}"
-             f" · 美 ${money(book.get('us_pnl_usd'), digits=0)}",
-             f"USDHKD {num(fx.get('rate'), 4)}"
-             f" · 集中度 港 {num((concentration.get('hk') or {}).get('hhi'), 3)}"
-             f" · 美 {num((concentration.get('us') or {}).get('hhi'), 3)}", ""]
+             f"**账面 USD${money(book.get('usd_base_total'), digits=0)}**", "",
+             *table(["", "港 HKD", "美 USD"], [
+                 ["盈亏", money(book.get('hk_pnl_hkd'), digits=0),
+                  money(book.get('us_pnl_usd'), digits=0)],
+                 ["集中度", num((concentration.get('hk') or {}).get('hhi'), 3),
+                  num((concentration.get('us') or {}).get('hhi'), 3)]], first=":---"),
+             "", f"USDHKD {num(fx.get('rate'), 4)}", ""]
     lines += ["**核心结论**", quote(text(judgment.get("portfolio_assessment"))), ""]
 
     actions = [d for d in (plan.get("decisions") or [])
