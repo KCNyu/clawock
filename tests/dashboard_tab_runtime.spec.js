@@ -2959,9 +2959,6 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
       rationale: i === total - 1 ? "一句话就说完了。" : `第 ${i + 1} 条：${long}`,
     });
   }
-  plan[0].trim_projection = { shares: 40, price: 178.1, post_trim_weight_pct: 39.53,
-    target_pct: 35, shares_to_review_line: 60 };
-  plan[0].plan_warnings = ["作者减仓后占比 33% 与当前账本联立解 39.53% 不一致；请复核"];
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
   });
@@ -2986,12 +2983,6 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
     null, { timeout: 15000 })
     .catch(() => { throw new Error("the plan timeline never rendered") });
 
-  const scenarioRow = page.locator("#plan-timeline .pt-row").first();
-  await scenarioRow.scrollIntoViewIfNeeded();
-  const scenarioText = await scenarioRow.innerText();
-  assert.match(scenarioText, /按当前账本测算：卖 40 股 @ 178.1 → 投资腿占比 39.53%/);
-  assert.match(scenarioText, /到 35% 复核线需卖 60 股/);
-  assert.match(scenarioText, /作者减仓后占比 33%/);
   const outcomes = await page.evaluate(() => {
     const read = selector => [...document.querySelectorAll(selector)].map(el => ({
       label: el.textContent, color: getComputedStyle(el).color,
@@ -3070,6 +3061,22 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
       .filter(row => row.getBoundingClientRect().height > 0).length;
   });
   assert.equal(tail, total, `opening the tail showed ${tail} of ${total} actions`);
+
+  // Keep the baseline clamp/height contract above; now exercise the added scenario.
+  plan[0].trim_projection = { shares: 40, price: 178.1, post_trim_weight_pct: 39.53,
+    target_pct: 35, shares_to_review_line: 60 };
+  plan[0].plan_warnings = ["作者减仓后占比 33% 与当前账本联立解 39.53% 不一致；请复核"];
+  await page.reload({ waitUntil: "networkidle" });
+  await waitForData(page);
+  await clickTab(page, "plan");
+  await waitForTab(page, "plan");
+  const scenarioRow = page.locator("#plan-timeline .pt-row").first();
+  await scenarioRow.scrollIntoViewIfNeeded();
+  const scenarioText = await scenarioRow.innerText();
+  assert.match(scenarioText, /按当前账本测算：卖 40 股 @ 178.1 → 投资腿占比 39.53%/);
+  assert.match(scenarioText, /到 35% 复核线需卖 60 股/);
+  assert.match(scenarioText, /作者减仓后占比 33%/);
+
   await context.close();
 }
 
