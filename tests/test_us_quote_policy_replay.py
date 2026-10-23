@@ -135,3 +135,17 @@ def test_numeric_string_shares_refresh_without_rewriting_ledger(monkeypatch, tmp
         for h in expected[key]['portfolios']['us_stocks']['holdings']:
             h['shares'] = str(h['shares'])
     assert actual == expected
+
+
+@pytest.mark.parametrize('value, expected', [(None, 400), (0, 0), (450, 450)])
+def test_subset_refresh_preserves_unrequested_carried_value(value, expected, monkeypatch, tmp_path, capsys):
+    case = copy.deepcopy(next(c for c in CASES if c['name'] == 'tickers_override-subset'))
+    row = case['portfolio']['portfolios']['us_stocks']['holdings'][0]
+    row['current_value'] = value
+    result = run_case(case, monkeypatch, tmp_path / 'portfolio.json', capsys)
+    for key in ('returned', 'written'):
+        region = result[key]['portfolios']['us_stocks']
+        untouched, refreshed, _ = region['holdings']
+        assert untouched['current_value'] == value
+        assert region['total_current_value'] == expected + refreshed['current_value']
+        assert region['total_pnl'] == region['total_current_value'] - 800

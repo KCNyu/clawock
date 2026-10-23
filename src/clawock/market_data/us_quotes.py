@@ -36,6 +36,7 @@ from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import active_holdings, number, day_pnl, ledger_rows
 from clawock.portfolio.refresh import active_and_zero_closed
+from clawock.safe_io import carried_value
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -1237,7 +1238,7 @@ def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, ticker
     # Recompute portfolio totals from all active holdings
     all_active_h = active_holdings(us['holdings'])
     total_cost  = sum(h['cost_basis'] * number(h['shares']) for h in all_active_h)
-    total_value = sum(h.get('current_value', h['cost_basis'] * number(h['shares'])) for h in all_active_h)
+    total_value = sum(carried_value(h) for h in all_active_h)
     total_pnl   = total_value - total_cost
     today_chg   = sum(h.get('today_change', 0) for h in all_active_h)
 
