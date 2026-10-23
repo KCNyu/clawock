@@ -132,3 +132,16 @@ def test_eastmoney_quote_keeps_the_session_high_and_low(monkeypatch):
     out = hk._fetch_eastmoney_hk(['00100', '02208'])
     assert (out['00100']['h'], out['00100']['l']) == (172.2, 158.1)
     assert 'h' not in out['02208'] and 'l' not in out['02208']
+
+
+@pytest.mark.parametrize('value, expected', [(None, 30000), (0, 0), (31000, 31000)])
+def test_finalize_carries_unpriced_rows_at_cost(value, expected, monkeypatch):
+    data = copy.deepcopy(CASES[0]['portfolio'])
+    region = data['portfolios']['hk_stocks']
+    row = region['holdings'][0]
+    row['current_value'] = value
+    monkeypatch.setattr(hk, 'fetch_indices', lambda: {})
+    hk._hk_finalize_region(data, 'hk_stocks', copy.deepcopy(region), [row],
+                           '2026/10/06 12:00 HKT', [], [], True)
+    assert region['total_current_value'] == expected
+    assert region['total_pnl'] == expected - 30000

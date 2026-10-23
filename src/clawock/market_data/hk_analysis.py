@@ -547,7 +547,7 @@ def _hk_finalize_region(data, hk_key, region_before_fetch, active, hkt_str,
 
     # Portfolio totals
     total_cost  = sum(h['cost_basis'] * number(h['shares']) for h in active)
-    total_value = sum(h.get('current_value', h['cost_basis'] * number(h['shares'])) for h in active)
+    total_value = sum(carried_value(h) for h in active)
     total_pnl   = total_value - total_cost
     today_chg   = sum(h.get('today_change') or 0 for h in active)
 
