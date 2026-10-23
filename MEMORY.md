@@ -191,24 +191,25 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-22)
+## Promoted From Short-Term Memory (2026-10-24)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-10-14 周三 08:03 HKT: 全账只有一条动作是纪律性的：RKLX 十股开盘换成 RKLB 正股，敞口不变、停掉两倍衰减；SPCH 的减仓位从 12.9 下移到 12.00，等有承接的反弹而不是现在砍。07226 那条硬止损记录开了 62 天，继续挂着不是结论——执行、用风险确认留痕、或用带理由的例外结掉，今天三选一。00100 只在二十日均线附近减一档，港股 AI 的 alpha 还在，今天不加不减。 [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-10-14 周三 08:03 HKT: **反方**：反方会说今天该做的是把两倍腿一刀切干净，而不是给 00100 留一个反弹减仓档：RKLX 与 SPCH 加起来占美股段九成以上，横盘与续跌两种情景的代价都由今天的持仓承担，而任何反弹预期都建立在没有新证据的假设上。反过来也会说 SPCH 那个 12.00 的位置今天根本碰不到，等于美股那边今天实际只有一条腿能执行，另一条腿写在纸上。 [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-14 周三 08:03 HKT description: "clawock 盘前深度简报 2026-10-14：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:23-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-14-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-10-14 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-14-pre-open.md:9-9]
-
-## Promoted From Short-Term Memory (2026-10-23)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-10-15-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.815 recalls=0 avg=0.620 source=memory/2026-10-15-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-15-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-15 周四 08:03 HKT description: "clawock 盘前深度简报 2026-10-15：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.815 recalls=0 avg=0.620 source=memory/2026-10-15-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-10-19 周一 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-19-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-16-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-10-16 周五 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-16-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-19-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-2203.md:13:15 -->
+- fallback 建议（没有动）: `minimax` 和 `minimax-2` 用同一个 baseUrl、同一把 key、同一个 id，算一条能独立失败的腿，加上 Codex 一共两条。; 近 30 天 547 次 run 里，`minimax-2` 救回了 5 次，都是首跳出错之后。今晚就遇到过一次 529 过载（错误码 2064），所以同 key 重试对瞬时过载有用，但挡不住账号额度或端点整体故障。; 建议保持现状。如果想要真正独立的第二条腿，需要换 key 或换端点，可能涉及费用，由你决定。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-19-2203.md:13-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-2203.md:18:19 -->
+- 没做的 / 风险: **dsh 没改**：`~/.dsh/profiles/{web,headless}/cordis.patch.yml` 里仍列着 preview id。不在这次的派发范围内，改 dsh 也要单独授权。preview 目前还能调，所以暂时不影响使用。; 正式版下 agent 跑得更长、更费 token，需要再看几次 run 才能下结论。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-19-2203.md:18-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-2203.md:23:26 -->
+- 没做的 / 风险: 继续或追加要求：dispatch.sh append minimax-official-20261019-203751 < 指令.md（同一会话续跑） 查看会话：在 /root 下 claude --resume c8521ff0-f64c-4e0f-a0f3-884036b99955 额度：5h 剩 89%（明天 02:09 重置） · 周 剩 64%（10/25 周日 19:59 重置） 花费：$4.34（按 API 价估算） [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-19-2203.md:23-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-10-19 周一 08:03 HKT: 两条杠杆硬止损今天必须分道扬镳：RKLX 浮亏又深了 11 个点、重提条件已触发，今晚执行整仓清掉并换 1 股 RKLB；07226 三天里只走了 2 个点、离重新武装还有 11 个点，维持。真正的问题不在盘面而在账本：过去 30 天 44 条主动决策你执行了 0 条，而这几条里战绩最好的恰恰是砍仓（5 次赢 4、均值 +8.3%），最差的是持有（24 次只赢 4、均值 -2.0%）。今天是港股重阳休市，唯一可交易的时段是今晚美股，而 SPCX 财报在开盘前。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-19-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-pre-open.md:13:13 -->
+- 盘前深度简报｜2026-10-19 周一 08:03 HKT: **反方**：最强的反方是：这是一个正在被系统性低估的组合。持仓 10 只里 8 只站在各自 200 日线下方、5 只 RSI 超卖，恒科在 -16.1%、RKLB 在 -37.4%，这是一个几乎全员趴在地板上的账本——正是最不该执行纪律性砍仓、而该等均值回归的位置。RKLX 砍在 -2.78σ 上，07226 砍在反弹前一天，两笔都是在极端点卖在地板上。这条反方有真实分量，但它对不上一个数字：96 天没动的 RKLX 和 67 天没动的 07226，衰减不是观点，是每天都要付的账单；而 96 天前你已经在同一只票上付过一次学费了。反方成立的条件是均值回归在 10-28 之前到来，那我们就都不需要这笔砍仓——所以我把失效条件写死在 45.23 和 3950。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-19-pre-open.md:13-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-pre-open.md:19:19 -->
+- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-19-pre-open.md:19-19]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-19-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-10-19 周一 08:03 HKT description: "clawock 盘前深度简报 2026-10-19：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-19-pre-open.md:2-4]
