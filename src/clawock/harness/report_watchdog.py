@@ -39,7 +39,7 @@ It now gets one WeChat retry, and a Telegram alert if that fails too
 
 If the LLM stalls or loops after preflight, the watchdog sends the deterministic
 preflight block to Telegram. WeChat remains untouched to avoid duplicate sends.
-If every attempt died on rate_limit before preflight (2026-10-22), the watchdog
+If every recorded attempt failed and no preflight context exists, the watchdog
 runs the slot's preflight itself and sends that block the same way.
 
 (Shared run-record / target / send helpers live in _watchdog_common.py.)
@@ -79,22 +79,19 @@ INFLIGHT_POLL_S = 30
 MARKER_FRESH_MS = 120 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
 REGEN_WINDOW_S = 30 * 60           # context rebuilt within this of the delivered one ⇒ same slot
 REGEN_BACKWARD_S = 60              # tolerance for a context timestamped just before the marker's
-# The deterministic preflight this watchdog runs itself when no attempt got a
-# model (see `chain_exhausted`). Same order as one report attempt's preflight.
+# The deterministic preflight this watchdog runs itself when attempts failed without a
+# context (see `chain_exhausted`). Same order as one report attempt's preflight.
 PREFLIGHT_TIMEOUT_S = 600
 
 
 def chain_exhausted(runs):
-    """Every finished attempt today died on rate_limit, so none reached preflight.
+    """All recorded attempts failed; the caller separately requires no context.
 
-    2026-10-22 09:33 HK open: both MiniMax keys were at their Token Plan cap
-    and Luna at its Codex limit; eight attempts in 25 minutes failed before
-    the first tool call, so there was no context and this watchdog skipped as
-    if the cron had never fired. The report reached kcn at 10:22. The data
-    block does not need a model; only the prose does.
+    Error reasons can be mixed or absent in cron evidence. Neither proves
+    whether preflight ran, so only the context gate may authorize rebuilding.
+    Empty evidence, success and unknown statuses must not trigger recovery.
     """
-    return bool(runs) and all(
-        r.get('status') == 'error' and r.get('errorReason') == 'rate_limit' for r in runs)
+    return bool(runs) and all(r.get('status') == 'error' for r in runs)
 
 
 def build_context(market, phase):
@@ -246,28 +243,28 @@ def main():
     # --- Generation gate: generated report or deterministic fallback ----------
     # The clean report block's first line comes from the preflight context. If the
     # context is missing, preflight never ran → nothing to resend, unless every
-    # attempt was rate-limited; then the watchdog builds it (`chain_exhausted`).
+    # recorded attempt failed; then the watchdog builds it (`chain_exhausted`).
     raw_block = (ctx.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None
     if not raw_block_first and not ctx and chain_exhausted(runs_today):
-        # No attempt got a model, so none ran preflight. Build the block here
+        # Attempts failed without a context. Build the block here
         # and send it as the labelled deterministic fallback, Telegram only.
         built, out = (True, 'dry-run') if args.dry_run else build_context(args.market, args.phase)
         ctx = _read_json(ctx_path)
         raw_block = (ctx.get('raw_wechat_block') or '').strip()
         if built and raw_block:
-            body = deterministic_fallback(raw_block, tag, '模型链全部限流，未能启动')
+            body = deterministic_fallback(raw_block, tag, '报告尝试全部失败，未生成上下文')
             target = telegram_target()
             tg_ok, tg_out = send_telegram(target, body, args.dry_run)
             log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
-                 'reason': 'model chain rate-limited before preflight; watchdog built the context',
+                 'reason': 'all recorded attempts failed without context; watchdog built the context',
                  'attempts': len(runs_today), 'run_at': run_at, 'target': target, 'out': tg_out})
             if tg_ok and not args.dry_run:
                 flag.write_text(datetime.now(HKT).isoformat())
             return 0
         if not ctx.get('status') == 'market_closed':
             log({'tag': tag, 'action': 'skip', 'attempts': len(runs_today),
-                 'reason': 'model chain rate-limited before preflight; watchdog preflight '
+                 'reason': 'all recorded attempts failed without context; watchdog preflight '
                            f'produced no block ({out})'})
             return 0
         raw_block_first = None

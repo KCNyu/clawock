@@ -9,6 +9,8 @@ import json
 import sys
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 HKT = timezone(timedelta(hours=8))
 LIMITED = {'status': 'error', 'errorReason': 'rate_limit', 'runAtMs': 1, 'sessionId': 's', 'summary': ''}
 
@@ -52,13 +54,38 @@ def test_a_rate_limited_chain_gets_the_deterministic_block(tmp_path, monkeypatch
         'the slot is marked handled so the next pass does not send it again')
 
 
-def test_other_failures_before_preflight_keep_the_old_skip(tmp_path, monkeypatch):
-    runs = [dict(LIMITED), {**LIMITED, 'errorReason': 'timeout'}]
+@pytest.mark.parametrize('runs', [
+    [dict(LIMITED)] * 8 + [{**LIMITED, 'errorReason': None}],
+    [{'status': 'error', 'runAtMs': 1}] * 8,
+    [{**LIMITED, 'errorReason': 'timeout'}],
+])
+def test_failed_chains_without_context_recover(tmp_path, monkeypatch, runs):
     watchdog, events, sent, built = _wire(monkeypatch, tmp_path, runs)
+    assert watchdog.main() == 0
+    assert built == [('hk', 'open')] and len(sent) == 1
+    assert '全部限流' not in sent[0]
+    assert events[-1]['action'] == 'deterministic-fallback'
+    assert watchdog.main() == 0
+    assert len(sent) == 1 and len(built) == 1
 
+
+@pytest.mark.parametrize('runs', [[], [dict(LIMITED), {'status': 'ok'}],
+                                  [dict(LIMITED), {}], [{'status': 'running'}]])
+def test_incomplete_or_successful_evidence_does_not_rebuild(tmp_path, monkeypatch, runs):
+    watchdog, events, sent, built = _wire(monkeypatch, tmp_path, runs)
     assert watchdog.main() == 0
     assert built == [] and sent == []
-    assert 'cron likely never ran' in events[-1]['reason']
+    assert events[-1]['action'] == 'skip'
+
+
+def test_existing_market_closed_context_does_not_rebuild(tmp_path, monkeypatch):
+    watchdog, events, sent, built = _wire(monkeypatch, tmp_path, [dict(LIMITED)])
+    today = datetime.now(HKT).strftime('%Y-%m-%d')
+    (tmp_path / 'memory' / '.tmp' / f'report-context-hk-open-{today}.json').write_text(
+        json.dumps({'status': 'market_closed', 'reason': 'holiday'}))
+    assert watchdog.main() == 0
+    assert built == [] and sent == []
+    assert events[-1]['closed_reason'] == 'holiday'
 
 
 def test_a_preflight_that_writes_no_block_sends_nothing(tmp_path, monkeypatch):

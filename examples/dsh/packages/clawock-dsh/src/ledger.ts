@@ -50,7 +50,7 @@ function num(value: unknown): number | null {
 export function readLedger(workspace: string): LedgerResult {
   const path = join(workspace, 'memory', 'decisions.jsonl')
   const entries: JsonValue[] = []
-  if (existsSync(path)) {
+  try {
     const lines = readFileSync(path, 'utf8').split('\n')
     for (const line of lines) {
       if (!line.trim()) continue
@@ -60,6 +60,8 @@ export function readLedger(workspace: string): LedgerResult {
         /* skip one malformed line */
       }
     }
+  } catch {
+    /* missing or unreadable ledger: keep the rest of the desk available */
   }
   return { entries, path }
 }
