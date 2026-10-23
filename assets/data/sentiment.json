@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-23T00:04:42.452830+00:00",
+  "generated_at": "2026-10-23T00:13:49.779776+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -67,10 +67,10 @@
           "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9KeTc1OVMyOUNfdVRPRDdyUDVjdXc1bGpYcXhrOHJybXByRUlYYkFEUHVtc1B5YnJYLUMtV0RHd0FqdzlEc3NjcVdjeU1FeFJkODYwWWZsLUh3RHI3SGhoME1xR3ZEaGFZUEE?oc=5"
         },
         {
-          "title": "Circle: Wall Street Is Pricing In Twice The Earnings Analysts Expect",
-          "source": "Seeking Alpha",
-          "published": "Tue, 20 Oct 2026 15:22:39 GMT",
-          "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNVFR1UW9YZzhCamIxc2pZZ05yREdiMEV6Qm9UbGwwZVNyNmFiamFvTHQ4eG1TT2lXYXJBdS02NEROM1dUMXV4TWZ1VUtkVm5FbGdCZHZWa2t3ZnA1V28xS3NjSE0wVFE3WVlrdlRCTVNQUFV4eXAzTkZYcEY3VFc2NW9YUXVqd3VMelJHNzZEenpNbEV0UWJoS0NxNWlpTTczNFVaYlljMFZzTFVt?oc=5"
+          "title": "CRCL Oct 2026 105.000 put (CRCL261030P00105000) Interactive Stock Chart",
+          "source": "Yahoo! Finance Canada",
+          "published": "Thu, 22 Oct 2026 13:45:54 GMT",
+          "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9nUkw4RExSbC05dWpRRnVBR2lQTmt3VVlITmdJNWx5QlI1cC01VXR1MWp6UjV3bEc5R1dpUUdUYVhXUmo3LWx6MEFrdjhCTklyMEVMYnFWV3ZRaTgxNng2X2tYb0Y5bWZlbThSOWFR?oc=5"
         }
       ],
       "google_news_zh": []
@@ -191,16 +191,22 @@
       ],
       "google_news_en": [
         {
-          "title": "Elon Musk says he is going to give SpaceX stock away to every kid in America",
-          "source": "Yahoo Finance",
-          "published": "Mon, 19 Oct 2026 12:15:04 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxPOEFCZG9aLTVySnl4dVQ3S0pIQVdvVmhoM2NVSUhGaUNLNktxX21OeTJROHUxYUZ4VzJldHFmTEhwcjA4R0lJdmkzT1VUTVVqNVRMcGZ5Wl9MZkszbTJtZW1ocUFBcTdZT2c5bnFvQWRndVZPWWxtV1BFa20ycmtOZDNXaWdpRlpiQ2RlQ0dTYmstTG9wQ3ZhSlpPSGlxbzFKNm1OYmUtTHVfU2NjQS1LbDVFbkFUYmQ5UFhoU3g1UXBmcXIzTnlsaFZLRnV3MUFocGFEYk80MA?oc=5"
+          "title": "SpaceX Stock (SPCX) Sinks Despite New Network to Challenge Google, Others in Enterprise AI",
+          "source": "TipRanks",
+          "published": "Thu, 22 Oct 2026 17:28:45 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOV2FmU29XQUdIV0I0TExkV3U1UXpEYW1IMHEtdmJQUGxGeTc3WDhrU0drSjV1d1VoSlIwbjgzVDBPLUlmV1dHSkZpRHNTRHdEVGhXUEZteVdkWVhJOGFkdXBtLVRfbHRiN3lvS1A4TGQ0SkpRTUh4OWI4eEljMldQUmptSkNTR01sUFBrZlVGVzFxbW9Pc1hPUHRYcE1xZWNKTzlSUFlGMnRnNk9RS0k2M0x4VmxkQ25rcTZLZlhqM25scjg?oc=5"
         },
         {
           "title": "Gary Black Predicts SPCX to Offer $420 Per Share For TSLA in a Stock-For-Stock Deal, Calls Tesla-SpaceX M",
           "source": "Benzinga",
           "published": "Tue, 20 Oct 2026 10:52:18 GMT",
           "url": "https://news.google.com/rss/articles/CBMiggJBVV95cUxOb0V1cVNCZXgxVU1CUDdONWxMb2N1VHVFT3M2YzhuMDZCY1c3a3Q1ckRFbkdIZnRqY2NlNnozOG1nU2R6dnlpQ3RTb19fT3c0SV82OURkZC1tMm9ISm1PelBYaXhHWm13bGh1Q2cwMHhJYWphUkUxSk1hdUs1aDlhN2pLNmhJVE91eXJobmxpNVEwTkF5NVFDcWR0cFM0NGl5OHkxRkFiaERBRGFYOU56QW11U0RDalUxaUoxS1QxV0xTNHpnWDFzRTRaTmpfRVpPVjZyaXZJamd1Y1FjN3IxZUwxTXhYbUt6V01JMWJlRDMwbnU1UHk3ZVVLR2ktOU1RY3c?oc=5"
+        },
+        {
+          "title": "SpaceX stock slides as tech trade tumbles",
+          "source": "Yahoo Finance",
+          "published": "Thu, 22 Oct 2026 19:20:13 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQaEhZTkppcGxpamZTaFI3TlVMQWlway1YOEJUdXY4blR6S084Mk1uWWJqcGtkZ0JpVFpQU1RPamI5VGQtT1JSNW5JOHJzeldnU2lxeTMxUkdzejNSQkU5VjZrOVBuWlIwY3ZFcE9sMDdJTzBQRlBONFA4MXNqMkQxREFJSWtNVFR3TXFPd1JfM19kWnhId3A4OGxIQnYwLVBQLTFNYVZBcUo?oc=5"
         },
         {
           "title": "SpaceX stock jumps 10% after earnings beat and Musk hints at Tesla tie-up",
@@ -219,12 +225,6 @@
           "source": "The Motley Fool",
           "published": "Thu, 22 Oct 2026 22:50:47 GMT",
           "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQQTBEQnVfZ3VVUVV1VWNseUxvSG9oYnBJWW1PcHUzVDFOSHFDUlRSOUg2bEFfRGExdTN0R0NnMW5PdkF5WVFaVmM0dzBNNC1sU2pSWng0TTN0a01UZmdPVUk2QXhqR0NudjRYUXliaGRLNkk3ZEVCZTRhekNGdFJINHhYV0xlUQ?oc=5"
-        },
-        {
-          "title": "Here’s How Much SpaceX Stock Is Expected to Move After Earnings",
-          "source": "Investopedia",
-          "published": "Mon, 19 Oct 2026 17:31:42 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNdWRKN3lTTTEtLURLTVRMRkN2Sk5Fb1JLcl9mUU1VamRyRXhOR2RWQ1FRTnhsdjVSbXg4d1lkNGdIVHl6TDE0bHNUTWpoRThfSnNZWGdscWdXTUNEWHR4S3AyZ3JHcm5JNUhuR1pkZ2ZMcXFxdUxXQUxUMmI3RG5ValAwTnVOWkluZzI0Mzk5aWxzYmJyd0poandmQ0hhTk9aN1RySzZoV0k3a29sRTJ0RDdvU1ltVENy?oc=5"
         }
       ],
       "google_news_zh": []
@@ -427,7 +427,7 @@
         {
           "title": "Goldwind Science & Technology (02208.HK) will release its financial report on October 23.",
           "source": "Moomoo",
-          "published": "Mon, 19 Oct 2026 04:09:02 GMT",
+          "published": "Mon, 19 Oct 2026 01:00:06 GMT",
           "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPTE5RTU5hdkJ0YlJleXRjdW5nUndBMmdhUFdreWx1VHdaWTRzcnA0aWY5eTlSbkNvVm9GcE9KdkNDTjhDdWcxaUdZcTB1U213VGdyTDRYcUtSRWVueHdydmZnRVA2cm56OExGbGs1YkJMSzZBUXpnelhIam9hbklQTW1KSlZ3cm5sdWZmc2F5UlRDUFk1YWR5UEdaYVpscE5TdXd0d0UxVWU5a2lDMnQwVmtjUFM?oc=5"
         }
       ],
@@ -579,10 +579,10 @@
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9pOXhuNDQ3Z2NBTGJ6WG9rTkduMFF0YTdQZkVLd25UdkRXWTZxYlpyMnNHQS1yN2N3U0lMVWU4a21YcHE0OWRuWDB1UGxNdEIteERyd2lR?oc=5"
         },
         {
-          "title": "ETF Market Movement | CSOP FTSE China Tech 2x Leveraged ETF (07226) rises over 6% as the Hang Seng Tech Index gains more than 3%, surpassing the 5,100-point mark",
+          "title": "The Hang Seng Index rebounded by 437 points, but a trend reversal is not yet confirmed: Lenovo and Baidu are starting to strengthen, while selling pressure on Hua Hong Semiconductor and Zhipu AI remains. Is it worth chasing Xiaomi and Meituan? How sho",
           "source": "Moomoo",
-          "published": "Mon, 01 Jun 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPRldSelJ3bS1pYzlkenBVSHJvcUhMaWJ1VHlqVU9wbzB6ck1hanlRbFBkU0xua2lFOWE5UkFqZ0xTYlJ0Z2RjcFZ5UTltbmpHVGhjSFlYdWV0SGJmejFKbkFzSl9JMUxLc3U2T2J6NzdDREk5SXdkcmgwd29BVWZnVXF3TEtUUnpuUk16aXZBTUVJQzJxaUlFczBzTThCMlIz?oc=5"
+          "published": "Sun, 06 Sep 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPT2Z2SE41V242OU9tVlloUEwxRmYxb0lKREw1bEgwdTFUZ09za1pLSzN5QndEVUxLZ2RBbFlnRjR5QUNpLWtwaW1rdDBkNlR1djdhV042bms5Z3VKN3B5TUdJN1V5NjY0dngydjdvVjVTeExBNERHY1Bjd19vZThIaTBONlVYWThDYkRiWDA5TXNQUGhFVXRaRms0YTlMdVp2bThuaVNuQl94dw?oc=5"
         }
       ],
       "google_news_zh": [
