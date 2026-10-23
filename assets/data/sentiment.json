@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T23:22:58.557000+00:00",
+  "generated_at": "2026-10-23T00:04:42.452830+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -120,16 +120,16 @@
           "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNRlAyVEdBazBhamtxQW1KbUdrdnVza1dvOHI2YzEtRzQ2QWN5UmlWRVFQRXlLMkhWRmtHaEplYUp1S1RzYXhKVC12OEo2UEV6LW9wdjBFd1lEeWFMX1hFejRXd2wyVWpJeURDYUtqVEt5QVJ4TlZtR3lFVkxGdElELW5YMzFxbWxmU2xoaE5yY25IYUVUMEZsYVZ6b0JSYXphRVR4SmhSMXlLZGFYV2VUdF9YbDBaclRoQTcwbDR6cmtLV2V2S0VLbERB?oc=5"
         },
         {
-          "title": "$Defiance Daily Target 2X Long RKLB ETF (RKLX.US)$ Buy low, sell high, but the more I buy, the lower it goes!",
-          "source": "Moomoo",
-          "published": "Tue, 13 Oct 2026 14:18:26 GMT",
-          "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNdFFGSVFTaWJiUF9uNnZXSmVLTGhzcEtfRC13X25ZM0dvQjFUeWZKRlBZQ0RxM25yTzdDdVQxYTVHRnRiR1o5ZktaZ1k3a2NQdlpUZklHMEwwckRQaW55MTRZRG5SUzJxaXV4TmN5d3hhSHoybVJIUlcyTlY2WU05cElQRXpTSk5rckk2dlRjN0IwcTNqQnRFblZMalJHVEIyZUR5ci1Taw?oc=5"
-        },
-        {
           "title": "RKLX Stock Price, Quote & News",
           "source": "Syfe",
           "published": "Fri, 16 Oct 2026 12:07:50 GMT",
           "url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE12ckgwY3I2UHgzVE45aGtUSF9BaTZ1NW5mQ3M0blJjSk5jRUhBd0pGUEhCZlliV045a1pacTY0ckJjdW52anRMZF95OA?oc=5"
+        },
+        {
+          "title": "$Defiance Daily Target 2X Long RKLB ETF (RKLX.US)$ Buy low, sell high, but the more I buy, the lower it goes!",
+          "source": "Moomoo",
+          "published": "Tue, 13 Oct 2026 14:18:26 GMT",
+          "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNdFFGSVFTaWJiUF9uNnZXSmVLTGhzcEtfRC13X25ZM0dvQjFUeWZKRlBZQ0RxM25yTzdDdVQxYTVHRnRiR1o5ZktaZ1k3a2NQdlpUZklHMEwwckRQaW55MTRZRG5SUzJxaXV4TmN5d3hhSHoybVJIUlcyTlY2WU05cElQRXpTSk5rckk2dlRjN0IwcTNqQnRFblZMalJHVEIyZUR5ci1Taw?oc=5"
         },
         {
           "title": "RKLX ETF Profile: Dividends, Returns (BOATS:RKLX)",
@@ -144,8 +144,26 @@
       "ticker": "SPCX",
       "name": "SpaceX",
       "region": "us_stocks",
-      "reddit_mentions_7d": 10,
+      "reddit_mentions_7d": 12,
       "reddit_posts": [
+        {
+          "sub": "RKLBInvestors",
+          "title": "Personally after another short squeze ill short this with leverage. Rn I shorted since september. This scam should go to 0 dollars eventually. Specualtive scam unlike spcx that actucally delivers.",
+          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xcyjz3/personally_after_another_short_squeze_ill_short/",
+          "created": "2026-10-22T23:45:33+00:00"
+        },
+        {
+          "sub": "RKLBInvestors",
+          "title": "Anyone who bought this is regarded. This scam should be delisted from nasdaq, but wall street is on the scam. This is worse than bitcoin, at least bitcoin recovers . This pump and dump doesnt pump bac",
+          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xcyc2g/anyone_who_bought_this_is_regarded_this_scam/",
+          "created": "2026-10-22T23:35:34+00:00"
+        },
+        {
+          "sub": "RKLBInvestors",
+          "title": "Avoid investing in this scam. Same goes for asts. Both two major scams. Wish I shorted these at 100 with 3 x leverage. Would have made 15x money on these scams. Invest only in spcx if u don't want to ",
+          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xcy3qa/avoid_investing_in_this_scam_same_goes_for_asts/",
+          "created": "2026-10-22T23:25:13+00:00"
+        },
         {
           "sub": "SPCXInvestors",
           "title": "Short asts and rklb and invest only in spcx if u wanna invest in the space sector. Short these trash scams to zero",
@@ -163,24 +181,6 @@
           "title": "New Bloomberg Podcasts Upload: Musk Tries to Lock in His Tesla-SpaceX Dream Before Trump’s Exit | Bloomberg Businessweek",
           "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xcx9kf/new_bloomberg_podcasts_upload_musk_tries_to_lock/",
           "created": "2026-10-22T22:48:20+00:00"
-        },
-        {
-          "sub": "marketpredictioncodes",
-          "title": "New Bloomberg Podcasts Upload: Bloomberg Businessweek Daily: SpaceX-Tesla Merger (Podcast)",
-          "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xcw5jx/new_bloomberg_podcasts_upload_bloomberg/",
-          "created": "2026-10-22T22:00:17+00:00"
-        },
-        {
-          "sub": "NowInFinance",
-          "title": "SpaceX $40 billion debt deal gets pricey as AI fears spread",
-          "url": "https://www.reddit.com/r/NowInFinance/comments/1xcvw0y/spacex_40_billion_debt_deal_gets_pricey_as_ai/",
-          "created": "2026-10-22T21:49:16+00:00"
-        },
-        {
-          "sub": "homosapientrader",
-          "title": "Nasdaq's Worst Day Since June 🪨 Top 3 Losers & Gainers | Oct 22, 2026",
-          "url": "https://www.reddit.com/r/homosapientrader/comments/1xcvqhb/nasdaqs_worst_day_since_june_top_3_losers_gainers/",
-          "created": "2026-10-22T21:42:46+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -209,10 +209,10 @@
           "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE5PUXotbEFpamZqOGNVR1V3QjBZa1JlMk9BYlEtSXlRVVdZaUx5enhFczJmYzd6RzluMld3T1IxWFpKdUdFd3RLU0hxWTRuV28xVXRhUGt3QUlRWXVnZjcwNld0Y0Uzc3ZySXc1Ykx0dlA5SGtVbVFTZkN1QknSAYIBQVVfeXFMTjR2c3F2OV81OXNqTUxINlRMODJwbzhSNjgxNFlDOURjY0dxSDczVEZKWUdZaWRCc0RGMERLaEY3Y0NJMkIzdHFLMktLTEpkbHY3NTRyUllEYmJ3TWFFSXk5LUZRYUg0NVdpODRzaWJ0Slg3U293UkpETms3aUlDeWlmdw?oc=5"
         },
         {
-          "title": "SA analyst upgrades/downgrades: META, AVGO, SPCX, ED (SP500:) (ED:NYSE)",
+          "title": "SpaceX: This Price Makes No Sense (NASDAQ:SPCX)",
           "source": "Seeking Alpha",
-          "published": "Thu, 22 Oct 2026 17:18:53 GMT",
-          "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQZnVtZlNVZXBNclJleUlMbVRTUldpQjdkZEM2ZDlVOXB3WUh2emFCOU8ySFlOYkRlTzhDNERJX0MtNEQycFQ0OVNSd1JsakJDUnBQNV9qRUpRMEhsVG5wLXl6RGtBQ2pxQjVybHl0WUJIU0VkNFFDRUNKVW1FV09KRlkxUTlNVjdDbUVuRG9R?oc=5"
+          "published": "Tue, 20 Oct 2026 23:15:16 GMT",
+          "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE1ibXg5UFFham1xcDFySTlfMXpvWlRVLW1lR0dnYjNqU2tlZXppWENIZzFOZFA2cUV3VDg4QnNkX3I0cVdlNXdHSHFaZXJILUlocTN5SmxHRlRnUkRwaXNGT0NJQTNNMmRxMWliSG10bGxXaXA5U2psYkl2RHhldw?oc=5"
         },
         {
           "title": "Why SpaceX Stock Dropped on Thursday",
@@ -233,8 +233,26 @@
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us_stocks",
-      "reddit_mentions_7d": 10,
+      "reddit_mentions_7d": 12,
       "reddit_posts": [
+        {
+          "sub": "RKLBInvestors",
+          "title": "Personally after another short squeze ill short this with leverage. Rn I shorted since september. This scam should go to 0 dollars eventually. Specualtive scam unlike spcx that actucally delivers.",
+          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xcyjz3/personally_after_another_short_squeze_ill_short/",
+          "created": "2026-10-22T23:45:33+00:00"
+        },
+        {
+          "sub": "RKLBInvestors",
+          "title": "Anyone who bought this is regarded. This scam should be delisted from nasdaq, but wall street is on the scam. This is worse than bitcoin, at least bitcoin recovers . This pump and dump doesnt pump bac",
+          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xcyc2g/anyone_who_bought_this_is_regarded_this_scam/",
+          "created": "2026-10-22T23:35:34+00:00"
+        },
+        {
+          "sub": "RKLBInvestors",
+          "title": "Avoid investing in this scam. Same goes for asts. Both two major scams. Wish I shorted these at 100 with 3 x leverage. Would have made 15x money on these scams. Invest only in spcx if u don't want to ",
+          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xcy3qa/avoid_investing_in_this_scam_same_goes_for_asts/",
+          "created": "2026-10-22T23:25:13+00:00"
+        },
         {
           "sub": "SPCXInvestors",
           "title": "Short asts and rklb and invest only in spcx if u wanna invest in the space sector. Short these trash scams to zero",
@@ -252,24 +270,6 @@
           "title": "New Bloomberg Podcasts Upload: Musk Tries to Lock in His Tesla-SpaceX Dream Before Trump’s Exit | Bloomberg Businessweek",
           "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xcx9kf/new_bloomberg_podcasts_upload_musk_tries_to_lock/",
           "created": "2026-10-22T22:48:20+00:00"
-        },
-        {
-          "sub": "marketpredictioncodes",
-          "title": "New Bloomberg Podcasts Upload: Bloomberg Businessweek Daily: SpaceX-Tesla Merger (Podcast)",
-          "url": "https://www.reddit.com/r/marketpredictioncodes/comments/1xcw5jx/new_bloomberg_podcasts_upload_bloomberg/",
-          "created": "2026-10-22T22:00:17+00:00"
-        },
-        {
-          "sub": "NowInFinance",
-          "title": "SpaceX $40 billion debt deal gets pricey as AI fears spread",
-          "url": "https://www.reddit.com/r/NowInFinance/comments/1xcvw0y/spacex_40_billion_debt_deal_gets_pricey_as_ai/",
-          "created": "2026-10-22T21:49:16+00:00"
-        },
-        {
-          "sub": "homosapientrader",
-          "title": "Nasdaq's Worst Day Since June 🪨 Top 3 Losers & Gainers | Oct 22, 2026",
-          "url": "https://www.reddit.com/r/homosapientrader/comments/1xcvqhb/nasdaqs_worst_day_since_june_top_3_losers_gainers/",
-          "created": "2026-10-22T21:42:46+00:00"
         }
       ],
       "reddit_status": "ok",
@@ -705,8 +705,14 @@
       "ticker": "07709",
       "name": "XL二南方海力士",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 2,
+      "reddit_mentions_7d": 3,
       "reddit_posts": [
+        {
+          "sub": "MarketFluxHub",
+          "title": "SK Hynix Cancels Solidigm US IPO After Shareholder Opposition and Market Volatility",
+          "url": "https://www.reddit.com/r/MarketFluxHub/comments/1xcyo1m/sk_hynix_cancels_solidigm_us_ipo_after/",
+          "created": "2026-10-22T23:50:47+00:00"
+        },
         {
           "sub": "MU_Stock",
           "title": "Amazing news. SK Hynix has decided to drop its plans for a U.S. initial public offering (IPO) of its American NAND and solid-state drive (SSD) subsidiary, Solidigm (Last time they listed their own ADR",
@@ -730,26 +736,26 @@
         {
           "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$",
           "source": "Moomoo",
-          "published": "Wed, 21 Oct 2026 03:04:10 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPeHRBNlFvWHBIZWdsUWxfVUJXX0U4Z0ljLV82UGZDRlZNUUd2UkdRUFkyMWFfZ1hqeWFMNjBqdnAzaDkybHNua2QwMFlMWEh1c043SHo3Vm9JbjBuXzctZTllLVN5dWc1Y3dDMGsySUFCRnNPeHl4eWFhOHpnWFEyaHdDN0Y0QkxqWWExTXRocTVWSl9ENkNpaUhnODhSc1lqZXNqeTZXOHUteGc?oc=5"
-        },
-        {
-          "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$",
-          "source": "Moomoo",
           "published": "Mon, 31 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQRmRqbkRzOC1rMXBKTzBiQ0E4UTcxYjFyUGc0WXRuOXB2Qk9TRUQ4NFFlYlRDdl9wSEJIR0hLNF9PdVRldEM0cV9WUkowX0tkTjRjZUlmUi1tcTJsbGJvM2k0bDFuc0poYmpsdnEwbkRsdUlDTzVoSHZ2d1pxS0RWR25hYzY4V2dnTUZ1bDlwdHA0VmZab2ZnRHFMX1FiclUzLTNUSldueTlvTUk?oc=5"
         },
         {
-          "title": "SK Hynix ADR Honeymoon Turns Into Shock Therapy; Hong Kong Leveraged ETF Plunges Over 22% in Single Day",
-          "source": "BigGo Finance",
-          "published": "Sun, 12 Jul 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBYRUp5SmFULTlkRGJzU25xQ2xXSkllN2hua1VpMEJEWkk5YzRWdTRjU0djZjduZGNxdUZPa01HVkxWOGtic01ORlFBMTZ2cUJtOXQ3dk0tNGxHZXd2MEFlbFJwNE9TSDYwNGRoUFFUMTlCNGlwcnc?oc=5"
+          "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$",
+          "source": "Moomoo",
+          "published": "Mon, 21 Sep 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOWExhanFKQVhlM2FCM1U5c1V0ampYS1hLZWtFN2NKeVJZY2lOQ25Vb2l5UXJnbl9WSGoxZzhuSmRoeFJIWVhhNER6WTVKZzRrTVVDbHk4MzRKYldvNGlDWFpXbFExMkJ2b2JPWTQzN2M4Ni1MLW5HZGpNUjJEdWRKd1N5NlJPTGdqSEJVVTdtMWQ2RTNGWXhWUXlwNjZVeV81eF84eHQ3YWl0Zw?oc=5"
         },
         {
           "title": "Tech rally cools off! Asia-Pacific equities declined across the board, with South Korean stocks briefly triggering a circuit breaker and the Hang Seng Tech Index dropping more than 3%. What other risks lie ahead?",
           "source": "富途牛牛",
           "published": "Mon, 22 Jun 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPc2JfLVItQVVKSVhCRWU5NjAwMnpUa1ZzZmZkeHp5NE9XY0FQTTI2dkJFYzRVVG1WaVlwQXJJZlkwSUVOT09JX2hZNFRYQ3BOVDdnanlHdGRoWjNhSjY1aURDYW1zemxBbXRwRHcwcEw2eGQ1WUlCdUJCMDEtOTdOcUJFWTAwcEFfeUlDZjZwU1Vxa1J3NVdNMXJCXzRFT2lQOGNJTUd3?oc=5"
+        },
+        {
+          "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$ $SK Hynix (000660.KR)$ $SK hynix (SKHY.US)$",
+          "source": "Moomoo",
+          "published": "Sat, 25 Jul 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOWEdpYXJSa2t2c241SVVDV3hUbmM1Vy1IYUx0VUo1a2JSZUp5LUtFa1JPb084RHFfdEU5dEMtTmFfRjIza25sd211WnR1OE5uTFRoay14NlY3cVh3LU56Rk01X1QzeHRkRzRXdHkwVWhPR3U1MnZKcWxPb0hrRkdjUVNlWktDV3pVRnVnVkJpRjl5STlLTlJyU0hrTEpXTUdfRlB0aHhCb2c?oc=5"
         }
       ],
       "google_news_zh": [
