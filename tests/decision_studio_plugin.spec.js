@@ -122,6 +122,20 @@ test("ledger: reads decisions.jsonl, skips malformed lines, keeps desk entries",
   }
 });
 
+test("ledger: unreadable decisions preserve portfolio traces and the ledger path", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = makeDesk();
+  const ledgerPath = path.join(root, "memory", "decisions.jsonl");
+  try {
+    fs.unlinkSync(ledgerPath);
+    fs.mkdirSync(ledgerPath);
+    assert.deepEqual(ledger.readLedger(root), { entries: [], path: ledgerPath });
+    assert.ok(ledger.readTraces(root).trades.length > 0);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("ledger: portfolio summarizes holdings per book", async () => {
   const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
   const root = makeDesk();

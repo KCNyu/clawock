@@ -42,7 +42,7 @@ function num(value) {
 function readLedger(workspace) {
 	const path = join(workspace, "memory", "decisions.jsonl");
 	const entries = [];
-	if (existsSync(path)) {
+	try {
 		const lines = readFileSync(path, "utf8").split("\n");
 		for (const line of lines) {
 			if (!line.trim()) continue;
@@ -50,7 +50,7 @@ function readLedger(workspace) {
 				entries.push(JSON.parse(line));
 			} catch {}
 		}
-	}
+	} catch {}
 	return {
 		entries,
 		path
