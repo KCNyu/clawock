@@ -98,6 +98,8 @@ SIGNAL_SOURCE = {
          'window': 'latest CNN observation',
          'missing': 'null'},
         {'field': 'macro.fed_press', 'unit': 'at most 3 {title, date, url} release records', 'window': '7 days before producer scan', 'missing': 'empty list'},
+        _out('macro.treasury_curve', '14 percent par yields, same-date 10Y-2Y/3M spreads in bps, source/date',
+             'latest Treasury publication; max 7 calendar days; may lag equity session', 'null when unavailable/stale'),
         _out('macro.coverage', 'per-series ok/unavailable/invalid/unknown_date/invalid_date/stale',
              'rechecked at read time for new producer snapshots', 'absent on legacy snapshots'),
         _out('macro.volatility', 'VIX/VIX9D/VIX3M/SKEW daily closes with source, URL and as_of',
@@ -280,6 +282,12 @@ class Scans:
                 'nasdaq': quote('nasdaq'),
                 'fed_press': (scan.get('fed_press') or [])[:3],
             }
+            from clawock.market_data.treasury import observation_status
+            curve = scan.get('treasury_curve')
+            if 'treasury_curve' in scan:
+                status = observation_status((curve or {}).get('as_of'), at=at)
+                coverage['treasury_curve'] = status
+                reading['treasury_curve'] = curve if status == 'ok' else None
             if coverage:
                 reading['coverage'] = coverage
             if volatility:

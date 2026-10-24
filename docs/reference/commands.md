@@ -786,3 +786,20 @@ bash ops/host/check_crons.sh --json          # JSON 输出（喂给后续 pipeli
 - **完全删掉**：`scripts/legacy/` 与 `scripts/data/`；dated memory 中的旧文件名只属历史记录。
 
 ---
+
+
+### Low-frequency free data
+
+- `clawock macro`: also fetches the official 14-tenor US Treasury par curve,
+  publishes dated 10Y−2Y/3M slopes, and uses its 10Y observation if Yahoo fails.
+- `clawock fundamentals AAPL --analysts --json`: private Finnhub recommendation
+  counts and reported-quarter EPS estimate/actual history, using the existing
+  free key. Two calls per issuer per 24 hours; no future EPS or target-price claim.
+- `clawock macro --credit-spreads --workspace .`: private FRED BAA10Y reading,
+  with observation lag and basis points. Does not write the public macro
+  snapshot; `--output` is rejected in this mode.
+
+The last two commands are for personal research and cache only under ignored
+`.cache/private-market-data/`. Their data and derived results must not enter
+public briefs/dashboards without redistribution rights. See
+[data coverage](data-coverage.md) for providers, quotas and limits.
