@@ -42,6 +42,7 @@ def test_cboe_missing_previous_session_is_not_multiday_change():
 
 def test_scan_falls_back_to_official_vix_and_connects_new_surfaces(monkeypatch):
     monkeypatch.setattr(macro, 'yahoo_quote', lambda symbol: None)
+    monkeypatch.setattr(macro.treasury, 'fetch_curve', lambda **kwargs: None)
     monkeypatch.setattr(macro, 'cnn_fear_greed', lambda: None)
     monkeypatch.setattr(macro, 'fed_press_releases', lambda days: [])
     monkeypatch.setattr(cboe, 'fetch_quote', lambda symbol, at: cboe.parse_history(

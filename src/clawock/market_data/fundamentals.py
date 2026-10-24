@@ -11,6 +11,7 @@ Adapted and modified from global-stock-data
 数据源: datacenter-web.eastmoney.com (实测可达 2026-06-14, kcn 服务器 IP)。
 
 Usage:
+  clawock fundamentals AAPL --analysts --json     # 私有评级分布/已公布EPS，24h缓存
   clawock fundamentals 00700                      # 关键指标概览(默认)
   clawock fundamentals 00700 --indicators         # 同上, 最近4期 ROE/EPS/毛利率...
   clawock fundamentals AAPL  --statements income  # 利润表(中文科目行)
@@ -135,7 +136,9 @@ def _parse_args(argv):
     i = 0
     while i < len(argv):
         a = argv[i]
-        if a == "--indicators":
+        if a == "--analysts":
+            mode = "analysts"
+        elif a == "--indicators":
             mode = "indicators"
         elif a == "--statements":
             mode = "statements"
@@ -167,6 +170,16 @@ def main(argv=None):
     if statement not in _REPORT_MAP:
         print(f"  ⚠️  未知报表 '{statement}', 可选: balance/income/cashflow", file=sys.stderr)
         return 1
+
+    if mode == 'analysts':
+        from clawock.market_data.private_research import analysts
+        try:
+            result = analysts(code)
+        except ValueError as exc:
+            print(json.dumps({'error': str(exc)}, ensure_ascii=False))
+            return 1
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
 
     sym = resolve(code)
     if not sym:

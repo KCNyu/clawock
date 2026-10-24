@@ -5,7 +5,8 @@ fetch_macro.py — daily macro sentiment for the brief.
 Sources (all free, no API key):
   • VIX                — Yahoo Finance v8 chart API (^VIX), Cboe daily fallback
   • VIX9D / VIX3M / SKEW — Cboe official daily closes and same-session term ratio
-  • US Treasury 10Y    — Yahoo v8 (^TNX, percent yield)
+  • US Treasury 10Y    — Yahoo v8 (^TNX), official Treasury daily fallback
+  • Full par yield curve — US Treasury, 14 maturities, percent yields
   • USD index (DXY)    — Yahoo v8 (DX-Y.NYB)
   • CNN Fear & Greed   — production-api.cnn.com (public, no key)
   • Federal Reserve press releases — federalreserve.gov RSS (last 7 days)
@@ -23,7 +24,7 @@ from pathlib import Path
 import requests
 
 from clawock.safe_io import safe_write_json
-from clawock.market_data import cboe
+from clawock.market_data import cboe, treasury
 from clawock.sessions import latest_completed_session, market_tz
 from clawock.workspace import workspace_root
 
@@ -299,21 +300,29 @@ def collect(*, at=None):
     with ThreadPoolExecutor(max_workers=4) as pool:
         quotes = {key: pool.submit(yahoo_quote, symbol) for key, symbol in QUOTE_SYMBOLS.items()}
         official = {symbol: pool.submit(cboe.fetch_quote, symbol, at=current) for symbol in cboe.SYMBOLS}
+        curve = pool.submit(treasury.fetch_curve, at=current)
         fear = pool.submit(cnn_fear_greed)
         fed = pool.submit(fed_press_releases, days=7)
         out = {key: future.result() for key, future in quotes.items()}
         volatility = {symbol.lower(): future.result() for symbol, future in official.items()}
-        out.update(fear_greed=fear.result(), fed_press=fed.result())
+        out.update(fear_greed=fear.result(), fed_press=fed.result(), treasury_curve=curve.result())
     if quote_status('vix', out['vix'], at=current) != 'ok' and volatility['vix']:
         out['vix'] = volatility['vix']
     if out['treasury_10y']:
         raw = out['treasury_10y']['price']
         out['treasury_10y']['yield_pct'] = round(raw / 10 if raw > 10 else raw, 3)
+    curve = out['treasury_curve']
+    if quote_status('treasury_10y', out['treasury_10y'], at=current) != 'ok' and curve:
+        value = curve['yields'].get('10y')
+        row = _quote('US10Y', value, None, None, 'us_treasury', curve['as_of'])
+        if quote_status('treasury_10y', row, at=current) == 'ok':
+            out['treasury_10y'] = dict(row, yield_pct=value)
     out['volatility'] = volatility
     out['volatility_term_structure'] = cboe.term_structure(volatility['vix'], volatility['vix3m'])
     out['coverage'] = {key: quote_status(key, out[key], at=current) for key in QUOTE_SYMBOLS}
     out['coverage'].update({key: quote_status(key, row, at=current) for key, row in volatility.items()
                             if key != 'vix'})
+    out['coverage']['treasury_curve'] = (curve or {}).get('status', 'unavailable')
     out['generated_at'] = current.isoformat()
     return out
 
@@ -322,8 +331,16 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='clawock macro', description=__doc__.splitlines()[0])
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--credit-spreads", action="store_true", help="private personal-use FRED credit spread query; no public snapshot write")
     args = parser.parse_args(argv)
     workspace = workspace_root(args.workspace)
+    if args.credit_spreads:
+        if args.output:
+            parser.error('--credit-spreads does not support public output files')
+        import json
+        from clawock.market_data.private_research import credit_spread
+        print(json.dumps(credit_spread(workspace=workspace), ensure_ascii=False, indent=2))
+        return 0
     output = args.output or workspace / "assets" / "data" / "macro.json"
     if not output.is_absolute():
         output = workspace / output
@@ -336,7 +353,7 @@ def main(argv=None):
     # Print summary
     print('=== macro snapshot ===')
     for k, v in out.items():
-        if k in ('generated_at', 'coverage', 'volatility', 'volatility_term_structure'): continue
+        if k in ('generated_at', 'coverage', 'volatility', 'volatility_term_structure', 'treasury_curve'): continue
         if v is None:
             print(f'  {k:14s}  ⚠️ failed')
         elif k == 'fed_press':
@@ -346,7 +363,8 @@ def main(argv=None):
         elif k == 'fear_greed':
             print(f'  {k:14s}  {v["score"]} ({v["rating"]})  · prev close {v.get("prev_close")}, 1w {v.get("prev_1_week")}')
         elif k == 'treasury_10y':
-            print(f'  {k:14s}  {v["yield_pct"]}%  ({(v.get("change_pct") or 0):+.2f}%)')
+            change = v.get('change_pct')
+            print(f'  {k:14s}  {v["yield_pct"]}%  ' + (f'({change:+.2f}%)' if change is not None else '(当日涨跌未知)'))
         else:
             change = v.get("change_pct")
             print(f'  {k:14s}  {v["price"]:>10}  '

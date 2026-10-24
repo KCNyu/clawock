@@ -64,7 +64,7 @@ def validate_macro(path: Path | str, *, now: datetime | None = None) -> None:
                 and not isinstance(value, bool) and math.isfinite(value))
 
     quote_fields = ('vix', 'treasury_10y', 'dxy', 'hsi', 'hstech', 'spx', 'nasdaq')
-    quote_sources = ('stooq', 'tencent', 'yahoo', 'cboe')
+    quote_sources = ('stooq', 'tencent', 'yahoo', 'cboe', 'us_treasury')
     from clawock.market_data.macro import quote_status
     market_quotes = [
         field for field in quote_fields

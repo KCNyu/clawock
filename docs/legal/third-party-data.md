@@ -42,6 +42,18 @@ them commercially.
   Only headlines, times and links are kept, for the session. HKEXnews content
   is subject to HKEX's terms of use; EDGAR full-text search follows the same
   SEC fair-access policy and User-Agent as the rest of the SEC client.
+- **Finnhub personal research:** `fundamentals --analysts` uses the existing
+  personal API key for ratings and reported earnings. Finnhub's
+  [terms](https://finnhub.io/terms-of-service) prohibit sharing data or derived
+  results without written permission. This new path is private-only, has a
+  24-hour local cache, and is not a scheduled/public brief input.
+- **FRED credit spreads:** `macro --credit-spreads` reads BAA10Y for private
+  research. [Series notes](https://fred.stlouisfed.org/series/BAA10Y) carry Moody's
+  copyright and redistribution restrictions. Free download is not a public
+  publishing license. Values retain their observation date and definition.
+- **US Treasury:** the public daily par curve CSV supplies 14 maturity points,
+  dated yields and same-date slopes. It is an official reference curve, not a
+  bond execution quote; Treasury's publication date remains attached.
 - **Cboe:** daily VIX/VIX9D/VIX3M/SKEW closes come from the official public
   historical CSVs. Source URLs and observation dates travel with each row;
   access does not transfer ownership of index data or trademarks.
