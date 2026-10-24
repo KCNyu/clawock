@@ -109,7 +109,7 @@ def _cache(tmp_path, age_hours, **entry):
 def _no_network(monkeypatch):
     def refuse():
         raise AssertionError("an offline reader must not call a provider")
-    for name in ("_get_frankfurter", "_get_exchangerate_host", "_get_yahoo"):
+    for name in ("_get_frankfurter", "_get_open_er_api", "_get_yahoo"):
         monkeypatch.setattr(fetch_fx, name, refuse)
 
 
@@ -146,7 +146,7 @@ def test_a_secondary_provider_stays_marked_as_a_fallback(tmp_path, monkeypatch):
     _no_network(monkeypatch)
 
     fx = fetch_fx.read_cached_usdhkd(
-        _cache(tmp_path, 1, source="exchangerate.host", fallback_used=True))
+        _cache(tmp_path, 1, source="ExchangeRate-API Open", fallback_used=True))
 
     assert fx["fallback_used"] is True and fx["stale"] is False
 

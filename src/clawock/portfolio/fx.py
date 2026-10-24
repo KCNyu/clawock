@@ -4,7 +4,7 @@ USDHKD exchange-rate provider (3-route fallback, no API key).
 
 Provider chain:
   1. Frankfurter.app  – ECB-sourced, free, no key, daily refresh
-  2. exchangerate.host – free, no key, multi-source aggregation
+  2. ExchangeRate-API Open – free, no key, daily refresh
   3. Yahoo HKD=X      – live spot, no key
 
 Usage:
@@ -214,11 +214,18 @@ def _get_frankfurter() -> Optional[float]:
         return None
 
 
-def _get_exchangerate_host() -> Optional[float]:
+def _get_open_er_api() -> Optional[float]:
     try:
-        r = SESSION.get('https://api.exchangerate.host/latest',
-                        params={'base': 'USD', 'symbols': 'HKD'}, timeout=TIMEOUT)
-        return float(r.json()['rates']['HKD'])
+        r = SESSION.get('https://open.er-api.com/v6/latest/USD', timeout=TIMEOUT)
+        r.raise_for_status()
+        payload = r.json()
+        if payload.get('result') != 'success' or payload.get('base_code') != 'USD':
+            return None
+        # The download time is not the provider observation time.
+        stamp = payload.get('time_last_update_unix')
+        if not isinstance(stamp, (int, float)) or not 0 <= time.time() - stamp <= 96 * 3600:
+            return None
+        return float(payload['rates']['HKD'])
     except Exception:
         return None
 
@@ -245,7 +252,7 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
 
     providers = (
         ('Frankfurter',         _get_frankfurter),
-        ('exchangerate.host',   _get_exchangerate_host),
+        ('ExchangeRate-API Open', _get_open_er_api),
         ('Yahoo HKD=X',         _get_yahoo),
     )
     for provider_index, (name, fn) in enumerate(providers):

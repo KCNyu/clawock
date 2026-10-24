@@ -38,7 +38,7 @@ from clawock.strategies.freshness import (
     DEFAULT_STALE_AFTER_HOURS, is_stale, payload_age_hours,
 )
 
-from clawock.market_data.macro import classify_regime
+from clawock.market_data.macro import classify_regime, quote_status, QUOTE_SYMBOLS
 
 name = 'morning-scans'
 
@@ -98,6 +98,12 @@ SIGNAL_SOURCE = {
          'window': 'latest CNN observation',
          'missing': 'null'},
         {'field': 'macro.fed_press', 'unit': 'at most 3 {title, date, url} release records', 'window': '7 days before producer scan', 'missing': 'empty list'},
+        _out('macro.coverage', 'per-series ok/unavailable/invalid/unknown_date/invalid_date/stale',
+             'rechecked at read time for new producer snapshots', 'absent on legacy snapshots'),
+        _out('macro.volatility', 'VIX/VIX9D/VIX3M/SKEW daily closes with source, URL and as_of',
+             'latest completed US session', 'null per missing or stale series'),
+        _out('macro.volatility_term_structure', 'same-session VIX / VIX3M ratio with as_of',
+             'latest completed US session; descriptive only', 'null unless both closes exist'),
         {'field': 'macro.regime.score',
          'unit': 'integer sum of three directional checks, -3 to 3',
          'window': 'current F&G, VIX and paired SPX/Nasdaq day changes',
@@ -234,6 +240,22 @@ class Scans:
     def macro(self, workspace, at=None) -> dict:
         """The macro snapshot, trimmed for the brief and classified."""
         def build(scan, age):
+            scan = dict(scan)
+            # New producers carry per-series health. Recheck at consumption:
+            # a fresh file or SPX row must not make yesterday's VIX current.
+            coverage = {}
+            if 'coverage' in scan:
+                coverage = {key: quote_status(key, scan.get(key), at=at) for key in QUOTE_SYMBOLS}
+                for key, status in coverage.items():
+                    if status != 'ok':
+                        scan[key] = None
+            volatility = {}
+            for key, row in (scan.get('volatility') or {}).items():
+                status = quote_status(key, row, at=at)
+                coverage[f'volatility.{key}'] = status
+                volatility[key] = row if status == 'ok' else None
+            from clawock.market_data.cboe import term_structure
+
             def quote(key):
                 row = scan.get(key)
                 if not row:
@@ -258,6 +280,11 @@ class Scans:
                 'nasdaq': quote('nasdaq'),
                 'fed_press': (scan.get('fed_press') or [])[:3],
             }
+            if coverage:
+                reading['coverage'] = coverage
+            if volatility:
+                reading['volatility'] = volatility
+                reading['volatility_term_structure'] = term_structure(volatility.get('vix'), volatility.get('vix3m'))
             reading['regime'] = classify_regime(reading)
             return _answer(OK, reading, age)
         return self._reading(workspace, 'macro', build, behind=sessions_behind, at=at)

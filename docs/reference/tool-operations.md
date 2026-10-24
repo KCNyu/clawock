@@ -98,7 +98,7 @@ clawock us-quotes     # 仅刷美股价格
 工具：
 - `clawock fx --json` → `{"rate": 7.83, "source": "Frankfurter", ...}`
 - 换算：`clawock fx --convert 10000 HKD USD`
-- fallback：Frankfurter → exchangerate.host → Yahoo HKD=X；4h 本地缓存
+- fallback：Frankfurter → ExchangeRate-API Open → Yahoo HKD=X；4h 本地缓存
 
 ### 美股基本面 / SEC filings
 `clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 关键概念)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 `clawock us-quotes` 抓价**。完整参数表+注意事项 → `docs/reference/commands.md`。
