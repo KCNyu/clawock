@@ -140,4 +140,4 @@ def test_new_volatility_values_reach_brief_with_observation_dates():
         'skew': {'price': 151.8, 'as_of': '2026-10-23'}},
         'coverage': {'dxy': 'unavailable'}}}, {})
     assert 'VIX9D' in result and 'SKEW' in result
-    assert '2026-10-23 收盘' in result and '数据缺失或过期：dxy' in result
+    assert '2026-10-23 收盘' in result and '数据缺失或过期：DXY' in result

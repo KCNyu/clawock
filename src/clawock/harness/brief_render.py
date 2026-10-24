@@ -933,7 +933,12 @@ def macro_section(context, judgment):
         row = volatility.get(key)
         if row:
             parts.append(f"{label} **{num(row.get('price'))}**（{text(row.get('as_of'))} 收盘）")
-    missing = [key for key, status in (macro.get('coverage') or {}).items() if status != 'ok']
+    labels = {'vix': 'VIX', 'treasury_10y': '10Y 美债收益率', 'dxy': 'DXY',
+              'hsi': 'HSI', 'hstech': 'HSTECH', 'spx': 'SPX', 'nasdaq': '纳指',
+              'volatility.vix': 'Cboe VIX 日线', 'volatility.vix9d': 'VIX9D',
+              'volatility.vix3m': 'VIX3M', 'volatility.skew': 'SKEW'}
+    missing = [labels.get(key, key) for key, status in (macro.get('coverage') or {}).items()
+               if status != 'ok']
     if missing:
         parts.append('数据缺失或过期：' + ', '.join(missing))
     body = " · ".join(part for part in parts if part)
