@@ -1,74 +1,132 @@
 {
-  "generated_at": "2026-10-23T00:13:16.165751+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 19.03,
-    "prev": 16.68,
-    "change_pct": 14.09,
+    "price": 19.45,
+    "prev": 19.03,
+    "change_pct": 2.21,
     "source": "yahoo",
-    "as_of": 1792700101
+    "as_of": 1792786501
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.953,
-    "prev": 5.146,
-    "change_pct": -3.75,
+    "price": 4.988,
+    "prev": 4.953,
+    "change_pct": 0.71,
     "source": "yahoo",
-    "as_of": 1792695593,
-    "yield_pct": 4.953
+    "as_of": 1792781996,
+    "yield_pct": 4.988
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.549,
-    "prev": 101.607,
+    "price": 101.752,
+    "prev": 101.81,
     "change_pct": -0.06,
     "source": "yahoo",
-    "as_of": 1792713795
-  },
-  "fear_greed": {
-    "score": 19.8,
-    "rating": "extreme fear",
-    "prev_close": 31.4,
-    "prev_1_week": 30.3,
-    "as_of": "2026-10-22T23:57:37+00:00"
+    "as_of": 1792789199
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 22934.68,
-    "prev": 23651.87,
-    "change_pct": -3.03,
+    "price": 23093.37,
+    "prev": 22934.68,
+    "change_pct": 0.69,
     "source": "tencent",
-    "as_of": "2026-10-22"
+    "as_of": "2026-10-23"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 3793.93,
-    "prev": 3994.77,
-    "change_pct": -5.03,
+    "price": 3871.66,
+    "prev": 3793.93,
+    "change_pct": 2.05,
     "source": "tencent",
-    "as_of": "2026-10-22"
+    "as_of": "2026-10-23"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7663.43,
-    "prev": 7757.17,
-    "change_pct": -1.21,
-    "source": "yahoo",
-    "as_of": 1792701108
+    "price": 7623.68,
+    "prev": 7663.43,
+    "change_pct": -0.52,
+    "source": "tencent",
+    "as_of": "2026-10-23"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26008.86,
-    "prev": 26702.86,
-    "change_pct": -2.6,
+    "price": 25955.34,
+    "prev": 26008.86,
+    "change_pct": -0.21,
     "source": "tencent",
-    "as_of": "2026-10-22"
+    "as_of": "2026-10-23"
   },
-  "fed_press": [
-    {
-      "date": "2026-10-16",
-      "title": "Federal Reserve Board announces termination of enforcement actions with Gardner Bancshares, Inc. and Small Business Bank",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261016a.htm"
+  "fear_greed": {
+    "score": 21.0,
+    "rating": "extreme fear",
+    "prev_close": 19.8,
+    "prev_1_week": 22.1,
+    "as_of": "2026-10-23T23:59:44+00:00"
+  },
+  "fed_press": [],
+  "volatility": {
+    "vix": {
+      "symbol": "VIX",
+      "price": 19.45,
+      "prev": 19.03,
+      "change_pct": 2.21,
+      "source": "cboe",
+      "as_of": "2026-10-23",
+      "previous_as_of": "2026-10-22",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
+    },
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 18.7,
+      "prev": 18.86,
+      "change_pct": -0.85,
+      "source": "cboe",
+      "as_of": "2026-10-23",
+      "previous_as_of": "2026-10-22",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 20.48,
+      "prev": 20.12,
+      "change_pct": 1.79,
+      "source": "cboe",
+      "as_of": "2026-10-23",
+      "previous_as_of": "2026-10-22",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": {
+      "symbol": "SKEW",
+      "price": 151.8,
+      "prev": 152.39,
+      "change_pct": -0.39,
+      "source": "cboe",
+      "as_of": "2026-10-23",
+      "previous_as_of": "2026-10-22",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv"
     }
-  ]
+  },
+  "volatility_term_structure": {
+    "vix_to_vix3m": 0.9497,
+    "as_of": "2026-10-23",
+    "source": "cboe",
+    "frequency": "daily_close"
+  },
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "ok"
+  },
+  "generated_at": "2026-10-24T08:50:13.961220+00:00"
 }
