@@ -64,6 +64,34 @@
     "as_of": "2026-10-23T23:59:44+00:00"
   },
   "fed_press": [],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-10-23",
+    "status": "ok",
+    "age_days": 1,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.11,
+      "1.5m": 4.11,
+      "2m": 4.16,
+      "3m": 4.22,
+      "4m": 4.3,
+      "6m": 4.3,
+      "1y": 4.44,
+      "2y": 4.69,
+      "3y": 4.75,
+      "5y": 4.82,
+      "7y": 4.89,
+      "10y": 5.0,
+      "20y": 5.37,
+      "30y": 5.33
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 31.0,
+    "spread_10y_3m_bps": 78.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
   "volatility": {
     "vix": {
       "symbol": "VIX",
@@ -126,7 +154,8 @@
     "nasdaq": "ok",
     "vix9d": "ok",
     "vix3m": "ok",
-    "skew": "ok"
+    "skew": "ok",
+    "treasury_curve": "ok"
   },
-  "generated_at": "2026-10-24T08:50:13.961220+00:00"
+  "generated_at": "2026-10-24T13:53:44.844601+00:00"
 }
