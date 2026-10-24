@@ -63,14 +63,14 @@ def test_fetch_fx_marks_provider_and_hardcoded_fallbacks(monkeypatch):
     monkeypatch.setattr(fx, "_from_cache", lambda allow_stale=False: None)
     monkeypatch.setattr(fx, "_save_cache", lambda data: None)
     monkeypatch.setattr(fx, "_get_frankfurter", lambda: None)
-    monkeypatch.setattr(fx, "_get_exchangerate_host", lambda: 7.8375)
+    monkeypatch.setattr(fx, "_get_open_er_api", lambda: 7.8375)
     monkeypatch.setattr(fx, "_get_yahoo", lambda: None)
 
     secondary = fx.get_usdhkd(force_refresh=True)
-    assert secondary["source"] == "exchangerate.host"
+    assert secondary["source"] == "ExchangeRate-API Open"
     assert secondary["fallback_used"] is True
 
-    monkeypatch.setattr(fx, "_get_exchangerate_host", lambda: None)
+    monkeypatch.setattr(fx, "_get_open_er_api", lambda: None)
     hardcoded = fx.get_usdhkd(force_refresh=True)
     assert hardcoded["source"] == "HARDCODED_PEG_FALLBACK"
     assert hardcoded["fallback_used"] is True

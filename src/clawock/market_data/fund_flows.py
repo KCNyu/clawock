@@ -9,7 +9,7 @@ Adapted and modified from global-stock-data
 外部分析流程使用。
 
 数据源: push2his.eastmoney.com。
-⚠️ 可用性：push2his 在当前服务器返回 000，本脚本会优雅返回空 []，故未接入 skill。
+可用性依标的与网络而异；空结果标为 unavailable，不能解释为零资金流。
 
 Usage:
   clawock fundflow AAPL              # 近 20 日资金流
@@ -17,6 +17,7 @@ Usage:
   clawock fundflow BABA --days 30 --json
 """
 import json
+import math
 import sys
 from typing import Dict, List
 
@@ -50,7 +51,8 @@ def get_fund_flow(secid: str, days: int = 20) -> List[Dict]:
         # f51=日期 f52=主力 f53=小单 f54=中单 f55=大单 f56=超大单 (f57=主力净占比%)
         def _f(idx):
             try:
-                return float(p[idx])
+                value = float(p[idx])
+                return value if math.isfinite(value) else None
             except (ValueError, IndexError):
                 return None
         out.append({
@@ -102,7 +104,9 @@ def main(argv=None):
         return 1
 
     flows = get_fund_flow(sym["secid"], days)
-    result = {"symbol": sym, "fund_flow": flows}
+    result = {"symbol": sym, "fund_flow": flows, "source": "eastmoney",
+              "status": "ok" if flows else "unavailable",
+              "as_of": max((row['date'] for row in flows), default=None)}
 
     if as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))

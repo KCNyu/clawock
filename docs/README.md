@@ -40,6 +40,7 @@ belongs here.
 - [`influencer-radar.md`](influencer-radar.md) — the eight watched sources, how
   hits are linked to holdings, and a worked hit/miss example (moved out of the READMEs).
 - [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
+- [`data-coverage.md`](reference/data-coverage.md) — data surfaces, independent sources, failure behavior and remaining gaps.
 - [`data-health.md`](design/data-health.md) — the Data Health card's structure,
   visual rules and the tests that enforce them.
 - [`design-system.md`](design/design-system.md) — the dashboard's colour layers

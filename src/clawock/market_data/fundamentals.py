@@ -196,6 +196,8 @@ def main(argv=None):
     else:
         result = {"symbol": sym, "statement": statement, "rows": data}
 
+    result.update(source="eastmoney", status="ok" if data else "unavailable")
+
     if as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0

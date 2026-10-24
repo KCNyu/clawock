@@ -16,7 +16,7 @@ def test_fx_owner_degradation_reaches_brief_issues(monkeypatch, tmp_path, branch
     monkeypatch.setattr(fx, '_save_cache', lambda data: None)
     monkeypatch.setattr(fx, '_record_rate', lambda data: None)
     monkeypatch.setattr(fx, '_get_frankfurter', lambda: 7.84 if branch == 'primary' else None)
-    monkeypatch.setattr(fx, '_get_exchangerate_host', lambda: 7.83 if branch == 'secondary' else None)
+    monkeypatch.setattr(fx, '_get_open_er_api', lambda: 7.83 if branch == 'secondary' else None)
     monkeypatch.setattr(fx, '_get_yahoo', lambda: None)
     if branch == 'stale':
         cache.write_text(json.dumps({'rate': 7.79, 'source': 'Frankfurter',

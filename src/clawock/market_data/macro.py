@@ -3,8 +3,9 @@
 fetch_macro.py — daily macro sentiment for the brief.
 
 Sources (all free, no API key):
-  • VIX                — Yahoo Finance v8 chart API (^VIX)
-  • US Treasury 10Y    — Yahoo v8 (^TNX, divide by 10 for %)
+  • VIX                — Yahoo Finance v8 chart API (^VIX), Cboe daily fallback
+  • VIX9D / VIX3M / SKEW — Cboe official daily closes and same-session term ratio
+  • US Treasury 10Y    — Yahoo v8 (^TNX, percent yield)
   • USD index (DXY)    — Yahoo v8 (DX-Y.NYB)
   • CNN Fear & Greed   — production-api.cnn.com (public, no key)
   • Federal Reserve press releases — federalreserve.gov RSS (last 7 days)
@@ -12,6 +13,8 @@ Sources (all free, no API key):
 Writes: assets/data/macro.json
 """
 import argparse
+import math
+from concurrent.futures import ThreadPoolExecutor
 import re
 import sys
 from datetime import datetime, timezone
@@ -20,6 +23,8 @@ from pathlib import Path
 import requests
 
 from clawock.safe_io import safe_write_json
+from clawock.market_data import cboe
+from clawock.sessions import latest_completed_session, market_tz
 from clawock.workspace import workspace_root
 
 UA = 'clawock-macro-scan/1.0 (github.com/KCNyu/clawock)'
@@ -76,6 +81,14 @@ def _quote(symbol, price, prev, change_pct, source, as_of):
     (0.00%)` on a day the index then lost 2.60% (#2347). `as_of` says which
     session or moment the price is from.
     """
+    if isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price <= 0:
+        return None
+    if prev is not None and (not isinstance(prev, (int, float)) or not math.isfinite(prev) or prev <= 0):
+        prev = None
+    if change_pct is not None and (not isinstance(change_pct, (int, float)) or not math.isfinite(change_pct)):
+        change_pct = None
+    if isinstance(as_of, str) and re.fullmatch(r'\d{14}', as_of):
+        as_of = f'{as_of[:4]}-{as_of[4:6]}-{as_of[6:8]}'
     if prev and price == prev and not change_pct:
         change_pct = None
     row = {
@@ -119,13 +132,16 @@ def yahoo_quote(symbol):
                     # open used to be published as the day's change with the
                     # open as `prev`; a reader cannot tell that from a real
                     # one, so it is left unknown (#2347).
-                    return _quote(symbol, close, None, None, 'stooq', parts[1])
+                    row = _quote(symbol, close, None, None, 'stooq', parts[1])
+                    key = next((k for k, value in QUOTE_SYMBOLS.items() if value == symbol), symbol)
+                    if quote_status(key, row) == 'ok':
+                        return row
         except Exception:
             pass
 
     # 2) Tencent gtimg (free, no key, works for DJI/IXIC/HSI/HSTECH)
     tencent_map = {
-        '^GSPC': None,  # Tencent doesn't have SPX
+        '^GSPC': 'r_usINX',  # S&P 500 (.INX), not a Nasdaq index
         '^IXIC': 'r_usIXIC', '^DJI': 'r_usDJI',
         '^HSI': 'r_hkHSI', '^HSTECH': 'r_hkHSTECH',
     }
@@ -248,6 +264,60 @@ def fed_press_releases(days=7):
         return None
 
 
+QUOTE_SYMBOLS = {'vix': '^VIX', 'treasury_10y': '^TNX', 'dxy': 'DX-Y.NYB',
+                 'hsi': '^HSI', 'hstech': '^HSTECH', 'spx': '^GSPC', 'nasdaq': '^IXIC'}
+
+
+def quote_status(key, row, *, at=None):
+    """Per-series health; one fresh index cannot conceal another stale one."""
+    if not isinstance(row, dict):
+        return 'unavailable'
+    price = row.get('price')
+    if isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price <= 0:
+        return 'invalid'
+    market = 'hk' if key in ('hsi', 'hstech') else 'us'
+    stamp = row.get('as_of')
+    try:
+        if isinstance(stamp, str):
+            day = datetime.strptime(stamp[:10], '%Y-%m-%d').date()
+        elif isinstance(stamp, (int, float)) and not isinstance(stamp, bool):
+            day = datetime.fromtimestamp(stamp, market_tz(market)).date()
+        else:
+            return 'unknown_date'
+        current = at or datetime.now(timezone.utc)
+        if day > current.astimezone(market_tz(market)).date():
+            return 'invalid_date'
+        expected = latest_completed_session(market, current)
+        return 'ok' if expected is not None and day >= expected else 'stale'
+    except (ValueError, OverflowError, OSError):
+        return 'invalid_date'
+
+
+def collect(*, at=None):
+    """Bounded parallel scan, preserving missing/lagging series explicitly."""
+    current = at or datetime.now(timezone.utc)
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        quotes = {key: pool.submit(yahoo_quote, symbol) for key, symbol in QUOTE_SYMBOLS.items()}
+        official = {symbol: pool.submit(cboe.fetch_quote, symbol, at=current) for symbol in cboe.SYMBOLS}
+        fear = pool.submit(cnn_fear_greed)
+        fed = pool.submit(fed_press_releases, days=7)
+        out = {key: future.result() for key, future in quotes.items()}
+        volatility = {symbol.lower(): future.result() for symbol, future in official.items()}
+        out.update(fear_greed=fear.result(), fed_press=fed.result())
+    if quote_status('vix', out['vix'], at=current) != 'ok' and volatility['vix']:
+        out['vix'] = volatility['vix']
+    if out['treasury_10y']:
+        raw = out['treasury_10y']['price']
+        out['treasury_10y']['yield_pct'] = round(raw / 10 if raw > 10 else raw, 3)
+    out['volatility'] = volatility
+    out['volatility_term_structure'] = cboe.term_structure(volatility['vix'], volatility['vix3m'])
+    out['coverage'] = {key: quote_status(key, out[key], at=current) for key in QUOTE_SYMBOLS}
+    out['coverage'].update({key: quote_status(key, row, at=current) for key, row in volatility.items()
+                            if key != 'vix'})
+    out['generated_at'] = current.isoformat()
+    return out
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog='clawock macro', description=__doc__.splitlines()[0])
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
@@ -258,27 +328,7 @@ def main(argv=None):
     if not output.is_absolute():
         output = workspace / output
 
-    out = {
-        'generated_at': datetime.now(timezone.utc).isoformat(),
-        'vix':            yahoo_quote('^VIX'),
-        'treasury_10y':   yahoo_quote('^TNX'),     # actually 10Y * 10 in price units
-        'dxy':            yahoo_quote('DX-Y.NYB'),
-        'fear_greed':     cnn_fear_greed(),
-        'hsi':            yahoo_quote('^HSI'),
-        'hstech':         yahoo_quote('^HSTECH'),
-        'spx':            yahoo_quote('^GSPC'),
-        'nasdaq':         yahoo_quote('^IXIC'),
-        'fed_press':      fed_press_releases(days=7),
-    }
-
-    # 10Y treasury yield — source format differs:
-    #   Yahoo legacy ^TNX: price = yield * 10 (e.g. 44.93 means 4.493%)
-    #   Yahoo current + Stooq + Tencent: price = yield directly (e.g. 4.493%)
-    # Sustained US 10Y > 10% is historically unrealistic (last seen 1979-1985),
-    # so use that as the format-discriminator.
-    if out['treasury_10y']:
-        raw = out['treasury_10y']['price']
-        out['treasury_10y']['yield_pct'] = round(raw / 10 if raw > 10 else raw, 3)
+    out = collect()
 
     output.parent.mkdir(parents=True, exist_ok=True)
     safe_write_json(output, out)
@@ -286,7 +336,7 @@ def main(argv=None):
     # Print summary
     print('=== macro snapshot ===')
     for k, v in out.items():
-        if k == 'generated_at': continue
+        if k in ('generated_at', 'coverage', 'volatility', 'volatility_term_structure'): continue
         if v is None:
             print(f'  {k:14s}  ⚠️ failed')
         elif k == 'fed_press':

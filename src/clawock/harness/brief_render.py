@@ -928,6 +928,19 @@ def macro_section(context, judgment):
         parts.append(f"F&G **{num(fear.get('score'), 1)}** {text(fear.get('rating'))}")
     if macro.get("treasury_10y_yield_pct") is not None:
         parts.append(f"10Y **{pct(macro.get('treasury_10y_yield_pct'), sign=False)}**")
+    volatility = macro.get('volatility') or {}
+    for key, label in (('vix9d', 'VIX9D'), ('vix3m', 'VIX3M'), ('skew', 'SKEW')):
+        row = volatility.get(key)
+        if row:
+            parts.append(f"{label} **{num(row.get('price'))}**（{text(row.get('as_of'))} 收盘）")
+    labels = {'vix': 'VIX', 'treasury_10y': '10Y 美债收益率', 'dxy': 'DXY',
+              'hsi': 'HSI', 'hstech': 'HSTECH', 'spx': 'SPX', 'nasdaq': '纳指',
+              'volatility.vix': 'Cboe VIX 日线', 'volatility.vix9d': 'VIX9D',
+              'volatility.vix3m': 'VIX3M', 'volatility.skew': 'SKEW'}
+    missing = [labels.get(key, key) for key, status in (macro.get('coverage') or {}).items()
+               if status != 'ok']
+    if missing:
+        parts.append('数据缺失或过期：' + ', '.join(missing))
     body = " · ".join(part for part in parts if part)
     return "\n".join([
         "### 大盘速读", "",

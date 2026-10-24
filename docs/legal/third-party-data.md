@@ -42,6 +42,13 @@ them commercially.
   Only headlines, times and links are kept, for the session. HKEXnews content
   is subject to HKEX's terms of use; EDGAR full-text search follows the same
   SEC fair-access policy and User-Agent as the rest of the SEC client.
+- **Cboe:** daily VIX/VIX9D/VIX3M/SKEW closes come from the official public
+  historical CSVs. Source URLs and observation dates travel with each row;
+  access does not transfer ownership of index data or trademarks.
+- **ExchangeRate-API Open:** daily FX reference rates use the no-key Open API.
+  Attribution: [Rates by ExchangeRate-API](https://www.exchangerate-api.com/).
+  [Open API terms](https://www.exchangerate-api.com/docs/free) apply; this is not
+  an executable dealing rate.
 - **Other market and news providers:** availability and usage rights vary by
   provider and can change independently of this repository. Re-check their
   current terms before operating the corresponding fetcher.
