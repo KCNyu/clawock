@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T08:51:27Z",
+  "generated_at": "2026-10-24T08:22:41Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -367,6 +367,31 @@
       "timestamp": "2026-10-18T00:00:00Z",
       "count": 9,
       "uniques": 9
+    },
+    {
+      "timestamp": "2026-10-19T00:00:00Z",
+      "count": 10,
+      "uniques": 9
+    },
+    {
+      "timestamp": "2026-10-20T00:00:00Z",
+      "count": 11,
+      "uniques": 5
+    },
+    {
+      "timestamp": "2026-10-21T00:00:00Z",
+      "count": 4,
+      "uniques": 3
+    },
+    {
+      "timestamp": "2026-10-22T00:00:00Z",
+      "count": 7,
+      "uniques": 7
+    },
+    {
+      "timestamp": "2026-10-23T00:00:00Z",
+      "count": 5,
+      "uniques": 4
     }
   ],
   "clones": [
@@ -734,6 +759,31 @@
       "timestamp": "2026-10-18T00:00:00Z",
       "count": 965,
       "uniques": 159
+    },
+    {
+      "timestamp": "2026-10-19T00:00:00Z",
+      "count": 1431,
+      "uniques": 194
+    },
+    {
+      "timestamp": "2026-10-20T00:00:00Z",
+      "count": 1591,
+      "uniques": 212
+    },
+    {
+      "timestamp": "2026-10-21T00:00:00Z",
+      "count": 1108,
+      "uniques": 171
+    },
+    {
+      "timestamp": "2026-10-22T00:00:00Z",
+      "count": 1266,
+      "uniques": 256
+    },
+    {
+      "timestamp": "2026-10-23T00:00:00Z",
+      "count": 1054,
+      "uniques": 162
     }
   ],
   "referrers_snapshots": [
@@ -1382,6 +1432,27 @@
         },
         {
           "referrer": "vuink.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-10-24T08:22:41Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 16,
+          "uniques": 13
+        },
+        {
+          "referrer": "Google",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "kcnyu.github.io",
           "count": 1,
           "uniques": 1
         }
@@ -2708,6 +2779,72 @@
           "uniques": 3
         }
       ]
+    },
+    {
+      "captured_at": "2026-10-24T08:22:41Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 34,
+          "uniques": 27
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 6,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 6,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 4,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md",
+          "title": "/blob/master/docs/architecture/strategy-plugins.md",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "title": "/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/discussions",
+          "title": "/discussions",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/fdb39a2eb6a3ffc5fc96a937ae0503a93388392a/docs/INSTALL.md",
+          "title": "/blob/fdb39a2eb6a3ffc5fc96a937ae0503a93388392a/docs/INSTALL.md",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/docs/how-the-desk-works.zh.md",
+          "title": "/blob/master/docs/how-the-desk-works.zh.md",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/docs/reference/product-profile-operations.md",
+          "title": "/blob/master/docs/reference/product-profile-operations.md",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -2829,6 +2966,13 @@
       "forks": 0,
       "watchers": 0,
       "open_issues": 2
+    },
+    {
+      "captured_at": "2026-10-24T08:22:41Z",
+      "stargazers": 21,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 0
     }
   ],
   "package_downloads": [
@@ -3054,6 +3198,19 @@
         "downloads": 6539,
         "start": "2026-09-19",
         "end": "2026-10-18"
+      }
+    },
+    {
+      "captured_at": "2026-10-24T08:22:41Z",
+      "pypi": {
+        "last_day": 11,
+        "last_month": 311,
+        "last_week": 140
+      },
+      "npm": {
+        "downloads": 6647,
+        "start": "2026-09-23",
+        "end": "2026-10-22"
       }
     }
   ]
