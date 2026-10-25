@@ -242,18 +242,20 @@ def test_explicit_h2_sequences():
 
 
 def test_hero_is_unchanged_apart_from_weekly_metrics():
-    """The confirmed first 33 lines stay byte-identical except refreshed CW_M values."""
+    """The confirmed hero block stays byte-identical except refreshed CW_M values."""
     import hashlib
 
     # The decision-audit utility changes the taxonomy count from 46 to 47,
     # `web-search` (DeepSeek and Tavily side by side) from 47 to 48;
     # the jump bar drops its Evidence entry (Reflect holds it now);
+    # the pull-quote under the social card is gone and the metrics footnote
+    # keeps only its refresh cadence (copy trim, 2026-10-25);
     # the protected hero layout and all other wording stay pinned.
     for md, expected in (
-        (EN, "8fd0d567fbf81c9c7da76c42262246181eda2bbc69a8b8a9975cca389fd30d8e"),
-        (ZH, "44f54a49748f0ca0ea258ece5760f6ae8adae3f626e8e243acd6b3cf30f7c828"),
+        (EN, "186dedf6e0559b7d1a37696999d7034e3ea5b2e96f1c4f28f99ec1ac839a7fba"),
+        (ZH, "7a69ef3db5d4fa0d0d400af8a642cda71bb2c58c9bc03a8ab01b6771772b24d5"),
     ):
-        hero = ''.join(md.splitlines(keepends=True)[:33])
+        hero = md.split("</div>", 1)[0]
         hero = re.sub(r'(<!-- CW_M:\w+ -->).*?(<!-- /CW_M:\w+ -->)', r'\1\2', hero)
         assert hashlib.sha256(hero.encode()).hexdigest() == expected
 

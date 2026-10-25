@@ -36,19 +36,18 @@ def test_wide_table_and_profit_cards_own_desktop_width():
     assert ".panel.active > .card.desktop-wide," in CSS
 
 
-def test_holdings_dividers_do_not_partition_the_masonry_flow():
-    selector = '.panel.active[data-panel="drill"] > .sect-divider'
-    start = CSS.index(selector)
-    rule = CSS[start:CSS.index("}", start)]
-    assert "column-span: none" in rule
-    assert "break-after: avoid" in rule
-    assert ".holdings-section-heading" in CSS
-    assert ".price-section-heading," in CSS
-    # movers / anomalies 合并成一张「今日异动」卡（#877）。原来每张卡各挂一个
-    # desktop-section-kicker 来标同一段落，合并后一段只需要一个标题，所以这里
-    # 断的是「分节标题没有重复」而不是原来的固定条数。
+def test_holdings_is_one_masonry_flow_named_by_its_cards():
+    # Full-width dividers once partitioned Holdings into rigid mini-flows (a
+    # 659px blank band beside the tall tables), and each divider repeated the
+    # title of the card under it. The cards' own titles name the groups now, so
+    # the tab has no dividers and no divider-only CSS to keep in step.
+    start = HTML.index('id="panel-drill"')
+    drill = HTML[start:HTML.index('<section class="panel"', start + 1)]
+    assert "sect-divider" not in drill
+    assert 'data-panel="drill"] > .sect-divider' not in CSS
+    # movers / anomalies 合并成一张「今日异动」卡（#877），一段只有一个标题。
     assert 'id="today-action-card"' in HTML
-    assert HTML.count('class="desktop-section-kicker"') <= 2
+    assert "desktop-section-kicker" not in HTML
 
 
 def test_policy_replay_owns_the_desktop_row_and_puts_its_charts_side_by_side():

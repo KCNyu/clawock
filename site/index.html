@@ -240,10 +240,7 @@ layout: null
         <div class="verdict-deck-stage" id="verdict-deck-stage">
           <article class="deck-card" data-theme="今日判定" aria-labelledby="overview-verdict-title">
             <div class="overview-verdict-head">
-              <div>
-                <div class="overview-card-kicker">决策面板</div>
-                <h3 id="overview-verdict-title">今日判定</h3>
-              </div>
+              <h3 id="overview-verdict-title">今日判定</h3>
               <button class="overview-jump" type="button" data-jump-tab="risk">去风险页</button>
             </div>
             <div class="status-banner overview-status is-pending" id="overview-status-banner"
@@ -260,10 +257,7 @@ layout: null
           </article>
           <article class="deck-card" data-theme="硬闸" aria-labelledby="deck-gates-title">
             <div class="overview-verdict-head">
-              <div>
-                <div class="overview-card-kicker">风险</div>
-                <h3 id="deck-gates-title">触发中的硬闸</h3>
-              </div>
+              <h3 id="deck-gates-title">触发中的硬闸</h3>
               <span class="badge muted" id="overview-guardrail-count"></span>
             </div>
             <div class="overview-gates">
@@ -309,17 +303,12 @@ layout: null
            dashboard.ui.js progressively fills the current dated permalink. -->
       <section class="card latest-brief-card" aria-labelledby="latest-brief-title">
         <div class="latest-brief-head">
-          <div>
-            <div class="overview-card-kicker">08:03 HKT · Daily Brief</div>
-            <h3 id="latest-brief-title">最新盘前简报</h3>
-          </div>
-          <span class="latest-brief-date" id="latest-brief-date">最近一个工作日</span>
+          <h3 id="latest-brief-title">盘前简报</h3>
+          <span class="latest-brief-date" id="latest-brief-date">—</span>
         </div>
-        <p class="latest-brief-summary" id="latest-brief-summary">
-          查看最新的多空辩论、风控硬闸与今日动作；完整历史会明确标出未生成的日期。
-        </p>
+        <p class="latest-brief-summary" id="latest-brief-summary" hidden></p>
         <div class="latest-brief-links">
-          <a class="latest-brief-primary" id="latest-brief-link" href="briefs.html">阅读最新简报 →</a>
+          <a class="latest-brief-primary" id="latest-brief-link" href="briefs.html">最新一期 →</a>
           <a href="briefs.html">全部简报</a>
         </div>
       </section>
@@ -363,18 +352,13 @@ layout: null
     </div>
 
     <section class="card hero-search" id="search-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">SEO · 每周一量一次，Python 取数</div>
-        <h3>搜索可见性</h3>
-      </div></div>
+      <div class="card-head"><h3>搜索可见性</h3></div>
       <div id="search-body"></div>
     </section>
 
   </section>
   <section class="panel" id="panel-drill" data-panel="drill" role="tabpanel" aria-labelledby="tab-drill">
     <h2>Holdings</h2>
-
-    <div class="sect-divider holdings-section-heading">持仓明细</div>
 
     <!-- 决策矩阵 / Holdings / 今日区间 / 最强最弱 原本是四张按 ticker 各排一遍的表。
          合成一张：每行点开 = 这只票的全部证据（技术 / 当日区间 / 硬闸 / 回本 /
@@ -383,7 +367,6 @@ layout: null
     <div class="card desktop-wide" id="book-card">
       <div class="card-head">
         <div>
-          <div class="overview-card-kicker">决策矩阵 · 每行一只仓位</div>
           <h3>持仓 <span class="muted" id="book-count" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h3>
         </div>
         <span class="muted" id="book-meta" style="font-size:var(--fs-xs)"></span>
@@ -416,25 +399,15 @@ layout: null
 
     <div class="card desktop-wide" id="add-campaign-card">
       <div class="card-head">
-        <div>
-          <div class="overview-card-kicker">量化 × 信息 · 低频</div>
-          <h3>Add Campaign <span class="badge muted" id="add-campaign-status">—</span></h3>
-        </div>
+        <h3>Add Campaign <span class="badge muted" id="add-campaign-status">—</span></h3>
       </div>
-      <p class="chart-hint">先由价格相对强弱 + 点时信息共同授权资金，再等技术价位分批（tranche）安排。这里是新 campaign 的独立状态与样本；Reflect 的旧 <code>add_only_on_trigger</code> 桶不是它的战绩。</p>
       <div id="add-campaign-body"><div class="empty-state">等待今日 brief projection。</div></div>
       <div id="add-campaign-evidence"></div>
     </div>
 
     <div class="card desktop-wide" id="book-structure-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">组合结构</div>
-        <h3>仓位 × 信心</h3>
-      </div></div>
+      <div class="card-head"><h3>仓位 × 信心 <span class="muted card-head-note">市场内权重</span></h3></div>
       <div class="sub-block">
-        <div class="sub-block-head">仓位 × 信心 <span class="muted">横轴与点大小 = 各自市场内权重，不是全组合 USD-eq</span></div>
-      
-      <p class="chart-hint">横轴和圆点大小均为各自市场内权重，不是全组合 USD-eq 权重；跨市场百分比不能直接当作同一分母比较。右下角（高仓位 + 低置信）= 需要审视。</p>
       <div id="chart-weight-conf" class="wc-chart-box"></div>
       <p class="chart-hint" id="wc-unlabelled" hidden></p>
       <div class="wc-legend">
@@ -448,15 +421,10 @@ layout: null
       </div>
     </div>
 
-    <div class="sect-divider price-section-heading">价格动态 <span class="muted" style="font-weight:500;letter-spacing:0">US / HK 各取最近本地交易时段</span></div>
-
     <div class="card desktop-wide" id="today-action-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">价格动态</div>
-        <h3>今日异动</h3>
-      </div></div>
+      <div class="card-head"><h3>今日异动</h3></div>
       <div class="sub-block" id="movers-card">
-        <div class="sub-block-head">涨跌 ≥3% <span class="muted">最近本地交易时段</span></div>
+        <div class="sub-block-head">涨跌 ≥3%</div>
       <div class="movers-scroll" id="movers-scroll">
         <div class="empty-state">No movers ≥3% today.</div>
       </div>
@@ -471,13 +439,10 @@ layout: null
       </div>
     </div>
 
-    <div class="sect-divider policy-section-heading">政策模拟</div>
-
     <div class="card desktop-wide" id="shadow-portfolio-card">
-      <div class="desktop-section-kicker" role="heading" aria-level="2">政策模拟 · Policy replay</div>
       <button type="button" class="shadow-toggle" id="shadow-portfolio-toggle"
               aria-expanded="false" aria-controls="shadow-portfolio-expanded">
-        <span class="shadow-toggle-title">Shadow Portfolio · Policy Replay</span>
+        <span class="shadow-toggle-title">政策模拟</span>
         <span class="shadow-summary" id="shadow-portfolio-summary">⚠模拟·非实盘 · USD差 — · HKD差 — · real — / assumed — / skipped —</span>
       </button>
       <div class="shadow-expanded" id="shadow-portfolio-expanded" hidden>
@@ -536,8 +501,6 @@ layout: null
   <section class="panel" id="panel-risk" data-panel="risk" role="tabpanel" aria-labelledby="tab-risk">
     <h2>Risk</h2>
 
-    <div class="sect-divider">敞口 · 杠杆 · 硬闸</div>
-
     <div class="card lead" id="guardrail-card">
       <h3>仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
       <div class="gt-trend" id="guardrail-trend" hidden></div>
@@ -546,12 +509,9 @@ layout: null
     </div>
 
     <div class="card desktop-wide" id="exposure-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">敞口 · 我暴露在什么上面、暴露多少</div>
-        <h3>敞口</h3>
-      </div></div>
+      <div class="card-head"><h3>敞口</h3></div>
       <div class="sub-block" id="conc">
-        <div class="sub-block-head">集中度 HHI <span class="muted">0.5 ≈ 最差</span><span class="peek" id="peek-conc"></span></div>
+        <div class="sub-block-head">集中度 HHI <span class="muted">0.5 ≈ 最差</span></div>
       
       <div class="hhi-row">
         <div class="hhi-card" id="hhi-us">
@@ -570,7 +530,7 @@ layout: null
     
       </div>
       <div class="sub-block" id="lev">
-        <div class="sub-block-head">杠杆 ETF 暴露 <span class="muted">2x/3x ÷ book</span><span class="peek" id="peek-lev"></span></div>
+        <div class="sub-block-head">杠杆 ETF 占比</div>
       
       <div class="lev-row">
         <div class="lev-cell">
@@ -590,13 +550,13 @@ layout: null
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">板块暴露 <span class="muted">持仓按板块 · 含 ETF 与个股</span></div>
+        <div class="sub-block-head">板块暴露</div>
       
       <div id="chart-sector" class="chart-box" style="height:300px"></div>
     
       </div>
       <div class="sub-block" id="riskm">
-        <div class="sub-block-head">风险指标 <span class="muted">30 日</span><span class="badge muted" id="risk-alert-count"></span><span class="peek" id="peek-riskm"></span></div>
+        <div class="sub-block-head">风险指标 <span class="muted">30 日</span><span class="badge muted" id="risk-alert-count"></span></div>
       
       <div class="risk-grid">
         <div class="risk-cell">
@@ -626,12 +586,9 @@ layout: null
     </div>
 
     <div class="card desktop-wide" id="regime-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">制度与触发线 · 判据同一条：收盘站回均线</div>
-        <h3>制度与触发线</h3>
-      </div></div>
+      <div class="card-head"><h3>制度与触发线</h3></div>
       <div class="sub-block" id="lev-regime-card" style="display:none">
-        <div class="sub-block-head">杠杆刻度盘 <span class="muted">趋势 + 波动 → 杠杆 ETF 上限</span><span class="peek" id="peek-levregime"></span></div>
+        <div class="sub-block-head">杠杆刻度盘</div>
       
       <div class="muted" style="font-size:var(--fs-micro);margin-bottom:3px">HK · HSTECH 指数级</div>
       <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:var(--space-2)">
@@ -640,35 +597,30 @@ layout: null
       </div>
       <div class="muted" id="lev-regime-rationale" style="font-size:var(--fs-sm);line-height:1.5"></div>
       <div id="lev-regime-trigger" style="font-size:var(--fs-xs);margin-top:5px;line-height:1.5"></div>
-      <div class="muted" style="font-size:var(--fs-micro);margin:8px 0 3px">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
+      <div class="muted" style="font-size:var(--fs-micro);margin:8px 0 3px">US · 2x 单股</div>
       <div class="risk-alerts" id="lev-regime-us"></div>
       <div class="muted asof-faded" id="lev-regime-asof" style="font-size:var(--fs-micro);margin-top:var(--space-2)"></div>
     
       </div>
       <div class="sub-block" id="reentry-card" style="display:none">
-        <div class="sub-block-head">再入场雷达 <span class="muted">持币等回均线 → 触发即布局</span><span class="peek" id="peek-reentry"></span></div>
+        <div class="sub-block-head">再入场雷达</div>
       
       <div id="reentry-powder" style="margin-bottom:8px"></div>
       <div id="reentry-list"></div>
-      <div class="muted asof-faded" id="reentry-asof" style="font-size:var(--fs-micro);margin-top:var(--space-2)"></div>
     
       </div>
     </div>
 
     <div class="card lead desktop-wide profit-extremes-card" id="recovery-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">回撤与回本</div>
-        <h3>利润现在在哪儿</h3>
-      </div></div>
+      <div class="card-head"><h3>回撤与回本</h3></div>
       <div class="sub-block" id="breakeven-card" style="display:none">
-        <div class="sub-block-head">解套数学 <span class="muted">回本所需涨幅 · 纯算术</span><span class="peek" id="peek-breakeven"></span></div>
+        <div class="sub-block-head">回本所需涨幅</div>
       
       <div class="risk-alerts" id="breakeven-list"></div>
-      <div class="muted" id="breakeven-note" style="font-size:var(--fs-xs);margin-top:var(--space-2);line-height:1.5"></div>
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">最低 → 当前 → 最高 <span class="muted">总利润＝浮盈＋已实现<span id="extremes-window"></span></span></div>
+        <div class="sub-block-head">总利润 · 最低 → 最高 <span class="muted"><span id="extremes-window"></span></span></div>
       
       <div class="ext-grid" id="ext-grid">
         <div class="ext-region" id="ext-region-combined"></div>
@@ -684,12 +636,9 @@ layout: null
     <h2>Signals</h2>
 
     <div class="card desktop-wide" id="tape-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">盘面 · 同一批标的只看一遍</div>
-        <h3>按标的的盘面</h3>
-      </div></div>
+      <div class="card-head"><h3>盘面</h3></div>
       <div class="sub-block" id="quant-card" style="display:none">
-        <div class="sub-block-head">量化因子 <span class="muted">趋势 · 动量 · RSI · 吊灯止损 · vol 仓位</span><span id="quant-asof"></span><span class="peek" id="peek-quant"></span></div>
+        <div class="sub-block-head">量化因子<span id="quant-asof"></span></div>
       
       <div class="table-wrap">
         <table class="holdings-table" id="quant-table" style="min-width:560px;font-size:var(--fs-sm)">
@@ -701,11 +650,11 @@ layout: null
     
       </div>
       <div class="sub-block" id="t0-card" style="display:none">
-        <div class="sub-block-head">T+0 牌面 <span class="muted">做 T 前先看牌面 · 非买卖信号</span><span id="t0-asof"></span><span class="peek" id="peek-t0"></span></div>
+        <div class="sub-block-head">T+0 牌面<span id="t0-asof"></span></div>
       
       <div class="table-wrap">
         <table class="holdings-table" id="t0-table" style="min-width:520px;font-size:var(--fs-sm)">
-          <thead><tr><th>标的</th><th>牌面</th><th class="num">区间位</th><th class="num">今日%</th><th class="num">跳空%</th><th class="num">振幅/ATR</th></tr></thead>
+          <thead><tr><th>标的</th><th>牌面</th><th class="num" title="现价在当日高低区间的位置，越高越接近追在顶部">区间位</th><th class="num">今日%</th><th class="num">跳空%</th><th class="num" title="大于 1 = 今日已跑过一个典型日">振幅/ATR</th></tr></thead>
           <tbody id="t0-tbody"></tbody>
         </table>
       </div>
@@ -715,10 +664,7 @@ layout: null
     </div>
 
     <div class="card desktop-wide" id="macro-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">宏观与日程</div>
-        <h3>宏观与日程</h3>
-      </div></div>
+      <div class="card-head"><h3>宏观与日程</h3></div>
       <div class="sub-block">
         <div class="sub-block-head">宏观 · 情绪</div>
       
@@ -741,12 +687,9 @@ layout: null
     </div>
 
     <div class="card desktop-wide" id="news-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">消息与背离</div>
-        <h3>消息与背离</h3>
-      </div></div>
+      <div class="card-head"><h3>消息与背离</h3></div>
       <div class="sub-block">
-        <div class="sub-block-head">影响力雷达 <span class="muted" id="infl-roster">多源聚合</span><span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">多源聚合 · LLM筛</span></div>
+        <div class="sub-block-head">影响力雷达 <span class="muted" id="infl-roster"></span><span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)"></span></div>
       
       <div class="infl-summary" id="infl-summary"></div>
       <div class="infl-feed" id="infl-feed">
@@ -755,7 +698,7 @@ layout: null
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">美股新闻摘要 <span class="muted">LLM · 48h</span></div>
+        <div class="sub-block-head">美股新闻 <span class="muted">48h</span></div>
       
       <div class="news-digest" id="news-digest">
         <div class="empty-state">No digest yet.</div>
@@ -772,7 +715,7 @@ layout: null
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">同行背离<span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Peer Divergence</span></div>
+        <div class="sub-block-head">同行背离<span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)"></span></div>
       
       <div class="peer-div-list" id="peer-div-list">
         <div class="empty-state">No peer divergence flagged.</div>
@@ -786,42 +729,37 @@ layout: null
     <h2>Plan</h2>
 
     <div class="card lead" id="add-side-card" style="display:none">
-      <h3>加仓面 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Add side · 收盘确认</span></h3>
-      <p class="chart-hint">为什么今天有/没有加仓建议。三个证据族任意两族成立才授权试探仓——两族没开机时，「任意两族」就退化成「必须追涨」。三态都不是下单授权。</p>
+      <h3>加仓面</h3>
       <div id="add-side-body"></div>
     </div>
 
     <div class="card" id="watch-levels-card" style="display:none">
-      <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Watch Levels</span></h3>
-      <p class="chart-hint">盘前计划写死的触发价位 vs 现价。距离越近越该盯，&lt;2% 标红。</p>
+      <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)"></span></h3>
       <div class="watch-levels" id="watch-levels-list"></div>
     </div>
 
     <div class="card lead">
-      <h3>Recent Plan Actions <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(last 5d)</span></h3>
+      <h3>近 5 日动作</h3>
       <div class="plan-actions" id="plan-actions">
         <div class="empty-state">No recent plan actions.</div>
       </div>
     </div>
 
     <div class="card lead">
-      <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">(last 15 actions · 包含 rationale)</span></h3>
-      <p class="chart-hint">每条卡片 = 一个策略决策；同一股票同一天可有多个策略。只有条件触发的 episode 才结算，是否执行单独统计。</p>
+      <h3>计划时间线</h3>
       <div class="plan-timeline" id="plan-timeline">
         <div class="empty-state">No timeline data yet.</div>
       </div>
     </div>
 
     <div class="card llm-card" id="bear-cases-card" style="display:none">
-      <h3>唱反调 · 持仓 Pre-mortem <span class="muted llm-tag">LLM · 重仓空头论点</span></h3>
-      <p class="chart-hint">对最重仓 / 最高杠杆持仓的反方观点 + 证伪条件 —— 结构性对冲过度自信，不是看空建议。</p>
+      <h3>唱反调</h3>
       <div id="bear-cases-body"></div>
       <div class="llm-src" id="bear-src"></div>
     </div>
 
     <div class="card llm-card" id="hidden-conc-card" style="display:none">
-      <h3>隐藏集中度 <span class="muted llm-tag">LLM · 因子穿透</span></h3>
-      <p class="chart-hint">HHI 按 ticker 看着分散，但实际可能押在同一因子上 —— 这张卡揭穿名义分散下的真实敞口。</p>
+      <h3>隐藏集中度</h3>
       <div id="hidden-conc-body"></div>
       <div class="llm-src" id="hidden-conc-src"></div>
     </div>
@@ -830,45 +768,34 @@ layout: null
   <section class="panel" id="panel-reflect" data-panel="reflect" role="tabpanel" aria-labelledby="tab-reflect">
     <h2>Reflect</h2>
 
-    <div class="sect-divider">决策质量 · 自评</div>
-
     <div class="card desktop-wide" id="self-grade-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">自评 · Python 结算，模型不给自己打分</div>
-        <h3>自评</h3>
-      </div></div>
+      <div class="card-head"><h3>自评</h3></div>
       <div class="sub-block" id="honesty-card">
-        <div class="sub-block-head">诚实自评 <span class="muted">30 日 · episode 级</span></div>
+        <div class="sub-block-head">30 日</div>
         <div id="honesty-body" style="font-size:var(--fs-sm)"></div>
       
       </div>
       <div class="sub-block" id="behavioral-review-card" style="display:none">
-        <div class="sub-block-head">行为复盘 <span class="muted">LLM · 每日 brief 刷新</span></div>
-      
-      <p class="chart-hint">基于 v2 decision episode 的复盘：触发、执行、策略收益分别计算，避免把同股不同策略混在一起。</p>
+        <div class="sub-block-head">行为复盘</div>
       <div class="br-verdict" id="br-verdict"></div>
       <div id="br-points"></div>
       <div class="llm-src" id="br-src"></div>
     
       </div>
       <div class="sub-block" id="debate-card" style="display:none">
-        <div class="sub-block-head">辩论留痕 <span class="muted">Bull / Bear / 被攻击的共识 / Judge</span></div>
-      
-      <p class="chart-hint">每条决策背后的对抗过程，按原样发布：多方怎么说、空方怎么说、被点名攻击的是哪条共识、Judge 怎么裁。发布的是过程不是结论——「我们辩过」因此是可核对的，不是自称的。覆盖率见下方择时诊断同源的 debate_metrics。</p>
+        <div class="sub-block-head">辩论留痕</div>
       <div id="debate-body"></div>
       <div class="llm-src" id="debate-src"></div>
     
       </div>
       <div class="sub-block" id="decision-audit-card" style="display:none">
-        <div class="sub-block-head">单事件择时诊断 <span class="muted">AI 成交价 vs 同日收盘</span><span id="audit-asof" class="muted"></span></div>
-      
-      <p class="chart-hint">只回答「触发价 vs 同日收盘执行好多少」；同票、同日、同方向、同股数严格配对。换仓不跨票比较，HKD/USD 分区，不画累计金额。</p>
+        <div class="sub-block-head">成交价 vs 同日收盘<span id="audit-asof" class="muted"></span></div>
       <div class="timing-zones" id="timing-zones"></div>
       <div class="timing-events" id="timing-events"></div>
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">校准 Calibration <span class="muted">30 日</span></div>
+        <div class="sub-block-head">校准 <span class="muted">30 日</span></div>
       
       <div class="calib-badge" id="calib-badge">
         <div>
@@ -883,12 +810,7 @@ layout: null
       <div class="sub-block">
         <div class="sub-block-head">计划复盘 <span class="muted">最近 30 日</span></div>
       
-      <p class="chart-hint">每天 08:03 brief 写的建议，次日起看你有没有照做。输赢和触发判断走未复权的逐日行情（单一行情源、按各自市场的交易日），休市或需人工核实的不计入胜率，条数标在下面。</p>
-      <p class="chart-hint"><b>这不是什么</b>：不是收益率，不是业绩证明，也不说明这套做法能装下多少钱 —— 一本账、一个人、每天几条建议。所以胜率旁边印的是它<b>自己的 95% 置信区间</b>；区间跨过 50% 时那个数不着色，因为在这个样本量下它和抛硬币分不开。</p>
-      <div class="revision-note">
-        <b>2026-07-15 数据修订</b>：触发与结算已从会漂移的持仓快照改为未复权的逐日行情，按各市场交易日历计算，
-        并区分「休市 / 未收盘 / 需人工核实」。旧口径下的胜负已全部作废重算 —— 下面是重算后的实时值，每个交易日会变。
-      </div>
+      <p class="chart-hint"><b>这不是什么</b>：不是收益率，也不是业绩证明。胜率的 95% 区间跨过 50% 时不着色。</p>
       <div class="kpi-grid" style="margin-bottom:16px">
         <div class="kpi-cell">
           <div class="lbl">AI 出的主意</div>
@@ -903,7 +825,7 @@ layout: null
         <div class="kpi-cell">
           <div class="lbl">AI 主动胜率</div>
           <div class="val" id="plan-winrate">—</div>
-          <div class="sub muted" id="plan-winrate-sub">triggered active episodes</div>
+          <div class="sub muted" id="plan-winrate-sub">—</div>
         </div>
         <div class="kpi-cell">
           <div class="lbl">AI 说的把握 vs 实际</div>
@@ -912,16 +834,16 @@ layout: null
         </div>
       </div>
       <p class="chart-hint" id="plan-provenance" hidden>—</p>
-      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:4px 0 12px;font-weight:600">By Bucket — 各类动作 30d 胜率（与建议徽章同源）</div>
+      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:4px 0 12px;font-weight:600">各类动作 · 30 日胜率</div>
       <div id="plan-bucket-bars"></div>
       <div class="trig-block">
-        <div class="trig-title">By Trigger Type — 哪类计划最该信 / 最该改</div>
+        <div class="trig-title">按触发类型</div>
         <div id="plan-trigger-bars">
           <div class="empty-state" style="font-size:var(--fs-xs)">No trigger data yet.</div>
         </div>
       </div>
       <div class="trig-block">
-        <div class="trig-title">By Driver — 哪个数据源有 edge / 最该降权</div>
+        <div class="trig-title">按数据源</div>
         <div id="plan-driver-bars">
           <div class="empty-state" style="font-size:var(--fs-xs)">No driver data yet.</div>
         </div>
@@ -932,19 +854,18 @@ layout: null
         <div class="sub-block-head">AI 主动建议的战绩</div>
       
       <div class="retired-note">
-        <p>现有记录目前<b>算不出可靠的累计金额</b>：真实成交、可核验行情和统一对照口径仍有缺口，所以不展示金额。下面只显示<b>方向判断的命中情况，不代表实际收益</b>。</p>
+        <p>只有方向命中率，不展示金额。</p>
       </div>
-      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
+      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">累计 episode 胜率</div>
       <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
     
       </div>
     </div>
 
-    <div class="sect-divider">决策轨迹 · 真实成交 vs 当时计划</div>
+    <div class="sect-divider">决策轨迹</div>
 
     <div class="card" id="decision-traces-card">
-      <h3>决策轨迹 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">一笔真实成交 + 那几天写下的计划 + 官方收盘给的结果</span></h3>
-      <p class="chart-hint">点开一笔成交看四件事：<b>当时的计划</b>（同标的前后 3 天内的账本记录，没有就写明没有）、<b>真实成交</b>（并标出它与计划同向还是反向）、<b>T+1 收盘</b>（官方逐日行情，间隔超过 4 天的下一根不算 T+1）、<b>钱</b>（已平仓看本笔已实现金额，未平仓只有该持仓整体浮动 —— 两者不共用标签）。卡内统计只覆盖显示的这些成交，全期口径单独标注；港币美元分开计。</p>
+      <h3>逐笔成交</h3>
       <div id="trace-stats"></div>
       <div id="trace-list"></div>
     </div>
@@ -956,19 +877,13 @@ layout: null
          打开时才注入，Overview 的首帧一个字节都不多下。 -->
     <div class="card desktop-wide" id="decision-map-card">
       <div class="card-head">
-        <div>
-          <div class="overview-card-kicker">决策 × 当时的信号 · 只读</div>
-          <h3>决策地图</h3>
-        </div>
+        <h3>决策地图</h3>
         <span class="dm-seg" id="dm-horizon" role="group" aria-label="横期">
           <button type="button" data-h="t1" aria-pressed="false">t1</button>
           <button type="button" data-h="t5" aria-pressed="true">t5</button>
           <button type="button" data-h="t20" aria-pressed="false">t20</button>
         </span>
       </div>
-      <p class="chart-hint">行是<b>信息源</b>（点开成它的信号），<span class="dm-onlywide">列是<b>当时实际采取的动作</b></span><span
-        class="dm-onlynarrow">列是你选的那类<b>动作</b></span>，
-        格是「这个源站在那类动作旁边多少次 · 之后的中位收益」。</p>
       <div class="decimap" id="decimap">
         <div class="dm-kpi" id="dm-kpi"><i class="dm-skel-bar" aria-hidden="true"></i><i class="dm-skel-bar" aria-hidden="true"></i><i class="dm-skel-bar" aria-hidden="true"></i></div>
         <div class="dm-controls">
@@ -987,7 +902,6 @@ layout: null
         </details>
         <details class="chart-note" id="dm-timeline-note">
           <summary>时间线 · 每票一条</summary>
-          <p class="dm-sub">点一个标记，看那条决策做出时的信号快照与之后的结果。</p>
           <div class="dm-controls">
             <label>票 <select id="dm-ticker"><option value="">全部</option></select></label>
           </div>
@@ -1003,17 +917,11 @@ layout: null
       </div>
     </div>
 
-    <div class="sect-divider">净值表现 · portfolio</div>
+    <div class="sect-divider">净值表现</div>
 
     <div class="card desktop-wide" id="curve-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">曲线与分解</div>
-        <h3>曲线与分解</h3>
-      </div></div>
+      <div class="card-head"><h3>回报 <span class="muted card-head-note">USD-eq · 全期</span></h3></div>
       <div class="sub-block">
-        <div class="sub-block-head">战绩曲线 <span class="muted">USD-eq · 全期</span></div>
-      
-      <p class="chart-hint">三个回报率并排看：<b>当前浮动率</b>只看现持仓账面（贴近"我现在亏多少"直觉）；<b>总回报率</b>用累计投入本金(成本+已实现)做分母 —— 看"盈利垫"还剩多少，是保守口径；<b>净本金回报率</b>分母优先用<b>真实本金</b>(true_principal＝交易现金流账本反推的峰值净投入，即实际自掏现金；缺时回退 成本−已实现) —— 反映你自有现金的真实复利回报，比"成本−已实现"更诚实（后者会被卖出回笼把分母做小而虚高）。</p>
       <div class="kpi-grid">
         <div class="kpi-cell">
           <div class="lbl">当前浮动率</div>
@@ -1033,10 +941,10 @@ layout: null
         <div class="kpi-cell">
           <div class="lbl">已实现 (合计)</div>
           <div class="val" id="kpi-realized">—</div>
-          <div class="sub muted">USD-eq cumulative</div>
+          <div class="sub muted">USD-eq</div>
         </div>
         <div class="kpi-cell">
-          <div class="lbl">Win Days</div>
+          <div class="lbl">赚钱日</div>
           <div class="val" id="kpi-windays">—</div>
           <div class="sub" id="kpi-windays-sub">—</div>
         </div>
@@ -1053,12 +961,12 @@ layout: null
         <div class="kpi-cell">
           <div class="lbl">峰值回撤</div>
           <div class="val" id="kpi-maxdd">—</div>
-          <div class="sub" id="kpi-maxdd-sub">all-time from peak</div>
+          <div class="sub" id="kpi-maxdd-sub">自峰值</div>
         </div>
       </div>
 
       <div class="mkt-breakdown">
-        <div class="mkt-breakdown-head">分市场拆解 <span class="muted">净本金口径 · 已落袋 vs 浮动构成</span></div>
+        <div class="mkt-breakdown-head">分市场</div>
         <div class="mkt-cards" id="mkt-cards">
           <div class="mkt-card-skel">—</div>
         </div>
@@ -1066,9 +974,7 @@ layout: null
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">已实现 vs 浮动 <span class="muted">分市场，不跨币种相加</span></div>
-      
-      <p class="chart-hint">已兑现（绿）vs 浮动（蓝）—— 兑现的是真金白银，浮动是账面。两根加起来 = 总盈亏。</p>
+        <div class="sub-block-head">已实现 vs 浮动</div>
       <div id="chart-realized" class="chart-box" style="height:220px"></div>
     
       </div>
@@ -1095,10 +1001,7 @@ layout: null
          与 Daily P&L 同区相邻、共用同一个市场切换器。id 一律不动（JS 与测试契约）。 -->
     <div class="card" id="perf-equity-card">
       <div class="card-head">
-        <div>
-          <div class="overview-card-kicker">战绩</div>
-          <h3 id="equity-title">Equity Curve · USD-eq</h3>
-        </div>
+        <h3 id="equity-title">Equity Curve · USD-eq</h3>
         <span id="benchmark-stale" class="muted" style="display:none;font-size:var(--fs-xs);color:var(--amber)"></span>
         <div class="mkt-seg" role="group" aria-label="市场切换">
           <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
@@ -1106,25 +1009,22 @@ layout: null
           <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
         </div>
       </div>
-      <p class="chart-hint">粗绿线 = 总利润（浮盈 + 已实现，净化本金）；蓝线 = 真实总资产（持仓市值 + 现金）；虚线 = 成本及动态基准。切换总览 / 美股 / 港股查看各自口径。</p>
       <div id="chart-equity" class="chart-box"></div>
     </div>
 
     <div class="card">
       <div class="card-head">
         <h3 id="dailypnl-title">Daily P&amp;L + Cumulative · USD-eq</h3>
+        <span id="daily-pnl-window" class="muted daily-pnl-window"></span>
       </div>
-      <p class="chart-hint">每日净盈亏柱状（绿涨红跌）+ 累计盈亏曲线。柱在零下方 = 当日亏损；曲线走势看长期方向。<b>跟随上方 Equity Curve 的市场切换</b>：总览=USD-eq，美股=$，港股=HK$。<span id="daily-pnl-window" class="muted"></span></p>
       <div id="chart-daily-pnl" class="chart-box"></div>
     </div>
 
   <section class="card desktop-wide" id="ledger-card">
     <div class="card-head"><div>
-      <div class="overview-card-kicker">验证台账 · 每个数字读自产物，`clawock evidence` 每日重算</div>
+      <h3 id="ledger-title">验证台账</h3>
       <p id="ledger-asof" class="muted"></p>
-      <h3 id="ledger-title">我们测过什么、什么没活下来</h3>
     </div></div>
-    <p class="chart-hint">面板展示结果，这里展示方法。判定分三种且不许混：<strong>未通过</strong>（测了没活下来）、<strong>尚不可判</strong>（样本不够）、<strong>尚未到期</strong>（还没到能算的日子）。把前两者说成一回事，本身就是不诚实。</p>
     <div id="ledger-body"></div>
   </section>
 

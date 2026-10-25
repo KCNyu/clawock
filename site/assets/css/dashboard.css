@@ -806,13 +806,13 @@
     margin: 0; font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.01em;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .brand .updated, .brand .tag {
+  .brand .updated {
     font-size: var(--fs-xs); color: var(--text-dim);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   @media (max-width: 480px) {
     .brand-mark { width: 24px; height: 24px; }
-    .brand .updated, .brand .tag { display: none; }
+    .brand .updated { display: none; }
   }
   /* Icon-only refresh: the 60s auto-poll is the real refresh; this control
      only exists to pull immediately and to show whether the last pull found
@@ -1264,29 +1264,6 @@
        己的那一档 —— 分隔线属于它下面那组。旧值 6/18 和 6/14 都把线放在两节中
        间，标题归谁要靠猜。 */
     .panel.active > .sect-divider { margin: var(--space-5) 0 0; }
-    /* Holdings needs one continuous masonry flow. Full-width dividers used to
-       partition it into rigid mini-flows, leaving a 659px blank band beside the
-       tall tables. Keep the labels in flow so later cards can fill that space. */
-    .panel.active[data-panel="drill"] > .sect-divider {
-      column-span: none;
-      break-after: avoid;
-      margin: var(--space-5) 2px 0;
-    }
-    .panel.active[data-panel="drill"] > .holdings-section-heading {
-      column-span: all;
-    }
-    .panel.active[data-panel="drill"] > .price-section-heading,
-    .panel.active[data-panel="drill"] > .policy-section-heading {
-      display: none;
-    }
-    .panel.active[data-panel="drill"] .desktop-section-kicker {
-      display: block;
-      margin-bottom: 10px;
-      color: var(--text-dim);
-      font: 700 var(--fs-micro) var(--mono);
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
     .panel.active > .today-highlights { margin-bottom: 20px; }
     /* Tab already names the view → panel <h2> stays in the a11y tree only. */
     .panel.active > h2 { width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
@@ -1322,7 +1299,6 @@
       column-span: none;
     }
   }
-  .desktop-section-kicker { display: none; }
   /* =========================================================
      Card primitives
      ========================================================= */
@@ -1387,6 +1363,8 @@
     letter-spacing: 0.06em;
   }
   .card h3 .badge { float: right; text-transform: none; letter-spacing: 0; }
+  .card h3 .card-head-note { margin-left: 6px; text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .daily-pnl-window { font-size: var(--fs-xs); }
 
   /* =========================================================
      Mobile information-entropy fold — diagnostic cards (Concentration /
@@ -2160,10 +2138,6 @@
 
   /* ── LLM narrative cards (behavioral review / bear cases / hidden concentration) ── */
   .llm-card { border-left: 3px solid var(--border-strong); }
-  .llm-tag {
-    text-transform: none; letter-spacing: 0; font-weight: 500; font-size: var(--fs-xs);
-    color: var(--accent);
-  }
   .llm-src { margin-top: var(--space-3); font-size: var(--fs-micro); color: var(--text-faint); font-family: var(--mono); }
   /* behavioral review */
   .br-verdict {
@@ -4119,20 +4093,12 @@
   .overview-verdict-head {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
-  /* 眉标并成一行：「决策面板 · 今日判定」—— 两条竖排的 micro 眉标是同一层
-      语义说了两遍版式。h3 语义保留（卡的 accessible name），视觉降为行内。 */
-  .overview-verdict-head > div:first-child {
-    display: flex; align-items: baseline; gap: 9px; min-width: 0;
-  }
-  /* 「今日判定」降级为 kicker：这张卡真正的话是下面那句判词，标题本身退成
-     与「决策面板」同档的眉标，把字阶让给内容。 */
+  /* 牌名只占眉标的字阶：这张牌真正的话是下面那句判词。h3 语义保留（牌的
+     accessible name），上面不再叠一层「决策面板」之类的眉标。 */
   .overview-verdict-head h3 {
-    margin: 0; color: var(--text-tertiary);
+    margin: 0; min-width: 0; color: var(--text-tertiary);
     font-size: var(--fs-micro); font-weight: 600;
     letter-spacing: .09em; text-transform: uppercase;
-  }
-  .overview-verdict-head h3::before {
-    content: "·"; margin-right: 9px; color: var(--text-faint);
   }
   .overview-jump,
   .overview-strip-link {
@@ -4859,13 +4825,8 @@
     color: var(--text-tertiary); font: 500 var(--fs-micro)/1.3 var(--mono);
   }
 
-  /* 持仓主表脚注：核心一句 + 次要说明一行 —— 信息不减，层级分开。
-     renderBook 用 innerHTML 写两行；sub 行比主行更淡更小，不再是一坨小字。 */
+  /* 持仓主表脚注只在降级（等待 projection）时出现。 */
   #book-note { margin: 10px 0 0; line-height: 1.55; }
-  #book-note .book-note-sub {
-    display: block; margin-top: 3px;
-    color: var(--text-tertiary); font-size: var(--fs-micro);
-  }
 
   /* 卡片节奏（窄屏档）：和桌面档同一个机制 —— 每一块自带上边距，卡片不带下边
      距。面板的 padding-top 相应减去一档（见 .panel 的 padding），所以页首那圈

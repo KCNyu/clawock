@@ -16,19 +16,16 @@ Harness, or your own) owns the model and tools, while clawock owns the decision
 contract — certified evidence, a mandatory opposing case, deterministic money
 and FX reconciliation, and a public scorecard.
 
-It is also the first continuously running proof: a real Hong Kong + US
-brokerage account has run it from launch, with every judgment settled by
-Python and published — losses included.
+A real Hong Kong + US brokerage account has run it from launch. Every judgment
+is settled by Python and published, losses included.
 
 ## Is this an AI trading bot that makes money?
 
-No, and it says so itself. The live account return is published on the
-dashboard — currently negative — and active recommendations have **not beaten
-buy-and-hold**. Directional hit rates carry 95% confidence intervals that
-straddle 50% — statistically not an edge yet. The project's claim is not "makes
-money", it is "**can't be fooled**": the model proposes, Python settles, and the
-model can never grade itself. Use it as a measurable, auditable baseline — not
-as a get-rich signal.
+No. The live account return is published on the dashboard — currently
+negative — and active recommendations have **not beaten buy-and-hold**.
+Directional hit rates carry 95% confidence intervals that straddle 50%, so
+there is no edge yet. The model proposes, Python settles, and the model never
+grades itself.
 
 ## Why would I install it if it doesn't beat buy-and-hold?
 
@@ -40,14 +37,11 @@ Three things it delivers today:
 3. An honest baseline — any future strategy or agent can be compared against
    the live, publicly settled record.
 
-It does not promise "earn"; it promises "every call has a paper trail".
-
 ## How is the scorecard different from other AI trading projects?
 
 - **The model can't grade itself.** LLMs propose trades; Python settles them
   from canonical vendor bars on each market's own calendar.
-- **No cherry-picking.** The raw ledger (`memory/decisions.jsonl`) is public;
-  "if a number doesn't reproduce, we lose."
+- **No cherry-picking.** The raw ledger (`memory/decisions.jsonl`) is public.
 - **One thesis counts once.** Repeated restatements collapse into one episode,
   so holding a position for five mornings doesn't manufacture five samples.
 - **Human-in-the-loop is disclosed.** Follow-through decisions belong to the

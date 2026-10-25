@@ -294,6 +294,13 @@ it paints.
 corner `--radius-lg`, `--shadow-card`, padding `--space-4`. No colour of its own; if a
 card must announce a state, the state goes in a badge in its header.
 
+The `<h3>` is the card's only label. No kicker above it, no subtitle restating
+it, no paragraph on how to read the card. A unit or a window the numbers need
+(`USD-eq`, `30 日`) may sit beside the title in `.card-head-note`. A legend for a
+column or a mark goes in that element's `title`; method and caveats live in the
+FAQ and `docs/`. Copy that only explains is a sign the layout needs work, not
+more words.
+
 ### 4.2 Block inside a card
 
 `class="inset-block"` (`--fill-inset`, `--border-subtle`, `--radius-sm`) plus
@@ -379,6 +386,7 @@ styles live inside `@media (hover: hover) and (pointer: fine)`.
 | A bare `px` font size or a corner off the scale | `--fs-*`, `--radius-*` | type-scale and corner gates |
 | `:hover` outside the fine-pointer media query | wrap it | `test_hover_is_never_left_stuck_on_a_touch_screen` |
 | A new inline `style="background:…"` / `style="color:#…"` in a renderer | a class | review |
+| A kicker over a card title, a "how to read this" paragraph, a slogan | the title alone; legends in `title`, method in the FAQ/docs (§4.1) | review |
 
 The gates live in `tests/test_dashboard_component_language.py`,
 `tests/test_dashboard_css_tokens.py` and `tests/test_dashboard_contrast.py`.

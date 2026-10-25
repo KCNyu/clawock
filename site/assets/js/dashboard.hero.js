@@ -433,7 +433,6 @@
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
     if (panel) panel.querySelectorAll(".card.is-pending").forEach(card =>
       card.classList.remove("is-pending"));
-    if (t === "risk" || t === "market") updateFoldPeeks();
   }
 
   // Overview is the only runtime on the startup path. Its eight independent
@@ -476,7 +475,6 @@
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
     if (panel) panel.querySelectorAll(".card.is-pending").forEach(card =>
       card.classList.remove("is-pending"));
-    if (t === "risk" || t === "market") updateFoldPeeks();
     if (currentTab() === t) ensureTabCharts(t);
   }
 
@@ -607,40 +605,6 @@
     el.innerHTML = `<span class="bs-dot" data-tone="${dot}" aria-hidden="true"></span> <span class="bs-label">${label}</span>` +
       `<span class="bs-gen">构建 ${gen}</span>`;
     el.title = lines.join('\n');
-  }
-
-  // ── Mobile fold peeks ──
-  // One-line summaries shown in the collapsed diagnostic cards' headers.
-  // Reads the values straight from the already-rendered DOM (not from DATA)
-  // so it never drifts from what the expanded card would show.
-  function updateFoldPeeks() {
-    const txt = (sel) => {
-      const el = document.querySelector(sel);
-      return el ? el.textContent.trim() : "";
-    };
-    const setPeek = (id, parts) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = parts.filter(Boolean).join(" · ");
-    };
-    setPeek("peek-conc", [
-      txt("#hhi-us .inner") && "US " + txt("#hhi-us .inner"),
-      txt("#hhi-hk .inner") && "HK " + txt("#hhi-hk .inner"),
-    ]);
-    setPeek("peek-lev", [txt("#lev-combined") && "综合 " + txt("#lev-combined")]);
-    const alerts = txt("#risk-alert-count").replace(/[()\s]/g, "");
-    setPeek("peek-riskm", [
-      txt("#risk-beta-us") && "β " + txt("#risk-beta-us"),
-      txt("#risk-vol") && "vol " + txt("#risk-vol"),
-      alerts && alerts + "⚠",
-    ]);
-    setPeek("peek-levregime", [
-      txt("#lev-regime-label") && "HK " + txt("#lev-regime-label"),
-      txt("#lev-regime-cap"),
-    ]);
-    const qn = document.querySelectorAll("#quant-tbody tr").length;
-    setPeek("peek-quant", [qn ? qn + " 标的信号" : ""]);
-    const bn = document.querySelectorAll("#breakeven-list > *").length;
-    setPeek("peek-breakeven", [bn ? bn + " 标的待回本" : ""]);
   }
 
   function renderHeader() {
@@ -1668,8 +1632,7 @@
 
     const caption = document.getElementById("dh-caption");
     if (caption) {
-      caption.textContent = "需处理＝页面数字或成品真的受影响，要动手 · 观察＝兜底已生效、成品到了，只记不动 · "
-        + "已知不修＝已拍板不处理";
+      caption.textContent = "需处理＝要动手 · 观察＝兜底已生效 · 已知不修＝已拍板";
     }
 
     // 交互只读 DOM：两个 bundle 都会渲染这张牌，监听只挂一次、挂在卡上。
@@ -1966,10 +1929,11 @@
         : '无';
       countEl.style.color = n ? '' : 'var(--positive)';
       if (dirEl) {
-        dirEl.textContent = compact
-          ? stripEmoji(g.directive)
-          : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
-        // 牌上这一行夹成一行（dashboard.css `.overview-gates-directive`），全文进 title。
+        // directive 是写给模型的处方（Judge 段要怎么回应），页面只印它的第一句——
+        // 触发了什么；处方本身留在简报里。
+        const said = stripEmoji(g.directive || "").trim();
+        const stop = said.indexOf("。");
+        dirEl.textContent = stop >= 0 ? said.slice(0, stop) : said;
         dirEl.title = dirEl.textContent;
       }
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
@@ -2103,7 +2067,7 @@
              <div class="muted" style="font-size:var(--fs-xs);margin-top:5px;text-transform:none;letter-spacing:0">
                ${fundBeTxt}${xchgStr}
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
-               · USDCNY ${num(ld.usdcny, 4)} · 假设汇率/内外盘价差不变
+               · USDCNY ${num(ld.usdcny, 4)}
              </div>`;
         const histSource = ld.hist_source || {};
         const histNames = {
@@ -2179,7 +2143,7 @@
              <div class="muted" style="font-size:var(--fs-micro);display:flex;justify-content:space-between;text-transform:none;letter-spacing:0;margin-top:1px">
                <span style="color:var(--warning)">伦敦金 ${lLast >= 100 ? '+' : ''}${num(lLast - 100, 1)}%</span>
                <span style="color:${fColor}">你的基金 ${fLast >= 100 ? '+' : ''}${num(fLast - 100, 1)}%</span>
-               <span>起投=100 · 差因:汇率+费率</span>
+               <span>起投=100</span>
              </div>`;
         }
         html += `</div>`;
@@ -2247,8 +2211,7 @@
     document.getElementById('gold-asof').textContent =
       `净值 ${g.nav_date || ''}` +
       (rt ? ` · 实时估值 ${num(rt.est_nav, 4)} (${rt.est_change_pct >= 0 ? '+' : ''}${numText(rt.est_change_pct)}%) @ ${(rt.est_time || '').slice(11)}` : '') +
-      auto +
-      ` · 独立人民币卡，不并入跨币种总额`;
+      auto;
   }
 
   function renderStatusBanner() {
