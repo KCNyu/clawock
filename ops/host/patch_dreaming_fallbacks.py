@@ -14,6 +14,7 @@ import subprocess
 import sys
 
 _CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.providers.openclaw import runtime_paths  # noqa: E402
 
