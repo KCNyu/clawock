@@ -97,6 +97,9 @@ maxTokens = 128000
 cost = { input = 0, output = 0, cacheRead = 0, cacheWrite = 0 }
 compat = { supportsReasoningEffort = true, supportedReasoningEfforts = ["low", "medium", "high", "xhigh", "max"] }
 runtime = "codex"
+# Top effort is Luna's point as a backstop and as the dreaming model
+# (kcn 2026-09-13, 2026-10-25). A chain that sets its own `thinking` still wins.
+params = { thinking = "max" }
 
 [models.sonnet]
 ref = "anthropic/claude-sonnet-5-5"
@@ -123,7 +126,10 @@ models = ["flash"]
 models = ["flash"]
 
 [chains.dreaming]  # memory-core dreaming and its subagent allowlist
-models = ["flash"]
+# Luna on the Codex runtime: the MiniMax plan ran out and the diary degraded to a
+# placeholder line (2026-10-23..25). Luna has no metered plan of its own, and
+# [models.luna] `params.thinking = max` gives it top effort.
+models = ["luna"]
 
 [chains.cron]  # strategy crons: report / intraday / brief
 models = ["flash", "flash@minimax-2", "luna"]
