@@ -465,6 +465,9 @@ HOST_OWNED_SHELL = {
     "ops/host/gold_dca_refresh.sh": (
         1, "host cron wrapper around the installed CLI, run from the live "
            "checkout"),
+    "ops/host/patch_dreaming_fallbacks.py": (
+        2, "host backport patches the installed OpenClaw narrative bundle and plugin "
+           "schema; those runtime paths are the subject of this installer"),
     "ops/host/reapply_openclaw_patches.sh": (
         2, "patches the runtime's own pnpm install after an upgrade: the "
            "install directory and the patch root are the subject of the script"),
