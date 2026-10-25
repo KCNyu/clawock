@@ -550,6 +550,32 @@ def test_container_corners_come_off_the_corner_scale():
     assert strays == [], "\n  ".join(strays)
 
 
+def test_no_block_carries_its_state_on_a_side_stripe():
+    """A thick coloured edge on one side of a card, row or callout was the
+    page's most repeated mark: 21 rules drew one, and in every case the row
+    already said the same thing with a dot, a badge or coloured text (the risk
+    alerts drew a red dot *and* a red stripe). The stripe is decoration that
+    reads as a state, so the state lives in the row's own dot or badge (design
+    system §4.4) and a quoted note may keep a 1px hairline.
+
+    Two sides of one small box are a drawn chevron, not a stripe, and are
+    skipped. The reading pages' article typography (`<style>` in the layout)
+    is not dashboard furniture and is not checked here."""
+    side = re.compile(r"border-(?:left|right|inline-start|inline-end)(?:-width)?\s*:\s*([^;]+)")
+    shadow = re.compile(r"box-shadow\s*:[^;]*\binset\s+-?([2-9]|\d{2,})px\s+0(?:px)?\s+(?:0\s+)?(?:var|#|rgb|color-mix)")
+    chevron = re.compile(r"border-(?:top|bottom)\s*:")
+    stripes = []
+    for selector, body in RULES:
+        if not chevron.search(body):
+            for value in side.findall(body):
+                width = re.match(r"\s*(\d+(?:\.\d+)?)px", value)
+                if width and float(width.group(1)) > 1:
+                    stripes.append(f"{selector} {{ border side {value.strip()} }}")
+        if shadow.search(body):
+            stripes.append(f"{selector} {{ inset side shadow }}")
+    assert stripes == [], "a side stripe is carrying state again:\n  " + "\n  ".join(stripes)
+
+
 def test_market_age_stays_in_the_market_heading_flow():
     """The age is heading metadata, not a fixed overlay on its title."""
     match = re.search(r"\.overview-asof\s*\{([^}]*)\}", RAW)

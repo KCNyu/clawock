@@ -8,7 +8,6 @@
   };
   const CHART_FNS = {
     drill:   () => { renderShadowPortfolioChart(); renderWeightConfidence(); },
-    risk:    () => { renderSectorChart(); },
     reflect: () => { renderShadowChart(); renderRealizedChart(); renderDailyPnlChart(); },
   };
   const _chartTabsShown = new Set();
@@ -1072,75 +1071,6 @@
       opt.graphic = fxMissingGraphic(FX_MISSING_NOTE);
     }
     charts.dailyPnl.setOption(opt, true);
-  }
-
-  function renderSectorChart() {
-    const el = document.getElementById("chart-sector");
-    if (!el || !window.echarts) return;
-    if (!charts.sector) charts.sector = echarts.init(el, null, { renderer: "canvas" });
-
-    const usList = (safe(DATA, "sector_exposure", "us")) || [];
-    const hkList = (safe(DATA, "sector_exposure", "hk")) || [];
-    // Combine into one donut by region tag
-    const slices = [
-      ...usList.map(r => ({ name: `US · ${r.sector}`, value: r.value, _pct: r.pct })),
-      ...hkList.map(r => ({ name: `HK · ${r.sector}`, value: r.value, _pct: r.pct })),
-    ];
-    const small = slices.filter(r => Number.isFinite(Number(r._pct)) && Number(r._pct) < 3);
-    const combined = slices.filter(r => !small.includes(r));
-    if (small.length) {
-      combined.push({
-        name: "Other",
-        value: small.reduce((sum, r) => sum + (Number(r.value) || 0), 0),
-        _pct: small.reduce((sum, r) => sum + (Number(r._pct) || 0), 0),
-        _members: small.map(r => r.name),
-      });
-    }
-
-    // Categories carry identity; health colors belong to state-bearing charts.
-    const palette = [1, 2, 3, 4, 5, 6].map(n => getCSS("--viz-" + n));
-    const wide = window.innerWidth >= 1024;
-
-    const opt = {
-      ...baseChartOpts(),
-      tooltip: {
-        ...chartTooltip("item", "line"),
-        formatter: (p) => {
-          const members = p.data._members?.length
-            ? `<br><span style="color:${getCSS("--text-secondary")}">${p.data._members.join(" · ")}</span>`
-            : "";
-          return `${p.name}<br>${p.value.toLocaleString()} (${p.data._pct == null ? DASH : fixed(p.data._pct, 1)}%)${members}`;
-        },
-      },
-      // Beside the donut on a wide card. On a phone a one-row scrolling legend
-      // shows one clipped name out of all of them, so the names wrap under a
-      // smaller donut instead and every slice is named without a tap.
-      legend: wide ? {
-        type: "scroll", orient: "vertical", right: 8, top: "center",
-        textStyle: { color: chartTextColor(), fontSize: 10 },
-      } : {
-        type: "plain", orient: "horizontal", left: "center", bottom: 0,
-        itemWidth: 12, itemHeight: 10, itemGap: 8,
-        textStyle: { color: chartTextColor(), fontSize: 10 },
-      },
-      series: [{
-        type: "pie",
-        radius: wide ? ["38%", "62%"] : ["32%", "52%"],
-        center: wide ? ["38%", "50%"] : ["50%", "36%"],
-        data: combined,
-        itemStyle: { borderColor: getCSS("--surface-1"), borderWidth: 2 },
-        label: { show: false },
-        emphasis: { label: { show: true, formatter: "{b}\n{d}%", color: chartTextColor(), fontSize: 11 } },
-        color: palette,
-      }],
-    };
-    if (!combined.length) {
-      opt.graphic = [{
-        type: "text", left: "center", top: "middle",
-        style: { text: "No sector data", fill: chartTextColor(), fontSize: 13, opacity: 0.5 },
-      }];
-    }
-    charts.sector.setOption(opt, true);
   }
 
   function renderRealizedChart() {

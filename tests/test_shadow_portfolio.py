@@ -678,7 +678,7 @@ def test_shadow_frontend_fails_closed_and_discloses_mark_gaps():
     )
 
     assert 'sidecar && sidecar.computed === false' in html
-    assert 'summary.textContent = "⚠️ 政策模拟本次无法计算"' in html
+    assert 'summary.textContent = "⚠ 政策模拟本次无法计算"' in html
     assert 'id="shadow-coverage-note"' in html
     assert "个市场交易日缺行情未计价" in html
     assert "connectNulls: false" in html
