@@ -279,7 +279,11 @@ block's top margin; a card has no bottom margin.
 **Type** — eight sizes, `--fs-display` / `xxl` / `xl` / `lg` / `md` / `sm` /
 `xs` / `micro`, and no bare `px`
 (`test_every_font_size_is_a_step_of_the_type_scale`). `--mono` is for figures
-and code; `--font` for every word. Tracking tightens with size
+and code; `--font` for every word. A caption that mixes words and numbers
+(`近 20 日 · 11 涨 9 跌`, `占账面 32%`) is words: `--font` with
+`font-variant-numeric: tabular-nums`, because a monospace face spreads CJK
+text into a letter-spaced row. Labels are not uppercased: `β` becomes `Β`,
+which reads as the letter B. Tracking tightens with size
 (`--tr-display…lg`); body text has none.
 
 **Touch** — a control is at least 44px of finger on a coarse pointer, whatever
@@ -326,7 +330,28 @@ Fill = hue at `--tint-soft`; text = that hue's `-ink`. A category badge is the
 same shape with `--neutral` and `--text-secondary`. The contrast gate finds any
 rule of this form by itself; nothing needs registering.
 
-### 4.5 Empty, loading, error
+A row in a list (an alert, a gate, an anomaly) carries its state as a 7px dot
+before its title, aligned to the title's first line, not to the middle of the
+block. Where two states share a colour, the dot changes shape: on the gate
+lists a filled red dot is a position already through its hard stop, and a red
+ring is a limit breach. A row never carries its state on a coloured side
+stripe. Every stripe on this page duplicated a dot, a badge or coloured text
+already in the row (`test_no_block_carries_its_state_on_a_side_stripe`).
+
+A coloured emoji is not an icon. 🔴🟡 grades, ⚠️ markers and flag emoji
+render in the platform's own colours and ignore the theme: a grade is a
+`.grade-dot`, a market is the text `US` / `HK`.
+
+### 4.5 Shares of a whole
+
+A list of shares (sector exposure, any "how much of the book is X") is a
+sorted bar list with the percentage printed on every row: name, bar, number.
+It is not a donut whose shares appear only on hover. A share is a share of one
+currency leg: USD and HKD amounts never go into the same denominator, so the
+Risk tab's exposure card has one column per leg
+(`testExposureComparesSharesWithinEachLeg`).
+
+### 4.6 Empty, loading, error
 
 - **Empty** — `.empty-state`: one quiet sentence saying what would be here.
   Never a blank card; a blank holdings table reads as "you hold nothing".
@@ -336,7 +361,7 @@ rule of this form by itself; nothing needs registering.
 - **Error** — `.panel-load-error` with a real `<button class="panel-load-retry">`.
   It says what is being shown instead ("the last loaded content").
 
-### 4.6 A series that can be read by pointing
+### 4.7 A series that can be read by pointing
 
 The first-screen curve is the pattern (`.hs-scrub` in `dashboard.css`,
 `heroScrubShow` in `dashboard.hero.js`). A `role="slider"` layer lies over the
@@ -347,7 +372,7 @@ does not cover, and takes no room when it appears. The page's headline figure
 does not change while a past day is being read: the lines under it are true of
 today only.
 
-### 4.7 Any control
+### 4.8 Any control
 
 Use a `<button>`, `<summary>` or `role="button"`. Focus ring, press and touch
 target then come from the baselines. If the rule writes its own `transition`,
@@ -387,6 +412,9 @@ styles live inside `@media (hover: hover) and (pointer: fine)`.
 | `:hover` outside the fine-pointer media query | wrap it | `test_hover_is_never_left_stuck_on_a_touch_screen` |
 | A new inline `style="background:…"` / `style="color:#…"` in a renderer | a class | review |
 | A kicker over a card title, a "how to read this" paragraph, a slogan | the title alone; legends in `title`, method in the FAQ/docs (§4.1) | review |
+| A coloured `border-left`/`border-right` over 1px, or an inset side shadow, on a card, row or callout | the row's dot or badge (§4.4); a 1px hairline on a quoted note | `test_no_block_carries_its_state_on_a_side_stripe` |
+| A coloured emoji as a status or market marker | `.grade-dot`, the row dot, or the word (§4.4) | review |
+| A donut or pie for shares, or shares of two currencies in one denominator | a sorted bar list per leg with every number printed (§4.5) | `testExposureComparesSharesWithinEachLeg` |
 
 The gates live in `tests/test_dashboard_component_language.py`,
 `tests/test_dashboard_css_tokens.py` and `tests/test_dashboard_contrast.py`.

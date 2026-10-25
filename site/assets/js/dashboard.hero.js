@@ -1884,10 +1884,10 @@
     if (!targets.length) return;
     if (g.computed === false || g.error) {
       targets.forEach(({ countEl, dirEl, listEl }) => {
-        countEl.textContent = '⚠️ 算不出';
+        countEl.textContent = '算不出';
         countEl.style.color = 'var(--warning)';
         if (dirEl) dirEl.textContent = dirEl.title = '风控数据计算失败，本次不作“无触发”判断。';
-        listEl.innerHTML = '<div class="risk-alert medium"><span class="icon">⚠️</span>'
+        listEl.innerHTML = '<div class="risk-alert medium"><span class="icon"></span>'
           + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:var(--fs-xs);margin-top:2px">'
           + '等待下次数据刷新重算</div></div></div>';
       });
@@ -2029,7 +2029,7 @@
                ${dg.low_cny_g != null && dg.high_cny_g != null ? ` · 日内 ¥${num(dg.low_cny_g, 0)}~${num(dg.high_cny_g, 0)}` : ''}
              </div>
              <div class="muted" style="font-size:var(--fs-micro);margin-top:4px;text-transform:none;letter-spacing:0">
-               ${dg.date || ''} 收盘 · 上金所${retained ? ' · ⚠️ 本次抓取失败，沿用上次有效值' : ''}
+               ${dg.date || ''} 收盘 · 上金所${retained ? ' · ⚠ 本次抓取失败，沿用上次有效值' : ''}
              </div>
            </div>`;
       }

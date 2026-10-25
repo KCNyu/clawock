@@ -1514,7 +1514,8 @@
   /* Risk keyword banner (top of macro card; hidden when no hits) */
   .risk-banner {
     margin-bottom: var(--space-3); padding: var(--space-2) var(--space-3);
-    background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); border-left: 3px solid var(--negative);
+    background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent);
+    border: 1px solid color-mix(in srgb, var(--negative) var(--tint-edge), transparent);
     border-radius: var(--radius-sm); font-size: var(--fs-sm); line-height: 1.5;
   }
   .risk-banner .rb-hdr { color: var(--negative-ink); font-weight: 700; font-size: var(--fs-xs);
@@ -1557,10 +1558,8 @@
   .infl-chip.sect { background: var(--fill-inset); color: var(--text-dim); }
   .infl-row {
     background: var(--fill-inset); border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3); border-left: 3px solid var(--text-dim);
+    padding: var(--space-2) var(--space-3);
   }
-  .infl-row.is-held { border-left-color: var(--accent); }
-  .infl-row.is-idea { border-left-color: var(--border-strong); }
   .infl-hdr { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px; font-size: var(--fs-xs); flex-wrap: wrap; }
   /* 作者徽标只有一种：谁说的由名字承担。此前每个人一个颜色，其中三个借的是
      涨 / 跌 / 告警色 —— 同一行里「红色的人」挨着「红色的看空」，颜色说了两件事。
@@ -1585,10 +1584,8 @@
   .peer-div-list { display: flex; flex-direction: column; gap: var(--space-2); }
   .peer-div-row {
     background: var(--fill-inset); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3);
-    border-left: 3px solid var(--text-dim); font-variant-numeric: tabular-nums;
+    font-variant-numeric: tabular-nums;
   }
-  .peer-div-row.lag  { border-left-color: var(--negative); }   /* you trail peers */
-  .peer-div-row.lead { border-left-color: var(--positive); }   /* you beat peers */
   .pd-top { display: flex; align-items: baseline; gap: 8px; font-size: var(--fs-md); }
   .pd-tk { font-weight: 700; color: var(--text); }
   .pd-self { font-weight: 700; }
@@ -1601,25 +1598,25 @@
 
   /* Risk metrics grid */
   .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  @media (min-width: 1024px) { .risk-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
   .risk-cell {
     background: var(--surface-1); border-radius: 0;
     padding: var(--space-3); text-align: left; font-variant-numeric: tabular-nums;
     border-top: 1px solid var(--border-subtle);
   }
-  .risk-cell .lbl { font-size: var(--fs-micro); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  /* 不转大写：标签里有 β，大写后成了 Β，读作字母 B。 */
+  .risk-cell .lbl { font-size: var(--fs-xs); color: var(--text-secondary); }
   .risk-cell .val { font-size: var(--fs-xl); font-weight: 700; margin-top: var(--space-1); }
   .risk-alerts { margin-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
   .risk-alert {
     padding: var(--space-2) var(--space-3); background: var(--fill-inset); border-radius: var(--radius-sm);
-    font-size: var(--fs-sm); display: flex; align-items: center; gap: var(--space-2);
-    border-left: 3px solid var(--negative);
+    font-size: var(--fs-sm); display: flex; align-items: flex-start; gap: var(--space-2);
   }
-  .risk-alert.medium { border-left-color: var(--warning); }
-  .risk-alert.low { border-left-color: var(--neutral); }
   .risk-alert .red { color: var(--negative); }
+  /* 严重度圆点对齐第一行（标题），不对齐整块的中线。 */
   .risk-alert .icon {
     width: 7px; height: 7px; border-radius: 50%;
-    background: var(--negative); flex: none; margin-top: 4px;
+    background: var(--negative); flex: none; margin-top: 6px;
   }
   .risk-alert.medium .icon { background: var(--warning); }
   .risk-alert.low .icon { background: var(--neutral); }
@@ -1665,26 +1662,14 @@
      顶到自己一行。 */
   @media (max-width: 600px) {
     #guardrail-list .risk-alert { flex-wrap: wrap; }
-    #guardrail-list .risk-alert > div { flex: 1 1 100%; }
-    /* 圆点和左侧 3px 色条编码的是同一件事（severity），窄屏留一个就够：
-       正文列占满一行之后，圆点会被顶成孤零零的一行。 */
-    #guardrail-list .risk-alert > .icon { display: none; }
-    .risk-age { margin-top: var(--space-1); }
+    /* 圆点是这一行唯一的严重度记号（左侧色条已退场），窄屏也要留着：正文列
+       吃掉圆点之外的整行，在闸时长就自己折到第二行、和正文左缘对齐。 */
+    #guardrail-list .risk-alert > div { flex: 1 1 calc(100% - 7px - var(--space-2)); }
+    .risk-age { margin: var(--space-1) 0 0 calc(7px + var(--space-2)); }
   }
   @media (max-width: 480px) {
     .risk-grid { grid-template-columns: repeat(2, 1fr); }
   }
-
-  /* Leveraged ETF exposure row */
-  .lev-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .lev-cell {
-    background: var(--surface-1); border-radius: 0;
-    padding: var(--space-3); text-align: left; font-variant-numeric: tabular-nums;
-    border-top: 1px solid var(--border-subtle);
-  }
-  .lev-cell .lbl { font-size: var(--fs-micro); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
-  .lev-cell .val { font-size: var(--fs-xl); font-weight: 700; }
-  .lev-tickers { margin-top: 8px; font-size: var(--fs-xs); }
 
   /* Today's range bars */
   
@@ -1744,54 +1729,88 @@
   .mkt-chip b { font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 2px; }
   .mkt-card-skel { color: var(--text-faint); padding: 20px; text-align: center; }
 
-  /* HHI gauges */
-  .hhi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-  .hhi-card {
-    background: var(--surface-1); border-radius: 0;
-    padding: var(--space-3) var(--space-3) var(--space-5); text-align: center;
+  /* Exposure (Risk) — one column per currency leg. A leg's sectors are
+     shares of that leg only: USD and HKD never share a denominator. Bars are
+     a sorted list rather than a donut so every share is printed, not hovered. */
+  .expo-legs { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  @media (min-width: 720px) { .expo-legs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .expo-leg { min-width: 0; }
+  .expo-leg-head {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .expo-leg-head h4 { margin: 0; font: 700 var(--fs-md)/1.3 var(--font); color: var(--text-primary); }
+  .expo-verdict {
+    padding: 2px var(--space-2); border-radius: 999px;
+    font-size: var(--fs-xs); font-weight: 600; line-height: 1.5;
+    background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent);
+    color: var(--text-secondary);
+  }
+  .expo-verdict[data-state="critical"] {
+    background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent);
+    color: var(--negative-ink);
+  }
+  .expo-verdict[data-state="elevated"] {
+    background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent);
+    color: var(--warning-ink);
+  }
+  .expo-verdict[data-state="normal"] {
+    background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent);
+    color: var(--positive-ink);
+  }
+  .expo-stats {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3);
+    margin: 0 0 var(--space-4);
+  }
+  .expo-stats > div { min-width: 0; }
+  .expo-stats dt { font-size: var(--fs-xs); color: var(--text-secondary); }
+  .expo-stats dd {
+    margin: var(--space-1) 0 0; color: var(--text-primary);
+    font: 700 var(--fs-xl)/1.15 var(--mono); font-variant-numeric: tabular-nums;
+  }
+  .expo-stats dd.neg { color: var(--negative); }
+  .expo-stats dd.warn-text { color: var(--warning); }
+  .expo-sectors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .expo-sectors > li {
+    display: grid; grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr) 3.75rem;
+    align-items: center; gap: var(--space-3); font-size: var(--fs-sm); line-height: 1.35;
+  }
+  .expo-sectors > li.empty-state { display: block; }
+  .expo-sector-name { color: var(--text-secondary); overflow-wrap: anywhere; }
+  .expo-bar {
+    height: 6px; border-radius: 3px; overflow: hidden;
+    background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  }
+  .expo-bar > i { display: block; height: 100%; width: var(--w, 0); border-radius: 3px; background: var(--accent); }
+  .expo-sector-pct { text-align: right; color: var(--text-primary); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .expo-foot {
+    grid-column: 1 / -1; margin: 0; padding-top: var(--space-3);
     border-top: 1px solid var(--border-subtle);
+    font-size: var(--fs-sm); color: var(--text-secondary);
   }
-  .hhi-card .lbl { font-size: var(--fs-xs); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
-  .hhi-ring {
-    --pct: 0;
-    --color: var(--accent);
-    width: 84px; height: 84px; margin: var(--space-2) auto var(--space-5);
-    border-radius: 50%;
-    background: conic-gradient(var(--color) calc(var(--pct) * 1%), var(--border) 0);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
+  .expo-foot b { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+  .expo-foot b.neg { color: var(--negative); }
+  .expo-foot b.warn-text { color: var(--warning); }
+
+  /* T+0 grade: a dot in the state colour, not a coloured emoji (#869). */
+  .grade-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    margin-right: var(--space-2); vertical-align: 1px; background: var(--neutral);
   }
-  .hhi-ring::before {
-    content: ""; position: absolute; inset: 8px;
-    background: var(--surface-1); border-radius: 50%;
+  .grade-dot[data-tone="bad"] { background: var(--negative); }
+  .grade-dot[data-tone="warn"] { background: var(--warning); }
+  /* Re-entry radar: the market is a label, not a flag. */
+  .reentry-mkt {
+    margin-right: var(--space-1); color: var(--text-tertiary);
+    font-size: var(--fs-micro); font-weight: 600; letter-spacing: .04em;
   }
-  .hhi-ring .inner {
-    position: relative; z-index: 1;
-    display: flex; flex-direction: column; align-items: center;
-    font: 700 var(--fs-lg)/1.1 var(--mono); font-variant-numeric: tabular-nums;
-  }
-  .hhi-ring .inner::before {
-    content: "HHI"; color: var(--text-faint); font: 600 var(--fs-micro)/1 var(--mono);
-    letter-spacing: .08em; margin-bottom: var(--space-1);
-  }
-  .hhi-ring::after {
-    content: "0 → .50"; position: absolute; left: 50%; top: calc(100% + 4px);
-    transform: translateX(-50%); white-space: nowrap;
-    color: var(--text-faint); font: 500 var(--fs-micro)/1 var(--mono);
-  }
-  .hhi-card .verdict { font-size: var(--fs-sm); font-weight: 600; }
-  .hhi-card .top2 { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 2px; }
 
   /* Anomalies */
   .anomaly-list { display: flex; flex-direction: column; gap: 8px; }
   .anomaly {
     display: flex; align-items: flex-start; gap: var(--space-3);
     padding: var(--space-3); background: var(--fill-inset); border-radius: var(--radius-sm);
-    border-left: 3px solid var(--warning);
   }
-  .anomaly.high { border-left-color: var(--negative); }
-  .anomaly.medium { border-left-color: var(--warning); }
-  .anomaly.low { border-left-color: var(--neutral); }
   .anomaly .icon {
     width: 7px; height: 7px; border-radius: 50%;
     background: currentColor; flex: none; margin-top: 5px;
@@ -1968,10 +1987,7 @@
   .holdings-table thead th .arr { color: var(--accent); margin-left: 2px; }
   @media (hover: hover) and (pointer: fine) {
     .holdings-table tbody tr:hover { background: var(--surface-3); }
-    .holdings-table tbody tr:hover td:first-child {
-      background: var(--surface-3);
-      box-shadow: inset 2px 0 var(--accent);
-    }
+    .holdings-table tbody tr:hover td:first-child { background: var(--surface-3); }
   }
   .holdings-table .ticker { font-family: var(--mono); font-weight: 600; }
   .holdings-table .region-us { color: var(--accent); }
@@ -2006,7 +2022,7 @@
   .add-why {
     margin: 0 0 var(--space-3); padding: var(--space-3);
     background: var(--surface-3); border-radius: var(--radius-sm);
-    border-left: 2px solid var(--accent); font-size: var(--fs-sm); line-height: 1.6;
+    border: 1px solid var(--border-subtle); font-size: var(--fs-sm); line-height: 1.6;
   }
   .add-families { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-3); }
   .add-family {
@@ -2137,7 +2153,6 @@
   }
 
   /* ── LLM narrative cards (behavioral review / bear cases / hidden concentration) ── */
-  .llm-card { border-left: 3px solid var(--border-strong); }
   .llm-src { margin-top: var(--space-3); font-size: var(--fs-micro); color: var(--text-faint); font-family: var(--mono); }
   /* behavioral review */
   .br-verdict {
@@ -2156,13 +2171,10 @@
   .br-point.br-edge { color: var(--positive); }
   .br-point.br-bias { color: var(--warning); }
   .br-point.br-warn { color: var(--negative); }
-  .br-point.br-edge { border-left: 3px solid var(--positive); }
-  .br-point.br-bias { border-left: 3px solid var(--warning); }
-  .br-point.br-warn { border-left: 3px solid var(--negative); }
   /* bear cases (pre-mortem) */
   .bear-case {
     padding: var(--space-3); margin-bottom: 8px; border-radius: var(--radius-sm);
-    background: var(--fill-inset); border-left: 3px solid color-mix(in srgb, var(--negative) 50%, transparent);
+    background: var(--fill-inset);
   }
   .bear-tk { font-weight: 700; font-family: var(--mono); font-size: var(--fs-md); margin-bottom: 4px; }
   .bear-thesis { font-size: var(--fs-md); line-height: 1.5; margin-bottom: 8px; color: var(--text); }
@@ -2176,7 +2188,7 @@
   /* debate trail (#1117) — the argument, not just its count */
   .dbt-case {
     padding: var(--space-3); margin-bottom: 8px; border-radius: var(--radius-sm);
-    background: var(--fill-inset); border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    background: var(--fill-inset);
   }
   .dbt-head {
     display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
@@ -2407,16 +2419,9 @@
   .plan-timeline { display: flex; flex-direction: column; gap: var(--space-3); }
   .pt-row {
     padding: 12px; background: var(--fill-inset); border-radius: var(--radius-sm);
-    border-left: 3px solid var(--border);
     display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-2) 12px;
     align-items: start; font-size: var(--fs-md);
   }
-  .pt-row.outcome-win { border-left-color: var(--positive); }
-  .pt-row.outcome-loss { border-left-color: var(--negative); }
-  .pt-row.outcome-pending { border-left-color: var(--neutral); }
-  .pt-row.outcome-flat { border-left-color: var(--warning); }
-  .pt-row.outcome-not_triggered { border-left-color: var(--neutral); border-left-style: dashed; }
-  .pt-row.outcome-unknown { border-left-color: var(--warning); }
   .pt-row .pt-head {
     display: flex; flex-direction: column; gap: 2px; min-width: 78px;
   }
@@ -2513,9 +2518,8 @@
   @media (min-width: 720px) { .ext-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
   .ext-region {
     background: var(--fill-inset); border: 1px solid var(--border);
-    border-left: 3px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4);
   }
-  .ext-region.is-low { border-left-color: var(--negative); }
   .ext-region .ext-head {
     display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-3);
   }
@@ -2639,7 +2643,8 @@
   }
   .shadow-estimand {
     margin: 0 0 12px; padding: var(--space-3);
-    border-left: 3px solid var(--warning); border-radius: 0 7px 7px 0;
+    border: 1px solid color-mix(in srgb, var(--warning) var(--tint-edge), transparent);
+    border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--warning) var(--tint-wash), transparent); color: var(--text-dim);
     font-size: var(--fs-sm); line-height: 1.55;
   }
@@ -2728,8 +2733,8 @@
   .retired-note p { margin: 0; }
   .revision-note {
     font-size: var(--fs-xs); line-height: 1.55; color: var(--text-dim);
-    border-left: 2px solid var(--accent);
-    padding: var(--space-2) var(--space-3); margin: 0 0 12px; border-radius: 0 6px 6px 0;
+    border: 1px solid color-mix(in srgb, var(--accent) var(--tint-edge), transparent);
+    padding: var(--space-2) var(--space-3); margin: 0 0 12px; border-radius: var(--radius-sm);
   }
   .revision-note b { color: var(--text); }
   .retired-note b { color: var(--text); }
@@ -3051,7 +3056,7 @@
     position: absolute; left: 0; bottom: 100%; margin-bottom: 3px;
     padding: 1px 6px; border-radius: var(--radius-sm);
     background: var(--overlay); box-shadow: var(--shadow-card);
-    font: 500 var(--fs-xs)/1.4 var(--mono); color: var(--text-secondary);
+    font: 500 var(--fs-xs)/1.4 var(--font); color: var(--text-secondary);
     font-variant-numeric: tabular-nums; white-space: nowrap;
     pointer-events: none; visibility: hidden;
   }
@@ -3064,8 +3069,8 @@
      任何一处给得出这三个数。 */
   .hs-foot {
     display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
-    font: 500 var(--fs-xs)/1.3 var(--mono); color: var(--text-tertiary);
-    white-space: nowrap; overflow: hidden;
+    font: 500 var(--fs-xs)/1.3 var(--font); color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden;
   }
   /* 挤不下时先牺牲区间那半句，带数字的那半句永远整段留着。默认的 flex 收缩
      会两边一起压，而压到带数字的一边就是「ellipsis 把涨跌幅吃掉」那个老
@@ -3123,8 +3128,8 @@
     display: block;
   }
   .hero-deck-fx {
-    margin-top: 9px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.4 var(--mono);
-    overflow-wrap: anywhere;
+    margin-top: 9px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.4 var(--font);
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
   }
   /* 段内不断行（渲染端已按段包 span）：一个金额/汇率/时间戳被折成两半是
      排版把值弄坏了，不是「换行」。段与段之间照常可断。 */
@@ -3257,7 +3262,7 @@
   .rc-bars > i.flat { background: var(--text-tertiary); }
   .rc-cap {
     color: var(--text-tertiary);
-    font: 500 var(--fs-xs)/1.3 var(--mono);
+    font: 500 var(--fs-xs)/1.3 var(--font); font-variant-numeric: tabular-nums;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   /* 窄屏两列时「主动 call · n=82 · 3 未能核验」放不下一行，nowrap+ellipsis
@@ -4077,9 +4082,13 @@
   .verdict-deck .overview-gates .risk-alert {
     flex: 1 1 auto; max-height: 88px; align-items: center;
   }
-  /* hard stop（critical）与限额超标（high）在牌上都是红条，用条宽分档：
-     3px = 已经跌穿硬止损线，2px = 限额/敞口超标。 */
-  .overview-gates .risk-alert.critical { border-left-width: 3px; }
+  /* hard stop（critical）与限额超标（high）同为红色，用点的形状分档：
+     实心 = 已经跌穿硬止损线，空心环 = 限额/敞口超标。颜色之外还有形状，
+     色弱读者也分得开。 */
+  .overview-gates .risk-alert.high .icon,
+  #guardrail-list .risk-alert.high .icon {
+    background: none; box-shadow: inset 0 0 0 1.5px var(--negative);
+  }
   .overview-gates-more {
     flex: 0 0 auto; padding: 7px 0 0;
     border-top: 1px solid var(--border-subtle);
@@ -4181,13 +4190,10 @@
     min-width: 0; color: var(--text-faint); white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis;
   }
-  /* tone 三档 + 中性：ok/warn/bad 只动边线与 value 色（delta 保持中性），
-     浓度取「读得出档位」的最低混色。 */
-  .deck-card .hl-chip.tone-ok { border-color: color-mix(in srgb, var(--positive) 32%, var(--border-subtle)); }
+  /* tone 三档 + 中性：只染 value（delta 保持中性），描边一律是发丝线。
+     描边也跟着 tone 变色，就回到了 #879 退掉的「一排不同颜色的描边胶囊」。 */
   .deck-card .hl-chip.tone-ok .hl-v { color: var(--positive); }
-  .deck-card .hl-chip.tone-warn { border-color: color-mix(in srgb, var(--warning) var(--tint-edge), var(--border-subtle)); }
   .deck-card .hl-chip.tone-warn .hl-v { color: var(--warning); }
-  .deck-card .hl-chip.tone-bad { border-color: color-mix(in srgb, var(--negative) 45%, var(--border-subtle)); }
   .deck-card .hl-chip.tone-bad .hl-v { color: var(--negative); }
   /* 距离计量条（最近触发 chip 内）：到档位的接近度画成条，不写形容词。
      轨宽写死 44px —— 图形宽度是构图的函数，不是 dist 的函数（CLS 判据）；
@@ -4258,17 +4264,15 @@
     color: var(--text-tertiary); font-size: var(--fs-micro); line-height: 1.45;
   }
   .overview-gates .risk-alerts { margin-top: 8px; gap: 0; }
-  /* 硬闸行：无盒 + 发丝线，行间对齐列（终端读感）；严重度由左侧 2px 色条
-     承载（红=high / amber=medium），icon 圆点退场。计数本身已在表头点阵。 */
+  /* 硬闸行：无盒 + 发丝线，行间对齐列；严重度由行首圆点承载（红/琥珀，
+     形状见上），和 Risk 页同一套行语汇。计数本身已在表头点阵。 */
   .overview-gates .risk-alert {
-    align-items: flex-start; padding: 7px 0 7px 10px;
+    align-items: flex-start; padding: 7px 0;
     font-size: var(--fs-micro); line-height: 1.35;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
-    border-left: 2px solid var(--negative);
   }
-  .overview-gates .risk-alert.medium { border-left-color: var(--warning); }
-  .overview-gates .risk-alert .icon { display: none; }
+  .overview-gates .risk-alert .icon { margin-top: 3px; }
   /* 硬闸计数控件（JS renderRiskGuardrail 落进 overview-guardrail-count）：
      10 槽点阵，on=触发中（红）/ off=空槽（发丝线色）。尺寸间距写死 ——
      这个图形的宽度只随构图变、不随 breach_count 变。徽章自身的胶囊底
@@ -4425,9 +4429,6 @@
     display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px;
     margin: 0 0 var(--space-4); min-height: 34px;
   }
-  /* Data arrives after the scaffold. Fixed grid rows + floors reserve the same
-     geometry, preserving the existing CLS=0 behavior without hiding active data. */
-  #guardrail-card { min-height: 560px; }
   /* 彩色描边胶囊 → 文本行（#879）：一屏里三个不同颜色的圆角描边框是最强的
      「AI 生成」信号；语义交给左侧小圆点和文字颜色，盒子本身取消。 */
   .hl-chip {
@@ -4530,7 +4531,7 @@
      ========================================================= */
   .panel, .card, .card > *, .status-banner .sb-text,
   .risk-alert > div, .anomaly .detail, .market-cell,
-  .kpi-cell, .risk-cell, .lev-cell, .hhi-card,
+  .kpi-cell, .risk-cell, .expo-stats > div,
   .mkt-card,   .mkt-card, .macro-row > *,
   .plan-action > *, .catalyst-row > *, .pd-top > *,
   .sd-row summary > *,
@@ -4541,7 +4542,7 @@
   .risk-alert > div, .anomaly .detail, .catalyst-row .detail,
   .plan-action .meta, .peer-div-row, .mkt-stat .v,
   .kpi-cell .val, .kpi-cell .sub, .risk-cell .val,
-  .lev-cell .val, .shadow-stat .val, .ext-row .v,
+  .shadow-stat .val, .ext-row .v,
   .sd-row .sd-counts, .sd-body, .pt-row .pt-trigger {
     overflow-wrap: anywhere;
   }
@@ -4617,7 +4618,7 @@
   .tr-row summary:hover { background: color-mix(in srgb, var(--accent) var(--tint-wash), transparent); }
 }
 .tr-row summary:active { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); }
-.tr-row[open] summary { background: color-mix(in srgb, var(--accent) var(--tint-wash), transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.tr-row[open] summary { background: color-mix(in srgb, var(--accent) var(--tint-wash), transparent); }
 .tr-row[open] summary::after { transform: rotate(180deg); }
 .tr-row summary::after { content: '▾'; grid-area: 1 / 9; justify-self: end; color: var(--text-dim); font-size: var(--fs-micro); transition: transform var(--duration-fast) var(--ease-out); }
 .tr-row summary > .tr-dot { grid-area: 1 / 2; }
@@ -4680,7 +4681,7 @@
 .tr-v.pos { color: var(--positive); } .tr-v.neg { color: var(--negative); } .tr-v.na { color: var(--text-dim); } .tr-v.ok { color: var(--positive); } .tr-v.skip { color: var(--warning); }
 .tr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
 .tr-chip { font-size: var(--fs-xs); padding: 2px 8px; border-radius: var(--radius-sm); background: var(--fill-inset-2); border: 1px solid var(--border-subtle); color: var(--text-dim); }
-.tr-note { margin: 6px 0; padding: 3px 0 3px 10px; border-left: 3px solid var(--border); font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tr-note { margin: 6px 0; padding: 3px 0 3px 10px; border-left: 1px solid var(--border-strong); font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tr-note.why { border-left-color: var(--accent); }
 .tr-note.emo { border-left-color: var(--warning); }
 .tr-miss { margin: 8px 0; padding: 7px 10px; border: 1px dashed var(--border); border-radius: var(--radius-sm); font-size: var(--fs-xs); color: var(--text-dim); }
@@ -4916,13 +4917,7 @@
     border: 1px solid var(--border-subtle); border-radius: var(--radius);
     padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3);
     background: var(--fill-inset);
-    /* tone 走一条左边框：一屏里四个块，靠颜色扫一眼就知道哪个是坏的。 */
-    border-left: 3px solid var(--border);
   }
-  .lg-section[data-tone="bad"] { border-left-color: var(--negative); }
-  .lg-section[data-tone="good"] { border-left-color: var(--positive); }
-  .lg-section[data-tone="wait"] { border-left-color: var(--warning); }
-  .lg-section[data-tone="idle"] { border-left-color: var(--text-tertiary); }
   .lg-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
   .lg-verdict {
     font-size: var(--fs-sm); font-weight: 700; white-space: nowrap;

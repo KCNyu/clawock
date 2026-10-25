@@ -4329,6 +4329,66 @@ function chartTextFaults() {
   return { faults, painted };
 }
 
+// 敞口卡：板块占比只在自己那条货币腿里比。旧的合并饼图把美股 USD 金额和港股
+// HKD 金额塞进同一个分母，美股 95% 的航天板块画成一条细缝，比例要悬停才看得
+// 到。现在每一行都印出腿内占比，条长就是那个数；两腿各自加起来是 100%。
+async function testExposureComparesSharesWithinEachLeg(browser, base) {
+  const sectors = {
+    us: [{ sector: "Crypto / Stablecoin", value: 171.82, pct: 5.43, tickers: ["CRCL"] },
+         { sector: "Aerospace", value: 2993.89, pct: 94.57, tickers: ["RKLX", "SPCX", "SPCH"] }],
+    hk: [{ sector: "AI / 大模型", value: 26264, pct: 50.71, tickers: ["00100"] },
+         { sector: "恒生科技 ETF", value: 20743.2, pct: 40.05, tickers: ["03032", "07226", "03033"] },
+         { sector: "新能源", value: 2920, pct: 5.64, tickers: ["02208"] },
+         { sector: "Semiconductor ETF", value: 1865, pct: 3.6, tickers: ["07709"] }],
+  };
+  for (const width of [320, 1280]) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page, {
+      patch: (_name, payload) => payload.sector_exposure ? { ...payload, sector_exposure: sectors } : null,
+    });
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await clickTab(page, "risk");
+    await waitForTab(page, "risk");
+    await page.waitForSelector("#expo-us .expo-sectors li", { timeout: 10000 });
+    const legs = await page.evaluate(() => ["us", "hk"].map(leg => {
+      const root = document.getElementById(`expo-${leg}`);
+      return {
+        verdict: root.querySelector(".expo-verdict").textContent.trim(),
+        stats: [...root.querySelectorAll(".expo-stats dd")].map(dd => dd.textContent.trim()),
+        rows: [...root.querySelectorAll(".expo-sectors li")].map(li => {
+          const track = li.querySelector(".expo-bar").getBoundingClientRect();
+          const fill = li.querySelector(".expo-bar > i").getBoundingClientRect();
+          return {
+            name: li.querySelector(".expo-sector-name").textContent,
+            pct: li.querySelector(".expo-sector-pct").textContent,
+            share: fill.width / track.width,
+            overflow: li.scrollWidth - li.clientWidth,
+          };
+        }),
+      };
+    }));
+    const label = `${width}px`;
+    const [us, hk] = legs;
+    assert.deepEqual(us.rows.map(r => r.name), ["Aerospace", "Crypto / Stablecoin"],
+      `${label}: the US leg is not ranked by its own share`);
+    assert.deepEqual(us.rows.map(r => r.pct), ["94.6%", "5.4%"], `${label}: a share is not printed`);
+    assert(Math.abs(us.rows[0].share - 0.9457) < 0.02,
+      `${label}: the bar draws ${us.rows[0].share}, the row prints ${us.rows[0].pct}`);
+    const hkSum = hk.rows.reduce((sum, r) => sum + parseFloat(r.pct), 0);
+    assert(Math.abs(hkSum - 100) < 0.5, `${label}: the HK leg's shares add to ${hkSum}, not 100`);
+    for (const leg of legs) {
+      assert(leg.verdict && leg.verdict !== "—", `${label}: a leg has no concentration verdict`);
+      assert.equal(leg.stats.length, 3, `${label}: a leg lost one of HHI / top two / leveraged`);
+      assert.deepEqual(leg.rows.filter(r => r.overflow > 1), [], `${label}: a sector row overflows`);
+    }
+    assert.equal(await page.locator("#exposure-card canvas").count(), 0,
+      `${label}: the exposure card is back to a chart whose shares need a hover`);
+    await context.close();
+  }
+}
+
 async function testNoChartPaintsOneLabelOverAnother(browser, base) {
   // Shapes that used to collide, whatever today's book looks like: a long
   // cumulative window on the daily chart, and small positions sharing a corner
@@ -4372,7 +4432,7 @@ async function testNoChartPaintsOneLabelOverAnother(browser, base) {
         });
         return book.map(row => row.ticker).filter(ticker => !painted.includes(ticker) && !note.includes(ticker));
       };
-      for (const tab of ["drill", "risk", "reflect"]) {
+      for (const tab of ["drill", "reflect"]) {
         await page.evaluate(t => document.querySelector(`.tab-btn[data-tab="${t}"]`).click(), tab);
         await waitForTab(page, tab);
         const result = await settled();
@@ -4410,7 +4470,7 @@ async function testNoChartPaintsOneLabelOverAnother(browser, base) {
         }
       }
       // The gate measured something: each chart painted the labels it is about.
-      for (const chart of ["chart-weight-conf", "chart-sector", "chart-ai-winrate", "chart-realized", "chart-daily-pnl"]) {
+      for (const chart of ["chart-weight-conf", "chart-ai-winrate", "chart-realized", "chart-daily-pnl"]) {
         assert.ok((seen[chart] || []).length >= 4, `${width}px: ${chart} painted ${JSON.stringify(seen[chart])}`);
       }
       assert.ok(seen["chart-daily-pnl"].includes("累计（近 89 根）"), "the daily chart lost its windowed legend entry");
@@ -4564,6 +4624,7 @@ async function main() {
     await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
     await run("testPeerDivergenceNamesEachQuoteSession", () => testPeerDivergenceNamesEachQuoteSession(browser, base));
     await run("testTheProfitRulerPrintsThePositionItDraws", () => testTheProfitRulerPrintsThePositionItDraws(browser, base));
+    await run("testExposureComparesSharesWithinEachLeg", () => testExposureComparesSharesWithinEachLeg(browser, base));
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));
     await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));

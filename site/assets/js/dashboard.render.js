@@ -263,7 +263,7 @@
         const cls = warn ? "near" : row.ad < 5 ? "mid" : "far";
         curHtml = `<span class="wl-cur">现 ${fmtVal(row.cur)}</span>`;
         const distTxt = row.isPct ? `${row.dist >= 0 ? "+" : ""}${fixed(row.dist, 1)}pp` : fmtPct(row.dist, 1);
-        distHtml = `<span class="wl-dist ${cls}">${distTxt}${row.fired ? " 已触发" : ""}${warn ? " ⚠️" : ""}</span>`;
+        distHtml = `<span class="wl-dist ${cls}">${distTxt}${row.fired ? " 已触发" : ""}${warn ? " ⚠" : ""}</span>`;
       }
       return `<div class="wl-row"><span class="wl-who">${escapeHtml(row.who)}</span>` +
         `<span class="wl-label">${escapeHtml(row.label)}</span>` +
@@ -332,7 +332,7 @@
       renderAnomalies, renderShadowPortfolioCard,
     ],
     risk: [
-      renderRiskGuardrail, renderHHI, renderLeveragedETF, renderRiskMetrics, renderLevRegime,
+      renderRiskGuardrail, renderExposure, renderRiskMetrics, renderLevRegime,
       renderReentryRadar, renderBreakevenMath, renderHistoricalExtremes,
     ],
     market: [
@@ -386,48 +386,50 @@
     `).join("");
   }
 
-  function renderHHI() {
-    const us = safe(DATA, "concentration", "us") || {};
-    const hk = safe(DATA, "concentration", "hk") || {};
-    paintHHI("hhi-us", us);
-    paintHHI("hhi-hk", hk);
-  }
-  function paintHHI(id, leg) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const hhi = leg.hhi;
-    const top2 = leg.top2;
-    const verdict = leg.verdict || {};
-    const ring = el.querySelector(".hhi-ring");
-    const inner = el.querySelector(".inner");
-    const verdictEl = el.querySelector(".verdict");
-    const top2El = el.querySelector(".top2");
-    const level = String(verdict.level || "").toLowerCase();
-    const state = level === "healthy" || level === "normal"
-      ? "normal"
-      : level === "danger" || level === "critical"
-        ? "critical"
-        : level === "moderate" || level === "concentrated" || level === "elevated"
-          ? "elevated"
-          : "neutral";
-    const semanticColor = {
-      normal: "var(--positive)",
-      elevated: "var(--warning)",
-      critical: "var(--negative)",
-      neutral: "var(--neutral)",
-    }[state];
-    if (hhi != null) {
-      // Map HHI 0-0.5 to 0-100% of ring (0.5 is essentially worst case for diversified)
-      const pct = Math.min(100, Math.max(0, hhi / 0.5 * 100));
-      ring.style.setProperty("--pct", pct.toFixed(1));
-      ring.style.setProperty("--color", semanticColor);
-      inner.textContent = fixed(hhi, 3);
-    } else {
-      inner.textContent = DASH;
+  // 敞口卡：一腿一栏，集中度、杠杆占比和板块分布读的是同一本账。
+  // 板块占比只在腿内比较 —— USD 与 HKD 不相加，旧的合并饼图把两种货币的
+  // 金额放进同一个分母，美股 95% 的航天板块画成了一条细缝。
+  function renderExposure() {
+    const conc = safe(DATA, "concentration") || {};
+    const lev = safe(DATA, "leveraged_etf") || {};
+    const sectors = safe(DATA, "sector_exposure") || {};
+    const pctText = v => (v == null ? DASH : `${fixed(v, 1)}%`);
+    [["us", "us_pct"], ["hk", "hk_pct"]].forEach(([leg, levKey]) => {
+      const el = document.getElementById(`expo-${leg}`);
+      if (!el) return;
+      const c = conc[leg] || {};
+      const verdict = c.verdict || {};
+      const level = String(verdict.level || "").toLowerCase();
+      const state = level === "healthy" || level === "normal" ? "normal"
+        : level === "danger" || level === "critical" ? "critical"
+          : level === "moderate" || level === "concentrated" || level === "elevated" ? "elevated"
+            : "neutral";
+      const badge = el.querySelector(".expo-verdict");
+      badge.textContent = verdict.label || DASH;
+      badge.dataset.state = state;
+      el.querySelector('[data-k="hhi"]').textContent = c.hhi == null ? DASH : fixed(c.hhi, 3);
+      el.querySelector('[data-k="top2"]').textContent = c.top2 == null ? DASH : pctText(c.top2 * 100);
+      const levEl = el.querySelector('[data-k="lev"]');
+      const lv = lev[levKey];
+      levEl.textContent = pctText(lv);
+      levEl.className = lv == null ? "" : (lv >= 50 ? "neg" : (lv >= 25 ? "warn-text" : ""));
+      const rows = (sectors[leg] || []).filter(r => Number.isFinite(Number(r.pct)))
+        .slice().sort((x, y) => Number(y.pct) - Number(x.pct));
+      el.querySelector(".expo-sectors").innerHTML = rows.length
+        ? rows.map(r => {
+          const tickers = (r.tickers || []).join(" · ");
+          return `<li title="${escapeHtml(tickers)}"><span class="expo-sector-name">${escapeHtml(r.sector || DASH)}</span>`
+            + `<span class="expo-bar" aria-hidden="true"><i style="--w:${Math.max(0, Math.min(100, Number(r.pct))).toFixed(1)}%"></i></span>`
+            + `<span class="expo-sector-pct">${pctText(Number(r.pct))}</span></li>`;
+        }).join("")
+        : `<li class="empty-state">这一腿没有板块数据</li>`;
+    });
+    const foot = document.getElementById("expo-foot");
+    if (foot) {
+      const tk = lev.tickers || [];
+      foot.innerHTML = `杠杆 ETF 合计 <b class="${lev.combined_pct >= 50 ? "neg" : (lev.combined_pct >= 25 ? "warn-text" : "")}">${pctText(lev.combined_pct)}</b>`
+        + (tk.length ? ` · ${tk.map(escapeHtml).join(", ")}` : "");
     }
-    verdictEl.textContent = verdict.label || DASH;
-    verdictEl.style.color = semanticColor;
-    top2El.textContent = top2 != null ? "Top 2: " + fixed(top2 * 100, 1) + "%" : DASH;
   }
 
   function renderAnomalies() {
@@ -439,18 +441,11 @@
       wrap.innerHTML = '<div class="empty-state">No anomalies detected.</div>';
       return;
     }
-    const ICONS = {
-      rsi_overbought: "",
-      peer_divergence: "↗",
-      high_weight_loss: "",
-      leveraged_etf_stop: "",
-    };
     wrap.innerHTML = list.map(a => {
-      const icon = ICONS[a.type] || "⚠";
       const sev = a.severity || "medium";
       return `
         <div class="anomaly ${sev}">
-          <span class="icon">${icon}</span>
+          <span class="icon" aria-hidden="true"></span>
           <div class="body">
             <span class="ticker">${escapeHtml(a.ticker || DASH)}</span>
             <span class="muted"> · ${escapeHtml(a.type || "")}</span>
@@ -635,8 +630,8 @@
     if (!items.length) {
       if (sumEl) sumEl.innerHTML = '';
       const lines = [];
-      if (filterFailed) lines.push('⚠️ LLM 相关性筛选本轮失败，未发布未评分条目');
-      if (failedSources.length) lines.push(`⚠️ 来源失败：${escapeHtml(failedSources.join('、'))}`);
+      if (filterFailed) lines.push('⚠ LLM 相关性筛选本轮失败，未发布未评分条目');
+      if (failedSources.length) lines.push(`⚠ 来源失败：${escapeHtml(failedSources.join('、'))}`);
       wrap.innerHTML = `<div class="empty-state">${lines.length
         ? lines.join('<br>')
         : 'No influence signals (48h).'}</div>`;
@@ -655,8 +650,8 @@
     if (asOf && d.generated_at) {
       const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
       asOf.textContent = ` · ${ago}h前`
-        + (filterFailed ? ' · ⚠️ 本轮筛选失败，显示上轮保留条目' : '')
-        + (failedSources.length ? ` · ⚠️ 来源失败：${failedSources.join('、')}` : '');
+        + (filterFailed ? ' · ⚠ 本轮筛选失败，显示上轮保留条目' : '')
+        + (failedSources.length ? ` · ⚠ 来源失败：${failedSources.join('、')}` : '');
     }
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');
     const stanceTxt = (s) => ({endorse:'看多', buy:'买入', attack:'看空', sell:'卖出', neutral:'中性'}[s] || s || '');
@@ -756,7 +751,7 @@
     const hn = em.holdings_news || {};
     const hk = Object.keys(hn);
     if (hk.length) {
-      emHtml += '<h3>🇭🇰 港股中文消息 · 东财</h3>';
+      emHtml += '<h3>港股中文消息 · 东财</h3>';
       hk.forEach(tk => {
         const v = hn[tk] || {};
         emHtml += `<div style="margin:3px 0"><strong>${escapeHtml(tk)} ${escapeHtml(v.name || '')}</strong>`;
@@ -1586,8 +1581,8 @@
     const summary = document.getElementById("shadow-portfolio-summary");
     const coverageNote = document.getElementById("shadow-coverage-note");
     if (sidecar && sidecar.computed === false) {
-      if (summary) summary.textContent = "⚠️ 政策模拟本次无法计算";
-      empty.textContent = "⚠️ 政策模拟本次无法计算";
+      if (summary) summary.textContent = "⚠ 政策模拟本次无法计算";
+      empty.textContent = "⚠ 政策模拟本次无法计算";
       empty.style.display = "";
       content.style.display = "none";
       if (coverageNote) coverageNote.style.display = "none";
@@ -1605,7 +1600,7 @@
     ).filter(Boolean))];
     if (coverageNote) {
       coverageNote.textContent = skippedMarks.length
-        ? `⚠️ ${skippedMarks.length} 个市场交易日缺行情未计价`
+        ? `⚠ ${skippedMarks.length} 个市场交易日缺行情未计价`
         : "";
       coverageNote.style.display = skippedMarks.length ? "" : "none";
     }
@@ -1747,7 +1742,7 @@
     const detail = a => (a.detail || '').replace(/(=\s*)(-?\d+\.\d{3,})/g,
       (_match, prefix, value) => prefix + formatNumber(value));
     const html = alerts.map(a =>
-      `<div class="risk-alert ${a.severity || 'high'}">
+      `<div class="risk-alert ${a.severity || 'high'}"><span class="icon" aria-hidden="true"></span>
          <div><strong>${escapeHtml(ALERT_ZH[a.type] || a.type)}</strong>: ${escapeHtml(detail(a))}</div>
        </div>`
     ).join('');
@@ -1810,10 +1805,10 @@
     if (!targets.length) return;
     if (g.computed === false || g.error) {
       targets.forEach(({ countEl, dirEl, listEl }) => {
-        countEl.textContent = '⚠️ 算不出';
+        countEl.textContent = '算不出';
         countEl.style.color = 'var(--warning)';
         if (dirEl) dirEl.textContent = dirEl.title = '风控数据计算失败，本次不作“无触发”判断。';
-        listEl.innerHTML = '<div class="risk-alert medium"><span class="icon">⚠️</span>'
+        listEl.innerHTML = '<div class="risk-alert medium"><span class="icon"></span>'
           + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:var(--fs-xs);margin-top:2px">'
           + '等待下次数据刷新重算</div></div></div>';
       });
@@ -1971,8 +1966,9 @@
     document.getElementById('t0-asof').textContent = (t0.as_of || '') + t0SessionLabel(t0);
     const num = t0Num;
     const cls = v => v == null ? '' : (v < 0 ? 'style="color:var(--negative)"' : 'style="color:var(--positive)"');
-    // 🔴 追高排前面（最该看的牌面）
+    // 🔴 追高排前面（最该看的牌面）。档位在牌面上画成圆点，不印 emoji（#869）。
     const order = { '🔴': 0, '🟡': 1, '⚪': 2 };
+    const gradeTone = { '🔴': 'bad', '🟡': 'warn', '⚪': 'idle' };
     names.sort((a, b) => (order[rows[a].grade] ?? 3) - (order[rows[b].grade] ?? 3));
     document.getElementById('t0-tbody').innerHTML = names.map(k => {
       const r = rows[k];
@@ -1980,7 +1976,7 @@
       const vw = (r.vs_vwap_pct != null)
         ? `<div class="muted" style="font-size:var(--fs-micro)">VWAP ${r.vs_vwap_pct > 0 ? '+' : ''}${numText(r.vs_vwap_pct)}%</div>` : '';
       return `<tr><td><strong>${k}</strong>${lev}</td>` +
-        `<td style="text-align:left;font-size:var(--fs-xs)">${r.grade} ${r.grade_label}` +
+        `<td style="text-align:left;font-size:var(--fs-xs)"><span class="grade-dot" data-tone="${gradeTone[r.grade] || 'idle'}" aria-hidden="true"></span>${escapeHtml(r.grade_label || '')}` +
         `<div class="muted" style="font-size:var(--fs-micro)">${r.grade_reason || ''}</div>${vw}</td>` +
         `<td class="num">${num(r.range_pos, '%')}</td>` +
         `<td class="num" ${cls(r.today_change_pct)}>${num(r.today_change_pct, '%', true)}</td>` +
@@ -1991,7 +1987,7 @@
     const rev = safe(DATA, "t0_setup_review");
     let backing = '';
     if (rev && rev.summary) {
-      backing = `牌面背书 · ${rev.days_logged || 0} 日留痕 · T+1：${rev.summary}`;
+      backing = `牌面背书 · ${rev.days_logged || 0} 日留痕 · T+1：${stripEmoji(rev.summary)}`;
     }
     const t0Note = document.getElementById('t0-note');
     t0Note.textContent = backing;
@@ -2074,7 +2070,7 @@
         ? `<span style="color:var(--positive);font-weight:700">已站回·可布局</span>`
         : `<span style="color:${color}">还需 +${need != null ? fixed(need, 1) : '?'}% 站回${mw}</span>`;
       const prox = dist == null ? 0 : Math.max(0, Math.min(100, (1 + dist / 20) * 100));
-      const mkt = w.market === 'HK' ? '🇭🇰' : '🇺🇸';
+      const mkt = `<span class="reentry-mkt">${w.market === 'HK' ? 'HK' : 'US'}</span>`;
       const nameLine = w.etf ? `${w.name} <span class="muted" style="font-size:var(--fs-micro)">(${w.etf} 2x)</span>` : w.name;
       return `
         <div style="padding:8px 0;border-top:1px solid var(--border-subtle)">
@@ -2094,23 +2090,6 @@
         </div>`;
     }).join('');
     document.getElementById('reentry-list').innerHTML = rows;
-  }
-
-  function renderLeveragedETF() {
-    const l = safe(DATA, "leveraged_etf") || {};
-    const colorize = (v) => v == null ? "neutral" : (v >= 50 ? "neg" : (v >= 25 ? "warn-text" : "neutral"));
-    // No leading + sign — these are exposure %s, not P&L gains
-    const fmt = (v) => v == null ? DASH : `${fixed(v, 1)}%`;
-    const setNum = (id, v) => {
-      const el = document.getElementById(id);
-      el.textContent = fmt(v);
-      el.className = "val " + colorize(v);
-    };
-    setNum("lev-us", l.us_pct);
-    setNum("lev-hk", l.hk_pct);
-    setNum("lev-combined", l.combined_pct);
-    const tk = (l.tickers || []);
-    document.getElementById("lev-tickers").textContent = tk.length ? `2x/3x ETFs: ${tk.join(", ")}` : "—";
   }
 
   // Episode-level historical win-rate badge for a decision action.

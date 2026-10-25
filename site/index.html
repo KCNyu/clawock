@@ -510,50 +510,26 @@ layout: null
 
     <div class="card desktop-wide" id="exposure-card">
       <div class="card-head"><h3>敞口</h3></div>
-      <div class="sub-block" id="conc">
-        <div class="sub-block-head">集中度 HHI <span class="muted">0.5 ≈ 最差</span></div>
-      
-      <div class="hhi-row">
-        <div class="hhi-card" id="hhi-us">
-          <div class="lbl">US</div>
-          <div class="hhi-ring" style="--pct: 0; --color: var(--gray);"><span class="inner">—</span></div>
-          <div class="verdict muted">—</div>
-          <div class="top2">—</div>
-        </div>
-        <div class="hhi-card" id="hhi-hk">
-          <div class="lbl">HK</div>
-          <div class="hhi-ring" style="--pct: 0; --color: var(--gray);"><span class="inner">—</span></div>
-          <div class="verdict muted">—</div>
-          <div class="top2">—</div>
-        </div>
-      </div>
-    
-      </div>
-      <div class="sub-block" id="lev">
-        <div class="sub-block-head">杠杆 ETF 占比</div>
-      
-      <div class="lev-row">
-        <div class="lev-cell">
-          <div class="lbl">美股</div>
-          <div class="val" id="lev-us">—</div>
-        </div>
-        <div class="lev-cell">
-          <div class="lbl">港股</div>
-          <div class="val" id="lev-hk">—</div>
-        </div>
-        <div class="lev-cell">
-          <div class="lbl">合计</div>
-          <div class="val" id="lev-combined">—</div>
-        </div>
-      </div>
-      <div class="lev-tickers muted" id="lev-tickers">—</div>
-    
-      </div>
-      <div class="sub-block">
-        <div class="sub-block-head">板块暴露</div>
-      
-      <div id="chart-sector" class="chart-box" style="height:300px"></div>
-    
+      <div class="sub-block expo-legs" id="expo-legs">
+        <section class="expo-leg" id="expo-us" aria-labelledby="expo-us-title">
+          <div class="expo-leg-head"><h4 id="expo-us-title">美股</h4><span class="expo-verdict">—</span></div>
+          <dl class="expo-stats">
+            <div><dt>HHI</dt><dd data-k="hhi">—</dd></div>
+            <div><dt>前两大</dt><dd data-k="top2">—</dd></div>
+            <div><dt>杠杆 ETF</dt><dd data-k="lev">—</dd></div>
+          </dl>
+          <ul class="expo-sectors" aria-label="美股板块占比"></ul>
+        </section>
+        <section class="expo-leg" id="expo-hk" aria-labelledby="expo-hk-title">
+          <div class="expo-leg-head"><h4 id="expo-hk-title">港股</h4><span class="expo-verdict">—</span></div>
+          <dl class="expo-stats">
+            <div><dt>HHI</dt><dd data-k="hhi">—</dd></div>
+            <div><dt>前两大</dt><dd data-k="top2">—</dd></div>
+            <div><dt>杠杆 ETF</dt><dd data-k="lev">—</dd></div>
+          </dl>
+          <ul class="expo-sectors" aria-label="港股板块占比"></ul>
+        </section>
+        <p class="expo-foot" id="expo-foot"></p>
       </div>
       <div class="sub-block" id="riskm">
         <div class="sub-block-head">风险指标 <span class="muted">30 日</span><span class="badge muted" id="risk-alert-count"></span></div>
