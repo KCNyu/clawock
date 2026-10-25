@@ -58,20 +58,22 @@ def test_sidecar_free_text_never_reaches_innerhtml_raw():
     assert "escapeHtml(h.ticker)" in risk_banner
 
 
-def test_plan_action_ledger_fields_never_reach_innerhtml_raw():
-    """recent_decisions is the agent-written decisions.jsonl verbatim; the peer
-    plan-timeline card escapes every one of these fields already (#985)."""
-    actions = _function_body("renderPlanActions")
+def test_plan_timeline_ledger_fields_never_reach_innerhtml_raw():
+    """The timeline prints agent-written decisions.jsonl rows, and falls back to
+    `recent_decisions` (the same ledger, verbatim) when its sidecar is missing.
+    The 近 5 日动作 card that used to print those rows is gone; its escaping
+    contract moved here with them (#985)."""
+    timeline = _function_body("renderPlanTimeline")
     for snippet in (
         "escapeHtml(a.ticker || DASH)",
         'escapeHtml(a.date || "")',
         "escapeHtml(a.action || DASH)",
         "escapeHtml(a.strategy_id || DASH)",
-        "escapeHtml(cond.type || DASH)",
+        "escapeHtml(trig)",
     ):
-        assert snippet in actions, f"missing escaped interpolation: {snippet}"
-    for field in ("a.ticker", "a.date", "a.action", "a.strategy_id", "cond.type"):
-        assert "${%s" % field not in actions, (
+        assert snippet in timeline, f"missing escaped interpolation: {snippet}"
+    for field in ("a.ticker", "a.date", "a.action", "a.strategy_id"):
+        assert "${%s" % field not in timeline, (
             f"{field} reaches innerHTML unescaped")
 
 

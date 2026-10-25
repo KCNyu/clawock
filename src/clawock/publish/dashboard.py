@@ -3104,7 +3104,7 @@ def compute_plan_timeline(plans, limit=15, context=None):
                 'rationale': d.get('rationale'), 'status': ev.get('status'),
                 'outcome': ev.get('outcome'), 'benefit_t1_pct': ev.get('benefit_t1_pct'),
                 'execution': ex.get('status', 'unknown'), 'override': d.get('override'),
-                'trim_projection': projection,
+                'driven_by': d.get('driven_by'), 'trim_projection': projection,
                 'plan_warnings': plan_trim_warnings(d, projection) if projection else [],
             })
         return out

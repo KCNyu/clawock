@@ -283,7 +283,10 @@ and code; `--font` for every word. A caption that mixes words and numbers
 (`近 20 日 · 11 涨 9 跌`, `占账面 32%`) is words: `--font` with
 `font-variant-numeric: tabular-nums`, because a monospace face spreads CJK
 text into a letter-spaced row. Labels are not uppercased: `β` becomes `Β`,
-which reads as the letter B. Tracking tightens with size
+which reads as the letter B, and CJK, which most labels are written in, does
+not change at all — so uppercase only ever shouted the Latin half of a label
+(`test_no_label_is_uppercased` checks the sheet, the page's inline styles
+and the renderers' style strings). Tracking tightens with size
 (`--tr-display…lg`); body text has none.
 
 **Touch** — a control is at least 44px of finger on a coarse pointer, whatever
@@ -298,8 +301,13 @@ it paints.
 corner `--radius-lg`, `--shadow-card`, padding `--space-4`. No colour of its own; if a
 card must announce a state, the state goes in a badge in its header.
 
-The `<h3>` is the card's only label. No kicker above it, no subtitle restating
-it, no paragraph on how to read the card. A unit or a window the numbers need
+The `<h3>` is the card's only label, set at `--fs-lg` in `--text-primary`. A
+card that groups several blocks gives each one a `.sub-block-head` at
+`--fs-md`: one step below the title, so a squint finds the card before its
+parts. (The title used to be a 12px grey uppercase label above 12px bold
+white heads, which read as a kicker over the heads.) A head and the note a
+script fills beside it are two flex items with one gap. No kicker above the
+title, no subtitle restating it, no paragraph on how to read the card. A unit or a window the numbers need
 (`USD-eq`, `30 日`) may sit beside the title in `.card-head-note`. A legend for a
 column or a mark goes in that element's `title`; method and caveats live in the
 FAQ and `docs/`. Copy that only explains is a sign the layout needs work, not
@@ -335,8 +343,16 @@ before its title, aligned to the title's first line, not to the middle of the
 block. Where two states share a colour, the dot changes shape: on the gate
 lists a filled red dot is a position already through its hard stop, and a red
 ring is a limit breach. A row never carries its state on a coloured side
-stripe. Every stripe on this page duplicated a dot, a badge or coloured text
-already in the row (`test_no_block_carries_its_state_on_a_side_stripe`).
+stripe, and a card never carries it on a coloured top edge. Every stripe on
+this page duplicated a dot, a badge or coloured text already in the row: the
+per-market return cards drew an accent bar over the market's own dot, the
+mover tiles a green or red bar over a signed, coloured percentage
+(`test_no_block_carries_its_state_on_a_side_stripe`).
+
+A verdict a producer writes with an emoji (`🔴 未通过`, `· ✅`) is printed as
+the row dot in that verdict's tone plus its words; a check whose only
+content was ✅ reads 达标. A failure in a card's source is a sentence with a
+warning dot before it, not an italic placeholder behind a ⚠.
 
 A coloured emoji is not an icon. 🔴🟡 grades, ⚠️ markers and flag emoji
 render in the platform's own colours and ignore the theme: a grade is a
@@ -351,7 +367,18 @@ currency leg: USD and HKD amounts never go into the same denominator, so the
 Risk tab's exposure card has one column per leg
 (`testExposureComparesSharesWithinEachLeg`).
 
-### 4.6 Empty, loading, error
+### 4.6 Readings of one kind, rows of one kind
+
+Ten index or sentiment readings are one inset block with a grid inside it,
+read left to right (`.macro-row`), not ten centred tiles — on a phone that was
+five rows of 80px, on a desktop two tiles across 1350px. A list of like rows
+(the per-ticker sentiment drill, the catalyst calendar) is divided by
+hairlines, not boxed one card per row. A list never prints the same rows as
+another card on the same tab: the Plan tab's 近 5 日动作 reprinted the first
+eight rows of the plan timeline, and was removed; the timeline reads the main
+payload's `recent_decisions` when its own sidecar is missing.
+
+### 4.7 Empty, loading, error
 
 - **Empty** — `.empty-state`: one quiet sentence saying what would be here.
   Never a blank card; a blank holdings table reads as "you hold nothing".
@@ -361,7 +388,7 @@ Risk tab's exposure card has one column per leg
 - **Error** — `.panel-load-error` with a real `<button class="panel-load-retry">`.
   It says what is being shown instead ("the last loaded content").
 
-### 4.7 A series that can be read by pointing
+### 4.8 A series that can be read by pointing
 
 The first-screen curve is the pattern (`.hs-scrub` in `dashboard.css`,
 `heroScrubShow` in `dashboard.hero.js`). A `role="slider"` layer lies over the
@@ -372,7 +399,7 @@ does not cover, and takes no room when it appears. The page's headline figure
 does not change while a past day is being read: the lines under it are true of
 today only.
 
-### 4.8 Any control
+### 4.9 Any control
 
 Use a `<button>`, `<summary>` or `role="button"`. Focus ring, press and touch
 target then come from the baselines. If the rule writes its own `transition`,
@@ -412,7 +439,9 @@ styles live inside `@media (hover: hover) and (pointer: fine)`.
 | `:hover` outside the fine-pointer media query | wrap it | `test_hover_is_never_left_stuck_on_a_touch_screen` |
 | A new inline `style="background:…"` / `style="color:#…"` in a renderer | a class | review |
 | A kicker over a card title, a "how to read this" paragraph, a slogan | the title alone; legends in `title`, method in the FAQ/docs (§4.1) | review |
-| A coloured `border-left`/`border-right` over 1px, or an inset side shadow, on a card, row or callout | the row's dot or badge (§4.4); a 1px hairline on a quoted note | `test_no_block_carries_its_state_on_a_side_stripe` |
+| A coloured edge over 1px on one side of a card, row or callout (left, right or top), or an inset side shadow | the row's dot or badge (§4.4); a 1px hairline on a quoted note | `test_no_block_carries_its_state_on_a_side_stripe` |
+| `text-transform: uppercase` on a label, title or header | the label in the case it is written in (§3) | `test_no_label_is_uppercased` |
+| A card that reprints another card's rows; one tile per reading or one box per row | one card, a fallback source inside it; one block with a grid, hairline-divided rows (§4.6) | review |
 | A coloured emoji as a status or market marker | `.grade-dot`, the row dot, or the word (§4.4) | review |
 | A donut or pie for shares, or shares of two currencies in one denominator | a sorted bar list per leg with every number printed (§4.5) | `testExposureComparesSharesWithinEachLeg` |
 

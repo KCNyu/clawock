@@ -558,22 +558,42 @@ def test_no_block_carries_its_state_on_a_side_stripe():
     reads as a state, so the state lives in the row's own dot or badge (design
     system §4.4) and a quoted note may keep a 1px hairline.
 
-    Two sides of one small box are a drawn chevron, not a stripe, and are
-    skipped. The reading pages' article typography (`<style>` in the layout)
-    is not dashboard furniture and is not checked here."""
-    side = re.compile(r"border-(?:left|right|inline-start|inline-end)(?:-width)?\s*:\s*([^;]+)")
+    The top edge is the same mark turned 90°: the per-market return cards drew
+    a 2px accent bar over cards whose dot already named the market, and the
+    mover tiles a 3px green/red bar over a signed, coloured percentage.
+
+    Two adjacent sides of one small box are a drawn chevron, not a stripe, and
+    are skipped. The reading pages' article typography (`<style>` in the
+    layout) is not dashboard furniture and is not checked here."""
+    across = re.compile(r"border-(?:left|right|inline-start|inline-end)(?:-width)?\s*:\s*([^;]+)")
+    along = re.compile(r"border-(?:top|bottom|block-start|block-end)(?:-width)?\s*:\s*([^;]+)")
     shadow = re.compile(r"box-shadow\s*:[^;]*\binset\s+-?([2-9]|\d{2,})px\s+0(?:px)?\s+(?:0\s+)?(?:var|#|rgb|color-mix)")
-    chevron = re.compile(r"border-(?:top|bottom)\s*:")
     stripes = []
     for selector, body in RULES:
-        if not chevron.search(body):
-            for value in side.findall(body):
+        sides, edges = across.findall(body), along.findall(body)
+        if not (sides and edges):
+            for value in sides + edges:
                 width = re.match(r"\s*(\d+(?:\.\d+)?)px", value)
                 if width and float(width.group(1)) > 1:
-                    stripes.append(f"{selector} {{ border side {value.strip()} }}")
+                    stripes.append(f"{selector} {{ border edge {value.strip()} }}")
         if shadow.search(body):
             stripes.append(f"{selector} {{ inset side shadow }}")
     assert stripes == [], "a side stripe is carrying state again:\n  " + "\n  ".join(stripes)
+
+
+def test_no_label_is_uppercased():
+    """Design system §3: labels are not uppercased. `text-transform: uppercase`
+    turned 「US β (vs SPX)」 into 「US B (VS SPX)」, shouted every card title
+    (「EQUITY CURVE · USD-EQ」) and table header, and does nothing to the CJK
+    that most labels on this page are written in. A label is set in the case
+    it is written in — in the sheet, in the page's inline styles and in the
+    style strings the renderers write."""
+    sources = {"dashboard.css": RAW, "index.html": (ROOT / "site" / "index.html").read_text(encoding="utf-8")}
+    for script in sorted((ROOT / "site" / "assets" / "js").glob("dashboard.*.js")):
+        sources[script.name] = script.read_text(encoding="utf-8")
+    shouted = [name for name, text in sources.items()
+               if re.search(r"text-transform\s*:\s*uppercase", re.sub(r"/\*.*?\*/", " ", text, flags=re.DOTALL))]
+    assert shouted == [], f"uppercased labels in: {shouted}"
 
 
 def test_market_age_stays_in_the_market_heading_flow():

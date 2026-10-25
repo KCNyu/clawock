@@ -2337,8 +2337,10 @@ async function testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, b
 
     assert(!seen.missing, `${label}: the ledger card is not in the Reflect panel`);
     assert.equal(seen.sections, 2, `${label}: the ledger dropped a section`);
-    assert.deepEqual(seen.verdicts, ["🔴 未通过", "⏳ 尚未到期"],
-      `${label}: the verdict is not stated on the section`);
+    // The producer writes 🔴/⏳; the page draws the tone as the row dot and
+    // keeps the words (design system §4.4).
+    assert.deepEqual(seen.verdicts, ["未通过", "尚未到期"],
+      `${label}: the verdict is not stated on the section, or a coloured emoji leaked into it`);
     assert.deepEqual(seen.tones, ["bad", "wait"],
       `${label}: the verdict tone is not carried through — a failed test and a
        not-yet-due one would paint the same`);
@@ -2986,10 +2988,13 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
       label: el.textContent, color: getComputedStyle(el).color,
       background: getComputedStyle(el).backgroundColor,
     }));
+    // 近 5 日动作 printed the first eight of these rows a second time; it is
+    // gone, and the timeline is the one place a decision's outcome is read.
     return { timeline: read("#plan-timeline .outcome"), actions: read("#plan-actions .outcome") };
   });
+  assert.deepEqual(outcomes.actions, [], "the duplicate recent-actions card came back");
   const expected = ["待确认", "获益", "损失", "持平", "未触发", "不可判定", "不可判定"];
-  for (const readings of [outcomes.timeline, outcomes.actions]) {
+  for (const readings of [outcomes.timeline]) {
     assert.deepEqual(readings.slice(0, 7).map(x => x.label), expected);
     assert(readings[4].background !== "rgba(0, 0, 0, 0)");
     assert(readings[5].color !== readings[0].color, "unavailable must differ from pending");
