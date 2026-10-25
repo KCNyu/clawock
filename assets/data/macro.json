@@ -19,8 +19,8 @@
   "dxy": {
     "symbol": "DX-Y.NYB",
     "price": 101.752,
-    "prev": 101.81,
-    "change_pct": -0.06,
+    "prev": 101.607,
+    "change_pct": 0.14,
     "source": "yahoo",
     "as_of": 1792789199
   },
@@ -68,7 +68,7 @@
     "source": "us_treasury",
     "as_of": "2026-10-23",
     "status": "ok",
-    "age_days": 1,
+    "age_days": 2,
     "unit": "percent",
     "frequency": "daily_par_yield",
     "yields": {
@@ -157,5 +157,5 @@
     "skew": "ok",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-10-24T13:53:44.844601+00:00"
+  "generated_at": "2026-10-25T23:20:23.847090+00:00"
 }
