@@ -405,7 +405,7 @@
           : level === "moderate" || level === "concentrated" || level === "elevated" ? "elevated"
             : "neutral";
       const badge = el.querySelector(".expo-verdict");
-      badge.textContent = verdict.label || DASH;
+      badge.textContent = stripEmoji(verdict.label) || DASH;
       badge.dataset.state = state;
       el.querySelector('[data-k="hhi"]').textContent = c.hhi == null ? DASH : fixed(c.hhi, 3);
       el.querySelector('[data-k="top2"]').textContent = c.top2 == null ? DASH : pctText(c.top2 * 100);
