@@ -1219,17 +1219,18 @@
       const assessment = brief?.portfolio_judgment?.assessment;
       if (typeof assessment === "string" && assessment.trim()) {
         summary.textContent = assessment.trim();
+        summary.hidden = false;
       } else if (brief.judgment_status === "invalid" || brief.judgment_status === "missing") {
-        // The date and link below still move to that day; the static fallback
-        // copy would read as if its judgment were fine (#2189).
+        // The date and link below still move to that day; an empty summary
+        // would read as if its judgment were fine (#2189).
         summary.textContent = brief.judgment_status === "invalid"
           ? "当日组合判断未通过校验，没有可显示的摘要；简报的数据部分照常。"
           : "当日组合判断缺失，没有可显示的摘要；简报的数据部分照常。";
+        summary.hidden = false;
       }
       if (asOf) {
         date.textContent = `${asOf} · 08:03 HKT`;
         link.href = `memory/${asOf}-pre-open.html`;
-        link.textContent = `阅读 ${asOf} 简报 →`;
       }
     } catch (_error) {
       // The card's archive link and fallback copy remain complete without data.

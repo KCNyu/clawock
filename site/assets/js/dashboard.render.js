@@ -221,8 +221,8 @@
       parts.push(`<div class="table-wrap"><table class="holdings-table add-table"><thead><tr>` +
         `<th>形态</th><th class="num">T+1</th><th class="num">T+5</th><th class="num">T+20</th>` +
         `</tr></thead><tbody>${bodyRows}${baseRow}</tbody></table></div>`);
-      parts.push(`<p class="chart-hint">样本高度重叠、幸存者偏差、单一上行 regime —— 这三条限制比其中三行之间的差异还大。` +
-        `对着基线读，别单看。可复跑：<code>clawock evaluate-add-shapes</code>${study.run_id ? ` · run card <code>${escapeHtml(study.run_id)}</code>` : ""}。</p>`);
+      parts.push(`<p class="chart-hint">样本重叠 · 幸存者偏差 · 单一上行 regime` +
+        `${study.run_id ? ` · <code>${escapeHtml(study.run_id)}</code>` : ""}</p>`);
     }
 
     const track = data.track_record || {};
@@ -232,8 +232,7 @@
         `<code>${escapeHtml(action)}</code> ${fixed(seat.hit_rate * 100, 1)}% ` +
         `<span class="muted">(${seat.win}胜/${seat.loss}负${seat.flat ? `/持平${seat.flat}` : ""}, n=${seat.settled})</span>`);
     if (trackParts.length) {
-      parts.push(`<p class="chart-hint"><b>这几类建议的历史命中率</b>（T+1，假设成交）：` +
-        `${trackParts.join(" · ")} —— 命中率不是执行理由，是读建议时的先验。</p>`);
+      parts.push(`<p class="chart-hint"><b>历史命中率</b>（T+1，假设成交）：${trackParts.join(" · ")}</p>`);
     }
 
     body.innerHTML = parts.join("");
@@ -323,8 +322,7 @@
       fe.push(`${k} ${fixed(e.win_rate * 100)}% ${band}`);
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
-    el.innerHTML = rows.join("")
-      + `<div style="color:var(--text-dim);font-size:var(--fs-micro);margin-top:var(--space-2)">算账在 Python：同策略连续决策按 episode 去重；一个 episode 只出一个样本、取其内部平均而非选某一条；被判定未触发的不结算；执行与建议质量分开统计。</div>`;
+    el.innerHTML = rows.join("");
     card.style.display = "";
   }
 
@@ -656,7 +654,7 @@
     if (roster && authors.length) roster.textContent = authors.join(' · ');
     if (asOf && d.generated_at) {
       const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
-      asOf.textContent = `${(authors.length ? authors : ['多源']).join(' · ')} · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`
+      asOf.textContent = ` · ${ago}h前`
         + (filterFailed ? ' · ⚠️ 本轮筛选失败，显示上轮保留条目' : '')
         + (failedSources.length ? ` · ⚠️ 来源失败：${failedSources.join('、')}` : '');
     }
@@ -1210,7 +1208,7 @@
     const n = Math.max(...cells.map(c => c.diffs.length));
     // 满量程夹在 [2.5%, 9%]：低波动的日子不该被拉成满色，高波动的也不该全部撞顶
     const full = Math.max(2.5, Math.min(9, Math.max(...cells.flatMap(c => c.diffs.map(Math.abs)))));
-    if (meta) meta.textContent = `收盘价序列 · 与上表同序 · 色深 = |当日涨跌| ÷ ${fixed(full, 1)}%`;
+    if (meta) meta.textContent = `满色 ±${fixed(full, 1)}%`;
 
     const head = `<div class="bh-row bh-head"><div class="bh-tk">标的</div>`
       + Array.from({ length: n }, (_, i) =>
@@ -1250,7 +1248,7 @@
     (rg.breaches || []).forEach(b => { if (b.ticker && !rgAction[b.ticker]) rgAction[b.ticker] = { txt: "减仓", kind: "trim" }; });
     (rg.hard_stop_watch || []).forEach(s => { if (s.ticker) rgAction[s.ticker] = { txt: "止损", kind: "stop" }; });
 
-    let usedProjection = false, usedProxy = false;
+    let usedProjection = false;
     const rows = holds.map(h => {
       const e = ev[h.ticker] || {};
       const proj = e.proj;
@@ -1261,7 +1259,6 @@
         const ra = (proj.risk || {}).action;
         if (ra) action = { txt: ra.label, kind: ra.kind };
       }
-      if (e.proxy || (q && q.is_proxy)) usedProxy = true;
       const v = (proj && proj.status) || bookVerdict(q, action);
       return { h, e, q, action, v };
     });
@@ -1334,19 +1331,15 @@
 
     const note = document.getElementById("book-note");
     if (note) {
-      // 两行层级：核心一句 + 次要说明一行。信息不减，只是不再一坨小字。
-      // 全部是静态文案（projection/proxy 只换措辞），没有数据串，innerHTML 安全。
-      note.innerHTML =
-        "点任意一行展开这只票的全部证据。状态：止损/减仓 = 硬闸规则（必动），观望/趋势ON = 技术状态，不是买卖建议。"
-        + `<span class="book-note-sub">52 周位置：低位 ≈ 近一年便宜，高位 ≈ 追高警惕。`
-        + (usedProjection ? "匹配行由 harness projection 编译；当前持仓成员以最新账本为准。" : "兼容模式：等待 projection。")
-        + (usedProxy ? " ▵ = 杠杆 ETF，量化列取底层标的。" : "") + `</span>`;
+      // 只在降级时说话：表头、展开箭头和 ▵ 的 title 已经说明了怎么读。
+      note.textContent = usedProjection ? "" : "兼容模式：等待 projection。";
+      note.hidden = usedProjection;
     }
     const meta = document.getElementById("book-meta");
     if (meta) meta.textContent = bookSort
       ? (["current_value", "cost_basis", "current_price"].includes(bookSort.key)
           ? (Number(safe(DATA, "fx", "usdhkd")) > 0 ? "按 USD 等值排序（显示本币）" : "无汇率，按币种分组排序")
-          : "按列排序") : "需动作的排最前";
+          : "按列排序") : "";
 
     if (tbody.dataset.wired !== "1") {
       tbody.dataset.wired = "1";
@@ -1863,10 +1856,11 @@
         : '无';
       countEl.style.color = n ? '' : 'var(--positive)';
       if (dirEl) {
-        dirEl.textContent = compact
-          ? stripEmoji(g.directive)
-          : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
-        // 牌上这一行夹成一行（dashboard.css `.overview-gates-directive`），全文进 title。
+        // directive 是写给模型的处方（Judge 段要怎么回应），页面只印它的第一句——
+        // 触发了什么；处方本身留在简报里。
+        const said = stripEmoji(g.directive || "").trim();
+        const stop = said.indexOf("。");
+        dirEl.textContent = stop >= 0 ? said.slice(0, stop) : said;
         dirEl.title = dirEl.textContent;
       }
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
@@ -1937,9 +1931,9 @@
     const rev = safe(DATA, "quant_signal_review");
     const edgeEl = document.getElementById('quant-edge');
     if (rev && rev.summary) {
-      edgeEl.textContent = `因子 edge 自检（T+1 前瞻收益对账，样本随时间累积）：${rev.summary}`;
+      edgeEl.textContent = `因子 edge 自检 · T+1：${rev.summary}`;
     } else {
-      edgeEl.textContent = '因子 edge 自检：信号每日留痕中；公开 events/dates/tickers，聚类 CI 完全越过 50% 才允许进入决策。';
+      edgeEl.textContent = '因子 edge 自检：留痕中';
     }
   }
 
@@ -1997,10 +1991,11 @@
     const rev = safe(DATA, "t0_setup_review");
     let backing = '';
     if (rev && rev.summary) {
-      backing = ` ｜ 牌面背书（${rev.days_logged || 0}日留痕·T+1）：${rev.summary}`;
+      backing = `牌面背书 · ${rev.days_logged || 0} 日留痕 · T+1：${rev.summary}`;
     }
-    document.getElementById('t0-note').textContent =
-      (t0.note || '') + ' 区间位=现价在当日高低区间位置（越高越接近追在顶部）；振幅/ATR>1=今日已跑过一个典型日。' + backing;
+    const t0Note = document.getElementById('t0-note');
+    t0Note.textContent = backing;
+    t0Note.hidden = !backing;
   }
 
   function renderLevRegime() {
@@ -2066,7 +2061,7 @@
       `<div class="inset-block" style="padding:8px 12px">
          <span class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">待布局弹药</span>
          <div style="font-size:var(--fs-lg);font-weight:700;margin-top:2px">${bits.join('  ·  ') || DASH}</div>
-         <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${numText(r.triggered_count)}/${numText(r.total)} 已触发 · 触发=收盘站回均线,右侧再布局</div>
+         <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${numText(r.triggered_count)}/${numText(r.total)} 已触发</div>
        </div>`;
     // 每个受监控标的一行
     const rows = r.watches.map(w => {
@@ -2096,12 +2091,9 @@
           <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">
             数据 ${escapeHtml(w.as_of || '日期未核实')} · 现价 ${num(w.close, 2)} · ${mw} ${num(w.ma, 2)}${w.state ? ' · ' + w.state : ''}
           </div>
-          ${w.note ? `<div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${w.note}</div>` : ''}
         </div>`;
     }).join('');
     document.getElementById('reentry-list').innerHTML = rows;
-    document.getElementById('reentry-asof').textContent =
-      '各行数据日期见上方 · 距均线越接近 0 越该盯 · 条件复用 lev_regime 右侧确认';
   }
 
   function renderLeveragedETF() {
@@ -3349,7 +3341,6 @@
        </div>`;
     }).join('');
     document.getElementById('breakeven-list').innerHTML = html;
-    document.getElementById('breakeven-note').textContent = bm.note || '';
   }
 
   // Where one value sits between a low and a high, as the single number both the

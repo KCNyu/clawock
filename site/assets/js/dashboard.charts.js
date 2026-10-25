@@ -391,10 +391,9 @@
           + `<td>${formatScore(score.benchmark_coverage_pct)}% (${score.benchmark_n_episodes || 0}/${score.n_episodes || 0})</td>`
           + `<td>${formatScore(score.benchmark_call_coverage_pct)}% (${score.benchmark_paired_calls || 0}/${score.benchmark_settled_calls || 0})</td></tr>`;
       }));
-    benchmarkTable.innerHTML = `<p>大盘相对方向分 · US→SPY / HK→HSI · 不调杠杆，非组合 alpha 或决策增益。</p>`
+    benchmarkTable.innerHTML = `<p>大盘相对 · US→SPY / HK→HSI · 不调杠杆</p>`
       + `<div style="overflow-x:auto"><table><thead><tr><th>全历史 episode</th><th>绝对方向分</th><th>大盘相对</th><th>episode 覆盖</th><th>call 覆盖</th></tr></thead>`
-      + `<tbody>${benchmarkRows.join("")}</tbody></table></div>`
-      + `<p>先按同期 call 配对，再按 episode 平均；部分 episode 只计可配 call。缺开盘/结算基准、盘中触发时间未知时显示未覆盖，不补值。</p>`;
+      + `<tbody>${benchmarkRows.join("")}</tbody></table></div>`;
     if (!window.echarts) return;
     const green = getCSS("--positive");
     const dim = getCSS("--text-tertiary");

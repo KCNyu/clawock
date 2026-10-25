@@ -3480,8 +3480,11 @@ async function testCardRhythmIsOneScalePerTier(browser, base) {
     if (!sample.firstTop) continue;
     byKind[sample.firstKind].push({ tab, top: sample.firstTop });
   }
+  // Only Reflect still draws section dividers, and it opens with a card, so no
+  // tab has to start with a divider; at least one has to start with a card.
+  assert(byKind.block.length > 0, "no tab starts with a card — the first-block check went vacuous");
   for (const [kind, rows] of Object.entries(byKind)) {
-    assert(rows.length > 0, `no tab starts with a ${kind} — the first-block check went vacuous`);
+    if (!rows.length) continue;
     const tops = rows.map(r => r.top);
     assert(Math.max(...tops) - Math.min(...tops) <= 2,
       `the first ${kind} does not line up across tabs: ${rows.map(r => `${r.tab}@${r.top}`).join(", ")} — ` +
@@ -3500,7 +3503,7 @@ async function testCardRhythmIsOneScalePerTier(browser, base) {
 
   // 窄屏档：同一套节奏的密档 —— 卡间距 12、分节线上方 16、线下方 12。
   const phone = await rhythmOf(browser, base, {
-    width: 390, height: 844, isMobile: true, tabs: ["hero", "drill"],
+    width: 390, height: 844, isMobile: true, tabs: ["hero", "drill", "reflect"],
   });
   for (const tab of ["hero", "drill"]) {
     const sample = phone[tab];
@@ -3510,11 +3513,13 @@ async function testCardRhythmIsOneScalePerTier(browser, base) {
       assert.equal(row.gap, 12, `${tab} (phone): ${row.from} → ${row.to} is ${row.gap}px apart, expected 12px`);
     }
   }
-  for (const gap of phone.drill.above) {
-    assert.equal(gap, 16, `drill (phone): the divider sits ${gap}px below the previous card, expected 16px`);
+  assert(phone.reflect && phone.reflect.above.length > 0,
+    "reflect (phone): no section divider to measure");
+  for (const gap of phone.reflect.above) {
+    assert.equal(gap, 16, `reflect (phone): the divider sits ${gap}px below the previous card, expected 16px`);
   }
-  for (const gap of phone.drill.below) {
-    assert.equal(gap, 12, `drill (phone): the section opens ${gap}px below the divider, expected 12px`);
+  for (const gap of phone.reflect.below) {
+    assert.equal(gap, 12, `reflect (phone): the section opens ${gap}px below the divider, expected 12px`);
   }
 }
 
