@@ -18,11 +18,11 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 101.778,
+    "price": 101.758,
     "prev": 101.607,
-    "change_pct": 0.17,
+    "change_pct": 0.15,
     "source": "yahoo",
-    "as_of": 1792970568
+    "as_of": 1792970871
   },
   "hsi": {
     "symbol": "^HSI",
@@ -157,5 +157,5 @@
     "skew": "ok",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-10-25T23:32:50.951860+00:00"
+  "generated_at": "2026-10-25T23:37:53.991530+00:00"
 }
