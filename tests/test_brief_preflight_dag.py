@@ -40,6 +40,7 @@ RELOAD_TARGETS = (
     'clawock.evidence.research_surface',
     'clawock.portfolio.integrity',
     'clawock.market_data.peer_scan',
+    'clawock.portfolio.fx',
     'clawock.harness.brief_preflight',
 )
 
@@ -379,7 +380,7 @@ def test_issues_order_is_deterministic_regardless_of_completion_order(tmp_path, 
     expected = [
         'SEC EDGAR PLTR failed',
         'SEC EDGAR MSFT failed',
-        'FX fallback used: provider down',
+        'FX fallback used: UNAVAILABLE: provider down',
         'daily bar refresh failed',
         'catalysts fetch failed',
         'benchmark history fetch failed',
@@ -410,6 +411,10 @@ def test_issues_order_is_deterministic_regardless_of_completion_order(tmp_path, 
         assert run.exit_code == 1
         assert run.issues == expected, run.issues
         assert _final_preflight_stage(run)['status'] == 'warning'
+        # No cached rate either: the legs stay, the combined totals do not (#3183).
+        book = run.context['book_totals']
+        assert book['fx_used'] is None and book['usd_base_total'] is None
+        assert book['hk_pnl_hkd'] is not None
         seen.append(run.context['issues'])
 
     assert seen[0] == seen[1]
