@@ -2667,120 +2667,143 @@ def _review_row(packet: dict, decision: dict) -> dict | None:
     return universe
 
 
-def review_plan(plan: dict, packet: dict, *,
-                exempt_breach_ids=frozenset()) -> list[dict]:
-    """Every finding about the plan, each in its own channel (`receipts`).
+def _review_authority(tag: str, decision: dict, row: dict,
+                      decisions: list[dict]) -> tuple[list[tuple], list[str] | None, list]:
+    """Whether the decision's action is open on its name.
 
-    `fact` and `feasibility` findings block; `strategy` findings are the
-    registered policy's objections and are kept with the decision. Nothing here
-    changes the plan.
+    Returns the findings, the swap leg's issues (None unless the decision is
+    judged as a mandated swap leg) and the actions open on the name.
     """
+    constraints = row.get("constraints") or {}
+    action = decision.get("action")
+    mandate = constraints.get("swap_mandate")
+    swap_issues = (
+        _swap_leg_issues(tag, decision, row, mandate, decisions)
+        if action == "add_only_on_trigger" and mandate
+        and (is_risk_swap_buy(decision) or row.get("held") is False
+             or "add_only_on_trigger" in (constraints.get("closed_actions") or {}))
+        else None
+    )
+    open_actions = constraints.get("open_actions")
+    if open_actions is None:
+        # A packet compiled before the envelope existed: the policy list
+        # is the only bound it carries.
+        open_actions = constraints.get("allowed_actions") or []
+    out: list[tuple] = []
+    if swap_issues is not None:
+        out += [(receipts.FEASIBILITY, "AUTH_SWAP_MANDATE", message) for message in swap_issues]
+    elif action not in open_actions:
+        closed = (constraints.get("closed_actions") or {}).get(action) or {}
+        out.append((closed.get("channel") or receipts.FEASIBILITY,
+                    closed.get("code") or "FEAS_ACTION_NOT_OPEN",
+                    f"{tag}: action {action!r} is not open on this name"
+                    + (f": {closed['reason']}" if closed.get("reason") else "")
+                    + f" (open: {open_actions})"))
+    else:
+        out += [(receipts.STRATEGY, code, message)
+                for code, message in _policy_objections(tag, action, row)]
+    if (swap_issues is None and is_risk_swap_buy(decision)
+            and action in open_actions):
+        # The label is a claim: `risk_rule` says a breach prescribes this
+        # buy. An open add is welcome under its own name, not under a
+        # mandate nobody issued.
+        out.append((receipts.FEASIBILITY, "AUTH_NO_SWAP_MANDATE",
+                    f"{tag}: a risk_rule buy leg needs a swap mandate and no open breach "
+                    "prescribes buying this name"))
+    return out, swap_issues, open_actions
+
+
+def _review_evidence(tag: str, decision: dict, row: dict,
+                     swap_issues: list[str] | None) -> list[tuple]:
+    """Whether the prices and the catalyst a decision cites are on the record."""
+    out: list[tuple] = []
+    action = decision.get("action")
+    claimed = _number(decision.get("simulated_entry_price"), 4)
+    observed = {_number((row.get("facts") or {}).get("current_price"), 4),
+                to_strict_finite_number((decision.get("condition") or {}).get("price"))} - {None}
+    if claimed is not None and observed and claimed not in observed:
+        # A trigger level is the plan's to choose; a price it says was
+        # observed has to be one the packet carries.
+        out.append((receipts.FACT, "FACT_PRICE_NOT_OBSERVED",
+                    f"{tag}: simulated_entry_price {claimed:g} is neither the packet's price "
+                    "for this name nor the plan's own trigger"))
+    if decision.get("driven_by") == "catalyst":
+        out += _catalyst_evidence_findings(tag, decision, row)
+    elif (action in ACTIVE_ACTIONS and swap_issues is None
+          and decision.get("strategy_id") != "risk_rebalance"
+          and not decision.get("technical_setup_id")):
+        out.append((receipts.STRATEGY, "STRAT_ACTIVE_WITHOUT_CATALYST",
+                    f"{tag}: the registered policy takes an active {action} only on a "
+                    "catalyst, a registered setup or a risk rule"))
+    return out
+
+
+def _review_one_decision(index: int, decision: dict, packet: dict,
+                         decisions: list[dict]) -> tuple[list[dict], dict | None]:
+    """The findings about one decision on its own, and the size it commits.
+
+    The size (`ticker`, `sell_shares`, `add_shares`, `cash_leg`, `spend`) is
+    what `_review_plan_aggregates` adds up across the plan; None when the
+    decision names no priceable row.
+    """
+    ticker = str(decision.get("ticker") or "")
+    tag = f"decision[{index}] {ticker}"
+    row = _review_row(packet, decision)
+    if not row:
+        return [receipts.finding(
+            receipts.FACT, "FACT_TICKER_NOT_PRICEABLE",
+            f"{tag}: ticker is outside current decision packet "
+            "(not a holding, a swap target or a name with stored daily bars)",
+            index=index, ticker=ticker)], None
+    constraints = row.get("constraints") or {}
+    action = decision.get("action")
+    out, swap_issues, open_actions = _review_authority(tag, decision, row, decisions)
+    out += _review_evidence(tag, decision, row, swap_issues)
+    shares = _number((decision.get("size") or {}).get("shares"), 0)
+    max_sell = _number(constraints.get("max_sell_shares"), 0)
+    if (shares is not None and max_sell is not None
+            and action in SELL_ACTIONS and shares > max_sell):
+        out.append((receipts.FEASIBILITY, "FEAS_SELL_EXCEEDS_HOLDING",
+                    f"{tag}: size.shares {shares:g} exceeds holding {max_sell:g}"))
+    whole = _whole_shares(decision)
+    if action in SELL_ACTIONS and whole is None and (
+        (decision.get("size") or {}).get("shares") is not None
+        or action in (constraints.get("forced_action_one_of") or [])
+    ):
+        # An unsized sell stays advisory (`missing_size_warnings`); a zero,
+        # negative or fractional one is not a sell, and a leg that answers a
+        # forced action has to say how much it reduces.
+        out.append((receipts.FEASIBILITY, "FEAS_SELL_NOT_POSITIVE_INTEGER",
+                    f"{tag}: sell leg requires positive integer size.shares"))
+    sized = {"ticker": ticker, "sell_shares": whole if action in SELL_ACTIONS else None,
+             "add_shares": None, "cash_leg": None, "spend": 0.0}
+    if swap_issues is None and action in {"add_only_on_trigger", "add_on_breakout"} \
+            and action in open_actions:
+        sized["add_shares"] = whole
+        out += _add_findings(tag, decision, row)
+        price = (to_strict_finite_number((decision.get("condition") or {}).get("price"))
+                 or _number((row.get("facts") or {}).get("current_price"), 4))
+        if shares and shares > 0 and price:
+            sized["cash_leg"] = str(row.get("leg") or "")
+            sized["spend"] = shares * price
+    return [receipts.finding(channel, code, message, index=index, ticker=ticker)
+            for channel, code, message in out], sized
+
+
+def _review_plan_aggregates(sized: list[dict], packet: dict, decisions: list[dict],
+                            exempt_breach_ids) -> list[dict]:
+    """The findings no single decision carries: what the plan's legs add up to."""
     out: list[dict] = []
-    rows = packet.get("tickers") or {}
-    decisions = [d for d in plan.get("decisions") or [] if isinstance(d, dict)]
-    leg_spend: dict[str, float] = {}
     sell_sizes: dict[str, list[int]] = {}
     add_sizes: dict[str, list[int]] = {}
-
-    def add(channel, code, message, index, ticker):
-        out.append(receipts.finding(channel, code, message, index=index, ticker=ticker))
-
-    for index, decision in enumerate(plan.get("decisions") or []):
-        if not isinstance(decision, dict):
-            continue
-        ticker = str(decision.get("ticker") or "")
-        tag = f"decision[{index}] {ticker}"
-        row = _review_row(packet, decision)
-        if not row:
-            add(receipts.FACT, "FACT_TICKER_NOT_PRICEABLE",
-                f"{tag}: ticker is outside current decision packet "
-                "(not a holding, a swap target or a name with stored daily bars)",
-                index, ticker)
-            continue
-        constraints = row.get("constraints") or {}
-        action = decision.get("action")
-        mandate = constraints.get("swap_mandate")
-        swap_issues = (
-            _swap_leg_issues(tag, decision, row, mandate, decisions)
-            if action == "add_only_on_trigger" and mandate
-            and (is_risk_swap_buy(decision) or row.get("held") is False
-                 or "add_only_on_trigger" in (constraints.get("closed_actions") or {}))
-            else None
-        )
-        open_actions = constraints.get("open_actions")
-        if open_actions is None:
-            # A packet compiled before the envelope existed: the policy list
-            # is the only bound it carries.
-            open_actions = constraints.get("allowed_actions") or []
-        if swap_issues is not None:
-            for message in swap_issues:
-                add(receipts.FEASIBILITY, "AUTH_SWAP_MANDATE", message, index, ticker)
-        elif action not in open_actions:
-            closed = (constraints.get("closed_actions") or {}).get(action) or {}
-            add(closed.get("channel") or receipts.FEASIBILITY,
-                closed.get("code") or "FEAS_ACTION_NOT_OPEN",
-                f"{tag}: action {action!r} is not open on this name"
-                + (f": {closed['reason']}" if closed.get("reason") else "")
-                + f" (open: {open_actions})",
-                index, ticker)
-        else:
-            for code, message in _policy_objections(tag, action, row):
-                add(receipts.STRATEGY, code, message, index, ticker)
-        if (swap_issues is None and is_risk_swap_buy(decision)
-                and action in open_actions):
-            # The label is a claim: `risk_rule` says a breach prescribes this
-            # buy. An open add is welcome under its own name, not under a
-            # mandate nobody issued.
-            add(receipts.FEASIBILITY, "AUTH_NO_SWAP_MANDATE",
-                f"{tag}: a risk_rule buy leg needs a swap mandate and no open breach "
-                "prescribes buying this name", index, ticker)
-        claimed = _number(decision.get("simulated_entry_price"), 4)
-        observed = {_number((row.get("facts") or {}).get("current_price"), 4),
-                    to_strict_finite_number((decision.get("condition") or {}).get("price"))} - {None}
-        if claimed is not None and observed and claimed not in observed:
-            # A trigger level is the plan's to choose; a price it says was
-            # observed has to be one the packet carries.
-            add(receipts.FACT, "FACT_PRICE_NOT_OBSERVED",
-                f"{tag}: simulated_entry_price {claimed:g} is neither the packet's price "
-                "for this name nor the plan's own trigger", index, ticker)
-        if decision.get("driven_by") == "catalyst":
-            for channel, code, message in _catalyst_evidence_findings(tag, decision, row):
-                add(channel, code, message, index, ticker)
-        elif (action in ACTIVE_ACTIONS and swap_issues is None
-              and decision.get("strategy_id") != "risk_rebalance"
-              and not decision.get("technical_setup_id")):
-            add(receipts.STRATEGY, "STRAT_ACTIVE_WITHOUT_CATALYST",
-                f"{tag}: the registered policy takes an active {action} only on a "
-                "catalyst, a registered setup or a risk rule", index, ticker)
-        shares = _number((decision.get("size") or {}).get("shares"), 0)
-        max_sell = _number(constraints.get("max_sell_shares"), 0)
-        if (shares is not None and max_sell is not None
-                and action in SELL_ACTIONS and shares > max_sell):
-            add(receipts.FEASIBILITY, "FEAS_SELL_EXCEEDS_HOLDING",
-                f"{tag}: size.shares {shares:g} exceeds holding {max_sell:g}", index, ticker)
-        if action in SELL_ACTIONS and _whole_shares(decision) is None and (
-            (decision.get("size") or {}).get("shares") is not None
-            or action in (constraints.get("forced_action_one_of") or [])
-        ):
-            # An unsized sell stays advisory (`missing_size_warnings`); a zero,
-            # negative or fractional one is not a sell, and a leg that answers a
-            # forced action has to say how much it reduces.
-            add(receipts.FEASIBILITY, "FEAS_SELL_NOT_POSITIVE_INTEGER",
-                f"{tag}: sell leg requires positive integer size.shares", index, ticker)
-        whole = _whole_shares(decision)
-        if whole is not None and action in SELL_ACTIONS:
-            sell_sizes.setdefault(ticker, []).append(whole)
-        if swap_issues is None and action in {"add_only_on_trigger", "add_on_breakout"} \
-                and action in open_actions:
-            if whole is not None:
-                add_sizes.setdefault(ticker, []).append(whole)
-            for channel, code, message in _add_findings(tag, decision, row):
-                add(channel, code, message, index, ticker)
-            price = (to_strict_finite_number((decision.get("condition") or {}).get("price"))
-                     or _number((row.get("facts") or {}).get("current_price"), 4))
-            if shares and shares > 0 and price:
-                leg = str(row.get("leg") or "")
-                leg_spend[leg] = leg_spend.get(leg, 0.0) + shares * price
+    leg_spend: dict[str, float] = {}
+    for item in sized:
+        if item["sell_shares"] is not None:
+            sell_sizes.setdefault(item["ticker"], []).append(item["sell_shares"])
+        if item["add_shares"] is not None:
+            add_sizes.setdefault(item["ticker"], []).append(item["add_shares"])
+        if item["cash_leg"] is not None:
+            leg_spend[item["cash_leg"]] = leg_spend.get(item["cash_leg"], 0.0) + item["spend"]
     # Conditions are independent orders, not an OCO contract. Splitting a
     # position into several legs cannot multiply its inventory or add room.
     for sizes_by_ticker, bound, code in (
@@ -2791,25 +2814,52 @@ def review_plan(plan: dict, packet: dict, *,
             row = decision_row(packet, ticker) or {}
             limit = _number((row.get("constraints") or {}).get(bound), 0)
             if len(sizes) > 1 and limit is not None and sum(sizes) > limit:
-                add(receipts.FEASIBILITY, code,
+                out.append(receipts.finding(
+                    receipts.FEASIBILITY, code,
                     f"{ticker}: the plan's combined {sum(sizes)} shares exceed "
-                    f"{bound} {limit:g}", None, ticker)
+                    f"{bound} {limit:g}", ticker=ticker))
     for ticker in add_sizes:
         experimental = [d for d in decisions if d.get("ticker") == ticker
                         and d.get("technical_setup_id") == preposition.SETUP_ID]
         if len(experimental) > 1:
-            add(receipts.FEASIBILITY, "AUTH_PREPOSITION_TERMS",
-                f"{ticker}: only one experimental tranche may be open per plan", None, ticker)
+            out.append(receipts.finding(
+                receipts.FEASIBILITY, "AUTH_PREPOSITION_TERMS",
+                f"{ticker}: only one experimental tranche may be open per plan", ticker=ticker))
     cash = (packet.get("portfolio") or {}).get("cash_available") or {}
     for leg, spend in sorted(leg_spend.items()):
         available = _number(cash.get(leg), 2)
         if available is not None and spend > available:
-            add(receipts.FEASIBILITY, "FEAS_EXCEEDS_CASH",
+            out.append(receipts.finding(
+                receipts.FEASIBILITY, "FEAS_EXCEEDS_CASH",
                 f"{leg}: the plan's adds need {spend:,.2f} and the leg holds "
-                f"{available:,.2f} in cash", None, None)
+                f"{available:,.2f} in cash"))
+    rows = packet.get("tickers") or {}
     for message in _full_position_shortfalls(decisions, rows, exempt_breach_ids):
-        add(receipts.FEASIBILITY, "AUTH_OBLIGATION_SHORTFALL", message, None, None)
+        out.append(receipts.finding(receipts.FEASIBILITY, "AUTH_OBLIGATION_SHORTFALL", message))
     return out
+
+
+def review_plan(plan: dict, packet: dict, *,
+                exempt_breach_ids=frozenset()) -> list[dict]:
+    """Every finding about the plan, each in its own channel (`receipts`).
+
+    `fact` and `feasibility` findings block; `strategy` findings are the
+    registered policy's objections and are kept with the decision. Nothing here
+    changes the plan. Each decision is judged on its own first
+    (`_review_one_decision`), then the plan as a whole
+    (`_review_plan_aggregates`).
+    """
+    out: list[dict] = []
+    decisions = [d for d in plan.get("decisions") or [] if isinstance(d, dict)]
+    sized: list[dict] = []
+    for index, decision in enumerate(plan.get("decisions") or []):
+        if not isinstance(decision, dict):
+            continue
+        findings, size = _review_one_decision(index, decision, packet, decisions)
+        out += findings
+        if size is not None:
+            sized.append(size)
+    return out + _review_plan_aggregates(sized, packet, decisions, exempt_breach_ids)
 
 
 def validate_plan_constraints(plan: dict, packet: dict, *,
