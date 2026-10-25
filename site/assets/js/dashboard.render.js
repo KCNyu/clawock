@@ -178,9 +178,10 @@
         const detail = row.active ? "已激活"
           : progress ? `${progress.counter} ${numText(progress.have)}/${numText(progress.need)}`
           : (row.blockers || []).join("、") || "预热中";
-        return `<div class="add-family">` +
-          `<span class="add-family-name">${escapeHtml(label)}</span>` +
-          `<span class="add-family-bar"><i style="width:${pctDone}%"></i></span>` +
+        const bar = progress || row.active
+          ? `<span class="add-family-bar"><i style="width:${pctDone}%"></i></span>` : "";
+        return `<div class="add-family${bar ? "" : " is-blocked"}">` +
+          `<span class="add-family-name">${escapeHtml(label)}</span>` + bar +
           `<span class="add-family-detail ${row.active ? "is-on" : ""}">${escapeHtml(detail)}</span>` +
           `</div>`;
       }).join("") + `</div>`);
@@ -340,7 +341,7 @@
       renderNewsDigest, renderMacro, renderPeerDivergence, renderSectorContext,
     ],
     plan: [
-      renderAddSide, renderWatchLevels, renderPlanActions, renderPlanTimeline,
+      renderAddSide, renderWatchLevels, renderPlanTimeline,
       renderBearCases, renderHiddenConcentration,
     ],
     reflect: [
@@ -523,7 +524,7 @@
       }).join("<br>");
       const inBook = (s.tickers_in_book || []).join(", ");
       return `<div class="sector-block">
-        <div class="theme">${escape(s.theme)} ${inBook ? `<span class="in-book">[持仓: ${escape(inBook)}]</span>` : ""}</div>
+        <div class="theme">${escape(s.theme)} ${inBook ? `<span class="in-book">持仓 ${escape(inBook)}</span>` : ""}</div>
         <div class="movers">${movers || '<span class="muted" style="font-size:var(--fs-xs)">— LLM 未填 top movers</span>'}</div>
         ${selfRows ? `<div class="self">${selfRows}</div>` : ""}
       </div>`;
@@ -581,7 +582,11 @@
       const tag = x._type === 'earnings' ? (x.ticker || '?') :
                   x._type === 'fomc' ? 'FOMC' :
                   (x.type || 'MACRO');
-      const detail = x.detail || x.title || x.time || '—';
+      // An earnings date with no announced time used to print the bare word
+      // 「unknown」 as its whole description.
+      const known = v => v && String(v).toLowerCase() !== 'unknown' ? v : '';
+      const detail = known(x.detail) || known(x.title) || known(x.time)
+        || (x._type === 'earnings' ? '财报' : '—');
       return `<div class="catalyst-row ${x._type}">
         <span class="date">${escapeHtml(x.date || '—')}</span>
         <span class="ticker">${escapeHtml(tag)}</span>
@@ -630,11 +635,13 @@
     if (!items.length) {
       if (sumEl) sumEl.innerHTML = '';
       const lines = [];
-      if (filterFailed) lines.push('⚠ LLM 相关性筛选本轮失败，未发布未评分条目');
-      if (failedSources.length) lines.push(`⚠ 来源失败：${escapeHtml(failedSources.join('、'))}`);
-      wrap.innerHTML = `<div class="empty-state">${lines.length
-        ? lines.join('<br>')
-        : 'No influence signals (48h).'}</div>`;
+      const fail = text => `<div class="source-fail">`
+        + `<span class="grade-dot" data-tone="warn" aria-hidden="true"></span>${text}</div>`;
+      if (filterFailed) lines.push(fail('LLM 相关性筛选本轮失败，未发布未评分条目'));
+      if (failedSources.length) lines.push(fail(`来源失败：${escapeHtml(failedSources.join('、'))}`));
+      wrap.innerHTML = lines.length
+        ? `<div class="empty-state is-failure">${lines.join('')}</div>`
+        : '<div class="empty-state">No influence signals (48h).</div>';
       return;
     }
     const c = d.counts || {};
@@ -650,8 +657,8 @@
     if (asOf && d.generated_at) {
       const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
       asOf.textContent = ` · ${ago}h前`
-        + (filterFailed ? ' · ⚠ 本轮筛选失败，显示上轮保留条目' : '')
-        + (failedSources.length ? ` · ⚠ 来源失败：${failedSources.join('、')}` : '');
+        + (filterFailed ? ' · 本轮筛选失败，显示上轮保留条目' : '')
+        + (failedSources.length ? ` · 来源失败：${failedSources.join('、')}` : '');
     }
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');
     const stanceTxt = (s) => ({endorse:'看多', buy:'买入', attack:'看空', sell:'卖出', neutral:'中性'}[s] || s || '');
@@ -793,7 +800,7 @@
         rgEl.className = 'regime-badge ' + rg.label;
         rgEl.style.display = 'flex';
         rgEl.innerHTML = `<span class="rg-dot"></span>`
-          + `<span class="rg-label">${escapeHtml(rg.label.replace('_',' '))}</span>`
+          + `<span class="rg-label">${escapeHtml(({risk_on: 'Risk on', risk_off: 'Risk off', neutral: 'Neutral'})[rg.label] || rg.label.replace('_',' '))}</span>`
           + `<span class="rg-reasons">${escapeHtml((rg.reasons || []).join(' · '))} → ${escapeHtml(guard)}</span>`;
       } else {
         rgEl.style.display = 'none';
@@ -851,7 +858,7 @@
     if (m.fed_press?.length) {
       const fedDiv = document.createElement('div');
       fedDiv.className = 'fed-latest';
-      fedDiv.style.cssText = 'margin-top:8px;padding: var(--space-2) var(--space-3);background:var(--fill-inset);border-radius:var(--radius-sm);font-size:var(--fs-xs);border-left:3px solid var(--accent);';
+      fedDiv.style.cssText = 'margin-top:8px;padding: var(--space-2) var(--space-3);background:var(--fill-inset);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:var(--fs-xs);';
       const rows = m.fed_press.slice(0, 3).map(p => {
         // Fed RSS 的 title/link 是外部 XML 原文：文本完整转义；href 只接受
         // https —— escapeHtml 防属性逃逸，但不防 javascript: scheme。
@@ -907,7 +914,7 @@
         <summary>
           <span class="sd-tk">${escapeHtml(t.ticker)}</span>
           <span class="sd-reg">${regionTag(t.region)}</span>
-          <span class="sd-counts"><strong>${t.reddit == null ? '—' : t.reddit}</strong>R · <strong>${t.news.length}</strong>N</span>
+          <span class="sd-counts">Reddit <strong>${t.reddit == null ? '—' : t.reddit}</strong> · 新闻 <strong>${t.news.length}</strong></span>
         </summary>
         <div class="sd-body">
           ${newsLis ? `<div class="sd-grp">News</div><ul>${newsLis}</ul>` :
@@ -1639,7 +1646,7 @@
       const netHkd = safe(sidecar, "net_cumulative_diff", "HKD");
       const netText = (netUsd == null && netHkd == null) ? ""
         : ` · 净 USD ${signedMoney(netUsd, "USD")} / HKD ${signedMoney(netHkd, "HKD")}`;
-      summary.textContent = `⚠模拟·非实盘 · ${unrepresentative ? `${coverageText} · ` : ""}毛 USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
+      summary.textContent = `模拟·非实盘 · ${unrepresentative ? `${coverageText} · ` : ""}毛 USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
         + ` · HKD差 ${signedMoney(safe(sidecar, "cumulative_diff", "HKD"), "HKD")}`
         + netText
         + ` · real ${countText(realCount)} / assumed ${countText(assumedCount)} / skipped ${countText(skippedCount)}`
@@ -1963,7 +1970,11 @@
     const names = Object.keys(rows);
     if (!names.length) { card.style.display = 'none'; return; }
     card.style.display = '';
-    document.getElementById('t0-asof').textContent = (t0.as_of || '') + t0SessionLabel(t0);
+    const t0At = new Date(t0.as_of || '');
+    const t0Stamp = /T\d/.test(t0.as_of || '') && !isNaN(t0At)
+      ? t0At.toLocaleString('sv-SE', { timeZone: 'Asia/Hong_Kong' }).slice(5, 16) + ' HKT'
+      : (t0.as_of || '');
+    document.getElementById('t0-asof').textContent = t0Stamp + t0SessionLabel(t0);
     const num = t0Num;
     const cls = v => v == null ? '' : (v < 0 ? 'style="color:var(--negative)"' : 'style="color:var(--positive)"');
     // 🔴 追高排前面（最该看的牌面）。档位在牌面上画成圆点，不印 emoji（#869）。
@@ -2142,35 +2153,6 @@
     return { key, label: PLAN_OUTCOMES[key] };
   }
 
-  function renderPlanActions() {
-    const list = (safe(DATA, "recent_decisions") || []).slice(0, 8);
-    const wrap = document.getElementById("plan-actions");
-    if (!list.length) {
-      wrap.innerHTML = '<div class="empty-state">No recent plan actions.</div>';
-      return;
-    }
-    wrap.innerHTML = list.map(a => {
-      const outcome = planOutcome(a.outcome);
-      const oc = outcome.key;
-      const conf = a.confidence != null ? fixed(a.confidence * 100) + "%" : DASH;
-      const pnl = a.benefit_t1_pct != null ? fmtPct(a.benefit_t1_pct) : DASH;
-      const cond = a.condition || {};
-      return `
-        <div class="plan-action">
-          <div>
-            <div class="tk">${escapeHtml(a.ticker || DASH)}</div>
-            <div class="date">${escapeHtml(a.date || "")}</div>
-          </div>
-          <div>
-            <div>${escapeHtml(a.action || DASH)}${bucketWinBadge(a.action)}${driverChip(a.driven_by)}</div>
-            <div class="meta">${escapeHtml(a.strategy_id || DASH)} · conf ${conf} · ${escapeHtml(cond.type || DASH)} · 方向分 ${pnl}</div>
-          </div>
-          <div class="outcome ${oc}">${outcome.label}</div>
-        </div>
-      `;
-    }).join("");
-  }
-
   // =========================================================
   // LLM narrative cards (text-only; keys never reach the client)
   // =========================================================
@@ -2186,14 +2168,10 @@
     if (!br || !br.verdict) { card.style.display = "none"; return; }
     card.style.display = "";
     document.getElementById("br-verdict").textContent = br.verdict;
-    const tagMeta = {
-      edge:    { cls: "br-edge", icon: "✓" },
-      bias:    { cls: "br-bias", icon: "⚠" },
-      warning: { cls: "br-warn", icon: "" },
-    };
+    const tagClass = { edge: "br-edge", bias: "br-bias", warning: "br-warn" };
     document.getElementById("br-points").innerHTML = (br.points || []).map(p => {
-      const tm = tagMeta[(p.tag || "").toLowerCase()] || { cls: "br-bias", icon: "·" };
-      return `<div class="br-point ${tm.cls}"><span class="br-icon">${tm.icon}</span>`
+      const cls = tagClass[(p.tag || "").toLowerCase()] || "br-bias";
+      return `<div class="br-point ${cls}"><span class="br-icon" aria-hidden="true"></span>`
            + `<span>${escLLM(p.text)}</span></div>`;
     }).join("");
     const meta = safe(DATA, "insights_meta") || {};
@@ -2225,10 +2203,10 @@
     const timingEvents = ["HKD", "USD"].flatMap(
       ccy => ((byCcy[ccy] || {}).events || []));
     document.getElementById("timing-events").innerHTML = timingEvents.length
-      ? `<table><thead><tr><th>标的/日</th><th>方向·股数</th><th>AI 成交</th><th>同日收盘</th><th>好多少</th></tr></thead><tbody>`
+      ? `<table class="delta-table"><thead><tr><th>标的/日</th><th>方向·股数</th><th>AI 成交</th><th>同日收盘</th><th>好多少</th></tr></thead><tbody>`
         + timingEvents.map(e => `<tr>
           <td>${escapeHtml(e.ticker)}<div class="muted">${escapeHtml(e.session)} · ${e.currency}</div></td>
-          <td>${e.direction === "sell" ? "卖" : "买"} ${numText(e.shares)}</td>
+          <td class="num">${e.direction === "sell" ? "卖" : "买"} ${numText(e.shares)}</td>
           <td class="num">${numText(e.ai_execution_price)}</td>
           <td class="num">${numText(e.same_day_close)}</td>
           <td class="num ${pnlClass(e.improvement_bps)}">${e.improvement_bps == null ? DASH : `${e.improvement_bps >= 0 ? "+" : ""}${numText(e.improvement_bps)} bps`}<div class="muted">${fmtMoney(e.improvement_amount, e.currency)}</div></td>
@@ -2767,7 +2745,12 @@
     const wrap = document.getElementById("plan-timeline");
     if (!wrap) return;
     const card = wrap.closest('.card');
-    const list = trail("plan_timeline") || [];
+    // The timeline rides the decision-trail sidecar. Until it lands (or if it
+    // never does) the ledger's own newest rows on the main payload stand in:
+    // the card used to have a twin, 近 5 日动作, that printed the first eight
+    // of these same rows again in a shorter form.
+    const timeline = trail("plan_timeline");
+    const list = (timeline && timeline.length ? timeline : safe(DATA, "recent_decisions")) || [];
     if (!list.length) { if (card) card.style.display = 'none'; return; }
     if (card) card.style.display = '';
     const fmtConf = c => (c == null ? DASH : fixed(c * 100) + "%");
@@ -2817,12 +2800,12 @@
       return `
         <div class="pt-row outcome-${oc}">
           <div class="pt-head">
-            <div class="pt-date">${a.date || ""}</div>
+            <div class="pt-date">${escapeHtml(a.date || "")}</div>
             <div class="pt-ticker">${escapeHtml(a.ticker || DASH)}</div>
             <div class="pt-region">${region}</div>
           </div>
           <div class="pt-body">
-            <div class="pt-action">${escapeHtml(a.action || DASH)}${bucketWinBadge(a.action)} · ${escapeHtml(a.strategy_id || DASH)}</div>
+            <div class="pt-action">${escapeHtml(a.action || DASH)}${bucketWinBadge(a.action)}${driverChip(a.driven_by)} · ${escapeHtml(a.strategy_id || DASH)}</div>
             <div class="pt-trigger">${escapeHtml(trig)}</div>
             ${cond}
             ${rationale}
@@ -2929,6 +2912,16 @@
       .replace(/`([^`]+)`/g, '<code>$1</code>');
   }
 
+  // The ledger's producer writes its verdicts and checks with coloured emoji
+  // (🔴 未通过, `· ✅`, `⚪ 未达标`). The section's tone already says which
+  // verdict it is, so the page draws that as the row dot and keeps the words;
+  // a check whose only content was ✅ says 达标.
+  const LEDGER_MARK = /[\u{1F000}-\u{1FAFF}\u{2300}-\u{23FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu;
+  function ledgerPlain(text) {
+    return String(text == null ? "" : text)
+      .replace(/✅\s*$/u, "达标").replace(LEDGER_MARK, "").replace(/[ \t]{2,}/g, " ").trim();
+  }
+
   function renderLedger() {
     const host = document.getElementById("ledger-body");
     if (!host) return;
@@ -2956,9 +2949,9 @@
       const source = section.source ? `<span class="lg-meta">${ledgerText(section.source)}</span>` : "";
       const rows = (section.rows || []).map(row =>
         `<div class="lg-row"><div class="lg-label">${ledgerText(row.label)}</div>`
-        + `<div class="lg-value">${ledgerText(row.value)}</div></div>`).join("");
+        + `<div class="lg-value">${ledgerText(ledgerPlain(row.value))}</div></div>`).join("");
       return `<div class="lg-section" data-tone="${tone}">`
-        + `<div class="lg-head"><span class="lg-verdict">${escapeHtml(section.verdict || "")}</span>`
+        + `<div class="lg-head"><span class="lg-verdict"><span class="grade-dot" data-tone="${escapeHtml(tone)}" aria-hidden="true"></span>${escapeHtml(ledgerPlain(section.verdict))}</span>`
         + `<span class="lg-title">${ledgerText(section.title)}</span></div>`
         + `<div class="lg-metabar">${sample}${source}</div>`
         + `<div class="lg-rows">${rows}</div>`

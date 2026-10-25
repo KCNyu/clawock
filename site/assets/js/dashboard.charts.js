@@ -390,8 +390,8 @@
           + `<td>${formatScore(score.benchmark_coverage_pct)}% (${score.benchmark_n_episodes || 0}/${score.n_episodes || 0})</td>`
           + `<td>${formatScore(score.benchmark_call_coverage_pct)}% (${score.benchmark_paired_calls || 0}/${score.benchmark_settled_calls || 0})</td></tr>`;
       }));
-    benchmarkTable.innerHTML = `<p>大盘相对 · US→SPY / HK→HSI · 不调杠杆</p>`
-      + `<div style="overflow-x:auto"><table><thead><tr><th>全历史 episode</th><th>绝对方向分</th><th>大盘相对</th><th>episode 覆盖</th><th>call 覆盖</th></tr></thead>`
+    benchmarkTable.innerHTML = `<div class="sub-block-head">大盘相对<span class="muted">US→SPY / HK→HSI · 不调杠杆</span></div>`
+      + `<div style="overflow-x:auto"><table class="delta-table"><thead><tr><th>全历史 episode</th><th>绝对方向分</th><th>大盘相对</th><th>episode 覆盖</th><th>call 覆盖</th></tr></thead>`
       + `<tbody>${benchmarkRows.join("")}</tbody></table></div>`;
     if (!window.echarts) return;
     const green = getCSS("--positive");

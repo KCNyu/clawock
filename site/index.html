@@ -443,10 +443,10 @@ layout: null
       <button type="button" class="shadow-toggle" id="shadow-portfolio-toggle"
               aria-expanded="false" aria-controls="shadow-portfolio-expanded">
         <span class="shadow-toggle-title">政策模拟</span>
-        <span class="shadow-summary" id="shadow-portfolio-summary">⚠模拟·非实盘 · USD差 — · HKD差 — · real — / assumed — / skipped —</span>
+        <span class="shadow-summary" id="shadow-portfolio-summary">模拟·非实盘 · USD差 — · HKD差 — · real — / assumed — / skipped —</span>
       </button>
       <div class="shadow-expanded" id="shadow-portfolio-expanded" hidden>
-        <div class="shadow-sim-label">⚠ 模拟·非实盘</div>
+        <div class="shadow-sim-label">模拟·非实盘</div>
         <p class="shadow-estimand"><b id="shadow-estimand-headline">跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha（毛）</b></p>
         <p class="shadow-estimand">毛额按 qty×price 成交，不含任何成本。「净」是同一条回放扣掉预注册的佣金与半点差假设后的结果——假设写在 <code>config/cost-model.json</code>，随每一个净值一起发布，冲击成本未建模。</p>
         <div class="empty-state" id="shadow-portfolio-empty">数据不足</div>
@@ -709,16 +709,9 @@ layout: null
       <div id="add-side-body"></div>
     </div>
 
-    <div class="card" id="watch-levels-card" style="display:none">
+    <div class="card lead" id="watch-levels-card" style="display:none">
       <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)"></span></h3>
       <div class="watch-levels" id="watch-levels-list"></div>
-    </div>
-
-    <div class="card lead">
-      <h3>近 5 日动作</h3>
-      <div class="plan-actions" id="plan-actions">
-        <div class="empty-state">No recent plan actions.</div>
-      </div>
     </div>
 
     <div class="card lead">
@@ -810,7 +803,7 @@ layout: null
         </div>
       </div>
       <p class="chart-hint" id="plan-provenance" hidden>—</p>
-      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:4px 0 12px;font-weight:600">各类动作 · 30 日胜率</div>
+      <div class="trig-title" style="font-size:var(--fs-xs);color:var(--text-dim);margin:4px 0 12px;font-weight:600">各类动作 · 30 日胜率</div>
       <div id="plan-bucket-bars"></div>
       <div class="trig-block">
         <div class="trig-title">按触发类型</div>
@@ -832,7 +825,7 @@ layout: null
       <div class="retired-note">
         <p>只有方向命中率，不展示金额。</p>
       </div>
-      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">累计 episode 胜率</div>
+      <div class="trig-title" style="font-size:var(--fs-xs);color:var(--text-dim);margin:16px 0 4px;font-weight:600">累计 episode 胜率</div>
       <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
     
       </div>

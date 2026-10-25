@@ -194,7 +194,7 @@ def test_neutral_regime_badge_label_meets_aa_in_both_themes(theme):
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("chip, row", [
     (".infl-who", ".infl-row"),
-    (".drv-chip", ".plan-action"),
+    (".drv-chip", ".pt-row"),
 ])
 def test_hardcoded_source_chips_meet_aa_in_both_themes(chip, row, theme):
     """#1583: the Musk author badge (`#3b82f6`) and the 同行 driver chip
