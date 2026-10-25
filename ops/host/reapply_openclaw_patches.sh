@@ -25,10 +25,12 @@ case "$RUN_MODE" in
       fi
       "$patch_script"
     done
+    python3 "$(dirname "$0")/patch_dreaming_fallbacks.py"
     bash "$(dirname "$0")/install_skillhub_plugin.sh"
     bash "$(dirname "$0")/install_memory_corpus_plugin.sh"
     ;;
   --check-only)
+    python3 "$(dirname "$0")/patch_dreaming_fallbacks.py" --check
     bash "$(dirname "$0")/install_skillhub_plugin.sh" --check
     bash "$(dirname "$0")/install_memory_corpus_plugin.sh" --check
     ;;

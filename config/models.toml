@@ -97,6 +97,8 @@ maxTokens = 128000
 cost = { input = 0, output = 0, cacheRead = 0, cacheWrite = 0 }
 compat = { supportsReasoningEffort = true, supportedReasoningEfforts = ["low", "medium", "high", "xhigh", "max"] }
 runtime = "codex"
+# Dreaming's fallback is Luna at max; explicit chain thinking still wins.
+params = { thinking = "max" }
 
 [models.sonnet]
 ref = "anthropic/claude-sonnet-5-5"
@@ -123,7 +125,8 @@ models = ["flash"]
 models = ["flash"]
 
 [chains.dreaming]  # memory-core dreaming and its subagent allowlist
-models = ["flash"]
+# Keep MiniMax primary; use the Codex runtime only when it fails.
+models = ["flash", "luna"]
 
 [chains.cron]  # strategy crons: report / intraday / brief
 models = ["flash", "flash@minimax-2", "luna"]
@@ -147,7 +150,7 @@ models = ["flash"]
 
 [openclaw.agents.defaults]
 # The level for a model without `params.thinking`: deepseek (chat fallback),
-# luna, sonnet. MiniMax-M3.1-Flash has its own above.
+# sonnet. MiniMax-M3.1-Flash and Luna have their own above.
 thinkingDefault = "high"
 
 [openclaw.talk]

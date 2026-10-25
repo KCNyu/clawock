@@ -137,3 +137,23 @@ def test_dsh_minimax_block_is_rendered_in_place(registry, item_indent):
             assert f'{pad}- id: {model.id}\n' in out
     assert out.endswith('# outside the block\n- id: llm-deepseek\n')
     assert sync.render_dsh(out, registry) == out
+
+
+def test_dreaming_keeps_primary_and_renders_a_real_fallback_chain(registry):
+    out = sync.render_openclaw({'plugins': {'entries': {'memory-core': {
+        'subagent': {'allowModelOverride': True}}}}}, registry)
+    memory = out['plugins']['entries']['memory-core']
+    assert memory['config']['dreaming'] == {
+        'model': 'minimax/MiniMax-M3.1-Flash', 'fallbacks': ['openai/gpt-6-luna']}
+    assert memory['subagent'] == {
+        'allowModelOverride': True,
+        'allowedModels': ['minimax/MiniMax-M3.1-Flash', 'openai/gpt-6-luna']}
+    assert out['agents']['defaults']['models']['openai/gpt-6-luna'] == {
+        'agentRuntime': {'id': 'codex'}, 'params': {'thinking': 'max'}}
+    assert registry.chain('chat')['fallbacks'] == ['deepseek/deepseek-flash']
+    assert registry.chain('subagents')['fallbacks'] == []
+    # Removing the fallback must clear the rendered chain, too.
+    registry.chains['dreaming']['models'] = ['flash']
+    cleared = sync.render_openclaw(out, registry)['plugins']['entries']['memory-core']
+    assert cleared['config']['dreaming']['fallbacks'] == []
+    assert cleared['subagent']['allowedModels'] == ['minimax/MiniMax-M3.1-Flash']

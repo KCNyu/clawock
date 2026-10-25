@@ -59,7 +59,9 @@ def render_openclaw(config: dict, registry) -> dict:
     defaults.setdefault('subagents', {})['model'] = registry.chain('subagents')['model']
     dreaming = registry.chain('dreaming')
     memory = out.setdefault('plugins', {}).setdefault('entries', {}).setdefault('memory-core', {})
-    memory.setdefault('config', {}).setdefault('dreaming', {})['model'] = dreaming['model']
+    dream_config = memory.setdefault('config', {}).setdefault('dreaming', {})
+    dream_config['model'] = dreaming['model']
+    dream_config['fallbacks'] = dreaming['fallbacks']
     memory.setdefault('subagent', {})['allowedModels'] = [dreaming['model'], *dreaming['fallbacks']]
     for path, value in registry.openclaw_settings().items():
         *parents, leaf = path.split('.')
@@ -91,6 +93,7 @@ def openclaw_sections(config: dict, registry) -> dict:
         'agents.defaults.heartbeat.model': defaults.get('heartbeat', {}).get('model'),
         'agents.defaults.subagents.model': defaults.get('subagents', {}).get('model'),
         'memory-core dreaming.model': memory.get('config', {}).get('dreaming', {}).get('model'),
+        'memory-core dreaming.fallbacks': memory.get('config', {}).get('dreaming', {}).get('fallbacks'),
         'memory-core subagent.allowedModels': memory.get('subagent', {}).get('allowedModels'),
     })
     out.update({path: _leaf(config, path) for path in registry.openclaw_settings()})
@@ -179,6 +182,12 @@ def effective(registry, openclaw_config: Path | None = None) -> dict:
         config = json.loads(config_path.read_text())
         defaults = config.get('agents', {}).get('defaults', {})
         out['chat'] = defaults.get('model')
+        memory = config.get('plugins', {}).get('entries', {}).get('memory-core', {})
+        out['dreaming'] = {
+            **{key: memory.get('config', {}).get('dreaming', {}).get(key)
+               for key in ('model', 'fallbacks')},
+            'subagent': memory.get('subagent'),
+        }
         out['thinking'] = {
             **{ref: entry['params']['thinking'] for ref, entry in (defaults.get('models') or {}).items()
                if 'thinking' in (entry.get('params') or {})},
