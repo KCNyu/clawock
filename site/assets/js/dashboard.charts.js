@@ -992,9 +992,9 @@
       const total = safe(DATA, "snapshots_total");
       const embedded = (safe(DATA, "snapshots") || []).length;
       const outside = Number.isFinite(total) && total > embedded
-        ? `；磁盘共 ${total} 天快照，更早的不在这条累计里` : "";
+        ? ` · 全期 ${total} 天` : "";
       pnlWindow.textContent = dates.length
-        ? ` 累计线从 ${dates[0]} 起算（窗口内 ${dates.length} 根）${outside}。` : "";
+        ? `累计自 ${dates[0]} · ${dates.length} 根${outside}` : "";
     }
 
     const accent = getCSS("--accent");

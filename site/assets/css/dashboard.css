@@ -1364,6 +1364,7 @@
   }
   .card h3 .badge { float: right; text-transform: none; letter-spacing: 0; }
   .card h3 .card-head-note { margin-left: 6px; text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .daily-pnl-window { font-size: var(--fs-xs); }
 
   /* =========================================================
      Mobile information-entropy fold — diagnostic cards (Concentration /

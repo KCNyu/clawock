@@ -1057,16 +1057,14 @@ async function testNativePagerGestureSequences(browser, base) {
   const session = await context.newCDPSession(page);
   const box = await page.locator("#pager").boundingBox();
   assert(box, "pager has no layout box");
-  // A direct-child section divider is ordinary page chrome, not a nested
-  // table/chart scroller whose existing contract contains horizontal overscroll.
-  // Hero has no divider at its top, so use the panel's own padding there.
+  // Start the finger in the active panel's own top padding: ordinary page
+  // chrome, not a nested table/chart scroller whose existing contract contains
+  // horizontal overscroll. Measure the pager each time — the desk rail shows on
+  // detail tabs only and pushes the pager down, so Overview's box would put
+  // the finger on the rail, outside the pager.
   const gestureY = async () => {
-    const dividers = page.locator(".panel.active > .sect-divider");
-    const divider = await dividers.count() ? await dividers.first().boundingBox() : null;
-    if (divider && divider.y >= box.y && divider.y < box.y + box.height) {
-      return divider.y + divider.height / 2;
-    }
-    return box.y + 5;
+    const now = await page.locator("#pager").boundingBox();
+    return now.y + 5;
   };
 
   const flickLeft = async () => {
