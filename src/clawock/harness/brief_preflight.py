@@ -66,6 +66,7 @@ from clawock.safe_io import safe_write_text
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision.book import pnl_totals
+from clawock.portfolio import fx as fx_provider
 from clawock.decision import packet as brief_decision_packet
 from clawock.decision import add_policy, add_side, intraday_policy, left_side, preposition
 from clawock.decision import signals as bar_signals
@@ -305,12 +306,18 @@ def fetch_fx_rate():
         out, ok = result.stdout, result.returncode == 0
     except Exception as exc:
         out, ok = f'{type(exc).__name__}: {exc}', False
-    if not ok:
-        return {'rate': 7.80, 'source': 'HARDCODED_FALLBACK', 'error': out[-300:]}
-    try:
-        return json.loads(out)
-    except json.JSONDecodeError:
-        return {'rate': 7.80, 'source': 'PARSE_FAILED', 'error': out[-300:]}
+    if ok:
+        try:
+            return json.loads(out)
+        except json.JSONDecodeError:
+            pass
+    # A failed fetch reads the FX owner's cache: an observed rate (stale ones
+    # flagged) or `rate: None`. This returned a written-in 7.80 that
+    # pnl_totals accepted and the plan's book carried as a real rate (#3183).
+    cached = fx_provider.read_cached_usdhkd()
+    source = (f"{cached['source']} (cached; fx fetch failed)"
+              if cached['rate'] is not None else 'UNAVAILABLE')
+    return {**cached, 'source': source, 'error': out[-300:]}
 
 
 
@@ -1108,7 +1115,7 @@ def fx_rate():
     print('[3/14] FX rate')
     fx = fetch_fx_rate()
     if 'error' in fx:
-        issues.append(f'FX fallback used: {fx["error"][-200:]}')
+        issues.append(f'FX fallback used: {fx["source"]}: {fx["error"][-200:]}')
     elif fx.get('fallback_used') or fx.get('warning'):
         issues.append(f'FX fallback used: {fx["source"]}: {fx.get("warning") or "secondary provider"}')
     print(f'   USDHKD = {fx["rate"]}  ({fx["source"]})')
@@ -1944,7 +1951,10 @@ def _collect(argv=None):
     # of the book total while every gate still reconciles (#2267).
     hk_pnl_hkd = portfolio['portfolios']['hk_stocks']['total_pnl']
     us_pnl_usd = portfolio['portfolios']['us_stocks']['total_pnl']
-    totals = pnl_totals(hk_pnl_hkd, us_pnl_usd, rate)
+    # No rate, no combined total: the legs stay, and postflight's book check
+    # refuses a plan whose fx_rate_usdhkd is missing (#3183).
+    totals = (pnl_totals(hk_pnl_hkd, us_pnl_usd, rate) if rate is not None
+              else {'usd_total_pnl': None, 'hkd_total_pnl': None})
     book = {
         'hk_pnl_hkd':      round(hk_pnl_hkd, 2),
         'us_pnl_usd':      round(us_pnl_usd, 2),
