@@ -1082,10 +1082,11 @@
     layer.setAttribute("aria-valuetext", `${day} ${money}`);
     read.innerHTML = `${escapeHtml(day)} <b class="${pnlClass(p.v)}">${escapeHtml(money)}</b>`;
     host.classList.add("is-scrubbing");
-    // 读数牌跟着光标走，但整块留在图的左右缘之内。
-    const w = layer.clientWidth, rw = read.offsetWidth;
+    // 读数牌跟着光标走，但整块留在图的左右缘之内。宽度取小数：offsetWidth /
+    // clientWidth 各自取整，一个舍一个入，比例字体下就能越出右缘半个像素。
+    const w = layer.getBoundingClientRect().width, rw = read.getBoundingClientRect().width;
     const left = Math.max(0, Math.min(w - rw, s.fx[i] * w - rw / 2));
-    read.style.transform = `translateX(${left.toFixed(1)}px)`;
+    read.style.transform = `translateX(${(Math.floor(left * 10) / 10).toFixed(1)}px)`;
   }
   function heroScrubHide(host) {
     host.classList.remove("is-scrubbing");
