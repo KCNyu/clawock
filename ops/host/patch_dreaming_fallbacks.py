@@ -11,6 +11,11 @@ import argparse
 import json
 from pathlib import Path
 import subprocess
+import sys
+
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT / "src"))
+from clawock.providers.openclaw import runtime_paths  # noqa: E402
 
 MARKER = 'clawock-dreaming-fallbacks-v1'
 HELPER = r'''
@@ -75,7 +80,7 @@ def apply(dist: Path, check: bool = False) -> None:
     if len(candidates) != 1:
         raise ValueError(f'expected one dreaming narrative bundle, found {len(candidates)}')
     edits = [(candidates[0], patch_narrative),
-             (dist / 'extensions/memory-core/openclaw.plugin.json', patch_manifest)]
+             (dist / 'extensions' / 'memory-core' / 'openclaw.plugin.json', patch_manifest)]
     # Validate every anchor before writing anything. Backups are never overwritten.
     plan = [(path, path.read_text(), patch(path.read_text())) for path, patch in edits]
     if check and any(old != new for _, old, new in plan):
@@ -107,11 +112,14 @@ def apply(dist: Path, check: bool = False) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--dist', type=Path, default=Path.home() /
-                        '.local/share/pnpm/global/5/node_modules/openclaw/dist')
+    parser.add_argument('--dist', type=Path, help='override the discovered installation dist')
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    apply(args.dist.resolve(), args.check)
+    install = runtime_paths().install_dir
+    dist = args.dist or (install / 'dist' if install else None)
+    if dist is None:
+        parser.error('OpenClaw installation not found; pass --dist')
+    apply(dist.resolve(), args.check)
 
 
 if __name__ == '__main__':
