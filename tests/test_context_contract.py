@@ -304,7 +304,10 @@ def test_every_command_the_injected_context_names_exists():
         for command in sorted(set(re.findall(r"`clawock ([a-z][a-z0-9-]+)", body))):
             if command not in accepted:
                 unknown.append(f"{name}: clawock {command}")
-        for command in sorted(set(re.findall(r"`(clawock-[a-z-]+)", body))):
+        # A command ends at its closing backtick or before its arguments.
+        # `clawock-dsh@0.4.1` is the npm package at a version, not a command
+        # (the 2026-10-26 dreaming promotion quoted one into MEMORY.md).
+        for command in sorted(set(re.findall(r"`(clawock-[a-z-]+)(?=[`\s])", body))):
             if command not in installed:
                 unknown.append(f"{name}: {command}")
     assert not unknown, ("injected context names commands that do not exist:\n"
