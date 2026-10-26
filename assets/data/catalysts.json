@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-22T08:44:25.204694+08:00",
+  "generated_at": "2026-10-26T08:03:42.714335+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-22",
-  "window_end": "2026-11-05",
+  "window_start": "2026-10-26",
+  "window_end": "2026-11-09",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -19,6 +19,17 @@
       "revenue_estimate_m": 797.27,
       "quarter": 3,
       "year": 2026
+    },
+    {
+      "ticker": "RKLB",
+      "name": "RKLB",
+      "date": "2026-11-09",
+      "time": "unknown",
+      "eps_estimate": -0.0714,
+      "eps_actual": null,
+      "revenue_estimate_m": 260.82,
+      "quarter": 3,
+      "year": 2026
     }
   ],
   "recent_earnings": [
@@ -28,7 +39,7 @@
       "date": "2026-10-20",
       "time": "amc",
       "eps_estimate": 0.1361,
-      "eps_actual": 0.35,
+      "eps_actual": 0.45,
       "revenue_estimate_m": 12974.73,
       "quarter": 3,
       "year": 2026
@@ -51,13 +62,18 @@
       "date": "2026-10-30",
       "type": "PCE",
       "detail": "Sep PCE price index (BEA, Fed preferred inflation gauge)"
+    },
+    {
+      "date": "2026-11-06",
+      "type": "NFP",
+      "detail": "Oct jobs report (Non-Farm Payrolls); BLS 8:30 ET"
     }
   ],
   "scheduled_events": [],
   "summary": {
-    "earnings_count": 1,
+    "earnings_count": 2,
     "fomc_in_window": 1,
-    "macro_count": 2,
+    "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
     "highest_impact_within_7d": "FOMC 2026-10-28 (rate decision)"
