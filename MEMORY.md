@@ -192,25 +192,25 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-26)
+## Promoted From Short-Term Memory (2026-10-27)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:44:44 -->
-- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: codex 只做核验，未重推 tag、未改版本、未动已发布产物。报告结论：PyPI 200（wheel+sdist）、 [score=0.821 recalls=0 avg=0.620 source=memory/2026-10-23.md:44-44]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:5:8 -->
-- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: npm `dist-tags={latest:'0.4.1'}`、GitHub Release notes 与 CHANGELOG 0.4.1 节逐字一致、 3 个资产（wheel 1.53MB / sdist 2.76MB / clawock-dsh-0.4.1.tgz 295KB）、 `tag == mergeCommit 64a7e9244` = PR #3164 的 squash-merge、 本机 clawock/live pyproject/installed metadata/dsh package/lockfile/已装 dsh 插件全 0.4.1 且 active。 [score=0.821 recalls=0 avg=0.620 source=memory/2026-10-23.md:5-8]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:50:50 -->
-- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: run `39820956731` conclusion=success、live `pyproject.toml` = 0.4.1 —— 全部对得上。 [score=0.821 recalls=0 avg=0.620 source=memory/2026-10-23.md:50-50]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:16:19 -->
-- 01:12 codex 派发 `release-041` 返回 partial / 模型自报 BLOCKED: 任务 id：`release-041-20261023-004107`（codex / gpt-6-astra / high，deadline 2026-10-24 12:00）。; 目标：发布 0.4.1（kcn 原话：「委派codex astra发一个0.4.1的release吧，虽然好像没做什么事情。」）。; 结果：partial / 模型自报 BLOCKED，通知通道 weixin+telegram 都发了。; 报告位置：`/root/tools/agent-dispatch/dispatch.sh result release-041-20261023-004107`（用 exec 取， [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-23.md:16-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:20:20 -->
-- 01:12 codex 派发 `release-041` 返回 partial / 模型自报 BLOCKED: read 工具读不到 /root/tools 路径）。 [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-23.md:20-20]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:28:31 -->
-- 01:16-01:22 0.4.1 实际已经发出去了（关键：不是 codex 推的）: **run `39820956731` 五个 job 全 success**：build / publish / npm / npm-readback / github-release。; **回读（01:21-01:22 实测）**：; PyPI `clawock/0.4.1/json` → 200，资产 `clawock-0.4.1-py3-none-any.whl` + `clawock-0.4.1.tar.gz`; npm `clawock-dsh@0.4.1` → `0.4.1` [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-23.md:28-31]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-10-21 周三 08:03 HKT: 今天只有一条动作：MiniMax 反弹站上 178.1 卖 40 股，把港股腿的单票支配度从 46.84% 压回 35% 复核线下方，其余九条腿不动。两条杠杆硬止损（07226 挂 69 天、RKLX 挂 98 天）今天不重复发砍单，但记录不能再空着。昨夜 SpaceX 交出一份很难反驳的季报（营收 145.8 亿美元对共识 127.4 亿、每股收益 0.35 对 0.12、同比 +161%），这是全账唯一的一手硬催化，两倍壳 SPCH 会在今晚美股时段先表达它；而恒科昨天收在 4045.91 的本轮低位、离 200 日线还差 20.8%，10-28 议息之前这条两倍腿的衰减照付。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-10-21 周三 08:03 HKT: **反方**：最强反方是：这是一个刚被砸到地板、又被一份硬催化托住的组合，正在用最便宜的方式持有最好的资产——SpaceX 的季报大超预期而它的两倍壳还没反应，MiniMax 跌到上市新低、杰富瑞当天维持买入并把目标价定在 533 港元，而港股六只的 RSI 全在 24.8 到 35.5 的超卖区。今天在 178.1 卖 MiniMax 40 股、同时维持两条每天付费的杠杆腿，可能正好卖在地板并且错过反弹起点。反方有真实分量，它对不上两个数字：第一，衰减不是观点，是每天都要付的账单，两倍层横盘每月 0.43% 到 2.84%，这两条腿已经分别付了 69 天和 98 天；第二，主动决策过去 30 天执行 0 条，说明问题从来不是判断，是这条腿上没有出口。所以反方的成立条件我写死：恒科收复 4887、RKLB 站回 81.04、正股 SPCX 站稳 MA20 154.70，那时这些腿都不需要按纪律处理。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:19:19 -->
-- 今天做什么: <div class="brief-card" markdown="1"> [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:19-19]
-<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-10-21 周三 08:03 HKT description: "clawock 盘前深度简报 2026-10-21：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:23:23 -->
+- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:23-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-10-21 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:9:9 -->
+- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: 我独立复跑（不采信自述）：pypi 200、npm 0.4.1、`gh release view v0.4.1` 存在、 [score=0.806 recalls=0 avg=0.620 source=memory/2026-10-23.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:9:9 -->
+- coding 派发结果（issue sweep）: 核之前对外只说「worker 报 DONE」，不说「已修」。 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-22.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:10:10 -->
+- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: run `39820956731` conclusion=success、live `pyproject.toml` = 0.4.1 —— 全部对得上。 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-23.md:10-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:11:11 -->
+- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: 状态：**0.4.1 完整发布并落地**。待 kcn 定：本次增量更像 minor，是否另切 0.5.0 由 kcn 决定。 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-23.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:4:4 -->
+- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: codex 只做核验，未重推 tag、未改版本、未动已发布产物。报告结论：PyPI 200（wheel+sdist）、 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-23.md:4-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:5:5 -->
+- coding 派发结果（issue sweep）: `issue-sweep-3139-3144`（codex，派出 2026-10-21 19:50，id `issue-sweep-3139-3144-20261021-195044`） [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-22.md:5-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:6:6 -->
+- coding 派发结果（issue sweep）: 在 2026-10-22 05:03 HKT 返回 ok / 模型自报 DONE。 [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-22.md:6-6]
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:7:8 -->
+- coding 派发结果（issue sweep）: 这就是 MEMORY.md 里记的「2026-10-21 一次 6 条 issue 的 sweep（#3139-#3144）15 分钟烧完整个 5h 额度窗」那一次，现在确认跑完。; 「模型自报 DONE」≠ 修复已落地。issue 是否真被关闭、PR 是否合并、CI 是否过，都还没核过； [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-22.md:7-8]
