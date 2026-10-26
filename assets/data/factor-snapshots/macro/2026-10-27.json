@@ -1,0 +1,136 @@
+{
+  "vix": {
+    "symbol": "^VIX",
+    "price": 18.39,
+    "prev": 19.45,
+    "change_pct": -5.45,
+    "source": "yahoo",
+    "as_of": 1793045701
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 4.986,
+    "prev": 4.988,
+    "change_pct": -0.04,
+    "source": "yahoo",
+    "as_of": 1793041192,
+    "yield_pct": 4.986
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 102.03,
+    "prev": 101.959,
+    "change_pct": 0.07,
+    "source": "yahoo",
+    "as_of": 1793052298
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 23211.81,
+    "prev": 23093.37,
+    "change_pct": 0.51,
+    "source": "tencent",
+    "as_of": "2026-10-26"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 3857.53,
+    "prev": 3871.66,
+    "change_pct": -0.36,
+    "source": "tencent",
+    "as_of": "2026-10-26"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7676.77,
+    "prev": 7623.68,
+    "change_pct": 0.7,
+    "source": "tencent",
+    "as_of": "2026-10-26"
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 26169.38,
+    "prev": 25955.34,
+    "change_pct": 0.82,
+    "source": "tencent",
+    "as_of": "2026-10-26"
+  },
+  "fear_greed": {
+    "score": 27.1,
+    "rating": "fear",
+    "prev_close": 21.0,
+    "prev_1_week": 20.8,
+    "as_of": "2026-10-26T23:01:14+00:00"
+  },
+  "fed_press": [],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-10-26",
+    "status": "ok",
+    "age_days": 0,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.11,
+      "1.5m": 4.13,
+      "2m": 4.18,
+      "3m": 4.22,
+      "4m": 4.32,
+      "6m": 4.35,
+      "1y": 4.47,
+      "2y": 4.68,
+      "3y": 4.79,
+      "5y": 4.84,
+      "7y": 4.91,
+      "10y": 5.0,
+      "20y": 5.35,
+      "30y": 5.31
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 32.0,
+    "spread_10y_3m_bps": 78.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
+  "volatility": {
+    "vix": null,
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 17.92,
+      "prev": 18.7,
+      "change_pct": -4.17,
+      "source": "cboe",
+      "as_of": "2026-10-26",
+      "previous_as_of": "2026-10-23",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 19.94,
+      "prev": 20.48,
+      "change_pct": -2.64,
+      "source": "cboe",
+      "as_of": "2026-10-26",
+      "previous_as_of": "2026-10-23",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": null
+  },
+  "volatility_term_structure": null,
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "unavailable",
+    "treasury_curve": "ok"
+  },
+  "generated_at": "2026-10-26T23:20:26.186500+00:00"
+}
