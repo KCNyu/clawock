@@ -158,8 +158,11 @@ jobs:
         # the runner image's bundled npm crashed, and the fix was pinning npm.
         # The PyPI half was still on a mutable ref.
         #
-        # NOT the SHA that `refs/tags/v1.14.2` points at — that is an annotated
-        # tag object (a892a5a6…). The commit is one dereference further in.
+        # Pin the commit, NOT the SHA a tag ref points at: v1.14.3 is an annotated
+        # tag, so `refs/tags/v1.14.3` names the tag object
+        # aef6c9b6e301dc803e1bc9133e9ce67ae9b0906b and the commit is one
+        # dereference further in (`refs/tags/v1.14.3^{}`):
+        # 7245906fb61fa33a13554f9d5fb856fe61758086, the SHA used below.
         #
         # `attestations` is deliberately not set: the action defaults it to
         # 'true' and PEP 740 attestations are already being issued. Verified on
