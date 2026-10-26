@@ -202,7 +202,8 @@ def build_brief_card(today, decision_packet=None):
                 bk = {}
                 lines.append('账面金额未核验，见完整报告')
         if bk:
-            # Whole-line bold, legs in a `$`-free table (see chat_card.summary_lines).
+            # Whole-line bold, legs in a `$`-free table (see chat_card.summary_lines);
+            # a two-leg USD total, so unlike 今日 it has no column to join (brief_render).
             lines.append(f"**账面 USD${bk.get('usd_total_pnl', '?')}**")
             lines += ['', *table(['港股 HKD', '美股 USD'],
                                  [[str(bk.get('hk_leg_hkd', '?')), str(bk.get('us_leg_usd', '?'))]]), '']

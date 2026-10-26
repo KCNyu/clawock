@@ -1330,6 +1330,9 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
     # The book total is a whole bold line and the legs a table with the
     # currency in the header: WeChat did not bold a line that was half bold
     # with `$` on both sides of the closing `**` (2026-10-22, chat_card.summary_lines).
+    # The report/intraday cards moved 今日 into their table (2026-10-27); this
+    # total stays a line on purpose: it is a USD sum of both legs, with no
+    # column in a per-currency table.
     lines = [title_line(f"📊 盘前简报 · {short_date} {BRIEF_SLOT_HKT} HKT"),
              f"**账面 USD${money(book.get('usd_base_total'), digits=0)}**", "",
              *table(["", "港 HKD", "美 USD"], [
