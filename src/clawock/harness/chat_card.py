@@ -5,7 +5,7 @@ and rewritten pass by pass (变化 lead, ↑ pointer, ▎持续状态, 🛰️ �
 answered "what changed" in five places and "what do I do" in none. This card
 is built from the slot's structured data, in the order a reader asks:
 
-    title, today's P&L as a bold line, the book/risk totals as a one-row table
+    title, then today's P&L and the book/risk totals as a one-row table
     ⛔ data health            only when something is degraded
     **⚠️ 待你处理**           P0 questions, unfilled plan orders, broken plan lines,
                               a stop newly broken today, the T+0 order if any
@@ -106,31 +106,32 @@ def table(header, rows, first='---:') -> list[str]:
 
 
 def summary_lines(book: str, risk: str = '') -> list[str]:
-    """Today's P&L as its own bold line, then the standing totals as a one-row table.
+    """Today's P&L and the standing totals as one one-row table, today first.
 
     `📊 市值 $3,403 | 浮盈 $-1,033 (-23.3%) | 今日 $-284 | ✅ 已实现 +$2,376`
     + `📉 亏损持仓 2/4  |  杠杆ETF敞口 90%`
-    → `**今日 -$284**`, blank, then
-      `| 市值 | 浮亏 | 已实现 | 亏损 | 杠杆 |` / `| 3,403 | -1,033（-23.3%） | +2,376 | 2/4 | 90% |`
+    → blank, then `| 今日 USD | 市值 | 浮亏 | 已实现 | 亏损 | 杠杆 |`
+      / `| -284 | 3,403 | -1,033（-23.3%） | +2,376 | 2/4 | 90% |`
 
-    WeChat did not bold `**今日 $-284** · 浮亏 -$1,027（…）` (kcn 2026-10-22): the
-    one bold line that was not a whole line, and the one with a `$` on each
-    side of its closing `**`. A whole line with a single `$` is safe on either
-    reading, and the table row carries no `$` at all (the flag and the 今日
-    line name the currency, as the holdings table's 浮$ column does). A blank line separates the
-    table from the bold line (a table cannot interrupt a paragraph) and the
-    caller always opens the next block with a blank line (a plain line right
-    under a table would be read as another row).
+    kcn 2026-10-27: 「今日+多少这些干脆一起进入到第一列表格里面去吧，方便看」.
+    Until then 今日 was a whole bold line above the table (kcn 2026-10-22):
+    WeChat had not bolded `**今日 $-284** · 浮亏 -$1,027（…）`, the one bold
+    line with a `$` on each side of its closing `**`. In the table it needs no
+    bold (Telegram shows table cells as a code block, `**` literally) and no
+    `$`: the row carries no currency at all, and the 今日 header names it once
+    (`今日 HKD` / `今日 USD`, from the analyzer's `HK$` / `$`), as the holdings
+    table's 浮$ column does. Six columns stay inside the holdings table's width
+    on both channels. The blank line in front keeps the table off the title
+    line (a table cannot interrupt a paragraph) and the caller always opens
+    the next block with a blank line (a plain line right under a table would
+    be read as another row).
     """
     chunks = [c for c in re.split(r'\s*\|\s*', (book or '').lstrip('📊').strip()) if c]
     risks = [c for c in re.split(r'\s*\|\s*', (risk or '').lstrip('📉').strip()) if c]
-    lines, header, row = [], [], []
+    currency = 'HKD' if 'HK$' in (book or '') else 'USD' if '$' in (book or '') else ''
+    header, row = [], []
     for chunk in chunks + risks:
         chunk = re.sub(r'^✅\s*', '', chunk.strip())
-        if chunk.startswith('今日'):
-            # US writes a loss as `$-284`; the sign goes first, as on 浮亏.
-            lines.append('**' + re.sub(r'\$-', '-$', chunk) + '**')
-            continue
         match = re.search(r'浮盈\s*(\$?)(-?)\$?([\d,.]+)\s*\(([^)]*)\)', chunk)
         if match:
             # US: `浮盈 $-1,118 (-25.2%)`; HK: `浮盈 -61,313 (-53.5%)` (HK$ is in 市值).
@@ -138,13 +139,16 @@ def summary_lines(book: str, risk: str = '') -> list[str]:
             value = f"{'-' if match.group(2) else '+'}{match.group(3)}（{match.group(4)}）"
         else:
             label, _, value = chunk.partition(' ')
+        # No currency inside the row: the 今日 header carries it once.
+        cell = re.sub(r'(?:HK)?\$', '', value).strip() or '—'
+        if label == '今日':
+            # Today leads the row, under the one header that names the currency.
+            header.insert(0, f'今日 {currency}'.strip())
+            row.insert(0, cell)
+            continue
         header.append(_SUMMARY_LABELS.get(label, label))
-        # No currency inside the row: the flag and the 今日 line already say
-        # it, and a row of `$` cells is the shape the bold line broke on.
-        row.append(re.sub(r'(?:HK)?\$', '', value).strip() or '—')
-    if header:
-        lines += (['', *table(header, [row])] if lines else table(header, [row]))
-    return lines
+        row.append(cell)
+    return ['', *table(header, [row])] if header else []
 
 
 # ── sections ─────────────────────────────────────────────────────────────────
