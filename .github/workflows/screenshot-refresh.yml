@@ -89,7 +89,7 @@ jobs:
       # merge. The master dispatch still uses the publisher step below.
       - name: Upload branch screenshots and GIF
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dashboard-assets
           path: |
