@@ -74,6 +74,23 @@ def plan_conflicts(holding_policies, plan_context):
         and holding_policies[row['ticker']].get('forbid_reduce_advice')]
 
 
+def without_conflicting_orders(holding_policies, plan_context):
+    """`plan_context` minus the reduce orders the holding's strategy forbids.
+
+    Every card that prints open orders reads them through here — the intraday
+    check-in and the open/mid/pm/close reports alike — so one strategy is not
+    told to cut on one card and spared on the next. The disagreement itself
+    stays visible through `plan_conflicts`.
+    """
+    held_back = {(row['ticker'], row['plan_action'])
+                 for row in plan_conflicts(holding_policies or {}, plan_context)}
+    if not held_back:
+        return plan_context
+    return {**(plan_context or {}), 'open': [
+        row for row in (plan_context or {}).get('open') or []
+        if (row.get('ticker'), row.get('action')) not in held_back]}
+
+
 def actionable_signals(counts, detail, holding_policies):
     rows = [row for row in detail if not holding_policies.get(
         row.get('ticker'), {}).get('suppress_cost_basis_signals')]

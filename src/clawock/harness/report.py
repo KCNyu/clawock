@@ -19,6 +19,7 @@ from clawock.harness.validation import (
     check_identifier_leak,
     check_numeric_claims,
     check_pipeline_self_reference,
+    check_plan_consistency,
     has_section_marker,
     is_hard_char_limit,
     mentions_ticker,
@@ -61,8 +62,12 @@ def assemble_message(ctx, prose):
     # (chat_card) — open orders and broken stops first, then the table,
     # signals, news one line per ticker, and the prose under bold labels.
     from clawock.harness.chat_card import render_report
+    from clawock.decision.plans import plan_holds
     return render_report(ctx.get('title', '').strip(),
-                         (ctx.get('raw_wechat_block') or '').strip(), prose)
+                         (ctx.get('raw_wechat_block') or '').strip(), prose,
+                         held=plan_holds(ctx.get('plan_context')),
+                         debts=ctx.get('risk_debts') or (),
+                         debts_error=ctx.get('risk_debts_error'))
 
 
 def validate(body, ctx, model_text):
@@ -118,6 +123,10 @@ def validate(body, ctx, model_text):
     # 词表点不到每个 key：2026-09-29 港股开盘/午盘/收盘三份报告都把
     # `hold_and_watch` 原样发进了微信，postflight 印 pass（#2146）。
     issues.extend(check_identifier_leak(checked, label='散文'))
+
+    # 9. 正文与今日计划、风控账本、持仓策略说反话（模型文本）—— escalating，
+    # 一条聚合，见 check_plan_consistency（2026-10-26 港股收盘 / 美股开盘）。
+    issues.extend(check_plan_consistency(checked, ctx))
 
     return issues
 

@@ -45,6 +45,7 @@ from clawock.workspace import workspace_root
 from clawock.safe_io import safe_write_text
 from clawock import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
+from clawock.decision import risk as risk_ledger
 from clawock.decision import signals as quant_signals
 from clawock.evidence import research_surface
 from clawock.utilities import PACKAGED_UTILITIES
@@ -1165,12 +1166,7 @@ def open_order_lines(plan_context, holding_policies=None):
     a printed line would say it on every slot instead. The disagreement stays
     in `strategy_conflicts`.
     """
-    held_back = {
-        (row['ticker'], row['plan_action'])
-        for row in intraday_policy.plan_conflicts(holding_policies or {}, plan_context)}
-    context = {**(plan_context or {}), 'open': [
-        row for row in (plan_context or {}).get('open') or []
-        if (row.get('ticker'), row.get('action')) not in held_back]}
+    context = intraday_policy.without_conflicting_orders(holding_policies, plan_context)
     return [f'未成交计划：{line}' for line in plan_surface.order_lines(context)]
 
 
@@ -1429,10 +1425,15 @@ def can_silence(ctx, *, allow_soft_review=False):
 def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, plan_ctx,
                 plan_triggers, movers, leverage, mover_news, soft_changes, first_slot,
                 active_information, setups, early, radar, add_side_reads, health,
-                gaps=None):
-    """Structured slot data → the sections of `chat_card.render`."""
+                gaps=None, debts=(), debts_error=None):
+    """Structured slot data → the sections of `chat_card.render`.
+
+    A STOP on a name today's plan holds is a new signal, not a to-do
+    (`chat_card.stop_is_action`, the report card's rule too); a breach owed on
+    the risk ledger is said under 欠着的账 (`debts`, `risk.open_debts`)."""
     suppressed = {ticker for ticker, policy in (holding_policies or {}).items()
                   if policy.get('suppress_cost_basis_signals')}
+    held = plan_surface.plan_holds(plan_ctx)
     new_stops, standing_stops, new_signals = [], [], []
     for row in signals_detail or []:
         ticker, level = row.get('ticker'), row.get('level')
@@ -1440,14 +1441,15 @@ def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, pla
             continue
         seen = (level, ticker) in seen_signals
         detail = row.get('line', '').partition('|')[2].strip()
-        if level == 'STOP':
+        if level == 'STOP' and ticker not in held:
             if seen:
                 standing_stops.append(ticker)
             else:
                 new_stops.append((ticker, f'（{detail}）' if detail else ''))
         elif not seen:
+            stance = f'（{chat_card.HELD_BY_PLAN}）' if level == 'STOP' else ''
             new_signals.append(chat_card.bullet(
-                re.sub(r'^\S+\s+', '', row.get('line', '')).replace(' | ', '：', 1)))
+                re.sub(r'^\S+\s+', '', row.get('line', '')).replace(' | ', '：', 1) + stance))
     orders = [line.removeprefix('未成交计划：')
               for line in open_order_lines(plan_ctx, holding_policies)]
     # Primary information: new items are this slot's news; `↳ 仍有效` (already
@@ -1472,7 +1474,9 @@ def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, pla
             p0_lines=p0_lines, open_orders=orders,
             plan_trigger_rows=[row[2:] for row in chat_card.section_rows(
                 append_plan_trigger_section('', plan_triggers).strip())],
-            new_stops=new_stops, standing_stops=standing_stops),
+            new_stops=new_stops, standing_stops=standing_stops, held=held),
+        'debts': chat_card.debt_rows(debts, ordered=chat_card.order_tickers(orders),
+                                     held=held, error=debts_error),
         'changes': changes,
         'watch': (chat_card.setup_rows(setups)
                   + chat_card.section_rows(early.strip())
@@ -1736,6 +1740,10 @@ def _collect(argv=None):
     plan_ctx = attach_reinvest_candidates(
         plan_ctx, opportunity_radar, signals_detail)
     strategy_conflicts = intraday_policy.plan_conflicts(holding_policies, plan_ctx)
+    # Breaches owed on the risk ledger: the card's 欠着的账, read the way the
+    # report card reads them.
+    risk_debts, risk_debts_error = risk_ledger.leg_debts(
+        args.market.upper(), WS / 'memory' / 'risk_breaches.json')
     # Does this slot's tape satisfy any condition the 08:00 plan wrote down?
     # Deterministic and harness-owned: the plan already named the price, so the
     # comparison is arithmetic, not judgement. Leaving it to the model is how
@@ -1934,6 +1942,7 @@ def _collect(argv=None):
             early=append_early_trend_section('', early_candidates, signals_detail),
             radar=append_opportunity_radar_section('', opportunity_radar, signals_detail),
             add_side_reads=add_side_reads, gaps=gaps,
+            debts=risk_debts, debts_error=risk_debts_error,
             health=[
                 coverage_warning(coverage, gaps),
                 (f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}"
@@ -2025,6 +2034,10 @@ def _collect(argv=None):
         'peer_scan':        peer_context,
         'plan_context':     plan_ctx,
         'strategy_conflicts': strategy_conflicts,
+        # Open breaches with no execution / ack / override on record
+        # (risk.open_debts); None with `risk_debts_error` when unreadable.
+        'risk_debts':       risk_debts,
+        'risk_debts_error': risk_debts_error,
         # The lines the 08:00 plan set for the book and the indices. Carried,
         # not evaluated — see `plan_surface.watch_levels` for why the arithmetic
         # `plan_triggers` does on a decision's price cannot be done on these.

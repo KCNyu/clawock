@@ -781,6 +781,107 @@ def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=No
 
 
 
+# ── prose against the plan, the risk ledger and the holding strategy ──────────
+#
+# 2026-10-26: the close card listed 07226 under 「止损线已破」, its prose said
+# 「纪律不触发，维持不动」, and the risk ledger had the hard stop open 74 days;
+# the 21:33 open report wrote 「SPCH 硬止损信号挂着」 about a holding whose
+# strategy is exempt from the hard stop. The card is fixed in code
+# (chat_card.stop_is_action / debt_rows); these rules hold the model's prose to
+# the same three records instead of asking it to read them right every time.
+# They flag; the model keeps the judgment and the wording.
+
+_REDUCE = r'砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z])'
+_DIRECTIVE = r'建议|应当|应该|必须|立即|现在|继续|执行|先砍|先减|砍\s*\d|减\s*\d'
+_NEGATED_REDUCE = (rf'不(?:再|要|应|建议|重复)[^。；，,\n]{{0,35}}(?:{_REDUCE})')
+# A plan that holds a name usually names the line that would change that
+# (「收盘失守 2.156 后重评换仓」); prose restating the condition is the plan.
+_CONDITIONAL = r'若|如果|假如|一旦|假设|失守|跌破|破位|才|之后|以后|届时|再谈'
+_DENIED_STOP = re.compile(
+    r'(?:纪律|硬止损|止损|风控)[^。；，,\n]{0,6}(?:不触发|未触发|没触发|没有触发|不成立|已解除|未破|没破)'
+    r'|(?:未|没|没有|不)(?:触发|破)[^。；，,\n]{0,4}(?:纪律|硬止损|止损)')
+# The same denial said as a price still ahead: 「对硬止损 2.156」「离纪律线 2.156
+# 只剩」「收盘压在 2.156 之下才是纪律触发」(2026-10-26 open, midday, afternoon).
+# A percentage rule (「硬止损 -18%」) is the rule itself and passes.
+_STOP_AS_LEVEL = re.compile(
+    r'(?:硬止损|纪律线|纪律位|止损价|止损位|止损线)(?:价|位|线)?\s*(?:在|是|为)?\s*'
+    r'\d+\.\d+(?![\d.]|\s*[%％])'
+    r'|(?:才|再)(?:是|算|会)?[^。；，,\n]{0,4}(?:纪律|硬止损|止损)[^。；，,\n]{0,3}触发')
+_HARD_STOP_CLAIM = re.compile(r'硬止损')
+_HARD_STOP_EXEMPT = re.compile(
+    r'(?:豁免|不适用|不受|免于|没有|无|不设|不走|不按)[^。；，,\n]{0,6}硬止损'
+    r'|硬止损[^。；，,\n]{0,6}(?:豁免|不适用)')
+_FORCED_DEBT_RULE = {'hard_stop': '硬止损', 'leveraged_hard_stop': '硬止损',
+                     'regime_delever': '降杠杆'}
+PLAN_CONSISTENCY = '与计划/账本不一致'
+
+
+def _sentences(text):
+    return [s for s in re.split(r'[。；\n]', text or '') if s.strip()]
+
+
+def is_reduce_directive(sentence):
+    """Does some clause of `sentence` tell the reader to cut, trim or stop out?
+
+    A clause that only names the old order (「旧计划仍挂 cut」) or refuses it
+    (「不重复减仓建议」) is not one; each clause is read on its own so a factual
+    first half cannot exempt a directive second half.
+    """
+    for clause in re.split(r'[，,]', sentence):
+        if not re.search(_REDUCE, clause, re.IGNORECASE):
+            continue
+        if re.search(_DIRECTIVE, clause) and not re.search(
+                _NEGATED_REDUCE, clause, re.IGNORECASE):
+            return True
+    return False
+
+
+def check_plan_consistency(text, ctx, *, strategy_reduce=True):
+    """One finding naming every place the prose says the opposite of the record.
+
+    - a name today's plan holds (`plans.plan_holds`) told to cut or stop out,
+      outside a sentence that states the plan's own re-evaluation condition;
+    - a breach the risk ledger still owes (`risk_debts`, hard stop or regime
+      de-lever) called 「纪律/止损未触发」, or written as a price not yet broken;
+    - a holding whose strategy forbids reduce advice described as under a hard
+      stop, or (`strategy_reduce`, the reports: the intraday postflight has its
+      own stricter 策略冲突 gate) told to reduce.
+
+    Returns at most one issue so a long report is never failed by count alone.
+    """
+    from clawock.decision.plans import plan_holds
+
+    policies = ctx.get('holding_policies') or {}
+    exempt = {t for t, policy in policies.items() if (policy or {}).get('forbid_reduce_advice')}
+    held = plan_holds(ctx.get('plan_context')) - exempt
+    owed = {}
+    for debt in ctx.get('risk_debts') or []:
+        rule = _FORCED_DEBT_RULE.get(debt.get('type'))
+        for target in (debt.get('targets') or []) if rule else []:
+            owed.setdefault(target, (rule, debt.get('days_open') or 0))
+    found = {}
+    for sentence in _sentences(text):
+        for ticker in held:
+            if (mentions_ticker(sentence, ticker) and is_reduce_directive(sentence)
+                    and not re.search(_CONDITIONAL, sentence)):
+                found.setdefault(ticker, f'{ticker} 今日计划持有，正文却给了砍仓/减仓/止损指令')
+        for ticker, (rule, days) in owed.items():
+            if mentions_ticker(sentence, ticker) and (
+                    _DENIED_STOP.search(sentence) or _STOP_AS_LEVEL.search(sentence)):
+                found.setdefault(ticker, f'{ticker} 账本里{rule}已破 {days} 天未结，'
+                                         '正文却说纪律/止损未触发或写成一条没破的价位')
+        for ticker in exempt:
+            if not mentions_ticker(sentence, ticker):
+                continue
+            if _HARD_STOP_CLAIM.search(sentence) and not _HARD_STOP_EXEMPT.search(sentence):
+                found.setdefault(ticker, f'{ticker} 持仓策略不设硬止损，正文却按硬止损在说')
+            elif strategy_reduce and is_reduce_directive(sentence):
+                found.setdefault(ticker, f'{ticker} 持仓策略不给减仓建议，正文却建议了砍仓/减仓/止损')
+    if not found:
+        return []
+    return [f'{PLAN_CONSISTENCY}：' + '；'.join(found[t] for t in sorted(found))]
+
+
 # The only length numbers in the system. One pair, shared by Mode 6 (open /
 # midday / close reports) and Mode 7 (intraday) — they used to be two copies of
 # the same 3000/3500, one here per market and one hardcoded in

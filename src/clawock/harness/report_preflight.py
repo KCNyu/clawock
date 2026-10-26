@@ -42,6 +42,13 @@ Output keys:
   plan_context:       {plan_date, exec_mode, open[<=12], carried_over} — what the
                       08:00 brief already decided for this leg and has not filled
                       yet; {} when there is no open decision (see plan_surface)
+  holding_policies:   the intraday slot's per-holding strategies (intraday_policy);
+                      a covered holding's cost-basis signals and forbidden reduce
+                      orders leave the block exactly as they leave the intraday card
+  strategy_conflicts: open reduce orders the holding's strategy forbids
+  risk_debts:         open risk breaches on this leg with no execution,
+                      acknowledgement or override on record (risk.open_debts);
+                      `risk_debts_error` when the ledger did not read
   needs_risk_section: bool (true if any ALERT, or STOP+TRIM >= 2)
 """
 
@@ -61,7 +68,9 @@ from datetime import datetime
 
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
+from clawock.decision import intraday_policy
 from clawock.decision import plans as plan_surface
+from clawock.decision import risk as risk_ledger
 from clawock.evidence import live_sources, research_surface
 from clawock.market_data import mover_evidence as mover_news
 from clawock.market_data import peer_scan
@@ -228,6 +237,20 @@ def parse_signals(stdout):
     return counts
 
 
+def holding_policies(market):
+    """The intraday slot's per-holding strategies, or {} with the reason.
+
+    Read the same way and from the same files as the intraday slot, so a
+    strategy that silences cost-basis stops or forbids reduce advice does so on
+    every card (2026-10-26: the 21:33 open report said 「SPCH 止损线已破」 while
+    every intraday card that day left it out). Never raises.
+    """
+    try:
+        return intraday_policy.load(WS, market), None
+    except Exception as exc:  # noqa: BLE001 — a policy file must never red a report cron
+        return {}, f'{type(exc).__name__}: {exc}'[:200]
+
+
 def parse_anomalies(stdout):
     """≥3% 异动行。实现在 _harness_common —— 两个 preflight 曾各存一份（#918）。"""
     return _harness_common.parse_holdings_anomalies(stdout)
@@ -378,7 +401,9 @@ def _collect(argv=None):
     live_lane = live_pool.submit(live_information, args.market)
     live_pool.shutdown(wait=False)
 
-    signals = parse_signals(stdout)
+    policies, policy_error = holding_policies(args.market)
+    source_counts, source_detail = _harness_common.parse_signal_lines(stdout)
+    signals, _ = intraday_policy.actionable_signals(source_counts, source_detail, policies)
     anomalies = parse_anomalies(stdout)
     indices = parse_hk_indices(stdout) if args.market == 'hk' else None
     peers = collect_peers(args.market)
@@ -390,7 +415,8 @@ def _collect(argv=None):
     coverage = _harness_common.quote_coverage(
         args.market, WS / 'portfolio.json',
         now=datetime.now(trading_calendar.HKT), started_at=started_at)
-    raw_wechat_block = disclose_stale_quotes(stdout.strip(), coverage)
+    raw_wechat_block = disclose_stale_quotes(
+        intraday_policy.strip_suppressed_signal_lines(stdout.strip(), policies), coverage)
     market_cn = '港股' if args.market == 'hk' else '美股'
     commit_msg = f'portfolio: {market_cn}{COMMIT_PHASE_CN[args.phase]}价格更新'
 
@@ -413,8 +439,14 @@ def _collect(argv=None):
     )
 
     # The orders themselves are printed under the analyzer block, so the prose
-    # reconciles against them without restating a size (#2840).
-    raw_wechat_block = plan_surface.append_order_block(raw_wechat_block, plan_ctx)
+    # reconciles against them without restating a size (#2840). A reduce order
+    # the holding's strategy forbids is left out, as on the intraday card; the
+    # disagreement stays in `strategy_conflicts`.
+    strategy_conflicts = intraday_policy.plan_conflicts(policies, plan_ctx)
+    raw_wechat_block = plan_surface.append_order_block(
+        raw_wechat_block, intraday_policy.without_conflicting_orders(policies, plan_ctx))
+    debts, debts_error = risk_ledger.leg_debts(
+        args.market.upper(), WS / 'memory' / 'risk_breaches.json')
 
     # Which of those conditions this phase's quotes already satisfy. Data only
     # here: the block above lists the orders, not whether a price was met —
@@ -458,6 +490,11 @@ def _collect(argv=None):
         'peer_scan':          trim_peer_scan(peers),
         'plan_context':       plan_ctx,
         'plan_triggers':      plan_triggers,
+        'holding_policies':   policies,
+        'strategy_conflicts': strategy_conflicts,
+        'holding_policies_error': policy_error,
+        'risk_debts':         debts,
+        'risk_debts_error':   debts_error,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
         # Live filings and news per holding (cite carries each item's own
