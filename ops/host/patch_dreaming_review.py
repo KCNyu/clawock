@@ -5,8 +5,13 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import subprocess
+import sys
 
-from patch_dreaming_fallbacks import replace_once
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
+
+from patch_dreaming_fallbacks import replace_once  # noqa: E402
 
 MARKER = 'clawock-dreaming-review-v1'
 OLD_PATH = 'const memoryPath = path.join(workspaceDir, "MEMORY.md");'
