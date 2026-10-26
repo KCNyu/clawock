@@ -291,3 +291,9 @@ code through a revert PR and refresh_live, then reinstall/restart the supervisor
 its adoption procedure. Never restore an older report to revive a charged model. Seed
 rollback still uses the immutable-file procedure; restore the matching repo copy too.
 No autonomous process edits the seed, lifts chattr, opens PRs or merges code.
+
+## Dreaming promotion review
+
+The promotion writer uses a private candidate file; the commit job screens candidates
+and requires explicit review receipts before adding permanent conclusions. Installation,
+review, verification and rollback: [dreaming review](../../docs/operations/dreaming-review.md).
