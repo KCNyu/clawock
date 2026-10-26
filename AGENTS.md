@@ -143,7 +143,7 @@ writers.
 | Dashboard outputs refreshed | published as one generation through the data plane; never staged file by file |
 | `assets/data/risk.json` refreshed by `clawock portfolio-risk` | bundled with the brief commit |
 | `memory/decisions.jsonl` execution status set by `clawock mark-followed` | `decisions: mark execution` |
-| `MEMORY.md` / `DREAMS.md` appended by dreaming | `ops/host/commit_dreaming.sh` commits them at 03:20 HKT |
+| `MEMORY.md` reviewed promotions / `DREAMS.md` dreaming output | `ops/host/commit_dreaming.sh` commits them at 03:20 HKT |
 
 Message style: `<type>: <concise description>`; Chinese is fine. Write the body with real
 newlines (multi-line `-m` or a heredoc), never a literal `\n`.
@@ -188,8 +188,10 @@ Handle every open issue on its evidence; there is no issue-count ceiling.
 
 - `MEMORY.md` is the OpenClaw assistant's long-term memory and is tracked. If something
   must survive the session, write the conclusion there, self-contained.
-- The dreaming job appends to `MEMORY.md` and `DREAMS.md` at 03:00 HKT. Leave the
-  `openclaw:dreaming` and `openclaw-memory-promotion` markers intact.
+- On this host, dreaming writes private candidates and `DREAMS.md` at 03:00 HKT.
+  The 03:20 commit gate moves explicitly reviewed durable conclusions into MEMORY;
+  see `docs/operations/dreaming-review.md`. Leave the `openclaw:dreaming` and
+  `openclaw-memory-promotion` markers intact.
 - `memory/*-pre-open.md` and `memory/weekly/` are published briefs, and the plan JSON is
   runtime data. Do not add other prose under `memory/`.
 

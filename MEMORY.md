@@ -192,25 +192,66 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 自动晋升的片段在审阅前只是候选，score 高不等于已核实。审阅时保留可跨日期复用的具体
   教训；删掉 front matter、HTML、当日价格和仓位动作。相同来源的候选不算独立证据。
 
-## Promoted From Short-Term Memory (2026-10-27)
+
+
+## Reviewed Dreaming Memory
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:23:23 -->
-- 今日动作 · 信心与判定: <div class="brief-entries" markdown="1"> [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:23-23]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-10-21 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.818 recalls=0 avg=0.620 source=memory/2026-10-21-pre-open.md:9-9]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:9:9 -->
-- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: 我独立复跑（不采信自述）：pypi 200、npm 0.4.1、`gh release view v0.4.1` 存在、 [score=0.806 recalls=0 avg=0.620 source=memory/2026-10-23.md:9-9]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:9:9 -->
-- coding 派发结果（issue sweep）: 核之前对外只说「worker 报 DONE」，不说「已修」。 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-22.md:9-9]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:10:10 -->
-- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: run `39820956731` conclusion=success、live `pyproject.toml` = 0.4.1 —— 全部对得上。 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-23.md:10-10]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:11:11 -->
-- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: 状态：**0.4.1 完整发布并落地**。待 kcn 定：本次增量更像 minor，是否另切 0.5.0 由 kcn 决定。 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-23.md:11-11]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:4:4 -->
-- 01:24 codex 收尾报告（`release-041-20261023-012124`）→ ok / DONE: codex 只做核验，未重推 tag、未改版本、未动已发布产物。报告结论：PyPI 200（wheel+sdist）、 [score=0.805 recalls=0 avg=0.620 source=memory/2026-10-23.md:4-4]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:5:5 -->
-- coding 派发结果（issue sweep）: `issue-sweep-3139-3144`（codex，派出 2026-10-21 19:50，id `issue-sweep-3139-3144-20261021-195044`） [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-22.md:5-5]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:6:6 -->
-- coding 派发结果（issue sweep）: 在 2026-10-22 05:03 HKT 返回 ok / 模型自报 DONE。 [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-22.md:6-6]
+- Rejected candidate; see private review ledger.
+
 <!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:7:8 -->
-- coding 派发结果（issue sweep）: 这就是 MEMORY.md 里记的「2026-10-21 一次 6 条 issue 的 sweep（#3139-#3144）15 分钟烧完整个 5h 额度窗」那一次，现在确认跑完。; 「模型自报 DONE」≠ 修复已落地。issue 是否真被关闭、PR 是否合并、CI 是否过，都还没核过； [score=0.804 recalls=0 avg=0.620 source=memory/2026-10-22.md:7-8]
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:44:44 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:5:8 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:50:50 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:16:19 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:20:20 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:28:31 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:11:11 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:13:13 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:19:19 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:2:4 -->
+- Rejected candidate; see private review ledger.

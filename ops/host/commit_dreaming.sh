@@ -30,6 +30,10 @@ cd "$WS" || exit 1
 BOT_NAME="github-actions[bot]"
 BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 
+# Refuse publication on parser/review failure. Raw candidates stay private.
+python3 "$WS/ops/host/review_dreaming.py" --workspace "$WS"
+python3 "$WS/ops/host/review_dreaming.py" --workspace "$WS" --check
+
 git add MEMORY.md DREAMS.md \
   || { echo "$(date -Is) dreaming-commit: git add 失败(疑似 index.lock 撞车)"; exit 1; }
 if git diff --cached --quiet; then
