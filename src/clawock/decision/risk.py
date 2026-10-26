@@ -470,6 +470,49 @@ def _standing(record: dict) -> dict:
     }
 
 
+def open_debts(records: list[dict], *, leg: str | None = None) -> list[dict]:
+    """Open breaches on `leg` that none of the three exits has closed, oldest first.
+
+    What a chat card prints under 欠着的账 (kcn 2026-10-26: cards said 「止损线已破」
+    under 待你处理 while the plan held the same names, and 07226 had stood 74 days
+    with no execution, acknowledgement or override on record). A plan that holds a
+    breach is not an order to fill today, and it is not a closed account either:
+    the debt is read here, from the ledger, so every card states it the same way.
+    """
+    out = []
+    for row in records or []:
+        if row.get("status") == "resolved":
+            continue
+        if leg and str(row.get("leg") or "").upper() != leg.upper():
+            continue
+        standing = _standing(row)
+        if not standing["undecided"]:
+            continue
+        out.append({
+            "breach_id": row.get("breach_id"),
+            "type": row.get("type"),
+            "ticker": row.get("ticker"),
+            "leg": row.get("leg"),
+            "targets": sorted(_targets(row)),
+            "severity": row.get("severity"),
+            "days_open": standing["days_open"],
+            "decision_overdue": standing["decision_overdue"],
+            "forces_action": forces_action(row),
+            "closes_with": standing["closes_with"],
+        })
+    return sorted(out, key=lambda debt: (-debt["days_open"], str(debt["breach_id"])))
+
+
+def leg_debts(leg: str, path: Path = LEDGER) -> tuple[list[dict] | None, str | None]:
+    """`(open_debts, None)` for one leg, or `(None, reason)` when the ledger does
+    not read. For the market cards; never raises, so a broken ledger is said on
+    the card instead of reddening the slot."""
+    try:
+        return open_debts(load_ledger(path)["records"], leg=leg), None
+    except Exception as exc:  # noqa: BLE001 — a card says the ledger is unreadable
+        return None, f"{type(exc).__name__}: {exc}"[:200]
+
+
 #: Advice the book keeps declining (kcn 2026-09-12:「我们长期不听的模型建议可以考虑有一个
 #: 自适应机制」). Measured the same day: 58 of the 61 active calls not followed in 30 days
 #: were the same three risk_rule cuts (07226 / RKLX / SPCH), re-issued every morning for

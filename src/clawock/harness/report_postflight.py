@@ -22,6 +22,7 @@ Validates (on the assembled message):
   3. 总长度闸 clawock.harness.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标；#334）
   4. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
   5. 没有"等待数据/数据待获取"等敷衍词
+  6. 正文不与今日计划、风控账本、持仓策略说反话（check_plan_consistency，warn）
 
 Delivery is fail-closed (2026-07-24): pass/warn send the full body; fail sends
 the data block ALONE — never the rejected prose. Deterministic data publication
