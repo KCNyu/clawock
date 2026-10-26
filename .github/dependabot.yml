@@ -1,5 +1,17 @@
 version: 2
 
+# Dependabot PRs are merged from Dependabot's own branch. The master ruleset
+# requires no approving review, and the required checks (`validate`, `lint`,
+# `Analyze (actions)`, `Analyze (javascript-typescript)`, `Analyze (python)`,
+# `CodeQL`) run and report on its PRs like on any other: #894-#897, #1508,
+# #1711, #2079, #2578 and #3188 were squash-merged that way. That has held
+# since #797 (2026-08-22) moved CodeQL from default setup to the workflow that
+# is now in ci.yml; under default setup the `Analyze (...)` contexts never
+# started on a Dependabot PR, which is why #3 and #116 had to be reopened.
+#
+# The one case that still needs a `claude/…` or `codex/…` branch is an npm
+# bump that changes clawock-dsh's built `lib/client.js`: `validate` fails with
+# "lib is stale" and Dependabot cannot rebuild it (#3078, redone as #3082).
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -8,6 +20,9 @@ updates:
       day: monday
       time: "09:00"
       timezone: Asia/Shanghai
+    # Minor and patch bumps share one grouped PR; each major bump gets its own.
+    # The most this entry has opened in one run is three (#116-#118, #274-#276),
+    # so 5 has never held a PR back and still caps a burst of majors.
     open-pull-requests-limit: 5
     groups:
       safe-actions:
@@ -30,10 +45,10 @@ updates:
       day: monday
       time: "09:00"
       timezone: Asia/Shanghai
-    # Deliberately small: Dependabot's own branches cannot satisfy this
-    # repository's required checks, so every PR it opens has to be reopened from
-    # a `claude/…` or `codex/…` branch by hand. A high limit just piles up work
-    # that cannot be merged where it stands.
+    # Never reached: every requirement in pyproject.toml is a `>=` floor with no
+    # upper cap, and the weekly pip run has opened no PR since this entry was
+    # added (#791, 2026-08-22). 3 leaves room for the grouped minor/patch PR
+    # plus two major bumps at once, which nothing here has come close to.
     open-pull-requests-limit: 3
     groups:
       python-safe:
