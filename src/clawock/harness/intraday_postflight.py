@@ -51,11 +51,14 @@ from pathlib import Path
 from clawock.harness.validation import (
     ADVISORY_MARK,
     FORBIDDEN_PHRASES,
+    PLAN_CONSISTENCY,
     REPORT_CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
     check_identifier_leak,
     check_numeric_claims,
+    check_plan_consistency,
+    is_reduce_directive,
     with_compute_receipts,
     check_pipeline_self_reference,
     has_section_marker,
@@ -427,7 +430,7 @@ def check_stale_citation(prose, ctx):
 # Issue classes the model can fix in one rewrite (contract §7). Kept to the
 # unambiguous ones: an identifier, the missing/unverifiable 下一触发 line, a
 # stale headline without its time, a ▎我的看法 marker that does not open a line.
-REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻', '缺段标记')
+REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻', '缺段标记', PLAN_CONSISTENCY)
 
 
 def claim_revise(market, context_id, issues):
@@ -668,31 +671,18 @@ def validate(text, ctx, model_text):
     for ticker, policy in (ctx.get('holding_policies') or {}).items():
         if not policy.get('forbid_reduce_advice'):
             continue
-        for sentence in re.split(r'[。；\n]', checked):
-            # `\b` never fires between a code and CJK ("建议00100立即减仓"),
-            # which is ordinary Chinese prose; `mentions_ticker` handles it (#1852).
-            if not mentions_ticker(sentence, ticker):
-                continue
-            if not re.search(r'砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z])',
-                             sentence, re.IGNORECASE):
-                continue
-            # A factual mention of the old open order is necessary to explain
-            # a strategy conflict. Only prescriptive copy breaches the policy.
-            # A sentence may mention the old plan and then issue a new order;
-            # evaluate each clause so "旧计划" cannot exempt the next clause.
-            for clause in re.split(r'[，,]', sentence):
-                if not re.search(r'砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z])',
-                                 clause, re.IGNORECASE):
-                    continue
-                directive = re.search(
-                    r'建议|应当|应该|必须|立即|现在|继续|执行|先砍|先减|砍\s*\d|减\s*\d',
-                    clause)
-                if directive and not re.search(
-                        r'不(?:再|要|应|建议|重复)[^。；，,\n]{0,35}'
-                        r'(?:砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z]))',
-                        clause, re.IGNORECASE):
-                    issues.append(f'{ticker} 策略冲突：盘中判断建议了砍仓/减仓/止损')
-                    break
+        # `\b` never fires between a code and CJK ("建议00100立即减仓"),
+        # which is ordinary Chinese prose; `mentions_ticker` handles it (#1852).
+        # A factual mention of the old open order is necessary to explain a
+        # strategy conflict; only prescriptive copy breaches the policy
+        # (`is_reduce_directive` reads clause by clause).
+        if any(mentions_ticker(sentence, ticker) and is_reduce_directive(sentence)
+               for sentence in re.split(r'[。；\n]', checked)):
+            issues.append(f'{ticker} 策略冲突：盘中判断建议了砍仓/减仓/止损')
+
+    # The judgment against today's plan, the risk ledger and the strategies'
+    # hard-stop exemption — escalating and revisable, see check_plan_consistency.
+    issues.extend(check_plan_consistency(checked, ctx, strategy_reduce=False))
 
     unavailable_checks = [row for row in (ctx.get('strategy_checks') or [])
                           if row.get('status') == 'unavailable']

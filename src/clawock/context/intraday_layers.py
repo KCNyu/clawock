@@ -51,6 +51,7 @@ CORE_FIELDS = {
     'watch_levels': 'constraints', 'holding_policies': 'constraints',
     'strategy_checks': 'constraints', 'strategy_conflicts': 'constraints',
     'strategy_escalations': 'constraints', 'policy_evidence_errors': 'constraints',
+    'risk_debts': 'constraints', 'risk_debts_error': 'constraints',
     # 加仓侧与边缘候选
     'add_side_reads': 'add_side', 'soft_candidates': 'add_side',
     # 异动归因与资讯

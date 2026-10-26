@@ -25,6 +25,7 @@ from pathlib import Path
 
 from clawock import sessions as _cal
 from clawock.decision import ledger as decision_v2
+from clawock.decision.actions import PASSIVE_ACTIONS
 from clawock.decision import risk as risk_ledger
 from clawock.workspace import workspace_root
 
@@ -219,6 +220,25 @@ def order_lines(plan_context):
     if len(orders) > MAX_ORDER_LINES:
         lines.append(f"另有 {len(orders) - MAX_ORDER_LINES} 条未列出")
     return lines
+
+
+def plan_holds(plan_context):
+    """Tickers today's open plan holds: every open decision on them is a stance.
+
+    `hold_and_watch` / `watch` is the plan's answer for the name, not an order,
+    so a card must not list a cost-basis stop on it as something to do today
+    (2026-10-26 港股收盘: four 「止损线已破」 rows over prose that said 「不加不减」,
+    the plan holding all four). A name with any sized or active decision is not
+    held. No plan, one that failed to read, or one cut at `MAX_DECISIONS`
+    (a dropped row could be the name's order) holds nothing.
+    """
+    if (plan_context or {}).get("truncated"):
+        return set()
+    rulings = {}
+    for row in (plan_context or {}).get("open") or []:
+        if row.get("ticker"):
+            rulings.setdefault(str(row["ticker"]), set()).add(row.get("action"))
+    return {ticker for ticker, actions in rulings.items() if actions <= PASSIVE_ACTIONS}
 
 
 def append_order_block(block, plan_context):

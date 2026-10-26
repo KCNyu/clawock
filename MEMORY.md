@@ -175,7 +175,8 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - **微信不渲染 markdown 标题**（插件 `openclaw-weixin` 的 markdown filter 只透传 `**粗体**`，
   `##` 原样显示且不加粗）。所以卡片第一行是整行 `**…**`，不是 `## …`（PR #3103）。
   散文只加粗段落标签（情绪面/技术面/操作建议/风险提示各自一行），正文不粗；整段粗体是噪音
-  （kcn 2026-10-20「太多加粗了」）。保留的粗体锚点只有：标题行、今日盈亏、区块标签、行首 ticker。
+  （kcn 2026-10-20「太多加粗了」）。保留的粗体锚点只有：标题行、区块标签、行首 ticker
+  （今日盈亏 2026-10-27 起并进汇总表首列 `今日 HKD/USD`，不再单独加粗）。
 - 兜底是 `clawock-brief-watchdog`（档位见 `docs/operations/cron-schedules.md`）：Telegram
   已成功就不动；marker 缺失或失败才补投 Telegram；marker 明确记录微信失败时同档只补发一次。
 
@@ -194,6 +195,36 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 
 ## Reviewed Dreaming Memory
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:23:23 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:9:9 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:9:9 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:9:9 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:10:10 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:11:11 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:4:4 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:5:5 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:6:6 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:7:8 -->
+- Rejected candidate; see private review ledger.
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-23.md:44:44 -->
 - Rejected candidate; see private review ledger.
