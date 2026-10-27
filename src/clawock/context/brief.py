@@ -241,6 +241,60 @@ def _tool_artifact(path: Path, payload: dict, generation_id: str):
     }
 
 
+def _bundle_bytes(name: str, context: dict) -> int:
+    """Bytes `_artifact` would write for bundle ``name`` of ``context``."""
+    fields = tuple(field for field in BUNDLE_FIELDS[name] if field in context)
+    payload = {
+        "_meta": {
+            "schema_version": SCHEMA_VERSION,
+            # compute_generation_id is a fixed-width 16-hex prefix.
+            "generation_id": "0" * 16,
+            "fields": list(fields),
+        },
+        **{field: context[field] for field in fields},
+    }
+    return len((_compact(payload) + "\n").encode("utf-8"))
+
+
+def fit_evidence_bundle(context: dict) -> tuple[dict, int]:
+    """Drop the lowest-ranked news events until the evidence bundle fits.
+
+    The evidence bundle is the one that grows with the news day: forty
+    projected events plus the per-holding information overlay sat at 93 KB on
+    10-15/10-21/10-22 and crossed the 96 KiB line on 2026-10-23 (98510 bytes),
+    which stopped that day's brief at preflight. `news_evidence_node` already
+    sorts events by actionable, high impact, reliability, then recency and
+    keeps forty; this keeps fewer of the same tail rather than losing the whole
+    brief. An actionable escalation is never dropped, so a bundle that still
+    does not fit raises in `write_run_bundle` as before. The canonical graph
+    stays whole in `assets/data/news_evidence_graph.json`.
+
+    Returns ``(context, dropped)``; ``context`` is unchanged when it fits.
+    """
+    graph = context.get("news_evidence_graph")
+    if (
+        not isinstance(graph, dict)
+        or not isinstance(graph.get("events"), list)
+        or _bundle_bytes("evidence", context) <= SINGLE_BUNDLE_BUDGET_BYTES
+    ):
+        return context, 0
+    events = list(graph["events"])
+    fitted = {**context, "news_evidence_graph": {**graph, "events": events}}
+    dropped = 0
+    while _bundle_bytes("evidence", fitted) > SINGLE_BUNDLE_BUDGET_BYTES:
+        tail = next(
+            (index for index in range(len(events) - 1, -1, -1)
+             if not (events[index] or {}).get("actionable_escalation")),
+            None,
+        )
+        if tail is None:
+            break
+        events.pop(tail)
+        dropped += 1
+        fitted["news_evidence_graph"]["budget_dropped_events"] = dropped
+    return fitted, dropped
+
+
 def write_run_bundle(
     context: dict,
     audit_path: Path,
