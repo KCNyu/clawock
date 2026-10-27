@@ -703,6 +703,12 @@ def test_commit_contract_excludes_runtime_refresh_reverts_and_preserves_real_dup
         assert cron_health_check.commit_count_on(pattern, day) == 1
         refreshes.append((stamp, f'portfolio: {phase}价格更新'))
         assert cron_health_check.commit_count_on(pattern, day) == 2
+        # report_postflight.maybe_commit suffixes the subject with the validation
+        # status; a warn/fail slot still landed its one commit (10-27 false red).
+        refreshes[2:] = [(stamp, f'portfolio: {phase}价格更新 (validation warnings)')]
+        assert cron_health_check.commit_count_on(pattern, day) == 1
+        refreshes[2:] = [(stamp, f'portfolio: {phase}价格更新 (data only; prose rejected)')]
+        assert cron_health_check.commit_count_on(pattern, day) == 1
     monkeypatch.setattr(cron_health_check, '_commit_log_entries', lambda: [
         (stamp, 'memory: daily deep brief 2026-10-20'),
         (stamp, 'memory: daily deep brief 2026-10-20 (validation warnings)'),
