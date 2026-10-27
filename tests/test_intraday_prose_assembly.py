@@ -150,6 +150,30 @@ def test_signal_alert_rule_accepts_a_named_signal_ticker(pf):
     assert not [i for i in issues if '未提任何信号票' in i], issues
 
 
+def test_stop_on_a_name_the_plan_holds_need_not_be_named(pf):
+    """2026-10-27 22:00 US: RKLX's STOP was its 104-day hard stop, the plan held
+    it (`hold_and_watch`), the card printed it 「计划持有」 and under 欠着的账,
+    and Mode 7 tells the model not to restate either — yet the gate put 🟠 on
+    the card. The card's rule (`chat_card.stop_is_action`) is the gate's rule."""
+    plan = {'open': [{'ticker': 'RKLX', 'action': 'hold_and_watch'}]}
+    prose = '▎我的看法\n' + 'SPCH 本档冲高，减仓计划与无限子弹策略冲突，按策略不减，等量价确认。' * 2
+    ctx = _ctx(anomalies=[], plan_context=plan,
+               signals_detail=[{'level': 'STOP', 'ticker': 'RKLX'}])
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+    assert not [i for i in issues if '未提任何信号票' in i], issues
+
+    # Only the held name's STOP is excused: another signal on it, a STOP on a
+    # name with an order, or a plan that holds nothing still has to be named.
+    for plan_context, signal in (
+            (plan, {'level': 'TRIM', 'ticker': 'RKLX'}),
+            ({'open': [{'ticker': 'RKLX', 'action': 'trim_on_rebound'}]},
+             {'level': 'STOP', 'ticker': 'RKLX'}),
+            ({**plan, 'truncated': True}, {'level': 'STOP', 'ticker': 'RKLX'})):
+        ctx = _ctx(anomalies=[], plan_context=plan_context, signals_detail=[signal])
+        issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+        assert [i for i in issues if '未提任何信号票 (RKLX)' in i], (plan_context, signal)
+
+
 def test_naming_an_anomaly_does_not_excuse_the_signals(pf):
     """#1630: with both present, each must be named — the signal check used to
     sit in an `elif` that the anomaly mention short-circuited."""
