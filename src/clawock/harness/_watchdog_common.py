@@ -438,6 +438,17 @@ def cron_run_ended_in_failure(job, today, now=None):
 UNFINISHED_RUN = {}
 
 
+def chain_exhausted(runs):
+    """All recorded attempts failed; the caller separately requires no context.
+
+    Error reasons can be mixed or absent in cron evidence. Neither proves
+    whether preflight ran, so only the context gate may authorize rebuilding.
+    Empty evidence, success and unknown statuses must not trigger recovery.
+    Shared by report_watchdog (#3162/#3171) and intraday_watchdog.
+    """
+    return bool(runs) and all(r.get('status') == 'error' for r in runs)
+
+
 def attempt_still_running(context, last_run):
     """Is a newer attempt in flight than the newest FINISHED run for this slot?
 

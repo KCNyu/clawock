@@ -57,7 +57,7 @@ cron slot ─► preflight ───────────► model ───�
 | model | LLM | reads the core packet, fetches references it needs, writes `▎我的看法` and the `下一触发：` line | no prose / stale prose → postflight `input_error`, watchdog sends the data block |
 | postflight | harness | validates the prose (§7), assembles blocks per channel, sends, records | validation fail → data block + top banner (never empty); warn → sent with a banner |
 | delivery | harness via OpenClaw channels | WeChat (primary), Telegram (mirror and backstop), each retried on its own | a failed channel is recorded per channel; the other still sends |
-| watchdog | harness (`intraday_watchdog`) | checks the exact slot marker and live cron running state (a completed manual preflight does not consume the in-flight wait); resends the channel that did not land | WeChat-failed alert to Telegram at most once per market per day (#1861) |
+| watchdog | harness (`intraday_watchdog`) | checks the exact slot marker and live cron running state (a completed manual preflight does not consume the in-flight wait); resends the channel that did not land; when every attempt of the slot failed before preflight wrote its context, runs that preflight itself and sends the deterministic block to Telegram (`_watchdog_common.chain_exhausted`, shared with `report_watchdog`) | WeChat-failed alert to Telegram at most once per market per day (#1861) |
 | ledgers | harness | heartbeat, workflow outcomes, delivered-state cursor, dashboard data plane | collector crashes survive diagnostic preflight retries; a fallback without judgment/postflight is degraded and needs attention; a failed publish is its own state (`publish_failed`); watchdog delivery confirmation cannot clear it (#2234) |
 
 ### Prompt files a slot loads

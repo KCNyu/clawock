@@ -77,6 +77,7 @@ Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 """
 import argparse
 import json
+import subprocess
 import sys
 import time
 from datetime import datetime, timedelta
@@ -93,7 +94,7 @@ from ._watchdog_common import (
     attempt_still_running,  # noqa: F401  re-export
     wait_out_inflight, log_after_wait, UNFINISHED_RUN,
     send_wechat, resolve_wechat_target, wechat_backstop,
-    wechat_gap_reason,
+    wechat_gap_reason, chain_exhausted,
 )
 
 from clawock.automation import cron_heartbeat  # noqa: E402
@@ -116,6 +117,10 @@ REGEN_BACKWARD_S = 60      # tolerance for a context timestamped just before the
 # checks reject a next-slot context rather than misjudge it as this slot.
 INFLIGHT_WAIT_S = 600
 INFLIGHT_POLL_S = 30
+# The deterministic preflight this watchdog runs itself when every attempt of the
+# slot failed before writing a context (see `chain_exhausted`), as report_watchdog
+# does since #3162. Fired at +23 min, a run inside this bound still names its slot.
+PREFLIGHT_TIMEOUT_S = 600
 
 
 
@@ -175,8 +180,8 @@ def watchdog_target(market, now=None):
     return wall_now, job_name, slot
 
 
-def run_for_slot(runs, market, job_name, slot):
-    """Select the newest completed run belonging to exactly ``job_name/slot``."""
+def runs_for_slot(runs, market, job_name, slot):
+    """Every completed run belonging to exactly ``job_name/slot``, oldest first."""
     matches = []
     for run in runs:
         run_at = run.get('runAtMs')
@@ -185,7 +190,24 @@ def run_for_slot(runs, market, job_name, slot):
         run_dt = datetime.fromtimestamp(run_at / 1000, HKT)
         if cron_heartbeat.slot_for(market, run_dt) == (job_name, slot):
             matches.append(run)
+    return matches
+
+
+def run_for_slot(runs, market, job_name, slot):
+    """Select the newest completed run belonging to exactly ``job_name/slot``."""
+    matches = runs_for_slot(runs, market, job_name, slot)
     return matches[-1] if matches else None
+
+
+def build_context(market):
+    """Run the slot's own preflight (no LLM) and say whether it exited 0."""
+    try:
+        done = subprocess.run(
+            [sys.executable, '-m', 'clawock.harness.intraday_preflight', '--market', market],
+            cwd=str(WS), capture_output=True, text=True, timeout=PREFLIGHT_TIMEOUT_S)
+        return done.returncode == 0, (done.stderr or done.stdout or '')[-300:]
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return False, str(e)[:300]
 
 
 def context_for_slot(path, job_name, slot):
@@ -361,6 +383,30 @@ def main():
     # --- Context gate: only assess this slot's own preflight data -------------
     summary = last.get('summary', '')
     context = context_for_slot(ctx_path, expected_job, expected_slot)
+    slot_runs = runs_for_slot(runs_today or [], args.market, expected_job, expected_slot)
+    if context is None and chain_exhausted(slot_runs):
+        # Every attempt died before preflight wrote this slot's context — on
+        # 2026-10-26 the US 23:00 and 23:30 slots failed in ~10s with the whole
+        # model chain over quota, and the gate below rejected the 22:30 context,
+        # so kcn got nothing for an hour. The data block needs no model: run the
+        # slot's preflight here and send the labelled fallback, Telegram only,
+        # exactly as report_watchdog does (#3162/#3171).
+        built, out = (True, 'dry-run') if args.dry_run else build_context(args.market)
+        context = context_for_slot(ctx_path, expected_job, expected_slot)
+        raw_block = ((context or {}).get('raw_wechat_block') or '').strip()
+        if built and raw_block:
+            deliver_fallback(
+                raw_block, tag, '盯盘尝试全部失败，未生成上下文', args, watchdog_now, flag,
+                expected_job, expected_slot, run_at,
+                extra={'attempts': len(slot_runs), 'rebuilt_context': True})
+            return 0
+        if (context or {}).get('status') != 'market_closed':
+            log({'tag': tag, 'action': 'skip', 'attempts': len(slot_runs),
+                 'reason': 'all recorded attempts failed without context; watchdog '
+                           f'preflight produced no block ({out})',
+                 'expected_job': expected_job, 'expected_slot': expected_slot,
+                 'run_at': run_at})
+            return 0
     if context is None:
         cron_heartbeat.record(
             args.market, 'watchdog_rejected', at=watchdog_now,
