@@ -182,6 +182,17 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 ---
 
+### 报告散文的校验红线（2026-10-27 港股午后实测）
+
+- 风控账本里存在未了结的硬止损条目时，正文不能写「现价仍在纪律线之上」「尚未触发」这类说法
+  —— postflight 判成「与计划/账本不一致」。写法改成：直说这条规则在账上开了很久且逾期未结，
+  不要拿当前价位去证明它还没破。价位缓冲只作为风险提示里的补充量，不当触发结论。
+- 自算的百分比会被扫成「context 里没有的数字」（advisory），**写了完整算式也照样被标**：
+  2026-10-27 午后的「差额 ÷ 现价 ≈ 1.2%」照样进警告。稳妥做法：正文只写港元差额，
+  百分比交给 `clawock tool compute` 算完原样引用。
+
+---
+
 ## Promoted From Short-Term Memory
 
 下面由 runtime 自动追加，是某天简报的片段。
@@ -254,4 +265,31 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - Rejected candidate; see private review ledger.
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-21-pre-open.md:2:4 -->
+- Rejected candidate; see private review ledger.
+
+
+## Reviewed Dreaming Memory
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22-pre-open.md:11:11 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22-pre-open.md:13:13 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22-pre-open.md:19:19 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22-pre-open.md:2:4 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22-pre-open.md:23:23 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22-pre-open.md:9:9 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:10:10 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:11:11 -->
 - Rejected candidate; see private review ledger.
