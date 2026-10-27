@@ -4,7 +4,7 @@ import { createQueueActionRunner, createTaskQueueService } from "./taskqueue.js"
 import { readLedger, readPlans, readPortfolio, readTraces } from "./ledger.js";
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from "./freshness.js";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
-//#region src/index.ts
+// src/index.ts
 /**
 * Read-only Typert Remote gateway over a clawock workspace, powering the
 * Decision Mind conversation-view tab in the DSH web GUI.
@@ -366,5 +366,4 @@ const name = "clawock-dsh";
 function apply(ctx, config = {}) {
 	ctx.plugin(ClawockStudioGateway, config);
 }
-//#endregion
 export { ClawockStudioGateway, apply, inject, name };

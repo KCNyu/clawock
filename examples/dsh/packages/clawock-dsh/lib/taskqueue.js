@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, readdirSync, statSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-//#region src/taskqueue.ts
+// src/taskqueue.ts
 /**
 * The dispatch queue behind the sidebar-foot task chip: which agent-dispatch
 * tasks are alive, what each one waits for, what just finished, and what the
@@ -1047,5 +1047,4 @@ function createQueueActionRunner(config = {}, deps = systemDeps, onWrite = () =>
 		return job;
 	};
 }
-//#endregion
 export { DEFAULT_DISPATCH_LIMITS_PATH, DEFAULT_DISPATCH_LOG_DIR, DEFAULT_PATROL_STATE_DIR, DEFAULT_STATS_DAYS, DEFAULT_TASK_QUEUE_OPS_PATH, DEFAULT_TASK_QUEUE_RECENT, DEFAULT_TASK_QUEUE_REFRESH_MS, QUEUE_ACTIONS, WRAPUP_TEXT, channelList, createQueueActionRunner, createTaskQueueService, fileVersion, finalSummary, lastLogEvent, localStampMs, opsArgsFor, patrolPhase, readEnvFile, readPatrolProgress, readStats, readTaskQueue, sinceDay, systemDeps, unquoteShell };
