@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { readdirSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
-//#region src/freshness.ts
+// src/freshness.ts
 /**
 * Workspace data-freshness signature + trace cache for the clawock-dsh
 * gateway. Pure Node (fs/crypto/path only) — unit-testable without the
@@ -95,5 +95,4 @@ function createTraceCache(ttlMs = TRACE_TTL_MS, now = Date.now) {
 		}
 	};
 }
-//#endregion
 export { TRACE_TTL_MS, createTraceCache, workspaceKeyOf, workspaceSignature };

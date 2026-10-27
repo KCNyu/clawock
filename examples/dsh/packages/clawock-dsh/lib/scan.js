@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-//#region src/scan.ts
+// src/scan.ts
 /**
 * Read-only scanner over a clawock workspace: prepared runs, the current
 * decision artifact, and published receipts. Pure Node, no Cordis/typert
@@ -105,5 +105,4 @@ function getRun(workspace, runIdValue) {
 		manifest: manifestOf(workspace, id)
 	};
 }
-//#endregion
 export { RUN_ID_PATTERN, getRun, listRuns, runIdOf };

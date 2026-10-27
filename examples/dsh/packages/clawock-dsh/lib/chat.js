@@ -2,7 +2,7 @@ import { n as taskQueueConfig, t as createBalanceReader } from "./desk.js";
 import { createTaskQueueService } from "./taskqueue.js";
 import { homedir } from "node:os";
 import { join } from "node:path";
-//#region src/copy.ts
+// src/copy.ts
 /**
 * This plugin's copy, in the locales the browser client ships (`zh`, `en` —
 * `dsh-client-locale`'s LOCALE_IDS). Keys are grouped by surface; the two
@@ -1147,8 +1147,7 @@ function windowsOf(t, result, now) {
 		reset: resetStampOf(t, w, now)
 	}));
 }
-//#endregion
-//#region src/providers.ts
+// src/providers.ts
 /**
 * Rows in the order the panel lists them (kcn, 2026-09-27): the paid,
 * exclusive allowances first — the two subscriptions, then the balance and
@@ -1213,8 +1212,7 @@ function byAgentRank(items) {
 		rank: sourceRank({ agent: item.agent })
 	})).sort((a, b) => a.rank - b.rank || a.at - b.at).map(({ item }) => item);
 }
-//#endregion
-//#region src/panel.ts
+// src/panel.ts
 /**
 * The task chip's provider panel as data: every row it shows (a provider's
 * allowance, a live task, an ended one, a patrol round), its words, its state
@@ -2800,8 +2798,7 @@ function panelModel(input, t, now, open = () => {}) {
 		footer: opsFooter(input.queue, t)
 	};
 }
-//#endregion
-//#region src/text.ts
+// src/text.ts
 /**
 * The task chip's provider panel as conservative Markdown: the chat rendering of the same
 * panel.ts model the sidebar draws, for a chat reply (OpenClaw `/dispatch-list`).
@@ -2970,8 +2967,7 @@ function statsText(view, t, plain = false) {
 	out.push(row(t("stats.table.total"), view.totals));
 	return out.join("\n");
 }
-//#endregion
-//#region src/chat.ts
+// src/chat.ts
 /**
 * OpenClaw entry: `/dispatch-list` prints the task chip's provider panel —
 * every provider's allowance, each agent's live tasks, what just ended,
@@ -3099,5 +3095,4 @@ function register(api) {
 		}
 	});
 }
-//#endregion
 export { register as default, dispatchListText, dispatchStatsText, parseStatsArgs };

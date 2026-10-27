@@ -1,7 +1,7 @@
 import { createBalanceService, createClaudeService, createCodexService, createMinimaxService } from "./balance.js";
 import { homedir } from "node:os";
 import { join } from "node:path";
-//#region src/desk.ts
+// src/desk.ts
 /**
 * What feeds the task chip's provider panel, assembled once for every host that
 * shows it: the balance services in display order, and the task queue reader's
@@ -92,5 +92,4 @@ function taskQueueConfig(config, workspace) {
 		repoOpsPath: join(workspace, "ops", "host", "task_queue_ops.py")
 	};
 }
-//#endregion
 export { taskQueueConfig as n, createBalanceReader as t };

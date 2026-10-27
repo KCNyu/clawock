@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-//#region src/ledger.ts
+// src/ledger.ts
 /**
 * Read-only readers over the OpenClaw desk's produced data: the shared
 * decision ledger, the portfolio, and recent daily plans. Pure Node, no
@@ -490,5 +490,4 @@ function readTraces(workspace) {
 		lastUpdated
 	};
 }
-//#endregion
 export { FX_STALE_READ_HOURS, T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, fxProvenance, isSellAction, planFillAlignment, readBarCloses, readFxRate, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictKindOf, t1VerdictOf };

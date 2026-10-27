@@ -2,7 +2,7 @@ import { homedir } from "node:os";
 import { delimiter, dirname, join } from "node:path";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
-//#region src/balance.ts
+// src/balance.ts
 /**
 * Provider account balances for the session header chip — official endpoints
 * answered with the SAME keys the harness's adapters use (credentials seam
@@ -677,5 +677,4 @@ function createClaudeService(deps, config = {}) {
 		isLow: (snapshot) => quotaIsLow(snapshot, lowPct)
 	});
 }
-//#endregion
 export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createCodexService, createMinimaxService, expandHome, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, quotaIsLow, quotaSnapshot, quotaWindow, readClaudeCredentials, readCodexRateLimits, readJsonFile, readLastGood, toEpochMs, windowLabel, windowUsedPercent };
