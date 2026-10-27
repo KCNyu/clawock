@@ -65,7 +65,7 @@ from ._watchdog_common import (
     same_generation_window, wait_out_inflight, log_after_wait, UNFINISHED_RUN,
     attempt_still_running,  # noqa: F401  re-export; tests learned the rule here
     send_wechat, resolve_wechat_target, wechat_backstop,
-    wechat_gap_reason,
+    wechat_gap_reason, chain_exhausted,
 )
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -82,16 +82,6 @@ REGEN_BACKWARD_S = 60              # tolerance for a context timestamped just be
 # The deterministic preflight this watchdog runs itself when attempts failed without a
 # context (see `chain_exhausted`). Same order as one report attempt's preflight.
 PREFLIGHT_TIMEOUT_S = 600
-
-
-def chain_exhausted(runs):
-    """All recorded attempts failed; the caller separately requires no context.
-
-    Error reasons can be mixed or absent in cron evidence. Neither proves
-    whether preflight ran, so only the context gate may authorize rebuilding.
-    Empty evidence, success and unknown statuses must not trigger recovery.
-    """
-    return bool(runs) and all(r.get('status') == 'error' for r in runs)
 
 
 def build_context(market, phase):
