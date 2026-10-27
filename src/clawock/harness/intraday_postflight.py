@@ -96,6 +96,7 @@ from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.evidence import intraday_information  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
 from clawock.harness import chat_card
+from clawock.decision.plans import plan_holds  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
 from clawock.harness.intraday_preflight import can_silence  # noqa: E402
 
@@ -618,11 +619,19 @@ def validate(text, ctx, model_text):
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
         seen_signals = intraday_delta.seen_signal_identities(
             ctx.get('semantic_state') or {}, ctx.get('prior_semantic_state') or {})
+        # A STOP on a name today's plan holds is not one of today's questions
+        # (`chat_card.stop_is_action`): the card prints it 「计划持有」 and any
+        # owed hard stop under 欠着的账, and Mode 7 tells the model not to
+        # restate either. Demanding it in prose put 🟠 on 25 cards in two weeks,
+        # all but one for RKLX's 100-day hard stop on the first US slot.
+        held = plan_holds(ctx.get('plan_context'))
         signal_tickers = [
             row.get('ticker') for row in (ctx.get('signals_detail') or [])
             if row.get('ticker') and str(row.get('level', '')).upper()
             in SIGNAL_LEVELS
             and (row.get('level'), row.get('ticker')) not in seen_signals
+            and not (str(row.get('level', '')).upper() == 'STOP'
+                     and row.get('ticker') in held)
         ]
         if signal_tickers and not any(
                 mentions_ticker(checked, ticker) for ticker in signal_tickers):
