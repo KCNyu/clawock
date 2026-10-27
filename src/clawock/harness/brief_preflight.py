@@ -2228,6 +2228,12 @@ def _collect(argv=None):
         'issues':        issues,
     }
     ctx_path = TMP_DIR / f'brief-context-{today}.json'
+    # Before the generation id: the packet and the bundles must see the same
+    # events, and a news-heavy day must not cost the whole brief (2026-10-23).
+    context, dropped_events = brief_context.fit_evidence_bundle(context)
+    if dropped_events:
+        print(f'   🧾 news evidence: {dropped_events} lowest-ranked events '
+              'dropped to fit the evidence bundle budget')
     try:
         generation_id = brief_context.compute_generation_id(context)
         decision_packet = brief_decision_packet.compile_packet(

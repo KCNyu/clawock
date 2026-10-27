@@ -119,6 +119,46 @@ def test_live_news_projection_fits_evidence_budget_and_keeps_packet_facts(tmp_pa
     assert manifest['bundles']['evidence']['bytes'] <= brief_context.SINGLE_BUNDLE_BUDGET_BYTES
 
 
+def test_news_heavy_day_drops_tail_events_instead_of_the_brief(tmp_path):
+    """2026-10-23: forty events plus the overlay came to 98510 bytes, over the
+    96 KiB evidence budget, and preflight stopped the brief. The tail of the
+    ranked events goes instead; an actionable escalation never does."""
+    source = _fixture()
+    events = [{"event_id": "evt-act", "actionable_escalation": True, "detail": "A" * 2_000}]
+    events += [{"event_id": f"evt-{i:02d}", "actionable_escalation": False, "detail": "N" * 2_400}
+               for i in range(40)]
+    source["news_evidence_graph"] = {"as_of": "2026-10-23", "events": events,
+                                     "information_overlay": {"tickers": {"00100": "O" * 2_000}}}
+    with pytest.raises(ValueError, match="lazy bundle exceeds per-load budget"):
+        brief_context.write_run_bundle(source, tmp_path / "unfitted.json")
+
+    fitted, dropped = brief_context.fit_evidence_bundle(source)
+    kept = fitted["news_evidence_graph"]["events"]
+    assert dropped > 0 and len(kept) == len(events) - dropped
+    assert kept == events[:len(kept)]                      # only the tail went
+    assert fitted["news_evidence_graph"]["budget_dropped_events"] == dropped
+    assert len(source["news_evidence_graph"]["events"]) == len(events)  # input untouched
+    _, manifest = brief_context.write_run_bundle(fitted, tmp_path / "fitted.json")
+    evidence = manifest["bundles"]["evidence"]
+    assert evidence["bytes"] == brief_context._bundle_bytes("evidence", fitted)
+    assert evidence["bytes"] <= brief_context.SINGLE_BUNDLE_BUDGET_BYTES
+    # One event fewer dropped would not have fit: it trims no more than needed.
+    assert brief_context._bytes(events[len(kept)]) > (
+        brief_context.SINGLE_BUNDLE_BUDGET_BYTES - evidence["bytes"])
+
+    within = _fixture()
+    assert brief_context.fit_evidence_bundle(within) == (within, 0)
+
+    actionable = _fixture()
+    actionable["news_evidence_graph"]["events"] = [
+        {"event_id": f"evt-{i}", "actionable_escalation": True, "detail": "A" * 3_000}
+        for i in range(40)]
+    fitted, dropped = brief_context.fit_evidence_bundle(actionable)
+    assert dropped == 0 and len(fitted["news_evidence_graph"]["events"]) == 40
+    with pytest.raises(ValueError, match="lazy bundle exceeds per-load budget"):
+        brief_context.write_run_bundle(fitted, tmp_path / "actionable.json")
+
+
 def test_new_optional_feature_cannot_grow_the_always_loaded_core(tmp_path):
     baseline = _fixture()
     baseline.pop("new_feature_surface")
