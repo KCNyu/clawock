@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T17:44:36.332897+00:00",
+  "generated_at": "2026-10-27T18:28:44.187950+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n\n- **SPCX**: 科技股避险抛售中早盘跌 6% 至 $150.23，回吐首次盈利季度后的多数涨幅。  \n  **Implication（kcn / SPCH）**：通过 2x 杠杆 ETF SPCH 持有，空头周期与单日波动将被同步放大。\n- **RKLB**: Neutron 发射进度延至 2027 年，估值仍处高位，报道给出的 forward EV/sales 为 SpaceX 的约 1.89 倍。  \n  **Implication（kcn / RKLX）**：通过 2x 杠杆 ETF RKLX 持有，延期与高估值带来的下修将被放大。\n- **SPCX**: BofA 将目标价上调至 $275，较当时收盘价高 73%；第三季度营收增长 161%。  \n  **Implication（kcn / SPCH）**：基本面预期提供中期支撑，但 SPCH 的 2x 结构也会放大任何重估波动。\n- **CRCL**: OCC 完成 GENIUS Act 实施规则，交易所目前可继续提供类收益稳定币奖励，USDC/USDT 进入新监管与分发竞争阶段。  \n  **Implication（kcn / CRCL）**：监管可见度提高，但 USDC 相对 USDT 的获客优势及奖励成本仍未确定，净影响暂偏中性。\n\n### Per-ticker 简报 (有新闻才列)\n\n- **CRCL**: GENIUS Act 规则落地并允许稳定币奖励，清晰了合规框架，但加剧 USDC 与 USDT 的用户奖励竞争。\n- **RKLB**: Neutron 延至 2027 年叠加科技股避险，RKLB 一度下跌 5%，执行风险与估值溢价同时受关注。\n- **SPCX**: 盈利季报后的涨势快速回吐，但 BofA 上调目标价；Tesla 财报重新点燃合并猜测，尚无已确认交易。\n\n### 风险 watch (若有)\n\n- **CRCL**: 监管规则执行、USDC 对 USDT 的竞争及类收益奖励成本可能压缩分发经济性。\n- **RKLB**: Neutron 延期与高估值组合意味着任何进一步时间表恶化都可能触发放大回撤。\n- **SPCX**: 盈利后仍单日跌 6%，显示预期波动高；Tesla–SpaceX 合并目前仅为猜测，不应视为已落地催化。",
+  "digest_markdown": "### Top 移动信号 (跨 ticker)\n\n- **CRCL**: Mizuho 下调目标价至 $43,理由是 AI agent 可能把 USDC 持有人导向更高收益替代品 — 对直接持仓偏空,核心争议从\"合规性\"转向\"收益护城河能否守住\"。\n- **RKLB**: Neutron 延期被 SeekingAlpha 直接定性为\"新低催化剂\",同时二级段已运抵发射场、Cantor 重申 Overweight/$122(隐含 127% 上行) — 时点风险与高目标价并存,是当前最大的多空分歧点;RKLX 为 2x 杠杆 ETF,该消息的任何方向都会被放大一倍。\n- **CRCL**: ACI Worldwide 携手 Circle,将 USDC 结算接入其银行与支付基础设施(Connetic 平台) — 本轮唯一\"已签约\"的采用型催化,利好结算量与储备规模。\n- **CRCL**: Ripple 获 OCC 正式批准全国信托银行牌照,RLUSD 成为储备核心,并联手 Robinhood 扩展机构结算/资金管理 — 竞争性稳定币借监管牌照加速渗透,CRCL 先发优势边际收窄。\n- **太空板块(跨 RKLB / SPCX)**: 小盘太空股集体反转,Intuitive Machines +9%、RKLB +7%,SPCX 落后 — 属板块 beta 修复而非个股催化;RKLX 2x 将这段涨幅翻倍,SPCH 敞口同样放大。\n\n### Per-ticker 简报\n\n- **CRCL**: 三负面一正面一中性 — 降目标价($43)+AI 收益替代威胁为估值压制,ACI 银行为实质采用利好,Ripple/RLUSD 扩张为竞争压制,Ark Invest(Cathie Wood)周一增持 CRCL 为情绪面支撑。\n- **RKLB**: Neutron 延期 vs Cantor $122 目标价 + 二级段运抵发射场并存;股价距 52 周高点回撤近 65%,7% 反弹由小盘太空修复带动 — RKLX 2x 放大双向波动,日复利损耗需计入成本。\n- **SPCX**: 内容偏主题噪声 — Kraken 母公司 Payward 拟经 CFTC 框架将 Hyperliquid 永续合约引入美国(加密合规化,若 SPCH 含加密敞口则偏正);Anthropic IPO 进程与乌克兰 OBRIA NANO 入轨为行业背景;太空板块反弹中明显跑输 INTU/RKLB。\n\n### 风险 watch\n\n- **CRCL**: 券商降级/目标价下调($43);收益率替代风险(AI agent 驱动的资金搬家);竞争与监管 — Ripple OCC 信托牌照 + RLUSD 机构结算扩张。\n- **RKLB**: Neutron 延期(发射时点/合同执行风险,已有明确看空定性);52 周高点回撤 65% 的高波动状态;RKLX 2x 杠杆放大。\n- **SPCX**: CFTC 框架尚未落地,加密监管为待定事项;SPCH 2x 杠杆随板块 beta 双向放大。\n- **数据缺口**: 本批 raw news 未含 `_omitted_tickers`,三只 ticker 均有条目;但 CRCL 无价格/估值数据、RKLB 无订单与发射合同细节,SPCX 无 ETF 成分与权重明细,故不对持仓弹性做量化。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "'Long Coins, Short Stocks': Expert Bullish on Bitcoin, Cautious on XRP, Coinbase, Circle",
-        "datetime": 1792661604,
+        "headline": "Ripple, Robinhood Partner to Expand RLUSD Use for Institutional Settlement",
+        "datetime": 1793098378,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c8858ce86c29d2ca3500977a65d5dbfd845e5a785418f5d368141aabc266a5ab"
+        "url": "https://finnhub.io/api/news?id=1d99199b69bb16e8ff301a0cce0c9325c9570de3f4dae6201ee2417c62b84317"
       },
       {
-        "headline": "GENIUS Act Rules Are Reshaping the USDC vs. USDT Battle",
-        "datetime": 1792655136,
-        "source": "Yahoo",
+        "headline": "Circle’s AI Opportunity Turns Into a ‘Marked Risk,’ Mizuho Warns",
+        "datetime": 1793089514,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f1c6fd2bb26941a096f17a3b76c3eeaadd5ab7610f0db1ee8f2188596f814a95"
+        "url": "https://finnhub.io/api/news?id=a8ce58787ea4403ce265cb53f42796f108f698f859e9a8196338b270a3e0ee3b"
       },
       {
-        "headline": "Circle CEO Shrugs Off Bitcoin's Slump and Pitches Digital Dollars for the AI Era",
-        "datetime": 1792638780,
-        "source": "Yahoo",
+        "headline": "ACI Worldwide Partners With Circle Internet Group To Integrate Stablecoin Settlement Into Existing Banking And Payment Infrastructure",
+        "datetime": 1793081316,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dc01ea5713adf403e2c12f8a728b124febf2e711a941b42af7560622a6b649a1"
+        "url": "https://finnhub.io/api/news?id=e1b2af895284eb24779e1f606212c4c4834f62cec2b553d2be2904b857217e99"
       },
       {
-        "headline": "OCC Says Crypto Platforms Can Keep Offering Yield-Like Rewards",
-        "datetime": 1792630440,
+        "headline": "Who Gains From Ripple’s New Bank Charter? XRP Holders May Be Last in Line",
+        "datetime": 1793077621,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f2962004fb47eacac8de2dc37b3dd1254041badcacb46ada290ba5343476eb35"
+        "url": "https://finnhub.io/api/news?id=5eac088bfc009444e902701c7532137532699a075a3ff2b15c7d5919d633670f"
       },
       {
-        "headline": "Proof and Circle Demonstrate End-to-End Agentic Commerce: The x401/x402 Handshake",
-        "datetime": 1792626912,
-        "source": "Yahoo",
+        "headline": "Cathie Wood Buys Joby, Archer Aviation as Air Taxi Bets Grow, Ark Pounces on Nu Holdings Stock After Lula’s Brazil Win",
+        "datetime": 1793052982,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8136a16214f85079e8c9c509c10a3837e706ac07b7b2e780d6cbc642a1480c01"
+        "url": "https://finnhub.io/api/news?id=00ca5c8ef520a2ac947878b0b64c81df7ede3a623bc4d4b8a405f900046d6179"
       }
     ],
     "RKLB": [
       {
-        "headline": "SpaceX and AST SpaceMobile Sink 6%, Rocket Lab Falls 5% as Tech Selloff Hits High-Flying Space Stocks",
-        "datetime": 1792684590,
+        "headline": "Intuitive Machines Surges 9% as Small-Cap Space Selloff Reverses; Rocket Lab Climbs 7%, SpaceX Lags",
+        "datetime": 1793116467,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3585fc1514cd1317afac9d1b4764fa6cf2739fd78b449a1708d9a985ac768eff"
+        "url": "https://finnhub.io/api/news?id=7ad784725b4a14bc1dfca4e699f54057f7485560ac4b507f93d2521c2f220719"
       },
       {
-        "headline": "Brown Advisory Sees Long-Term Potential in Rocket Lab Corporation (RKLB)",
-        "datetime": 1792676625,
+        "headline": "Down Nearly 65% From Its 52-Week High, Has Rocket Lab Stock Become a Bargain Buy?",
+        "datetime": 1793110621,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bd3bbeba4ce4c1261ef2214379afb9a22df7fe64ce10ba4113422a090dc1b883"
+        "url": "https://finnhub.io/api/news?id=a34905a7fb751cc46b15f97cd5251da7622cd7fc8289c36d902edc27f296518c"
       },
       {
-        "headline": "SpaceX Rallied, but These 6 Space Stocks Are Still Waiting for Liftoff",
-        "datetime": 1792675215,
+        "headline": "Rocket Lab vs. Firefly Aerospace: Which Stock Is More Attractive?",
+        "datetime": 1793102640,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8e68f72a2278b951e856ebbecc2ab7fc6282eea75c85f832c6f2eeb3c6821a69"
+        "url": "https://finnhub.io/api/news?id=5e78f5ba655ef69aa6a3160b6a4ff7939cf40aee03ead388e7e77700bf4def00"
       },
       {
-        "headline": "RKLB Is Among Nasdaq’s Top 5 Losers So Far This Month, Yet Analysts See 90% Upside — Can Neutron Justify Its SpaceX Premium?",
-        "datetime": 1792652512,
-        "source": "Yahoo",
+        "headline": "Rocket Lab: Neutron Rocket Delay A Catalyst For New Lows",
+        "datetime": 1793091727,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4f5e53531702b6fd12aa424dba5a8ffdfe92e41b9d93ba4daeb1f892ae8f3f67"
+        "url": "https://finnhub.io/api/news?id=8aeb9db99d3e4fe324afe5e97b7233e8e5046d7f0e7b5ea77bd146b4c466de8c"
       },
       {
-        "headline": "Rocket Lab (RKLB) Stock Could Be Above Fair Value As Neutron Launch Slips To 2027",
-        "datetime": 1792635520,
+        "headline": "RKLB Stock Edges Up Overnight: Neutron’s Second Stage Heads To Launch Site — Analyst Eyes Q2 2027 Debut And Shares Doubling",
+        "datetime": 1793073585,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=92281ff703c29573c7f1ee119eba045e637e3b816c6e6b40447c56ee66086d78"
+        "url": "https://finnhub.io/api/news?id=01c9c53710d12531704b849d83569f1be1d68639d9801b4cf3d51446c8554ab4"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX stock slips as tech trade tumbles",
-        "datetime": 1792684740,
+        "headline": "Kraken's parent company is bringing crypto perpetuals to the US",
+        "datetime": 1793116800,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9e2e383b8a9560788369641e3b7e844e3ab2f8416b303326c3fa3bdb130bf091"
+        "url": "https://finnhub.io/api/news?id=8428446df625f87899706468f0ec5452799a725a12e3a3e2a9a20cf1552f23f0"
       },
       {
-        "headline": "SpaceX and AST SpaceMobile Sink 6%, Rocket Lab Falls 5% as Tech Selloff Hits High-Flying Space Stocks",
-        "datetime": 1792684590,
+        "headline": "Intuitive Machines Surges 9% as Small-Cap Space Selloff Reverses; Rocket Lab Climbs 7%, SpaceX Lags",
+        "datetime": 1793116467,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3585fc1514cd1317afac9d1b4764fa6cf2739fd78b449a1708d9a985ac768eff"
+        "url": "https://finnhub.io/api/news?id=7ad784725b4a14bc1dfca4e699f54057f7485560ac4b507f93d2521c2f220719"
       },
       {
-        "headline": "Tesla earnings beat puts SpaceX merger speculation back in focus",
-        "datetime": 1792684500,
+        "headline": "Anthropic's IPO could start trading as soon as Nov. 16 — here's the road from filing to first trade",
+        "datetime": 1793116445,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e763bbb7a884910a3a896c60f9a4fee1a7c1c91a2b1f0df9e48faf7ad82ca38e"
+        "url": "https://finnhub.io/api/news?id=991e4d688eed1b0115f8f4f852f41acc3e79e09bd8caa0ad058fab29beaa36b0"
       },
       {
-        "headline": "Tesla Is Just A Car Company",
-        "datetime": 1792684260,
+        "headline": "Ukraine's Sovereign Satellite Now Operating in Orbit",
+        "datetime": 1793116440,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=14dca2af3604357a7cf9f437081b7fc2c7b4076c7671e4fc396da486ae1074c8"
+        "url": "https://finnhub.io/api/news?id=4fded397e383b17a1912262ce9be8aae69851e4c1e0eb6e155a7117ca575681b"
       },
       {
-        "headline": "SpaceX Just Got Another Vote of Confidence: 73% Upside Potential from BofA",
-        "datetime": 1792683259,
+        "headline": "Anthropic's 'tension' between profitability & 'public good': IPO expert",
+        "datetime": 1793111634,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4a0d88cf64f4b19bee3b5a033cdbe36c19c69c86efe6f45325d11c6e5ef3610f"
+        "url": "https://finnhub.io/api/news?id=f9edcba7d1b19c5235e261efe4cee1077a31442b667981e13ec8b4ab8da1a466"
       }
     ]
   },
