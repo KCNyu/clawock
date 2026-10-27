@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-24T08:22:41Z",
+  "generated_at": "2026-10-27T09:19:01Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -392,6 +392,21 @@
       "timestamp": "2026-10-23T00:00:00Z",
       "count": 5,
       "uniques": 4
+    },
+    {
+      "timestamp": "2026-10-24T00:00:00Z",
+      "count": 26,
+      "uniques": 23
+    },
+    {
+      "timestamp": "2026-10-25T00:00:00Z",
+      "count": 37,
+      "uniques": 31
+    },
+    {
+      "timestamp": "2026-10-26T00:00:00Z",
+      "count": 15,
+      "uniques": 12
     }
   ],
   "clones": [
@@ -784,6 +799,21 @@
       "timestamp": "2026-10-23T00:00:00Z",
       "count": 1054,
       "uniques": 162
+    },
+    {
+      "timestamp": "2026-10-24T00:00:00Z",
+      "count": 396,
+      "uniques": 106
+    },
+    {
+      "timestamp": "2026-10-25T00:00:00Z",
+      "count": 416,
+      "uniques": 89
+    },
+    {
+      "timestamp": "2026-10-26T00:00:00Z",
+      "count": 1055,
+      "uniques": 214
     }
   ],
   "referrers_snapshots": [
@@ -1450,6 +1480,27 @@
           "referrer": "Google",
           "count": 1,
           "uniques": 1
+        },
+        {
+          "referrer": "kcnyu.github.io",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-10-27T09:19:01Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 22,
+          "uniques": 17
+        },
+        {
+          "referrer": "Google",
+          "count": 3,
+          "uniques": 3
         },
         {
           "referrer": "kcnyu.github.io",
@@ -2845,6 +2896,72 @@
           "uniques": 1
         }
       ]
+    },
+    {
+      "captured_at": "2026-10-27T09:19:01Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 51,
+          "uniques": 42
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 7,
+          "uniques": 6
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/docs/architecture/strategy-plugins.md",
+          "title": "/blob/master/docs/architecture/strategy-plugins.md",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "title": "/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/discussions",
+          "title": "/discussions",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/issues/1116",
+          "title": "/issues/1116",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 2,
+          "uniques": 2
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -2969,6 +3086,13 @@
     },
     {
       "captured_at": "2026-10-24T08:22:41Z",
+      "stargazers": 21,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 0
+    },
+    {
+      "captured_at": "2026-10-27T09:19:01Z",
       "stargazers": 21,
       "forks": 0,
       "watchers": 0,
@@ -3211,6 +3335,19 @@
         "downloads": 6647,
         "start": "2026-09-23",
         "end": "2026-10-22"
+      }
+    },
+    {
+      "captured_at": "2026-10-27T09:19:01Z",
+      "pypi": {
+        "last_day": 2,
+        "last_month": 311,
+        "last_week": 146
+      },
+      "npm": {
+        "downloads": 0,
+        "start": "2026-06-02",
+        "end": "2026-07-01"
       }
     }
   ]
