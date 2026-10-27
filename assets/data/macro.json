@@ -18,11 +18,11 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.03,
+    "price": 102.024,
     "prev": 101.959,
-    "change_pct": 0.07,
+    "change_pct": 0.06,
     "source": "yahoo",
-    "as_of": 1793052298
+    "as_of": 1793061620
   },
   "hsi": {
     "symbol": "^HSI",
@@ -61,7 +61,7 @@
     "rating": "fear",
     "prev_close": 21.0,
     "prev_1_week": 20.8,
-    "as_of": "2026-10-26T23:01:14+00:00"
+    "as_of": "2026-10-26T23:59:53+00:00"
   },
   "fed_press": [],
   "treasury_curve": {
@@ -132,5 +132,5 @@
     "skew": "unavailable",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-10-26T23:20:26.186500+00:00"
+  "generated_at": "2026-10-27T00:50:22.275266+00:00"
 }
