@@ -80,14 +80,16 @@ DASHBOARD_STATE_ICONS = {
     'stale-measurement': '·',
 }
 
-# Cron name → identifying commit msg patterns
+# Cron name → identifying commit msg patterns. Postflight appends the validation
+# status to the subject (`(validation warnings)`, `(data only; prose rejected)`),
+# so every slot commit tolerates a trailing parenthesised suffix.
 COMMIT_PATTERNS = {
-    '港股开盘报告': r'^portfolio: 港股开盘价格更新$',
-    '港股午盘报告': r'^portfolio: 港股午盘价格更新$',
-    '港股午后快报': r'^portfolio: 港股午后价格更新$',
-    '港股收盘报告': r'^portfolio: 港股收盘价格更新$',
-    '美股开盘报告': r'^portfolio: 美股开盘价格更新$',
-    '美股收盘报告': r'^portfolio: 美股收盘价格更新$',
+    '港股开盘报告': r'^portfolio: 港股开盘价格更新(?: \(.*\))?$',
+    '港股午盘报告': r'^portfolio: 港股午盘价格更新(?: \(.*\))?$',
+    '港股午后快报': r'^portfolio: 港股午后价格更新(?: \(.*\))?$',
+    '港股收盘报告': r'^portfolio: 港股收盘价格更新(?: \(.*\))?$',
+    '美股开盘报告': r'^portfolio: 美股开盘价格更新(?: \(.*\))?$',
+    '美股收盘报告': r'^portfolio: 美股收盘价格更新(?: \(.*\))?$',
     '盘前深度简报': r'^memory: daily deep brief \d{4}-\d{2}-\d{2}(?: \(.*\))?$',
     '盘中盯盘': None,        # Mode 7 dashboard commit 不是 one-per-slot contract
     '美股盘中盯盘': None,    # same
