@@ -2,11 +2,12 @@ name: Deploy GitHub Pages
 
 # Every dispatched run used to be titled "data-plane-published" over whatever
 # master HEAD was, so successive generations read as the same run repeated in
-# the Actions list. The title now carries the generation's data-plane receipt —
-# the same one in this workflow and in dashboard-artifact-gate.yml — which tells generations apart
-# and pairs the two runs of one generation. Other events get whitespace, which
-# GitHub replaces with its usual title.
-run-name: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.reason && format('Published {0}', github.event.client_payload.reason) || ' ' }}
+# the Actions list. The title now carries the generation's data-plane receipt
+# behind this workflow's own verb; dashboard-artifact-gate.yml carries the same receipt, which
+# pairs the two runs of one generation without making them look like one run
+# listed twice. Other events get whitespace, which GitHub replaces with its
+# usual title.
+run-name: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.reason && format('Deploy {0}', github.event.client_payload.reason) || ' ' }}
 
 on:
   push:
@@ -49,7 +50,9 @@ on:
       - 'config/dashboard-outputs.json'
       - 'ops/publish/**'
   # The publisher asks for a deploy once a generation reaches the data branch
-  # (#314). A push to that branch cannot do it: `push` runs the workflows on the
+  # (#314) — unless it differs from the one it replaced only in automation
+  # status, which the page's polls read from the branch anyway
+  # (`publish_data_branch.deploy_relevant`). A push to that branch cannot do it: `push` runs the workflows on the
   # ref that was pushed, and an orphan data branch carries none. GitHub
   # documents `repository_dispatch` as creating a run even when sent with the
   # automatic GITHUB_TOKEN, so every publisher can ask — the host through its

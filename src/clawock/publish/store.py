@@ -130,6 +130,9 @@ class PublishResult:
 
     receipt: str
     changed: bool
+    # The receipt this call replaced, when the store can name one. The deploy
+    # decision compares against exactly that generation (publish_data_branch).
+    previous: str | None = None
 
 
 class ArtifactStore(Protocol):
@@ -385,7 +388,15 @@ class GitBranchStore:
                 if attempt == attempts:
                     raise
                 time.sleep(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS)
-        return PublishResult(commit, changed=True)
+        return PublishResult(commit, changed=True,
+                             previous=stored[0] if stored is not None else None)
+
+    def read(self, receipt: str, name: str) -> str | None:
+        """One file of a stored generation by receipt, or None when it is absent."""
+        try:
+            return self._git_blob(receipt, name)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            return None
 
     def fetch(self, into: Path | str, *, names=None, allow_missing=None) -> list[str]:
         """Materialise the stored generation into a directory.

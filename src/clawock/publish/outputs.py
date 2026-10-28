@@ -48,6 +48,11 @@ def load_contract(root: Path | str = ROOT) -> dict:
             raise ValueError(
                 f"{path}: outputs.{name}.locator_fields must map a dotted path "
                 "to the dotted path of the content identity it points at")
+        status = spec.get("status_fields", [])
+        if not isinstance(status, list) or not all(
+            isinstance(value, str) and value for value in status
+        ):
+            raise ValueError(f"{path}: outputs.{name}.status_fields must be strings")
         group = spec.get("generation_group")
         if group is not None and (not isinstance(group, str) or not group):
             raise ValueError(f"{path}: outputs.{name}.generation_group is invalid")
@@ -125,6 +130,26 @@ def semantic_value(path: str, value, *, contract=None, root: Path | str = ROOT):
         return _strip_recursive(value, recursive)
     if isinstance(value, dict):
         for field in spec.get("top_level_clock_fields", ()):
+            value.pop(field, None)
+    return value
+
+
+def first_paint_value(path: str, value, *, contract=None, root: Path | str = ROOT):
+    """The semantic value without the automation's own status blocks.
+
+    `status_fields` (top-level keys) report how the automation is running —
+    which slot finished, when each job last succeeded. They change on their
+    own: an intraday postflight publishes while its job is still running, and
+    the next tick publishes it finished, three minutes later, with nothing
+    else different. That generation still goes to the data branch, where every
+    page poll reads it within seconds. What it does not need is a Pages deploy
+    (first paint only) and a gate run (which validates none of these blocks),
+    so the deploy decision compares this value, not `semantic_value`.
+    """
+    contract = contract or load_contract(root)
+    value = semantic_value(path, value, contract=contract)
+    if isinstance(value, dict):
+        for field in contract["outputs"].get(path, {}).get("status_fields", ()):
             value.pop(field, None)
     return value
 

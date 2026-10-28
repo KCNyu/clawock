@@ -227,6 +227,19 @@ def test_every_declared_locator_sits_beside_its_identity_in_a_real_build(freshly
             assert dashboard_outputs._at(payload, identity), f"{identity} is not in the build"
 
 
+def test_every_declared_status_field_is_in_a_real_build(freshly_built_dashboard):
+    """A renamed status block would not publish wrong bytes — the deploy decision
+    would just stop recognising a status-only generation and go back to a Pages
+    deploy and a gate run per finished slot."""
+    contract = dashboard_outputs.load_contract(ROOT)
+    built = {"assets/data/dashboard.json": freshly_built_dashboard,
+             "assets/data/overview.json": freshly_built_dashboard.parent / "overview.json"}
+    for path, spec in contract["outputs"].items():
+        for field in spec.get("status_fields", ()):
+            assert path in built, path
+            assert field in json.loads(built[path].read_text()), f"{path}: {field}"
+
+
 def test_reflect_backtest_change_publishes_the_existing_audit_sidecar(tmp_path):
     original = _repo(tmp_path)
     _write(tmp_path, "assets/data/decision_audit.json", {

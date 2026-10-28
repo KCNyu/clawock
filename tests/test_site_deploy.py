@@ -204,3 +204,69 @@ def test_the_null_deployer_reports_rather_than_pretends():
     caller writes."""
     assert NullDeployer().request("anything")
     assert GitHubDispatchDeployer("owner/repo").event_type == "data-plane-published"
+
+
+def _publisher():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "publish_data_branch_under_test", ROOT / "ops/publish/publish_data_branch.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class _Stored:
+    def __init__(self, files):
+        self.files = files
+
+    def read(self, receipt, name):
+        return self.files.get(name)
+
+
+def _generation(*, totals=1, slot="running", heartbeat="a", evidence=None):
+    status = {"recent": [{"job": "intraday", "raw_execution": {"status": slot}}]}
+    files = {
+        "assets/data/overview.json": json.dumps(
+            {"generation_id": slot, "totals": totals, "workflow_outcomes": status}),
+        "assets/data/dashboard.json": json.dumps(
+            {"generated_at": slot, "totals": totals, "workflow_outcomes": status,
+             "cron_schedule": {"jobs": [{"last_success_at": slot}]}}),
+        "assets/data/decision_audit.json": json.dumps({"as_of": slot}),
+        "assets/data/shadow_portfolio.json": json.dumps({"as_of": slot}),
+        "assets/data/decision_trail.json": json.dumps({"as_of": slot}),
+        "assets/data/cron-heartbeats.json": json.dumps({"events": [heartbeat]}),
+        "assets/data/workflow-outcomes.json": json.dumps({"records": [slot]}),
+    }
+    if evidence is not None:
+        files["assets/data/evidence.json"] = evidence
+    return files
+
+
+def test_a_slot_finishing_after_its_postflight_published_asks_for_no_deploy():
+    """2026-10-28 14:37/14:40: the postflight published while its job ran, the
+    next tick published it finished. Same money, same everything else — the
+    branch takes it, the site and the gate are not asked again."""
+    publisher = _publisher()
+    before = _generation(slot="running", heartbeat="a")
+    after = _generation(slot="finished", heartbeat="b")
+    assert publisher.deploy_relevant(_Stored(before), "prev", after, ROOT) is False
+
+
+@pytest.mark.parametrize("after", [
+    _generation(slot="finished", totals=2),
+    _generation(slot="finished", evidence="{}"),
+], ids=["a number moved with the status", "a member appeared"])
+def test_anything_beyond_status_still_deploys(after):
+    publisher = _publisher()
+    assert publisher.deploy_relevant(_Stored(_generation()), "prev", after, ROOT) is True
+
+
+def test_no_verdict_is_a_deploy():
+    publisher = _publisher()
+    after = _generation(slot="finished")
+    assert publisher.deploy_relevant(_Stored(_generation()), None, after, ROOT) is True
+    broken = {**_generation(), "assets/data/dashboard.json": "{not json"}
+    assert publisher.deploy_relevant(_Stored(broken), "prev", after, ROOT) is True
+    dropped = {**_generation(evidence="{}")}
+    assert publisher.deploy_relevant(_Stored(dropped), "prev", after, ROOT) is True

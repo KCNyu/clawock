@@ -426,3 +426,17 @@ def test_the_outer_publish_budget_can_actually_hold_the_retry_ladder():
     source = Path(_harness_common.__file__).read_text()
     assert "timeout=publish_store.PUBLISH_BUDGET_SECONDS" in source
     assert "'publish_generation.sh')],\n            capture_output=True, text=True, timeout=120" not in source
+
+
+def test_a_publish_names_the_generation_it_replaced_and_can_read_it(repo):
+    """The deploy decision compares against exactly what this publish replaced,
+    not a local cache that may be a tick behind."""
+    store = GitBranchStore(repo, "data-plane")
+    first = store.publish(GENERATION, label="first")
+    assert first.previous is None
+
+    second = store.publish({**GENERATION, "assets/data/dashboard.json": '{"totals": 2}\n'},
+                           label="second")
+    assert second.changed and second.previous == first.receipt
+    assert store.read(second.previous, "assets/data/dashboard.json") == '{"totals": 1}'
+    assert store.read(second.previous, "assets/data/missing.json") is None

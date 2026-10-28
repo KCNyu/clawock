@@ -42,6 +42,15 @@ Treat that as an operational trade, not product architecture:
   document on the branch that is a generation newer. That is the normal state
   during a session, not an error: the page keeps the document, reads the
   branch's Overview once, and paints both.
+- Every changed generation goes to the branch; only some ask for a Pages
+  deploy and an artifact-gate run. Build clocks and the provenance commit
+  pointers whose content digests did not move are not a change at all
+  (`config/dashboard-outputs.json` `*_clock_fields`, `locator_fields`). A
+  generation that differs from the one it replaced only in the automation's
+  status (`status_fields`, `cron-heartbeats.json`, `workflow-outcomes.json`) is
+  published without a dispatch: the polls read it from the branch, the gate
+  validates none of it, and each intraday slot used to cost two deploys — one
+  when its postflight published, one when the next tick saw the job finish.
 
 ## Long-term target
 
