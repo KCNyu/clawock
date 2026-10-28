@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-27T18:28:44.187950+00:00",
+  "generated_at": "2026-10-28T18:34:47.797324+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 移动信号 (跨 ticker)\n\n- **CRCL**: Mizuho 下调目标价至 $43,理由是 AI agent 可能把 USDC 持有人导向更高收益替代品 — 对直接持仓偏空,核心争议从\"合规性\"转向\"收益护城河能否守住\"。\n- **RKLB**: Neutron 延期被 SeekingAlpha 直接定性为\"新低催化剂\",同时二级段已运抵发射场、Cantor 重申 Overweight/$122(隐含 127% 上行) — 时点风险与高目标价并存,是当前最大的多空分歧点;RKLX 为 2x 杠杆 ETF,该消息的任何方向都会被放大一倍。\n- **CRCL**: ACI Worldwide 携手 Circle,将 USDC 结算接入其银行与支付基础设施(Connetic 平台) — 本轮唯一\"已签约\"的采用型催化,利好结算量与储备规模。\n- **CRCL**: Ripple 获 OCC 正式批准全国信托银行牌照,RLUSD 成为储备核心,并联手 Robinhood 扩展机构结算/资金管理 — 竞争性稳定币借监管牌照加速渗透,CRCL 先发优势边际收窄。\n- **太空板块(跨 RKLB / SPCX)**: 小盘太空股集体反转,Intuitive Machines +9%、RKLB +7%,SPCX 落后 — 属板块 beta 修复而非个股催化;RKLX 2x 将这段涨幅翻倍,SPCH 敞口同样放大。\n\n### Per-ticker 简报\n\n- **CRCL**: 三负面一正面一中性 — 降目标价($43)+AI 收益替代威胁为估值压制,ACI 银行为实质采用利好,Ripple/RLUSD 扩张为竞争压制,Ark Invest(Cathie Wood)周一增持 CRCL 为情绪面支撑。\n- **RKLB**: Neutron 延期 vs Cantor $122 目标价 + 二级段运抵发射场并存;股价距 52 周高点回撤近 65%,7% 反弹由小盘太空修复带动 — RKLX 2x 放大双向波动,日复利损耗需计入成本。\n- **SPCX**: 内容偏主题噪声 — Kraken 母公司 Payward 拟经 CFTC 框架将 Hyperliquid 永续合约引入美国(加密合规化,若 SPCH 含加密敞口则偏正);Anthropic IPO 进程与乌克兰 OBRIA NANO 入轨为行业背景;太空板块反弹中明显跑输 INTU/RKLB。\n\n### 风险 watch\n\n- **CRCL**: 券商降级/目标价下调($43);收益率替代风险(AI agent 驱动的资金搬家);竞争与监管 — Ripple OCC 信托牌照 + RLUSD 机构结算扩张。\n- **RKLB**: Neutron 延期(发射时点/合同执行风险,已有明确看空定性);52 周高点回撤 65% 的高波动状态;RKLX 2x 杠杆放大。\n- **SPCX**: CFTC 框架尚未落地,加密监管为待定事项;SPCH 2x 杠杆随板块 beta 双向放大。\n- **数据缺口**: 本批 raw news 未含 `_omitted_tickers`,三只 ticker 均有条目;但 CRCL 无价格/估值数据、RKLB 无订单与发射合同细节,SPCX 无 ETF 成分与权重明细,故不对持仓弹性做量化。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: 核心事实：8/18 颗 SDA 军用卫星进入生产，披露规模达 $515M 的军用项目；Neutron 二级与推力模块已运抵 Wallops Island 准备发射台测试。  \n  **Implication（kcn）**：军用订单执行与 Neutron 去风险构成双重催化；kcn 持有 **RKLX（2x）**，会放大上涨弹性，也会放大利好兑现后的回撤。\n- **SPCX**: 核心事实：Varda 高管称 SpaceX 可能保留 Starship 降本收益，而非向客户大幅降低发射价格。  \n  **Implication（kcn）**：若落实将改善单位发射经济性；kcn 持有 **SPCH（2x）**，会双向放大该利润率叙事。\n- **SPCX**: 核心事实：SPCX 回落至约 $140 附近，并持续落后于上涨中的小型航天股。  \n  **Implication（kcn）**：相对弱势压制短线动量；**SPCH（2x）** 将放大下跌，$140 更适合视为观察位而非确定支撑。\n- **CRCL**: 核心事实：Mizuho 将目标价下调至 $43；其 chatbot 测试中，AI agents 更多推荐 FDIC 承保账户而非 USDC。  \n  **Implication（kcn）**：对 USDC 采用率与稳定币需求构成负面情绪信号，短线利空 kcn 的 CRCL 仓位。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: Mizuho 目标价降至 $43，AI 支付场景更偏向银行存款 — 卖方与采用率信号偏空。\n- **RKLB**: 军用卫星批量生产叠加 Neutron 发射台测试准备 — 运营里程碑偏多。\n- **SPCX**: Starship 降本收益或更多留存公司，但股价相对小型航天股走弱 — 基本面潜力与短线价格信号分化。\n\n### 风险 watch (若有)\n- **RKLB**: 一周已上涨约 15%，军用与 Neutron 催化可能部分计价；RKLX 的 2x 结构会放大获利回吐。\n- **SPCX**: 有广告公司被指控利用 Starlink 从事监视；目前仅为指控，报道未给出监管调查或处罚结论，但存在声誉与监管尾部风险。\n- **CRCL**: $43 目标价反映明显看空情绪；若 AI agents 持续优先推荐 FDIC 产品，USDC 获客压力可能继续压制估值。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Ripple, Robinhood Partner to Expand RLUSD Use for Institutional Settlement",
-        "datetime": 1793098378,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1d99199b69bb16e8ff301a0cce0c9325c9570de3f4dae6201ee2417c62b84317"
-      },
-      {
-        "headline": "Circle’s AI Opportunity Turns Into a ‘Marked Risk,’ Mizuho Warns",
-        "datetime": 1793089514,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a8ce58787ea4403ce265cb53f42796f108f698f859e9a8196338b270a3e0ee3b"
-      },
-      {
-        "headline": "ACI Worldwide Partners With Circle Internet Group To Integrate Stablecoin Settlement Into Existing Banking And Payment Infrastructure",
-        "datetime": 1793081316,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e1b2af895284eb24779e1f606212c4c4834f62cec2b553d2be2904b857217e99"
-      },
-      {
-        "headline": "Who Gains From Ripple’s New Bank Charter? XRP Holders May Be Last in Line",
-        "datetime": 1793077621,
+        "headline": "Chatbots Would Rather You Skip USDC, Mizuho Finds, Cutting Circle Target to $43",
+        "datetime": 1793149080,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5eac088bfc009444e902701c7532137532699a075a3ff2b15c7d5919d633670f"
+        "url": "https://finnhub.io/api/news?id=1578685e5373730c2b3d6aa94535f33ece0c5054d84e7cca0263a88a706cd792"
       },
       {
-        "headline": "Cathie Wood Buys Joby, Archer Aviation as Air Taxi Bets Grow, Ark Pounces on Nu Holdings Stock After Lula’s Brazil Win",
-        "datetime": 1793052982,
-        "source": "Benzinga",
+        "headline": "Robinhood Is Bringing Ripple’s RLUSD to Millions of Users. Could XRP Get Back to $3?",
+        "datetime": 1793140638,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=00ca5c8ef520a2ac947878b0b64c81df7ede3a623bc4d4b8a405f900046d6179"
+        "url": "https://finnhub.io/api/news?id=c99a70afc5c68a63a76c94bf63ff90c66bfe34c1bd6a6e56d9e7a7f73d9ccc08"
+      },
+      {
+        "headline": "Going Public: OpenPayd CEO Iana Dimitrova, Live from Money 20/20 2026",
+        "datetime": 1793134296,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=20aa98833abfc37038c40736b757c97358c694f138a0c4ba11ef3e97a0eb78f6"
+      },
+      {
+        "headline": "AI Reshaping Payments Industry: Finix Head of Finance Emanuel Pleitez, Live from Money 20/20 2026",
+        "datetime": 1793134227,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=66a4530e72f7293313f74780392c56dc631606368e963d8b38850064f252d02f"
+      },
+      {
+        "headline": "Cathie Wood sells Bitcoin, buys $5.2 million of sinking stock",
+        "datetime": 1793121262,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=ad213cf324f7d923f2df8cf527b9af1508a0852996dc5fa74568d585063df244"
       }
     ],
     "RKLB": [
       {
-        "headline": "Intuitive Machines Surges 9% as Small-Cap Space Selloff Reverses; Rocket Lab Climbs 7%, SpaceX Lags",
-        "datetime": 1793116467,
+        "headline": "Rocket Lab Soars 15% in a Week as Space Stocks Rebound and Neutron Heads to the Pad",
+        "datetime": 1793185961,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7ad784725b4a14bc1dfca4e699f54057f7485560ac4b507f93d2521c2f220719"
+        "url": "https://finnhub.io/api/news?id=3094667660a79f47e2a60178a74db8f584ad82dc652129dd6570771aa85534ef"
       },
       {
-        "headline": "Down Nearly 65% From Its 52-Week High, Has Rocket Lab Stock Become a Bargain Buy?",
-        "datetime": 1793110621,
+        "headline": "Google Earnings Prediction Market Preview: What Will Sundar Pichai Say?",
+        "datetime": 1793180147,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=55216b48702e85b1bd37eb58ad6f21774d7728c1ae47520d636dc10b085449c5"
+      },
+      {
+        "headline": "RKLB Stock Climbs Overnight: Rocket Lab Touts $515M Military Push — 8 Of 18 Satellites In Production",
+        "datetime": 1793160868,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a34905a7fb751cc46b15f97cd5251da7622cd7fc8289c36d902edc27f296518c"
+        "url": "https://finnhub.io/api/news?id=fea3f1636dc7a764800c7e5310d4e15019da8c2aae5b070e19e1a6dcb0ef7c1d"
       },
       {
-        "headline": "Rocket Lab vs. Firefly Aerospace: Which Stock Is More Attractive?",
-        "datetime": 1793102640,
+        "headline": "Rocket Lab Stock Is Trending As Military Satellite Production Comes Into Focus: ‘Eight Of 18 Spacecraft Are On The Floor Right Now’",
+        "datetime": 1793152081,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=2db4c50e93b23def02038254b1991ad32a8d82be9dc0f9b7fadc126f996e00ed"
+      },
+      {
+        "headline": "Lincoln Electric, Rocket Lab, Fluence Energy, ChargePoint, and American Superconductor shares skyrocket, what you need to know",
+        "datetime": 1793144567,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5e78f5ba655ef69aa6a3160b6a4ff7939cf40aee03ead388e7e77700bf4def00"
-      },
-      {
-        "headline": "Rocket Lab: Neutron Rocket Delay A Catalyst For New Lows",
-        "datetime": 1793091727,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8aeb9db99d3e4fe324afe5e97b7233e8e5046d7f0e7b5ea77bd146b4c466de8c"
-      },
-      {
-        "headline": "RKLB Stock Edges Up Overnight: Neutron’s Second Stage Heads To Launch Site — Analyst Eyes Q2 2027 Debut And Shares Doubling",
-        "datetime": 1793073585,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=01c9c53710d12531704b849d83569f1be1d68639d9801b4cf3d51446c8554ab4"
+        "url": "https://finnhub.io/api/news?id=cebb7b26ee2957d8cce79053747518c00e88170bc5ef6acf0335a21c5c8ef40b"
       }
     ],
     "SPCX": [
       {
-        "headline": "Kraken's parent company is bringing crypto perpetuals to the US",
-        "datetime": 1793116800,
+        "headline": "SpaceX Retreats As Russia's Putin Says This About Elon Musk",
+        "datetime": 1793207409,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8428446df625f87899706468f0ec5452799a725a12e3a3e2a9a20cf1552f23f0"
+        "url": "https://finnhub.io/api/news?id=dcb7dd5616f97c8018a56da021f1130e48eebf7683b8a1c5af566f26e62deb65"
       },
       {
-        "headline": "Intuitive Machines Surges 9% as Small-Cap Space Selloff Reverses; Rocket Lab Climbs 7%, SpaceX Lags",
-        "datetime": 1793116467,
+        "headline": "SpaceX stock slides back toward $140 as smaller space names leave it behind",
+        "datetime": 1793207345,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7ad784725b4a14bc1dfca4e699f54057f7485560ac4b507f93d2521c2f220719"
+        "url": "https://finnhub.io/api/news?id=b0482a770505da4cb447038abf3e8f247ed73e05eab0c72240cb76b2b0b3e8e8"
       },
       {
-        "headline": "Anthropic's IPO could start trading as soon as Nov. 16 — here's the road from filing to first trade",
-        "datetime": 1793116445,
+        "headline": "What Jim Cramer is watching as Anthropic heads to Nasdaq",
+        "datetime": 1793207220,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=991e4d688eed1b0115f8f4f852f41acc3e79e09bd8caa0ad058fab29beaa36b0"
+        "url": "https://finnhub.io/api/news?id=4990195ab159b0e59448d187ea4c0479ee06f76a30b0d05de11439b45912cb60"
       },
       {
-        "headline": "Ukraine's Sovereign Satellite Now Operating in Orbit",
-        "datetime": 1793116440,
+        "headline": "Tesla Gains Another 4% as ARK Restates $4,400 Robotaxi Target and Musk Teases “A Storm of Cybercabs”",
+        "datetime": 1793205238,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4fded397e383b17a1912262ce9be8aae69851e4c1e0eb6e155a7117ca575681b"
+        "url": "https://finnhub.io/api/news?id=ecef6a7efb24578bb232bbf301f516d98a315a4bc162c058f49cae0391de2074"
       },
       {
-        "headline": "Anthropic's 'tension' between profitability & 'public good': IPO expert",
-        "datetime": 1793111634,
+        "headline": "SpaceX Could Keep Starship Cost Savings Instead of Cutting Launch Prices, Varda Executive Says",
+        "datetime": 1793203223,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f9edcba7d1b19c5235e261efe4cee1077a31442b667981e13ec8b4ab8da1a466"
+        "url": "https://finnhub.io/api/news?id=6c1fe408160ce5bca2d2e37c16386ea548323926bb3434f76fa08517792d6e1d"
       }
     ]
   },
