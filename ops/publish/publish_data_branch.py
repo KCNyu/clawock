@@ -35,7 +35,11 @@ from clawock.workspace import workspace_root  # noqa: E402
 ROOT = workspace_root(_CHECKOUT)
 
 from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
-from clawock.publish.outputs import output_paths  # noqa: E402
+from clawock.publish.outputs import (  # noqa: E402
+    first_paint_value,
+    load_contract,
+    output_paths,
+)
 
 # The one place this name is decided. The reader imports it from here rather
 # than restating it (`ops/pages/fetch_data_plane.py`), because a rename that
@@ -69,6 +73,13 @@ DATA_PLANE_OPTIONAL = (
 )
 
 DATA_PLANE_FILES = output_paths(ROOT) + DATA_PLANE_EXTRA
+
+# Members that only ever report the automation's own state. Nothing on the
+# first paint reads them and the artifact gate validates neither, so a
+# generation that moved only these (and the outputs' `status_fields`) is
+# published to the branch — where `cron-health.yml` and every page poll read
+# it — without asking for a Pages deploy and a gate run.
+STATUS_ONLY_FILES = DATA_PLANE_EXTRA
 
 # Failure classes: `note_degradation` keeps one counted row per kind, and the
 # row shows the latest reason. Reasons stay short fixed phrases — the incident's
@@ -147,6 +158,41 @@ def generation_label(root: Path) -> str:
     except (OSError, ValueError):
         stamp = None
     return f"data: dashboard generation {stamp}" if stamp else "data: dashboard generation"
+
+
+def deploy_relevant(store, previous: str | None, files: dict[str, str],
+                    root: Path) -> bool:
+    """Whether this generation differs from `previous` beyond automation status.
+
+    Every intraday slot published twice: its postflight while the job was
+    still running, then the next tick with the job marked finished — a second
+    Pages deploy and gate run, minutes later, for a status line (2026-10-28,
+    14:37/14:40 and 14:07/14:20). Anything this cannot prove to be status-only
+    — no previous generation, an unreadable file, a member added or dropped,
+    any other byte — answers True: a missed deploy freezes first paint, an
+    extra one only costs a run.
+    """
+    if previous is None:
+        return True
+    try:
+        contract = load_contract(root)
+        stored = {path: store.read(previous, path)
+                  for path in set(files) | set(DATA_PLANE_OPTIONAL)}
+        if any(stored[path] is None for path in files) or any(
+                stored.get(path) is not None for path in DATA_PLANE_OPTIONAL
+                if path not in files):
+            return True
+        for path, text in files.items():
+            if path in STATUS_ONLY_FILES or text == stored[path]:
+                continue
+            if path not in contract["outputs"]:
+                return True
+            if first_paint_value(path, json.loads(text), contract=contract) != \
+                    first_paint_value(path, json.loads(stored[path]), contract=contract):
+                return True
+        return False
+    except Exception:  # no verdict is a deploy
+        return True
 
 
 def main() -> int:
@@ -248,6 +294,11 @@ def main() -> int:
           f"{result.receipt[:12]} → {args.remote} {args.branch}")
 
     if not args.deploy:
+        return 0
+    if not deploy_relevant(store, result.previous, files, root):
+        print(f"· data-plane: {result.receipt[:12]} differs from "
+              f"{(result.previous or '')[:12]} only in automation status — "
+              f"pages polls read it from the branch; no site deploy requested")
         return 0
     try:
         receipt = GitHubDispatchDeployer(REPOSITORY).request(

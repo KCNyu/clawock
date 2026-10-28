@@ -2,18 +2,21 @@ name: Dashboard Artifact Gate
 
 # Every dispatched run used to be titled "data-plane-published" over whatever
 # master HEAD was, so successive generations read as the same run repeated in
-# the Actions list. The title now carries the generation's data-plane receipt —
-# the same one in this workflow and in pages.yml — which tells generations apart
-# and pairs the two runs of one generation. Other events get whitespace, which
-# GitHub replaces with its usual title.
-run-name: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.reason && format('Published {0}', github.event.client_payload.reason) || ' ' }}
+# the Actions list. The title now carries the generation's data-plane receipt
+# behind this workflow's own verb; pages.yml carries the same receipt, which
+# pairs the two runs of one generation without making them look like one run
+# listed twice. Other events get whitespace, which GitHub replaces with its
+# usual title.
+run-name: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.reason && format('Validate {0}', github.event.client_payload.reason) || ' ' }}
 
 on:
   # The payload is published to the data branch, not committed to master (#314),
   # so the old `push: paths:` trigger would simply never fire again — no red, no
   # signal, a validation gate switched off by a change somewhere else entirely.
   # This is the same event the publisher raises for the Pages deploy, so the
-  # payload is validated on exactly the generations that reach the site.
+  # payload is validated on exactly the generations deployed to the site. A
+  # generation that moved only automation status raises neither: none of what
+  # changed is validated here, and the rest is the generation already checked.
   #
   # #749 asked to fold this into pages.yml so a bad payload could not deploy.
   # Deliberately not done: this gate runs *beside* the deploy, not in front of it,
