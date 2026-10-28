@@ -1,5 +1,13 @@
 name: Deploy GitHub Pages
 
+# Every dispatched run used to be titled "data-plane-published" over whatever
+# master HEAD was, so successive generations read as the same run repeated in
+# the Actions list. The title now carries the generation's data-plane receipt —
+# the same one in this workflow and in dashboard-artifact-gate.yml — which tells generations apart
+# and pairs the two runs of one generation. Other events get whitespace, which
+# GitHub replaces with its usual title.
+run-name: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.reason && format('Published {0}', github.event.client_payload.reason) || ' ' }}
+
 on:
   push:
     branches: [master]
