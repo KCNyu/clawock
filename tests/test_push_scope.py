@@ -15,6 +15,7 @@ and pure noise. Each row pins BOTH halves of the decision:
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from fnmatch import fnmatch
 from pathlib import Path
@@ -187,3 +188,63 @@ def test_plugin_contract_host_inputs_select_plugin_lane():
     assert inputs
     for path in inputs:
         assert push_scope.classify([path])['dsplugin'], path
+
+
+def _git(cwd, *args):
+    subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True, text=True)
+
+
+def _shallow_push(tmp_path, checkout_at):
+    """An origin with a code commit then a book-only commit, cloned at depth 1."""
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    _git(origin, "init", "-q")
+    _git(origin, "config", "user.name", "t")
+    _git(origin, "config", "user.email", "t@example.com")
+    (origin / "src").mkdir()
+    (origin / "src" / "a.py").write_text("x = 1\n")
+    _git(origin, "add", ".")
+    _git(origin, "commit", "-qm", "code")
+    (origin / "portfolio.json").write_text("{}\n")
+    _git(origin, "add", ".")
+    _git(origin, "commit", "-qm", "price refresh")
+    base, head = (subprocess.run(["git", "-C", str(origin), "rev-parse", rev],
+                                 capture_output=True, text=True, check=True).stdout.strip()
+                  for rev in ("HEAD~1", "HEAD"))
+    _git(origin, "branch", "at-base", base)
+    clone = tmp_path / "clone"
+    branch = "at-base" if checkout_at == "base" else "HEAD"
+    _git(tmp_path, "clone", "-q", "--depth=1", "--single-branch",
+         *(["--branch", branch] if branch != "HEAD" else []),
+         f"file://{origin}", str(clone))
+    return clone, base, head
+
+
+@pytest.mark.parametrize("checkout_at", ["head", "base"],
+                         ids=["push: the base is missing", "pull request: the head is missing"])
+def test_a_shallow_checkout_classifies_the_real_range_once_it_fetches_the_ends(
+        tmp_path, monkeypatch, capsys, checkout_at):
+    """smoke-data-fetch and portable-workflow check out at depth 1. Without the
+    range ends the classifier answered "everything", so both jobs ran in full on
+    every runtime price push (run 40641898925, the first book-lane push)."""
+    clone, base, head = _shallow_push(tmp_path, checkout_at)
+    monkeypatch.chdir(clone)
+    missing = head if checkout_at == "base" else base
+    assert subprocess.run(["git", "cat-file", "-e", f"{missing}^{{commit}}"],
+                          capture_output=True).returncode != 0, "the fixture is not shallow"
+
+    assert push_scope.main(["--base", base, "--head", head, "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == push_scope.EVERYTHING
+
+    assert push_scope.main(["--fetch-missing", "--base", base, "--head", head, "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == _lanes(book=True)
+
+
+def test_the_shallow_jobs_fetch_the_range_they_classify():
+    """validate checks out full history; the two jobs that classify on a
+    depth-1 checkout must ask for the ends."""
+    text = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    for job in ("smoke-data-fetch", "portable-workflow"):
+        body = text.split(f"\n  {job}:\n", 1)[1].split("\n  analyze:", 1)[0]
+        body = body.split("\n  portable-workflow:\n", 1)[0]
+        assert "push_scope.py --fetch-missing" in body, job

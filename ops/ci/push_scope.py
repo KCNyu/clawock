@@ -219,15 +219,36 @@ EVERYTHING = {
 }
 
 
+def _has_commit(rev: str) -> bool:
+    return subprocess.run(
+        ["git", "cat-file", "-e", f"{rev}^{{commit}}"], capture_output=True,
+    ).returncode == 0
+
+
+def fetch_missing(*revs: str) -> None:
+    """Bring the ends of the range into a shallow checkout, best effort.
+
+    `actions/checkout` defaults to depth 1, so in a job that checks out only
+    the pushed commit `event.before` is not there — and for a pull request
+    neither is the head, since the checkout is the merge commit. Without them
+    `changed_files` answers None and the job does everything: smoke-data-fetch
+    and portable-workflow ran in full on every runtime data push and every
+    docs-only PR, the work their own lane gate exists to skip. A failed fetch
+    leaves it at that, which is the safe direction.
+    """
+    for rev in revs:
+        if rev and rev != ZERO_SHA and not _has_commit(rev):
+            subprocess.run(
+                ["git", "fetch", "--quiet", "--no-tags", "--depth=1", "origin", rev],
+                capture_output=True,
+            )
+
+
 def changed_files(base: str, head: str) -> list[str] | None:
-    """Files changed in the range, or None when the base is unusable."""
+    """Files changed in the range, or None when either end is unusable."""
     if not base or base == ZERO_SHA:
         return None
-    probe = subprocess.run(
-        ["git", "cat-file", "-e", f"{base}^{{commit}}"],
-        capture_output=True,
-    )
-    if probe.returncode != 0:
+    if not _has_commit(base) or not _has_commit(head):
         return None
     out = subprocess.run(
         ["git", "diff", "--name-only", "--no-renames", base, head],
@@ -251,6 +272,11 @@ def main(argv=None) -> int:
         "--files-from",
         help="classify this newline-separated path list instead of running git ('-' = stdin)",
     )
+    parser.add_argument(
+        "--fetch-missing",
+        action="store_true",
+        help="fetch --base/--head from origin first when a shallow checkout lacks them",
+    )
     parser.add_argument("--json", action="store_true", help="emit JSON")
     args = parser.parse_args(argv)
 
@@ -264,6 +290,8 @@ def main(argv=None) -> int:
         )
         lanes = classify(text.splitlines())
     else:
+        if args.fetch_missing:
+            fetch_missing(args.base, args.head)
         files = changed_files(args.base, args.head)
         lanes = classify(files) if files is not None else dict(EVERYTHING)
 
