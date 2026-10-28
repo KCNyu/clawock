@@ -794,7 +794,9 @@ jobs:
           HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
+          # This job's checkout is shallow; the range ends are fetched so the
+          # lane is the real one instead of "everything".
+          python3 ops/ci/push_scope.py --fetch-missing --base "$BASE_SHA" --head "$HEAD_SHA" \
             | tee -a "$GITHUB_OUTPUT"
 
       - name: Set up clawock (Python)
@@ -845,7 +847,9 @@ jobs:
           HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
-          python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
+          # This job's checkout is shallow; the range ends are fetched so the
+          # lane is the real one instead of "everything".
+          python3 ops/ci/push_scope.py --fetch-missing --base "$BASE_SHA" --head "$HEAD_SHA" \
             | tee -a "$GITHUB_OUTPUT"
         # A pull request runs this job regardless — see the paragraph above — so
         # the lane only decides the push case. Reading it from `validate`'s
