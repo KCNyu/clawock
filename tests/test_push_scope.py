@@ -233,8 +233,13 @@ def test_a_shallow_checkout_classifies_the_real_range_once_it_fetches_the_ends(
     assert subprocess.run(["git", "cat-file", "-e", f"{missing}^{{commit}}"],
                           capture_output=True).returncode != 0, "the fixture is not shallow"
 
-    assert push_scope.main(["--base", base, "--head", head, "--json"]) == 0
-    assert json.loads(capsys.readouterr().out) == push_scope.EVERYTHING
+    if checkout_at == "head":
+        assert push_scope.main(["--base", base, "--head", head, "--json"]) == 0
+        assert json.loads(capsys.readouterr().out) == push_scope.EVERYTHING
+    else:
+        # An unknown head still fails loudly (#1774) rather than being guessed.
+        with pytest.raises(subprocess.CalledProcessError):
+            push_scope.main(["--base", base, "--head", head, "--json"])
 
     assert push_scope.main(["--fetch-missing", "--base", base, "--head", head, "--json"]) == 0
     assert json.loads(capsys.readouterr().out) == _lanes(book=True)

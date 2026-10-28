@@ -245,10 +245,14 @@ def fetch_missing(*revs: str) -> None:
 
 
 def changed_files(base: str, head: str) -> list[str] | None:
-    """Files changed in the range, or None when either end is unusable."""
+    """Files changed in the range, or None when the base is unusable.
+
+    An unknown head is not answered: it is the commit under test, and a
+    detector that classified around it would gate on nothing (#1774).
+    """
     if not base or base == ZERO_SHA:
         return None
-    if not _has_commit(base) or not _has_commit(head):
+    if not _has_commit(base):
         return None
     out = subprocess.run(
         ["git", "diff", "--name-only", "--no-renames", base, head],
