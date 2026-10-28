@@ -2,8 +2,13 @@ import copy
 import json
 from pathlib import Path
 
+import pytest
+
 
 WS = Path(__file__).resolve().parents[1]
+# Every held ticker must resolve in the registry, read off the committed book;
+# a new position arrives in a book-only push (tests/test_book_lane.py).
+pytestmark = pytest.mark.book
 
 from clawock.publish import dashboard as build_dashboard  # noqa: E402
 from clawock.market_data import bars as fetch_daily_bars

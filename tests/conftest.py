@@ -575,6 +575,20 @@ def _xdist_worker(config) -> str | None:
     return info.get("workerid") if info else None
 
 
+def pytest_collection_modifyitems(config, items):
+    """Every test built on the real tree is a test of the committed book.
+
+    `freshly_built_generation` runs the builder against this checkout's
+    portfolio, ledger and plans, so its users are exactly the tests a push that
+    changes only those files can break. They are marked here, from the fixture
+    closure, rather than one by one — `tests/test_book_lane.py` covers the
+    readers this cannot see.
+    """
+    for item in items:
+        if "freshly_built_generation" in getattr(item, "fixturenames", ()):
+            item.add_marker(pytest.mark.book)
+
+
 @pytest.fixture(scope="session")
 def freshly_built_generation(tmp_path_factory):
     """The real builder, run against the real tree, into an output nobody shares.

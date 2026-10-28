@@ -5,6 +5,8 @@ from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "ops" / "growth"))
 from clawock import sessions as _cal
@@ -1188,6 +1190,7 @@ class TestSharesLookupMemoization(unittest.TestCase):
             self.assertEqual(len(calls), 2)      # second ticker reuses the file
 
 
+@pytest.mark.book
 def test_checked_in_ledger_has_no_typed_episode_ids():
     # Model-typed episode ids (`ep-20260904-07226-cut`) sliced long-running
     # theses into fresh, independently scored episodes from 2026-07-23 to
@@ -1242,6 +1245,7 @@ def test_unkeyed_plan_decisions_cannot_collapse_into_one_ledger_row(tmp_path):
     assert not ledger.exists() or dv2.load_decisions(ledger) == []
 
 
+@pytest.mark.book
 def test_checked_in_ledger_has_no_unkeyed_rows():
     # Every row is addressable by decision_id, or the pre-push ledger check
     # goes CRITICAL and nothing on this host can publish.

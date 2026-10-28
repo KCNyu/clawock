@@ -40,6 +40,14 @@ def load_contract(root: Path | str = ROOT) -> dict:
                 isinstance(value, str) and value for value in values
             ):
                 raise ValueError(f"{path}: outputs.{name}.{field} must be strings")
+        locators = spec.get("locator_fields", {})
+        if not isinstance(locators, dict) or not all(
+            isinstance(key, str) and key and isinstance(value, str) and value
+            for key, value in locators.items()
+        ):
+            raise ValueError(
+                f"{path}: outputs.{name}.locator_fields must map a dotted path "
+                "to the dotted path of the content identity it points at")
         group = spec.get("generation_group")
         if group is not None and (not isinstance(group, str) or not group):
             raise ValueError(f"{path}: outputs.{name}.generation_group is invalid")
@@ -69,11 +77,49 @@ def _strip_recursive(value, fields):
     return value
 
 
+def _at(value, dotted: str):
+    """The value at a dotted path through nested objects, or None."""
+    for key in dotted.split("."):
+        if not isinstance(value, dict):
+            return None
+        value = value.get(key)
+    return value
+
+
+def _strip_locators(value, locators: dict[str, str]):
+    """Drop pointers whose content identity is published right beside them.
+
+    `decision_metrics.provenance.code_commit` names the checkout that built the
+    generation and `ledger.source_ref` the master commit its ledger was read
+    from. Both move on every runtime data commit — an intraday refresh, a scan,
+    a price update — while what they point at does not: the code digests and
+    the ledger source digest next to them are unchanged. Compared as content,
+    they made every 20-minute tick after any master commit a "new generation",
+    and each one cost a Pages deploy plus an artifact-gate run on the same
+    bytes. The previous pointer stays valid for the bytes it was published
+    with: it names a commit that produced exactly that content, and the gate
+    verifies the digest at whichever ref the payload carries.
+
+    Only stripped while the identity is present. A payload without the digest
+    has nothing else saying what changed, so there the pointer is the content.
+    """
+    for locator, identity in locators.items():
+        parent_path, _, key = locator.rpartition(".")
+        parent = _at(value, parent_path) if parent_path else value
+        if not isinstance(parent, dict) or key not in parent:
+            continue
+        if _at(value, identity) in (None, "", [], {}):
+            continue
+        parent.pop(key)
+    return value
+
+
 def semantic_value(path: str, value, *, contract=None, root: Path | str = ROOT):
-    """Return a copy with build-clock-only metadata removed."""
+    """Return a copy with build-clock-only metadata and content-pinned locators removed."""
     contract = contract or load_contract(root)
     spec = contract["outputs"].get(path, {})
     value = copy.deepcopy(value)
+    value = _strip_locators(value, spec.get("locator_fields", {}))
     recursive = set(spec.get("recursive_clock_fields", ()))
     if recursive:
         return _strip_recursive(value, recursive)

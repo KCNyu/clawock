@@ -14,8 +14,8 @@
 
 | Workflow | 触发 | 写文件 | 备注 |
 |---|---|---|---|
-| `ci.yml` | push to master + 每个 PR + 周六 03:41 UTC | (read-only) | 合并后的 lint/actionlint、schema/import/pytest、CodeQL；按 `ops/ci/push_scope.py` 分类决定跑哪些 job |
-| `dashboard-artifact-gate.yml` | `repository_dispatch: data-plane-published` | (read-only) | 与 `pages.yml` 同一事件，GitHub runner 上零依赖校验发布到 data 分支的首屏 payload |
+| `ci.yml` | push to master + 每个 PR + 周六 03:41 UTC | (read-only) | 合并后的 lint/actionlint、schema/import/pytest、CodeQL；按 `ops/ci/push_scope.py` 分类决定跑哪些 job。只改账本（`BOOK_GLOBS`：portfolio.json、计划、决策账本、EOD 归档）的 push 走 `book` lane：数据闸全跑、pytest 只跑 `-m book`（读真实账本的测试），不跑全量 |
+| `dashboard-artifact-gate.yml` | `repository_dispatch: data-plane-published` | (read-only) | 与 `pages.yml` 同一事件，GitHub runner 上零依赖校验发布到 data 分支的首屏 payload；只有语义变了的一代才会派发（时钟字段、以及内容摘要未变的 `code_commit`/`source_ref` 指针按 `config/dashboard-outputs.json` 不算变化） |
 | `pages.yml` | 站点/数据 push + `data-plane-published` | (Pages) | 部署 GitHub Pages；并发组 `pages` 排队不取消 |
 | `weekly-health.yml` | 周日 20:17 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
 | `eod-archive.yml` | 周五 22:00 UTC | `memory/archive/eod-history.csv` | 每周持仓快照 audit trail |

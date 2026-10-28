@@ -120,6 +120,8 @@ def test_the_dispatch_names_the_event_the_workflow_listens_for(tmp_path):
     # publisher reports as "the site deploy was not requested" — a real failure
     # that a fake `gh` exiting 0 was perfectly happy with.
     assert isinstance(sent.get("client_payload"), dict), sent
+    # Both dispatched workflows title their run with it (`run-name`).
+    assert sent["client_payload"]["reason"] == "why", sent
 
 
 def test_a_dispatched_run_is_allowed_to_deploy():

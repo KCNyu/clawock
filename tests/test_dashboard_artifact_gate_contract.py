@@ -79,3 +79,19 @@ def test_dashboard_gate_failure_is_visible_and_documented():
         assert '/actions/workflows/dashboard-artifact-gate.yml' in readme
     tools = (ROOT / 'TOOLS.md').read_text(encoding='utf-8')
     assert '`dashboard-artifact-gate.yml`' in tools
+
+
+def test_a_dispatched_run_is_titled_by_the_generation_it_serves():
+    """152 dispatched runs on 2026-10-27/28 were all titled `data-plane-published`
+    over the same few master shas, so distinct generations read as one run
+    repeated. Both workflows title a dispatched run by the receipt the publisher
+    sends, so the two runs of one generation carry the same name."""
+    import yaml
+
+    names = {path.name: yaml.safe_load(path.read_text(encoding='utf-8')).get('run-name')
+             for path in (GATE, WORKFLOWS / 'pages.yml')}
+    assert len(set(names.values())) == 1, names
+    name = next(iter(names.values()))
+    assert 'github.event.client_payload.reason' in name
+    assert "github.event_name == 'repository_dispatch'" in name, (
+        'other events must keep the title GitHub gives them')

@@ -18,6 +18,8 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / 'site/tools/build_readme_diagrams.py'
 SVG = '{http://www.w3.org/2000/svg}'
@@ -626,6 +628,7 @@ def test_the_plugin_figures_are_drawn_the_way_the_overview_is():
     assert len(set(splits)) == len(splits), splits
 
 
+@pytest.mark.book
 def test_the_plugin_figures_print_what_the_committed_records_hold():
     """A real example is only one while its numbers are the record's.
 
