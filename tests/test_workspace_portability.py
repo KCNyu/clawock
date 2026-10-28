@@ -17,6 +17,8 @@ import sys
 import tomllib
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -123,6 +125,7 @@ def test_the_default_workspace_is_unchanged_when_the_override_is_unset(monkeypat
     assert workspace.workspace_root(ROOT) == Path("/tmp").resolve()
 
 
+@pytest.mark.book
 def test_the_money_cli_targets_the_checkout_it_is_in(monkeypatch):
     """The realized command from a worktree once rewrote the live ledger.
 

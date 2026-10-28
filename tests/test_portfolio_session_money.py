@@ -47,6 +47,7 @@ def test_quote_session_does_not_treat_holiday_fetch_as_new_lot_day():
     assert holding_session({'day_session_date': '2026-10-01'}, '2026-10-02', 'us') == '2026-10-01'
 
 
+@pytest.mark.book
 def test_integrity_judges_the_book_it_is_handed_not_a_second_read(tmp_path):
     """#3007: the 09:39 publish printed totals from one read of portfolio.json
     and a health card from another, taken while 07709 was half booked."""
@@ -68,6 +69,7 @@ def test_integrity_judges_the_book_it_is_handed_not_a_second_read(tmp_path):
     assert book == untouched
 
 
+@pytest.mark.book
 def test_malformed_holdings_produce_findings_without_crashing_money_readers(tmp_path):
     book = json.loads((Path(__file__).parents[1] / 'portfolio.json').read_text())
     book['portfolios']['hk_stocks']['holdings'].extend([None, 'ticker shares cost_basis', 42])
@@ -174,6 +176,7 @@ def test_weekend_us_fill_uses_its_trading_session(session, shares, fill, current
     assert capital == pytest.approx(base)
 
 
+@pytest.mark.book
 def test_us_asof_reads_session_even_when_fetch_dates_match(tmp_path):
     book = json.loads((Path(__file__).parents[1] / 'portfolio.json').read_text())
     rows = [h for h in book['portfolios']['us_stocks']['holdings'] if h['shares'] > 0]
@@ -210,6 +213,7 @@ def test_session_anchor_malformed_or_missing_is_unknown():
     assert holding_session({'data_source': 'Tencent Oct 02, 2026'}, None, 'hk') == '2026-10-02'
 
 @pytest.mark.parametrize('stamp', [None, '10/03/2026'])
+@pytest.mark.book
 def test_unknown_quote_session_is_a_named_money_error(tmp_path, stamp):
     book = json.loads((Path(__file__).parents[1] / 'portfolio.json').read_text())
     book['last_updated'] = stamp

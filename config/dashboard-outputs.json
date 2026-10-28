@@ -18,6 +18,10 @@
         "days_behind"
       ],
       "top_level_clock_fields": [],
+      "locator_fields": {
+        "decision_metrics.provenance.code_commit": "decision_metrics.provenance.code",
+        "decision_metrics.provenance.ledger.source_ref": "decision_metrics.provenance.ledger.source_digest"
+      },
       "generation_group": "dashboard"
     },
     "assets/data/decision_audit.json": {

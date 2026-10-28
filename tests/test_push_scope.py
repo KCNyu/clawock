@@ -42,7 +42,7 @@ def _ci_triggers(files: list[str]) -> bool:
 
 
 def _all_false():
-    return {"code": False, "ui": False, "dsplugin": False,
+    return {"book": False, "code": False, "ui": False, "dsplugin": False,
             "workflows": False, "analysable": False}
 
 
@@ -67,12 +67,17 @@ SCENARIOS = [
         id="docs-only PR or push: contract tests run"),
     pytest.param(
         ["portfolio.json"],
-        _lanes(code=True, analysable=False), True,
-        id="automation price commit: full suite gates the money file, CodeQL skips"),
+        _lanes(book=True), True,
+        id="automation price commit: book lane gates the money file, CodeQL skips"),
+    pytest.param(
+        ["portfolio.json", "memory/snapshots/2026-10-28.json",
+         "logs/dashboard_build_status.json"],
+        _lanes(book=True), True,
+        id="intraday refresh (the ~24-a-day master push): book lane, not the suite"),
     pytest.param(
         ["memory/2026-08-24-pre-open.md", "memory/2026-08-24-plan.json"],
-        _lanes(code=True, analysable=False), True,
-        id="daily brief commit (pre-open + plan): suite runs, CodeQL skips"),
+        _lanes(book=True), True,
+        id="daily brief commit (pre-open + plan): book lane, CodeQL skips"),
     pytest.param(
         ["assets/data/sentiment.json", "assets/data/macro.json",
          "assets/data/us_news_digest.json", "assets/data/coverage.json",
@@ -85,8 +90,16 @@ SCENARIOS = [
         id="eod-archive / weekly-review commits: zero CI"),
     pytest.param(
         ["memory/decisions.jsonl"],
-        _lanes(code=True, analysable=False), True,
-        id="ledger-only commit: suite runs (#1063), CodeQL still skips"),
+        _lanes(book=True), True,
+        id="ledger-only commit: ledger audit runs in the book lane (#1063)"),
+    pytest.param(
+        ["portfolio.json", "src/clawock/portfolio/fx.py"],
+        _lanes(code=True, analysable=True), True,
+        id="book plus code: the whole suite, never the book subset"),
+    pytest.param(
+        ["portfolio.json", "site/assets/css/main.css"],
+        _lanes(code=True, ui=True, analysable=True), True,
+        id="book plus UI: browser contract and the whole suite"),
     pytest.param(
         ["memory/peer-map.json"],
         _lanes(code=True, analysable=False), True,
@@ -140,14 +153,16 @@ def test_change_scenarios(files, expected_lanes, expected_trigger):
 
 
 def test_everything_flag_reports_all_lanes():
-    assert all(push_scope.EVERYTHING.values())
+    # `book` is the one lane that narrows the work, so "everything" leaves it
+    # off: the whole suite already runs every test the book subset would.
+    assert push_scope.EVERYTHING == {**{k: True for k in _all_false()}, "book": False}
 
 
 def test_main_prints_github_output_pairs(capsys):
     assert push_scope.main(["--everything"]) == 0
     out = capsys.readouterr().out
     pairs = dict(line.split("=") for line in out.strip().splitlines())
-    assert pairs == {k: "true" for k in _all_false()}
+    assert pairs == {**{k: "true" for k in _all_false()}, "book": "false"}
 
 
 def test_main_json_mode(monkeypatch, capsys):

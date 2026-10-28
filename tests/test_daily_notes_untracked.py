@@ -15,6 +15,8 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 DAILY = "memory/2099-01-01.md"
@@ -164,6 +166,7 @@ def _exit_claim_clause(line):
     return clause
 
 
+@pytest.mark.book
 def test_no_instruction_file_calls_a_held_position_exited():
     """The mirror's actual damage: a skill told not to look at a live holding.
 

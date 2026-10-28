@@ -12,6 +12,11 @@ GitHub.
 Lanes emitted (GITHUB_OUTPUT `key=value` lines, or --json):
 
   code       run the Python suite / schema checks
+  book       only the runtime-written book changed (portfolio.json, plans,
+             the decision ledger, the EOD archive): run every data gate and
+             the tests marked `book`, which read the committed book itself,
+             instead of the whole suite. False whenever `code` is True — a
+             range that also changes code runs everything.
   ui         dashboard browser contract needed (implies code)
   dsplugin   Decision Studio plugin contracts needed (implies code, #2199)
   workflows  a workflow file itself changed (drives the lint gate)
@@ -107,6 +112,23 @@ CODE_GLOBS = [
     "USER.md",
 ]
 
+# The book: files the runtime loop writes on its own schedule (price refreshes,
+# intraday postflights, the brief, EOD archive) that the validate job checks as
+# data. They stay in CODE_GLOBS so a range touching them is never unchecked, but
+# a range touching nothing else has no code to test: its checks are the data
+# gates (schema, ledger audit, rebuild + money reconciliation, determinism) and
+# the `book`-marked tests that read these files from the checkout. Before this
+# lane every intraday refresh — ~24 master pushes a day — ran ~6,000 tests and
+# a wheel build against a tree whose code had not moved. Hand-maintained inputs
+# (peer-map, research artifacts) are deliberately not here: an edit to them is
+# authored like code and runs the suite like code.
+BOOK_GLOBS = [
+    "portfolio.json",
+    "memory/*-plan.json",
+    "memory/decisions.jsonl",
+    "memory/archive/eod-history.csv",
+]
+
 # Automation-written runtime data: no analysable code, so the CodeQL matrix
 # skips a push that touches nothing outside this set. overview.json and
 # dashboard.json are deliberate exceptions by specificity: they sit in
@@ -145,6 +167,7 @@ def classify(files: list[str]) -> dict[str, bool]:
     ui_re = re.compile(UI_RE)
     ds_re = re.compile(DSPLUGIN_RE)
     code = ui = dsplugin = workflows = False
+    book_only = True
     # An empty diff analyses nothing; otherwise at least one path outside the
     # automation-data set makes the range worth analysing (mirrors the
     # ignore-list semantics the standalone codeql.yml trigger used to have).
@@ -156,6 +179,8 @@ def classify(files: list[str]) -> dict[str, bool]:
             continue
         if any(fnmatch.fnmatchcase(f, g) for g in CODE_GLOBS):
             code = True
+            if not any(fnmatch.fnmatchcase(f, g) for g in BOOK_GLOBS):
+                book_only = False
         if ui_re.search(f):
             ui = True
             code = True
@@ -167,7 +192,14 @@ def classify(files: list[str]) -> dict[str, bool]:
             code = True
         if f.startswith(WORKFLOWS_PREFIX):
             workflows = True
+    # ui/dsplugin set `code` themselves, and none of their paths is a book
+    # file, so a book-only answer here is exact: every code-lane path matched
+    # BOOK_GLOBS and nothing else asked for the suite.
+    book = code and book_only and not (ui or dsplugin)
+    if book:
+        code = False
     return {
+        "book": book,
         "code": code,
         "ui": ui,
         "dsplugin": dsplugin,
@@ -177,6 +209,8 @@ def classify(files: list[str]) -> dict[str, bool]:
 
 
 EVERYTHING = {
+    # Undiffable ranges run the whole suite, which already covers the book.
+    "book": False,
     "code": True,
     "ui": True,
     "dsplugin": True,

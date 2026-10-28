@@ -164,6 +164,69 @@ def test_payload_change_outside_the_projection_republishes_the_projection(tmp_pa
     assert overview["generation_id"] == dashboard["generated_at"]
 
 
+def _provenance(code_commit, source_ref, *, code_digest="sha256:aa", source_digest="bb"):
+    return {"provenance": {
+        "code_commit": code_commit,
+        "code": [{"file": "ledger.py", "digest": code_digest}] if code_digest else [],
+        "ledger": {"source_ref": source_ref, "source_digest": source_digest},
+    }}
+
+
+def _republished(tmp_path, before, after):
+    _write(tmp_path, "assets/data/dashboard.json", {
+        "generated_at": "old", "decision_metrics": before})
+    _git(tmp_path, "add", "--", "assets/data/dashboard.json")
+    _git(tmp_path, "commit", "-qm", "previous generation")
+    _write(tmp_path, "assets/data/dashboard.json", {
+        "generated_at": "new", "decision_metrics": after})
+    return dashboard_outputs.semantic_changed_paths(tmp_path)
+
+
+def test_a_tick_that_only_moved_the_commit_pointers_publishes_nothing(tmp_path):
+    """2026-10-28: 13:00 and 13:20 differed in build clocks and in the two commit
+    pointers alone, after an intraday commit moved HEAD and origin/master. That
+    was a Pages deploy and a gate run per tick for the same bytes."""
+    _repo(tmp_path)
+    changed = _republished(tmp_path, _provenance("8409d4ae2", "27bc9bfb"),
+                           _provenance("15c3f7d12", "e8e3ac4ce"))
+
+    assert changed == []
+    restored = json.loads((tmp_path / "assets/data/dashboard.json").read_text())
+    assert restored["decision_metrics"]["provenance"]["code_commit"] == "8409d4ae2", (
+        "the restored generation must keep the pointer it was published with")
+
+
+@pytest.mark.parametrize("after", [
+    _provenance("15c3f7d12", "e8e3ac4ce", code_digest="sha256:cc"),
+    _provenance("15c3f7d12", "e8e3ac4ce", source_digest="dd"),
+], ids=["code digest moved", "ledger source digest moved"])
+def test_a_pointer_that_moved_with_its_content_republishes(tmp_path, after):
+    _repo(tmp_path)
+    assert _republished(tmp_path, _provenance("8409d4ae2", "27bc9bfb"), after) == [
+        "assets/data/overview.json", "assets/data/dashboard.json"]
+
+
+def test_a_pointer_without_its_content_identity_is_the_content(tmp_path):
+    _repo(tmp_path)
+    before = _provenance("8409d4ae2", "27bc9bfb", code_digest=None, source_digest=None)
+    after = _provenance("15c3f7d12", "e8e3ac4ce", code_digest=None, source_digest=None)
+    assert _republished(tmp_path, before, after) == [
+        "assets/data/overview.json", "assets/data/dashboard.json"]
+
+
+def test_every_declared_locator_sits_beside_its_identity_in_a_real_build(freshly_built_dashboard):
+    """The strip is conservative when the identity is missing, so a rename on the
+    build side would not publish wrong bytes — it would quietly bring back a
+    deploy per tick. Hold the declared paths to the payload the build writes."""
+    contract = dashboard_outputs.load_contract(ROOT)
+    payload = json.loads(freshly_built_dashboard.read_text())
+    for path, spec in contract["outputs"].items():
+        for locator, identity in spec.get("locator_fields", {}).items():
+            assert path == "assets/data/dashboard.json", path
+            assert dashboard_outputs._at(payload, locator), f"{locator} is not in the build"
+            assert dashboard_outputs._at(payload, identity), f"{identity} is not in the build"
+
+
 def test_reflect_backtest_change_publishes_the_existing_audit_sidecar(tmp_path):
     original = _repo(tmp_path)
     _write(tmp_path, "assets/data/decision_audit.json", {

@@ -13,6 +13,9 @@ from clawock.publish import artifacts as validators
 
 
 ROOT = Path(__file__).resolve().parents[1]
+# The money gate's own module: its helpers reconcile against the committed
+# book, so a book-only push runs all of it (tests/test_book_lane.py).
+pytestmark = pytest.mark.book
 GENERATED = '2026-07-17T00:00:00+00:00'
 EOD_FIELDS = (
     'date', 'ticker', 'name', 'currency', 'shares', 'cost_basis',
