@@ -592,6 +592,14 @@ def test_the_old_import_paths_are_views_of_the_mounted_plugins(monkeypatch):
     assert mounted.TARGET_MAX_PCT == 60.0
     monkeypatch.undo()
     assert mounted.TARGET_MAX_PCT == 100.0
+    # pytest >= 9.2 undoes a module setattr by deleting the name. Deleting through
+    # the view uncovers what each write covered; it never deletes the global.
+    add_policy.TARGET_MAX_PCT = 60.0
+    add_policy.TARGET_MAX_PCT = 70.0
+    del add_policy.TARGET_MAX_PCT
+    assert mounted.TARGET_MAX_PCT == 60.0
+    del add_policy.TARGET_MAX_PCT
+    assert mounted.TARGET_MAX_PCT == 100.0
 
 
 # ── the boundaries of the evolution chain ───────────────────────────────────

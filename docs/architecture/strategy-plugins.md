@@ -99,7 +99,10 @@ itself as a service of the same name:
 
 The old import paths are views of the mounted service
 (`plugin_host/facade.py`): reading `decision.add_policy.tranche_plan` reads the
-service's attribute, and setting one sets the service's. The readers are
+service's attribute, and setting one sets the service's. Deleting a name
+through the view puts back the value a write through it covered (how pytest
+>= 9.2 undoes `monkeypatch.setattr` on a module), so the plugin's own global
+is never removed by an undo. The readers are
 unchanged and run whatever module the row names. The policy files
 (`config/add-alpha-policy.json`, `left-side-policy.json`,
 `preposition-policy.json`, `intraday-strategy-policies.json`) are read by the
