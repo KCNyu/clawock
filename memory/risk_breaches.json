@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-27T00:24:15+00:00",
+  "updated_at": "2026-10-28T00:16:34+00:00",
   "records": [
     {
       "breach_id": "risk-0a0af7ae3b3a",
@@ -11,16 +11,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-10-27T00:04:36+00:00",
-      "last_changed_at": "2026-10-27T00:04:36+00:00",
-      "age_days": 104,
+      "last_seen_at": "2026-10-28T00:04:39+00:00",
+      "last_changed_at": "2026-10-28T00:04:39+00:00",
+      "age_days": 105,
       "recurrence_count": 1,
-      "detail": "RKLX 浮亏 -80.6% ≤ 硬止损线 -18%",
+      "detail": "RKLX 浮亏 -77.3% ≤ 硬止损线 -18%",
       "required_action": "RKLX 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 RKLB（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 10,
-        "minimum_value": 96.6,
+        "minimum_value": 112.8,
         "currency": "USD",
         "target_tickers": [
           "RKLX"
@@ -43,10 +43,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "c21d8f3ebe30fc86",
+      "fingerprint": "15fb99293ef3be83",
       "resolution": null,
       "standing": {
-        "days_open": 104,
+        "days_open": 105,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -58,7 +58,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -80.6
+        "value": -77.3
       },
       "adaptive": {
         "eligible": true,
@@ -79,19 +79,14 @@
         },
         "anchor": {
           "kind": "pnl_pct",
-          "value": -81.4
+          "value": -77.3
         },
         "anchor_severity": "critical",
-        "last_reissued_on": "2026-10-26",
-        "days_since_reissue": 1,
-        "forced_on": "2026-11-23",
-        "rearm_at": "浮亏 ≤ -91.4%",
+        "last_reissued_on": "2026-10-28",
+        "days_since_reissue": 0,
+        "forced_on": "2026-11-25",
+        "rearm_at": "浮亏 ≤ -87.3%",
         "stances": [
-          {
-            "date": "2026-10-13",
-            "choice": "stand",
-            "why": "维持，不重提。上次重提是 10 月 7 日，之后两次都选了维持，浮亏从负 60.4% 走到负 69.9%，离重新武装的负 70.4% 只剩 0.5 个百分点。这是全账最需要你做决定的一条：记录开了 90 天，是账上最老的一条，而它只有 10 股、149 美元，每月光按 3.06% 的横盘衰减计费——为这个金额每天重提一次不值得，但这不代表该放着不管。要么换到一倍的正股，要么用一条带理由的例外把它结掉。真正该盯的是正股能不能站回 200 日线，站不回就别再为两倍付费。"
-          },
           {
             "date": "2026-10-14",
             "choice": "reissue",
@@ -136,6 +131,11 @@
             "date": "2026-10-27",
             "choice": "stand",
             "why": "这条硬止损开了 104 天，昨天刚重提过，今天和昨天比没有实质变化：RKLB 昨天 +2.32%、5 日 +4.79%，正股在反弹，11-09 三季报还有两周。这条腿只有 96.60 美元、占美股腿 3.07%，卖不卖对组合几乎没影响——它值得处理的理由是 104 天的账，不是金额。所以不重复砍单，把出口摆出来：执行、risk ack 留痕、risk override 写明为什么不做，三选一。处方上限 96.60 美元按现价只能买 1 股 RKLB（53.82 美元），剩下的"
+          },
+          {
+            "date": "2026-10-28",
+            "choice": "reissue",
+            "why": "这条腿同时挂着硬止损与制度降杠杆：正股 RKLB 收 58.31，破 200 日线 80.31 有 27.4%，20 日年化波动 71.6% 过热，美股杠杆制度是红的，处方是 2x 换 1x 同因子而不是清仓。10 股全清，112.80 美元。同一天买 1 股 RKLB 现货 58.31 美元：敞口留着、停掉日内重置，处方上限之外的余额留在现金。这条腿只有 112.80 美元、占美股腿 3.50%，钱的多少不重要，105 天一个出口都没走过才重要。"
           }
         ]
       }
@@ -149,16 +149,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-08-13T00:02:17+00:00",
-      "last_seen_at": "2026-10-27T00:04:36+00:00",
-      "last_changed_at": "2026-10-27T00:04:36+00:00",
-      "age_days": 75,
+      "last_seen_at": "2026-10-28T00:04:39+00:00",
+      "last_changed_at": "2026-10-28T00:04:39+00:00",
+      "age_days": 76,
       "recurrence_count": 3,
-      "detail": "07226 浮亏 -46.0% ≤ 硬止损线 -18%",
+      "detail": "07226 浮亏 -47.7% ≤ 硬止损线 -18%",
       "required_action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 7200,
-        "minimum_value": 16012.8,
+        "minimum_value": 15508.8,
         "currency": "HKD",
         "target_tickers": [
           "07226"
@@ -181,10 +181,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "256a951dfa21083e",
+      "fingerprint": "8bef2c5fb8bb2a7e",
       "resolution": null,
       "standing": {
-        "days_open": 75,
+        "days_open": 76,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -196,7 +196,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -46.0
+        "value": -47.7
       },
       "adaptive": {
         "eligible": true,
@@ -221,15 +221,10 @@
         },
         "anchor_severity": "critical",
         "last_reissued_on": "2026-10-22",
-        "days_since_reissue": 5,
+        "days_since_reissue": 6,
         "forced_on": "2026-11-19",
         "rearm_at": "浮亏 ≤ -51.7%",
         "stances": [
-          {
-            "date": "2026-10-13",
-            "choice": "stand",
-            "why": "维持，不重提。上一次重提就在昨天，恒科从 4194 走到 4170 只差 0.6%，没有任何新的事实。这条记录已经开了 61 天，昨天那份 7200 股的卖单也没有成交，所以今天不再叠加第 N 遍同样的卖单。要么按昨天那份单执行，要么用风险确认留一条看见过的痕迹，要么用一条带理由的例外把它结掉，不要让它第 62 天继续开着。你选择继续拿这条腿，那么真正该盯的不是再听一次砍单，是恒科距离 200 日线还差 18%，在它收复之前 2x 的仓位不增加，浮亏走到负 45.7% 这条记"
-          },
           {
             "date": "2026-10-14",
             "choice": "stand",
@@ -274,8 +269,95 @@
             "date": "2026-10-27",
             "choice": "stand",
             "why": "这条硬止损开了 75 天，执行、留痕、有理由的不做三个出口一个都没走过；10-22 重提过一次、10-26 又维持过，今天和上次比没有实质变化：浮亏 -46.0% 离 -51.7% 的重置线还有距离，恒科 3857.53 仍在 200 日线 4854.41 之下 20.5%，杠杆 regime 还是 amber。换仓处方今天也执行不完整：03033 的仓位空间只有 2000 股、约 7556 港元，装不下 16012.8 港元的全额名义，真换过去等于把恒科敞口砍掉一半多。所以"
+          },
+          {
+            "date": "2026-10-28",
+            "choice": "stand",
+            "why": "今天和 10-22 那次重提相比没有实质变化：浮亏 -47.7% 离 -51.7% 的重置线还差 4 个点，恒科 3800.43 仍在 200 日线 4844.73 之下 21.6%，杠杆制度还是 amber、上限砍半，这条腿 76 天三个出口一个都没走过。所以今天默认维持不换，但维持必须有出口：从执行、留痕、写明为什么不做这三件事里挑一个，别让它再无声地滚过 80 天。这条腿最该盯两个位：恒科 3781 与 4845；换回 2x 的闸是恒科收复 200 日线且 20 日波动"
           }
         ]
+      }
+    },
+    {
+      "breach_id": "risk-17fa752f4860",
+      "type": "regime_delever",
+      "leg": "US",
+      "ticker": "RKLX",
+      "status": "open",
+      "severity": "high",
+      "first_seen_at": "2026-07-27T00:00:00+00:00",
+      "current_opened_at": "2026-10-28T00:04:39+00:00",
+      "last_seen_at": "2026-10-28T00:04:39+00:00",
+      "last_changed_at": "2026-10-28T00:04:39+00:00",
+      "age_days": 0,
+      "recurrence_count": 3,
+      "detail": "🧭 RKLX=2xRKLB 标的破200线 (-27.4%)+波动 72% 过热 → 杠杆制度 red",
+      "required_action": "RKLX 2x→RKLB 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减；RKLB 收复200线(green)再换回 2x",
+      "required_reduction": {
+        "kind": "full_leveraged_position",
+        "target_tickers": [
+          "RKLX"
+        ],
+        "swap_to": "RKLB",
+        "minimum_shares": 10,
+        "minimum_value": 112.8,
+        "currency": "USD"
+      },
+      "acknowledgement": {
+        "status": "unacknowledged",
+        "acknowledged_at": null,
+        "note": ""
+      },
+      "override": {
+        "status": "none",
+        "reason": "",
+        "created_at": null,
+        "expires_at": null
+      },
+      "execution": {
+        "status": "pending",
+        "confirmed_at": null,
+        "evidence": []
+      },
+      "fingerprint": "b22abfc904e71765",
+      "resolution": null,
+      "standing": {
+        "days_open": 0,
+        "threshold_days": 10,
+        "undecided": true,
+        "decision_overdue": false,
+        "closes_with": [
+          "execute",
+          "acknowledge",
+          "override"
+        ]
+      },
+      "pressure": {
+        "kind": "minimum_value",
+        "value": 112.8,
+        "currency": "USD"
+      },
+      "adaptive": {
+        "eligible": false,
+        "may_stand": false,
+        "must_reissue": false,
+        "not_eligible_because": [
+          "open 0d < 10d",
+          "stance=silent"
+        ],
+        "stance": {
+          "stance": "silent",
+          "since": "2026-10-28",
+          "target_tickers": [
+            "RKLX"
+          ],
+          "sells_on_target": 0,
+          "buys_on_target": 0,
+          "last_buy_on_target": null,
+          "trades_elsewhere_recent": 0,
+          "last_trade_elsewhere": null
+        },
+        "stances": []
       }
     },
     {
@@ -1094,61 +1176,6 @@
       "resolution": {
         "resolved_at": "2026-08-13T00:02:17+00:00",
         "reason": "state_compliant"
-      }
-    },
-    {
-      "breach_id": "risk-17fa752f4860",
-      "type": "regime_delever",
-      "leg": "US",
-      "ticker": "RKLX",
-      "status": "resolved",
-      "severity": "high",
-      "first_seen_at": "2026-07-27T00:00:00+00:00",
-      "current_opened_at": "2026-08-20T00:01:17+00:00",
-      "last_seen_at": "2026-08-27T00:03:44+00:00",
-      "last_changed_at": "2026-08-28T00:03:55+00:00",
-      "age_days": 7,
-      "recurrence_count": 2,
-      "detail": "🧭 RKLX=2xRKLB 标的破200线 (-16.1%)+波动 73% 过热 → 杠杆制度 red",
-      "required_action": "RKLX 2x→RKLB 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减；RKLB 收复200线(green)再换回 2x",
-      "required_reduction": {
-        "kind": "full_leveraged_position",
-        "target_tickers": [
-          "RKLX"
-        ],
-        "swap_to": "RKLB"
-      },
-      "acknowledgement": {
-        "status": "unacknowledged",
-        "acknowledged_at": null,
-        "note": ""
-      },
-      "override": {
-        "status": "none",
-        "reason": "",
-        "created_at": null,
-        "expires_at": null
-      },
-      "execution": {
-        "status": "pending",
-        "confirmed_at": null,
-        "evidence": []
-      },
-      "fingerprint": "dd3d7ad6f3be2a42",
-      "resolution": {
-        "resolved_at": "2026-08-28T00:03:55+00:00",
-        "reason": "state_compliant"
-      },
-      "standing": {
-        "days_open": 7,
-        "threshold_days": 10,
-        "undecided": true,
-        "decision_overdue": false,
-        "closes_with": [
-          "execute",
-          "acknowledge",
-          "override"
-        ]
       }
     },
     {

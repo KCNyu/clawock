@@ -1,0 +1,2026 @@
+{
+  "schema_version": 2,
+  "date": "2026-10-28",
+  "context_generation_id": "dce6b4041bcd2a09",
+  "fx_rate_usdhkd": 7.8445,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "risk_off",
+    "hk": "risk_off"
+  },
+  "book": {
+    "usd_total_pnl": -9600.37,
+    "hkd_total_pnl": -75310.08,
+    "hk_leg_hkd": -65795.8,
+    "us_leg_usd": -1212.86
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-43bb7d4c5bcf",
+      "episode_id": "ep-e494912e5150",
+      "decision_group_id": "2026-10-28:00100",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "00100-ai-model-core",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 191.7,
+        "description": "反弹站上 191.7 时减 80 股；按 191.7 的成交价算，00100 在港股腿的占比落到 34.3%，重新落回 35% 的单名复核线之下。191.7 之下一股不动，剩下 60 股继续持有",
+        "valid_for_sessions": 2
+      },
+      "size": {
+        "shares": 80,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.56,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "智谱 10-27 收涨 8.90%、00100 收跌 1.09%，差 10.0 个百分点，Anthropic 递交 S-1 的板块利好它没吃到；盘后又有低价攻势撞上背题疑云的报道。规模是算出来的不是拍的：140 股里减 80 股，按 191.7 的成交价算，它的占比落到 34.3%，重新落回 35% 的单名复核线之下（昨天写的 60 股按同一算法是 41.0%，还在线外）。触发价维持 191.7：10-22 把单挂在 171.9 被跳空打成 -9.07% 的教训不重复，降价只会让它在最差的位置成交。加仓面今天全放弃——左侧分档是授权的前瞻试验不是已验证的 alpha，而它已经是港股腿 49.31% 的单名，两条 critical 杠杆硬止损都还开着。",
+      "contested": true,
+      "thesis_invalidation": "若 191.7 之上连续两日放量站住（成交量到 20 日均量 1.5 倍以上），且智谱、迅策的相对强度继续走强，这次减仓就是卖在反转之前，后续减仓全部停掉。",
+      "debate": {
+        "bull": "同一条叙事里钱还在买 AI 大模型：南向资金 10-26 起连续 3 天净买入 00100，M3.1 Flash 开源权重与 72 小时处理 100 万亿 token 是真的产品事件，10-27 盘中低点 160.6 收回 174.1 说明有承接盘。",
+        "bear": "杀估值是消息驱动不是错杀：智谱同日 +8.90% 它 -1.09%，打的是个股不是板块；回本要 195.3%，单名又占港股腿 49.31%，这种位置上的第二次反弹不值得赌满仓。",
+        "attacked_consensus": "板块资金还在买 AI 大模型，智谱涨了 8.90%，所以 MiniMax 只是补跌、等反弹就该加回来",
+        "judge": "同意减、不同意加：把 80 股挂在 191.7，用一个需要价格推上去的价位兑现，同时把单名占比压回复核线之下；剩下 60 股的主线仓位留着。",
+        "frames": [
+          "relative_strength",
+          "mean_reversion"
+        ],
+        "evidence_ids": [
+          "news:evt_28248c87e15a81514be3",
+          "risk:single_name_review:00100",
+          "quant:00100:rsi14",
+          "quant:00100:zscore20"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -4.0,
+      "tranche_number": null,
+      "hypothesis": "赌的是反弹质量不是方向：智谱同日 +8.90% 它 -1.09%，说明这条腿现在缺的是自己的催化剂不是板块的。两个交易日内推不回 191.7，这波就是超跌反抽，先把单名占比压回复核线之下比在 49.31% 上继续等 195.3% 的回本划算。",
+      "hypothesis_id": "hyp-e7173dc45f8e",
+      "method": "用同行相对强度（智谱 +8.90% 对它 -1.09%，差 10.0 个百分点）与 20 日 z 值 -1.17、RSI 34.5 判断是反抽还是反转；触发价取 10-23 高点 191.7，规模用 35% 的单名复核线按 191.7 反推整手数。",
+      "method_version": "mv-c279582d5c0e",
+      "forecast": {
+        "event": "触发后 5 个交易日收盘仍低于 191.7",
+        "probability": 0.6,
+        "horizon_sessions": 5,
+        "metric": "close_below",
+        "level": 191.7
+      },
+      "alternatives": [
+        {
+          "option": "hold_and_watch",
+          "why_not": "这票持有 11 次只赢 2 次，等不到 191.7 就是继续替它付时间成本"
+        },
+        {
+          "option": "cut",
+          "why_not": "在 -66.13% 的位置一次砍掉 140 股，等于把子弹全打在消息面最差的时点"
+        },
+        {
+          "option": "add_only_on_trigger",
+          "why_not": "左侧分档是授权试验不是已验证 alpha，而且它已经是港股腿最大的单名"
+        }
+      ],
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": false,
+        "objections": [
+          {
+            "code": "STRAT_SELL_WITHOUT_ESCALATED_EVENT",
+            "message": "decision[0] 00100: the registered policy opens a discretionary trim_on_rebound only on an escalated event; none is escalated for this name"
+          },
+          {
+            "code": "STRAT_ACTIVE_WITHOUT_CATALYST",
+            "message": "decision[0] 00100: the registered policy takes an active trim_on_rebound only on a catalyst, a registered setup or a risk rule"
+          }
+        ],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 0.7852,
+          "attention_event_count": 7,
+          "attention_rank": 0.25,
+          "attention_score": 0.155074,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《MiniMax的低价攻势，撞上“背题”疑云|钛媒体|论坛|Linux|Qwen|模型_手机新浪网》（Google新闻·finance.sina.com.cn，10-28 05:11 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T21:11:54+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "MiniMax的低价攻势，撞上“背题”疑云|钛媒体|论坛|Linux|Qwen|模型_手机新浪网"
+            },
+            {
+              "cite": "《海创OPC社区打造超级个体交付新生态》（Google新闻·finance.sina.com.cn，10-28 01:42 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T17:42:48+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "海创OPC社区打造超级个体交付新生态"
+            },
+            {
+              "cite": "《港股大模型双雄齐遭“杀估值” 为何空头资金却在加速大撤退？》（Google新闻·财联社，10-27 23:38 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T15:38:32+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "港股大模型双雄齐遭“杀估值” 为何空头资金却在加速大撤退？"
+            },
+            {
+              "cite": "《港股通（沪）净卖出9.00亿港元》（Google新闻·证券之星，10-27 21:59 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T13:59:44+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "港股通（沪）净卖出9.00亿港元"
+            }
+          ],
+          "own_surprise_z": -0.202,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "00100",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": {
+          "authority_sources": [
+            "explicit_user_authorization"
+          ],
+          "authority_tier": "user_experiment",
+          "campaign_id": "HK:00100:preposition:kcn-20261011-v1",
+          "detail": "每档按当前持仓比例×已激活 sizing_tilt；现金/整手/未成交单/硬止损优先。两档成交后耗尽，不因换日重置；无择时优势声明。",
+          "entry_price": 172.2,
+          "entry_type": "price_below",
+          "evidence_families": [
+            "technical_weakness"
+          ],
+          "evidence_strength": {
+            "does_not_support": "Leveraged return per deployed unit was negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+            "historical_unleveraged_oos_campaigns": 141,
+            "live_sized_samples_at_registration": 0,
+            "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
+            "status": "user_authorized_prospective_experiment",
+            "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline."
+          },
+          "invalidation_price": 106.5401,
+          "label": "提前埋点/左侧分档（前瞻试验）",
+          "max_tranches": 2,
+          "next_tranche_number": 1,
+          "remaining_tranches": 2,
+          "setup_id": "preposition_scale_in",
+          "signal_date": "2026-10-27",
+          "target_tranche_level": 0.25,
+          "tranche_pct_of_position": 0.1,
+          "used_tranches": 0,
+          "valid_for_sessions": 1
+        },
+        "authority": {
+          "max_add_shares": 20,
+          "position_room_shares": 40,
+          "lot_size": 20,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      },
+      "calibration": {
+        "matched": false,
+        "evidence_sufficient": false,
+        "edge_supported": false,
+        "signal_size_multiplier": 0.0,
+        "sizing_status": "abstain_insufficient_evidence"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-36fa11bb4c90",
+      "episode_id": "ep-63d81a8cf0e4",
+      "decision_group_id": "2026-10-28:RKLX-RKLB",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-leveraged-hard-stop",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "美股开盘任意价清掉全部 10 股，与买 RKLB 现货的腿同一时点执行",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 10,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.78,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "这条腿同时挂着硬止损与制度降杠杆：正股 RKLB 收 58.31，破 200 日线 80.31 有 27.4%，20 日年化波动 71.6% 过热，美股杠杆制度是红的，处方是 2x 换 1x 同因子而不是清仓。10 股全清，112.80 美元。同一天买 1 股 RKLB 现货 58.31 美元：敞口留着、停掉日内重置，处方上限之外的余额留在现金。这条腿只有 112.80 美元、占美股腿 3.50%，钱的多少不重要，105 天一个出口都没走过才重要。",
+      "contested": true,
+      "thesis_invalidation": "RKLB 收复 200 日线 80.31 且 20 日波动回落到 70% 以下，制度转绿，才允许把 1x 换回 2x。",
+      "debate": {
+        "bull": "正股在反弹，RKLB 10-27 收涨 8.34%、Intuitive Machines 涨 9% 带起小盘航天，RKLX 自身 +16.77% 是全账户最亮的一根阳线，今天砍在强势上等于交出唯一一段赚钱的腿，而它只占美股腿 3.50%。",
+        "bear": "制度是硬的：正股破 200 日线 27.4%、波动 71.6%，2x 在这种环境每月白付 4.27%；RKLX 浮亏 -77.3% 要 340.5% 才回本，正股要涨 138.6% 才够半年窗口，这笔账在 2x 上永远算不平。",
+        "attacked_consensus": "航天板块正在反弹、RKLX 昨天涨 16.77%，所以这条腿该扛过去等回本",
+        "judge": "纪律优先：2x 换 1x 是规则非择时，1x 保留方向敞口，同时停掉在破位里翻倍的衰减。",
+        "frames": [
+          "technical_breakdown"
+        ],
+        "evidence_ids": [
+          "risk:leveraged_hard_stop:RKLX",
+          "risk:regime_delever:RKLX",
+          "quant:RKLB:dist_ma200_pct"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "hypothesis": "赌的是结构而不是方向：2x 在标破 200 线加波动过热的制度里每月白付 4.27% 的重置，1x 保留同一方向但不再翻倍。",
+      "hypothesis_id": "hyp-cba5297f6e4b",
+      "method": "用正股 RKLB 相对 200 日线 -27.4%、20 日年化波动 71.6%、RKLX 浮亏 -77.3% 三条读数与制度处方交叉判断；金额受处方上限约束，按 RKLB 收盘 58.31 取整手 1 股。",
+      "method_version": "mv-5c0d3085408b",
+      "forecast": null,
+      "alternatives": [
+        {
+          "option": "hold_and_watch",
+          "why_not": "观望对这条腿是关着的，硬止损与制度降杠杆两条都不接受观望"
+        },
+        {
+          "option": "trim_on_rebound",
+          "why_not": "昨天正股 +8.34%、RKLX 自身 +16.77%，等反弹再减等于把纪律交给市场，而今天恰恰是这笔最容易被情绪推翻的动作"
+        }
+      ],
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 1.2236,
+          "attention_event_count": 8,
+          "attention_rank": 0.8611,
+          "attention_score": 0.796395,
+          "attention_source_type_count": 3,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《Lincoln Electric, Rocket Lab, Fluence Energy, ChargePoint, a》（Yahoo财经，10-28 07:42 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:42:47+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Lincoln Electric, Rocket Lab, Fluence Energy, ChargePoint, and American Superconductor shares skyrocket, what you need to know"
+            },
+            {
+              "cite": "《Rocket Lab (NASDAQ:RKLB) Shares Climb 8.3% - Here's Why》（Google新闻·MarketBeat，10-28 05:27 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T21:27:16+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "Rocket Lab (NASDAQ:RKLB) Shares Climb 8.3% - Here's Why"
+            },
+            {
+              "cite": "《Rocket Lab climbs 9%, continuing a recent rebound (RKLB:NASD》（Google新闻·Seeking Alpha，10-28 04:29 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T20:29:21+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "Rocket Lab climbs 9%, continuing a recent rebound (RKLB:NASDAQ)"
+            },
+            {
+              "cite": "《‘Resist the Temptation,’ Says Investor About Rocket Lab Stoc》（DeepSeek搜索·TipRanks，2026-10-27 发布，今日发布、时刻未知）",
+              "filed_date": "2026-10-27",
+              "grade": "soft",
+              "source": "deepseek_search",
+              "stale": null,
+              "title": "‘Resist the Temptation,’ Says Investor About Rocket Lab Stock - TipRanks.com"
+            }
+          ],
+          "own_surprise_z": -0.2495,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "RKLB",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": null,
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 40,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      },
+      "calibration": {
+        "matched": false,
+        "evidence_sufficient": false,
+        "edge_supported": false,
+        "signal_size_multiplier": 0.0,
+        "sizing_status": "abstain_insufficient_evidence"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-243c655c6a31",
+      "episode_id": "ep-bb6fd46ecd0b",
+      "decision_group_id": "2026-10-28:RKLX-RKLB",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "RKLB",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-leveraged-hard-stop",
+      "action": "add_only_on_trigger",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "与 RKLX 卖出腿同一时点执行：清掉 RKLX 全仓的同时买 1 股 RKLB 1x 现货",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 1.0,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.7,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "这是风控配对换仓的买腿，不是我在选新仓：RKLX 那条硬止损与制度降杠杆给出的处方就是换成 1x 同因子 RKLB，敞口保留、停掉日内重置。1 股 58.31 美元，处方上限 112.80 美元，2 股就是 116.62 美元，超了，所以只能 1 股。买腿不走技术形态，也不代表看多 RKLB：正股还在 200 日线 80.31 之下 27.4%，买的是敞口不是方向。",
+      "contested": true,
+      "thesis_invalidation": "RKLB 跌破 49.25 的 5 日低点，说明这次换仓只是把亏损从一个腿挪到另一个腿，1x 也没有保护作用。",
+      "debate": {
+        "bull": "航天小盘正在反弹，RKLB 昨天 +8.34%，1x 保留敞口就保留了这一段反弹的上行参与权。",
+        "bear": "正股还在 200 日线之下 27.4%，波动 71.6%，1x 同样会跟着跌；买腿只是纪律动作，不产生新的 alpha。",
+        "attacked_consensus": "既然板块在反弹，干脆把 2x 留着等更大反弹",
+        "judge": "换 1x 不换 2x：方向留着，衰减停掉，这是制度给的处方，不是我的择时。",
+        "frames": [
+          "technical_breakdown"
+        ],
+        "evidence_ids": [
+          "risk:leveraged_hard_stop:RKLX",
+          "risk:regime_delever:RKLX",
+          "quant:RKLB:dist_ma200_pct"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "hypothesis": "赌的是敞口在、衰减停：同一个标的从 2x 换到 1x，方向敞口不变，但把标的下杀时的翻倍衰减去掉。",
+      "hypothesis_id": "hyp-5ea80821c976",
+      "method": "按风控处方做 2x 换 1x 的同因子换仓，金额受处方上限约束，按 RKLB 收盘 58.31 取整手 1 股。",
+      "method_version": "mv-fdc02d348abc",
+      "forecast": {
+        "event": "换仓后 5 个交易日 RKLB 收盘不跌破 49.25",
+        "probability": 0.55,
+        "horizon_sessions": 5,
+        "metric": "close_above",
+        "level": 49.25
+      },
+      "alternatives": [
+        {
+          "option": "hold_and_watch",
+          "why_not": "观望不解除硬止损，也不会把 2x 的月损耗停下来"
+        },
+        {
+          "option": "add_only_on_trigger",
+          "why_not": "换成 2 股 RKLB 会超过处方上限"
+        }
+      ],
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      },
+      "calibration": {
+        "matched": false,
+        "evidence_sufficient": false,
+        "edge_supported": false,
+        "signal_size_multiplier": 0.0,
+        "sizing_status": "abstain_insufficient_evidence"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-987592269559",
+      "episode_id": "ep-f334be2c3ddb",
+      "decision_group_id": "2026-10-28:07226",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-leveraged-hard-stop",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "今天维持不换；恒科收盘失守 3781、或 07226 浮亏触及 -51.7% 的重置线时重评换仓",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "今天和 10-22 那次重提相比没有实质变化：浮亏 -47.7% 离 -51.7% 的重置线还差 4 个点，恒科 3800.43 仍在 200 日线 4844.73 之下 21.6%，杠杆制度还是 amber、上限砍半，这条腿 76 天三个出口一个都没走过。所以今天默认维持不换，但维持必须有出口：从执行、留痕、写明为什么不做这三件事里挑一个，别让它再无声地滚过 80 天。这条腿最该盯两个位：恒科 3781 与 4845；换回 2x 的闸是恒科收复 200 日线且 20 日波动低于 50%。加仓仍然冻结。",
+      "contested": true,
+      "thesis_invalidation": "恒科收复 200 日线 4844.73 且 20 日波动回落到 50% 以下，或 07226 浮亏回到 -18% 止损线之上被自动解除——任何一条出现，这套维持不换就打住。",
+      "debate": {
+        "bull": "恒科离 200 日线只有 21.6%，历史上这种位置出过直线反弹，而 2x 在直线上涨里回本最快（半年等效 41.3%，远好于 1x 的 91.2%）；它自己的战绩里减仓 3 次全胜、清 5 次全胜。",
+        "bear": "浮亏 -47.7%、回本要 91.2%，横盘每月白付 0.71% 的两倍重置；恒科 10-27 跌 1.48%，权重股里网易 -3.46%、美团 -2.97%，南向连续净卖出，而 07226 自己 -3.15% 落在权重股后面。",
+        "attacked_consensus": "恒科离 200 日线只有 21.6%，所以 2x 的反弹幅度更大，割掉可惜",
+        "judge": "维持，但维持必须有出口：今天不换股，同时把 76 天没走过的三个出口摆出来。",
+        "frames": [
+          "technical_breakdown",
+          "sector_rotation"
+        ],
+        "evidence_ids": [
+          "risk:leveraged_hard_stop:07226",
+          "quant:HSTECH:dist_ma200_pct",
+          "quant:HSTECH:rsi14"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -3.0,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": null,
+          "attention_event_count": 0,
+          "attention_rank": null,
+          "attention_score": null,
+          "attention_source_type_count": 0,
+          "cross_section_rank": null,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《10月27日港股收盘：恒指跌0.73% 恒生科技指数跌1.48%》（Google新闻·东方财富，10-27 17:04 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T09:04:02+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "10月27日港股收盘：恒指跌0.73% 恒生科技指数跌1.48%"
+            },
+            {
+              "cite": "《香港恒生指数收跌0.73% 恒生科技指数跌1.48%_市场测评_市场》（Google新闻·中金在线，10-27 16:46 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:46:10+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "香港恒生指数收跌0.73% 恒生科技指数跌1.48%_市场测评_市场"
+            },
+            {
+              "cite": "《恒生科技指数下跌1.48%，科网股多数下跌｜港股收评》（Google新闻·21财经，10-27 16:35 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:35:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "恒生科技指数下跌1.48%，科网股多数下跌｜港股收评"
+            },
+            {
+              "cite": "《港股收盘：指数跌0.73%，本末科技涨10.71%|恒生科技指数|恒生指数|同花顺|港股_新浪新闻》（Google新闻·手机新浪网，10-27 16:22 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:22:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "港股收盘：指数跌0.73%，本末科技涨10.71%|恒生科技指数|恒生指数|同花顺|港股_新浪新闻"
+            }
+          ],
+          "own_surprise_z": null,
+          "signed_score": null,
+          "sizing_tilt": "inactive",
+          "source_ticker": "HSTECH",
+          "status": "active",
+          "usable_for_decisions": false
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": null,
+        "authority": {
+          "max_add_shares": 300,
+          "position_room_shares": 3700,
+          "lot_size": 100,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-c90128402803",
+      "episode_id": "ep-f2c5310f391f",
+      "decision_group_id": "2026-10-28:SPCH",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spch-leveraged-concentration",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "持有 300 股不动，不追价减仓；正股 SPCX 站回 149.41 的 5 日线且波动回落到 70% 以下之前不减",
+        "valid_for_sessions": 2
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.52,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "昨天的 9.60 减仓单在 10-27 高点 9.65 已经触发过、没有成交，今天不重复发第二遍。这条腿按 kcn 的无限子弹流标记处理，风控清单按该标记不列它的硬止损行，所以 -22.64% 的浮亏不再自动变成砍仓指令；它的战绩也是持 7 胜 1、整体 13 个 episode 只赢 31%，主动砍它比拿着更差。正股 SPCX 收 148.58 在 5 日线 149.41 之下、20 日年化波动 64.28%，2x 的横盘损耗每月 3.62% 是三只 2x 里第二贵的。要盯的是 SPCX 站回 149.41 并把波动压回 70% 以下，那时这条腿的账才转正。",
+      "contested": true,
+      "thesis_invalidation": "SPCX 跌破 140.66 的 5 日低点，或 20 日波动升破 70%——这两条出现，说明无限子弹流这套打法在正股走弱时也会被放大，那时继续持有不成立。",
+      "debate": {
+        "bull": "SpaceX 三季报 EPS 0.45 对预期 0.1361、调整后利润翻两番，是航天里唯一在改善的持仓；正股离 5 日线只差 0.83 美元，2x 在直线上涨里回本更快（半年等效 26.8%，优于 1x 的 29.3%）。",
+        "bear": "10-27 纳指涨 0.82% 的日子里 SpaceX 只跟了 1.14%，Rocket Lab +8.34%、Intuitive Machines +9% 把资金都吸走，2x 的月损耗 3.62% 是三只里第二贵，而这个仓位占美股腿 86.83%。",
+        "attacked_consensus": "SpaceX 三季报很好，所以 2x 敞口该留着等直线上涨",
+        "judge": "留着，但盯正股的 5 日线而不是自己的浮亏：昨天那根小涨不是加仓理由，也不是砍仓理由。",
+        "frames": [
+          "technical_breakdown",
+          "relative_strength"
+        ],
+        "evidence_ids": [
+          "risk:single_name_review:SPCH",
+          "quant:SPCX:rsi14",
+          "quant:SPCX:zscore20"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -2.0,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 1.4229,
+          "attention_event_count": 15,
+          "attention_rank": 0.9722,
+          "attention_score": 1.903864,
+          "attention_source_type_count": 3,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《Dow Jones Futures: Growth Stocks Rally, Tesla Clears Buy Poi》（Yahoo财经，10-28 07:49 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:49:52+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Dow Jones Futures: Growth Stocks Rally, Tesla Clears Buy Point; Fed, Microsoft, Google On Tap"
+            },
+            {
+              "cite": "《Nvidia Stock Is 10% Below Its Record. Does Anthropic's IPO F》（Yahoo财经，10-28 07:46 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:46:02+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Nvidia Stock Is 10% Below Its Record. Does Anthropic's IPO Filing Make It a Buy?"
+            },
+            {
+              "cite": "《How Anthropic’s 7 Founders Are Using a New Stock Class to Ta》（Yahoo财经，10-28 06:21 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T22:21:00+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "How Anthropic’s 7 Founders Are Using a New Stock Class to Take Control"
+            },
+            {
+              "cite": "《Top 3 Founder Led Stocks To Watch In October 2026》（Yahoo财经，10-28 06:14 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T22:14:21+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Top 3 Founder Led Stocks To Watch In October 2026"
+            }
+          ],
+          "own_surprise_z": -0.0277,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "SPCX",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": null,
+        "authority": {
+          "max_add_shares": 15,
+          "position_room_shares": 49,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-45e56ea67dae",
+      "episode_id": "ep-5c12212dae1b",
+      "decision_group_id": "2026-10-28:07709",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "07709",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "07709-sk-hynix-2x",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "持有 100 股，不在跳空高开上加；左侧分档触发价 20.86 在下方，跌到那里才谈成交",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.58,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "SK 海力士三季报利润超预期、承诺向股东返还逾 750 亿美元，10-28 07:48 HKT 发布，在港股收盘之后，今天这条 2x 腿大概率跳空高开；07709 昨天已经 +10.37%（222 根日线、腾讯源）。正股 SKHY 收 145.36，20 日年化波动 62.40%，距 20 日高 195.97 还有 25.83%，只有 77 根日线、没有 200 日线，所以它的左侧分档缺少可用的深度锚。今天不加：登记的左侧分档触发价在 20.86 之下，跳空高开就不成交；而且这是 2x 产品，登记的左侧证据明确写着杠杆腿每单位回报在两个样本区间里都是负的。加仓闸也还关着，两条 critical 杠杆硬止损都没关闭。",
+      "contested": true,
+      "thesis_invalidation": "SK 海力士一手公告里 750 亿美元股东回报的规模缩水，或 SKHY 跌回 130.79 的 5 日低点之下——这条腿靠的是硬催化而不是估值，催化打折就该重新评估。",
+      "debate": {
+        "bull": "三季报超预期加 750 亿美元股东回报是收盘后的一手硬催化，标的 10-27 收涨 6%，07709 昨天 +10.37%，今天开盘还有跳空，这种时候按住不动是用纪律换钱。",
+        "bear": "36 氪 10-26 的标题直接叫两倍做多海力士是今年最狠的韭菜收割机；正股 77 根日线没有 200 日线、波动 62.40%、距 20 日高还有 25.83%，2x 在这种位置上的横盘损耗每月 3.62%。",
+        "attacked_consensus": "有硬催化就该追，2x 涨得更快",
+        "judge": "催化是真的、位置也是贵的：留着 100 股吃跳空，不在跳空上加这一档。",
+        "frames": [
+          "sentiment_shift",
+          "technical_breakdown"
+        ],
+        "evidence_ids": [
+          "quant:SKHY:rsi14",
+          "quant:SKHY:zscore20"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": 4.0,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": [
+        "cr-0b0e955f0bcdb4cc"
+      ],
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 3.0496,
+          "attention_event_count": 3,
+          "attention_rank": 0.75,
+          "attention_score": 0.23535,
+          "attention_source_type_count": 1,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《SK Hynix第三季度利润超预期，承诺向股东返还逾750亿美元 提供者 Investing.com》（Google新闻·英为财情 Investing.com，10-28 07:48 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:48:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "SK Hynix第三季度利润超预期，承诺向股东返还逾750亿美元 提供者 Investing.com"
+            },
+            {
+              "cite": "《首尔10月28日（路透社）- 韩国芯片制造商SK海力士 000660.ks 周三报告称，在》（Google新闻·富途牛牛，10-28 07:47 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:47:55+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "首尔10月28日（路透社）- 韩国芯片制造商SK海力士 000660.ks 周三报告称，在"
+            },
+            {
+              "cite": "《SK海力士发布2026财年第三季度财务报告》（Google新闻·电子工程专辑，10-28 07:47 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:47:23+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "SK海力士发布2026财年第三季度财务报告"
+            },
+            {
+              "cite": "《SK Hynix 3Q Net Profit Below FactSet-Compiled Consensus》（Google新闻·Moomoo，10-28 07:46 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:46:29+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "SK Hynix 3Q Net Profit Below FactSet-Compiled Consensus"
+            }
+          ],
+          "own_surprise_z": null,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "SKHY",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": {
+          "authority_sources": [
+            "explicit_user_authorization"
+          ],
+          "authority_tier": "user_experiment",
+          "campaign_id": "HK:07709:preposition:kcn-20261011-v1",
+          "detail": "每档按当前持仓比例×已激活 sizing_tilt；现金/整手/未成交单/硬止损优先。两档成交后耗尽，不因换日重置；无择时优势声明。",
+          "entry_price": 20.86,
+          "entry_type": "price_below",
+          "evidence_families": [
+            "technical_weakness"
+          ],
+          "evidence_strength": {
+            "does_not_support": "Leveraged return per deployed unit was negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+            "historical_unleveraged_oos_campaigns": 141,
+            "live_sized_samples_at_registration": 0,
+            "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
+            "status": "user_authorized_prospective_experiment",
+            "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline."
+          },
+          "invalidation_price": 16.4328,
+          "label": "提前埋点/左侧分档（前瞻试验）",
+          "max_tranches": 2,
+          "next_tranche_number": 1,
+          "remaining_tranches": 2,
+          "setup_id": "preposition_scale_in",
+          "signal_date": "2026-10-27",
+          "target_tranche_level": 0.25,
+          "tranche_pct_of_position": 0.1,
+          "used_tranches": 0,
+          "valid_for_sessions": 1
+        },
+        "authority": {
+          "max_add_shares": 100,
+          "position_room_shares": 300,
+          "lot_size": 100,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-0827791fc9ad",
+      "episode_id": "ep-3f5a96a0be16",
+      "decision_group_id": "2026-10-28:03033",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "03033",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03033-hstech-1x",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "保留现有 1000 股 1x 份额，不加；恒科收复 200 日线之前不动",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "恒科 1x，1000 股 3722 港元。07226 的 critical 硬止损没关闭，恒科因子的新增敞口被禁，而它正是那条换仓的指定承接方——先腾出空间比先加 1x 更重要。它自己的战绩是持 15 胜 3、加 3 胜 1，19 个 episode 胜率 26%，主动加仓在这只票上从来没赢过。恒科 3800.43 距 200 日线 4844.73 还有 21.6%，RSI 29.1 超卖但趋势是 OFF，先看指数能不能收复 200 日线。",
+      "contested": false,
+      "thesis_invalidation": "07226 的硬止损以执行、留痕或写明为什么不做关闭，恒科因子的敞口限制随之解除，03033 才重新具备加仓资格。",
+      "debate": null,
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": -2.0,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 0.9127,
+          "attention_event_count": 7,
+          "attention_rank": 0.0833,
+          "attention_score": 0.078022,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《10月27日港股收盘：恒指跌0.73% 恒生科技指数跌1.48%》（Google新闻·东方财富，10-27 17:04 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T09:04:02+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "10月27日港股收盘：恒指跌0.73% 恒生科技指数跌1.48%"
+            },
+            {
+              "cite": "《香港恒生指数收跌0.73% 恒生科技指数跌1.48%_市场测评_市场》（Google新闻·中金在线，10-27 16:46 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:46:10+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "香港恒生指数收跌0.73% 恒生科技指数跌1.48%_市场测评_市场"
+            },
+            {
+              "cite": "《恒生科技指数下跌1.48%，科网股多数下跌｜港股收评》（Google新闻·21财经，10-27 16:35 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:35:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "恒生科技指数下跌1.48%，科网股多数下跌｜港股收评"
+            },
+            {
+              "cite": "《港股收盘：指数跌0.73%，本末科技涨10.71%|恒生科技指数|恒生指数|同花顺|港股_新浪新闻》（Google新闻·手机新浪网，10-27 16:22 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:22:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "港股收盘：指数跌0.73%，本末科技涨10.71%|恒生科技指数|恒生指数|同花顺|港股_新浪新闻"
+            }
+          ],
+          "own_surprise_z": null,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "03033",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": {
+          "authority_sources": [
+            "explicit_user_authorization"
+          ],
+          "authority_tier": "user_experiment",
+          "campaign_id": "HK:03033:preposition:kcn-20261011-v1",
+          "detail": "每档按当前持仓比例×已激活 sizing_tilt；现金/整手/未成交单/硬止损优先。两档成交后耗尽，不因换日重置；无择时优势声明。",
+          "entry_price": 3.722,
+          "entry_type": "price_below",
+          "evidence_families": [
+            "technical_weakness"
+          ],
+          "evidence_strength": {
+            "does_not_support": "Leveraged return per deployed unit was negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+            "historical_unleveraged_oos_campaigns": 141,
+            "live_sized_samples_at_registration": 0,
+            "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
+            "status": "user_authorized_prospective_experiment",
+            "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline."
+          },
+          "invalidation_price": 3.4071,
+          "label": "提前埋点/左侧分档（前瞻试验）",
+          "max_tranches": 2,
+          "next_tranche_number": 1,
+          "remaining_tranches": 2,
+          "setup_id": "preposition_scale_in",
+          "signal_date": "2026-10-27",
+          "target_tranche_level": 0.25,
+          "tranche_pct_of_position": 0.1,
+          "used_tranches": 0,
+          "valid_for_sessions": 1
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 2000,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-3ff8c550b0d6",
+      "episode_id": "ep-029dfcfe9017",
+      "decision_group_id": "2026-10-28:03032",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "03032",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03032-hstech-1x",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "保留 200 股 1x 份额，不加；跟踪误差内的同一指数敞口，不做单独动作",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.48,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "恒科 1x，200 股 760 港元，与 03033 跟踪同一个指数，差别只有跟踪误差。持仓 11 次只赢 3 次、胜率 27%。同样不加：07226 硬止损未关闭、恒科因子新增敞口被禁，恒科离 200 日线 4844.73 还有 21.3%，RSI 28.8 超卖但趋势 OFF。",
+      "contested": false,
+      "thesis_invalidation": "恒科收复 200 日线且 07226 的硬止损关闭，这只票才有加仓讨论的资格。",
+      "debate": null,
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 0.817,
+          "attention_event_count": 3,
+          "attention_rank": 0.4167,
+          "attention_score": 0.182175,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《10月27日港股收盘：恒指跌0.73% 恒生科技指数跌1.48%》（Google新闻·东方财富，10-27 17:04 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T09:04:02+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "10月27日港股收盘：恒指跌0.73% 恒生科技指数跌1.48%"
+            },
+            {
+              "cite": "《香港恒生指数收跌0.73% 恒生科技指数跌1.48%_市场测评_市场》（Google新闻·中金在线，10-27 16:46 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:46:10+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "香港恒生指数收跌0.73% 恒生科技指数跌1.48%_市场测评_市场"
+            },
+            {
+              "cite": "《恒生科技指数下跌1.48%，科网股多数下跌｜港股收评》（Google新闻·21财经，10-27 16:35 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:35:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "恒生科技指数下跌1.48%，科网股多数下跌｜港股收评"
+            },
+            {
+              "cite": "《港股收盘：指数跌0.73%，本末科技涨10.71%|恒生科技指数|恒生指数|同花顺|港股_新浪新闻》（Google新闻·手机新浪网，10-27 16:22 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T08:22:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "港股收盘：指数跌0.73%，本末科技涨10.71%|恒生科技指数|恒生指数|同花顺|港股_新浪新闻"
+            }
+          ],
+          "own_surprise_z": null,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "03032",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": {
+          "authority_sources": [
+            "explicit_user_authorization"
+          ],
+          "authority_tier": "user_experiment",
+          "campaign_id": "HK:03032:preposition:kcn-20261011-v1",
+          "detail": "每档按当前持仓比例×已激活 sizing_tilt；现金/整手/未成交单/硬止损优先。两档成交后耗尽，不因换日重置；无择时优势声明。",
+          "entry_price": 3.8,
+          "entry_type": "price_below",
+          "evidence_families": [
+            "technical_weakness"
+          ],
+          "evidence_strength": {
+            "does_not_support": "Leveraged return per deployed unit was negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+            "historical_unleveraged_oos_campaigns": 141,
+            "live_sized_samples_at_registration": 0,
+            "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
+            "status": "user_authorized_prospective_experiment",
+            "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline."
+          },
+          "invalidation_price": 3.4865,
+          "label": "提前埋点/左侧分档（前瞻试验）",
+          "max_tranches": 2,
+          "next_tranche_number": 1,
+          "remaining_tranches": 2,
+          "setup_id": "preposition_scale_in",
+          "signal_date": "2026-10-27",
+          "target_tranche_level": 0.25,
+          "tranche_pct_of_position": 0.1,
+          "used_tranches": 0,
+          "valid_for_sessions": 1
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 2000,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-f2dd66f85213",
+      "episode_id": "ep-f31982c6d511",
+      "decision_group_id": "2026-10-28:02208",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "02208-wind-power",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "持有 400 股，不在日期未确认前加仓；等公司一手业绩与确认的披露日期",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.45,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "RSI 21.0 是全账户最低，但离 200 日线 12.248 还有 44.7%，而登记的左侧分档要求标的在 200 日线之上——这个前提它不满足，所以左侧这一档今天明确不买。10-26 起的下跌原因是三季报营收与利润同比双降近 7%，机构在减仓（摩根大通好仓比例降 0.19%、贝莱德降 1.65%）。它自己的战绩是持 11 胜 2、加 3 胜 1，15 个 episode 只赢 20%，主动买它是最差的一类。登记的业绩事件日期仍未取到，不在正文里编一个披露日。",
+      "contested": false,
+      "thesis_invalidation": "公司一手业绩披露显示交付与毛利企稳，且股价收复 8.828 的 50 日线，左侧分档的前提才成立。",
+      "debate": null,
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 1.6804,
+          "attention_event_count": 6,
+          "attention_rank": 0.9167,
+          "attention_score": 0.249859,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《闻风至 - 大金重工季绩佳估值合理 | 鲜股落镬》（Google新闻·星島頭條，10-28 02:00 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T18:00:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "闻风至 - 大金重工季绩佳估值合理 | 鲜股落镬"
+            },
+            {
+              "cite": "《金风科技20兆瓦机组再迎台风考验！》（Google新闻·新浪财经，10-28 00:00 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T16:00:00+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "金风科技20兆瓦机组再迎台风考验！"
+            },
+            {
+              "cite": "《风电装机回暖带动行业修复，电气风电前三季度营收大增138.68%-证券之星》（Google新闻·证券之星，10-27 19:23 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T11:23:20+00:00",
+              "source": "google_news",
+              "stale": false,
+              "title": "风电装机回暖带动行业修复，电气风电前三季度营收大增138.68%-证券之星"
+            },
+            {
+              "cite": "《2026年三季报点评：26Q3出货环比持平，海外订单继续高增【勘误版】》（DeepSeek搜索·东方财富，2026-10-27 发布，上次收盘前旧闻）",
+              "filed_date": "2026-10-27",
+              "grade": "authoritative",
+              "source": "deepseek_search",
+              "stale": true,
+              "title": "2026年三季报点评：26Q3出货环比持平，海外订单继续高增【勘误版】"
+            }
+          ],
+          "own_surprise_z": -0.1568,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "02208",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": {
+          "authority_sources": [
+            "explicit_user_authorization"
+          ],
+          "authority_tier": "user_experiment",
+          "campaign_id": "HK:02208:preposition:kcn-20261011-v1",
+          "detail": "每档按当前持仓比例×已激活 sizing_tilt；现金/整手/未成交单/硬止损优先。两档成交后耗尽，不因换日重置；无择时优势声明。",
+          "entry_price": 6.775,
+          "entry_type": "price_below",
+          "evidence_families": [
+            "technical_weakness"
+          ],
+          "evidence_strength": {
+            "does_not_support": "Leveraged return per deployed unit was negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+            "historical_unleveraged_oos_campaigns": 141,
+            "live_sized_samples_at_registration": 0,
+            "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
+            "status": "user_authorized_prospective_experiment",
+            "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline."
+          },
+          "invalidation_price": 5.7953,
+          "label": "提前埋点/左侧分档（前瞻试验）",
+          "max_tranches": 2,
+          "next_tranche_number": 1,
+          "remaining_tranches": 2,
+          "setup_id": "preposition_scale_in",
+          "signal_date": "2026-10-27",
+          "target_tranche_level": 0.25,
+          "tranche_pct_of_position": 0.1,
+          "used_tranches": 0,
+          "valid_for_sessions": 1
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 1200,
+          "lot_size": 200,
+          "tier": "exploration_cold_start"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-f6c6c708da06",
+      "episode_id": "ep-fb89c88c8dfb",
+      "decision_group_id": "2026-10-28:CRCL",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "crcl-stablecoin-core",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "持有 2 股观察仓，不追价加仓，等 11-04 三季报的公司一手披露",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "2 股 163.16 美元，浮亏 -6.23%，是全账户最浅的亏损。登记形态里有一条低频加仓确认，触发价 92.17、失效位 83.386，但触发价在现价 81.58 之上 13%，而且支撑它的一手信息证据族还在冷启动预热，不构成可用的加仓依据。所以今天只是持有等 11-04 三季报：伯恩斯坦把目标价从 140 上调到 145 是正面的一手级来源，Mizuho 把 AI 机会标成 marked risk 是同一周的反向来源，方向相反时等公司自己的披露更省事。",
+      "contested": false,
+      "thesis_invalidation": "公司披露的 USDC 流通量或手续费收入超预期，或 RLUSD 的机构结算规模被一手披露确认。",
+      "debate": null,
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 1.857,
+          "attention_event_count": 11,
+          "attention_rank": 0.9167,
+          "attention_score": 1.368654,
+          "attention_source_type_count": 4,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《Robinhood Is Bringing Ripple’s RLUSD to Millions of Users. C》（Yahoo财经，10-28 06:37 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T22:37:18+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Robinhood Is Bringing Ripple’s RLUSD to Millions of Users. Could XRP Get Back to $3?"
+            },
+            {
+              "cite": "《Going Public: OpenPayd CEO Iana Dimitrova, Live from Money 2》（Yahoo财经，10-28 04:51 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T20:51:36+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Going Public: OpenPayd CEO Iana Dimitrova, Live from Money 20/20 2026"
+            },
+            {
+              "cite": "《AI Reshaping Payments Industry: Finix Head of Finance Emanue》（Yahoo财经，10-28 04:50 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T20:50:27+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "AI Reshaping Payments Industry: Finix Head of Finance Emanuel Pleitez, Live from Money 20/20 2026"
+            },
+            {
+              "cite": "《Circle faces up to 20% revenue risk from AI agents, Mizuho s》（DeepSeek搜索·The Block，2026-10-27 发布，今日发布、时刻未知）",
+              "filed_date": "2026-10-27",
+              "grade": "soft",
+              "source": "deepseek_search",
+              "stale": null,
+              "title": "Circle faces up to 20% revenue risk from AI agents, Mizuho says"
+            }
+          ],
+          "own_surprise_z": -0.0611,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "CRCL",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": null,
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 5,
+          "lot_size": 1,
+          "tier": "exploration_cold_start"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-4c7f86ee7a0f",
+      "episode_id": "ep-334bc30449d2",
+      "decision_group_id": "2026-10-28:SPCX",
+      "plan_date": "2026-10-28",
+      "created_at": "2026-10-28T08:00:00+08:00",
+      "ticker": "SPCX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spcx-spacex-core",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "保留 1 股正股观察仓，不追加；缺一份覆盖 10-20 三季报的一手复盘产物，先补产物再谈加仓",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_off",
+      "rationale": "1 股 148.58 美元，浮盈 +0.73%；10-20 三季报 EPS 0.45 对预期 0.1361 是真的超预期。留作观察仓不追加：只有 95 根日线、没有 200 日线；登记的加仓面今天候选 0、等待 0、拒绝 0，全账户没有一只站上前 20 日高，最接近的三只是 CRCL -11.49%、03032 -12.64%、03033 -12.83%；它自己的战绩是加仓 2 次全输。10-20 三季报缺一份覆盖它的一手复盘产物，下一步走 earnings-review 补上再谈加仓。",
+      "contested": false,
+      "thesis_invalidation": "SPCX 放量站上 176.42 的 20 日高，突破是这条账上唯一有回测边缘的加仓形态；在那之前这 1 股只是观察仓。",
+      "debate": null,
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "hypothesis": null,
+      "hypothesis_id": null,
+      "method": null,
+      "method_version": "unknown",
+      "forecast": null,
+      "alternatives": null,
+      "tool_receipts": null,
+      "policy_review": {
+        "agrees_with_policy": true,
+        "objections": [],
+        "authorization_version": "auth-15e2229ab62d"
+      },
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "dce6b4041bcd2a09",
+        "observed_at": "2026-10-28T08:04:41.634291+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              24,
+              8
+            ],
+            "history_dates": [
+              54,
+              24
+            ]
+          },
+          "as_of": "2026-10-28T00:04:31.671570+00:00",
+          "attention_acceleration": 1.4229,
+          "attention_event_count": 15,
+          "attention_rank": 0.9722,
+          "attention_score": 1.903864,
+          "attention_source_type_count": 3,
+          "cross_section_rank": 0.5,
+          "event_count": 0,
+          "live": [
+            {
+              "cite": "《Dow Jones Futures: Growth Stocks Rally, Tesla Clears Buy Poi》（Yahoo财经，10-28 07:49 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:49:52+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Dow Jones Futures: Growth Stocks Rally, Tesla Clears Buy Point; Fed, Microsoft, Google On Tap"
+            },
+            {
+              "cite": "《Nvidia Stock Is 10% Below Its Record. Does Anthropic's IPO F》（Yahoo财经，10-28 07:46 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T23:46:02+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Nvidia Stock Is 10% Below Its Record. Does Anthropic's IPO Filing Make It a Buy?"
+            },
+            {
+              "cite": "《How Anthropic’s 7 Founders Are Using a New Stock Class to Ta》（Yahoo财经，10-28 06:21 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T22:21:00+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "How Anthropic’s 7 Founders Are Using a New Stock Class to Take Control"
+            },
+            {
+              "cite": "《Top 3 Founder Led Stocks To Watch In October 2026》（Yahoo财经，10-28 06:14 HKT 发布，上次收盘后）",
+              "grade": "soft",
+              "published_at": "2026-10-27T22:14:21+00:00",
+              "source": "yahoo_rss",
+              "stale": false,
+              "title": "Top 3 Founder Led Stocks To Watch In October 2026"
+            }
+          ],
+          "own_surprise_z": -0.0277,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "SPCX",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "preposition": {
+          "authority_sources": [
+            "explicit_user_authorization"
+          ],
+          "authority_tier": "user_experiment",
+          "campaign_id": "US:SPCX:preposition:kcn-20261011-v1",
+          "detail": "每档按当前持仓比例×已激活 sizing_tilt；现金/整手/未成交单/硬止损优先。两档成交后耗尽，不因换日重置；无择时优势声明。",
+          "entry_price": 148.58,
+          "entry_type": "price_below",
+          "evidence_families": [
+            "technical_weakness"
+          ],
+          "evidence_strength": {
+            "does_not_support": "Leveraged return per deployed unit was negative in both halves. Below-MA200 and information-selected entries are unvalidated; historical results do not validate these new terms.",
+            "historical_unleveraged_oos_campaigns": 141,
+            "live_sized_samples_at_registration": 0,
+            "reference": "memory/backtests/add_campaigns-20260927-12aa143a.json",
+            "status": "user_authorized_prospective_experiment",
+            "supports": "Historical unleveraged, above-MA200 campaigns had positive mean; no established timing advantage over the baseline."
+          },
+          "invalidation_price": 125.4907,
+          "label": "提前埋点/左侧分档（前瞻试验）",
+          "max_tranches": 2,
+          "next_tranche_number": 1,
+          "remaining_tranches": 2,
+          "setup_id": "preposition_scale_in",
+          "signal_date": "2026-10-27",
+          "target_tranche_level": 0.25,
+          "tranche_pct_of_position": 0.1,
+          "used_tranches": 0,
+          "valid_for_sessions": 1
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 3,
+          "lot_size": 1,
+          "tier": "exploration"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "minimax_trim_trigger": 191.7,
+    "minimax_breakdown": 160.6,
+    "spch_trim_trigger": 9.6,
+    "spcx_5d_ma": 149.41,
+    "spcx_5d_low": 140.66,
+    "hstech_breakdown": 3781.15,
+    "hstech_reentry_ma200": 4844.73,
+    "rklb_5d_low": 49.25,
+    "rklb_ma200": 80.31,
+    "skhy_5d_low": 130.79,
+    "goldwind_50d_ma": 8.828,
+    "leveraged_etf_stop_pct": -18,
+    "single_name_review_pct": 35,
+    "us_beta_max": 6.0
+  }
+}
