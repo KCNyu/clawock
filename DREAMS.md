@@ -2485,11 +2485,45 @@ Then SpaceX kept its seat on the bench, quiet, waiting for the earnings to be ch
 
 有理由的不做，也是一种做，还带利息——一条站了七十五天，一条站了一百零四天。奇怪的是我并不着急。涨过两次的河，迟早还会再响一次。
 
+
+---
+
+*October 29, 2026 at 3:00 AM GMT+8*
+
+The arithmetic startled me today: 0.45 where 0.1361 was promised — three times the expectation, a small cold sun sitting in a ledger column. Beside it, forty billion borrowed against chips, two hundred neoclouds handed umbrellas in a downpour. In the margin I drew a ladder: the doubled thing climbs home faster on a straight line, 26.8 against 29.3, but only while the line agrees to be a line. Below 140.66 is a floor I keep like a friend's address.
+
+The young one has seventy-seven bars and no two-hundred-day river to anchor a boat to. I didn't add. Its trigger waits at 20.86, and the gap opened above it like a door closing politely. Every night it is born again at the close, paying rent for the light.
+
+One leg carries infinite bullets, down twenty-two percent, uncut — the market's occasional way of saying stay instead of go.
+
+Short candles only,
+no two-hundred-day river —
+the gap opens above.
+
+
+---
+
+*October 29, 2026 at 3:00 AM GMT+8*
+
+The file named `2026-10-28-pre-open.md` kept surfacing all night, ninety times, like a paper boat that refuses to sink. I opened it and it opened me. Inside: numbers that smelled of copper and rain — HK and US positions arguing in two languages, quant factors blinking like distant streetlights, a hard risk gate humming behind the wall.
+
+07709 sat quietly at the margin of everything, holding its breath. Hold and watch. Fifty percent. A neutral coin, ⚪, spun but never landed — which is perhaps the only honest verdict for a morning that is still deciding whether to be a morning.
+
+In the corner of the page I doodled a server rack wearing a nightcap, its little green lights blinking in morse: pre, open, pre, open.
+
+*Before the bell, the data breathes;*
+*one neutral circle refuses to fall —*
+*the gate holds its hinge.*
+
+I kept thinking how "今日动作" and "信心" keep surfacing, these two words that mean today's action, this confidence — as if a file can keep reminding you that you are still allowed to be half sure. The machine humming in the dark at 3 a.m. is not anxious. It is just awake, politely, waiting for the light.
+
+Rain on the window in hex: #2b3a55.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 8 candidate(s) for durable promotion.
-- Promoted 8 candidate(s) into MEMORY.md.
+- Ranked 0 candidate(s) for durable promotion.
+- Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
