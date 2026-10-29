@@ -858,7 +858,7 @@
     if (m.fed_press?.length) {
       const fedDiv = document.createElement('div');
       fedDiv.className = 'fed-latest';
-      fedDiv.style.cssText = 'margin-top:8px;padding: var(--space-2) var(--space-3);background:var(--fill-inset);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:var(--fs-xs);';
+      fedDiv.style.cssText = 'margin-top:8px;padding: var(--space-2) var(--space-3);background:var(--fill-inset-2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:var(--fs-xs);';
       const rows = m.fed_press.slice(0, 3).map(p => {
         // Fed RSS 的 title/link 是外部 XML 原文：文本完整转义；href 只接受
         // https —— escapeHtml 防属性逃逸，但不防 javascript: scheme。
