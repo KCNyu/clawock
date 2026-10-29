@@ -18,27 +18,27 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.155,
+    "price": 102.247,
     "prev": 102.194,
-    "change_pct": -0.04,
+    "change_pct": 0.05,
     "source": "yahoo",
-    "as_of": 1793225098
+    "as_of": 1793235853
   },
   "hsi": {
     "symbol": "^HSI",
     "price": 23094.83,
-    "prev": 23041.32,
-    "change_pct": 0.23,
+    "prev": 23094.83,
+    "change_pct": null,
     "source": "tencent",
-    "as_of": "2026-10-28"
+    "as_of": "2026-10-29"
   },
   "hstech": {
     "symbol": "^HSTECH",
     "price": 3853.72,
-    "prev": 3800.43,
-    "change_pct": 1.4,
+    "prev": 3853.72,
+    "change_pct": null,
     "source": "tencent",
-    "as_of": "2026-10-28"
+    "as_of": "2026-10-29"
   },
   "spx": {
     "symbol": "^GSPC",
@@ -61,7 +61,7 @@
     "rating": "fear",
     "prev_close": 33.6,
     "prev_1_week": 30.3,
-    "as_of": "2026-10-28T23:02:51+00:00"
+    "as_of": "2026-10-28T23:59:59+00:00"
   },
   "fed_press": [
     {
@@ -138,5 +138,5 @@
     "skew": "unavailable",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-10-28T23:20:47.608017+00:00"
+  "generated_at": "2026-10-29T01:14:16.976327+00:00"
 }
