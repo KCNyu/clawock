@@ -147,3 +147,81 @@ def test_each_projection_says_which_price_it_sold_at():
     plan['decisions'][0]['condition'] = {'type': 'open'}
     assert plan_trim_projections(ctx, plan)[0]['price_basis'] == 'book_mark'
     assert '按简报时现价' in brief_render.risk_section(ctx, plan)
+
+
+@pytest.mark.parametrize('prose', [
+    '反弹站上 178.1 时减 40 股；按成交价算，00100 在港股腿的占比落到 35%。',
+    '00100 减 40 股，占比降至 35%。',
+    '00100 减 40 股后占比回到 35%。',
+    '00100 按触发价算仍高于 35% 的单名复核线，40 股才够，具体支配度以成交价重算。',
+])
+def test_real_phrasing_families_reach_both_gates(tmp_path, prose):
+    from clawock.portfolio.guardrail import plan_trim_warnings
+    ctx, plan = scenario()
+    decision = plan['decisions'][0]
+    decision['condition']['description'] = prose
+    assert plan_trim_warnings(decision, plan_trim_projections(ctx, plan)[0])
+    issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    assert brief_postflight.categorize(issues) == 'fail'
+
+
+@pytest.mark.parametrize('prose', [
+    '00100 减 40 股；占比落到 39.53%，收入增长 35%。',
+    '00100 当前仓位占比为 46.84%，收益率降到 35%。',
+    '00100 不能声称占比落到 35%。',
+    '00100 40 股不够回到复核线，60 股才够。',
+    '00100 并非 40 股才够回到复核线。',
+])
+def test_claim_negatives_and_correct_results(prose):
+    from clawock.portfolio.guardrail import plan_trim_warnings
+    from clawock.harness.validation import _concentration_claim_issues
+    ctx, plan = scenario()
+    projection = plan_trim_projections(ctx, plan)[0]
+    ctx['plan_trim_projections'] = [projection]
+    assert not plan_trim_warnings({'rationale': prose}, projection)
+    assert not _concentration_claim_issues(prose, ctx)
+
+
+def test_october_28_frozen_condition_and_timeline(monkeypatch, tmp_path):
+    from clawock.publish import dashboard
+    root = Path(__file__).resolve().parents[1]
+    plan = json.loads((root / 'memory/2026-10-28-plan.json').read_text())
+    row = next(d for d in plan['decisions'] if d['ticker'] == '00100')
+    _, reviews = _single_name_policy('HK', [
+        {'ticker': '00100', 'value': 25228, 'weight_pct': 49.36}],
+        [{'ticker': '00100', 'shares': 140, 'lot_size': 20}], 51105.2, 'HKD')
+    ctx = {'risk_guardrail': {'concentration_reviews': reviews}}
+    monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda: [row])
+    result = dashboard.compute_plan_timeline([], context=ctx)[0]
+    assert result['trim_projection']['post_trim_weight_pct'] == 30.77
+    assert any('34.3%' in w for w in result['plan_warnings'])
+    assert result['condition'] == row['condition']
+    assert brief_postflight.categorize(brief_postflight._brief_numeric_issues(
+        tmp_path / 'missing.json', {'decisions': [row]}, ctx)) == 'fail'
+
+
+def test_other_ticker_destination_does_not_leak():
+    from clawock.harness.validation import _concentration_claim_issues
+    ctx, plan = scenario()
+    ctx['risk_guardrail']['concentration_reviews'].append(
+        {'ticker': 'SPCH', 'weight_pct': 90, 'review_pct': 35})
+    ctx['plan_trim_projections'] = plan_trim_projections(ctx, plan)
+    assert not _concentration_claim_issues(
+        '00100 收入增长 35%，SPCH 减仓后占比落到 90%。', ctx)
+
+
+def test_october_27_sufficiency_claim_is_checked_in_both_gates(tmp_path):
+    from clawock.portfolio.guardrail import plan_trim_warnings
+    root = Path(__file__).resolve().parents[1]
+    plan = json.loads((root / 'memory/2026-10-27-plan.json').read_text())
+    row = next(d for d in plan['decisions'] if d['ticker'] == '00100')
+    _, reviews = _single_name_policy('HK', [
+        {'ticker': '00100', 'value': 25228, 'weight_pct': 49.36}],
+        [{'ticker': '00100', 'shares': 140, 'lot_size': 20}], 51105.2, 'HKD')
+    ctx = {'risk_guardrail': {'concentration_reviews': reviews}}
+    plan = {'decisions': [row]}
+    projection = plan_trim_projections(ctx, plan)[0]
+    assert projection['shares_to_review_line'] == 80
+    assert any('60 股足够' in w for w in plan_trim_warnings(row, projection))
+    assert brief_postflight.categorize(brief_postflight._brief_numeric_issues(
+        tmp_path / 'missing.json', plan, ctx)) == 'fail'

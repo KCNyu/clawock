@@ -508,6 +508,8 @@ def with_compute_receipts(ctx, workspace):
 
 def _concentration_claim_issues(text, ctx):
     """Check named review percentages separately from the advisory number pool."""
+    from clawock.portfolio.guardrail import trim_claim_warnings
+
     reviews = (ctx.get('risk_guardrail') or {}).get('concentration_reviews') or []
     projections = {r['ticker']: r for r in ctx.get('plan_trim_projections') or []}
     # Match only names supplied by this generation's holdings. HK share-class
@@ -549,28 +551,25 @@ def _concentration_claim_issues(text, ctx):
                         end = mentions[i + 1].start() if i + 1 < len(mentions) else len(sentence)
                         fragments.append(sentence[mention.start():end])
             for sentence in fragments:
+                for warning in trim_claim_warnings(sentence, projection):
+                    issues.append(f'仓位支配度不符: {ticker} {warning}')
                 concentration = re.search(r'支配度|集中度|占.{0,8}腿|仓位占比', sentence)
-                post = re.search(r'(?:卖|减).{0,18}股后.{0,8}(?:回到|降至|降到|剩|占)', sentence)
-                if not (concentration or post):
+                if not concentration:
                     continue
                 for match in _UNIT_CLAIMS['percent'].finditer(sentence):
                     prefix = sentence[:match.start()]
                     direct = re.search(
                         r'(?:支配度|集中度|仓位占比|占[^，,。；;%％]{0,8}腿)'
                         r'[^，,。；;%％]{0,12}$', prefix)
-                    after_sale = (post and match.start() >= post.end()
-                                  and re.fullmatch(r'\s*(?:约)?\s*',
-                                                   sentence[post.end():match.start()]))
                     destination = concentration and re.search(
                         r'(?:压回|回到|降至|降到)\s*(?:约)?\s*$', prefix)
                     # A quote return, revenue growth, etc. in the same sentence
                     # is not a concentration claim merely because it has a %.
-                    if not (direct or after_sale or destination):
+                    if not (direct or destination):
                         continue
                     raw = match.group(1)
                     value = _as_number(raw)
-                    values = [expected] if after_sale and expected is not None else allowed
-                    if not _states(values, value, _rounding_tolerance(raw)):
+                    if not _states(allowed, value, _rounding_tolerance(raw)):
                         issues.append(f'仓位支配度不符: {ticker} {raw}%，请引用减仓联立计算')
                 if (expected is not None and expected > review['review_pct']
                         and re.search(r'(?:压回|降至|降到).{0,12}复核线(?:下方|以下)', sentence)

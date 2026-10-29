@@ -195,24 +195,49 @@ def plan_trim_projections(context, plan):
     return out
 
 
-def plan_trim_warnings(decision, projection):
-    """Advisory plan check only; never changes authored text or rejects a plan.
+# Both publication gates use the same explicit claim vocabulary. A destination
+# attached to 占比 is meaningful even when a semicolon separates it from the sale.
+_POST_WEIGHT = re.compile(
+    r'(?:占比|支配度|集中度)\s*(?:落到|降到|降至|回到|变为|剩下)\s*'
+    r'(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]'
+    r'|(?:卖|减)[^。；;！？!?\n]{0,18}股后[^，,。；;%％]{0,8}'
+    r'(?:回到|降至|降到|剩|占)\s*(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]')
 
-    Match explicit post-sale weights, not returns or the current weight. The
-    deterministic scenario is shown even when the author's wording is unknown.
+
+def trim_claim_warnings(text, projection):
+    """Check explicit weight destinations and review-line sufficiency claims.
+
+    Callers own ticker attribution. Do not infer an intended sale from a return,
+    or treat a negated claim as an affirmative promise.
     """
     expected = projection.get('post_trim_weight_pct')
-    if expected is None:
-        return []
-    text = decision.get('rationale') or ''
     warnings = []
-    for match in re.finditer(
-            r'(?:卖|减).{0,18}股后.{0,8}(?:回到|降至|降到|剩|占)\s*(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]', text):
-        raw = match[1]
-        precision = len(raw.split('.')[1]) if '.' in raw else 0
-        if abs(float(raw) - expected) > 0.5 * 10 ** -precision + 1e-9:
-            warnings.append(f'作者减仓后占比 {raw}% 与当前账本联立解 {expected}% 不一致；请复核')
-    return warnings
+    for sentence in re.split(r'[。！？!?\n]', text):
+        for match in _POST_WEIGHT.finditer(sentence):
+            prefix = re.split(r'[，,；;]', sentence[:match.start()])[-1]
+            if re.search(r'不能|无法|未能|不再声称|不会|并非', prefix):
+                continue
+            raw = match[1] or match[2]
+            precision = len(raw.split('.')[1]) if '.' in raw else 0
+            if expected is not None and abs(float(raw) - expected) > 0.5 * 10 ** -precision + 1e-9:
+                warnings.append(f'作者减仓后占比 {raw}% 与当前账本联立解 {expected}% 不一致；请复核')
+        need = projection.get('shares_to_review_line')
+        if need is None or not re.search(r'复核线|支配度|集中度|占比', sentence):
+            continue
+        for match in re.finditer(r'(\d+(?:\.\d+)?)\s*股\s*(?:才够|就够|足够)', sentence):
+            prefix = re.split(r'[，,；;]', sentence[:match.start()])[-1]
+            if re.search(r'不能|无法|未能|不再声称|并非|不是', prefix):
+                continue
+            if float(match[1]) < need:
+                warnings.append(f'作者称 {match[1]} 股足够回到复核线，当前账本联立解需 {need:g} 股；请复核')
+    return list(dict.fromkeys(warnings))
+
+
+def plan_trim_warnings(decision, projection):
+    """Advisory check of both authored fields; never rewrites frozen prose."""
+    text = '\n'.join((decision.get('rationale') or '',
+                      (decision.get('condition') or {}).get('description') or ''))
+    return trim_claim_warnings(text, projection)
 
 
 def _single_name_policy(leg, ws, hold, total, ccy):
