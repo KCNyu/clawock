@@ -4535,7 +4535,7 @@
   .panel, .card, .card > *, .status-banner .sb-text,
   .risk-alert > div, .anomaly .detail, .market-cell,
   .kpi-cell, .risk-cell, .expo-stats > div,
-  .mkt-card,   .mkt-card, .macro-row > *,
+  .mkt-card, .macro-row > *,
   .catalyst-row > *, .pd-top > *,
   .sd-row summary > *,
   .card [style*="display:flex"] > * {
