@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-28T00:04:33.229701Z",
+  "generated_at": "2026-10-29T00:04:38.099908Z",
   "window_days": 60,
   "series": {
     "SPY": [
@@ -202,6 +202,11 @@
         "open": 762.25,
         "date": "2026-10-26",
         "close": 765.37
+      },
+      {
+        "open": 767.34,
+        "date": "2026-10-27",
+        "close": 769.66
       }
     ],
     "HSI": [
@@ -404,6 +409,11 @@
         "date": "2026-10-27",
         "close": 23041.32,
         "open": 23260.14
+      },
+      {
+        "date": "2026-10-28",
+        "close": 23094.83,
+        "open": 23083.99
       }
     ],
     "HSTECH": [
@@ -606,25 +616,30 @@
         "date": "2026-10-27",
         "close": 3800.43,
         "open": 3886.18
+      },
+      {
+        "date": "2026-10-28",
+        "close": 3853.72,
+        "open": 3829.97
       }
     ]
   },
   "freshness": {
     "SPY": {
       "market": "us",
-      "last_session": "2026-10-26",
+      "last_session": "2026-10-27",
       "sessions_behind": 1,
       "expected_lag_sessions": 1
     },
     "HSI": {
       "market": "hk",
-      "last_session": "2026-10-27",
+      "last_session": "2026-10-28",
       "sessions_behind": 0,
       "expected_lag_sessions": 0
     },
     "HSTECH": {
       "market": "hk",
-      "last_session": "2026-10-27",
+      "last_session": "2026-10-28",
       "sessions_behind": 0,
       "expected_lag_sessions": 0
     }

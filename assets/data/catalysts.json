@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-28T08:03:34.959968+08:00",
+  "generated_at": "2026-10-29T08:03:43.710909+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-28",
-  "window_end": "2026-11-11",
+  "window_start": "2026-10-29",
+  "window_end": "2026-11-12",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -13,7 +13,7 @@
       "ticker": "CRCL",
       "name": "CRCL",
       "date": "2026-11-04",
-      "time": "unknown",
+      "time": "bmo",
       "eps_estimate": 0.3696,
       "eps_actual": null,
       "revenue_estimate_m": 797.27,
@@ -45,13 +45,7 @@
       "year": 2026
     }
   ],
-  "fomc": [
-    {
-      "date": "2026-10-28",
-      "type": "rate_decision",
-      "detail": "FOMC 2026-10-27 to 2026-10-28 meeting; rate decision + Powell presser on 2026-10-28"
-    }
-  ],
+  "fomc": [],
   "macro_events": [
     {
       "date": "2026-10-29",
@@ -72,10 +66,10 @@
   "scheduled_events": [],
   "summary": {
     "earnings_count": 2,
-    "fomc_in_window": 1,
+    "fomc_in_window": 0,
     "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "FOMC 2026-10-28 (rate decision)"
+    "highest_impact_within_7d": "CRCL earnings 2026-11-04 (bmo)"
   }
 }
