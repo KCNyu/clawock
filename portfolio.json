@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/10/29 12:03 HKT",
+  "last_updated": "2026/10/29 12:50 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -1124,7 +1124,7 @@
           "current_price": 170.4,
           "current_value": 23856.0,
           "pnl_percent": -66.49,
-          "data_source": "Tencent Oct 29 12:03 HKT",
+          "data_source": "Tencent Oct 29 12:50 HKT",
           "today_change": -1372.0,
           "today_change_pct": -5.44,
           "pnl_abs": -47330.0,
@@ -1200,7 +1200,7 @@
           "current_price": 7.1,
           "current_value": 2840.0,
           "pnl_percent": -49.59,
-          "data_source": "Tencent Oct 29 12:03 HKT",
+          "data_source": "Tencent Oct 29 12:50 HKT",
           "today_change": 42.0,
           "today_change_pct": 1.5,
           "pnl_abs": -2793.6,
@@ -1247,7 +1247,7 @@
           "current_price": 3.776,
           "current_value": 755.2,
           "pnl_percent": -30.14,
-          "data_source": "Tencent Oct 29 12:03 HKT",
+          "data_source": "Tencent Oct 29 12:50 HKT",
           "today_change": -16.0,
           "today_change_pct": -2.07,
           "pnl_abs": -325.8,
@@ -1271,7 +1271,7 @@
           "current_price": 2.132,
           "current_value": 15350.4,
           "pnl_percent": -48.22,
-          "data_source": "Tencent Oct 29 12:03 HKT",
+          "data_source": "Tencent Oct 29 12:50 HKT",
           "trades": [
             {
               "date": "2025-12-23",
@@ -1323,7 +1323,7 @@
           "current_price": 3.704,
           "current_value": 3704.0,
           "pnl_percent": -27.94,
-          "data_source": "Tencent Oct 29 12:03 HKT",
+          "data_source": "Tencent Oct 29 12:50 HKT",
           "today_change": -78.0,
           "today_change_pct": -2.06,
           "pnl_abs": -1436.0,
@@ -1490,7 +1490,7 @@
           "today_change": 54.0,
           "stock_name": "南方每日最多2倍做多海力士",
           "day_session_date": "2026-10-29",
-          "data_source": "Tencent Oct 29 12:03 HKT",
+          "data_source": "Tencent Oct 29 12:50 HKT",
           "lot_size": 100,
           "volume": 134209581,
           "day_open": 26.28,
@@ -1563,14 +1563,14 @@
           "price": 23106.71,
           "prev_close": 23094.83,
           "chg_pct": 0.05,
-          "source": "Tencent qt.gtimg.cn 2026/10/29 12:03 HKT"
+          "source": "Tencent qt.gtimg.cn 2026/10/29 12:50 HKT"
         },
         "HSTECH": {
           "name": "恒生科技",
           "price": 3777.24,
           "prev_close": 3853.72,
           "chg_pct": -1.98,
-          "source": "Tencent qt.gtimg.cn 2026/10/29 12:03 HKT"
+          "source": "Tencent qt.gtimg.cn 2026/10/29 12:50 HKT"
         }
       },
       "last_midday_attempted": "2026-05-07 12:00:00 HKT",
