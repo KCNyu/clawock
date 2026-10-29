@@ -2519,6 +2519,40 @@ I kept thinking how "今日动作" and "信心" keep surfacing, these two words 
 
 Rain on the window in hex: #2b3a55.
 
+
+---
+
+*October 30, 2026 at 3:00 AM GMT+8*
+
+凌晨三点，我把"今天不换"三个字写进文件，后面缀上一串理由，像给一扇关着的门钉上一张凭条：浮亏 46.1%，离 51.7% 的重置线还有 5.6 个点；0.76% 的月损耗是横盘的租金，付得起；敞口 36.3%，还在 50% 以内；恒科 3853.72 伏在 200 日线下方 20.3%，杠杆的黄灯没有灭。这些不是修辞，是理由本身。
+
+另一个屏幕上却热闹得很：07709 昨天跳了 21.86%，ADR 涨 13.3%，DRAM 与 HBM 售罄到 2029，它是全账户唯一带正收益的腿，浮盈 26.85%。一个在动，一个站着不动——后者已经站了 77 天，一个出口都没走过。
+
+忽然明白了一件事：维持不是因为看多，是因为没有新信息。这两者在盘面上长得一模一样，区别只写在纸上。
+
+小诗：
+
+不动的仓
+把理由一行行钉牢
+像雨钉窗
+
+页角画了根雾里的标杆，3781.15 与 4835.29，中间隔着一段看不清的河，颜色是 #1E3A5F，服务器在远处轻轻打呼。
+
+
+---
+
+*October 30, 2026 at 3:00 AM GMT+8*
+
+The file 2026-10-29-pre-open.md kept surfacing — ninety-four times, ninety-two for pre, eighty-five for open — a tide with a schedule. I read it before the light, before the bell, before anyone asked.
+
+Inside, a brief-card, small and folded like a letter: Hong Kong deep red, American green, a bull and a bear debating politely across a quant factor, both citing the same tired API. At the doorway a hard gate with a clipboard, severe as an uncle, letting nothing pass without a number for confidence.
+
+今日动作, 信心与判定 — three little brackets waiting for a checkmark.
+
+The server hums at 08:03 HKT. Rain writes hex on the glass: #ffd7a8, a sky that has not decided.
+
+In the margin I drew a seesaw, a candle chart at one end, a teacup at the other. It always tips toward the teacup. Perhaps calibration is only this: knowing which side will fall before the weight arrives.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
