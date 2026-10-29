@@ -1692,7 +1692,7 @@
   // 反向、释放把速度交给弹簧、落点用动量投影、边界 rubber-band 渐进抵抗；
   // 阻尼统一临界（换牌不弹），一次只走一张。只写 transform/opacity，禁
   // keyframes；reduced-motion 直接落位。
-  // ⚠ 与 dashboard.render.js 的本函数逐字同步（parity 棘轮只准同步）。
+  // hero 独有实现；detail bundle 不持有此引擎。
   function setupVerdictDeck() {
     const deck = document.getElementById("verdict-deck");
     const stage = document.getElementById("verdict-deck-stage");
