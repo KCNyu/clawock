@@ -817,8 +817,8 @@ def _assert_dashboard_money_reconciles(
         'pnl_percent': ('pnl_percent', 2),
     }
     # A position with no previous close has no today's change; the row carries
-    # null for it, not 0 (#1783).
-    nullable_holding_fields = {'today_change', 'today_change_pct'}
+    # null for it, not 0 (#1783). Missing daily highs/lows stay null too (#3212).
+    nullable_holding_fields = {'today_change', 'today_change_pct', 'day_high', 'day_low'}
 
     for leg, (region, currency, total_fields) in regions.items():
         source_leg = portfolio.get('portfolios', {}).get(region)
