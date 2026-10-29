@@ -11,11 +11,10 @@
 # `gh workflow run` is delivered in seconds; it is how brief_watchdog already
 # starts the fallback brief. The scheduled runs stay as the host-down fallback.
 #
-# A scheduled run that arrives after this one re-scans live sources and usually
-# commits a fresher sample (and a Pages deploy); only a re-scan that differs in
-# `generated_at` alone is dropped before the commit (ops/ci/
-# hold_unchanged_sidecar.py). The live checkout picks the commit up on its next
-# publisher pull.
+# Scheduled retries now check the latest committed sidecar before fetching:
+# a valid current-cycle copy skips the scan and its commit/Pages deploy.
+# Dispatch remains an explicit refresh, including when an early scheduled leg
+# already succeeded. The live checkout picks commits up on its next publisher pull.
 #
 # Both share the `data-write` concurrency group, which holds one running and one
 # waiting run: a run that is still waiting when another member of the group

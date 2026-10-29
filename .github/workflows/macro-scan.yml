@@ -17,14 +17,8 @@ on:
     # reads is dispatched from the host at 07:20 HKT
     # (ops/host/dispatch_preopen_scans.sh, #2516).
     - cron: '45 21 * * 0-4'
-    # Second attempt (brief-fallback multi-tier pattern): measured drift
-    # (assets/data/schedule-drift.json, n=20) maxes at 199min against this
-    # slot's ~135min pre-brief buffer — the same "brief read yesterday's
-    # sidecar" window sentiment has. A retry after the host's run is not free:
-    # it reads live quotes (DXY trades round the clock, HSI once Hong Kong
-    # opens), so it almost always commits a fresher sample, and that commit
-    # redeploys Pages. Only a re-scan differing in generated_at alone is
-    # dropped, by the "Keep the committed copy" step.
+    # Retry if the earlier leg failed or was cancelled. Both legs share one
+    # artifact cycle; a valid published copy makes scheduled retries skip.
     - cron: '55 21 * * 0-4'
   workflow_dispatch:
 
@@ -41,22 +35,33 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          # A queued event SHA can predate the host's successful publication.
+          ref: ${{ github.event_name == 'schedule' && 'master' || github.ref }}
 
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
 
+      - name: Check whether the fallback is still needed
+        id: cycle
+        run: python3 ops/ci/skip_completed_scan.py --source assets/data/macro.json
+
       - name: Fetch macro
+        if: steps.cycle.outputs.skip != 'true'
         run: clawock macro --workspace .
 
       - name: Validate macro coverage
+        if: steps.cycle.outputs.skip != 'true'
         run: clawock validate-sidecar macro
 
       - name: Keep the committed copy when only generated_at moved
+        if: steps.cycle.outputs.skip != 'true'
         # A same-cycle re-scan that found nothing new must not commit and
         # redeploy Pages for a new timestamp; see the script's docstring.
         run: python3 ops/ci/hold_unchanged_sidecar.py --source assets/data/macro.json
 
       - name: Snapshot point-in-time copy
+        if: steps.cycle.outputs.skip != 'true'
         # factor-snapshots/ keeps a verbatim dated copy of every sidecar
         # generation (#936): the live file is overwritten in place, so any
         # later factor research reading it would see today's data, not what
@@ -64,6 +69,7 @@ jobs:
         run: python3 ops/ci/snapshot_factor_sidecar.py --source assets/data/macro.json
 
       - name: Commit
+        if: steps.cycle.outputs.skip != 'true'
         # Shared helper commits only this workflow's sidecar. The frontend fetches
         # it directly; dashboard.json is not rebuilt for it.
         env:
