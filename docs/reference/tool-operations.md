@@ -19,8 +19,8 @@
 | `pages.yml` | 站点/数据 push + `data-plane-published` | (Pages) | 部署 GitHub Pages；并发组 `pages` 排队不取消 |
 | `weekly-health.yml` | 周日 20:17 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
 | `eod-archive.yml` | 周五 22:00 UTC | `memory/archive/eod-history.csv` | 每周持仓快照 audit trail |
-| `sentiment-scan.yml` | 周日–四 21:30 + 21:55 UTC | `assets/data/sentiment.json` + `factor-snapshots/sentiment/` | 05:30 HKT 盘前 Reddit + Google News 扫描；21:55 为抗漂移第二档 |
-| `macro-scan.yml` | 周日–四 21:45 + 21:55 UTC | `assets/data/macro.json` + `factor-snapshots/macro/` | 05:45 HKT 盘前宏观扫描；21:55 为抗漂移第二档 |
+| `sentiment-scan.yml` | 周日–四 21:30 + 21:55 UTC | `assets/data/sentiment.json` + `factor-snapshots/sentiment/` | 05:30 HKT 盘前 Reddit + Google News 扫描；21:55 为失败/取消重试；已有本周期有效产物则排程跳过 |
+| `macro-scan.yml` | 周日–四 21:45 + 21:55 UTC | `assets/data/macro.json` + `factor-snapshots/macro/` | 05:45 HKT 盘前宏观扫描；21:55 为失败/取消重试；已有本周期有效产物则排程跳过 |
 | `brief-fallback.yml` | 工作日 00:25/00:47/01:09 UTC + 周三 04:23 彩排；host watchdog 09:05 HKT dispatch | brief/plan + harness 产物 | 主 brief 缺失且未晚于 10:00 HKT 才由远端 LLM 接管 |
 | `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax-M3.1-Flash 周复盘（无回退模型） |
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
@@ -29,6 +29,16 @@
 | `screenshot-refresh.yml` | 周日 22:00 UTC | `site/assets/social-card.png` + `site/assets/shadow-backtest.png` + `site/assets/books.svg` / `books-narrow.svg` + README 的 `CW_M` 数字 | 每周刷新社交卡里的 Hero 截图和实时战绩图；美股/港股分账盈亏卡由 `ops/growth/refresh_readme_metrics.py` 调 `site/tools/build_readme_book_charts.py` 从 data-plane 的 `dashboard.json` 重画；`site/assets/dashboard.gif` 只在手动 dispatch 时生成，仅存仓库、不进入 Pages 产物 |
 | `repo-traffic.yml` | 周二/六 03:38 UTC | `assets/data/repo-traffic.json` + `schedule-drift.json` | Measurement Capture；漂移按 `config/schedule-punctuality.json` 由 cron-health 判 |
 | `seo-visibility.yml` | 周一 06:30 UTC | `assets/data/crawl_visibility*.json` | 每周爬虫/搜索可见度采样 |
+
+宏观/情绪以主机 07:20 HKT dispatch 为盘前刷新入口。两档 GitHub 排程保留作
+host-down 兜底与失败/取消重试；`skip_completed_scan.py` 在 `data-write` 锁内的
+最新 master checkout 上、采集前验证已有 sidecar。`generated_at` 必须介于 health
+card 定义的首次日排程与当前时间之间，且通过原有 coverage validator，才跳过
+采集、归档和提交。缺失、坏文件、过期或未来时间戳均允许重试。它不消除 GitHub
+排程 run 本身，也不保证主机停机时赶上简报；`schedule-punctuality.json` 继续记录
+这一被接受的延迟。dispatch 仍是显式刷新（可用于同周期修复）；原有
+`hold_unchanged_sidecar.py` 仍只压掉仅时间戳变化的重扫。Influence 早晚两档是
+不同采样周期，保留两次真实更新，不套用盘前兜底闸。回滚只需撤销该闸，无状态迁移。
 
 **远端 LLM 路径**: 本地市场 cron 与远端 `clawock.automation.llm` 都以 MiniMax-M3.1-Flash 为主；远端**只有 MiniMax 一个 provider**——2026-09-13 起移除了 opencode-go DeepSeek V4 Flash 回退（钱包早已清零，回退腿只会再报一次 401），链上不挂任何按量付费模型。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 `MINIMAX_API_KEY`，仓库不落 key。
 
