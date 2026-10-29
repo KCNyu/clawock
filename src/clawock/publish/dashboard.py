@@ -874,6 +874,8 @@ def trim_holding(h, currency):
     Today's change stays null when the book has none: a position bought today
     has no previous close to measure from, and 0 would render as「+0.00%」, a
     flat day, where the dashboard means「—」(#1783).
+    Missing daily highs/lows likewise stay null, as in compute_today_ranges;
+    an observed zero remains a number (#3212).
     """
     def today(field):
         if (_share_number(h.get('shares')) or 0) <= 0:
@@ -894,8 +896,8 @@ def trim_holding(h, currency):
         'current_value': round(carried_value(h), 2),
         'today_change': today('today_change'),
         'today_change_pct': today('today_change_pct'),
-        'day_high': round(h.get('day_high') or 0, 4),
-        'day_low': round(h.get('day_low') or 0, 4),
+        'day_high': None if h.get('day_high') is None else round(h['day_high'], 4),
+        'day_low': None if h.get('day_low') is None else round(h['day_low'], 4),
         'pnl_abs': round(h.get('pnl_abs') or 0, 2),
         'pnl_percent': round(h.get('pnl_percent') or 0, 2),
         'is_active': (_share_number(h.get('shares')) or 0) > 0,

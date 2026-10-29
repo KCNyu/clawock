@@ -2462,3 +2462,21 @@ def test_built_timeline_uses_the_same_generation_risk_inputs(monkeypatch, tmp_pa
     assert trail['trim_projection']['shares_to_review_line'] == 60
     assert trail['rationale'] == row['rationale']
     assert trail['plan_warnings']
+
+
+@pytest.mark.parametrize('ranges', [
+    {}, {'day_high': None, 'day_low': None},
+    {'day_high': 12, 'day_low': None}, {'day_high': None, 'day_low': 8},
+])
+def test_missing_daily_range_stays_missing_in_holdings_and_range_card(ranges):
+    holding = {'ticker': 'TEST', 'shares': 1, 'current_price': 10, **ranges}
+    row = dashboard.trim_holding(holding, 'USD')
+    for field in ('day_high', 'day_low'):
+        assert row[field] == ranges.get(field)
+    assert dashboard.compute_today_ranges(_portfolio(us={'holdings': [holding]})) == []
+
+
+@pytest.mark.parametrize('value,expected', [(0, 0), (12.34567, 12.3457)])
+def test_daily_range_preserves_observed_zero_and_four_decimal_precision(value, expected):
+    row = dashboard.trim_holding({'shares': 1, 'day_high': value, 'day_low': value}, 'USD')
+    assert row['day_high'] == row['day_low'] == expected

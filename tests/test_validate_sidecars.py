@@ -1320,3 +1320,18 @@ def test_dashboard_artifact_gate_checks_pinned_scorecard_source(tmp_path, monkey
     monkeypatch.setattr(scorecard_provenance, 'verify_committed_source', reject)
     with pytest.raises(AssertionError, match='scorecard source verification failed'):
         validators.validate_dashboard(path)
+
+
+@pytest.mark.parametrize('field', ['day_high', 'day_low'])
+def test_missing_daily_range_requires_null_in_public_holding(
+        tmp_path, freshly_built_dashboard, field):
+    source, payload, row = _unquoted_book(tmp_path, freshly_built_dashboard)
+    public = next(h for h in payload['holdings']['us'] if h['ticker'] == row['ticker'])
+    assert public['day_high'] is None and public['day_low'] is None
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+    validators.validate_dashboard(dashboard, portfolio_path=source)
+
+    public[field] = 0
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+    with pytest.raises(AssertionError, match=field):
+        validators.validate_dashboard(dashboard, portfolio_path=source)
