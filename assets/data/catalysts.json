@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-29T08:03:43.710909+08:00",
+  "generated_at": "2026-10-30T08:08:02.945726+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-29",
-  "window_end": "2026-11-12",
+  "window_start": "2026-10-30",
+  "window_end": "2026-11-13",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -48,11 +48,6 @@
   "fomc": [],
   "macro_events": [
     {
-      "date": "2026-10-29",
-      "type": "GDP",
-      "detail": "Q3 2026 GDP advance estimate"
-    },
-    {
       "date": "2026-10-30",
       "type": "PCE",
       "detail": "Sep PCE price index (BEA, Fed preferred inflation gauge)"
@@ -61,6 +56,11 @@
       "date": "2026-11-06",
       "type": "NFP",
       "detail": "Oct jobs report (Non-Farm Payrolls); BLS 8:30 ET"
+    },
+    {
+      "date": "2026-11-13",
+      "type": "CPI",
+      "detail": "Oct CPI release (BLS 8:30 ET)"
     }
   ],
   "scheduled_events": [],
@@ -70,6 +70,6 @@
     "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "CRCL earnings 2026-11-04 (bmo)"
+    "highest_impact_within_7d": "NFP 2026-11-06"
   }
 }
