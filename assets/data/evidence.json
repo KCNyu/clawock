@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-10-30T04:08:30+08:00",
+  "generated_at": "2026-10-30T08:40:04+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -137,5 +137,5 @@
       ]
     }
   ],
-  "built_at": "2026-10-30T00:10:54.611313+00:00"
+  "built_at": "2026-10-30T00:41:19.065373+00:00"
 }

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-30T00:10:54.769675+00:00",
+  "generated_at": "2026-10-30T00:41:19.147860+00:00",
   "as_of": "2026-10-30",
   "events": [
     {
-      "event_id": "evt_a1468f0680fc786d51ce",
+      "event_id": "evt_33d117b22df978095c47",
       "ticker": "CRCL",
       "reported_ticker": "CRCL",
       "event_type": "earnings_schedule",
       "title": "CRCL scheduled earnings",
       "publication_time": {
-        "iso": "2026-10-30T00:08:02.945726+00:00",
+        "iso": "2026-10-30T00:38:26.575841+00:00",
         "precision": "minute"
       },
       "event_time": {
@@ -66,13 +66,13 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_4aaf624c7fca528e5bd4",
+      "event_id": "evt_e79c77baf19fc5c3dcd9",
       "ticker": "RKLB",
       "reported_ticker": "RKLB",
       "event_type": "earnings_schedule",
       "title": "RKLB scheduled earnings",
       "publication_time": {
-        "iso": "2026-10-30T00:08:02.945726+00:00",
+        "iso": "2026-10-30T00:38:26.575841+00:00",
         "precision": "minute"
       },
       "event_time": {
@@ -128,13 +128,13 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_c0f2a40f332c401c1563",
+      "event_id": "evt_1284c8beee1240959a79",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "macro_schedule",
       "title": "Sep PCE price index (BEA, Fed preferred inflation gauge)",
       "publication_time": {
-        "iso": "2026-10-30T00:08:02.945726+00:00",
+        "iso": "2026-10-30T00:38:26.575841+00:00",
         "precision": "minute"
       },
       "event_time": {
@@ -185,13 +185,13 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_7ea42601ebc82db6cd41",
+      "event_id": "evt_8effedd2d390c39dbf16",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "macro_schedule",
       "title": "Oct jobs report (Non-Farm Payrolls); BLS 8:30 ET",
       "publication_time": {
-        "iso": "2026-10-30T00:08:02.945726+00:00",
+        "iso": "2026-10-30T00:38:26.575841+00:00",
         "precision": "minute"
       },
       "event_time": {
@@ -207,7 +207,7 @@
       "metadata": {},
       "body_persisted": false,
       "duplicate_event_ids": [
-        "evt_96e53d69d2778f2a3858"
+        "evt_120b4150244f76693f3d"
       ],
       "evidence_sources": [
         "official published schedule"
@@ -246,24 +246,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_0b3f898ce78f582ef7e6",
+      "event_id": "evt_ba39291072c546cbc064",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "阿里云荷兰地域正式开服 年内海外已新增4个地域、12个可用区",
+      "title": "金华老板卖纸尿裤 9个月进账30亿",
       "publication_time": {
-        "iso": "2026-10-29T23:59:00+00:00",
+        "iso": "2026-10-30T00:28:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-29T23:59:00+00:00",
+        "iso": "2026-10-30T00:28:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202610293914660711.html",
-      "novelty_cluster": "564d053aceed266ef787",
+      "source_url": "http://finance.eastmoney.com/a/202610303915324612.html",
+      "novelty_cluster": "c1011007dbaecb560dbd",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -275,7 +275,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-30T23:59:00+00:00",
+      "expires_at": "2026-10-31T00:28:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -303,24 +303,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_9b3c2b1e9f4c6fe0dbd1",
+      "event_id": "evt_2a6c6fe4209863d3115a",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "直击吉利三季度业绩会，桂生悦：时间会给出答案",
+      "title": "二手房成交保持高景气度 房地产结构性修复或进入兑现期",
       "publication_time": {
-        "iso": "2026-10-29T23:57:00+00:00",
+        "iso": "2026-10-30T00:25:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-29T23:57:00+00:00",
+        "iso": "2026-10-30T00:25:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202610293915020720.html",
-      "novelty_cluster": "1942502e10b01993c8a4",
+      "source_url": "http://finance.eastmoney.com/a/202610303915363128.html",
+      "novelty_cluster": "bcfbb2a7a069d7dd0355",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -332,7 +332,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-30T23:57:00+00:00",
+      "expires_at": "2026-10-31T00:25:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -360,24 +360,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_4f3016574d9f5f40c83e",
+      "event_id": "evt_2a513780162fd645dc4c",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "“避寒游”“冰雪游”航线加密",
+      "title": "国家能源局：到2030年我国燃气轮机自主创新能力显著增强 建成自主可控的“研发—制造—验证—维护”全产业链体系",
       "publication_time": {
-        "iso": "2026-10-29T23:56:00+00:00",
+        "iso": "2026-10-30T00:24:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-29T23:56:00+00:00",
+        "iso": "2026-10-30T00:24:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202610303915124228.html",
-      "novelty_cluster": "a8a50ba45700bed47911",
+      "source_url": "http://finance.eastmoney.com/a/202610303915365475.html",
+      "novelty_cluster": "5479ec706bc369c76ddb",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -389,7 +389,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-30T23:56:00+00:00",
+      "expires_at": "2026-10-31T00:24:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -417,36 +417,36 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_d898358243c327880b2d",
+      "event_id": "evt_ef37c6bf1c3d01fdd1b4",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "和美药业香港IPO拟募资不超过10.4亿港元",
+      "title": "中信证券：预计2026年为大宗农产品价格磨底、蓄势向上的元年",
       "publication_time": {
-        "iso": "2026-10-29T23:55:00+00:00",
+        "iso": "2026-10-30T00:22:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-29T23:55:00+00:00",
+        "iso": "2026-10-30T00:22:00+00:00",
         "precision": "minute"
       },
-      "primary_source": "hk.eastmoney.com",
+      "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://hk.eastmoney.com/a/202610303915282158.html",
-      "novelty_cluster": "26140cd754cbbcedb75b",
+      "source_url": "http://finance.eastmoney.com/a/202610303915364284.html",
+      "novelty_cluster": "f6daafae4c346f294439",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
       "duplicate_event_ids": [],
       "evidence_sources": [
-        "hk.eastmoney.com"
+        "finance.eastmoney.com"
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-30T23:55:00+00:00",
+      "expires_at": "2026-10-31T00:22:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -474,24 +474,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_df202809a5d598e50623",
+      "event_id": "evt_fab83db16fbda2469723",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "资金陪伴科创没有“模板答案”",
+      "title": "无糖饮料越卖越火 代糖巨头们为何“甜”不起来",
       "publication_time": {
-        "iso": "2026-10-29T23:54:00+00:00",
+        "iso": "2026-10-30T00:22:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-29T23:54:00+00:00",
+        "iso": "2026-10-30T00:22:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202610303915126468.html",
-      "novelty_cluster": "39c56fdda8e06d8e6710",
+      "source_url": "http://finance.eastmoney.com/a/202610293914883915.html",
+      "novelty_cluster": "5297ef86c3b848f3f744",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -503,7 +503,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-30T23:54:00+00:00",
+      "expires_at": "2026-10-31T00:22:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -531,24 +531,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_9a458fa300de11ededaa",
+      "event_id": "evt_ff20a2362a2c7410a146",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "坚持AI自主可控与开放合作并举",
+      "title": "光环散去，王腾押注指环",
       "publication_time": {
-        "iso": "2026-10-29T23:53:00+00:00",
+        "iso": "2026-10-30T00:20:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-29T23:53:00+00:00",
+        "iso": "2026-10-30T00:20:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202610303915124351.html",
-      "novelty_cluster": "e9b37ded7357cdf0f65e",
+      "source_url": "http://finance.eastmoney.com/a/202610293915006765.html",
+      "novelty_cluster": "f1a2c466fbc88b7a73cb",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -560,11 +560,131 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-30T23:53:00+00:00",
+      "expires_at": "2026-10-31T00:20:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
         "price_change_pct": null,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_db32a133ffc0d806a2c6",
+      "ticker": "SPCX",
+      "reported_ticker": "SPCX",
+      "event_type": "other",
+      "title": "SpaceX Wins Target Lift On AI, Data Center Growth. But Is It A Buy?",
+      "publication_time": {
+        "iso": "2026-10-29T21:59:00+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-29T21:59:00+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOSVpYYk9jc0FBX2l1YVFDT2NGWDlzRWhfVXZqMGcxU0ttOGI1UjEtY0l5M2RDM1ZzRWJUN0hxVnZ1WHZRdG8ycGZMdWxoa1I5MVJLMVNfanhsM3Fjdkw0Z0dtb0xaU2x6UU5wX3VDang2YzJ3SmpzaG1IT1JVMEU1eXV4dGRVTG1hUi1GbzJxbHo4OTJVUGlUcERTUHM?oc=5",
+      "novelty_cluster": "9a3ad841563c8598df9f",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [
+        "evt_dc7c49ed88f6499d7603"
+      ],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [
+        "180d90c18c559b1bdeff"
+      ],
+      "novelty_score": 0.8,
+      "novelty_reason": "cluster_old_but_recurrent",
+      "expires_at": "2026-10-31T21:59:00+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -0.9226743785719194,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_5a36b02ce96587bd6d0e",
+      "ticker": "CRCL",
+      "reported_ticker": "CRCL",
+      "event_type": "other",
+      "title": "CRCL Stock Forecast Ahead of Key U.S. Inflation Data: Bullish or Bearish?",
+      "publication_time": {
+        "iso": "2026-10-29T21:39:21+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-29T21:39:21+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE5ocEN6bVdVQ190YWxMcHZIZ0NYRmh2THJTak5qeTkxbTVVSUVDcjJWWkxSOUVVU2RXSVZVcUlsV3NGVUZ4V0lBckxDbktPcjdjMWVRRHY4MFY?oc=5",
+      "novelty_cluster": "d431f08b06babecea53e",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [
+        "evt_ab7912038d79169648ed"
+      ],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.8,
+      "novelty_reason": "cluster_old_but_recurrent",
+      "expires_at": "2026-10-31T21:39:21+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -2.105005507281854,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -609,17 +729,12 @@
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
-      "duplicate_event_ids": [
-        "evt_3c7452f384938ebae22a"
-      ],
+      "duplicate_event_ids": [],
       "evidence_sources": [
-        "finnhub.io",
-        "news.google.com"
+        "finnhub.io"
       ],
-      "corroborating_source_count": 2,
-      "duplicate_novelty_clusters": [
-        "858341cb5dbb5fd46b34"
-      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
       "novelty_score": 0.25,
       "novelty_reason": "same_cluster_within_7d",
       "expires_at": "2026-10-31T17:47:00+00:00",
@@ -825,7 +940,7 @@
         "disconfirming_negative"
       ],
       "decision_permission": "display_or_watch_only",
-      "information_signed_score": 0.076513
+      "information_signed_score": 0.07577
     },
     {
       "event_id": "evt_8c80c34c18e509819962",
@@ -882,7 +997,7 @@
         "price_volume_or_validated_peer_confirmation"
       ],
       "decision_permission": "display_or_watch_only",
-      "information_signed_score": -0.303628
+      "information_signed_score": -0.300679
     },
     {
       "event_id": "evt_592c2ad23d93fc9005e3",
@@ -907,7 +1022,7 @@
       "metadata": {},
       "body_persisted": false,
       "duplicate_event_ids": [
-        "evt_32b45f004ee2343af7b0"
+        "evt_131953ec3a36a725d2be"
       ],
       "evidence_sources": [
         "finnhub.io",
@@ -915,7 +1030,7 @@
       ],
       "corroborating_source_count": 2,
       "duplicate_novelty_clusters": [
-        "a5032d3711c3144d2af0"
+        "6ae6f1982b8684003088"
       ],
       "novelty_score": 0.5,
       "novelty_reason": "same_cluster_within_30d",
@@ -1128,7 +1243,180 @@
         "disconfirming_negative"
       ],
       "decision_permission": "display_or_watch_only",
-      "information_signed_score": 0.270247
+      "information_signed_score": 0.267623
+    },
+    {
+      "event_id": "evt_8a2125456a8b8c522b69",
+      "ticker": "07709",
+      "reported_ticker": "07709",
+      "event_type": "other",
+      "title": "公告及通告 - [有關集體投資計劃事宜]",
+      "publication_time": {
+        "iso": "2026-10-29T09:46:37+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-29T09:46:37+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMipwNBVV95cUxObDZwOEVMQlFGck5FdURwMXNnUnB4T2hPWC1hV0pkRUZhOVZQcWUwVGlndnJnNzlKRU1sYTRPamFhZzFVOTBCZ2NUZkI3dFNRTlhmQTl1bFlrcUc2c1YyVW5aTmZCNzI5Q0I2M2RmOWwyR3JtcVZYY1N2bDZWMlZVS0h1ZG9KX0FZU3pZamJ0S29FVURKajh5aUREV0hYTURNR0xDbDVINlo3MEtUM0QyM0NxNWxhVzZHQTFfM0FSdkU5dmxVck5VOTlxdGt0WnBYWm85RDQwZGlLcXduWU5pU19HVXBUTXMyaGFsZmtDQy1VaUd2a19oZlpjT3lLWWtYRlBJb0dtZ3ZOdnNLZ2FyTldzX1hLU0x5YXg1bkc2MlVVOGljWXZlbmNjd2RsaUVQRnRvZzU3eWtvMXhjNHhkVVJpVmR4b29VaFZFS3RZUUJiTHpneTJiT0p6cmtqMUZyOFlUYktHVW1Ya0NpZ2kzQlQwUFFqQmlwOW9kOER2UXc3X2FFUDNyeWtGd05KSUFtWXFqOGxWMGJUYm5RbVpEZDl6VmsxeVk?oc=5",
+      "novelty_cluster": "d1095296cbb303852122",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.25,
+      "novelty_reason": "same_cluster_within_7d",
+      "expires_at": "2026-10-31T09:46:37+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": 0.7867820613689958,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_cbf5f46b92029a33dd4a",
+      "ticker": "SPCX",
+      "reported_ticker": "SPCX",
+      "event_type": "other",
+      "title": "SpaceX stock slides back toward $140 as smaller space names leave it behind",
+      "publication_time": {
+        "iso": "2026-10-29T09:15:11+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-29T09:15:11+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOZndScEc2b1NDUEVidG8ya3R5WTdWaUZETjNfS003c25pUEZfMXdyNy1SN2JpVFloUWRWUW9SbF8zcHdqYTIzZmdXcENQWU5KTWtEWUpRRk1SRUo2WjF0UV9wR043QkVjbUpPQXljUjVXMWxDcXJXUVlRYlgxbFoxeDZMenp0ZWtXMnk2X1Jfc3dJeUtfTk5tY2tFTTVTemZrTXpUTmpxbUg4ZmcxLW1hR0pobkRhRDQyenlJZXptM1ZWSTVxZUUtbUZlWQ?oc=5",
+      "novelty_cluster": "ec16da19286e3cbe79a0",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.1,
+      "novelty_reason": "same_cluster_within_2d",
+      "expires_at": "2026-10-31T09:15:11+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -0.9226743785719194,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_690a161029a2d8bbba42",
+      "ticker": "CRCL",
+      "reported_ticker": "CRCL",
+      "event_type": "other",
+      "title": "Circle (CRCL) Stock May Look Fully Priced Despite New EU USDC Oversight",
+      "publication_time": {
+        "iso": "2026-10-29T08:44:53+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-29T08:44:53+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQSU05T1FuaUFzSVR0RnhpbHFnREJfNnRhQzVId1JvZ1BOLWRoNkNVYXNZVU9oT1E3TlF6Q3lDN0pOaDJ4OE00bG9DVzFFcDhjSDF6NThaU2JjSXY0VUNxb25RWU1lR3V4U0RfcVFSVm11Umplak1wTTJURmxhZlc5WnBMYWg0T2hGcnVuNDI5Qm05ZUthZDRpMmd6V1dTclhJVHZCYTJTVkJKMjVQamdjd21HQlZ4ckxFcTIyUWZuYnhnd3BoeDgzcm9wT1ZJNHpiczBF0gHYAUFVX3lxTFAwSGZuMmZ5VFRnM3hvLVhwYU9CMi1GM0ZJOWZqUEk5SFVPWXhjSUwyX0hEUy1HbFVqaVlTRng1VERtSlhKYlh6ZjJINTlkR2Nza2JOajl1emtHdnRZUGwxcUdfTGRCMENZcVB2aWtmczlaUmdjMGQ0QlR4ZVJ2TjJBeWlXaGpYcUZEUWxsaWlGbkNibGdJaEVhSmlXRjFKdllOeHVvUzR5SFRLRktJV24yTFczWjJJYUEtTnowZU9lcWN0aDRqajJaR1BTQ2dsRVlLd3dmc1hvZg?oc=5",
+      "novelty_cluster": "3b33d5528644720f2a1c",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.8,
+      "novelty_reason": "cluster_old_but_recurrent",
+      "expires_at": "2026-10-31T08:44:53+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -2.105005507281854,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
     },
     {
       "event_id": "evt_243af80af8d3cb51d5fb",
@@ -1188,6 +1476,64 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_be0de518c8e55d54f449",
+      "ticker": "02208",
+      "reported_ticker": "02208",
+      "event_type": "other",
+      "title": "價格戰退潮之後，金風科技（02208）的三季報藏着什麼信號 作者 智通財經 - Investing.com 香港",
+      "publication_time": {
+        "iso": "2026-10-29T04:23:15+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-29T04:23:15+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5rOVZ1ZjZ3bWhmOHBxSmZvV0VuV1FRRG9JUHdBTFNiekZ3MDRWTnQ1OEUyWkdaeF9EZ1duMXRadGNYMG5PbktLYUtCZDhyYXJiSnNBcFR4SldFdzlMWlRDVDIxNWNjZmI3bFQ0TE9lZzI?oc=5",
+      "novelty_cluster": "8035a2ac40f4e3076dc8",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.25,
+      "novelty_reason": "same_cluster_within_7d",
+      "expires_at": "2026-10-31T04:23:15+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": 0.5003573981415377,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -1315,28 +1661,32 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_11fdb1c4be6bf235bcfe",
-      "ticker": "00100",
-      "reported_ticker": "00100",
+      "event_id": "evt_a983142d391d4ad56f7d",
+      "ticker": "SPCX",
+      "reported_ticker": "SPCH",
       "event_type": "other",
-      "title": "北水操作｜北水掃貨5科技股 智譜吸金稱冠 中芯次之|香港經濟日報",
+      "title": "SPCH 261030 11.00C (SPCH261030C11000) Stock Options Chain | Quotes & News",
       "publication_time": {
-        "iso": "2026-10-29T01:00:47+00:00",
+        "iso": "2026-10-28T22:34:26+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-29T01:00:47+00:00",
+        "iso": "2026-10-28T22:34:26+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMi6wJBVV95cUxQZE9FZ0JONXJTU0JWdVBibWp6cU8tRm8xWmxuZ0V2Tmh6LU5YMU1QTC0xMzk5VTcxaVNqREI1LThtOWtXTDNicjMtM2l6VHhJTjkxWkI3QkZkRG0zOGJJcmhoZWFiTWl2bVFFdElwMFpsNmJWVU5VM0lPa2Z2VFVaejhlM3hwZ3c2SE5SWXRaeDY3dWpITnI3NElxajdIYzA4ZGxyZ3U2NndfWG5UcmlJanBjWUVtQUdYZmRNM3VaNGwycUs1UU80RzFJZ08yMDdOZVpBLXNtX1FieWhhTWtHWG1JNzhkWXlhUGRnZ3V3OThtNDgxcmpGRFBIc1pLVlBhTjV0aE81dzFfQjBsdTBUeWtvOWpLN3NrUVlnY3BzNmlmTW0tcEJkVU93UnlKZ0JQQ1Nvb1g0YlU4T3hpRTNPZVNlbWZta21MV1VSSy1uQTBod1FHYVNpTzdpanVKbGpIanZEZHlnekhGdTg?oc=5",
-      "novelty_cluster": "a1efe7707251a6759f3c",
+      "source_url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTFBsQmhTNUxfNkpBRkd6dGZiT0hKSmJJbW9QN09TR0w3WUI2UXlRdUd0Qlk0a3ZWMUxNaFFlNGp0SjE5MHEzTGRDYXZzUzV3dERiUnNMQ1Z1ZlRVZXNhTWJN?oc=5",
+      "novelty_cluster": "6b566c8397ff98b88456",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
-      "duplicate_event_ids": [],
+      "duplicate_event_ids": [
+        "evt_c31ff750f97ceda14efd",
+        "evt_174f50fcc292eac444bc",
+        "evt_e8c54fc44024e20b7c78"
+      ],
       "evidence_sources": [
         "news.google.com"
       ],
@@ -1344,13 +1694,13 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 0.25,
       "novelty_reason": "same_cluster_within_7d",
-      "expires_at": "2026-10-31T01:00:47+00:00",
+      "expires_at": "2026-10-30T22:34:26+00:00",
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -6.714761376248612,
+        "price_change_pct": -1.9144144144144115,
         "price_change_basis": "session",
-        "price_proxy_ticker": null,
+        "price_proxy_ticker": "SPCH",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
@@ -1428,27 +1778,27 @@
         "disconfirming_negative"
       ],
       "decision_permission": "display_or_watch_only",
-      "information_signed_score": 0.213471
+      "information_signed_score": 0.211398
     },
     {
-      "event_id": "evt_78ed04d85336608eb0f6",
-      "ticker": "07709",
-      "reported_ticker": "07709",
+      "event_id": "evt_bc2fefaacf82ca57981f",
+      "ticker": "SPCX",
+      "reported_ticker": "SPCX",
       "event_type": "other",
-      "title": "【港股夜期+ADR+北水】夜期收市跌29點 中概股指數跌2%（不斷更新）",
+      "title": "Not Space. Not Starlink. Here's My Top Reason to Buy SpaceX Stock.",
       "publication_time": {
-        "iso": "2026-10-28T22:24:49+00:00",
+        "iso": "2026-10-28T22:23:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-28T22:24:49+00:00",
+        "iso": "2026-10-28T22:23:00+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMirgNBVV95cUxPWFpYZGZoNnVLZEt2TjYwdV9mempxUVRKZmdZOVNTOVV3T2J1TnJXaWhXdFpIZFRpbmRmRHFhV3dTVHU1a1NWcVliMkxVR1RESHBleE85YzVTU0RPM0Vfci1rTzJGN0ZYQ2t6TzhvM0FzSmFMS3BtZFkxTWdfV09ZMVBGZTBpYmZ6MmRlVWNnU0JzbWEzNWR5Q0hjenFYZWFKNE5laHh4LVNjTWNmcTc3UFBqbW9FNlZudkNVek1QTlpBVndsaUd6XzVVbGtfUDUwS1ZBMlRUNEtsanc2R0RoRmdCZUFkLXg2SDlOOVQ0QTBuSGhJOVFjRWpIakFHdndNZTZTbE1UMWhGSGZpblI1WEJjS213VkVxSUpGakZzVHpaQXUwYW9VVndQeW1aSTNKRGNfaFFCZEdOV1JZRmVYb3hBa2dwVzFXVnNQcHBPQ05jRlJ0STF1bkpTT05fSjZIcDI2Y0lVOXhlSklCdzJMYzdtbmFBS3FzclRFcVBYdXJiMDZPWmVjVTFTZnBoaHhPRFhMUWluYmpUbW5SNU9LWXhoSzVwZktCX3ZKei1B?oc=5",
-      "novelty_cluster": "5e9d1de347311b7ed0b3",
+      "source_url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNRVdGMkFsMmNoS29sQVJUNUIycjFITURkNkROLXE2cU11VmNoR09IMU1qcDBSUWQ1WlQzcWh3Rk9UTlM1YmRCeTFVSjR0MXhZU01YeVRXZkNpWUZUSTNfNjZTd3lqZ2ZZSS1mWDNILVZ2elB5bExOT1BMWGdBc1FOMFA2bTBwazBmZ1pza1liamRNU2gtNzMtdQ?oc=5",
+      "novelty_cluster": "cbfa1df115403965eae5",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -1458,13 +1808,13 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-30T22:24:49+00:00",
+      "novelty_score": 0.8,
+      "novelty_reason": "cluster_old_but_recurrent",
+      "expires_at": "2026-10-30T22:23:00+00:00",
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 0.7867820613689958,
+        "price_change_pct": -0.9226743785719194,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -1986,6 +2336,64 @@
       "decision_permission": "display_or_watch_only"
     },
     {
+      "event_id": "evt_6467a1ef2cf7e357bb1f",
+      "ticker": "SPCX",
+      "reported_ticker": "SPCH",
+      "event_type": "other",
+      "title": "Leverage Shares 2X Long SpaceX Daily ETF (SPCH) Stock Price | Quotes & News",
+      "publication_time": {
+        "iso": "2026-10-28T16:46:10+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-28T16:46:10+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMi8wJBVV95cUxQSG9rTXRhYU9FS2JnTTMtMGR1MFYyRTZRZVl0QUlYNGY1QzlJb1VpRFFsakNQX3pNQ2ZHT00taHdIdXk4LWU3ZXFROUd4R1cxLTRxZno5RkhBdFJpNEdEaExwc0ZuaU05bU1Ga25UQkpBNUw0VXNYeldEejBQWUNHYk93T3kzbFZZSVhTMzY5dmttV0x5amVGRmVuLURoNDJZTGJNdmJxdmx6Nll4cURuZk9BTUNRTnhpQkdDek4yc3RILTJaZWd3d3RCZ2JuVVFGQ3RyaElhWi15ZmFkMUpIVTFDVmJiMVh6TEtpMDR0UDFxR0lkaW1lekpYM2dQV01lTXpEZGprWENvSnFPUHZ3LVhnLXRUdmF0VG9JWTItYjdjWDBleXc0MnZzeEhaY29mcUJQVE5GUzFQS2dSb2ZNbW81alcwLVJNTlpXbS1QakExQ09pZENHZE0wR1JxWG0xb2FDVWFISEVyMnA3aVJ0ekVDWQ?oc=5",
+      "novelty_cluster": "e74e75c541744f643c0d",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.5,
+      "novelty_reason": "same_cluster_within_30d",
+      "expires_at": "2026-10-30T16:46:10+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -1.9144144144144115,
+        "price_change_basis": "session",
+        "price_proxy_ticker": "SPCH",
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
       "event_id": "evt_aff2997bdd7761fc5ad2",
       "ticker": "02208",
       "reported_ticker": "02208",
@@ -2219,64 +2627,6 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_33eccda8f578de7d8f03",
-      "ticker": "SPCX",
-      "reported_ticker": "SPCX",
-      "event_type": "other",
-      "title": "Why is Space Exploration Technologies stock sliding today?",
-      "publication_time": {
-        "iso": "2026-10-28T14:22:41+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-28T14:22:41+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNaGt5M2ZXN25RRjZIcl8wMTJNNEgzVUtCVU5ya01NY24yaVVBRjBfSEdHbEhqSGJDNGFzM3IyV2xOS3lJZEI3Y1VQNUFtQmlwenVWUWJIbllyS05GLWpMZmNzdmk2bldPVEo3b0VvdWgxSndiVlY3Ymp5NndyUldCdURwRDRWMEZwX2xmdjkzQnk5akxaLUxSaUNRZkVmdlQzbENQdnlzZGlxRGxyMkZLb0xWUDlObGlseHk0?oc=5",
-      "novelty_cluster": "3d7f3612eb20c3b459b0",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
-      "expires_at": "2026-10-30T14:22:41+00:00",
-      "status": "active",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": -0.9226743785719194,
-        "price_change_basis": "session",
-        "price_proxy_ticker": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
       "event_id": "evt_81a4776108dd3f9b887d",
       "ticker": "00100",
       "reported_ticker": "00100",
@@ -2356,14 +2706,16 @@
       "metadata": {},
       "body_persisted": false,
       "duplicate_event_ids": [
-        "evt_e0ba2277916e683e1394"
+        "evt_b17fdc0dc6a7d231076e"
       ],
       "evidence_sources": [
         "finnhub.io",
         "news.google.com"
       ],
       "corroborating_source_count": 2,
-      "duplicate_novelty_clusters": [],
+      "duplicate_novelty_clusters": [
+        "e79951f03f372208099c"
+      ],
       "novelty_score": 0.5,
       "novelty_reason": "same_cluster_within_30d",
       "expires_at": "2026-10-30T13:00:27+00:00",
@@ -2446,6 +2798,121 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_27b830ada87dbcd86c44",
+      "ticker": "07709",
+      "reported_ticker": "07709",
+      "event_type": "other",
+      "title": "【財經TOP SEARCH】 Labubu熱潮退泡泡瑪特更難翻身？",
+      "publication_time": {
+        "iso": "2026-10-28T05:30:20+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-28T05:30:20+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE1qcWNXU0FGOV9GaFVaUmtVUElLdUFJcFpDbDBSQjZUR0VtYW54YURNNUNmQTZycnNMRWY5YjllR3RxTGlzV250Y3V6RU94N3Zqa1VHZVZjcmlNdnlBTnRQRjdEdTJCd1FUWTdKUFJyMmtQS19jVmtzRg?oc=5",
+      "novelty_cluster": "eede03d05d4d03f0b2f8",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-10-30T05:30:20+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": 0.7867820613689958,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_10ba32265c0278de1fd0",
+      "ticker": "02208",
+      "reported_ticker": "02208",
+      "event_type": "other",
+      "title": "5.93億元收益托住凈利潤，金風科技十餘年“炒股”暗線浮出水面",
+      "publication_time": {
+        "iso": "2026-10-28T02:08:49+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-28T02:08:49+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE45eVpmS1F0c0k2SzU1cml5WWdtNU5LMURjdzNiclJzNW1qLVQ3c1RkSGs1aGJ4SjV3c0dDM3ViV0JkX21rUFhPamdxMDJaSTRaNmJYR0thVndXMGRzb0E5MWNRVnNoOUNnSVpoUQ?oc=5",
+      "novelty_cluster": "df5b6d935f5abfa353e6",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.25,
+      "novelty_reason": "same_cluster_within_7d",
+      "expires_at": "2026-10-30T02:08:49+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": 0.5003573981415377,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -2747,24 +3214,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_d216d5119196878ebfa4",
-      "ticker": "SPCX",
-      "reported_ticker": "SPCX",
+      "event_id": "evt_134e63c87cad42b6486f",
+      "ticker": "00100",
+      "reported_ticker": "00100",
       "event_type": "other",
-      "title": "SPCX Stock: What Anthropic’s $120.5B Deal Means for SpaceX",
+      "title": "北水操作｜誰更值得買？北水勁掃智譜MINIMAX|香港經濟日報",
       "publication_time": {
-        "iso": "2026-10-27T12:41:29+00:00",
+        "iso": "2026-10-27T15:14:53+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-27T12:41:29+00:00",
+        "iso": "2026-10-27T15:14:53+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPb0lleUtPdjBtYnREYW8yQ2t4bTF5YjJZdTFpSWNVVHlTSUpqV2ZhUEFoSUR3VXNCRDVwcWFkcFpWcHlhUDBzMnREY2NBSXJ4OUVzVU1XZ0U3dF9neGRPZlRwMUxQelRQcXZPejByNmZ4T1BSY3ZndTkwcjJ4OFl2N2V0QUZEbUt3cEQwemdB?oc=5",
-      "novelty_cluster": "3bf702408f24d35ed3a9",
+      "source_url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxPN3dQMDE4cE13UUhFc3VrVklraXhwd3FsbVpndUZYVm1URVROQmRIWGJqOG1aRjl2X2hqT054V05McWZpXzl3NkcydHR4Q05QRk5PREZfRGZhQmEzYUZXejhITmhEbVNIdnpEOGVlakhBMHhDbV8yVGVJZVFCSTg0Um1kWVpLR3lKLWVMaVM4SDk0UmtRNUZnVEV2TmRrblBzRUdVLXFJclZnUV94SklwZ1lDTlVkUEVGaVlBZHpZcXM3d25fN0ZzdXFoQThFX0xQWGxxcDFlQm8xZjdSN0pBOXE0THY0NkVGRU1rQm9wblVxcUxJNzZxUnBlTzJGZmVFZmpOTkFfdWo5R1BZWWJtXzZCRkpiRWw1YkxFVDFHaDVlMnFsWnB3?oc=5",
+      "novelty_cluster": "7fa8e65a94002251e0b4",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -2776,11 +3243,11 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 0.0,
       "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-29T12:41:29+00:00",
+      "expires_at": "2026-10-29T15:14:53+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.9226743785719194,
+        "price_change_pct": -6.714761376248612,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -2886,17 +3353,12 @@
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
-      "duplicate_event_ids": [
-        "evt_be83ea445d5502f1b221",
-        "evt_558e6a198dc26e56a651"
-      ],
+      "duplicate_event_ids": [],
       "evidence_sources": [
         "news.google.com"
       ],
       "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [
-        "d35cb19fe70e7944c70f"
-      ],
+      "duplicate_novelty_clusters": [],
       "novelty_score": 0.25,
       "novelty_reason": "same_cluster_within_7d",
       "expires_at": "2026-10-29T10:48:44+00:00",
@@ -2906,65 +3368,6 @@
         "price_change_pct": -1.9144144144144115,
         "price_change_basis": "session",
         "price_proxy_ticker": "SPCH",
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_e6318ea8f3b3add3d85f",
-      "ticker": "02208",
-      "reported_ticker": "02208",
-      "event_type": "other",
-      "title": "金風科技（2208.HK）更新報告：在手訂單再創新高，關注風機毛利率改善",
-      "publication_time": {
-        "iso": "2026-10-27T08:31:00+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-27T08:31:00+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE1tdnh5cHZDN2Y3dkJFa1ZxZ0NkLUxTUzNKY1cxWE51UFpNUXduYm94UTE2aE9NMU1RZXh5bE5wdkRuY0pkV1h6el9LYkVEYVZoOE9GNDFOaF9KUDJhaXhDN0JrOEVLUFVXWEs1RXRlbWZYMVdObWRfWA?oc=5",
-      "novelty_cluster": "756fafb146d22e9638ad",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-29T08:31:00+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": 0.5003573981415377,
-        "price_change_basis": "session",
-        "price_proxy_ticker": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
@@ -3102,7 +3505,7 @@
         "price_volume_or_validated_peer_confirmation"
       ],
       "decision_permission": "display_or_watch_only",
-      "information_signed_score": -0.034057
+      "information_signed_score": -0.033727
     },
     {
       "event_id": "evt_48d2b3c92dd592ad5214",
@@ -3225,24 +3628,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_c6f31d0636caed093b37",
-      "ticker": "03032",
-      "reported_ticker": "03032",
+      "event_id": "evt_51388e8b8d53d9e19963",
+      "ticker": "00100",
+      "reported_ticker": "00100",
       "event_type": "other",
-      "title": "匯添富基金樂無穹旗下恒生科技ETF匯添富三季報最新持倉，重倉網易",
+      "title": "港股異動| Anthropic衝刺史上最大IPO 智譜(02513)早盤漲超9% MINIMAX-W(00100)漲超4% 作者智通財經 - Investing.com 香港",
       "publication_time": {
-        "iso": "2026-10-26T23:45:31+00:00",
+        "iso": "2026-10-27T02:42:04+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-26T23:45:31+00:00",
+        "iso": "2026-10-27T02:42:04+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMiVEFVX3lxTFBMdmlQQWJEQ3dQeEp6bkI1X3lHQXJ1LWx1cmx3SWtfamJ2M0UyYkVibTNxRzhxMk9FVVZCX2FWMXZ3MWt6OUVJeFhSNW5oV0tWNEpqRA?oc=5",
-      "novelty_cluster": "f878e26e9ee68514294f",
+      "source_url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1nNmg3VkZzYzVuMkVGWDdlYzRmbzNHVG1vdE04blJGWGVibUtscVcyUkp1NlZjcGVUUzN4LUdVQ0JaaDhyTl9QN0JaTllYNVJQdXowcnVpRjZHNGZlcEtWYTE5Mzg1UHV3Q3dOU1gyS0Q?oc=5",
+      "novelty_cluster": "0d3bfa133e70841bbebd",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -3252,72 +3655,13 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-28T23:45:31+00:00",
+      "novelty_score": 0.5,
+      "novelty_reason": "same_cluster_within_30d",
+      "expires_at": "2026-10-29T02:42:04+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.748962655601661,
-        "price_change_basis": "session",
-        "price_proxy_ticker": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_6a6c3cb9f682a051d112",
-      "ticker": "03032",
-      "reported_ticker": "03032",
-      "event_type": "other",
-      "title": "恒生科技ＥＴＦ(03032) 交易所買賣基金的交易資料",
-      "publication_time": {
-        "iso": "2026-10-26T18:59:59+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-26T18:59:59+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMi2AJBVV95cUxQODNZWVB4NGhEV1MxZ3psRm8tV1Y2dkpIRzBEZUlVSkZyclVCbXEySTFyT2FnVzRRMVBtYlNyTjlhVTBtVlA1aS0tQ1BOZDBqWGN0ajRJV2lhQm9YdDZNdTBTSFpodUt0eEhoNU92RlNxU3VJd3hrWGpHc3hYWGNQR1l1WV9ibEV2MkRwZm9QeEEyZlRlT1ZXNzhCUlEyY1diYjBJNnlHMThMTFZ2RHEydUNXYXdsSkYxZGVENndoV3NUdHhYdzZnUlNGWGtDZnRMaUdfSkxtaklIcFgyVXJoLWdKQlQ5ZjlOYmlULWttM2NyTmNVV1dUMk11WVU2YXQ5ekt3RnNVQXRlYWpiN0M0QkJicWw2OGJFV1h3NWtSRzkyZmw2N3RoTmZYTnR1bDBoQnBPRDd4aTVNV1BZc01ZUVg5VU5XRVVINWZ3UElmaVIwcVRlY2hubQ?oc=5",
-      "novelty_cluster": "d960def9d8b4e8ecb6a8",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-28T18:59:59+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": -2.748962655601661,
+        "price_change_pct": -6.714761376248612,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -3401,30 +3745,28 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_1a6a54907c5522f7aee8",
-      "ticker": "CRCL",
-      "reported_ticker": "CRCL",
-      "event_type": "analyst_rating",
-      "title": "CRCL Stock In Spotlight After Mizuho Cuts Circle’s Price Target, Warns AI Agents Could Hurt USDC Demand",
+      "event_id": "evt_11a7e509b3afce23a25d",
+      "ticker": "02208",
+      "reported_ticker": "02208",
+      "event_type": "other",
+      "title": "【百強透視】Q3業績不濟，金風科技（02208.HK）跌近5%",
       "publication_time": {
-        "iso": "2026-10-26T14:17:13+00:00",
+        "iso": "2026-10-26T11:11:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-26T14:17:13+00:00",
+        "iso": "2026-10-26T11:11:00+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxPbFVXUExOWjZRUkZFWTFSUDM3cEowRHQyUk9qRENyQjlwdXFNekptcTJLaEI3SFBIUDhzSlRaTzBHdmNzX084NFhTYWZ1YmQtS3I1Y3ZHaFoxZ0U1dTZJMUdNbDNuSXNwQU5sSGJvdmFQMjUxWURXZkRJMDVsYkFveVV4TjY3ZUxFUGR2RDVMNnlZSnNwSWY1NEVVdXB5TU5YM2FVTlQ3cC11U2JRTFA0bnFKcGJ1Z2ltbUt2NXl0MGpXUXpJTXNuNk5wLXljSHdzTk9pN3JfVDZTaFk0cFozMnRSU3NjWVhmdDFGZm1Ta3N4ZmZ3?oc=5",
-      "novelty_cluster": "316820db8920dd552991",
+      "source_url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5DTVp6aDlHUnpKMm5MOS1mNGcySTNHUXhiZFRzTlBFQTctZWFxdEpHV05Edm00Zm5HZE5UTnUyOUtnQzR0OUFuYndJNE9UWVBSZm1zbjhMem5fOHh2bHh4bURVbVg5T2VEQ3I2dzRzdGg2S0FQMk5Ydg?oc=5",
+      "novelty_cluster": "9defa9ddfe49d7285e64",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
-      "duplicate_event_ids": [
-        "evt_0046efe1092a5577e229"
-      ],
+      "duplicate_event_ids": [],
       "evidence_sources": [
         "news.google.com"
       ],
@@ -3432,11 +3774,11 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 0.0,
       "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-29T14:17:13+00:00",
+      "expires_at": "2026-10-28T11:11:00+00:00",
       "status": "expired",
-      "expiry_days": 3,
+      "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.105005507281854,
+        "price_change_pct": 0.5003573981415377,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -3462,82 +3804,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_1361cda5ccf21ec5df1e",
+      "event_id": "evt_61545975f070cc0019b6",
       "ticker": "07709",
       "reported_ticker": "07709",
       "event_type": "other",
-      "title": "港股｜李寧(02331)第三季零售流水低單位數下跌 擬派特別股息",
+      "title": "【韓國股市】高盛唱淡大削KOSPI目標25%至9000點兩SK海力士ADR槓桿ETF將於美除牌另港XL二南方海力士7709較高位蒸發逾9成",
       "publication_time": {
-        "iso": "2026-10-26T09:00:21+00:00",
+        "iso": "2026-10-26T06:50:09+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-26T09:00:21+00:00",
+        "iso": "2026-10-26T06:50:09+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMi_gJBVV95cUxPMWw2Mmx3MlAtX0xFNzQ0SWZkUnZTRVhMVERTbng2dTd1ZkdacWE1WkZkNTJubFRza0JpSWc0MFBPM09HTzlreEp5QXZQbFBuWkZBZFQ4WEllVTdFTmtkVnZueUNNQVZ0V1Q2ZUItZjlJSHNYbjZfYndPU1VlOEhLOVp3SnIyRWFnYVlncW5nY0gtbERES2pNbHpnaHJlb1ZkaVlVaDZ2TnptQmYxS252ekZaQ1J1MjlONkFHcU10NFZkc0dUNFduN3FnamNhelp5dXB4SkU4cEw5N25wWUJfUUpKYmJqSUd6YjZoRjZqaTVScTFWbk9tSlZIRm5IZ3c4QUFObEZYRW16dkRzRkU4UmtWdGo0TmdoQjVKUFQxbWlDOGpOeTBueU9lZFpsYTJDSzNQXzNoZUNLOEZIVEhrX3ltcG1mMGtUZVFDYUpPc0hmVDBfbGNXSTNRUnp6Mkc3MDJIZ1R2cEdXRk9hcGFqOGh4YTRDTGZPRV9QV293?oc=5",
-      "novelty_cluster": "4f97b841b544bc84fec9",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
-      "expires_at": "2026-10-28T09:00:21+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": 0.7867820613689958,
-        "price_change_basis": "session",
-        "price_proxy_ticker": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_f48d26ef387b71f4a145",
-      "ticker": "SPCX",
-      "reported_ticker": "SPCX",
-      "event_type": "other",
-      "title": "SPCX Stock Slips Premarket: Retail Speculates Elon Musk Could Snap Up Cerebras After Chipmaker’s Slump",
-      "publication_time": {
-        "iso": "2026-10-26T08:09:09+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-26T08:09:09+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxPbzkxSHd0cmNlN01ONUZydWFnckhPZnEzeFZTYWxQY2RHMUVYaURBMWNSaE1LMW40RTJmbllfQ1FhXzEtRmdDWVRJMG9RQVRlY3hXU0xhTWJfaHlVU1lGR1g1R19uWlk0OW9pZXdEd0tZWjhSNWVIRmFtSTZ1N3JwVFdYaEpXOW80c2d3a3FXTG8wdmVlUFNsMU5XUmRIaHFOUE5Ka0pQVTdya05weWh4Mmp3eGpuVkVvNEtOX3FoMzl3dVpoQXlSNFJwZVBxQVZ4aXZCR2FNY2FjUjBucm5vb2RYekp5dkdBV3FYWUxXT01LYWVT?oc=5",
-      "novelty_cluster": "d10b03158c487ac88e57",
+      "source_url": "https://news.google.com/rss/articles/CBMihAVBVV95cUxNNEZLaGJWS1ZDOHdJN0JCX185TWR5RUpGNk5tWFc5bDNpNl9zM25lRmJsQnlVV0ppRmQ5S1cxMEpxUlRtSW9NdGVWSURwV3owdGVIQ0FBT1gtVk5jVGpTdVFSd0pLSHJLeFBfTmRBMnRSc2RnVTZORGFFRHhITkpaUUhpVDBRLWs4aXdGQkFVWEdmMXhLbG5LMmdVQ0RuMldPaGo1aEZ4eXZVakE0cnBXcEo5aHRYMHkwTXFzZGRZTnlPSVEzRUplbE1SUGI4Nm1UOE05T0k1cUxCb1Foem1IS1JCd2ZSYWkwaG4zVUg0S0Jtb2NHYTNaMU1MbEltd1FQWTBZU01hUFNBaUprLVpoLURkME43NGt5SVZyWGdwbEpOSmtCSmhTN1RndVNTSndnMVVGNV9uMkdSZ2FTLUZfR3lRaGFlQ0ZZZW5jSUtaU3ktQjNYS1JnYnBrb2RqVzd0RGt4M0cya3BxS0Y4aUNkcmdRcXNKNmgzUEkxWFJ6R2hCd0RQc25EaUlLNk9UVElhaUVhcHY5a0NDU0ZWQ2R1dE9XaDBudlhLMGJBZFF5OGhLblJXQUYyMlc1Um1jZ3dlYUxXZm9qX0FlMHRacGFFUnpEMWF3UWlPSUdfaTFCQ2pxZERhdmtoN2NiNWkxeHk4bjF0dFlNM0x3dUJvX3Y5eXFnYzRobGpEcnZDWWV4LU5RclVONFBGaTN1SFZZTnFydm00MTdBQkxVbEp3bjN4NEwxdVZ0YU9Yb1dKdXRQZUhJZHFySnRzTUwyZlplZ1FXOGdhUFcyVjlsVWVWUFpyX0JrZjhjd3pkMk9CeWNfTlhWRWpUcHJvMHJLSzM1aDVKOWF2Tw?oc=5",
+      "novelty_cluster": "e5c3e1f16adfb53aa452",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -3549,11 +3833,11 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 0.0,
       "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-28T08:09:09+00:00",
+      "expires_at": "2026-10-28T06:50:09+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -0.9226743785719194,
+        "price_change_pct": 0.7867820613689958,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -3642,24 +3926,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_0ef0490c750d800798e7",
+      "event_id": "evt_87e7c00aec074640dcd6",
       "ticker": "02208",
       "reported_ticker": "02208",
       "event_type": "other",
-      "title": "金風科技(02208.HK)董事會批准申發不超20億人幣中期票據",
+      "title": "《股市簡訊》風力發電機生產商金風科技H股挫6%，三季度淨利潤同比降近一成",
       "publication_time": {
-        "iso": "2026-10-26T02:38:08+00:00",
+        "iso": "2026-10-26T02:36:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-26T02:38:08+00:00",
+        "iso": "2026-10-26T02:36:00+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMi3gJBVV95cUxQV2FpMUoyYmdKenkzUGpDb2RpYlZzSjBEXzU0SHhicXhSSzUteTJfaDB0MnZpRTVZZ3dsZk1BcVZNcEhkMnF4enpUU3BFbUhCOTdGZzEydFN3ZDRfODhFdzl2VEsxNk5NWDFiNDNfQ3czREJnLWpJaDFOZThNRmdDbGxMRnRzRTdTTW9NX3J6QUdCZkI5c3BTU3c0SGw4SENRamtwRmlTMGw4TEdWRFBaQXY4VF9WU0JmVnljdXF3QW5LdFQ4SmROZnZQNGtJcEwzandBTVgwZ2t1WDd4amJCNmtBVE82NEM4dWZnY3VmLU14dFVsYmswYXhNTjVNTjJiUG9QUURYUUxFaVp5Vm1KWUZKa0daZTlIVlYxQjlHam45LWlFSWJoRTVtam5uc0g1UnlMZ21TQjlFXy1aN09HNzdDVFVKUm11WWZCX2JLZU5CNDZ2X1kyUVo0Uzdkdw?oc=5",
-      "novelty_cluster": "1d546532909596c24167",
+      "source_url": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9UQk5Zc1NTMlFabVJLbVRfUXJ5UFJpWUU5SGFXNy05SlYxN1JLMEt0Ymw1dzRQbEMxY2p6dW1hRnZFdXB1VnVPQXJleFF6ZjJMY3o2UTE0QUZNY2hjbk1zV0JKdGZORWVwOEFDaVBWNy1kVTl4MW9Z?oc=5",
+      "novelty_cluster": "0325f3a528c48a22c99b",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -3669,13 +3953,129 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-28T02:38:08+00:00",
+      "novelty_score": 0.8,
+      "novelty_reason": "cluster_old_but_recurrent",
+      "expires_at": "2026-10-28T02:36:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
         "price_change_pct": 0.5003573981415377,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "not_expired",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_61765c33e657aa0471f9",
+      "ticker": "02208",
+      "reported_ticker": "02208",
+      "event_type": "other",
+      "title": "HK Stock Market Watch | Goldwind Science & Technology (02208) falls over 4% in early trading; Q3 revenue and profit both decline, overseas business affected by delivery pace",
+      "publication_time": {
+        "iso": "2026-10-26T02:14:19+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-26T02:14:19+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxOUDBPMGplMThyYzJvRm84WmhRaFR3OGRhRU5lMnJBMmp6NDlZQUZvSE90MHZUSjUwNzA2TEdhUUVkR2JnRzlyNHVtaW1BYmlFemYtTENLSmdpeDROc3YxaGZlVVBJUE1sWndkOFRIOWVnTDBqRlRzQjV2VGJNd2hpVEJGTnFUQ25EbTF4V0ZaV0F1N01ub1Y0bGpMWXpHdS1DNVhfYm42eC1oMXNhaGc?oc=5",
+      "novelty_cluster": "1938ed750010aafb9508",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-10-28T02:14:19+00:00",
+      "status": "expired",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": 0.5003573981415377,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "not_expired",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_4e576183b534bb543ad8",
+      "ticker": "00100",
+      "reported_ticker": "00100",
+      "event_type": "other",
+      "title": "港股大模型「雙雄」雙雙下跌，MINIMAX-W(00100.HK)跌超10%，智譜(025",
+      "publication_time": {
+        "iso": "2026-10-26T02:09:25+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-26T02:09:25+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPc3NiQUZkbS1IV05ybjh3b2ttV2xLdHlWblJEcjdqc2lCd3BFalZNQlAybGR0cWs0SXBqVTFQc3NDM0F4Y1VDTGpVLUc2ejRjVWFtaHlRM3JtNllrQy1pRmFBUXVpb0c5SE5UdE9VMWNCX000VE8tZ0loVUc2NWJfbWtHdXN6LTR6MjhaOXJwUmZadkZpSlB3UExxSWFFYVBUWlRhQzJ3?oc=5",
+      "novelty_cluster": "5b51f9d5eb3361a77f6b",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.25,
+      "novelty_reason": "same_cluster_within_7d",
+      "expires_at": "2026-10-28T02:09:25+00:00",
+      "status": "expired",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -6.714761376248612,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -3761,45 +4161,53 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_174f50fcc292eac444bc",
-      "ticker": "SPCX",
-      "reported_ticker": "SPCH",
+      "event_id": "evt_8ee89f726194488a8bc4",
+      "ticker": "RKLB",
+      "reported_ticker": "RKLX",
       "event_type": "other",
-      "title": "SPCH 261023 11.50C (SPCH261023C11500) Stock Options Chain | Quotes & News",
+      "title": "RKLX Mar 2027 11.000 call (RKLX270319C00011000) Stock Price, News, Quote & History",
       "publication_time": {
-        "iso": "2026-10-24T05:26:33+00:00",
+        "iso": "2026-10-25T16:48:32+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-24T05:26:33+00:00",
+        "iso": "2026-10-25T16:48:32+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE5HLWZCNkFMeUFFQUF6a25OcHk1cnhJenJQcm9feGNTNG9IUzRBOVlQdUdHR3RVb3BVcmt6b0xYSkQtbDAtMEdyUElrcGtZRDZIbVl1aG1aUnJJN0dMNGVJ?oc=5",
-      "novelty_cluster": "6b566c8397ff98b88456",
+      "source_url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE1rc0trZUVHVHpxMTNoQUdHbDhMTUJEOFJnQXBDMmFkT19JUXZ4ZFJGV3NYbEx1M0RWY0puYzFTVllreEJEczJTcFROOVp0UnQ0RjliU3RObFBraHpmVjB2Q2VhdXpwdw?oc=5",
+      "novelty_cluster": "29e3afcb72d425ab11d7",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
       "duplicate_event_ids": [
-        "evt_e8c54fc44024e20b7c78",
-        "evt_b2b89a18d8991b18b69f"
+        "evt_199f6fc3aab284127602",
+        "evt_a675c9216cb6e04e87a0",
+        "evt_9ce74530ae4bc4bbab9d",
+        "evt_801d1e7d2213fe75114d",
+        "evt_9855c5303258ab6eae32"
       ],
       "evidence_sources": [
         "news.google.com"
       ],
       "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
+      "duplicate_novelty_clusters": [
+        "3e5c5ef2ad94cee430b0",
+        "a48bec2922a698b19205",
+        "cd395e66411a5fb3d170",
+        "d5424610d2a6c445496e"
+      ],
       "novelty_score": 0.0,
       "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-26T05:26:33+00:00",
+      "expires_at": "2026-10-27T16:48:32+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.9144144144144115,
+        "price_change_pct": 1.6740088105726914,
         "price_change_basis": "session",
-        "price_proxy_ticker": "SPCH",
+        "price_proxy_ticker": "RKLX",
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
@@ -3940,24 +4348,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_ff64dd6d95dafb590443",
-      "ticker": "03032",
-      "reported_ticker": "03032",
+      "event_id": "evt_4a508adfbae858c8da88",
+      "ticker": "02208",
+      "reported_ticker": "02208",
       "event_type": "other",
-      "title": "03033 南方恒生科技 - ETF - etnet 經濟通 Mobile|香港新聞財經資訊和生活平台",
+      "title": "金風科技利潤下降 受國內風電需求放緩拖累",
       "publication_time": {
-        "iso": "2026-10-23T09:59:00+00:00",
+        "iso": "2026-10-23T11:39:03+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-23T09:59:00+00:00",
+        "iso": "2026-10-23T11:39:03+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE82SS1PZlRzZjZKV1hWRm14WFczanp4WWh3UFQ0b2h5d3hIOUdOVF80ci1PMXNXSEVtRkptcFp1d2Q0RUFyQWwxOWhxSUdrTEpZdXZFT1UyM0s1YmhTWktrN3NuNzloLTEtOWxhb0lmN0o?oc=5",
-      "novelty_cluster": "f1417b1f57510c4089ff",
+      "source_url": "https://news.google.com/rss/articles/CBMiwwJBVV95cUxQRFpKVy1JeHNPUWkxTzNYaFFKN0dXRFdYLVFxMlcyTTFPc01jOWJhcmlZLVNDLV84QkZRcGxxOXJiM2pvZWNjcE1iZGdFRkQzZVJMd29FdjBrTlIyZW1OZnJCaldYemdGRWl6VXdsV0liYVNUYlNDN3VTVlczaEJnUHVJVHk2dmQ4UnZ5Uktqa1E5TktsdVFhRXlzM2F0aFRBV3piVzV4Ui11Q0pSSjBLUE8yQk9vNko4TzhXdEpEdS12cUluRHlsZDlhc0NPbEM5SjZDaXUxLUlTd0xoRHplLVJieHI4QjJhc003d2VTdUlVRV9LSWlCWmlYSUw0dk9aa2djc2dVblZRNE9RYUpVcnQ5Z2NueEhIV1V5Ym5rMkhraUNmRnFDSlQ4VkZsbXJjRG5SbUhOTHNRMTFtNWtKSnduRQ?oc=5",
+      "novelty_cluster": "4fc6e3574e35df86cbce",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -3967,13 +4375,13 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-25T09:59:00+00:00",
+      "novelty_score": 0.8,
+      "novelty_reason": "cluster_old_but_recurrent",
+      "expires_at": "2026-10-25T11:39:03+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.748962655601661,
+        "price_change_pct": 0.5003573981415377,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -3991,125 +4399,6 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
-        "novel",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_5f34047bcb741cdab9dc",
-      "ticker": "03033",
-      "reported_ticker": "03033",
-      "event_type": "other",
-      "title": "03033 南方恒生科技 - ETF - etnet 經濟通 Mobile|香港新聞財經資訊和生活平台",
-      "publication_time": {
-        "iso": "2026-10-23T09:59:00+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-23T09:59:00+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE82SS1PZlRzZjZKV1hWRm14WFczanp4WWh3UFQ0b2h5d3hIOUdOVF80ci1PMXNXSEVtRkptcFp1d2Q0RUFyQWwxOWhxSUdrTEpZdXZFT1UyM0s1YmhTWktrN3NuNzloLTEtOWxhb0lmN0o?oc=5",
-      "novelty_cluster": "f1417b1f57510c4089ff",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-25T09:59:00+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": -3.0142781597038537,
-        "price_change_basis": "session",
-        "price_proxy_ticker": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_847e5ca32ab8c76b8173",
-      "ticker": "00100",
-      "reported_ticker": "00100",
-      "event_type": "other",
-      "title": "MiniMax (00100.HK) Open-Sources MiniMax M3.1 Flash Model Weights, Processing Over 100 Trillion Tokens Within 72 Hours",
-      "publication_time": {
-        "iso": "2026-10-23T03:45:57+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-23T03:45:57+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMingFBVV95cUxNQ1JZNEdxMTlGcGJQLTBVbU8wMnpjTEw1LTV4emtNc3VNOTNWWUYtenh5RjJreE84aHp6clkxMEhsZXBhdGhfcjZlTU5XZnNSUnlYTGRCNWFTOGNFZVAwekJJeUhhN1FjSnVsQTlTUWh1TVRWV0c3MGVqbUJwLWt5dFV6aHhSQnVQTVZGOTVhQXV6emx2a0ZIc3VDMFk1dw?oc=5",
-      "novelty_cluster": "c1b8a026af79a3dd345a",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-25T03:45:57+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": -6.714761376248612,
-        "price_change_basis": "session",
-        "price_proxy_ticker": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -4206,6 +4495,65 @@
       "novelty_score": 0.0,
       "novelty_reason": "exact_event_seen",
       "expires_at": "2026-10-24T16:00:00+00:00",
+      "status": "expired",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -3.0142781597038537,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "not_expired",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_5bd253812ab98e6550c8",
+      "ticker": "03033",
+      "reported_ticker": "03033",
+      "event_type": "other",
+      "title": "ETF日報(10.22)丨美債利率高企疊加AI敘事切換 恆科指遭重挫 油氣概念逆勢上揚",
+      "publication_time": {
+        "iso": "2026-10-22T13:38:51+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-22T13:38:51+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE5NdXBQVFMzbE5JbzlSbkwxdHN3ZUxvZEhEbVB4VE9HZUtTRUVXNGl0cXpqZ3AtSnliNmcyaDF0LXFDM1F2Uk5XZGpaWFpKTXYyVHVaSVVGQ0JBUjVhRVFQX3M2NTdQQ0wxSnk3ag?oc=5",
+      "novelty_cluster": "66f27afd9284fc5c95af",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
+      "expires_at": "2026-10-24T13:38:51+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
@@ -4478,124 +4826,6 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_bef2bb996f77a5db05d2",
-      "ticker": "RKLB",
-      "reported_ticker": "RKLX",
-      "event_type": "other",
-      "title": "RKLX Stock Price, Quote & News",
-      "publication_time": {
-        "iso": "2026-10-16T12:07:50+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-16T12:07:50+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE12ckgwY3I2UHgzVE45aGtUSF9BaTZ1NW5mQ3M0blJjSk5jRUhBd0pGUEhCZlliV045a1pacTY0ckJjdW52anRMZF95OA?oc=5",
-      "novelty_cluster": "055bc928b01f85c174a4",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-10-18T12:07:50+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": 1.6740088105726914,
-        "price_change_basis": "session",
-        "price_proxy_ticker": "RKLX",
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_fa24ebe6ab877ae26e7e",
-      "ticker": "07709",
-      "reported_ticker": "07709",
-      "event_type": "other",
-      "title": "半日沽空金額增33% ＸＬ二南方海力士增183% (12:22) - 20261015 - 即時財經新聞",
-      "publication_time": {
-        "iso": "2026-10-15T07:00:00+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-10-15T07:00:00+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "news.google.com",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMiugJBVV95cUxOTXVWN1RkUnAwcHdBLVpTRDh0R1h0bllXd3FkQVhkRTZvYUNFaUpISzFyZkZkNlc5Ql9haUJ4Um53RFRHLXdXSklZZkhLR0JBdmd4cVd6OW9sYmd0cFR5NzU2TDlFaC1DQTN0X2kzOEZxZUpXYjM1S2liV3lfRnRqU1dyblkxVk96NjZQb0gyTDhid2NpOVE1YXdzREU4NTUxNUEyVEtnS1ZXNmFVenQ4SWRmQk5WeHFWLW8wTHl4S21XUGZxclVmWi0zeFBxNXZEMkVFM3c2OWs2QW1UQlVWRXB2c3BZLURGZHpqTjFoalVNMzl5QkNlYXpjOENDc1Iwem40c2xURGR4RWJlX3VBY05TaFRSOFR4VmRGeG1EQ1EtVVo3c09JekJYa2hvOE1rQkVTQWh3bWVSUQ?oc=5",
-      "novelty_cluster": "b63f8e51870268ac36bd",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "news.google.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
-      "expires_at": "2026-10-17T07:00:00+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": 0.7867820613689958,
-        "price_change_basis": "session",
-        "price_proxy_ticker": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
       "event_id": "evt_4027e82c759e7f3a31b0",
       "ticker": "RKLB",
       "reported_ticker": "RKLB",
@@ -4716,11 +4946,11 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_466f9638777116430e04",
+      "event_id": "evt_7b27a2a409888dce6dec",
       "ticker": "03032",
       "reported_ticker": "03032",
       "event_type": "other",
-      "title": "科指ETF驚現「烏龍指」 一度瘋升逾2倍 溫傑急出貨、籲不問價沽",
+      "title": "招商局恒生科技ETF曾飆升逾2.2 倍傳錯價成交約百萬元",
       "publication_time": {
         "iso": "2026-10-13T07:00:00+00:00",
         "precision": "minute"
@@ -4732,8 +4962,8 @@
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMilANBVV95cUxQS1dOWk5xUlRiRXFTSFRDWHpzM2FuNWtSOFFfeG82Z0RGdWdqYzRIbXVMOFNqM0ljTGdHeUZVSmRSYmRheWhIV1pHakNtTlpvRWpDQ1RFWW5pYmpNd2s0MWd3U2U1QWJ2VnMyRlBfUVByU0daaHJRZ3NqcjAxcVE5eGRmbzdNRmFlWmZ3Z09ERGN3eV9KX241VnFJVkptOUtBZWY1TnRVWS1VbzFqNXdlVFNXSk0xWk5DanJyNUNUVTJ5UlNsdkpNbUZvbnp2LXE2ZF9ONkZkb1NNWDE5ZXhTR0wwbF81UHp4LVFBRjV3NDhtS0RoZURyb01hcHVYVDVXZzlCWkdkOV9PanF2U3lNSGpRUDVOelRiRmhqX3AwOU16LXZMRUhYVnBiYXNkLVp0SUdfMTdGc1IzcFVsQXN6cTdCdzFiZ25PaDhkcFZkTkF3N1NIREFsNHFjVXd1OEdvR19RUUIwMk9MejE4MDZjUDJHWTZXSWFWcnJUYWE5dlowcnQyTmpQdTR3Rm9qam9fMXhPVg?oc=5",
-      "novelty_cluster": "eb8ed5afa5d9da263ed5",
+      "source_url": "https://news.google.com/rss/articles/CBMi6wJBVV95cUxNTWZQTkdJZy0wSml4S2hNYnRZN2VaaWJmWnRhcXNtYl8wa0ZNRkNZTDdFcTBYR0E5YVNfTU5sZTJ2d1NldmppSHJ1a1dqZ1IwbGtiX1ZlQi10V2tlY2J1NVU0cDk2cFF2SFdYd0twREVWX3FzeVdyNjFIOTk4Rk9FdzdlTzl3M1BwaUc0Y2V4YlFqVlhncXh1NTllOTYydFVSc1hpRzdVYlpPdTNuMnpQck8xSUNKZ3dPMUQzM0dxMjNxZUkxa0xpU0QwdVJpVHhwUHhENDVDMGdzay0yTHNtMVNwVDR4QXlNMm9wT1JJckpBek9YTTc4VEFxdmdELVp2MkZ3NDNvUHR4TzlheFZ0QnR5Mi1QRjI5RURCVlUtNDUzLWIwbjZEbXlYX2I3dllIV0ZScXJVVXJqNFZEdGFWMVpmcFJyNVBxNUxRdC1RZ0lBVnNyeDlhLVIxanRlLWw1alM0QkRpLWlQTU0?oc=5",
+      "novelty_cluster": "d87019159e9aa8f5d83e",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -4775,24 +5005,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_20ef50ea935e1ce703f4",
-      "ticker": "CRCL",
-      "reported_ticker": "CRCL",
+      "event_id": "evt_c7f45e3077d632ec2b03",
+      "ticker": "03032",
+      "reported_ticker": "03032",
       "event_type": "other",
-      "title": "Circle Internet: Looking For Revenue Growth Surge (NYSE:CRCL)",
+      "title": "異動股 | 招商恒生科技ETF今早疑集體炒車鬧烏龍，升幅曾擴至1.8倍驚見24元",
       "publication_time": {
-        "iso": "2026-10-12T07:00:00+00:00",
+        "iso": "2026-10-13T07:00:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-10-12T07:00:00+00:00",
+        "iso": "2026-10-13T07:00:00+00:00",
         "precision": "minute"
       },
       "primary_source": "news.google.com",
       "source_type": "google_news_rss",
       "source_reliability": 0.5,
-      "source_url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxON2xFaTF1Ui1VNEpQTDRNb0s2dW1nakcyZ18yTU10VWZGSld1anl5SUFnQ2NyMUQxTjN3blluNFJJYVpsX2RJODdJODNtVGtqS0NkNm1EZld0YllhcWlHMEp4a0FyYVFsOWtLQUdhRzBLQnJnWk5JaXFEWEt3LU10QmtDc25WS3U1Zld4dTB2R1lQU2c?oc=5",
-      "novelty_cluster": "3bb56b5a55d6b1031cea",
+      "source_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxObVB2cWlOY3NJZXpVSWE2N01yclI4VEplRkE3T01SdkEtRGZWTFREMnFzSFVUSmM5M0kxQURhNmdfeTF4R0QxYWY3SGQtZ0c3R2UxOWdramFVVFVZWkJ5UnRFcWNUNVNqbnR3VWUtbGh2N05HMExJVlMxaDd0YzNsVUhFdm1WQm9pc2xWNEtrcHQyX0NUWHBzdVdqTVZNcjgzb25RaEJvUHY?oc=5",
+      "novelty_cluster": "401ab20a770a6229373d",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -4804,11 +5034,188 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 0.0,
       "novelty_reason": "exact_event_seen",
+      "expires_at": "2026-10-15T07:00:00+00:00",
+      "status": "expired",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -2.748962655601661,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "not_expired",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_ee8d6bf9dd851180e7d4",
+      "ticker": "07709",
+      "reported_ticker": "07709",
+      "event_type": "other",
+      "title": "半日沽空金額減15% ＸＬ二南方海力士增329% (12:27) - 20261012 - 即時財經新聞",
+      "publication_time": {
+        "iso": "2026-10-12T07:00:00+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-12T07:00:00+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMiugJBVV95cUxNTGFobHFCMU9PYjhJWVdNR1RkbS14S0UzN1pyOG92ZGdtWkFXZldXNXljVWg0Q0l2OE9YNVpfQXU2ZFp1dENIbXhhdDdEdmxNYjc0S09fQUZoUW9hWFEyaDVKaVYtMVBobTRVQ3JHTDRqTW96TWhkTDNyMTJsTU1MOUZ0cGhpRldET08xalo1Rk1ZRmFmdVdmZGJHTUV3Rzk5MWF2Y3hBVzMxOGVmUnVYWmJTM2hHOEdtMEJ0c3A2VktOU1pOcks1QzhjbWJfdTZQNDV5NWNRU3JhcWY3R2ZGaXQ4bUhNU3FIS2VoUzV4a2RXMzNEblNQMzZrbGRtdWVpbkZGZ3dRaFM1WnVwODhtNnNVODBUNEtiR1RwV3luNGlZVXRmOUE1N1IzNnlkNGlWaTc2WV9DY0VjQQ?oc=5",
+      "novelty_cluster": "b545e1f0fd385f1cd148",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.5,
+      "novelty_reason": "same_cluster_within_30d",
       "expires_at": "2026-10-14T07:00:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.105005507281854,
+        "price_change_pct": 0.7867820613689958,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "not_expired",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_8333b768a41a296198f0",
+      "ticker": "03032",
+      "reported_ticker": "03032",
+      "event_type": "other",
+      "title": "恒生科技ＥＴＦ(03032) 交易所買賣基金的交易資料",
+      "publication_time": {
+        "iso": "2026-10-08T07:00:00+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-10-08T07:00:00+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMi9gNBVV95cUxPd2hfcUx5R1doSXhxMFk3UUJianAteVFCYW1QYmY5QjJvWGk4aGh3OHlJaGwtZHdQUWloSHdLaEwzZnVJSnNIb091c1hyUHZaS3JKLUxWRXI1Nzg3RXlkaWZzRGo0THQ1Z0JqNGtsS084b2F4enZISmxscmJIWG9kOVBGN3cwX2d0UVZ6YTlxLWxNRlJQMTVxWkNJczNjVzgzdzE3VG5IZW02QXBnMFJ0dGtva1VlQ3FoeXF4U0hWcTl4NEpLSXppclBGV3dhY1ViazZmSFR2U0JmWmdnVmJmQkZxUjVBb012ZDlJVjhIVmpsR0hEckpoaDdsM0IxUTRwTFBiQTltcGJBMXZPM2RhNEN0M3ZZeTNQbnM2aXB3UV9tYmUySkhVVE9QMHptTFBHTUo0MEs1VVBpb2RqNnlkeHZ4WnRBMnRnbzRJQnZCUDZINHZFSVJGYVk4U09fWlEzcWJTMjVxcTlUeTE0QVh6cnJuOGp2TC00OHZKSEYxcU1ySlNjSFhRWXJPSXdDaXJqMk1lME45Z280dXlpcVlMZHBnLV9ocEd0ckxGWUFmeEtUb0ZfVFQ3V3RmNWJ6LU1uSHI1cDA1Z3dya05JWFMwQVhYS2R4NUJ6d2NMOGtmWEhtdTBVaDV6TDNuN2YxelJRUkwwaFBR?oc=5",
+      "novelty_cluster": "d960def9d8b4e8ecb6a8",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.25,
+      "novelty_reason": "same_cluster_within_7d",
+      "expires_at": "2026-10-10T07:00:00+00:00",
+      "status": "expired",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -2.748962655601661,
+        "price_change_basis": "session",
+        "price_proxy_ticker": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "not_expired",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_4b06aff85c872ffb6a67",
+      "ticker": "03032",
+      "reported_ticker": "03032",
+      "event_type": "other",
+      "title": "Tech Surge Leads Asian Stock Markets Higher",
+      "publication_time": {
+        "iso": "2026-09-30T07:00:00+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-30T07:00:00+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPUVRjNHM5Y1NfbXlwX1NhVXQ0d0F4NzREQ2p1ZmliNXNBWlk4X1RVU0VKQ2xkM011ck84TlY4LXh3ektYcU9iRV9VeWtQRUNMNEdwLThsQVRvVVFhVnhiaWd1RnJCT0FVaGNYcTVqOEZoQW9JaXdYYnNsOFZlSm5YS0prZVVVTmpKWTN6Q0RmUQ?oc=5",
+      "novelty_cluster": "0abf67aeed8db608aca2",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
+      "expires_at": "2026-10-02T07:00:00+00:00",
+      "status": "expired",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -2.748962655601661,
         "price_change_basis": "session",
         "price_proxy_ticker": null,
         "price_aligned": false,
@@ -4836,7 +5243,7 @@
   ],
   "information_overlay": {
     "schema_version": 1,
-    "as_of": "2026-10-30T00:10:54.769675+00:00",
+    "as_of": "2026-10-30T00:41:19.147860+00:00",
     "registered_at": "2026-08-13",
     "status": "active",
     "usable_for_decisions": true,
@@ -4876,43 +5283,31 @@
     "tickers": {
       "00100": {
         "ticker": "00100",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": -0.1989,
         "event_count": 0,
-        "attention_score": 0.213732,
-        "attention_comparable_score": 0.213732,
+        "attention_score": 0.214647,
+        "attention_comparable_score": 0.214647,
         "attention_rank": 0.75,
         "attention_rank_scope": "HK",
-        "attention_event_count": 8,
+        "attention_event_count": 9,
         "attention_baseline": 0.224072,
-        "attention_acceleration": 0.9681,
+        "attention_acceleration": 0.9709,
         "attention_source_type_count": 2,
         "attention_components": [
-          {
-            "event_id": "evt_11fdb1c4be6bf235bcfe",
-            "published_at": "2026-10-29T01:00:47+00:00",
-            "novelty": 0.25,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.6401,
-            "attention_value": 0.040008,
-            "baseline_comparable_value": 0.040008,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
           {
             "event_id": "evt_81a4776108dd3f9b887d",
             "published_at": "2026-10-28T13:59:00+00:00",
             "novelty": 1.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.5176,
-            "attention_value": 0.129412,
-            "baseline_comparable_value": 0.129412,
+            "freshness": 0.5126,
+            "attention_value": 0.128155,
+            "baseline_comparable_value": 0.128155,
             "channel": "news",
             "source_type": "google_news_rss"
           },
@@ -4922,7 +5317,7 @@
             "novelty": 0.0,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.339,
+            "freshness": 0.3357,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
@@ -4934,11 +5329,23 @@
             "novelty": 0.0,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.339,
+            "freshness": 0.3357,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "eastmoney_company"
+          },
+          {
+            "event_id": "evt_134e63c87cad42b6486f",
+            "published_at": "2026-10-27T15:14:53+00:00",
+            "novelty": 0.0,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.3309,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
+            "channel": "news",
+            "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_f795c78225d084a5e8f5",
@@ -4946,9 +5353,21 @@
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2628,
+            "freshness": 0.2602,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
+            "channel": "news",
+            "source_type": "google_news_rss"
+          },
+          {
+            "event_id": "evt_51388e8b8d53d9e19963",
+            "published_at": "2026-10-27T02:42:04+00:00",
+            "novelty": 0.5,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.2599,
+            "attention_value": 0.032485,
+            "baseline_comparable_value": 0.032485,
             "channel": "news",
             "source_type": "google_news_rss"
           },
@@ -4958,33 +5377,21 @@
             "novelty": 0.8,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2216,
-            "attention_value": 0.044312,
-            "baseline_comparable_value": 0.044312,
+            "freshness": 0.2194,
+            "attention_value": 0.043882,
+            "baseline_comparable_value": 0.043882,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
-            "event_id": "evt_a4749674b063750311c0",
-            "published_at": "2026-10-23T16:15:18+00:00",
-            "novelty": 0.0,
+            "event_id": "evt_4e576183b534bb543ad8",
+            "published_at": "2026-10-26T02:09:25+00:00",
+            "novelty": 0.25,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.0537,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_847e5ca32ab8c76b8173",
-            "published_at": "2026-10-23T03:45:57+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.0422,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
+            "freshness": 0.162,
+            "attention_value": 0.010125,
+            "baseline_comparable_value": 0.010125,
             "channel": "news",
             "source_type": "google_news_rss"
           }
@@ -4996,33 +5403,57 @@
       },
       "02208": {
         "ticker": "02208",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": -0.1544,
         "event_count": 0,
-        "attention_score": 0.041706,
-        "attention_comparable_score": 0.041706,
-        "attention_rank": 0.0833,
+        "attention_score": 0.192058,
+        "attention_comparable_score": 0.192058,
+        "attention_rank": 0.5833,
         "attention_rank_scope": "HK",
-        "attention_event_count": 5,
+        "attention_event_count": 9,
         "attention_baseline": 0.115241,
-        "attention_acceleration": 0.6584,
+        "attention_acceleration": 1.3569,
         "attention_source_type_count": 2,
         "attention_components": [
+          {
+            "event_id": "evt_be0de518c8e55d54f449",
+            "published_at": "2026-10-29T04:23:15+00:00",
+            "novelty": 0.25,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.6765,
+            "attention_value": 0.042279,
+            "baseline_comparable_value": 0.042279,
+            "channel": "news",
+            "source_type": "google_news_rss"
+          },
           {
             "event_id": "evt_aff2997bdd7761fc5ad2",
             "published_at": "2026-10-28T16:00:00+00:00",
             "novelty": 0.25,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.5381,
-            "attention_value": 0.041706,
-            "baseline_comparable_value": 0.041706,
+            "freshness": 0.5329,
+            "attention_value": 0.041301,
+            "baseline_comparable_value": 0.041301,
             "channel": "news",
             "source_type": "eastmoney_company"
+          },
+          {
+            "event_id": "evt_10ba32265c0278de1fd0",
+            "published_at": "2026-10-28T02:08:49+00:00",
+            "novelty": 0.25,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.4082,
+            "attention_value": 0.025509,
+            "baseline_comparable_value": 0.025509,
+            "channel": "news",
+            "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_db33992cf4022b65f821",
@@ -5030,33 +5461,45 @@
             "novelty": 0.0,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.339,
+            "freshness": 0.3357,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "eastmoney_company"
           },
           {
-            "event_id": "evt_e6318ea8f3b3add3d85f",
-            "published_at": "2026-10-27T08:31:00+00:00",
+            "event_id": "evt_11a7e509b3afce23a25d",
+            "published_at": "2026-10-26T11:11:00+00:00",
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2935,
+            "freshness": 0.1928,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
-            "event_id": "evt_0ef0490c750d800798e7",
-            "published_at": "2026-10-26T02:38:08+00:00",
-            "novelty": 0.0,
+            "event_id": "evt_87e7c00aec074640dcd6",
+            "published_at": "2026-10-26T02:36:00+00:00",
+            "novelty": 0.8,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.1651,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
+            "freshness": 0.1634,
+            "attention_value": 0.032679,
+            "baseline_comparable_value": 0.032679,
+            "channel": "news",
+            "source_type": "google_news_rss"
+          },
+          {
+            "event_id": "evt_61765c33e657aa0471f9",
+            "published_at": "2026-10-26T02:14:19+00:00",
+            "novelty": 1.0,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.1623,
+            "attention_value": 0.040565,
+            "baseline_comparable_value": 0.040565,
             "channel": "news",
             "source_type": "google_news_rss"
           },
@@ -5066,7 +5509,7 @@
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.055,
+            "freshness": 0.0545,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
@@ -5080,20 +5523,20 @@
       },
       "03032": {
         "ticker": "03032",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.233198,
-        "attention_comparable_score": 0.233198,
+        "attention_score": 0.230933,
+        "attention_comparable_score": 0.230933,
         "attention_rank": 0.9167,
         "attention_rank_scope": "HK",
-        "attention_event_count": 7,
+        "attention_event_count": 4,
         "attention_baseline": 0.192713,
-        "attention_acceleration": 1.1383,
+        "attention_acceleration": 1.1306,
         "attention_source_type_count": 2,
         "attention_components": [
           {
@@ -5102,9 +5545,9 @@
             "novelty": 0.25,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.5381,
-            "attention_value": 0.041706,
-            "baseline_comparable_value": 0.041706,
+            "freshness": 0.5329,
+            "attention_value": 0.041301,
+            "baseline_comparable_value": 0.041301,
             "channel": "news",
             "source_type": "eastmoney_company"
           },
@@ -5114,9 +5557,9 @@
             "novelty": 0.8,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.5381,
-            "attention_value": 0.133459,
-            "baseline_comparable_value": 0.133459,
+            "freshness": 0.5329,
+            "attention_value": 0.132163,
+            "baseline_comparable_value": 0.132163,
             "channel": "news",
             "source_type": "eastmoney_company"
           },
@@ -5126,7 +5569,7 @@
             "novelty": 0.0,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.339,
+            "freshness": 0.3357,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
@@ -5138,45 +5581,9 @@
             "novelty": 0.8,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2902,
-            "attention_value": 0.058033,
-            "baseline_comparable_value": 0.058033,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_c6f31d0636caed093b37",
-            "published_at": "2026-10-26T23:45:31+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.248,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_6a6c3cb9f682a051d112",
-            "published_at": "2026-10-26T18:59:59+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.2263,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_ff64dd6d95dafb590443",
-            "published_at": "2026-10-23T09:59:00+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.0476,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
+            "freshness": 0.2873,
+            "attention_value": 0.057469,
+            "baseline_comparable_value": 0.057469,
             "channel": "news",
             "source_type": "google_news_rss"
           }
@@ -5188,20 +5595,20 @@
       },
       "03033": {
         "ticker": "03033",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.049911,
-        "attention_comparable_score": 0.049911,
-        "attention_rank": 0.25,
+        "attention_score": 0.049427,
+        "attention_comparable_score": 0.049427,
+        "attention_rank": 0.0833,
         "attention_rank_scope": "HK",
-        "attention_event_count": 4,
+        "attention_event_count": 3,
         "attention_baseline": 0.09382,
-        "attention_acceleration": 0.7735,
+        "attention_acceleration": 0.771,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5210,9 +5617,9 @@
             "novelty": 0.5,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.3993,
-            "attention_value": 0.049911,
-            "baseline_comparable_value": 0.049911,
+            "freshness": 0.3954,
+            "attention_value": 0.049427,
+            "baseline_comparable_value": 0.049427,
             "channel": "news",
             "source_type": "google_news_rss"
           },
@@ -5222,7 +5629,7 @@
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2723,
+            "freshness": 0.2697,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
@@ -5234,19 +5641,7 @@
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.1711,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_5f34047bcb741cdab9dc",
-            "published_at": "2026-10-23T09:59:00+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.0476,
+            "freshness": 0.1695,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
@@ -5260,43 +5655,55 @@
       },
       "07709": {
         "ticker": "07709",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.198882,
-        "attention_comparable_score": 0.198882,
-        "attention_rank": 0.5833,
+        "attention_score": 0.155756,
+        "attention_comparable_score": 0.155756,
+        "attention_rank": 0.4167,
         "attention_rank_scope": "HK",
-        "attention_event_count": 2,
+        "attention_event_count": 3,
         "attention_baseline": 0.013425,
-        "attention_acceleration": 2.6351,
+        "attention_acceleration": 2.2549,
         "attention_source_type_count": 1,
         "attention_components": [
           {
-            "event_id": "evt_78ed04d85336608eb0f6",
-            "published_at": "2026-10-28T22:24:49+00:00",
-            "novelty": 1.0,
+            "event_id": "evt_8a2125456a8b8c522b69",
+            "published_at": "2026-10-29T09:46:37+00:00",
+            "novelty": 0.25,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.6089,
-            "attention_value": 0.152218,
-            "baseline_comparable_value": 0.152218,
+            "freshness": 0.7504,
+            "attention_value": 0.046902,
+            "baseline_comparable_value": 0.046902,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
-            "event_id": "evt_1361cda5ccf21ec5df1e",
-            "published_at": "2026-10-26T09:00:21+00:00",
+            "event_id": "evt_27b830ada87dbcd86c44",
+            "published_at": "2026-10-28T05:30:20+00:00",
             "novelty": 1.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.1867,
-            "attention_value": 0.046664,
-            "baseline_comparable_value": 0.046664,
+            "freshness": 0.4354,
+            "attention_value": 0.108854,
+            "baseline_comparable_value": 0.108854,
+            "channel": "news",
+            "source_type": "google_news_rss"
+          },
+          {
+            "event_id": "evt_61545975f070cc0019b6",
+            "published_at": "2026-10-26T06:50:09+00:00",
+            "novelty": 0.0,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.1773,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           }
@@ -5308,20 +5715,20 @@
       },
       "9992": {
         "ticker": "9992",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.081534,
-        "attention_comparable_score": 0.081534,
-        "attention_rank": 0.4167,
+        "attention_score": 0.080743,
+        "attention_comparable_score": 0.080743,
+        "attention_rank": 0.25,
         "attention_rank_scope": "HK",
         "attention_event_count": 1,
         "attention_baseline": 0.010123,
-        "attention_acceleration": 1.6485,
+        "attention_acceleration": 1.6413,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5330,9 +5737,9 @@
             "novelty": 0.5,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.6523,
-            "attention_value": 0.081534,
-            "baseline_comparable_value": 0.081534,
+            "freshness": 0.6459,
+            "attention_value": 0.080743,
+            "baseline_comparable_value": 0.080743,
             "channel": "influencer_feed",
             "source_type": "google_news_rss"
           }
@@ -5344,20 +5751,20 @@
       },
       "AAPL": {
         "ticker": "AAPL",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": 0.1213,
         "event_count": 0,
-        "attention_score": 0.181683,
-        "attention_comparable_score": 0.181683,
+        "attention_score": 0.179919,
+        "attention_comparable_score": 0.179919,
         "attention_rank": 0.5909,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.009588,
-        "attention_acceleration": 2.5704,
+        "attention_acceleration": 2.5543,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5366,9 +5773,9 @@
             "novelty": 1.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.7267,
-            "attention_value": 0.181683,
-            "baseline_comparable_value": 0.181683,
+            "freshness": 0.7197,
+            "attention_value": 0.179919,
+            "baseline_comparable_value": 0.179919,
             "channel": "influencer_feed",
             "source_type": "google_news_rss"
           }
@@ -5380,20 +5787,20 @@
       },
       "ACHR": {
         "ticker": "ACHR",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.05449,
-        "attention_comparable_score": 0.05449,
+        "attention_score": 0.053961,
+        "attention_comparable_score": 0.053961,
         "attention_rank": 0.1818,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.003165,
-        "attention_acceleration": 1.4975,
+        "attention_acceleration": 1.4924,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5402,9 +5809,9 @@
             "novelty": 0.25,
             "reliability": 0.75,
             "corroborating_sources": 1,
-            "freshness": 0.5812,
-            "attention_value": 0.05449,
-            "baseline_comparable_value": 0.05449,
+            "freshness": 0.5756,
+            "attention_value": 0.053961,
+            "baseline_comparable_value": 0.053961,
             "channel": "influencer_feed",
             "source_type": "ark_daily_trade"
           }
@@ -5416,20 +5823,20 @@
       },
       "ARKB": {
         "ticker": "ARKB",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.05449,
-        "attention_comparable_score": 0.05449,
+        "attention_score": 0.053961,
+        "attention_comparable_score": 0.053961,
         "attention_rank": 0.1818,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.005307,
-        "attention_acceleration": 1.467,
+        "attention_acceleration": 1.462,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5438,9 +5845,9 @@
             "novelty": 0.25,
             "reliability": 0.75,
             "corroborating_sources": 1,
-            "freshness": 0.5812,
-            "attention_value": 0.05449,
-            "baseline_comparable_value": 0.05449,
+            "freshness": 0.5756,
+            "attention_value": 0.053961,
+            "baseline_comparable_value": 0.053961,
             "channel": "influencer_feed",
             "source_type": "ark_daily_trade"
           }
@@ -5452,25 +5859,25 @@
       },
       "CRCL": {
         "ticker": "CRCL",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
-        "signed_score": 0.213471,
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
+        "signed_score": 0.211398,
         "cross_section_rank": 0.9118,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
-        "own_surprise_z": 2.4724,
+        "own_surprise_z": 2.4478,
         "event_count": 1,
-        "attention_score": 0.944948,
-        "attention_comparable_score": 0.900497,
+        "attention_score": 1.272031,
+        "attention_comparable_score": 1.228012,
         "attention_rank": 0.8636,
         "attention_rank_scope": "US",
-        "attention_event_count": 8,
+        "attention_event_count": 9,
         "attention_baseline": 0.709799,
-        "attention_acceleration": 1.2355,
+        "attention_acceleration": 1.6399,
         "attention_source_type_count": 3,
         "attention_components": [
           {
-            "event_id": "evt_a1468f0680fc786d51ce",
-            "published_at": "2026-10-30T00:08:02.945726+00:00",
+            "event_id": "evt_33d117b22df978095c47",
+            "published_at": "2026-10-30T00:38:26.575841+00:00",
             "novelty": 0.1,
             "reliability": 0.95,
             "corroborating_sources": 1,
@@ -5481,14 +5888,38 @@
             "source_type": "official_macro_schedule"
           },
           {
+            "event_id": "evt_5a36b02ce96587bd6d0e",
+            "published_at": "2026-10-29T21:39:21+00:00",
+            "novelty": 0.8,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.9433,
+            "attention_value": 0.188656,
+            "baseline_comparable_value": 0.188656,
+            "channel": "news",
+            "source_type": "google_news_rss"
+          },
+          {
+            "event_id": "evt_690a161029a2d8bbba42",
+            "published_at": "2026-10-29T08:44:53+00:00",
+            "novelty": 0.8,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.7357,
+            "attention_value": 0.147142,
+            "baseline_comparable_value": 0.147142,
+            "channel": "news",
+            "source_type": "google_news_rss"
+          },
+          {
             "event_id": "evt_9e8199091a7d11dd74bc",
             "published_at": "2026-10-28T22:30:09+00:00",
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.6099,
-            "attention_value": 0.213471,
-            "baseline_comparable_value": 0.213471,
+            "freshness": 0.604,
+            "attention_value": 0.211398,
+            "baseline_comparable_value": 0.211398,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5498,9 +5929,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.5488,
-            "attention_value": 0.192073,
-            "baseline_comparable_value": 0.192073,
+            "freshness": 0.5435,
+            "attention_value": 0.190208,
+            "baseline_comparable_value": 0.190208,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5510,9 +5941,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.5366,
-            "attention_value": 0.187807,
-            "baseline_comparable_value": 0.187807,
+            "freshness": 0.5314,
+            "attention_value": 0.185983,
+            "baseline_comparable_value": 0.185983,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5522,9 +5953,9 @@
             "novelty": 0.5,
             "reliability": 0.7,
             "corroborating_sources": 2,
-            "freshness": 0.508,
-            "attention_value": 0.133353,
-            "baseline_comparable_value": 0.088902,
+            "freshness": 0.5031,
+            "attention_value": 0.132058,
+            "baseline_comparable_value": 0.088039,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5534,35 +5965,11 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.488,
-            "attention_value": 0.170788,
-            "baseline_comparable_value": 0.170788,
+            "freshness": 0.4832,
+            "attention_value": 0.16913,
+            "baseline_comparable_value": 0.16913,
             "channel": "news",
             "source_type": "finnhub_syndication"
-          },
-          {
-            "event_id": "evt_67218c9f246fce712644",
-            "published_at": "2026-10-27T11:39:39+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.3118,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_1a6a54907c5522f7aee8",
-            "published_at": "2026-10-26T14:17:13+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.2066,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "google_news_rss"
           }
         ],
         "sizing_tilt": "positive",
@@ -5574,9 +5981,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.6099,
+            "freshness": 0.604,
             "price_nonreaction": 1.0,
-            "signed_score": 0.213471
+            "signed_score": 0.211398
           }
         ],
         "status": "active",
@@ -5584,20 +5991,20 @@
       },
       "HOOD": {
         "ticker": "HOOD",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.10898,
-        "attention_comparable_score": 0.10898,
+        "attention_score": 0.107922,
+        "attention_comparable_score": 0.107922,
         "attention_rank": 0.4545,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.001256,
-        "attention_acceleration": 2.0639,
+        "attention_acceleration": 2.0534,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5606,9 +6013,9 @@
             "novelty": 0.5,
             "reliability": 0.75,
             "corroborating_sources": 1,
-            "freshness": 0.5812,
-            "attention_value": 0.10898,
-            "baseline_comparable_value": 0.10898,
+            "freshness": 0.5756,
+            "attention_value": 0.107922,
+            "baseline_comparable_value": 0.107922,
             "channel": "influencer_feed",
             "source_type": "ark_daily_trade"
           }
@@ -5620,20 +6027,20 @@
       },
       "JOBY": {
         "ticker": "JOBY",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.05449,
-        "attention_comparable_score": 0.05449,
+        "attention_score": 0.053961,
+        "attention_comparable_score": 0.053961,
         "attention_rank": 0.1818,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.003165,
-        "attention_acceleration": 1.4975,
+        "attention_acceleration": 1.4924,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5642,9 +6049,9 @@
             "novelty": 0.25,
             "reliability": 0.75,
             "corroborating_sources": 1,
-            "freshness": 0.5812,
-            "attention_value": 0.05449,
-            "baseline_comparable_value": 0.05449,
+            "freshness": 0.5756,
+            "attention_value": 0.053961,
+            "baseline_comparable_value": 0.053961,
             "channel": "influencer_feed",
             "source_type": "ark_daily_trade"
           }
@@ -5656,25 +6063,25 @@
       },
       "RKLB": {
         "ticker": "RKLB",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
-        "signed_score": 0.34676,
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
+        "signed_score": 0.343393,
         "cross_section_rank": 0.9706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
-        "own_surprise_z": 3.7166,
+        "own_surprise_z": 3.6782,
         "event_count": 2,
-        "attention_score": 0.840306,
-        "attention_comparable_score": 0.840306,
+        "attention_score": 0.832608,
+        "attention_comparable_score": 0.832608,
         "attention_rank": 0.7727,
         "attention_rank_scope": "US",
-        "attention_event_count": 5,
+        "attention_event_count": 6,
         "attention_baseline": 0.634041,
-        "attention_acceleration": 1.281,
-        "attention_source_type_count": 2,
+        "attention_acceleration": 1.2705,
+        "attention_source_type_count": 3,
         "attention_components": [
           {
-            "event_id": "evt_4aaf624c7fca528e5bd4",
-            "published_at": "2026-10-30T00:08:02.945726+00:00",
+            "event_id": "evt_e79c77baf19fc5c3dcd9",
+            "published_at": "2026-10-30T00:38:26.575841+00:00",
             "novelty": 0.1,
             "reliability": 0.95,
             "corroborating_sources": 1,
@@ -5690,9 +6097,9 @@
             "novelty": 0.25,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.8744,
-            "attention_value": 0.076513,
-            "baseline_comparable_value": 0.076513,
+            "freshness": 0.8659,
+            "attention_value": 0.07577,
+            "baseline_comparable_value": 0.07577,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5702,9 +6109,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.7721,
-            "attention_value": 0.270247,
-            "baseline_comparable_value": 0.270247,
+            "freshness": 0.7646,
+            "attention_value": 0.267623,
+            "baseline_comparable_value": 0.267623,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5714,9 +6121,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.6663,
-            "attention_value": 0.23321,
-            "baseline_comparable_value": 0.23321,
+            "freshness": 0.6598,
+            "attention_value": 0.230946,
+            "baseline_comparable_value": 0.230946,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5726,11 +6133,23 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.6082,
-            "attention_value": 0.21288,
-            "baseline_comparable_value": 0.21288,
+            "freshness": 0.6023,
+            "attention_value": 0.210813,
+            "baseline_comparable_value": 0.210813,
             "channel": "news",
             "source_type": "finnhub_syndication"
+          },
+          {
+            "event_id": "evt_8ee89f726194488a8bc4",
+            "published_at": "2026-10-25T16:48:32+00:00",
+            "novelty": 0.0,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.1353,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
+            "channel": "news",
+            "source_type": "google_news_rss"
           }
         ],
         "sizing_tilt": "positive",
@@ -5742,9 +6161,9 @@
             "novelty": 0.25,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.8744,
+            "freshness": 0.8659,
             "price_nonreaction": 1.0,
-            "signed_score": 0.076513
+            "signed_score": 0.07577
           },
           {
             "event_id": "evt_cf236f20f3123c648dba",
@@ -5753,9 +6172,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.7721,
+            "freshness": 0.7646,
             "price_nonreaction": 1.0,
-            "signed_score": 0.270247
+            "signed_score": 0.267623
           }
         ],
         "status": "active",
@@ -5763,31 +6182,43 @@
       },
       "SPCX": {
         "ticker": "SPCX",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
-        "signed_score": -0.337685,
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
+        "signed_score": -0.334406,
         "cross_section_rank": 0.0294,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
-        "own_surprise_z": -2.6358,
+        "own_surprise_z": -2.6104,
         "event_count": 2,
-        "attention_score": 1.382411,
-        "attention_comparable_score": 1.268093,
+        "attention_score": 1.700472,
+        "attention_comparable_score": 1.625567,
         "attention_rank": 0.9545,
         "attention_rank_scope": "US",
-        "attention_event_count": 12,
+        "attention_event_count": 13,
         "attention_baseline": 1.320667,
-        "attention_acceleration": 0.963,
+        "attention_acceleration": 1.2146,
         "attention_source_type_count": 3,
         "attention_components": [
+          {
+            "event_id": "evt_db32a133ffc0d806a2c6",
+            "published_at": "2026-10-29T21:59:00+00:00",
+            "novelty": 0.8,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.9492,
+            "attention_value": 0.189849,
+            "baseline_comparable_value": 0.189849,
+            "channel": "news",
+            "source_type": "google_news_rss"
+          },
           {
             "event_id": "evt_a21ad104614e2454aa7c",
             "published_at": "2026-10-29T17:47:00+00:00",
             "novelty": 0.25,
             "reliability": 0.7,
-            "corroborating_sources": 2,
-            "freshness": 0.8841,
-            "attention_value": 0.116037,
-            "baseline_comparable_value": 0.077358,
+            "corroborating_sources": 1,
+            "freshness": 0.8755,
+            "attention_value": 0.076607,
+            "baseline_comparable_value": 0.076607,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5797,9 +6228,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.8834,
-            "attention_value": 0.309201,
-            "baseline_comparable_value": 0.309201,
+            "freshness": 0.8749,
+            "attention_value": 0.306199,
+            "baseline_comparable_value": 0.306199,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5809,9 +6240,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.8806,
-            "attention_value": 0.308196,
-            "baseline_comparable_value": 0.308196,
+            "freshness": 0.872,
+            "attention_value": 0.305203,
+            "baseline_comparable_value": 0.305203,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5821,9 +6252,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.8675,
-            "attention_value": 0.303628,
-            "baseline_comparable_value": 0.303628,
+            "freshness": 0.8591,
+            "attention_value": 0.300679,
+            "baseline_comparable_value": 0.300679,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
@@ -5833,45 +6264,33 @@
             "novelty": 0.5,
             "reliability": 0.7,
             "corroborating_sources": 2,
-            "freshness": 0.8645,
-            "attention_value": 0.226918,
-            "baseline_comparable_value": 0.151279,
+            "freshness": 0.8561,
+            "attention_value": 0.224715,
+            "baseline_comparable_value": 0.14981,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
-            "event_id": "evt_33eccda8f578de7d8f03",
-            "published_at": "2026-10-28T14:22:41+00:00",
-            "novelty": 0.5,
+            "event_id": "evt_cbf5f46b92029a33dd4a",
+            "published_at": "2026-10-29T09:15:11+00:00",
+            "novelty": 0.1,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.5216,
-            "attention_value": 0.0652,
-            "baseline_comparable_value": 0.0652,
+            "freshness": 0.7429,
+            "attention_value": 0.018572,
+            "baseline_comparable_value": 0.018572,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
-            "event_id": "evt_d216d5119196878ebfa4",
-            "published_at": "2026-10-27T12:41:29+00:00",
-            "novelty": 0.0,
-            "reliability": 0.5,
-            "corroborating_sources": 1,
-            "freshness": 0.3181,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_aeddf1532ed90e30cece",
-            "published_at": "2026-10-27T10:48:44+00:00",
+            "event_id": "evt_a983142d391d4ad56f7d",
+            "published_at": "2026-10-28T22:34:26+00:00",
             "novelty": 0.25,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.3068,
-            "attention_value": 0.019174,
-            "baseline_comparable_value": 0.019174,
+            "freshness": 0.6048,
+            "attention_value": 0.037802,
+            "baseline_comparable_value": 0.037802,
             "channel": "news",
             "source_type": "google_news_rss"
           }
@@ -5885,9 +6304,9 @@
             "novelty": 1.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.8675,
+            "freshness": 0.8591,
             "price_nonreaction": 1.0,
-            "signed_score": -0.303628
+            "signed_score": -0.300679
           },
           {
             "event_id": "evt_e5afb2901cb14d735108",
@@ -5896,9 +6315,9 @@
             "novelty": 0.5,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2725,
+            "freshness": 0.2698,
             "price_nonreaction": 1.0,
-            "signed_score": -0.034057
+            "signed_score": -0.033727
           }
         ],
         "status": "active",
@@ -5906,20 +6325,20 @@
       },
       "TER": {
         "ticker": "TER",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.10898,
-        "attention_comparable_score": 0.10898,
+        "attention_score": 0.107922,
+        "attention_comparable_score": 0.107922,
         "attention_rank": 0.4545,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.006309,
-        "attention_acceleration": 1.9658,
+        "attention_acceleration": 1.9558,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -5928,9 +6347,9 @@
             "novelty": 0.5,
             "reliability": 0.75,
             "corroborating_sources": 1,
-            "freshness": 0.5812,
-            "attention_value": 0.10898,
-            "baseline_comparable_value": 0.10898,
+            "freshness": 0.5756,
+            "attention_value": 0.107922,
+            "baseline_comparable_value": 0.107922,
             "channel": "influencer_feed",
             "source_type": "ark_daily_trade"
           }
@@ -5942,20 +6361,20 @@
       },
       "TSLA": {
         "ticker": "TSLA",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": -0.1444,
         "event_count": 0,
-        "attention_score": 0.57796,
-        "attention_comparable_score": 0.57796,
+        "attention_score": 0.572348,
+        "attention_comparable_score": 0.572348,
         "attention_rank": 0.6818,
         "attention_rank_scope": "US",
         "attention_event_count": 2,
         "attention_baseline": 0.08563,
-        "attention_acceleration": 3.6522,
+        "attention_acceleration": 3.622,
         "attention_source_type_count": 2,
         "attention_components": [
           {
@@ -5964,9 +6383,9 @@
             "novelty": 1.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.8493,
-            "attention_value": 0.212332,
-            "baseline_comparable_value": 0.212332,
+            "freshness": 0.8411,
+            "attention_value": 0.21027,
+            "baseline_comparable_value": 0.21027,
             "channel": "influencer_feed",
             "source_type": "google_news_rss"
           },
@@ -5976,9 +6395,9 @@
             "novelty": 1.0,
             "reliability": 0.88,
             "corroborating_sources": 1,
-            "freshness": 0.831,
-            "attention_value": 0.365628,
-            "baseline_comparable_value": 0.365628,
+            "freshness": 0.8229,
+            "attention_value": 0.362078,
+            "baseline_comparable_value": 0.362078,
             "channel": "influencer_feed",
             "source_type": "reuters_bloomberg_wire"
           }
@@ -5990,20 +6409,20 @@
       },
       "TSM": {
         "ticker": "TSM",
-        "as_of": "2026-10-30T00:10:54.769675+00:00",
+        "as_of": "2026-10-30T00:41:19.147860+00:00",
         "signed_score": 0,
         "cross_section_rank": 0.4706,
         "own_history_dates": 69,
         "prospective_history_dates": 56,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.05449,
-        "attention_comparable_score": 0.05449,
+        "attention_score": 0.053961,
+        "attention_comparable_score": 0.053961,
         "attention_rank": 0.1818,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.009402,
-        "attention_acceleration": 1.4121,
+        "attention_acceleration": 1.4073,
         "attention_source_type_count": 1,
         "attention_components": [
           {
@@ -6012,9 +6431,9 @@
             "novelty": 0.25,
             "reliability": 0.75,
             "corroborating_sources": 1,
-            "freshness": 0.5812,
-            "attention_value": 0.05449,
-            "baseline_comparable_value": 0.05449,
+            "freshness": 0.5756,
+            "attention_value": 0.053961,
+            "baseline_comparable_value": 0.053961,
             "channel": "influencer_feed",
             "source_type": "ark_daily_trade"
           }
@@ -6041,7 +6460,7 @@
   "graph": {
     "nodes": [
       {
-        "id": "evt_a1468f0680fc786d51ce",
+        "id": "evt_33d117b22df978095c47",
         "kind": "event",
         "event_type": "earnings_schedule",
         "status": "upcoming"
@@ -6060,7 +6479,7 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_4aaf624c7fca528e5bd4",
+        "id": "evt_e79c77baf19fc5c3dcd9",
         "kind": "event",
         "event_type": "earnings_schedule",
         "status": "upcoming"
@@ -6070,7 +6489,7 @@
         "kind": "ticker"
       },
       {
-        "id": "evt_c0f2a40f332c401c1563",
+        "id": "evt_1284c8beee1240959a79",
         "kind": "event",
         "event_type": "macro_schedule",
         "status": "active"
@@ -6089,7 +6508,7 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_7ea42601ebc82db6cd41",
+        "id": "evt_8effedd2d390c39dbf16",
         "kind": "event",
         "event_type": "macro_schedule",
         "status": "upcoming"
@@ -6099,7 +6518,7 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_0b3f898ce78f582ef7e6",
+        "id": "evt_ba39291072c546cbc064",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
@@ -6110,66 +6529,61 @@
         "source_type": "market_fast_news"
       },
       {
-        "id": "cluster:564d053aceed266ef787",
+        "id": "cluster:c1011007dbaecb560dbd",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_9b3c2b1e9f4c6fe0dbd1",
+        "id": "evt_2a6c6fe4209863d3115a",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:1942502e10b01993c8a4",
+        "id": "cluster:bcfbb2a7a069d7dd0355",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_4f3016574d9f5f40c83e",
+        "id": "evt_2a513780162fd645dc4c",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:a8a50ba45700bed47911",
+        "id": "cluster:5479ec706bc369c76ddb",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_d898358243c327880b2d",
+        "id": "evt_ef37c6bf1c3d01fdd1b4",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "source:hk.eastmoney.com",
-        "kind": "source",
-        "source_type": "market_fast_news"
-      },
-      {
-        "id": "cluster:26140cd754cbbcedb75b",
+        "id": "cluster:f6daafae4c346f294439",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_df202809a5d598e50623",
+        "id": "evt_fab83db16fbda2469723",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:39c56fdda8e06d8e6710",
+        "id": "cluster:5297ef86c3b848f3f744",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_9a458fa300de11ededaa",
+        "id": "evt_ff20a2362a2c7410a146",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:e9b37ded7357cdf0f65e",
+        "id": "cluster:f1a2c466fbc88b7a73cb",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_a21ad104614e2454aa7c",
+        "id": "evt_db32a133ffc0d806a2c6",
         "kind": "event",
         "event_type": "other",
         "status": "active"
@@ -6177,6 +6591,31 @@
       {
         "id": "ticker:SPCX",
         "kind": "ticker"
+      },
+      {
+        "id": "source:news.google.com",
+        "kind": "source",
+        "source_type": "google_news_rss"
+      },
+      {
+        "id": "cluster:9a3ad841563c8598df9f",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_5a36b02ce96587bd6d0e",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "cluster:d431f08b06babecea53e",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_a21ad104614e2454aa7c",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
       },
       {
         "id": "source:finnhub.io",
@@ -6282,6 +6721,40 @@
         "kind": "novelty_cluster"
       },
       {
+        "id": "evt_8a2125456a8b8c522b69",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:07709",
+        "kind": "ticker"
+      },
+      {
+        "id": "cluster:d1095296cbb303852122",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_cbf5f46b92029a33dd4a",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "cluster:ec16da19286e3cbe79a0",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_690a161029a2d8bbba42",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "cluster:3b33d5528644720f2a1c",
+        "kind": "novelty_cluster"
+      },
+      {
         "id": "evt_243af80af8d3cb51d5fb",
         "kind": "event",
         "event_type": "other",
@@ -6292,12 +6765,21 @@
         "kind": "ticker"
       },
       {
-        "id": "source:news.google.com",
-        "kind": "source",
-        "source_type": "google_news_rss"
+        "id": "cluster:e1dbff8838d9598ab578",
+        "kind": "novelty_cluster"
       },
       {
-        "id": "cluster:e1dbff8838d9598ab578",
+        "id": "evt_be0de518c8e55d54f449",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:02208",
+        "kind": "ticker"
+      },
+      {
+        "id": "cluster:8035a2ac40f4e3076dc8",
         "kind": "novelty_cluster"
       },
       {
@@ -6325,17 +6807,13 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_11fdb1c4be6bf235bcfe",
+        "id": "evt_a983142d391d4ad56f7d",
         "kind": "event",
         "event_type": "other",
         "status": "active"
       },
       {
-        "id": "ticker:00100",
-        "kind": "ticker"
-      },
-      {
-        "id": "cluster:a1efe7707251a6759f3c",
+        "id": "cluster:6b566c8397ff98b88456",
         "kind": "novelty_cluster"
       },
       {
@@ -6349,17 +6827,13 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_78ed04d85336608eb0f6",
+        "id": "evt_bc2fefaacf82ca57981f",
         "kind": "event",
         "event_type": "other",
         "status": "active"
       },
       {
-        "id": "ticker:07709",
-        "kind": "ticker"
-      },
-      {
-        "id": "cluster:5e9d1de347311b7ed0b3",
+        "id": "cluster:cbfa1df115403965eae5",
         "kind": "novelty_cluster"
       },
       {
@@ -6472,14 +6946,20 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_aff2997bdd7761fc5ad2",
+        "id": "evt_6467a1ef2cf7e357bb1f",
         "kind": "event",
         "event_type": "other",
         "status": "active"
       },
       {
-        "id": "ticker:02208",
-        "kind": "ticker"
+        "id": "cluster:e74e75c541744f643c0d",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_aff2997bdd7761fc5ad2",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
       },
       {
         "id": "cluster:d0c6bd1666b5d1d59c8d",
@@ -6520,20 +7000,14 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_33eccda8f578de7d8f03",
-        "kind": "event",
-        "event_type": "other",
-        "status": "active"
-      },
-      {
-        "id": "cluster:3d7f3612eb20c3b459b0",
-        "kind": "novelty_cluster"
-      },
-      {
         "id": "evt_81a4776108dd3f9b887d",
         "kind": "event",
         "event_type": "other",
         "status": "active"
+      },
+      {
+        "id": "ticker:00100",
+        "kind": "ticker"
       },
       {
         "id": "cluster:d73637c54ebe3ae25994",
@@ -6557,6 +7031,26 @@
       },
       {
         "id": "cluster:37951fe42ad43f9968a2",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_27b830ada87dbcd86c44",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "cluster:eede03d05d4d03f0b2f8",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_10ba32265c0278de1fd0",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "cluster:df5b6d935f5abfa353e6",
         "kind": "novelty_cluster"
       },
       {
@@ -6614,13 +7108,13 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_d216d5119196878ebfa4",
+        "id": "evt_134e63c87cad42b6486f",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:3bf702408f24d35ed3a9",
+        "id": "cluster:7fa8e65a94002251e0b4",
         "kind": "novelty_cluster"
       },
       {
@@ -6641,16 +7135,6 @@
       },
       {
         "id": "cluster:5f78550cc67e7f3188b1",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_e6318ea8f3b3add3d85f",
-        "kind": "event",
-        "event_type": "other",
-        "status": "expired"
-      },
-      {
-        "id": "cluster:756fafb146d22e9638ad",
         "kind": "novelty_cluster"
       },
       {
@@ -6694,23 +7178,13 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_c6f31d0636caed093b37",
+        "id": "evt_51388e8b8d53d9e19963",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:f878e26e9ee68514294f",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_6a6c3cb9f682a051d112",
-        "kind": "event",
-        "event_type": "other",
-        "status": "expired"
-      },
-      {
-        "id": "cluster:d960def9d8b4e8ecb6a8",
+        "id": "cluster:0d3bfa133e70841bbebd",
         "kind": "novelty_cluster"
       },
       {
@@ -6724,33 +7198,23 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_1a6a54907c5522f7aee8",
-        "kind": "event",
-        "event_type": "analyst_rating",
-        "status": "expired"
-      },
-      {
-        "id": "cluster:316820db8920dd552991",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_1361cda5ccf21ec5df1e",
+        "id": "evt_11a7e509b3afce23a25d",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:4f97b841b544bc84fec9",
+        "id": "cluster:9defa9ddfe49d7285e64",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_f48d26ef387b71f4a145",
+        "id": "evt_61545975f070cc0019b6",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:d10b03158c487ac88e57",
+        "id": "cluster:e5c3e1f16adfb53aa452",
         "kind": "novelty_cluster"
       },
       {
@@ -6764,13 +7228,33 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_0ef0490c750d800798e7",
+        "id": "evt_87e7c00aec074640dcd6",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:1d546532909596c24167",
+        "id": "cluster:0325f3a528c48a22c99b",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_61765c33e657aa0471f9",
+        "kind": "event",
+        "event_type": "other",
+        "status": "expired"
+      },
+      {
+        "id": "cluster:1938ed750010aafb9508",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_4e576183b534bb543ad8",
+        "kind": "event",
+        "event_type": "other",
+        "status": "expired"
+      },
+      {
+        "id": "cluster:5b51f9d5eb3361a77f6b",
         "kind": "novelty_cluster"
       },
       {
@@ -6789,13 +7273,13 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_174f50fcc292eac444bc",
+        "id": "evt_8ee89f726194488a8bc4",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:6b566c8397ff98b88456",
+        "id": "cluster:29e3afcb72d425ab11d7",
         "kind": "novelty_cluster"
       },
       {
@@ -6819,29 +7303,13 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_ff64dd6d95dafb590443",
+        "id": "evt_4a508adfbae858c8da88",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:f1417b1f57510c4089ff",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_5f34047bcb741cdab9dc",
-        "kind": "event",
-        "event_type": "other",
-        "status": "expired"
-      },
-      {
-        "id": "evt_847e5ca32ab8c76b8173",
-        "kind": "event",
-        "event_type": "other",
-        "status": "expired"
-      },
-      {
-        "id": "cluster:c1b8a026af79a3dd345a",
+        "id": "cluster:4fc6e3574e35df86cbce",
         "kind": "novelty_cluster"
       },
       {
@@ -6862,6 +7330,16 @@
       },
       {
         "id": "cluster:626828de6e30092c551f",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_5bd253812ab98e6550c8",
+        "kind": "event",
+        "event_type": "other",
+        "status": "expired"
+      },
+      {
+        "id": "cluster:66f27afd9284fc5c95af",
         "kind": "novelty_cluster"
       },
       {
@@ -6905,26 +7383,6 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_bef2bb996f77a5db05d2",
-        "kind": "event",
-        "event_type": "other",
-        "status": "expired"
-      },
-      {
-        "id": "cluster:055bc928b01f85c174a4",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_fa24ebe6ab877ae26e7e",
-        "kind": "event",
-        "event_type": "other",
-        "status": "expired"
-      },
-      {
-        "id": "cluster:b63f8e51870268ac36bd",
-        "kind": "novelty_cluster"
-      },
-      {
         "id": "evt_4027e82c759e7f3a31b0",
         "kind": "event",
         "event_type": "filing_8k",
@@ -6945,175 +7403,235 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_466f9638777116430e04",
+        "id": "evt_7b27a2a409888dce6dec",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:eb8ed5afa5d9da263ed5",
+        "id": "cluster:d87019159e9aa8f5d83e",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_20ef50ea935e1ce703f4",
+        "id": "evt_c7f45e3077d632ec2b03",
         "kind": "event",
         "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "cluster:3bb56b5a55d6b1031cea",
+        "id": "cluster:401ab20a770a6229373d",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_ee8d6bf9dd851180e7d4",
+        "kind": "event",
+        "event_type": "other",
+        "status": "expired"
+      },
+      {
+        "id": "cluster:b545e1f0fd385f1cd148",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_8333b768a41a296198f0",
+        "kind": "event",
+        "event_type": "other",
+        "status": "expired"
+      },
+      {
+        "id": "cluster:d960def9d8b4e8ecb6a8",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_4b06aff85c872ffb6a67",
+        "kind": "event",
+        "event_type": "other",
+        "status": "expired"
+      },
+      {
+        "id": "cluster:0abf67aeed8db608aca2",
         "kind": "novelty_cluster"
       }
     ],
     "edges": [
       {
-        "from": "evt_a1468f0680fc786d51ce",
+        "from": "evt_33d117b22df978095c47",
         "to": "ticker:CRCL",
         "type": "about"
       },
       {
-        "from": "evt_a1468f0680fc786d51ce",
+        "from": "evt_33d117b22df978095c47",
         "to": "source:finnhub earnings calendar",
         "type": "reported_by"
       },
       {
-        "from": "evt_a1468f0680fc786d51ce",
+        "from": "evt_33d117b22df978095c47",
         "to": "cluster:50e5f16a51f1b68f823b",
         "type": "belongs_to"
       },
       {
-        "from": "evt_4aaf624c7fca528e5bd4",
+        "from": "evt_e79c77baf19fc5c3dcd9",
         "to": "ticker:RKLB",
         "type": "about"
       },
       {
-        "from": "evt_4aaf624c7fca528e5bd4",
+        "from": "evt_e79c77baf19fc5c3dcd9",
         "to": "source:finnhub earnings calendar",
         "type": "reported_by"
       },
       {
-        "from": "evt_4aaf624c7fca528e5bd4",
+        "from": "evt_e79c77baf19fc5c3dcd9",
         "to": "cluster:50e5f16a51f1b68f823b",
         "type": "belongs_to"
       },
       {
-        "from": "evt_c0f2a40f332c401c1563",
+        "from": "evt_1284c8beee1240959a79",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_c0f2a40f332c401c1563",
+        "from": "evt_1284c8beee1240959a79",
         "to": "source:official published schedule",
         "type": "reported_by"
       },
       {
-        "from": "evt_c0f2a40f332c401c1563",
+        "from": "evt_1284c8beee1240959a79",
         "to": "cluster:335afafcababb05dd183",
         "type": "belongs_to"
       },
       {
-        "from": "evt_7ea42601ebc82db6cd41",
+        "from": "evt_8effedd2d390c39dbf16",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_7ea42601ebc82db6cd41",
+        "from": "evt_8effedd2d390c39dbf16",
         "to": "source:official published schedule",
         "type": "reported_by"
       },
       {
-        "from": "evt_7ea42601ebc82db6cd41",
+        "from": "evt_8effedd2d390c39dbf16",
         "to": "cluster:125bb6576d173720db02",
         "type": "belongs_to"
       },
       {
-        "from": "evt_0b3f898ce78f582ef7e6",
+        "from": "evt_ba39291072c546cbc064",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_0b3f898ce78f582ef7e6",
+        "from": "evt_ba39291072c546cbc064",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_0b3f898ce78f582ef7e6",
-        "to": "cluster:564d053aceed266ef787",
+        "from": "evt_ba39291072c546cbc064",
+        "to": "cluster:c1011007dbaecb560dbd",
         "type": "belongs_to"
       },
       {
-        "from": "evt_9b3c2b1e9f4c6fe0dbd1",
+        "from": "evt_2a6c6fe4209863d3115a",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_9b3c2b1e9f4c6fe0dbd1",
+        "from": "evt_2a6c6fe4209863d3115a",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_9b3c2b1e9f4c6fe0dbd1",
-        "to": "cluster:1942502e10b01993c8a4",
+        "from": "evt_2a6c6fe4209863d3115a",
+        "to": "cluster:bcfbb2a7a069d7dd0355",
         "type": "belongs_to"
       },
       {
-        "from": "evt_4f3016574d9f5f40c83e",
+        "from": "evt_2a513780162fd645dc4c",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_4f3016574d9f5f40c83e",
+        "from": "evt_2a513780162fd645dc4c",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_4f3016574d9f5f40c83e",
-        "to": "cluster:a8a50ba45700bed47911",
+        "from": "evt_2a513780162fd645dc4c",
+        "to": "cluster:5479ec706bc369c76ddb",
         "type": "belongs_to"
       },
       {
-        "from": "evt_d898358243c327880b2d",
+        "from": "evt_ef37c6bf1c3d01fdd1b4",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_d898358243c327880b2d",
-        "to": "source:hk.eastmoney.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_d898358243c327880b2d",
-        "to": "cluster:26140cd754cbbcedb75b",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_df202809a5d598e50623",
-        "to": "ticker:MARKET",
-        "type": "about"
-      },
-      {
-        "from": "evt_df202809a5d598e50623",
+        "from": "evt_ef37c6bf1c3d01fdd1b4",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_df202809a5d598e50623",
-        "to": "cluster:39c56fdda8e06d8e6710",
+        "from": "evt_ef37c6bf1c3d01fdd1b4",
+        "to": "cluster:f6daafae4c346f294439",
         "type": "belongs_to"
       },
       {
-        "from": "evt_9a458fa300de11ededaa",
+        "from": "evt_fab83db16fbda2469723",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_9a458fa300de11ededaa",
+        "from": "evt_fab83db16fbda2469723",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_9a458fa300de11ededaa",
-        "to": "cluster:e9b37ded7357cdf0f65e",
+        "from": "evt_fab83db16fbda2469723",
+        "to": "cluster:5297ef86c3b848f3f744",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_ff20a2362a2c7410a146",
+        "to": "ticker:MARKET",
+        "type": "about"
+      },
+      {
+        "from": "evt_ff20a2362a2c7410a146",
+        "to": "source:finance.eastmoney.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_ff20a2362a2c7410a146",
+        "to": "cluster:f1a2c466fbc88b7a73cb",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_db32a133ffc0d806a2c6",
+        "to": "ticker:SPCX",
+        "type": "about"
+      },
+      {
+        "from": "evt_db32a133ffc0d806a2c6",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_db32a133ffc0d806a2c6",
+        "to": "cluster:9a3ad841563c8598df9f",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_5a36b02ce96587bd6d0e",
+        "to": "ticker:CRCL",
+        "type": "about"
+      },
+      {
+        "from": "evt_5a36b02ce96587bd6d0e",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_5a36b02ce96587bd6d0e",
+        "to": "cluster:d431f08b06babecea53e",
         "type": "belongs_to"
       },
       {
@@ -7252,6 +7770,51 @@
         "type": "belongs_to"
       },
       {
+        "from": "evt_8a2125456a8b8c522b69",
+        "to": "ticker:07709",
+        "type": "about"
+      },
+      {
+        "from": "evt_8a2125456a8b8c522b69",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_8a2125456a8b8c522b69",
+        "to": "cluster:d1095296cbb303852122",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_cbf5f46b92029a33dd4a",
+        "to": "ticker:SPCX",
+        "type": "about"
+      },
+      {
+        "from": "evt_cbf5f46b92029a33dd4a",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_cbf5f46b92029a33dd4a",
+        "to": "cluster:ec16da19286e3cbe79a0",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_690a161029a2d8bbba42",
+        "to": "ticker:CRCL",
+        "type": "about"
+      },
+      {
+        "from": "evt_690a161029a2d8bbba42",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_690a161029a2d8bbba42",
+        "to": "cluster:3b33d5528644720f2a1c",
+        "type": "belongs_to"
+      },
+      {
         "from": "evt_243af80af8d3cb51d5fb",
         "to": "ticker:AAPL",
         "type": "about"
@@ -7264,6 +7827,21 @@
       {
         "from": "evt_243af80af8d3cb51d5fb",
         "to": "cluster:e1dbff8838d9598ab578",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_be0de518c8e55d54f449",
+        "to": "ticker:02208",
+        "type": "about"
+      },
+      {
+        "from": "evt_be0de518c8e55d54f449",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_be0de518c8e55d54f449",
+        "to": "cluster:8035a2ac40f4e3076dc8",
         "type": "belongs_to"
       },
       {
@@ -7297,18 +7875,18 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_11fdb1c4be6bf235bcfe",
-        "to": "ticker:00100",
+        "from": "evt_a983142d391d4ad56f7d",
+        "to": "ticker:SPCX",
         "type": "about"
       },
       {
-        "from": "evt_11fdb1c4be6bf235bcfe",
+        "from": "evt_a983142d391d4ad56f7d",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_11fdb1c4be6bf235bcfe",
-        "to": "cluster:a1efe7707251a6759f3c",
+        "from": "evt_a983142d391d4ad56f7d",
+        "to": "cluster:6b566c8397ff98b88456",
         "type": "belongs_to"
       },
       {
@@ -7327,18 +7905,18 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_78ed04d85336608eb0f6",
-        "to": "ticker:07709",
+        "from": "evt_bc2fefaacf82ca57981f",
+        "to": "ticker:SPCX",
         "type": "about"
       },
       {
-        "from": "evt_78ed04d85336608eb0f6",
+        "from": "evt_bc2fefaacf82ca57981f",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_78ed04d85336608eb0f6",
-        "to": "cluster:5e9d1de347311b7ed0b3",
+        "from": "evt_bc2fefaacf82ca57981f",
+        "to": "cluster:cbfa1df115403965eae5",
         "type": "belongs_to"
       },
       {
@@ -7462,6 +8040,21 @@
         "type": "belongs_to"
       },
       {
+        "from": "evt_6467a1ef2cf7e357bb1f",
+        "to": "ticker:SPCX",
+        "type": "about"
+      },
+      {
+        "from": "evt_6467a1ef2cf7e357bb1f",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_6467a1ef2cf7e357bb1f",
+        "to": "cluster:e74e75c541744f643c0d",
+        "type": "belongs_to"
+      },
+      {
         "from": "evt_aff2997bdd7761fc5ad2",
         "to": "ticker:02208",
         "type": "about"
@@ -7522,21 +8115,6 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_33eccda8f578de7d8f03",
-        "to": "ticker:SPCX",
-        "type": "about"
-      },
-      {
-        "from": "evt_33eccda8f578de7d8f03",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_33eccda8f578de7d8f03",
-        "to": "cluster:3d7f3612eb20c3b459b0",
-        "type": "belongs_to"
-      },
-      {
         "from": "evt_81a4776108dd3f9b887d",
         "to": "ticker:00100",
         "type": "about"
@@ -7579,6 +8157,36 @@
       {
         "from": "evt_38bb53b7010bd9430db7",
         "to": "cluster:37951fe42ad43f9968a2",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_27b830ada87dbcd86c44",
+        "to": "ticker:07709",
+        "type": "about"
+      },
+      {
+        "from": "evt_27b830ada87dbcd86c44",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_27b830ada87dbcd86c44",
+        "to": "cluster:eede03d05d4d03f0b2f8",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_10ba32265c0278de1fd0",
+        "to": "ticker:02208",
+        "type": "about"
+      },
+      {
+        "from": "evt_10ba32265c0278de1fd0",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_10ba32265c0278de1fd0",
+        "to": "cluster:df5b6d935f5abfa353e6",
         "type": "belongs_to"
       },
       {
@@ -7657,18 +8265,18 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_d216d5119196878ebfa4",
-        "to": "ticker:SPCX",
+        "from": "evt_134e63c87cad42b6486f",
+        "to": "ticker:00100",
         "type": "about"
       },
       {
-        "from": "evt_d216d5119196878ebfa4",
+        "from": "evt_134e63c87cad42b6486f",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_d216d5119196878ebfa4",
-        "to": "cluster:3bf702408f24d35ed3a9",
+        "from": "evt_134e63c87cad42b6486f",
+        "to": "cluster:7fa8e65a94002251e0b4",
         "type": "belongs_to"
       },
       {
@@ -7699,21 +8307,6 @@
       {
         "from": "evt_aeddf1532ed90e30cece",
         "to": "cluster:5f78550cc67e7f3188b1",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_e6318ea8f3b3add3d85f",
-        "to": "ticker:02208",
-        "type": "about"
-      },
-      {
-        "from": "evt_e6318ea8f3b3add3d85f",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_e6318ea8f3b3add3d85f",
-        "to": "cluster:756fafb146d22e9638ad",
         "type": "belongs_to"
       },
       {
@@ -7777,33 +8370,18 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_c6f31d0636caed093b37",
-        "to": "ticker:03032",
+        "from": "evt_51388e8b8d53d9e19963",
+        "to": "ticker:00100",
         "type": "about"
       },
       {
-        "from": "evt_c6f31d0636caed093b37",
+        "from": "evt_51388e8b8d53d9e19963",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_c6f31d0636caed093b37",
-        "to": "cluster:f878e26e9ee68514294f",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_6a6c3cb9f682a051d112",
-        "to": "ticker:03032",
-        "type": "about"
-      },
-      {
-        "from": "evt_6a6c3cb9f682a051d112",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_6a6c3cb9f682a051d112",
-        "to": "cluster:d960def9d8b4e8ecb6a8",
+        "from": "evt_51388e8b8d53d9e19963",
+        "to": "cluster:0d3bfa133e70841bbebd",
         "type": "belongs_to"
       },
       {
@@ -7822,48 +8400,33 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_1a6a54907c5522f7aee8",
-        "to": "ticker:CRCL",
+        "from": "evt_11a7e509b3afce23a25d",
+        "to": "ticker:02208",
         "type": "about"
       },
       {
-        "from": "evt_1a6a54907c5522f7aee8",
+        "from": "evt_11a7e509b3afce23a25d",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_1a6a54907c5522f7aee8",
-        "to": "cluster:316820db8920dd552991",
+        "from": "evt_11a7e509b3afce23a25d",
+        "to": "cluster:9defa9ddfe49d7285e64",
         "type": "belongs_to"
       },
       {
-        "from": "evt_1361cda5ccf21ec5df1e",
+        "from": "evt_61545975f070cc0019b6",
         "to": "ticker:07709",
         "type": "about"
       },
       {
-        "from": "evt_1361cda5ccf21ec5df1e",
+        "from": "evt_61545975f070cc0019b6",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_1361cda5ccf21ec5df1e",
-        "to": "cluster:4f97b841b544bc84fec9",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_f48d26ef387b71f4a145",
-        "to": "ticker:SPCX",
-        "type": "about"
-      },
-      {
-        "from": "evt_f48d26ef387b71f4a145",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_f48d26ef387b71f4a145",
-        "to": "cluster:d10b03158c487ac88e57",
+        "from": "evt_61545975f070cc0019b6",
+        "to": "cluster:e5c3e1f16adfb53aa452",
         "type": "belongs_to"
       },
       {
@@ -7882,18 +8445,48 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_0ef0490c750d800798e7",
+        "from": "evt_87e7c00aec074640dcd6",
         "to": "ticker:02208",
         "type": "about"
       },
       {
-        "from": "evt_0ef0490c750d800798e7",
+        "from": "evt_87e7c00aec074640dcd6",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_0ef0490c750d800798e7",
-        "to": "cluster:1d546532909596c24167",
+        "from": "evt_87e7c00aec074640dcd6",
+        "to": "cluster:0325f3a528c48a22c99b",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_61765c33e657aa0471f9",
+        "to": "ticker:02208",
+        "type": "about"
+      },
+      {
+        "from": "evt_61765c33e657aa0471f9",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_61765c33e657aa0471f9",
+        "to": "cluster:1938ed750010aafb9508",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_4e576183b534bb543ad8",
+        "to": "ticker:00100",
+        "type": "about"
+      },
+      {
+        "from": "evt_4e576183b534bb543ad8",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_4e576183b534bb543ad8",
+        "to": "cluster:5b51f9d5eb3361a77f6b",
         "type": "belongs_to"
       },
       {
@@ -7912,18 +8505,18 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_174f50fcc292eac444bc",
-        "to": "ticker:SPCX",
+        "from": "evt_8ee89f726194488a8bc4",
+        "to": "ticker:RKLB",
         "type": "about"
       },
       {
-        "from": "evt_174f50fcc292eac444bc",
+        "from": "evt_8ee89f726194488a8bc4",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_174f50fcc292eac444bc",
-        "to": "cluster:6b566c8397ff98b88456",
+        "from": "evt_8ee89f726194488a8bc4",
+        "to": "cluster:29e3afcb72d425ab11d7",
         "type": "belongs_to"
       },
       {
@@ -7957,48 +8550,18 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_ff64dd6d95dafb590443",
-        "to": "ticker:03032",
+        "from": "evt_4a508adfbae858c8da88",
+        "to": "ticker:02208",
         "type": "about"
       },
       {
-        "from": "evt_ff64dd6d95dafb590443",
+        "from": "evt_4a508adfbae858c8da88",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_ff64dd6d95dafb590443",
-        "to": "cluster:f1417b1f57510c4089ff",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_5f34047bcb741cdab9dc",
-        "to": "ticker:03033",
-        "type": "about"
-      },
-      {
-        "from": "evt_5f34047bcb741cdab9dc",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_5f34047bcb741cdab9dc",
-        "to": "cluster:f1417b1f57510c4089ff",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_847e5ca32ab8c76b8173",
-        "to": "ticker:00100",
-        "type": "about"
-      },
-      {
-        "from": "evt_847e5ca32ab8c76b8173",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_847e5ca32ab8c76b8173",
-        "to": "cluster:c1b8a026af79a3dd345a",
+        "from": "evt_4a508adfbae858c8da88",
+        "to": "cluster:4fc6e3574e35df86cbce",
         "type": "belongs_to"
       },
       {
@@ -8029,6 +8592,21 @@
       {
         "from": "evt_2b051813cc91e58a9b1a",
         "to": "cluster:626828de6e30092c551f",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_5bd253812ab98e6550c8",
+        "to": "ticker:03033",
+        "type": "about"
+      },
+      {
+        "from": "evt_5bd253812ab98e6550c8",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_5bd253812ab98e6550c8",
+        "to": "cluster:66f27afd9284fc5c95af",
         "type": "belongs_to"
       },
       {
@@ -8092,36 +8670,6 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_bef2bb996f77a5db05d2",
-        "to": "ticker:RKLB",
-        "type": "about"
-      },
-      {
-        "from": "evt_bef2bb996f77a5db05d2",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_bef2bb996f77a5db05d2",
-        "to": "cluster:055bc928b01f85c174a4",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_fa24ebe6ab877ae26e7e",
-        "to": "ticker:07709",
-        "type": "about"
-      },
-      {
-        "from": "evt_fa24ebe6ab877ae26e7e",
-        "to": "source:news.google.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_fa24ebe6ab877ae26e7e",
-        "to": "cluster:b63f8e51870268ac36bd",
-        "type": "belongs_to"
-      },
-      {
         "from": "evt_4027e82c759e7f3a31b0",
         "to": "ticker:RKLB",
         "type": "about"
@@ -8152,33 +8700,78 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_466f9638777116430e04",
+        "from": "evt_7b27a2a409888dce6dec",
         "to": "ticker:03032",
         "type": "about"
       },
       {
-        "from": "evt_466f9638777116430e04",
+        "from": "evt_7b27a2a409888dce6dec",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_466f9638777116430e04",
-        "to": "cluster:eb8ed5afa5d9da263ed5",
+        "from": "evt_7b27a2a409888dce6dec",
+        "to": "cluster:d87019159e9aa8f5d83e",
         "type": "belongs_to"
       },
       {
-        "from": "evt_20ef50ea935e1ce703f4",
-        "to": "ticker:CRCL",
+        "from": "evt_c7f45e3077d632ec2b03",
+        "to": "ticker:03032",
         "type": "about"
       },
       {
-        "from": "evt_20ef50ea935e1ce703f4",
+        "from": "evt_c7f45e3077d632ec2b03",
         "to": "source:news.google.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_20ef50ea935e1ce703f4",
-        "to": "cluster:3bb56b5a55d6b1031cea",
+        "from": "evt_c7f45e3077d632ec2b03",
+        "to": "cluster:401ab20a770a6229373d",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_ee8d6bf9dd851180e7d4",
+        "to": "ticker:07709",
+        "type": "about"
+      },
+      {
+        "from": "evt_ee8d6bf9dd851180e7d4",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_ee8d6bf9dd851180e7d4",
+        "to": "cluster:b545e1f0fd385f1cd148",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_8333b768a41a296198f0",
+        "to": "ticker:03032",
+        "type": "about"
+      },
+      {
+        "from": "evt_8333b768a41a296198f0",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_8333b768a41a296198f0",
+        "to": "cluster:d960def9d8b4e8ecb6a8",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_4b06aff85c872ffb6a67",
+        "to": "ticker:03032",
+        "type": "about"
+      },
+      {
+        "from": "evt_4b06aff85c872ffb6a67",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_4b06aff85c872ffb6a67",
+        "to": "cluster:0abf67aeed8db608aca2",
         "type": "belongs_to"
       }
     ]
@@ -8201,10 +8794,10 @@
     "peer_residual": "loaded"
   },
   "summary": {
-    "events": 81,
-    "active": 41,
+    "events": 88,
+    "active": 49,
     "upcoming": 3,
-    "expired": 37,
+    "expired": 36,
     "primary_source_events": 8,
     "actionable_escalations": 0,
     "information_overlay_status": "active",
