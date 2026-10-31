@@ -19,6 +19,7 @@ PATCH_SCRIPTS = (
     "/root/tools/openclaw/current/patch-dreaming-narrative-race.sh",
     "/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh",
     "/root/tools/openclaw/current/patch-hook-relay-exec.sh",
+    "/root/tools/openclaw/current/patch-reply-session-cost.sh",
 )
 PATCH_BASENAMES = tuple(Path(script).name for script in PATCH_SCRIPTS)
 PATCH_MARKERS = (
@@ -29,6 +30,7 @@ PATCH_MARKERS = (
     "clawock-dreaming-race-v2",
     "clawock-minimax-m3x-adaptive-thinking",
     "clawock-hook-relay-exec",
+    "clawock-reply-session-cost-v1",
 )
 
 
