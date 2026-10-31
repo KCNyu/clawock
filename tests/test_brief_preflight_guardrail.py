@@ -779,3 +779,14 @@ def test_zero_value_is_not_replaced_by_cost_in_hard_stop(preflight):
     assert stop["pnl_pct"] == -100
     assert stop["required_reduction"]["minimum_value"] == 0
     assert preflight.compute_breakeven_math([], [row])["rows"] == []
+
+
+@pytest.mark.parametrize("mark,expected", [(0, 0), (None, 750), ("0", 0), (300, 300)])
+def test_regime_full_position_uses_same_carried_value(preflight, mark, expected):
+    holding = {"ticker": "PLTU", "name": "PLTU", "shares": 25, "cost_basis": 30,
+               "current_value": mark, "is_leveraged_etf": True}
+    regime = {"us": {"names": [{"state": "cut", "etf": "PLTU", "underlying": "PLTR",
+                               "dist_ma_pct": -12.5, "vol_annualized": .81, "vol_hot_cap": .70}]}}
+    result = _evaluate(preflight, us=[holding], lev_regime=regime)
+    breach = next(b for b in result["breaches"] if b["type"] == "regime_delever")
+    assert breach["required_reduction"]["minimum_value"] == expected

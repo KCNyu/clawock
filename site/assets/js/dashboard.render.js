@@ -1796,16 +1796,16 @@
   // 「这条闸触发多久了」。天数是**简报记录日**（guardrail_history 每份简报一行、
   // 按日期幂等），所以周末和假日是缺行不是 0 —— 数行，不减日期。capped 表示这段
   // 连续记录一直顶到文件最早一行（2026-07-15 开始，之前的重建不出来），所以写
-  // 「N 天+」而不是把一个下界当成确数印出来。
+  // 「至少 N 次简报记录」而不是把一个下界当成确数印出来。
   function guardrailAgeLabel(entry) {
     const days = entry && entry.age_days;
     if (typeof days !== "number") return "";
     const line = (cls, title, text) =>
       `<span class="risk-age ${cls}" title="${title}">${text}</span>`;
-    if (days === 0) return line("is-new", "今晨简报记录时还没有这一条", "今日新增");
+    if (days === 0) return line("is-new", "最新简报记录时还没有这一条", "最新记录后新增");
     const capped = entry.age_capped === true;
     return line("", `按简报记录日计，非日历日${capped ? "；记录始于文件最早一行，实际可能更久" : ""}`,
-                `连续 ${days} 天${capped ? "+" : ""}`);
+                `${capped ? "至少 " : "连续 "}${days} 次简报记录`);
   }
 
   function renderRiskGuardrail() {

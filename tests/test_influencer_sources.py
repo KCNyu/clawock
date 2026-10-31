@@ -133,7 +133,7 @@ def test_chatty_source_cannot_crowd_the_others_out(tmp_path, monkeypatch):
         return {}
 
     monkeypatch.setattr(inf, 'llm_filter', fake_filter)
-    inf.main()
+    inf.main([])
 
     candidates = seen['candidates']
     assert len(candidates) <= inf.MAX_CANDIDATES
@@ -178,7 +178,7 @@ def test_a_failed_filter_never_publishes_unscored_items(tmp_path, monkeypatch):
     _quiet_sources(monkeypatch, ['headline one', 'headline two'])
     monkeypatch.setattr(inf, 'llm_filter', lambda candidates, _held: {})
 
-    inf.main()
+    inf.main([])
     payload = json.loads(out.read_text(encoding='utf-8'))
 
     assert payload['llm_filtered'] is False
@@ -197,7 +197,7 @@ def test_a_working_filter_reports_ok(tmp_path, monkeypatch):
             'sector_holdings': [], 'stance': 'neutral', 'relevance': 60, 'summary_cn': 'x'}
         for i, _c in enumerate(candidates)})
 
-    inf.main()
+    inf.main([])
     payload = json.loads(out.read_text(encoding='utf-8'))
     assert payload['llm_filter_status'] == 'ok'
     assert payload['items'] and all(it['relevance'] == 60 for it in payload['items'])
@@ -212,7 +212,7 @@ def test_all_invalid_relevance_is_a_failed_filter(tmp_path, monkeypatch):
     monkeypatch.setattr(inf, 'llm_filter', lambda candidates, _held: {
         i: {'relevance': None} for i, _ in enumerate(candidates)
     })
-    inf.main()
+    inf.main([])
     payload = json.loads(out.read_text(encoding='utf-8'))
     assert payload['llm_filter_status'] == 'failed'
     assert payload['llm_filtered'] is False
@@ -241,7 +241,7 @@ def test_routine_ark_rebalancing_is_capped_below_the_news(tmp_path, monkeypatch)
             'stance': 'sell', 'relevance': 82, 'summary_cn': 'x'}
         for i, c in enumerate(candidates)})
 
-    inf.main()
+    inf.main([])
     payload = json.loads((tmp_path / 'influencer.json').read_text(encoding='utf-8'))
     by_ticker = {tuple(it['tickers']): it['relevance'] for it in payload['items']}
 
@@ -270,7 +270,7 @@ def test_a_leveraged_etf_holding_counts_its_underlying_as_held(tmp_path, monkeyp
                 for i, _c in enumerate(candidates)}
 
     monkeypatch.setattr(inf, 'llm_filter', fake_filter)
-    inf.main()
+    inf.main([])
     payload = json.loads((tmp_path / 'influencer.json').read_text(encoding='utf-8'))
 
     assert seen['held'] == [{'ticker': 'RKLX', 'name': 'RKLB 2x', 'region': 'US',
