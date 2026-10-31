@@ -51,6 +51,11 @@ contextWindow = 1048576
 maxTokens = 131072
 input = ["text"]
 reasoning = true
+# List price only (kcn 2026-10-31 asked for a number so /usage full shows one on
+# this hop). The account runs a token plan, so this is NOT what is billed:
+# MiniMax domestic list is 1 / 4 / 0.1 CNY per 1M (input / output / cache read),
+# converted at ~7.1 CNY per USD; third-party listings quote USD 0.15 / 0.60 / 0.015.
+cost = { input = 0.14, output = 0.56, cacheRead = 0.014, cacheWrite = 0 }
 params = { thinking = "adaptive" }
 
 [models.deepseek]
