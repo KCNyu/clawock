@@ -183,8 +183,8 @@ def main(argv=None):
     setting.add_argument("--reason", required=True)
     setting.add_argument("--review-on")
     args = parser.parse_args(argv)
-    from zoneinfo import ZoneInfo
-    today = datetime.now(ZoneInfo("Asia/Hong_Kong")).date().isoformat()
+    from clawock.sessions import hkt_today
+    today = hkt_today().isoformat()
     try:
         if args.command == "collect":
             from clawock.market_data.stock_discovery import collect
