@@ -50,6 +50,12 @@ runs in CI (`dispatch-runner.yml`, groups and timings in its header), and on the
 staged copy:
 `AGENT_DISPATCH_RUNNER=<copy>/run-agent.sh DISPATCH_TEST_CASES=<groups> bash <copy>/tests/run-tests.sh`.
 
+`restart_gateway.sh` is the guarded restart path for a dispatched task: it checks
+`gateway.restart` in the task's `mandate.json`, records the restart under the task directory,
+and then runs `openclaw gateway restart`. `refresh_live.sh` checks the same mandate before it
+writes; a task dispatched with `--no-restart` is refused and the denial is appended to
+`mandate-violations.jsonl`. Details: `docs/architecture/task-queue.md` § Mandate.
+
 Wake events stay spooled until the turn succeeds. Failure recovery, explicit retry commands,
 the four silence guards and the turn budget are described in
 [the wake contract](../../docs/architecture/task-queue.md#a-turn-in-the-session-that-dispatched).

@@ -67,6 +67,34 @@ install_runner() {
   bash ops/host/install_agent_dispatch.sh
   bash ops/host/install_agent_dispatch.sh --check
 }
+# A dispatched task carries a machine-readable mandate (docs/architecture/task-queue.md
+# § Mandate). The default allows applying a merge and restarting; --no-restart denies both, so
+# a task that must not touch the live desk cannot half-apply a change. No mandate at all is a
+# task from before the field existed (or an interactive shell) and keeps the old behaviour.
+MANDATE_FILE="${AGENT_DISPATCH_MANDATE:-}"
+if [ -z "$MANDATE_FILE" ] && [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
+  candidate="/root/logs/agent-dispatch/${AGENT_DISPATCH_TASK_ID}/mandate.json"
+  [ ! -r "$candidate" ] || MANDATE_FILE="$candidate"
+fi
+MANDATE_HELPER="$RUNNER_DIR/mandate.py"
+[ -r "$MANDATE_HELPER" ] || MANDATE_HELPER="$PWD/ops/host/agent-dispatch/mandate.py"
+mandate_check() {  # <action> <what this refresh is about to do>
+  [ -n "$MANDATE_FILE" ] || return 0
+  [ -r "$MANDATE_HELPER" ] || {
+    echo "refusing: $MANDATE_FILE exists but $MANDATE_HELPER is missing; install the runner first" >&2
+    exit 3
+  }
+  if ! python3 "$MANDATE_HELPER" check --file "$MANDATE_FILE" --action "$1" \
+      --source refresh_live.sh --task-dir "$(dirname "$MANDATE_FILE")" >/dev/null; then
+    echo "refused: this task's mandate does not allow $1 ($2); the denial is recorded in $(dirname "$MANDATE_FILE")/mandate-violations.jsonl" >&2
+    exit 3
+  fi
+}
+record_restart() {  # <what> — the task report also carries the RESTART line the contract asks for
+  [ -n "${AGENT_DISPATCH_TASK_ID:-}" ] || return 0
+  printf '%s action=%s task=%s source=refresh_live.sh\n' "$(date '+%F %T')" "$1" "$AGENT_DISPATCH_TASK_ID" \
+    >>"/root/logs/agent-dispatch/$AGENT_DISPATCH_TASK_ID/restarts.log" 2>/dev/null || true
+}
 # The queue ops entry the runner and the desk's queue actions call is the installed copy in
 # the same directory, not this checkout (ops/ is outside the editable install). Installing it
 # stays a manual step (install_task_queue_ops.sh says why), so this script only names it —
@@ -100,6 +128,11 @@ install_memory_kit() {
   bash ops/host/install_shared_memory.sh --check
 }
 MEMORY_KIT_STALE="the installed shared-memory skill fails install_shared_memory.sh --check: it needs installing"
+
+if [ "$check_only" = "0" ]; then
+  mandate_check live.refresh "applying a merge to this host"
+  mandate_check gateway.restart "a live install may restart the serving process"
+fi
 
 if [ "$behind" = "0" ]; then
   echo "live checkout is at $REMOTE/$BRANCH ($(git rev-parse --short HEAD))"
@@ -217,6 +250,7 @@ if [ "$needs_venv" = "1" ]; then
 fi
 if [ "$needs_plugin" = "1" ]; then
   if command -v dsh >/dev/null; then
+    record_restart dsh-plugin
     bash ops/host/install_dsh_plugin.sh --restart
   else
     echo "dsh CLI not on PATH — skipped the plugin install" >&2

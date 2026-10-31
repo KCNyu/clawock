@@ -25,11 +25,20 @@ set -uo pipefail
 # changes (deadline, attempts, resumes) below api 3. Api 4 writes attempt<N>.env when run N
 # launches its CLI and when it returns, so a brief tells an append taken by a run that never
 # started from a delivered one; dispatch.sh names the runner api when it refuses an append.
-RUNNER_API=4
+# Api 5 adds the machine-readable mandate and the NEEDS/STAGE/ATTENTION fields the notification
+# gate reads (docs/architecture/task-queue.md § Mandate and § When the end notice is sent).
+RUNNER_API=5
 
 DIR="$1"
 # shellcheck disable=SC1091
 . "$DIR/meta.env"
+
+# The mandate is created by dispatch.sh before this unit starts. Export its path so host scripts
+# launched by the task (refresh_live.sh, restart_gateway.sh) check the same file. Old tasks have
+# none: the guard reports legacy and proceeds.
+AGENT_DISPATCH_MANDATE=""
+[ ! -r "$DIR/mandate.json" ] || AGENT_DISPATCH_MANDATE="$DIR/mandate.json"
+export AGENT_DISPATCH_MANDATE
 
 export TZ=Asia/Shanghai HOME=/root
 # AGENT_DISPATCH_PATH_PREFIX: test seam for fake CLIs. systemd-run does not pass the
@@ -161,17 +170,28 @@ SLOT=""   # set by acquire_slot while this attempt holds a run slot; published i
 # mtime). WAKE_AT: epoch a quota/retry wait ends. NOTIFIED / NOTIFY_FAILED: the legs of the
 # latest notification that were delivered / failed, at NOTIFY_AT; readers stop grepping run.log.
 QUEUED_AT="" WAKE_AT="" NOTIFIED="" NOTIFY_FAILED="" NOTIFY_AT=""
+# Structured end state (runner api 5): NEEDS is the agent's own "does a person have to act?"
+# line; ATTENTION folds it with the runner's state so the end notice is sent only when a person
+# is needed. STAGE is the prototype's stage table: working/queued, working, person/*, idle.
+NEEDS="" NEED_SUMMARY="" STAGE="" ATTENTION="" NOTICE="" RESTART=""
 META_EFFORT=$EFFORT
 TOKENS_IN="" TOKENS_CACHE_W="" TOKENS_CACHE_R="" TOKENS_OUT="" TOKENS_TOTAL="" COST_USD=""
 # 1 when the latest update_usage read returned a COST_USD line (even an empty value). Empty
 # means that read produced nothing, so a non-empty COST_USD is the previous read's value.
 USAGE_READ=""
 write_result() {
-  local tmp="$DIR/.result.env.tmp"
+  local tmp="$DIR/.result.env.tmp" stage="$STAGE" attention="$ATTENTION"
+  # A live task's stage is decided by the runner, not by a stale end field from an earlier run.
+  case "$STATE" in
+    queued) stage="working/queued" attention="" ;;
+    running) stage="working" attention="" ;;
+  esac
   {
     printf 'QUOTA_RESUMES_USED=%q\nSTALLS=%q\n' "$QUOTA_RESUMES_USED" "$STALLS"
     printf 'STATE=%q\nRC=%q\nOUTCOME=%q\nSESSION=%q\nATTEMPTS=%q\nAPPENDS=%q\nWAITING=%q\nSLOT=%q\nMODEL_USED=%q\nSTARTED=%q\nUPDATED=%q\n' \
       "$STATE" "$RC" "$OUTCOME" "$SESSION" "$ATTEMPTS" "$APPENDS" "$WAITING" "$SLOT" "$LAST_MODEL" "$STARTED" "$(ts)"
+    printf 'NEEDS=%q\nNEED_SUMMARY=%q\nSTAGE=%q\nATTENTION=%q\nNOTICE=%q\nRESTART=%q\nMANDATE_POLICY_VERSION=%q\n' \
+      "$NEEDS" "$NEED_SUMMARY" "$stage" "$attention" "$NOTICE" "$RESTART" "${MANDATE_POLICY_VERSION:-}"
     printf 'USAGE_START_EPOCH=%q\n' "$USAGE_START_EPOCH"
     printf 'RUN_NO=%q\nSTOP_REASON=%q\nFINISHED_EPOCH=%q\n' "$RUN_NO" "$STOP_REASON" "$FINISHED_EPOCH"
     printf 'FAILURE_REASON=%q\n' "$FAILURE_REASON"
@@ -181,6 +201,29 @@ write_result() {
     printf 'TOKENS_IN=%q\nTOKENS_CACHE_W=%q\nTOKENS_CACHE_R=%q\nTOKENS_OUT=%q\nTOKENS_TOTAL=%q\nCOST_USD=%q\n' \
       "$TOKENS_IN" "$TOKENS_CACHE_W" "$TOKENS_CACHE_R" "$TOKENS_OUT" "$TOKENS_TOTAL" "$COST_USD"
   } >"$tmp" && mv -f "$tmp" "$DIR/result.env"
+}
+
+# Read the structured facts out of the model's final report. Only a line STARTING with NEEDS:
+# counts, so a sentence that quotes the field does not. A missing line is unknown, never none:
+# silence is an explicit report, not something inferred from prose.
+classify_finish() {
+  NEEDS=$(printf '%s\n' "$FINAL_TEXT" | sed -n 's/^NEEDS:[[:space:]]*//p' | tail -1 | sed 's/[[:space:]]*$//')
+  [ "${#NEEDS}" -le 300 ] || NEEDS=${NEEDS:0:300}
+  case "${NEEDS,,}" in none|无|无需|无需动作) NEEDS=none ;; esac
+  NEED_SUMMARY=$NEEDS
+  RESTART=$(printf '%s\n' "$FINAL_TEXT" | sed -n 's/^RESTART:[[:space:]]*//p' | tail -1 | sed 's/[[:space:]]*$//')
+  [ "${#RESTART}" -le 300 ] || RESTART=${RESTART:0:300}
+  if [ "$STATE" = cancelled ]; then
+    ATTENTION=unknown STAGE=ended   # a stop still tells the dispatcher; only a clean DONE+nothing is quiet
+  elif [ "$STATE" = ok ] && [ "$NEEDS" = none ]; then
+    ATTENTION=none STAGE=idle
+  elif [ "$STATE" = ok ] && [ -z "$NEEDS" ]; then
+    ATTENTION=unknown STAGE=ended   # a clean run that never said; keep the old notice, not silence
+  elif [ "$STATE" = ok ] || [ "$STATE" = partial ] || [ "$STATE" = unverified ]; then
+    ATTENTION=person STAGE=person/review
+  else
+    ATTENTION=person STAGE=person/blocked
+  fi
 }
 
 # claude gets its session id before it starts (--session-id), but a transcript exists only once
@@ -494,6 +537,7 @@ cost_line() {  # <1 when the latest usage read returned a COST_USD line>
 finish() {
   local icon
   inbox_close
+  classify_finish
   FINISHED_EPOCH=$(date +%s.%N)
   write_result
   printf '%s\n' "$FINAL_TEXT" | redact >"$DIR/.runner-summary.tmp"
@@ -540,10 +584,20 @@ $(printf '%s' "$FINAL_TEXT" | clip tail 500)
 ${resume_hint}${open_hint}${quota}${cost}
 id：$ID
 日志：$DIR/run.log"
-  notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"
-  # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
-  # on the attempt stop, the quota line and the legs.
-  [ "$STATE" = cancelled ] || wake_origin end "$notice"
+  # The gate from docs/003: speak when a person must act, or when the result is ready to use.
+  # A clean DONE that reports NEEDS: none is recorded and shown in the chip, but sends no end
+  # notice and wakes no session. Missing or malformed NEEDS keeps the old behaviour (unknown).
+  if [ "$ATTENTION" = none ]; then
+    NOTICE=suppressed
+    echo "notify: suppressed (state=$STATE needs=none); recorded in result.env and the task chip"
+    write_result
+  else
+    if [ "$NOTIFY" = none ]; then NOTICE=none; write_result; else NOTICE=attempted; fi
+    notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"
+    # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
+    # on the attempt stop, the quota line and the legs.
+    [ "$STATE" = cancelled ] || wake_origin end "$notice"
+  fi
   printf 'terminal\n' >"$DIR/.inbox-state.tmp"
   mv -f "$DIR/.inbox-state.tmp" "$DIR/inbox-state"
   echo "==================== $(ts) $ID end state=$STATE outcome=${OUTCOME:--} rc=${RC:--} ===================="
