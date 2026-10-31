@@ -116,7 +116,8 @@ runtime = "claude-cli"
 # a warning. A chain without `thinking` takes each model's `params.thinking`.
 
 [chains.chat]  # direct chat with the assistant
-models = ["flash", "deepseek"]
+# Parent's call, 2026-10-31: DeepSeek first, MiniMax-M3.1-Flash as the backup.
+models = ["deepseek", "flash"]
 
 [chains.heartbeat]
 models = ["flash"]
@@ -154,5 +155,6 @@ models = ["flash"]
 thinkingDefault = "high"
 
 [openclaw.talk]
-# Talk consults run the chat chain, MiniMax-M3.1-Flash first.
-consultThinkingLevel = "adaptive"
+# Talk consults run the chat chain; `adaptive` is a MiniMax-only level and the
+# chain now starts on DeepSeek, so this follows `thinkingDefault` instead.
+consultThinkingLevel = "high"
