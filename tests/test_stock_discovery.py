@@ -131,7 +131,7 @@ def test_preflight_runs_bounded_command_and_keeps_failure_out_of_book_issues(mon
     from clawock.harness import brief_preflight as P
 
     def run(argv, **kwargs):
-        assert argv[-2:] == ['discover-stocks', '--json']
+        assert argv[-2:] == ['research-inbox', 'collect']
         assert kwargs['timeout'] == 25
         return SimpleNamespace(returncode=0, stdout=json.dumps(screen([row('MED')])))
 

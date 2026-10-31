@@ -4350,7 +4350,13 @@ async function testExposureComparesSharesWithinEachLeg(browser, base) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
     const page = await context.newPage();
     await stubLiveOrigin(page, {
-      patch: (_name, payload) => payload.sector_exposure ? { ...payload, sector_exposure: sectors } : null,
+      patch: (_name, payload) => payload.sector_exposure ? {
+        ...payload, sector_exposure: sectors,
+        concentration: { ...payload.concentration, us: { ...payload.concentration.us,
+          valuation: { cost_count: 1, unavailable_count: 1, cost_carried_pct: 25,
+            rows: [{ ticker: "TEST", label: "成本结转" },
+                   { ticker: "QUOTE", label: "报价估值", source: "fixture", session: "2026-10-30" }] } } },
+      } : null,
     });
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
@@ -4374,6 +4380,12 @@ async function testExposureComparesSharesWithinEachLeg(browser, base) {
         }),
       };
     }));
+    const basis = await page.locator("#expo-us .expo-valuation").textContent();
+    assert(basis.includes("成本结转 1 只（25.0%）") && basis.includes("无法估值 1 只"));
+    await page.locator("#expo-us .expo-valuation-details summary").click();
+    const details = await page.locator("#expo-us .expo-valuation-details").textContent();
+    assert(details.includes("QUOTE：报价估值 · fixture · 2026-10-30"));
+    assert(details.includes("不代表新鲜度已核验"));
     const label = `${width}px`;
     const [us, hk] = legs;
     assert.deepEqual(us.rows.map(r => r.name), ["Aerospace", "Crypto / Stablecoin"],

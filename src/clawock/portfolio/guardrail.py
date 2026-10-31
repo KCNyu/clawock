@@ -17,6 +17,7 @@ from clawock.safe_io import to_number as _share_number
 
 from clawock.portfolio.math import ledger_rows
 from clawock.portfolio.math import carried_value
+from clawock.portfolio.valuation import summary as valuation_summary
 
 import math
 import re
@@ -45,7 +46,7 @@ def compute_concentration(holdings):
         return {}
     total = sum(carried_value(h) for h in active)
     if not total:
-        return {'error': 'leg has zero total value'}
+        return {'error': 'leg has zero total value', 'valuation': valuation_summary(active)}
 
     weights = []
     for h in active:
@@ -73,6 +74,7 @@ def compute_concentration(holdings):
         'verdict':    verdict,
         'leg_total':  round(total, 2),
         'weights':    weights,
+        'valuation':  valuation_summary(active),
     }
 
 

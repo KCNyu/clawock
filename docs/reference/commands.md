@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**87 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 64 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (75 subcommands). 48 of the registry commands collect or compute information and appear under the layer they feed; the remaining 28 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**88 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 65 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (76 subcommands). 48 of the registry commands collect or compute information and appear under the layer they feed; the remaining 29 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -186,6 +186,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock-brief-watchdog` | `clawock.harness.brief_watchdog` | delivery watchdog for the 08:03 brief: it checks that a run produced and sent something |
 | `clawock-report-watchdog` | `clawock.harness.report_watchdog` | delivery watchdog for the session reports, on the same footing |
 | `clawock-intraday-watchdog` | `clawock.harness.intraday_watchdog` | delivery watchdog for the intraday slots, on the same footing |
+| `clawock research-inbox` | `clawock.decision.research_inbox` | local research queue dispositions and review dates; not a market measurement or trading authorization |
 
 <!-- END GENERATED INVENTORY -->
 

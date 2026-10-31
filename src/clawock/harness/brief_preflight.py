@@ -1492,7 +1492,7 @@ def stock_discovery_node():
     from clawock.market_data.stock_discovery import unavailable
 
     try:
-        result = subprocess.run(clawock_argv('discover-stocks', '--json'),
+        result = subprocess.run(clawock_argv('research-inbox', 'collect'),
                                 cwd=WS, capture_output=True, text=True, timeout=25)
         if result.returncode != 0:
             return unavailable('Nasdaq discovery command failed'), []

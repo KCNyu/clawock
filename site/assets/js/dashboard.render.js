@@ -399,6 +399,21 @@
       const el = document.getElementById(`expo-${leg}`);
       if (!el) return;
       const c = conc[leg] || {};
+      const valuation = c.valuation;
+      const basis = el.querySelector(".expo-valuation");
+      if (basis) {
+        basis.textContent = valuation
+          ? `成本结转 ${valuation.cost_count} 只（${pctText(valuation.cost_carried_pct)}）；无法估值 ${valuation.unavailable_count} 只。`
+            + ((valuation.cost_count || valuation.unavailable_count) ? "权重含成本结转或缺口。" : "均为账本报价估值。")
+          : "估值依据未提供";
+      }
+      const basisDetails = el.querySelector(".expo-valuation-details");
+      if (basisDetails) {
+        basisDetails.hidden = !valuation;
+        basisDetails.querySelector("ul").innerHTML = (valuation?.rows || []).map(r =>
+          `<li>${escapeHtml(r.ticker)}：${escapeHtml(r.label)}${r.source ? " · " + escapeHtml(r.source) : ""}${r.session ? " · " + escapeHtml(r.session) : ""}</li>`
+        ).join("");
+      }
       const verdict = c.verdict || {};
       const level = String(verdict.level || "").toLowerCase();
       const state = level === "healthy" || level === "normal" ? "normal"

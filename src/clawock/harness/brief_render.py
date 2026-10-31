@@ -282,6 +282,27 @@ def header_section(context, judgment):
     return "\n".join(lines)
 
 
+def valuation_notes(context):
+    lines = []
+    for leg in ("hk", "us"):
+        valuation = ((context.get("concentration") or {}).get(leg) or {}).get("valuation") or {}
+        if not valuation:
+            continue
+        rows = valuation.get("rows") or []
+        carried = valuation.get("cost_count", 0)
+        missing = valuation.get("unavailable_count", 0)
+        share = valuation.get("cost_carried_pct")
+        share_text = f"{share:g}%" if share is not None else "不可计算"
+        lines.append(f"{leg.upper()} 估值依据：成本结转 {carried} 只，占可计值合计 {share_text}；无法估值 {missing} 只。"
+                     + ("权重含成本结转或缺口，请按混合/不完整口径解读。" if carried or missing else "均为账本报价估值。"))
+        for row in rows:
+            provenance = " · ".join(str(row.get(k)) for k in ("source", "session") if row.get(k))
+            lines.append(f"- {text(row.get('ticker'))}：{text(row.get('label'))}"
+                         + (f"（{text(provenance)}）" if provenance else ""))
+        lines.append("报价估值不代表新鲜度已核验；来源和场次沿用同代账本。")
+    return "\n".join(lines)
+
+
 def concentration_section(context):
     rows = []
     for leg in ("hk", "us"):
@@ -294,7 +315,7 @@ def concentration_section(context):
             money(row.get("leg_total"), digits=0),
         ])
     return "### 集中度\n\n" + table(
-        ["Leg", "HHI", "判定", "Top2", "腿总值(原币)"], rows)
+        ["Leg", "HHI", "判定", "Top2", "腿总值(原币)"], rows) + "\n\n" + valuation_notes(context)
 
 
 def _track_record_line(context, actions):
@@ -447,7 +468,7 @@ def risk_section(context, plan=None):
                      text(item.get("severity")), text(item.get("detail")),
                      text(item.get("breach_id"))])
 
-    lines = ["### 风控硬闸", ""]
+    lines = ["### 风控硬闸", "", valuation_notes(context), ""]
     lines.append(_track_record_line(context, ("cut", "trim_on_rebound")))
     lines.append("")
     lines.append(
