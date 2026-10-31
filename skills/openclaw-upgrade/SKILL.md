@@ -47,6 +47,9 @@ The wrapper applies these idempotent host scripts in order:
    cleanly once the new OpenClaw already execs native hook relays)
 7. `/root/tools/openclaw/current/patch-reply-session-cost.sh` (adds
    `cost.session_usd`, the usage-family cumulative, to the reply footer)
+8. `/root/tools/openclaw/current/patch-cache-hit-pct-exact.sh` (adds
+   `usage.cache_hit_pct_exact`, the unrounded percentage, next to the existing
+   integer `usage.cache_hit_pct`; `--revert` removes only its two lines)
 
 MiniMax `service_tier: "priority"` was retired on 2026-10-19: MiniMax bills it at
 1.5x the standard rate against the Token Plan. Do not reapply
