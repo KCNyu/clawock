@@ -35,7 +35,7 @@ def sandbox(tmp_path):
     tools.mkdir()
     (tools / 'limits.env').write_text('MAX_RUNNING_CODEX=1\n')
     (tools / 'resource-pressure.sh').write_text((RUNNER / 'resource-pressure.sh').read_text())
-    for name in ('run-agent.sh', 'dispatch.sh'):
+    for name in ('run-agent.sh', 'dispatch.sh', 'mandate.py'):
         (tools / name).write_text((RUNNER / name).read_text().replace('/root/tools/agent-dispatch', str(tools))
                                  .replace('/root/logs/agent-dispatch', str(task.parent)))
     for name, text in {

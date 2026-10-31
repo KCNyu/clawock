@@ -52,6 +52,9 @@ EOF
   echo "$d"
 }
 reset_fake() { rm -f "$FAKE_DIR"/*; echo "$2" >"$FAKE_DIR/$1.mode"; }
+send_count() {  # lines the fake openclaw recorded; 0 when it recorded nothing
+  if [ -e "$FAKE_DIR/openclaw.sends" ]; then wc -l <"$FAKE_DIR/openclaw.sends" | tr -d ' '; else echo 0; fi
+}
 
 if [ "${DISPATCH_TEST_CASES:-}" = pool ]; then
   echo '=== patrol pool outage, recovery, and empty CLI exits'
@@ -676,7 +679,7 @@ d35b=$(mk notify-quiet claude 900 300 weixin,telegram)
 e35b=0; bash "$R" "$d35b" || e35b=$?
 expect "quiet task still finishes ok" "$e35b/$(field "$d35b" STATE)/$(field "$d35b" OUTCOME)" 0/ok/DONE
 expect "NEEDS/ATTENTION/NOTICE recorded" "$(field "$d35b" NEEDS)/$(field "$d35b" ATTENTION)/$(field "$d35b" NOTICE)" "none/none/suppressed"
-expect "no completion message was sent" "$(cat "$FAKE_DIR/openclaw.sends" 2>/dev/null | wc -l)" 0
+expect "no completion message was sent" "$(send_count)" 0
 expect_grep "the log says why it was quiet" "notify: suppressed" "$d35b/run.log"
 expect_grep "the stage is idle, not working" "STAGE=idle" "$d35b/result.env"
 
@@ -685,14 +688,14 @@ d35c=$(mk notify-action claude 900 300 weixin,telegram)
 e35c=0; bash "$R" "$d35c" || e35c=$?
 expect "an action notice still finishes ok" "$e35c/$(field "$d35c" STATE)/$(field "$d35c" OUTCOME)" 0/ok/DONE
 expect "the action is published and needs a person" "$(field "$d35c" NEEDS)/$(field "$d35c" ATTENTION)/$(field "$d35c" NOTICE)" "授权港股数据/person/attempted"
-expect "both legs still go out for a real action" "$(cat "$FAKE_DIR/openclaw.sends" 2>/dev/null | wc -l)" 2
+expect "both legs still go out for a real action" "$(send_count)" 2
 
 reset_fake claude needs-none-partial
 d35d=$(mk notify-partial claude 900 300 weixin)
 e35d=0; bash "$R" "$d35d" || e35d=$?
 expect "PARTIAL is not a quiet end" "$e35d/$(field "$d35d" STATE)/$(field "$d35d" ATTENTION)/$(field "$d35d" NOTICE)" 3/partial/person/attempted
 expect "the partial log has no suppression line" "$(grep -c 'notify: suppressed' "$d35d/run.log")" 0
-expect "one leg for the partial task" "$(cat "$FAKE_DIR/openclaw.sends" 2>/dev/null | wc -l)" 1
+expect "one leg for the partial task" "$(send_count)" 1
 
 # The finish notice's cost line is a presentation rule, so these cases give the runner a fixed
 # `usage` answer instead of making each fake CLI produce priced tokens. `stale` answers once and

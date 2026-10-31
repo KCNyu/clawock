@@ -482,9 +482,10 @@ HOST_OWNED_SHELL = {
            "the versioned source of the existing host-local supervisor, "
            "not part of the portable package"),
     "ops/host/agent-dispatch/tests/run-tests.sh": (
-        21, "the runner's fault-injection suite reads what its fake `openclaw` "
+        22, "the runner's fault-injection suite reads what its fake `openclaw` "
             "CLI recorded ($FAKE_DIR/openclaw.messages, .sends, .sleep, .fail); "
-            "those are fixture files in a temp dir, not the runtime's paths"),
+            "those are fixture files in a temp dir, not the runtime's paths; the "
+            "attention-gate cases add one `send_count` helper for the same files"),
     "ops/host/agent-dispatch/tests/bin/openclaw": (
         4, "the fake `openclaw` CLI the notification leg is tested against: it "
            "writes the same $FAKE_DIR/openclaw.* fixture files and nothing else"),
