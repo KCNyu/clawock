@@ -433,8 +433,7 @@ def _regime_delever_policy(us_holdings, lev_regime, reduce_exempt_strategies=fro
                         'target_tickers': [nm['etf']],
                         'swap_to': nm['underlying'],
                         'minimum_shares': holding.get('shares'),
-                        'minimum_value': (holding.get('current_value')
-                                          or holding.get('cost_basis', 0) * (_share_number(holding.get('shares', 0)) or 0)),
+                        'minimum_value': carried_value(holding),
                         'currency': 'USD',
                     },
                 ))

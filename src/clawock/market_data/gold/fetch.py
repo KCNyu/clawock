@@ -660,8 +660,11 @@ def compute(gold, history, realtime, spot=None, usdcny=None, usdcny_hist=None,
     return derived
 
 
-def main():
-    dry = '--dry-run' in sys.argv
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(prog="clawock-gold-fetch", description=__doc__)
+    parser.add_argument("--dry-run", action="store_true", help="fetch and print without writing the portfolio")
+    dry = parser.parse_args(argv).dry_run
     pf = json.load(open(PORTFOLIO, encoding='utf-8'))
     gold = pf.get('gold_dca')
     if not gold:

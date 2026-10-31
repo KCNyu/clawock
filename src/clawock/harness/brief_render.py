@@ -528,7 +528,7 @@ def _standing_entries(guard, plan):
         words = _STANCE_WORDS.get(stance.get("stance"), "{stance}")
         rows.append({
             "title": (f"**{text(item.get('ticker') or item.get('leg'))}** · "
-                      f"{text(item.get('type'))} · 挂 {(item.get('standing') or {}).get('days_open', '?')} 天"),
+                      f"{text(item.get('type'))} · 挂 {(item.get('standing') or {}).get('days_open', '?')} 个日历日"),
             "meta": [text(item.get("breach_id"))],
             "fields": [
                 ("你的做法", words.format(**{

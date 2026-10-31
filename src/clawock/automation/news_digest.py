@@ -241,7 +241,10 @@ def build_user_prompt(news_payload, held_via):
     )
 
 
-def main():
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(prog="clawock-news-digest", description=__doc__)
+    parser.parse_args(argv)
     pf = json.load(open(workspace_root() / 'portfolio.json'))
     held = [h['ticker'] for h in pf['portfolios']['us_stocks']['holdings']
             if (_share_number(h.get('shares', 0)) or 0) > 0]

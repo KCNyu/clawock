@@ -456,10 +456,13 @@ def main(argv=None):
     Exit 0 from `--verify-receipt` means a fallback run in this workspace wrote
     today's plan and judgment; it generates nothing.
     """
-    argv = sys.argv[1:] if argv is None else argv
+    import argparse
+    parser = argparse.ArgumentParser(prog="clawock-brief-fallback", description=__doc__)
+    parser.add_argument("--verify-receipt", action="store_true", help="check today’s fallback receipt without generating a brief")
+    args = parser.parse_args(argv)
     today = (os.environ.get('TODAY') or sessions.hkt_today().isoformat()).strip()
     root = workspace_root()
-    if '--verify-receipt' in argv:
+    if args.verify_receipt:
         ok, message = verify_receipt(root, today)
         print(message)
         return 0 if ok else 1

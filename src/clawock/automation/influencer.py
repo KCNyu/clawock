@@ -639,7 +639,10 @@ def _fetchers(cutoff):
     }
 
 
-def main():
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(prog="clawock-influencer-scan", description=__doc__)
+    parser.parse_args(argv)
     generated = datetime.now(timezone.utc)
     cutoff = generated - timedelta(hours=LOOKBACK_HOURS)
 
