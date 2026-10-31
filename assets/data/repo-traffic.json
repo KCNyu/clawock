@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-27T09:19:01Z",
+  "generated_at": "2026-10-31T09:55:24Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -407,6 +407,26 @@
       "timestamp": "2026-10-26T00:00:00Z",
       "count": 15,
       "uniques": 12
+    },
+    {
+      "timestamp": "2026-10-27T00:00:00Z",
+      "count": 19,
+      "uniques": 15
+    },
+    {
+      "timestamp": "2026-10-28T00:00:00Z",
+      "count": 24,
+      "uniques": 20
+    },
+    {
+      "timestamp": "2026-10-29T00:00:00Z",
+      "count": 140,
+      "uniques": 137
+    },
+    {
+      "timestamp": "2026-10-30T00:00:00Z",
+      "count": 58,
+      "uniques": 50
     }
   ],
   "clones": [
@@ -814,6 +834,26 @@
       "timestamp": "2026-10-26T00:00:00Z",
       "count": 1055,
       "uniques": 214
+    },
+    {
+      "timestamp": "2026-10-27T00:00:00Z",
+      "count": 917,
+      "uniques": 184
+    },
+    {
+      "timestamp": "2026-10-28T00:00:00Z",
+      "count": 894,
+      "uniques": 187
+    },
+    {
+      "timestamp": "2026-10-29T00:00:00Z",
+      "count": 866,
+      "uniques": 182
+    },
+    {
+      "timestamp": "2026-10-30T00:00:00Z",
+      "count": 849,
+      "uniques": 199
     }
   ],
   "referrers_snapshots": [
@@ -1504,6 +1544,37 @@
         },
         {
           "referrer": "kcnyu.github.io",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-10-31T09:55:24Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "aocr.org",
+          "count": 142,
+          "uniques": 142
+        },
+        {
+          "referrer": "github.com",
+          "count": 31,
+          "uniques": 24
+        },
+        {
+          "referrer": "Google",
+          "count": 6,
+          "uniques": 6
+        },
+        {
+          "referrer": "kcnyu.github.io",
+          "count": 3,
+          "uniques": 2
+        },
+        {
+          "referrer": "dshbase.com",
           "count": 1,
           "uniques": 1
         }
@@ -2962,6 +3033,72 @@
           "uniques": 2
         }
       ]
+    },
+    {
+      "captured_at": "2026-10-31T09:55:24Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 79,
+          "uniques": 62
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/scripts/data/fetch_catalysts.py",
+          "title": "/blob/master/scripts/data/fetch_catalysts.py",
+          "count": 27,
+          "uniques": 27
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 8,
+          "uniques": 7
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 8,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "title": "/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/pull/260",
+          "title": "/pull/260",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/discussions",
+          "title": "/discussions",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 2,
+          "uniques": 2
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -3097,6 +3234,13 @@
       "forks": 0,
       "watchers": 0,
       "open_issues": 0
+    },
+    {
+      "captured_at": "2026-10-31T09:55:24Z",
+      "stargazers": 22,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 4
     }
   ],
   "package_downloads": [
@@ -3348,6 +3492,19 @@
         "downloads": 0,
         "start": "2026-06-02",
         "end": "2026-07-01"
+      }
+    },
+    {
+      "captured_at": "2026-10-31T09:55:24Z",
+      "pypi": {
+        "last_day": 2,
+        "last_month": 311,
+        "last_week": 35
+      },
+      "npm": {
+        "downloads": 6714,
+        "start": "2026-09-30",
+        "end": "2026-10-29"
       }
     }
   ]
