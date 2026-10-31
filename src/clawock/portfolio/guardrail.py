@@ -43,13 +43,13 @@ def compute_concentration(holdings):
     active = [h for h in ledger_rows(holdings) if (_share_number(h.get('shares', 0)) or 0) > 0]
     if not active:
         return {}
-    total = sum(h.get('current_value', h['cost_basis'] * (_share_number(h['shares']) or 0)) for h in active)
+    total = sum(carried_value(h) for h in active)
     if not total:
         return {'error': 'leg has zero total value'}
 
     weights = []
     for h in active:
-        v = h.get('current_value', h['cost_basis'] * (_share_number(h['shares']) or 0))
+        v = carried_value(h)
         weights.append({
             'ticker':     h['ticker'],
             'value':      round(v, 2),
@@ -58,7 +58,7 @@ def compute_concentration(holdings):
         })
     weights.sort(key=lambda x: -x['weight_pct'])
 
-    raw_weights = sorted((h.get('current_value', h['cost_basis'] * (_share_number(h['shares']) or 0))
+    raw_weights = sorted((carried_value(h)
                           / total for h in active), reverse=True)
     hhi = sum(w ** 2 for w in raw_weights)
     top2 = sum(raw_weights[:2])
@@ -121,7 +121,7 @@ def _swap_suggestions(holdings):
 
 def _holding_pnl_pct(h):
     cost = h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0)
-    cur  = h.get('current_value', cost)
+    cur  = carried_value(h)
     return None if not cost else round((cur - cost) / cost * 100, 1)
 
 
@@ -305,7 +305,7 @@ def _leveraged_leg_policy(leg, hold, total, ccy, hk_mult, lev_regime):
     breaches = []
     # leveraged-ETF leg exposure — use the name heuristic, not the unreliable
     # is_leveraged_etf flag (which concentration weights mirror and is often unset)
-    lev_val = sum(h.get('current_value', h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0))
+    lev_val = sum(carried_value(h)
                   for h in hold if (_share_number(h.get('shares', 0)) or 0) > 0 and _is_leveraged_etf(h))
     # HK leg cap tightened by HSTECH dial; US leg stays at base (its risk is handled
     # per-name below — verified: a single US index mult over-cuts calm names like MSFT).
@@ -371,9 +371,7 @@ def _hard_stop_watch(leg, hold, ccy, reduce_exempt_strategies=frozenset()):
                 required_reduction={
                     'kind': 'full_leveraged_position',
                     'minimum_shares': h.get('shares'),
-                    'minimum_value': (
-                        h.get('current_value')
-                        or h.get('cost_basis', 0) * (_share_number(h.get('shares', 0)) or 0)),
+                    'minimum_value': carried_value(h),
                     'currency': ccy,
                     'target_tickers': [h['ticker']],
                     'swap_to': LEV_1X_SWAP.get(h['ticker']),
@@ -619,7 +617,7 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
             if pnl is None or pnl >= 0:
                 continue
             cost = h.get('cost_basis', 0) * (_share_number(h['shares']) or 0)
-            cur  = h.get('current_value', cost)
+            cur  = carried_value(h)
             if not cur:
                 continue
             need = (cost / cur - 1) * 100

@@ -742,3 +742,40 @@ def test_directive_requires_identity_severity_and_reduction():
     for required in ('type', 'severity', 'required_reduction'):
         with pytest.raises(TypeError, match=required):
             _directive(**{k: v for k, v in fields.items() if k != required})
+
+
+@pytest.mark.parametrize("value", [None, "100", "absent"])
+def test_missing_or_numeric_string_value_uses_book_valuation(preflight, value):
+    row = _holding("07226", 100, leveraged=True)
+    row["current_value"] = value
+    if value == "absent":
+        del row["current_value"]
+    concentration = preflight.compute_concentration([row])
+    assert concentration["leg_total"] == 100
+    assert concentration["weights"][0]["weight_pct"] == 100
+    result = _evaluate(preflight, hk=[row],
+                       lev_regime={"lev_cap_mult": 0, "hk": {"tier": "red"}})
+    breach = _only_breach(result, "leveraged_exposure")
+    assert breach["required_reduction"]["minimum_value"] == 100
+    assert result["hard_stop_watch"] == []
+    assert preflight.compute_breakeven_math([row], [])["rows"] == []
+
+
+def test_concentration_present_value_needs_no_cost_basis(preflight):
+    row = {"ticker": "TEST", "shares": 1, "current_value": 100}
+    assert preflight.compute_concentration([row])["leg_total"] == 100
+    row["current_value"] = None
+    assert preflight.compute_concentration([row]) == {"error": "leg has zero total value"}
+
+
+def test_zero_value_is_not_replaced_by_cost_in_hard_stop(preflight):
+    row = _holding("ROBN", 100, leveraged=True)
+    row["current_value"] = 0
+    companion = _holding("TEST", 100)
+    concentration = preflight.compute_concentration([row, companion])
+    assert concentration["leg_total"] == 100
+    result = _evaluate(preflight, us=[row, companion])
+    stop = result["hard_stop_watch"][0]
+    assert stop["pnl_pct"] == -100
+    assert stop["required_reduction"]["minimum_value"] == 0
+    assert preflight.compute_breakeven_math([], [row])["rows"] == []
