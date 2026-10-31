@@ -15,6 +15,7 @@ PATCH_SCRIPTS=(
   "$PATCH_ROOT/patch-minimax-m3x-adaptive-thinking.sh"
   "$PATCH_ROOT/patch-hook-relay-exec.sh"
   "$PATCH_ROOT/patch-reply-session-cost.sh"
+  "$PATCH_ROOT/patch-cache-hit-pct-exact.sh"
 )
 
 case "$RUN_MODE" in
@@ -64,6 +65,7 @@ PATCH_MARKERS=(
   "clawock-minimax-m3x-adaptive-thinking"
   "clawock-hook-relay-exec"
   "clawock-reply-session-cost-v1"
+  "clawock-cache-hit-pct-exact-v1"
 )
 PATCH_LABELS=(
   "single-thread local embeddings"
@@ -74,6 +76,7 @@ PATCH_LABELS=(
   "MiniMax-M3.x always-adaptive thinking"
   "Codex native hook relays exec (upstream #109446 backport)"
   "reply footer session cost (cost.session_usd)"
+  "reply footer exact cache-hit percentage (usage.cache_hit_pct_exact)"
 )
 
 declare -a syntax_targets=()

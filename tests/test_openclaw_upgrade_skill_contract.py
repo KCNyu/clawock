@@ -20,6 +20,7 @@ PATCH_SCRIPTS = (
     "/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh",
     "/root/tools/openclaw/current/patch-hook-relay-exec.sh",
     "/root/tools/openclaw/current/patch-reply-session-cost.sh",
+    "/root/tools/openclaw/current/patch-cache-hit-pct-exact.sh",
 )
 PATCH_BASENAMES = tuple(Path(script).name for script in PATCH_SCRIPTS)
 PATCH_MARKERS = (
@@ -31,6 +32,7 @@ PATCH_MARKERS = (
     "clawock-minimax-m3x-adaptive-thinking",
     "clawock-hook-relay-exec",
     "clawock-reply-session-cost-v1",
+    "clawock-cache-hit-pct-exact-v1",
 )
 
 
