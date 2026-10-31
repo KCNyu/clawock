@@ -58,5 +58,5 @@ def test_main_preserves_file_bytes_on_partial_nonempty_history(monkeypatch, tmp_
     monkeypatch.setattr(gold, 'PORTFOLIO', str(portfolio))
     monkeypatch.setattr(gold, 'fetch_nav_history', lambda *a, **k: rows()[-160:])
     monkeypatch.setattr(gold, 'fetch_realtime', lambda *a: None)
-    assert gold.main() == 0
+    assert gold.main([]) == 0
     assert portfolio.read_text() == original
