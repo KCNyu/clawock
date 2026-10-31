@@ -62,7 +62,7 @@ def _authorization(auth, now):
 
 
 def screen_snapshot(snapshot, auth, portfolio, registry, *, now, receipt_hash):
-    from clawock.market_data.stock_discovery import excluded_exposure, MISSING
+    from clawock.market_data.discovery_common import excluded_exposure, MISSING
 
     _authorization(auth, now)
     if snapshot.get("schema_version") != 1 or snapshot.get("source_id") != auth["source_id"]:
