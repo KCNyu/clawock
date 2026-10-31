@@ -798,7 +798,20 @@ def test_summary_daily_buckets_use_the_same_frozen_result_and_skip_patrol(q):
     assert out["agents"]["claude"]["tokens_total"] == 100
     assert out["agents"]["claude"]["tokens_unknown"] == 1
     assert out["agents"]["codex"]["live"] == 1
+    # A terminal failed task needs a person; a live one is not counted in the frozen totals.
+    assert out["agents"]["claude"]["needs_person"] == 1
+    assert out["agents"]["codex"]["needs_person"] == 0
 
     code, all_time = q.run("summary")
     assert code == 0
     assert all_time["daily"] == {}, "no --since: no unbounded per-day payload"
+
+
+def test_summary_counts_an_explicit_person_action_and_not_a_quiet_done(q):
+    """Runner api 5 publishes ATTENTION; the summary uses it instead of guessing from STATE."""
+    for tid, attention, needs in (("needs", "person", "授权港股数据"), ("quiet", "none", "none")):
+        d = q.task(tid, agent="claude", result=f"STATE=ok\nOUTCOME=DONE\nATTENTION={attention}\nNEEDS={needs}\n")
+        (d / "meta.env").write_text((d / "meta.env").read_text() + "CREATED=2026-11-01 10:00:00\n")
+    code, out = q.run("summary")
+    assert code == 0
+    assert out["agents"]["claude"]["needs_person"] == 1

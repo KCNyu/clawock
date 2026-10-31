@@ -10,6 +10,7 @@
 #   dispatch.sh inbox <id>           # JSON brief + pending/attached/not-delivered appends
 #   dispatch.sh log <id>             # redacted runner log tail
 #   dispatch.sh summary [--since YYYY-MM-DD] [--agent a,b] [--all] [--json]  # per-agent totals (frozen results; cost is an estimate)
+#   dispatch.sh mandate <id> [check <action>]  # machine-readable authorization created at dispatch
 #   dispatch.sh cancel <id>          # stop a running task (records state=cancelled)
 #   dispatch.sh queue [--json]       # each agent's lock holder and queue in real order (task_queue_ops.py)
 #   dispatch.sh adopt <bg-id|session-id> [--dry-run] [options] [< more.md]
@@ -47,17 +48,22 @@
 #   --origin-session <key> the OpenClaw session that gets a turn when the task ends or runs out of
 #                          quota. Default: the chat turn running this command (wake-session.py
 #                          finds it); nothing when no turn is. `none` asks for no turn.
+#   --no-restart           deny `gateway.restart` in the task's mandate. The default allows a
+#                          restart when it is needed to make the task's change effective;
+#                          refresh_live.sh and restart_gateway.sh check the mandate.
 set -euo pipefail
 export TZ=Asia/Shanghai
 
 BASE=/root/logs/agent-dispatch
 RUNNER=/root/tools/agent-dispatch/run-agent.sh
+HELPER_DIR=$(dirname "$(readlink -f "$0")")
 mkdir -p "$BASE"
 
 show_state() {  # prints STATE/OUTCOME for a task dir
   local d=$1
   if [ -r "$d/result.env" ]; then
-    ( . "$d/result.env"; printf '%s%s' "$STATE" "${OUTCOME:+/$OUTCOME}"; printf ' notify_sent=%s notify_failed=%s stop=%s' "${NOTIFIED:-unknown}" "${NOTIFY_FAILED:--}" "${STOP_REASON:--}" )
+    ( . "$d/result.env"; printf '%s%s' "$STATE" "${OUTCOME:+/$OUTCOME}"; printf ' notify_sent=%s notify_failed=%s stop=%s stage=%s needs=%s attention=%s' \
+        "${NOTIFIED:-unknown}" "${NOTIFY_FAILED:--}" "${STOP_REASON:--}" "${STAGE:--}" "${NEEDS:--}" "${ATTENTION:--}" )
   else
     printf 'pending'
   fi
@@ -122,6 +128,15 @@ case "$cmd" in
       done
     fi
     exit 0 ;;
+  mandate)
+    id="${1:-}"; [ -n "$id" ] || { echo "usage: dispatch.sh mandate <id> [check <action>]" >&2; exit 2; }
+    d="$BASE/$id"; [ -r "$d/mandate.json" ] || { echo "no mandate for $id (a task dispatched before mandates, or an unknown id)" >&2; exit 1; }
+    shift
+    if [ "${1:-}" = check ]; then
+      [ -n "${2:-}" ] || { echo "usage: dispatch.sh mandate <id> check <action>" >&2; exit 2; }
+      exec python3 "$HELPER_DIR/mandate.py" check --file "$d/mandate.json" --action "$2" --task-dir "$d" --source "dispatch.sh mandate"
+    fi
+    exec python3 "$HELPER_DIR/mandate.py" show --file "$d/mandate.json" ;;
   cancel)
     [ -n "${1:-}" ] || { echo "usage: dispatch.sh cancel <id>" >&2; exit 2; }
     # CLI and chip share the durable marker, launch barrier and audited stop path.
@@ -239,7 +254,7 @@ case "$cmd" in
     AGENT=claude
     set -- --name "${ADOPT_NAME:-adopt-${SESSION:0:8}}" --resume "$SESSION" --cwd "$CWD" --prompt-file "$ADOPT_TMP" ${rest[@]+"${rest[@]}"} ;;
   claude|codex|opencode|dsh) AGENT=$cmd ;;
-  *) sed -n '2,49p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,53p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
@@ -248,6 +263,8 @@ fi
 
 FREE_POOL_REPORT="" POOL_SELECTION=""
 FALLBACK_MODELS="" NAME="" PROMPT_FILE="" CWD=/root RESUME="" MODEL="" EFFORT="" TIMEOUT=21600 NOTIFY=weixin,telegram DEADLINE=""
+RESTART_ALLOWED=1   # kcn 2026-11-01: making a task's change effective may restart the gateway;
+                    # the default contract records it and --no-restart is the explicit denial
 QUOTA_RESUMES=3   # keep in step with run-agent.sh's default (kcn 2026-09-23): long Opus tasks do
                   # not fit in one 5-hour window; pass --quota-resumes 0/1 for short, cheap ones
 TEMPLATE_DIR=/root/tools/agent-dispatch/templates TEMPLATES=()
@@ -269,6 +286,8 @@ while [ $# -gt 0 ]; do
     --deadline) DEADLINE=$2; shift 2 ;;
     --notify) NOTIFY=$2; shift 2 ;;
     --origin-session) export AGENT_DISPATCH_ORIGIN_SESSION=$2; shift 2 ;;
+    --no-restart) RESTART_ALLOWED=0; shift ;;
+    --allow-restart) RESTART_ALLOWED=1; shift ;;
     *) echo "unknown option $1" >&2; exit 2 ;;
   esac
 done
@@ -364,11 +383,15 @@ cat >>"$DIR/prompt.md" <<'EOF'
 - 你本身就是被派发的任务：活自己干完，包括长时间的等待。不要用 dispatch.sh / agent-dispatch 技能再派任务，那份技能说明是写给发起派发的一方的。
 - 缺信息先自己查。查不到就按风险最低的合理理解继续；只有缺口会影响正确性、安全或不可逆操作时，才停下报 BLOCKED。
 - 改动只限于任务本身，不要顺手重构或清理。合并、发布、推 tag、删除这类不可逆操作，先确认符合任务要求和仓库规则再做。
+- 默认授权（机器可读：任务目录的 `mandate.json`）允许你为了让改动真正生效而重启网关：可以执行 `ops/host/refresh_live.sh` 和 `ops/host/restart_gateway.sh`，不必回来问。若本次任务的 mandate 写了 `gateway.restart: deny`（派发方用了 `--no-restart`），这些入口会拒绝并把越权记进 `mandate-violations.jsonl`，不要绕过。brief 与 mandate 冲突时按更严格的一条执行，并在报告里指出冲突；派发方要禁止重启应加 `--no-restart`，不要只写在 brief 里。做过重启就在报告里写一行 `RESTART: <命令/时间/结果>`。
 - 结束前对照任务要求核对真实状态（文件、git、PR、CI），没达到就接着做，不要交第一稿。
 - 测试只跑和改动相关的定向测试，整套测试交给 CI；任务明确要求本地全量时才跑全量。
 - 等 CI 或长命令时，一次调用阻塞等到结束，不要每隔几十秒查一次（每查一次都要重发整个上下文）。等 CI 用 `gh pr checks <PR> --watch --fail-fast >/dev/null 2>&1; gh pr checks <PR>`，别让 `--watch` 的刷新输出进上下文；把这次调用的超时设到工具允许的上限（Claude 的 Bash timeout 600000，Codex 的 yield_time_ms 设大），到点还没完就原样再等一次。
 - 不要 resume 或写入其他任务的会话（`claude --resume`、`codex exec resume` 别的会话 id）；要验证 resume 行为就自己开一次性会话。
-结束时用中文写简短报告：做了什么，改了哪些文件或 commit，验证了什么，还有什么没做或有什么风险。最后单独一行输出 `STATUS: DONE`、`STATUS: PARTIAL` 或 `STATUS: BLOCKED`。
+结束时用中文写简短报告：做了什么，改了哪些文件或 commit，验证了什么，还有什么没做或有什么风险。报告最后两行固定为：
+`NEEDS: none`（无事可做）或 `NEEDS: <一句具体、可执行的人的动作>`（要人决定/审核/授权/处理）
+`STATUS: DONE|PARTIAL|BLOCKED`
+只有 `NEEDS` 非 `none`，或 `STATUS` 非 `DONE` 时，派发方才通知人；无事时不要编一个动作。
 EOF
 
 # Which session dispatched this, and how deep in a chain of wake turns (kcn 2026-10-12: the task
@@ -377,6 +400,23 @@ EOF
 ORIGIN_SESSION="" WAKE_DEPTH=0
 export AGENT_DISPATCH_SESSIONS_GLOB="${AGENT_DISPATCH_SESSIONS_GLOB:-/root/.openclaw/agents/*/sessions/sessions.json}"
 eval "$(python3 "$(dirname "$(readlink -f "$0")")/wake-session.py" origin 2>/dev/null | grep -E '^(ORIGIN_SESSION|WAKE_DEPTH)=[A-Za-z0-9@._:+'"'"'-]*$')" || true
+
+# Machine-readable authorization (docs/architecture/task-queue.md § Mandate). The policy
+# version is the pair of scripts that define the contract, so a mandate states which text it
+# was accepted under. --no-restart denies the one host action that used to ride on brief prose.
+MANDATE_POLICY_VERSION="dispatch-$( { cat "$HELPER_DIR/dispatch.sh" "$HELPER_DIR/run-agent.sh"; } | sha256sum | cut -c1-12 )"
+if [ "${AGENT_DISPATCH_PATROL:-}" = 1 ]; then MANDATE_SOURCE_KIND=patrol
+elif [ -n "${AGENT_DISPATCH_PARENT_TASK_ID:-}" ]; then MANDATE_SOURCE_KIND=task
+elif [ -n "$ORIGIN_SESSION" ]; then MANDATE_SOURCE_KIND=chat
+else MANDATE_SOURCE_KIND=terminal
+fi
+MANDATE_SOURCE_ID="${ORIGIN_SESSION:-${AGENT_DISPATCH_PARENT_TASK_ID:-}}"
+mandate_args=(create --dir "$DIR" --task-id "$ID" --name "$NAME" --agent "$AGENT" --cwd "$CWD"
+  --policy-version "$MANDATE_POLICY_VERSION" --source-kind "$MANDATE_SOURCE_KIND"
+  --source-id "$MANDATE_SOURCE_ID" --notify "$NOTIFY")
+[ "$RESTART_ALLOWED" = 1 ] || mandate_args+=(--deny-restart)
+python3 "$HELPER_DIR/mandate.py" "${mandate_args[@]}" >/dev/null \
+  || { echo "could not write the task mandate" >&2; rm -rf "$DIR"; exit 2; }
 
 cat >"$DIR/meta.env" <<EOF
 ID=$(printf %q "$ID")
@@ -394,6 +434,7 @@ QUOTA_RESUMES=$QUOTA_RESUMES
 DEADLINE=$(printf %q "$DEADLINE")
 DEADLINE_EPOCH=$DEADLINE_EPOCH
 NOTIFY=$NOTIFY
+MANDATE_POLICY_VERSION=$(printf %q "$MANDATE_POLICY_VERSION")
 ORIGIN_SESSION=$(printf %q "$ORIGIN_SESSION")
 WAKE_DEPTH=$WAKE_DEPTH
 CREATED=$(printf %q "$(date '+%F %T')")

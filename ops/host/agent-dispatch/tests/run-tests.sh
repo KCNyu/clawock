@@ -52,6 +52,9 @@ EOF
   echo "$d"
 }
 reset_fake() { rm -f "$FAKE_DIR"/*; echo "$2" >"$FAKE_DIR/$1.mode"; }
+send_count() {  # lines the fake openclaw recorded; 0 when it recorded nothing
+  if [ -e "$FAKE_DIR/openclaw.sends" ]; then wc -l <"$FAKE_DIR/openclaw.sends" | tr -d ' '; else echo 0; fi
+}
 
 if [ "${DISPATCH_TEST_CASES:-}" = pool ]; then
   echo '=== patrol pool outage, recovery, and empty CLI exits'
@@ -588,6 +591,31 @@ expect "no task dir was created" "$(ls -d /root/logs/agent-dispatch/notify-check
 e40=0; out40=$("$D" cancel no-such-task-20000101-000000 2>&1) || e40=$?
 expect "cancel of an unknown id is an error" "$e40/$(printf '%s' "$out40" | grep -c 'no task no-such-task')" 4/1
 
+echo; echo "=== [40a] dispatch.sh writes a mandate and appends the contract to prompt.md"
+mkdir -p "$WORK/dispatch-bin"
+cat >"$WORK/dispatch-bin/systemd-run" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >"$FAKE_DIR/dispatch.args"
+exit 0
+SH
+chmod +x "$WORK/dispatch-bin/systemd-run"
+name40a="mandate-gen-$$-$(date +%s)"
+e40a=0
+out40a=$(env -u AGENT_DISPATCH_TASK_ID -u AGENT_DISPATCH_PARENT_TASK_ID -u AGENT_DISPATCH_PATROL \
+  -u OPENCLAW_MCP_SESSION_KEY AGENT_DISPATCH_QUOTA_CMD=true PATH="$WORK/dispatch-bin:$PATH" \
+  "$D" codex --name "$name40a" --notify none <<<'contract test' 2>&1) || e40a=$?
+id40a=$(printf '%s\n' "$out40a" | sed -n 's/^dispatched //p' | head -1)
+d40a=""; [ -z "$id40a" ] || d40a="/root/logs/agent-dispatch/$id40a"
+expect "the dispatch (through a fake systemd-run) succeeded" "$e40a/$(test -n "$id40a" && echo yes || echo no)" 0/yes
+expect "the mandate exists" "$(test -r "$d40a/mandate.json" && echo yes || echo no)" yes
+expect "the default mandate allows restart and live refresh" \
+  "$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["actions"]["gateway.restart"], d["actions"]["live.refresh"], d["policy_version"].startswith("dispatch-"))' "$d40a/mandate.json")" \
+  "allow allow True"
+expect_grep "the prompt carries the restart authorization" "默认授权" "$d40a/prompt.md"
+expect_grep "the prompt asks for the NEEDS line" "NEEDS: none" "$d40a/prompt.md"
+expect_grep "the prompt explains the notification gate" "派发方才通知人" "$d40a/prompt.md"
+if [ -n "$d40a" ] && [[ "$id40a" == mandate-gen-* ]]; then rm -rf "${d40a:?}"; fi
+
 echo; echo "=== [55] dispatch.sh adopt: a claude session dispatch did not start becomes a resume task"
 # Nothing here reaches systemd-run: dry runs, refusals, and a stop that fails after every check.
 sid55=abcdef12-1111-2222-3333-444444444444
@@ -642,6 +670,32 @@ expect "dual send exit/state" "$e35/$(field "$d35" STATE)" 0/ok
 expect "both legs recorded as sent" "$(field "$d35" NOTIFIED)/$(field "$d35" NOTIFY_FAILED)" "weixin,telegram/"
 expect "one send per leg, to each channel's own target" "$(sort "$FAKE_DIR/openclaw.sends" | xargs)" "test test tg-test tg-target"
 expect_grep "the log names each leg" "notify: sent (telegram)" "$d35/run.log"
+
+# kcn 2026-11-01: a clean DONE that reports NEEDS: none is recorded, not sent. The line is the
+# structured fact; a missing line stays unknown and keeps the old notice (case [35] above).
+echo; echo "=== [35b] NEEDS: none suppresses the end notice; a real action still sends ($(date +%T))"
+reset_fake claude needs-none
+d35b=$(mk notify-quiet claude 900 300 weixin,telegram)
+e35b=0; bash "$R" "$d35b" || e35b=$?
+expect "quiet task still finishes ok" "$e35b/$(field "$d35b" STATE)/$(field "$d35b" OUTCOME)" 0/ok/DONE
+expect "NEEDS/ATTENTION/NOTICE recorded" "$(field "$d35b" NEEDS)/$(field "$d35b" ATTENTION)/$(field "$d35b" NOTICE)" "none/none/suppressed"
+expect "no completion message was sent" "$(send_count)" 0
+expect_grep "the log says why it was quiet" "notify: suppressed" "$d35b/run.log"
+expect_grep "the stage is idle, not working" "STAGE=idle" "$d35b/result.env"
+
+reset_fake claude needs-action
+d35c=$(mk notify-action claude 900 300 weixin,telegram)
+e35c=0; bash "$R" "$d35c" || e35c=$?
+expect "an action notice still finishes ok" "$e35c/$(field "$d35c" STATE)/$(field "$d35c" OUTCOME)" 0/ok/DONE
+expect "the action is published and needs a person" "$(field "$d35c" NEEDS)/$(field "$d35c" ATTENTION)/$(field "$d35c" NOTICE)" "授权港股数据/person/attempted"
+expect "both legs still go out for a real action" "$(send_count)" 2
+
+reset_fake claude needs-none-partial
+d35d=$(mk notify-partial claude 900 300 weixin)
+e35d=0; bash "$R" "$d35d" || e35d=$?
+expect "PARTIAL is not a quiet end" "$e35d/$(field "$d35d" STATE)/$(field "$d35d" ATTENTION)/$(field "$d35d" NOTICE)" 3/partial/person/attempted
+expect "the partial log has no suppression line" "$(grep -c 'notify: suppressed' "$d35d/run.log")" 0
+expect "one leg for the partial task" "$(send_count)" 1
 
 # The finish notice's cost line is a presentation rule, so these cases give the runner a fixed
 # `usage` answer instead of making each fake CLI produce priced tokens. `stale` answers once and
@@ -945,7 +999,7 @@ expect "published while still queued: deadline/attempts/resumes/waiting" \
   "$(field "$d41" DEADLINE_EPOCH)/$(field "$d41" MAX_ATTEMPTS)/$(field "$d41" QUOTA_RESUMES)/$(field "$d41" WAITING)" "$new41/1/0/lock"
 touch "$FAKE_DIR/h41.release"
 e41=0; wait "$p41" || e41=$?
-expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/4
+expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/5
 [ "$(field "$d41" STATE)" = ok ] || tail -n 20 "$d41/run.log"
 expect "QUEUED_AT kept (no restart)" "$(field "$d41" QUEUED_AT)" "$q41"
 expect "one runner start in the log" "$(grep -c ' budget-queued start ====' "$d41/run.log")" 1

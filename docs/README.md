@@ -28,6 +28,12 @@ belongs here.
 - [`strategy-plugins.md`](architecture/strategy-plugins.md) — strategies, bars and
   the optimiser as plugins composed by config rows; what a parameter search may conclude.
 
+## Research notes
+
+- [`dsh-superagent-adoption.md`](research/dsh-superagent-adoption.md) — what the external
+  dsh-superagent prototype's Mandate, stage and notification ideas mean for dispatch, what
+  was adopted where, and what explicitly does not transfer.
+
 ## Product surfaces
 
 - [`how-the-desk-works.md`](how-the-desk-works.md) — the detail behind the README:

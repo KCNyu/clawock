@@ -414,13 +414,44 @@ as a service; re-read this section after a Claude Code upgrade that changes `cla
 | `WAKE_AT` | epoch a quota/retry wait ends (empty otherwise) |
 | `EFFORT_USED` | the effort of the latest attempt (`MODEL_USED` is its model) |
 | `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` | the legs (`weixin`, `telegram`, or an unknown name) of the latest notification that were delivered / failed, and when |
-| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; absent before |
+| `NEEDS` / `NEED_SUMMARY` | the model's last `NEEDS:` line: `none` or one concrete action for a person (api 5) |
+| `STAGE` / `ATTENTION` | the stage table: `working/queued`, `working`, `person/review`, `person/blocked`, `idle` or `ended`; `ATTENTION` is `person`, `none` or `unknown` |
+| `NOTICE` | what the runner did with the end notice: `attempted`, `none` (`--notify none`) or `suppressed` (`DONE` + `NEEDS: none`) |
+| `RESTART` | the model's last `RESTART:` line: what it restarted, when, and the result |
+| `MANDATE_POLICY_VERSION` | the `dispatch.sh`+`run-agent.sh` hash the task's mandate was accepted under (api 5) |
+| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; `5` also publishes the mandate and `NEEDS/STAGE/ATTENTION`; absent before |
 | `DEADLINE_EPOCH` / `MAX_ATTEMPTS` / `QUOTA_RESUMES` | the budgets the runner is using now (api 3; see *deadline, attempts, resumes*) |
 | `TOKENS_IN` / `TOKENS_CACHE_W` / `TOKENS_CACHE_R` / `TOKENS_OUT` / `TOKENS_TOTAL` / `COST_USD` | the `usage` answer as of the last finished attempt (api 3); `COST_USD` is an API-price estimate, `free`, or empty |
 
 `override.env` holds `PRIORITY`, `MODEL`, `EFFORT`, `DEADLINE_EPOCH`, `MAX_ATTEMPTS`, `QUOTA_RESUMES`
 (written only by the ops entry);
 `audit.log` one line per write.
+
+## Mandate
+
+Every task `dispatch.sh` creates gets `<task dir>/mandate.json` before its unit starts. It is
+the machine-readable version of what the brief used to imply: the policy version (a hash of
+`dispatch.sh` and `run-agent.sh`), the source that accepted the task, its strength, its
+working root, the allowed host actions, and the notification rule. It is written once, mode
+`0444`, and never rewritten; a wider request needs a new task.
+
+| Action | Default | `--no-restart` |
+|---|---|---|
+| `gateway.restart` | `allow` | `deny` |
+| `live.refresh` | `allow` | `allow` |
+
+The default is kcn's 2026-11-01 rule: making a task's change effective may restart the
+serving process without asking. `--no-restart` denies it, and `ops/host/refresh_live.sh` checks
+*both* actions before it writes, so a denied task cannot half-apply a merge. `ops/host/restart_gateway.sh`
+checks `gateway.restart` before `openclaw gateway restart`; use that wrapper rather than the
+bare command, and write a `RESTART:` line in the report.
+
+A denial is appended to `<task dir>/mandate-violations.jsonl` (time, task, policy version,
+action, source, pid) and the caller exits `3`. A task from before mandates, or an interactive
+shell, has no `mandate.json`: the guards report the missing file and proceed. This is an
+audit record and a guard for the host scripts we own, not a sandbox — a task that executes a
+program by absolute path is outside it, matching the external prototype's own statement about
+its wrappers. `dispatch.sh mandate <id> [check <action>]` reads or checks one.
 
 ## The runner
 
@@ -432,15 +463,16 @@ retries, stalls and appends, writes `result.env`, and sends the notification. It
 
 ```
 ops/host/agent-dispatch/
-  run-agent.sh  dispatch.sh            the runner and the host CLI (RUNNER_API=3)
+  run-agent.sh  dispatch.sh            the runner and the host CLI (RUNNER_API=5)
   read-result.py quota.mjs             `dispatch.sh result`, the quota / dsh balance line in notices
   resource-pressure.sh                 memory-pressure reading shared with clawock-patrol
   probe-free-models.sh                 finds dead models in the opencode free pool
   opencode-fallback-models             that pool, in order (read at dispatch time)
   claude-session.py                    `dispatch.sh adopt`: finds a claude session dispatch did not start
+  mandate.py                           create/check the task mandate, record a denial
   templates/review.md                  `dispatch.sh --template review`
   tests/run-tests.sh tests/bin/        fault-injection suite with fake claude/codex/opencode/dsh/openclaw
-  tests/test_limits.py tests/test_read_result.py tests/test_claude_session.py
+  tests/test_limits.py tests/test_read_result.py tests/test_claude_session.py tests/test_mandate.py
 ```
 
 It sits next to `task_queue_ops.py` but is a different install target: the ops entry keeps its
@@ -519,6 +551,14 @@ Each leg is `openclaw message send --channel … --target …` with the targets 
 The legs run in parallel, each once, with a time limit: 60 s for the end-of-task and the
 quota-wait notice, 30 s on the cancel path (bounded by the unit's stop budget).
 
+**When the end notice is sent.** The agent's last `NEEDS:` line is a structured fact, not
+prose to guess from. `ATTENTION=person` (a blocked/failed/timeout/quota end, `PARTIAL`, or a
+`DONE` whose `NEEDS` names an action) sends the notice and wakes the dispatching session. A
+clean `DONE` with `NEEDS: none` records `NOTICE=suppressed` and sends nothing: `result.env`
+and the chip still show the outcome, and `/dispatch-list` remains the place to look. A missing
+`NEEDS` line is `unknown` and keeps the old notice — silence must be reported, not inferred.
+A `cancelled` task also keeps its notice. The same gate decides the wake turn below.
+
 The end-of-task notice ends with two separate optional lines, never one combined amount:
 `额度：…` is what the agent's account has left (claude/codex's quota window, or dsh's
 DeepSeek money balance) while `花费：…` is what this run used at API list prices
@@ -569,7 +609,7 @@ session). `wake-session.py` owns all of it; the runner calls it once next to `no
 | Which session | `ORIGIN_SESSION` in `meta.env`, recorded by `dispatch.sh`: `--origin-session <key>`; else `OPENCLAW_MCP_SESSION_KEY` (a CLI-backend turn has it); else, when `dispatch.sh` is a descendant of the gateway process, the one chat whose `sessions.json` row says `running`. Two chats mid-turn is ambiguous and records nothing. A task continued with `append` reports to whoever continued it, else to its first origin |
 | No session | dsh, a terminal, cron, patrol: the task sends its messages and starts no turn. There is no conversation to continue, and a turn in the main session would arrive without context |
 | Which sessions can be woken | `agent:<id>:main` and `agent:<id>:<channel>:direct:<peer>`. Cron, dreaming and other isolated sessions have no reader |
-| Which events | the end of a task (every state but `cancelled`: somebody stopped it on purpose) and its first quota wait. `--notify none` tasks (patrol rounds) never wake |
+| Which events | the end of a task whose end notice was sent (`ATTENTION=person` or `unknown`) and its first quota wait. A suppressed `DONE` + `NEEDS: none` and a `cancelled` task start no turn. `--notify none` tasks (patrol rounds) never wake |
 | How | `openclaw agent --session-key <origin> --message-file …`, in a transient unit `agent-dispatch-wake-<hash>-…`, because the turn outlives the runner. The reply is not delivered to the chat: the legs are the one message kcn gets about an event, and a delivered reply was a second message about the same task in the same WeChat chat. When the assistant carried on with work kcn had asked for, it says so with its own message tool |
 | What the turn is told | a pointer: the notice's first line (task, agent, state, the model's own status), the task id and `dispatch.sh result <id>`. Not the notice: the legs carried that, and the WeChat leg lands in the same chat, so a copy in the turn showed kcn the same text twice. The legs never depend on the turn: `wake.off`, the hourly cap and the chain depth only decide whether a turn starts |
 | Once per event | the call sits beside `notify()`, not in its per-leg loop: two legs, one turn. Pending copies coalesce. Only a successful turn (`rc=0`, `status=ok`) writes the marker per (session, task, event) under `/root/logs/agent-dispatch/.wake/<hash>/seen/` and removes its spool files. Acknowledged `end` and `quota` events do not wake again, across unit restarts |

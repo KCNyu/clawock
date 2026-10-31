@@ -1153,7 +1153,8 @@ def cmd_summary(args) -> dict:
     if args.since and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.since):
         raise OpsError(2, "--since takes YYYY-MM-DD")
     out = {a: {"tasks": 0, "states": {}, "outcomes": {}, "tokens_total": 0, "tokens_unknown": 0,
-               "cost_usd_estimate": 0.0, "cost_unpriced": 0, "cost_free": 0, "live": 0} for a in agents}
+               "cost_usd_estimate": 0.0, "cost_unpriced": 0, "cost_free": 0, "live": 0,
+               "needs_person": 0} for a in agents}
     # Per-day buckets for the stats chart, built in the same pass and from the same frozen
     # result.env numbers as the aggregates. Only a bounded --since window is bucketed; the
     # all-time summary leaves this empty instead of carrying years of days. A day with no task
@@ -1180,6 +1181,11 @@ def cmd_summary(args) -> dict:
             continue
         outcome = result.get("OUTCOME") or "-"
         g["outcomes"][outcome] = g["outcomes"].get(outcome, 0) + 1
+        # Runner api 5 publishes whether the agent said a person has to act. An older task has
+        # no ATTENTION field: its blocked/failed/timeout/quota states are the same fact.
+        attention = result.get("ATTENTION", "")
+        if attention == "person" or (not attention and state in {"blocked", "failed", "timeout", "quota", "partial", "unverified"}):
+            g["needs_person"] += 1
         total, cost = result.get("TOKENS_TOTAL", ""), result.get("COST_USD", "")
         if total.isdigit():
             g["tokens_total"] += int(total)

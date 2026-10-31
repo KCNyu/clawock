@@ -35,11 +35,13 @@ FILES=(
   free-pool-policy.json
   wake-session.py
   claude-session.py
+  mandate.py
   opencode-fallback-models
   templates/review.md
   tests/run-tests.sh
   tests/test_claude_session.py
   tests/test_limits.py
+  tests/test_mandate.py
   tests/test_read_result.py
   tests/test_wake_session.py
   tests/bin/claude
