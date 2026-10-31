@@ -45,6 +45,8 @@ The wrapper applies these idempotent host scripts in order:
 5. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
 6. `/root/tools/openclaw/current/patch-hook-relay-exec.sh` (backport of upstream #109446; it exits
    cleanly once the new OpenClaw already execs native hook relays)
+7. `/root/tools/openclaw/current/patch-reply-session-cost.sh` (adds
+   `cost.session_usd`, the usage-family cumulative, to the reply footer)
 
 MiniMax `service_tier: "priority"` was retired on 2026-10-19: MiniMax bills it at
 1.5x the standard rate against the Token Plan. Do not reapply
@@ -74,7 +76,7 @@ bash ops/host/reapply_openclaw_patches.sh --check-only
 | version | `openclaw --version` | shows target |
 | **cron contract** | `openclaw cron list --json`; `clawock system check`; `bash ops/host/check_crons.sh --timeline` | names, schedules, enabled state, payloads and host triggers match `config/cron-schedules.json`; inspect the cron runtime/watchdog contract results, not only the total count |
 | embedding | `openclaw memory search "<q>" --max-results 2 --json` | returns results, no `Unknown memory embedding provider` (6.8 has no `--limit`) |
-| local patches | `bash ops/host/reapply_openclaw_patches.sh --check-only` | all five patches' markers and JS/Python syntax pass |
+| local patches | `bash ops/host/reapply_openclaw_patches.sh --check-only` | all local patches' markers and JS/Python syntax pass |
 | MiniMax transport | transport log + fallback smoke | Anthropic protocol; `priority` present; a no-header timeout is retryable; the 300s generation timeout remains |
 | weixin delivery | tail `/tmp/openclaw/openclaw-*.log` | `weixin monitor started` + `gateway ready`, no crash loop |
 | model chain | the cron run log / a throwaway `openclaw agent` call | a model answers (⚠️ see note) |

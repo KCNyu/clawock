@@ -14,6 +14,7 @@ PATCH_SCRIPTS=(
   "$PATCH_ROOT/patch-dreaming-narrative-race.sh"
   "$PATCH_ROOT/patch-minimax-m3x-adaptive-thinking.sh"
   "$PATCH_ROOT/patch-hook-relay-exec.sh"
+  "$PATCH_ROOT/patch-reply-session-cost.sh"
 )
 
 case "$RUN_MODE" in
@@ -62,6 +63,7 @@ PATCH_MARKERS=(
   "clawock-dreaming-race-v2"
   "clawock-minimax-m3x-adaptive-thinking"
   "clawock-hook-relay-exec"
+  "clawock-reply-session-cost-v1"
 )
 PATCH_LABELS=(
   "single-thread local embeddings"
@@ -71,6 +73,7 @@ PATCH_LABELS=(
   "concurrent dreaming sweep reclaims a running phase"
   "MiniMax-M3.x always-adaptive thinking"
   "Codex native hook relays exec (upstream #109446 backport)"
+  "reply footer session cost (cost.session_usd)"
 )
 
 declare -a syntax_targets=()
