@@ -87,7 +87,9 @@ clawock research-inbox set AAPL --market US --status deferred --reason '等财�
 默认 `discover-stocks --market HK --json` 每次读取 [HKEX 证券名录](https://www.hkex.com.hk/eng/services/trading/securities/securitieslists/ListOfSecurities.xlsx)，
 仅纳入 Equity 下的 Main Board / GEM 港元柜台，按名录分类排除基金、REIT、权证、
 债券等及非港元柜台。`roster` 保留名录版本、排除数量和范围；`boards` 分别统计主板、
-创业板的请求数、有效扫描数、合格数和候选数。未扫到的证券在 `missing` 逐票说明。
+创业板的请求数、有效扫描数、合格数和候选数。未扫到的证券在 CLI JSON 的 `missing` 逐票说明。简报/packet 对缺失及分歧明细
+各保留本次前 20 票样本，并给出 `*_omitted_count`；总数和来源原因保留，避免全源失败
+时数千票明细挤占判断上下文。
 名录可能预告下一交易日版本，此时显式降级；预告新增证券也须有有效报价才能入选。
 过期超过七天、未来超过七天、结构坏掉或网络失败时只用
 `config/hk-discovery-universe.json` 的 31 票备用池，并明确标记非全市场。

@@ -186,3 +186,15 @@ def test_more_recent_valid_secondary_basis_wins_without_false_confirmation():
     assert reason == 'different_price_basis'
     assert selected['quote_evidence']['price_basis'] == 'latest_trade'
     assert selected['quote_evidence']['source'] == 'eastmoney_hk'
+
+
+def test_full_source_failure_does_not_overflow_brief_context():
+    from clawock.market_data.stock_discovery import compact_coverage
+    full = {'market': 'all', 'candidates': [{'ticker': '01234'}], 'markets': {'HK': {
+        'missing': {str(i).zfill(5): 'missing_current_session_quote' for i in range(3000)},
+        'sources': {'tencent_hk': {'missing_count': 3000}}}}}
+    compact = compact_coverage(full)
+    assert len(json.dumps(compact).encode()) < 2000
+    assert compact['markets']['HK']['missing_omitted_count'] == 2980
+    assert compact['candidates'] == full['candidates']
+    assert len(full['markets']['HK']['missing']) == 3000

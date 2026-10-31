@@ -212,6 +212,20 @@ def collect(workspace: Path, *, fetcher=None, market="US"):
         return unavailable(f"Nasdaq discovery failed ({type(exc).__name__})")
 
 
+def compact_coverage(discovery, *, limit=20):
+    """Keep a bounded same-run diagnostic sample in brief/packet context."""
+    from copy import deepcopy
+
+    result = deepcopy(discovery)
+    hk = result if result.get("market") == "HK" else (result.get("markets") or {}).get("HK", {})
+    for field in ("missing", "discrepancies"):
+        detail = hk.get(field)
+        if isinstance(detail, dict) and len(detail) > limit:
+            hk[field + "_omitted_count"] = len(detail) - limit
+            hk[field] = dict(sorted(detail.items())[:limit])
+    return result
+
+
 def candidate_lines(discovery, *, limit=3):
     """Shared bounded presentation; queue highlights never authorize a trade."""
     if not discovery or discovery.get("status") in {"unconfigured", "disabled"}:
