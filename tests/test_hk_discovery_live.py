@@ -47,7 +47,7 @@ def test_units_freshness_and_public_projection(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize('bad', [wire(stamp='2026/10/29 16:08:14'), wire(stamp='2026/10/30 15:00:00'),
                                wire(stamp='2026/10/30 19:00:00'), wire(**{'45': 'nan'}),
-                               wire(**{'37': ''}), wire() + '\n' + wire(), 'bad'])
+                               wire(**{'37': ''}), wire(**{'45': '1e308'}), wire() + '\n' + wire(), 'bad'])
 def test_missing_rows_preserve_good_candidates(tmp_path, monkeypatch, bad):
     install(tmp_path)
     monkeypatch.setattr(L, 'fetch_quotes', lambda _: bad + '\n' + wire('02345'))
