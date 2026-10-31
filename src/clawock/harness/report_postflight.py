@@ -104,6 +104,7 @@ from ._watchdog_common import (  # noqa: E402
     delivered_channels, slot_shipped,
     claim_send, log, send_per_policy, send_under_claim,
 )
+from .run_usage import append as run_usage_append  # noqa: E402
 
 
 def read_prose_text(market, phase, text_file):
@@ -495,6 +496,10 @@ def main(argv=None):
         body = assemble_message(ctx, '')
     else:
         body = text
+    # Appended after validation, so the footer's numbers are never read as the
+    # report's own claims. A manual/dry postflight has no live run and adds
+    # nothing; the receipt on a failed send carries this exact body.
+    body = run_usage_append(body)
 
     # ── Primary WeChat send (fresh token, decoupled from the cron announce) ───
     # Idempotency: this phase's marker is per market+phase+date and fires once/day,

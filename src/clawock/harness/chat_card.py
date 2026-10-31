@@ -43,6 +43,13 @@ LEVERAGE_GAP_PP = 1.0
 
 BULLET = '- '
 
+# The reply footer's meter alphabet and width, copied from the live
+# `/root/.openclaw/usage-template.json` contract (`meter:10:block`). Cards use
+# the same two lines kcn approved for direct chat; if that template changes,
+# this constant and `usage_footer` change with it.
+USAGE_METER = '░▏▎▍▌▋▊▉█'
+USAGE_METER_WIDTH = 10
+
 
 def bullet(text: str) -> str:
     return f'{BULLET}{text}'
@@ -472,3 +479,70 @@ def render_report(title: str, block: str, prose: str, *, held=(), debts=(),
     if body:
         lines += ['', body]
     return '\n'.join(lines)
+
+
+# ── usage footer ─────────────────────────────────────────────────────────────
+
+def _js_round(value: float) -> int:
+    """`Math.round` for the non-negative values a meter uses (half rounds up)."""
+    return int(value + 0.5)
+
+
+def usage_meter(value, width: int = USAGE_METER_WIDTH) -> str:
+    """The template's `meter:10:block`: a 10-cell bar, partial cell included."""
+    try:
+        pct = max(0.0, min(100.0, float(value)))
+    except (TypeError, ValueError):
+        return ''
+    total = pct / 100 * width
+    full = int(total)
+    cells = [USAGE_METER[-1]] * min(full, width)
+    if len(cells) < width:
+        cells.append(USAGE_METER[_js_round((total - full) * (len(USAGE_METER) - 1))])
+    while len(cells) < width:
+        cells.append(USAGE_METER[0])
+    return ''.join(cells[:width])
+
+
+def _usd(value, digits: int) -> str | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if value != value or value in (float('inf'), float('-inf')) or value < 0:
+        return None
+    return f'{value:.{digits}f}'
+
+
+def usage_footer(usage=None, *, model=None, context_pct=None, turn_usd=None,
+                 day_usd=None, cache_hit_pct=None) -> str:
+    """The same two-line block the reply footer shows, for a delivered card.
+
+    `usage` may be a `providers.openclaw.RunUsage`; keyword arguments override
+    it, which keeps this module free of a provider import. Pieces the runtime
+    could not prove are omitted, never rendered as 0 or a placeholder. An empty
+    string means "no footer at all".
+    """
+    if usage is not None:
+        model = model if model is not None else getattr(usage, 'model', None)
+        context_pct = (context_pct if context_pct is not None
+                       else getattr(usage, 'context_pct', None))
+        turn_usd = turn_usd if turn_usd is not None else getattr(usage, 'turn_usd', None)
+        day_usd = day_usd if day_usd is not None else getattr(usage, 'day_usd', None)
+        cache_hit_pct = (cache_hit_pct if cache_hit_pct is not None
+                         else getattr(usage, 'cache_hit_pct', None))
+    first = model.strip() if isinstance(model, str) and model.strip() else ''
+    if first and isinstance(context_pct, (int, float)) and not isinstance(context_pct, bool):
+        pct = _js_round(max(0.0, min(100.0, float(context_pct))))
+        first = f'{first}  [{usage_meter(pct)}] {pct}%'
+    second = []
+    turn = _usd(turn_usd, 4)
+    if turn is not None:
+        second.append(f'↑{turn}$')
+    day = _usd(day_usd, 3)
+    if day is not None:
+        second.append(f'Σ{day}$')
+    if (isinstance(cache_hit_pct, (int, float)) and not isinstance(cache_hit_pct, bool)):
+        second.append(f'hit {_js_round(max(0.0, min(100.0, float(cache_hit_pct))))}%')
+    lines = ([first] if first else []) + (['  '.join(second)] if second else [])
+    if not lines:
+        return ''
+    return '```text\n' + '\n'.join(lines) + '\n```'
