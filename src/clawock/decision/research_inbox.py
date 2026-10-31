@@ -26,6 +26,8 @@ def _path(workspace):
 
 
 def _key(market, ticker):
+    if not isinstance(market, str) or not isinstance(ticker, str):
+        raise ValueError("invalid market/ticker")
     market, ticker = market.upper(), ticker.upper().strip()
     pattern = r"[0-9]{5}" if market == "HK" else r"[A-Z]{1,5}(?:[.-][A-Z])?"
     if market not in {"US", "HK"} or not re.fullmatch(pattern, ticker):

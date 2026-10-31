@@ -35,3 +35,10 @@ def test_no_denominator_and_numeric_strings():
     assert valuation.summary([{"ticker": "MISSING", "shares": 1}])["cost_carried_pct"] is None
     assert valuation.basis({"shares": "2", "cost_basis": "5"})["kind"] == "cost"
     assert valuation.basis({"shares": 1, "current_value": "0"})["kind"] == "quote"
+
+
+
+def test_nonfinite_mark_is_not_mislabeled_as_cost_carry():
+    row = {"ticker": "BAD", "shares": 1, "cost_basis": 100, "current_value": float("nan")}
+    assert valuation.basis(row)["kind"] == "unavailable"
+    assert valuation.summary([row])["cost_carried_pct"] is None

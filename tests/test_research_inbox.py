@@ -98,3 +98,15 @@ def test_noncanonical_review_dates_rejected(tmp_path):
     I.ingest(tmp_path, [CANDIDATE], today=DAY)
     with pytest.raises(ValueError, match="YYYY-MM-DD"):
         I.set_status(tmp_path, "US", "TEST", "deferred", reason="wait", review_on="20261102")
+
+
+
+def test_structurally_corrupt_inbox_still_preserves_fresh_discovery(tmp_path):
+    path = I._path(tmp_path)
+    path.parent.mkdir()
+    content = json.dumps({"schema_version": 1, "rows": {"US:TEST": {"market": [], "ticker": "TEST"}}})
+    path.write_text(content)
+    result = I.attach(tmp_path, {"status": "ok", "candidates": [CANDIDATE]}, today=DAY)
+    assert result["inbox"]["status"] == "unavailable"
+    assert result["candidates"] == [CANDIDATE]
+    assert path.read_text() == content
