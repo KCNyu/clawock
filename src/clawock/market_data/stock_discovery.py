@@ -249,7 +249,7 @@ def candidate_lines(discovery, *, limit=3):
     hk = discovery if discovery.get("market") == "HK" else (discovery.get("markets") or {}).get("HK", {})
     lines.extend(hk.get("degraded", []))
     if discovery.get("market") == "HK" or (discovery.get("markets") or {}).get("HK", {}).get("status") in {"ok", "no_candidates", "partial"}:
-        lines.append("港股：收盘快照的衍生研究候选，不发布原始行情；仍须 entry-gate。")
+        lines.append("港股：按证据中的成交价/收盘口径生成研究候选，不发布原始行情；仍须 entry-gate。")
     if discovery.get("market") != "HK":
         lines.append("Nasdaq 公开快照，行情时间未核验；目标价/评级缺失，候选不授权交易")
     return lines
