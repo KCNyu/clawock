@@ -815,10 +815,12 @@ def _scan_transcript(path: Path) -> _TranscriptUsage | None:
                 call_total = (call_input + _token_count(usage.get('output'))
                               + call_read + call_write)
                 declared_total = _token_count(usage.get('totalTokens'))
-                if declared_total or call_total:
+                call_prompt = call_input + call_read + call_write
+                if call_prompt or declared_total:
                     # The last call's prompt is the context the turn left behind;
-                    # an empty call after a failed hop must not erase it.
-                    prompt_tokens = max(declared_total, call_total)
+                    # an empty call after a failed hop must not erase it. Prefer
+                    # the split buckets: totalTokens also contains the output.
+                    prompt_tokens = call_prompt or declared_total
                 cost = usage.get('cost')
                 amount = cost.get('total') if isinstance(cost, dict) else None
                 if _finite_number(amount) and amount >= 0:

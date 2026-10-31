@@ -177,7 +177,7 @@ def test_current_run_reports_the_model_and_both_costs(tmp_path):
     assert usage.turn_usd == 0.02
     assert usage.day_usd == 0.03
     assert usage.cache_hit_pct == 89
-    assert usage.context_pct == 100
+    assert usage.context_pct == 95
 
 
 def test_prior_run_without_a_price_makes_the_day_total_unknown(tmp_path):
@@ -222,7 +222,7 @@ def test_a_zero_priced_run_is_known_zero_not_missing(tmp_path):
     assert usage.model == 'gpt-6-luna'
     assert usage.turn_usd == 0.0
     assert usage.day_usd == 0.0
-    assert usage.context_pct == 50
+    assert usage.context_pct == 48
 
 
 def test_context_window_falls_back_to_the_runtime_model_table(tmp_path):
