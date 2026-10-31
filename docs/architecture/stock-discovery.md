@@ -18,7 +18,7 @@ clawock 的 `discover-stocks` 从免费美股全市场快照生成跨板块的**
 |---|---|---|
 | 股票池 | `market_data/stock_discovery.fetch_snapshot` | 一次 Nasdaq 公开 US-listed 下载请求 → 带板块/行业的原始表；无 key、无付费后备源 |
 | 确定性筛选 | `stock_discovery.screen_snapshot` | 快照 + `config/stock-discovery.json` + 实际 portfolio/registry → 最多 6 个研究候选、淘汰计数、规则版本与证据时间字段 |
-| 排除已有暴露 | `stock_discovery.excluded_exposure` | 活跃持仓及 registry 的 underlying / one_x_substitute / signal_symbol → 排除集合；读不到账本或活跃持仓元数据时拒绝推荐 |
+| 排除已有暴露 | `discovery_common.excluded_exposure`（US/HK 共用） | 活跃持仓及 registry 的 underlying / one_x_substitute / signal_symbol → 排除集合；读不到账本或活跃持仓元数据时拒绝推荐 |
 | 简报装配 | `harness/brief_preflight.stock_discovery_node` | WAVE1 有界子进程 → 当代 context；失败是候选源降级，不使持仓判断失败 |
 | 判断上下文 | `decision/packet._packet_payload` / `summary_view` | context → 同代 packet 与常驻 summary 的 `stock_discovery`（summary 把各候选相同的字段合并到 `candidate_shared`，packet 保留整行）；不进入持仓加仓授权表 |
 | 用户出口 | `harness/brief_render.stock_discovery_section`、`brief_card._early_candidate_section` | `stock_discovery.candidate_lines` → 完整报告与主投/兜底卡；模型省略不能藏掉队列或源失败 |
@@ -47,9 +47,9 @@ portfolio 添加假持仓来绕过。报价之外，entry-gate 的人工证据�
 `unavailable`（源/配置/账本失败）与 `no_candidates`（有效快照筛后为空）分开，
 不使用上次候选掩盖失败。子进程总预算为 25 秒，请求有 connect/read timeout；
 候选数量、源行数和响应字节都有验证上限。无需增加调度：复用每日简报。
-关闭 `config/stock-discovery.json` 的 `enabled` 即停抓；外部 workspace 没配置则不抓。
+关闭 `config/stock-discovery.json` 的 `enabled` 即停抓美股；外部 workspace 没配置则不抓。
 
-目前只有美国上市股票启用自动发现；港股入口返回明确的授权缺口回执（见下节）。初始排序偏向大型高流动性公司，
+默认只有美国上市股票启用自动发现；港股须接入经核验的授权快照，否则返回授权缺口回执（见下节）。初始排序偏向大型高流动性公司，
 不保证发现小盘或早期主题。板块多样化不代表组合暴露完全分散，ETF 穿透仍须研究。
 analyst 目标价和评级没有可靠源，明确缺失。没有增加 LLM 调用或付费额度；
 完整估值、催化确认和可执行切换仍交给既有研究与决策契约。
@@ -57,7 +57,7 @@ analyst 目标价和评级没有可靠源，明确缺失。没有增加 LLM 调�
 ## 研究收件箱
 
 发现与研究状态分开：`discover-stocks --json` 保持只读，默认 `--market all`，
-返回 US 发现结果和 HK 可用性；`--market US|HK` 可单独检查。
+返回两市场合并候选和各自可用性；`--market US|HK` 可单独检查。
 简报 preflight 调 `research-inbox collect`，在网络请求结束后将候选
 按 `market:ticker` 归并到本机 `.cache/research-inbox.json`。
 该文件与锁文件被 Git 忽略；备份或迁移工作区时需另外保留，不能把它当可丢弃的行情缓存。
@@ -84,21 +84,87 @@ clawock research-inbox set AAPL --market US --status deferred --reason '等财�
 
 ## 港股可行性与当前边界
 
-`discover-stocks --market HK --json` 返回
-`status=unavailable` / `reason_code=redistribution_permission_missing`，不请求供应商，
-也不产生港股候选。默认组合结果与简报明确显示这一缺口，不把它表示成筛选后为空。
+默认 `discover-stocks --market HK --json` 仍返回
+`status=unavailable` / `reason_code=redistribution_permission_missing`，不请求供应商。
+目前没有核验到适用于本项目公开用途的免费港股源。MIT 仅授权本项目代码，
+“非投资建议”只说明投资责任；两者均不授予上游数据权利，非商用也不自动免责。
 
-字段可达不等于允许公开使用。东方财富 clist 可提供代码、行业、成交额、市值和时间字段；
-其[法律声明](https://about.eastmoney.com/home/legal)第八、十节限制未经许可的复制、传播与行情再分发。
-HKEX 证券名录可作证券身份来源，但其
-[使用条款](https://www.hkex.com.hk/Global/Exchange/Terms-of-Use?sc_lang=en)
-第 5 节限制程序化获取、衍生数据库和再分发。
-目前没有已核验的适用于此用途的授权，故决定不启用港股自动发现；这两路均未加入自动采集或公开产物。保留可查询的不可用回执，不把它列为已经上线或等待自动启用的功能。
-代码回执只记录字段类别与授权缺口，不保存供应商原始行情或证券名录。
+东方财富 clist 的字段可达，但其[法律声明](https://about.eastmoney.com/home/legal)
+第八、十节限制未经许可的复制、传播与行情再分发。
+HKEX 的[使用条款](https://www.hkex.com.hk/Global/Exchange/Terms-of-Use?sc_lang=en)
+第 5 节限制程序化访问、衍生数据库与再分发，且不以是否获利为限。
+因此这两路都没有接入。衍生结论也须核验授权，不能靠隐藏原始价格绕过条款。
 
-后续启用需要同时满足：允许自动获取及公开再分发的源、普通股身份与行业覆盖、
-可靠观察时间和场次验证。之后才能复用持仓/底层排除、板块限额、候选 schema 和 entry-gate。
-不能仅凭 HTTP 200 或用户希望启用就宣称这些条件成立。
+### 获授权源的零代码接入
+
+`market_data/hk_discovery.collect(workspace)` 已实现本地标准快照适配器：
+授权源适配程序取得收盘快照后，原子替换以下两个 Git 忽略文件即可；
+无需修改 Python、CLI、简报调度或研究收件箱。没有内置供应商爬虫、付费后备或自动授权。
+路径是 workspace 下 `.cache/hk-discovery/`，本地原始行情及私人授权材料不得提交。
+授权接入方需自行实现其供应商的获取/字段映射，并负责在每次收盘后更新快照。
+
+`authorization.json` 是操作者**核验真实协议后**的回执，不是软件生成的许可。
+没有真实允许条款时不得填写 true；撤销授权应删除回执或将相应范围改为 false。
+私人协议原文留在本地，只在回执填写可公开的条款编号与准确范围摘要。
+`terms_url` 应指向公开条款/授权说明；如不能公开来源和许可依据，不接入此公开链路。
+`reviewed_by` 不进入公开结果。下列 example.test 与条款均为格式示例，**不是可用授权**：
+
+```json
+{
+  "schema_version": 1,
+  "source_id": "licensed_provider",
+  "source_name": "已核验的供应商名称",
+  "terms_url": "https://example.test/agreement",
+  "clause": "填写实际允许自动获取、公开证券元数据和衍生候选的条款编号及范围",
+  "reviewed_by": "本地核验人",
+  "reviewed_on": "2026-10-30",
+  "valid_until": "2026-11-30",
+  "automated_acquisition": true,
+  "public_derived_candidates": true,
+  "public_security_metadata": true
+}
+```
+
+`snapshot.json` 同一源、同一收盘场次；ticker 为五位数字，人民币柜台/基金/权证等
+不能伪标为普通股。sector/industry 必须由授权源给出，不从现有持仓推断。
+以下数值是合成格式示例，不是实际证券或行情：
+
+```json
+{
+  "schema_version": 1,
+  "source_id": "licensed_provider",
+  "session_date": "2026-10-30",
+  "observed_at": "2026-10-30T16:10:00+08:00",
+  "rows": [{
+    "ticker": "01234", "name": "合成示例公司", "security_type": "ordinary_share",
+    "sector": "工业", "industry": "设备", "market_cap_hkd": 20000000000,
+    "price_hkd": 10, "turnover_hkd": 30000000, "change_pct": 1
+  }]
+}
+```
+
+观察时间须带时区、在该收盘日 16:00 HKT（半日市 12:00）之后且不晚于当前时间，场次必须与共享
+交易日历的最新已完成 HK 场次一致；不把导入时间当观察时间。只接受收盘快照，
+不以旧数据回退。源适配方仍须核实收盘字段语义与普通股身份。
+最多 15000 行 / 8 MiB；空快照、过期场次、未知日历、坏行情或账本失败为
+`unavailable / authorized_snapshot_invalid`，授权缺失、无效或过期维持原授权缺口回执。
+只有有效非空快照全部未过筛选才返回 `no_candidates`。
+
+筛选阈值由 `hk_discovery.POLICY` 固定：市值至少 150 亿 HKD、价格至少 2 HKD、
+实际成交额至少 2000 万 HKD、涨跌幅在 −3% 至 +5%，按成交额排序，每板块一票、最多六票。
+排除活跃持仓与底层暴露；不是收益已验证的评分。公开结果只包含候选证券身份、行业、
+通过筛选的结论、源名称/条款依据、观察场次与授权回执 SHA256、筛选规则和计数，
+**不包含价格、市值、成交额、涨跌幅或原始行**。这些结论本身仍需上述公开发布许可。
+
+默认 `--market all` 合并两市场候选，再进入现有收件箱、packet、简报及卡片；
+美股失败不掩盖可用港股，港股失败也不会假报空筛选。候选仍要求独立报价核验和 entry-gate，
+不自动建仓、注册证券、抓取日 K 或授权交易。运行检查：
+
+```bash
+clawock discover-stocks --market HK --json
+clawock research-inbox collect
+clawock research-inbox list --highlights
+```
 
 ## 参考实现：可以借什么
 

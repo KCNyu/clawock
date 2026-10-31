@@ -189,3 +189,6 @@ portfolio.json.bak
 
 # Local research dispositions; do not publish operator notes.
 /.cache/research-inbox.json*
+
+# Licensed HK discovery inputs and private permission receipts.
+/.cache/hk-discovery/

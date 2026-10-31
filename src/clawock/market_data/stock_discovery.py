@@ -15,6 +15,7 @@ from pathlib import Path
 import re
 
 from clawock.safe_io import to_strict_finite_number
+from clawock.market_data.discovery_common import excluded_exposure, MISSING
 from clawock.workspace import workspace_root
 
 URL = "https://api.nasdaq.com/api/screener/stocks"
@@ -27,7 +28,6 @@ SECTOR_LABELS = {
     "Real Estate": "房地产", "Telecommunications": "通信",
     "Basic Materials": "基础材料",
 }
-MISSING = ["报价时点与交易场次核验", "一手披露与商业模式", "估值与下行风险", "entry-gate 硬否决"]
 
 
 def validate_policy(policy):
@@ -54,35 +54,6 @@ def _number(value):
     if isinstance(value, str):
         value = value.strip().replace(",", "").replace("$", "").replace("%", "")
     return to_strict_finite_number(value)
-
-
-def excluded_exposure(portfolio, registry):
-    """Exclude actual holdings and their known underlying/1x/signal exposures."""
-    blocked = set()
-    if not isinstance(portfolio, dict) or not isinstance(portfolio.get("portfolios"), dict):
-        raise ValueError("portfolio missing portfolios")
-    for book in portfolio["portfolios"].values():
-        if not isinstance(book, dict) or not isinstance(book.get("holdings"), list):
-            raise ValueError("invalid region book")
-        for holding in book["holdings"]:
-            if not isinstance(holding, dict):
-                raise ValueError("invalid holding row")
-            shares = to_strict_finite_number(holding.get("shares"))
-            if shares is None or shares < 0:
-                raise ValueError("invalid holding shares")
-            if shares == 0:
-                continue
-            symbol = str(holding.get("ticker") or "").strip().upper()
-            if not symbol:
-                raise ValueError("active holding missing ticker")
-            blocked.add(symbol)
-            meta = registry.get(symbol)
-            if not isinstance(meta, dict):
-                raise ValueError("active holding missing exposure metadata")
-            for key in ("underlying", "one_x_substitute", "signal_symbol"):
-                if meta.get(key):
-                    blocked.add(str(meta[key]).upper())
-    return blocked
 
 
 def screen_snapshot(payload, portfolio, registry, policy, *, retrieved_at):
@@ -176,7 +147,7 @@ def screen_snapshot(payload, portfolio, registry, policy, *, retrieved_at):
         "rejections": dict(sorted(rejected.items())), "candidates": selected,
         "limitations": ["快照行情时间未核验；先研究，不作为实时交易信号",
                         "成交额为末价×股数的筛选代理，不是实际成交金额",
-                        "仅覆盖美股；港股跨板块发现尚未接入",
+                        "美股筛选仅覆盖美国上市股票",
                         "无可靠 analyst 一致预期源；目标价与评级缺失"],
     }
 
@@ -206,11 +177,16 @@ def collect(workspace: Path, *, fetcher=None, market="US"):
     from clawock.market_data import hk_discovery
 
     if market == "HK":
-        return hk_discovery.collect()
+        return hk_discovery.collect(workspace)
     if market == "all":
         us = collect(workspace, fetcher=fetcher, market="US")
-        hk = hk_discovery.collect()
-        return {**us, "markets": {"US": {"status": us["status"]}, "HK": hk}}
+        hk = hk_discovery.collect(workspace)
+        candidates = (us.get("candidates") or []) + hk["candidates"]
+        statuses = {us["status"], hk["status"]}
+        status = ("ok" if candidates else "unavailable" if "unavailable" in statuses
+                  else "no_candidates" if "no_candidates" in statuses else us["status"])
+        return {**us, "market": "all", "status": status, "candidates": candidates,
+                "markets": {"US": {"status": us["status"]}, "HK": hk}}
     if market != "US":
         raise ValueError("market must be US, HK or all")
     workspace = Path(workspace)
@@ -239,10 +215,10 @@ def candidate_lines(discovery, *, limit=3):
     if not discovery or discovery.get("status") in {"unconfigured", "disabled"}:
         return []
     lines = ["持仓外新标的（待研究）"]
-    if discovery.get("market") == "HK":
+    if discovery.get("market") == "HK" and discovery.get("status") == "unavailable":
         return lines + discovery.get("degraded", [])
-    if discovery.get("status") == "unavailable":
-        lines.append("Nasdaq 候选源未取到；本次无法推荐新标的")
+    if (discovery.get("markets") or {}).get("US", discovery).get("status") == "unavailable":
+        lines.append("Nasdaq 候选源未取到；本次无法推荐美股新标的")
     inbox = discovery.get("inbox") or {}
     if inbox.get("status") == "ok":
         lines.append(f"研究收件箱共 {inbox['total']} 项；仅突出新候选与到期复查。")
@@ -269,8 +245,12 @@ def candidate_lines(discovery, *, limit=3):
         for row in rows[:limit]:
             lines.append(f"- {row['ticker']} · {row['sector_label']}：核验报价、一手披露及入场否决后再深研")
     if (discovery.get("markets") or {}).get("HK", {}).get("status") == "unavailable":
-        lines.append("港股候选未启用：数据源自动采集与再分发授权尚未核验。")
-    return lines + ["Nasdaq 公开快照，行情时间未核验；目标价/评级缺失，候选不授权交易"]
+        lines.extend(discovery["markets"]["HK"]["degraded"])
+    if discovery.get("market") == "HK" or (discovery.get("markets") or {}).get("HK", {}).get("status") in {"ok", "no_candidates"}:
+        lines.append("港股：获授权收盘快照的衍生研究候选，不发布原始行情；仍须 entry-gate。")
+    if discovery.get("market") != "HK":
+        lines.append("Nasdaq 公开快照，行情时间未核验；目标价/评级缺失，候选不授权交易")
+    return lines
 
 
 def main(argv=None):
