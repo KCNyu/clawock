@@ -588,3 +588,16 @@ for the published health card and daily health report. They still omit optional
 context and do not add fatal preflight issues. A later success leaves earlier
 failure evidence intact. Attempt files follow the host's temporary-file retention
 (default 14 days); the outcome ledger retains its existing rolling health window.
+
+
+### Book valuation provenance
+
+Concentration carries a same-generation `valuation` view from
+`portfolio.valuation.summary`: each active row is quote-marked, cost-carried or
+unavailable, with the book's original source/session when present. Cost-carried
+share uses the same `carried_value` denominator as concentration; an empty/zero
+denominator is unavailable, not 0%. Explicit zero marks remain quote marks.
+This metadata changes neither valuation nor risk thresholds and never asserts
+quote freshness. Brief concentration/risk sections and dashboard exposure cards
+show counts and mixed/incomplete-basis warnings. The dashboard keeps
+`valuation_basis` before trimming a missing mark into a carried numeric value.

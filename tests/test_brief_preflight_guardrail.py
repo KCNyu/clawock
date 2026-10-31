@@ -765,7 +765,7 @@ def test_concentration_present_value_needs_no_cost_basis(preflight):
     row = {"ticker": "TEST", "shares": 1, "current_value": 100}
     assert preflight.compute_concentration([row])["leg_total"] == 100
     row["current_value"] = None
-    assert preflight.compute_concentration([row]) == {"error": "leg has zero total value"}
+    assert preflight.compute_concentration([row])["error"] == "leg has zero total value"
 
 
 def test_zero_value_is_not_replaced_by_cost_in_hard_stop(preflight):

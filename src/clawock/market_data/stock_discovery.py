@@ -200,10 +200,19 @@ def fetch_snapshot():
     return response.json()
 
 
-def collect(workspace: Path, *, fetcher=None):
+def collect(workspace: Path, *, fetcher=None, market="US"):
     """No last-good fallback: failures stay distinct from an empty screen."""
     from clawock.instruments import load_registry
+    from clawock.market_data import hk_discovery
 
+    if market == "HK":
+        return hk_discovery.collect()
+    if market == "all":
+        us = collect(workspace, fetcher=fetcher, market="US")
+        hk = hk_discovery.collect()
+        return {**us, "markets": {"US": {"status": us["status"]}, "HK": hk}}
+    if market != "US":
+        raise ValueError("market must be US, HK or all")
     workspace = Path(workspace)
     try:
         policy_path = workspace / "config" / "stock-discovery.json"
@@ -226,25 +235,51 @@ def collect(workspace: Path, *, fetcher=None):
 
 
 def candidate_lines(discovery, *, limit=3):
-    """Shared bounded presentation for the full brief and delivery card."""
+    """Shared bounded presentation; queue highlights never authorize a trade."""
     if not discovery or discovery.get("status") in {"unconfigured", "disabled"}:
         return []
     lines = ["持仓外新标的（待研究）"]
+    if discovery.get("market") == "HK":
+        return lines + discovery.get("degraded", [])
     if discovery.get("status") == "unavailable":
-        return lines + ["Nasdaq 候选源未取到；本次无法推荐新标的"]
-    rows = discovery.get("candidates") or []
-    if not rows:
-        return lines + ["本次快照没有符合筛选条件的持仓外候选"]
-    for row in rows[:limit]:
-        lines.append(f"- {row['ticker']} · {row['sector_label']}：核验报价、一手披露及入场否决后再深研")
-    return lines + ["Nasdaq 公开快照，行情时间未核验；仅美股，目标价/评级缺失"]
+        lines.append("Nasdaq 候选源未取到；本次无法推荐新标的")
+    inbox = discovery.get("inbox") or {}
+    if inbox.get("status") == "ok":
+        lines.append(f"研究收件箱共 {inbox['total']} 项；仅突出新候选与到期复查。")
+        for row in inbox["rows"][:limit]:
+            tag = "到期复查" if row["due"] else "新候选"
+            lines.append(f"- {row['market']} {row['ticker']} · {row['sector_label']}：{tag} / {row['status_label']}"
+                         f"（最近发现 {row['last_seen']}）")
+            if row.get("gate_artifact"):
+                reference = (f"[已有入场核验产物]({row['gate_url']})" if row.get("gate_url")
+                             else f"本机核验产物：`{row['gate_artifact']}`")
+                lines.append("  " + reference
+                             + (" · 最近核验通过（仍不授权交易）" if (row.get("gate") or {}).get("cleared")
+                                else " · 尚未通过或已过期"))
+        if not inbox["rows"]:
+            lines.append("本次没有新候选或到期复查项。")
+        if inbox["matching"] > limit:
+            lines.append("更多条目见 clawock research-inbox list --highlights。")
+    else:
+        if inbox:
+            lines.append("研究收件箱不可用；以下为本次发现，未覆盖已有研究状态。")
+        rows = discovery.get("candidates") or []
+        if not rows and discovery.get("status") != "unavailable":
+            lines.append("本次快照没有符合筛选条件的持仓外候选")
+        for row in rows[:limit]:
+            lines.append(f"- {row['ticker']} · {row['sector_label']}：核验报价、一手披露及入场否决后再深研")
+    if (discovery.get("markets") or {}).get("HK", {}).get("status") == "unavailable":
+        lines.append("港股候选未启用：数据源自动采集与再分发授权尚未核验。")
+    return lines + ["Nasdaq 公开快照，行情时间未核验；目标价/评级缺失，候选不授权交易"]
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="clawock discover-stocks", description=__doc__.splitlines()[0])
     parser.add_argument("--json", action="store_true", help="emit structured research candidates")
+    parser.add_argument("--market", choices=["US", "HK", "all"], default="all")
     args = parser.parse_args(argv)
-    result = collect(workspace_root())
+    workspace = workspace_root()
+    result = collect(workspace, market=args.market)
     print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else
           "\n".join(candidate_lines(result, limit=12)))
     return 0

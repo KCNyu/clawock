@@ -1,7 +1,7 @@
 # 持仓外候选发现
 
 clawock 的 `discover-stocks` 从免费美股全市场快照生成跨板块的**待研究候选**，
-每日简报自动展示。候选不依赖持仓的 peer-map，不授权建仓、切换或加仓。
+每日简报展示新候选与到期复查项。候选不依赖持仓的 peer-map，不授权建仓、切换或加仓。
 
 ## 为什么需要独立入口
 
@@ -49,10 +49,56 @@ portfolio 添加假持仓来绕过。报价之外，entry-gate 的人工证据�
 候选数量、源行数和响应字节都有验证上限。无需增加调度：复用每日简报。
 关闭 `config/stock-discovery.json` 的 `enabled` 即停抓；外部 workspace 没配置则不抓。
 
-目前只覆盖美国上市股票，港股跨板块发现尚缺；初始排序偏向大型高流动性公司，
+目前只有美国上市股票启用自动发现；港股入口返回明确的授权缺口回执（见下节）。初始排序偏向大型高流动性公司，
 不保证发现小盘或早期主题。板块多样化不代表组合暴露完全分散，ETF 穿透仍须研究。
 analyst 目标价和评级没有可靠源，明确缺失。没有增加 LLM 调用或付费额度；
 完整估值、催化确认和可执行切换仍交给既有研究与决策契约。
+
+## 研究收件箱
+
+发现与研究状态分开：`discover-stocks --json` 保持只读，默认 `--market all`，
+返回 US 发现结果和 HK 可用性；`--market US|HK` 可单独检查。
+简报 preflight 调 `research-inbox collect`，在网络请求结束后将候选
+按 `market:ticker` 归并到本机 `.cache/research-inbox.json`。
+该文件与锁文件被 Git 忽略；备份或迁移工作区时需另外保留，不能把它当可丢弃的行情缓存。
+
+```bash
+clawock research-inbox list
+clawock research-inbox list --highlights --limit 12
+clawock research-inbox set AAPL --market US --status researching --reason '核验最新披露'
+clawock research-inbox set AAPL --market US --status deferred --reason '等财报' --review-on 2026-12-01
+```
+
+状态为 pending（待看）、researching（研究中）、deferred（暂缓）、rejected（已否决）。
+每次变更必须有理由；暂缓必须有复查日期，其他状态也可安排复查。
+重新发现只更新名字、行业及最近发现日期，绝不覆盖人工状态、理由和日期。
+同一天重跑仍显示当日新候选；后续只突出到期复查项，不反复展示整个旧队列。
+过去发现、当前已不在快照中的到期项仍会显示最近发现日期，不能冒充新报价。
+
+列表提供已有 entry-gate 的相对路径及现有验证器的结论；与已获取的公开 origin/master 内容一致时，另提供固定 commit 的 GitHub 链接。本机尚未发布或已修改的产物只显示本机路径。
+核验通过不改变队列状态，也不产生交易授权。
+`list` 默认最多 50 项，`--limit` 可设至 2000；
+简报最多 6 项、投递卡最多 3 项，截断时提示查看队列。
+达到 2000 项、损坏文件或写入失败会显式降级，保持原文件，仍展示本次候选。
+写入使用文件锁内重读与原子替换；源失败仍保留到期项，无后台调度或额外模型调用。
+
+## 港股可行性与当前边界
+
+`discover-stocks --market HK --json` 返回
+`status=unavailable` / `reason_code=redistribution_permission_missing`，不请求供应商，
+也不产生港股候选。默认组合结果与简报明确显示这一缺口，不把它表示成筛选后为空。
+
+字段可达不等于允许公开使用。东方财富 clist 可提供代码、行业、成交额、市值和时间字段；
+其[法律声明](https://about.eastmoney.com/home/legal)第八、十节限制未经许可的复制、传播与行情再分发。
+HKEX 证券名录可作证券身份来源，但其
+[使用条款](https://www.hkex.com.hk/Global/Exchange/Terms-of-Use?sc_lang=en)
+第 5 节限制程序化获取、衍生数据库和再分发。
+目前没有已核验的适用于此用途的授权，故这两路均未加入自动采集或公开产物。
+代码回执只记录字段类别与授权缺口，不保存供应商原始行情或证券名录。
+
+后续启用需要同时满足：允许自动获取及公开再分发的源、普通股身份与行业覆盖、
+可靠观察时间和场次验证。之后才能复用持仓/底层排除、板块限额、候选 schema 和 entry-gate。
+不能仅凭 HTTP 200 或用户希望启用就宣称这些条件成立。
 
 ## 参考实现：可以借什么
 

@@ -11,6 +11,7 @@ Run ``clawock dashboard-build`` after each portfolio mutation.
 
 from clawock.safe_io import to_number as _share_number
 from clawock.safe_io import carried_value
+from clawock.portfolio.valuation import basis as valuation_basis, summary as valuation_summary
 import argparse
 import copy
 import glob
@@ -894,6 +895,7 @@ def trim_holding(h, currency):
         # A row before its first quote is worth its cost, as the leg totals
         # above it count it (#2967); 0 here split the row from its own leg.
         'current_value': round(carried_value(h), 2),
+        'valuation_basis': valuation_basis(h),
         'today_change': today('today_change'),
         'today_change_pct': today('today_change_pct'),
         'day_high': None if h.get('day_high') is None else round(h['day_high'], 4),
@@ -4821,6 +4823,8 @@ def build_projection(previous_source=None, shadow_previous=None):
 
     us_conc = compute_hhi(us_h)
     hk_conc = compute_hhi(hk_h)
+    us_conc["valuation"] = valuation_summary(us_rows)
+    hk_conc["valuation"] = valuation_summary(hk_rows)
 
     # Offline by design: refreshing the cache belongs to the upstream fetches.
     # Stale or missing is published and warned, never passed off as fresh (#1781).

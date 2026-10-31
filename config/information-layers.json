@@ -396,6 +396,9 @@
     "clawock-intraday-watchdog": {
       "reason": "delivery watchdog for the intraday slots, on the same footing",
       "registry": "standalone"
+    },
+    "research-inbox": {
+      "reason": "local research queue dispositions and review dates; not a market measurement or trading authorization"
     }
   },
   "registries": {

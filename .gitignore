@@ -186,3 +186,6 @@ portfolio.json.bak
 # The last published generation, materialised for `--previous` and for the
 # semantic diff's baseline.
 /.data-plane.cache/
+
+# Local research dispositions; do not publish operator notes.
+/.cache/research-inbox.json*
