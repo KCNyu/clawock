@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "coverage": "curated_ordinary_shares_not_full_market",
+  "securities": [
+    {
+      "ticker": "00005",
+      "sector": "金融",
+      "industry": "银行",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00939",
+      "sector": "金融",
+      "industry": "银行",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "02318",
+      "sector": "金融",
+      "industry": "保险",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00941",
+      "sector": "通信服务",
+      "industry": "电信",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00728",
+      "sector": "通信服务",
+      "industry": "电信",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00762",
+      "sector": "通信服务",
+      "industry": "电信",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00883",
+      "sector": "能源",
+      "industry": "油气",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00857",
+      "sector": "能源",
+      "industry": "油气",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "01088",
+      "sector": "能源",
+      "industry": "煤炭",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00002",
+      "sector": "公用事业",
+      "industry": "电力",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00003",
+      "sector": "公用事业",
+      "industry": "燃气",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00836",
+      "sector": "公用事业",
+      "industry": "电力",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00291",
+      "sector": "必需消费",
+      "industry": "啤酒",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00322",
+      "sector": "必需消费",
+      "industry": "食品饮料",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "02319",
+      "sector": "必需消费",
+      "industry": "乳业",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "02020",
+      "sector": "可选消费",
+      "industry": "运动服饰",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "02313",
+      "sector": "可选消费",
+      "industry": "纺织制造",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "09988",
+      "sector": "可选消费",
+      "industry": "电子商务",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "01093",
+      "sector": "医疗保健",
+      "industry": "制药",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "01177",
+      "sector": "医疗保健",
+      "industry": "制药",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "02269",
+      "sector": "医疗保健",
+      "industry": "生物药服务",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00669",
+      "sector": "工业",
+      "industry": "电动工具",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00688",
+      "sector": "房地产",
+      "industry": "地产开发",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00019",
+      "sector": "工业",
+      "industry": "综合企业",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00981",
+      "sector": "信息技术",
+      "industry": "半导体",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00992",
+      "sector": "信息技术",
+      "industry": "计算机",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "02382",
+      "sector": "信息技术",
+      "industry": "光学器件",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "02899",
+      "sector": "材料",
+      "industry": "矿业",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00358",
+      "sector": "材料",
+      "industry": "铜业",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "00914",
+      "sector": "材料",
+      "industry": "水泥",
+      "security_type": "ordinary_share"
+    },
+    {
+      "ticker": "01109",
+      "sector": "房地产",
+      "industry": "地产开发",
+      "security_type": "ordinary_share"
+    }
+  ]
+}

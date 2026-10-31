@@ -77,13 +77,14 @@ def test_latest_gate_links_are_informational_not_a_queue_authorization(tmp_path,
     assert "尚未通过或已过期" in text and "memory/entry-gates/test.json" in text
 
 
-def test_hk_permission_receipt_never_calls_an_unapproved_feed(tmp_path):
+def test_hk_missing_inputs_do_not_fetch(tmp_path):
     result = D.collect(tmp_path, market="HK", fetcher=lambda: pytest.fail("must not fetch HK"))
-    assert result["status"] == "unavailable"
-    assert result["reason_code"] == "redistribution_permission_missing"
+    assert result["status"] == "incomplete"
+    assert result["reason_code"] == "invalid_discovery_inputs"
     assert result["candidates"] == []
     combined = D.collect(tmp_path, market="all")
-    assert combined["markets"]["HK"] == result
+    assert combined["markets"]["HK"]["reason_code"] == result["reason_code"]
+    assert combined["status"] == "incomplete"
 
 
 def test_concurrent_ingest_preserves_both_candidates(tmp_path):

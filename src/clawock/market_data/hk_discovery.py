@@ -1,8 +1,4 @@
-"""HK research discovery from an operator-reviewed, licensed local snapshot.
-
-No vendor endpoint is enabled by this module. The publisher/adapter supplies
-normalized inputs only after checking its agreement for this public use.
-"""
+"""HK derived research candidates from existing quotes or a licensed snapshot."""
 from collections import Counter
 from datetime import date, datetime, timezone
 import hashlib
@@ -62,11 +58,16 @@ def _authorization(auth, now):
 
 
 def screen_snapshot(snapshot, auth, portfolio, registry, *, now, receipt_hash):
-    from clawock.market_data.discovery_common import excluded_exposure, MISSING
-
     _authorization(auth, now)
     if snapshot.get("schema_version") != 1 or snapshot.get("source_id") != auth["source_id"]:
         raise ValueError("snapshot source mismatch")
+    source = {k: auth[k] for k in ("source_id", "source_name", "terms_url", "clause")}
+    return _screen(snapshot, source, portfolio, registry, now=now, receipt_hash=receipt_hash)
+
+
+def _screen(snapshot, source, portfolio, registry, *, now, receipt_hash=None):
+    from clawock.market_data.discovery_common import excluded_exposure, MISSING
+
     session = latest_completed_session("HK", at=now)
     if session is None or snapshot.get("session_date") != session.isoformat():
         raise ValueError("snapshot not latest completed session")
@@ -112,10 +113,11 @@ def screen_snapshot(snapshot, auth, portfolio, registry, *, now, receipt_hash):
             "ticker": ticker, "market": "HK", "name": name,
             "sector": sector, "sector_label": sector, "industry": industry,
             "state": "needs_entry_gate", "allowed": False,
-            "reason": "获授权收盘快照通过规模、流动性与涨跌幅筛选；跨板块待研究",
-            "evidence": {"source": auth["source_id"], "retrieved_at": now.isoformat(),
+            "reason": "收盘快照通过规模、流动性与涨跌幅筛选；跨板块待研究",
+            "evidence": {"source": source["source_id"], "retrieved_at": now.isoformat(),
                          "observed_at": observed.isoformat(), "session_date": session.isoformat(),
-                         "freshness": "latest_completed_session", "authorization_sha256": receipt_hash},
+                         "freshness": "latest_completed_session",
+                         **({"authorization_sha256": receipt_hash} if receipt_hash else {})},
             "missing_evidence": list(MISSING),
             "next_action": "核验报价与一手披露，运行 entry-gate，再决定是否深研",
             "quote_request": {"ticker": ticker, "region": "hk"},
@@ -134,9 +136,9 @@ def screen_snapshot(snapshot, auth, portfolio, registry, *, now, receipt_hash):
             "candidates": selected, "scanned_count": len(rows), "eligible_count": len(eligible),
             "rejections": dict(rejected), "policy": dict(POLICY),
             "publication": "derived_candidates_and_security_metadata_only",
-            "source": {k: auth[k] for k in ("source_id", "source_name", "terms_url", "clause")},
+            "source": dict(source),
             "limitations": ["收盘快照只生成研究候选，不是实时交易信号；不发布原始行情",
-                            "源覆盖由授权接入方声明；不承诺港股全市场覆盖",
+                            "不承诺港股全市场覆盖",
                             "目标价与评级缺失；候选不授权交易"]}
 
 
@@ -146,7 +148,7 @@ def collect(workspace, *, now=None):
     base = Path(workspace) / ".cache" / "hk-discovery"
     auth_path = base / "authorization.json"
     if not auth_path.exists():
-        return unavailable()
+        return _collect_live(workspace, now=now or datetime.now(timezone.utc))
     now = now or datetime.now(timezone.utc)
     try:
         auth, receipt_hash = _read(auth_path, limit=16384)
@@ -160,3 +162,55 @@ def collect(workspace, *, now=None):
         return screen_snapshot(snapshot, auth, portfolio, registry, now=now, receipt_hash=receipt_hash)
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return unavailable("authorized_snapshot_invalid")
+
+def _collect_live(workspace, *, now):
+    import requests
+
+    from clawock.instruments import load_registry
+    from .hk_discovery_live import SOURCE, fetch_quotes, parse_quotes
+    from .discovery_common import excluded_exposure
+
+    result = {'schema_version': 1, 'market': 'HK', 'research_only': True,
+              'status': 'incomplete', 'candidates': [], 'generated_at': now.isoformat(),
+              'source': dict(SOURCE), 'publication': 'derived_candidates_and_security_metadata_only',
+              'coverage': 'curated_ordinary_shares_not_full_market'}
+    try:
+        config, _ = _read(Path(workspace) / 'config/hk-discovery-universe.json')
+        if config.get('schema_version') != 1 or not 1 <= len(config['securities']) <= 100:
+            raise ValueError('invalid universe')
+        universe = {}
+        for row in config['securities']:
+            ticker = _text(row, 'ticker')
+            if not re.fullmatch(r'[0-9]{5}', ticker) or ticker == '00000' or ticker in universe:
+                raise ValueError('invalid universe ticker')
+            if row.get('security_type') != 'ordinary_share':
+                raise ValueError('nonordinary universe entry')
+            universe[ticker] = {k: _text(row, k) for k in ('ticker', 'sector', 'industry', 'security_type')}
+        portfolio, _ = _read(Path(workspace) / 'portfolio.json')
+        registry = load_registry(Path(workspace) / 'config/instruments.json', missing_ok=True)
+        excluded_exposure(portfolio, registry)  # Fail closed before network on unknown exposure.
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return {**result, 'reason_code': 'invalid_discovery_inputs',
+                'degraded': ['港股发现缺少有效股票池、持仓或底层暴露元数据']}
+    try:
+        rows, stamps, failed = parse_quotes(fetch_quotes(list(universe)), universe, now)
+    except (requests.RequestException, ValueError, TypeError):
+        return {**result, 'reason_code': 'quote_source_failed',
+                'degraded': ['Tencent 港股批量行情失败；未完成筛选']}
+    result['missing'] = failed
+    result['requested_count'] = len(universe)
+    if not rows:
+        return {**result, 'reason_code': 'no_usable_closing_quotes', 'scanned_count': 0,
+                'degraded': ['Tencent 港股缺少可用收盘报价：' + ', '.join(sorted(failed))]}
+    snapshot = {'session_date': latest_completed_session('HK', at=now).isoformat(),
+                'observed_at': min(stamps[r['ticker']] for r in rows), 'rows': rows}
+    screened = _screen(snapshot, SOURCE, portfolio, registry, now=now)
+    result.update(screened)
+    for candidate in result['candidates']:
+        candidate['evidence']['observed_at'] = stamps[candidate['ticker']]
+    # The curated pool is useful but never a complete market scan.
+    result['status'] = 'partial'
+    result['degraded'] = ['港股仅覆盖配置的跨行业普通股池，非全市场扫描']
+    if failed:
+        result['degraded'].append('Tencent 港股缺失或无效收盘报价：' + ', '.join(sorted(failed)))
+    return result
