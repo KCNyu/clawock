@@ -1489,19 +1489,19 @@ def live_sources_node():
 def stock_discovery_node():
     # Optional research ideas cannot fail the book/quote preflight. Provider
     # failure remains explicit in the generation-bound packet and rendered card.
-    from clawock.market_data.stock_discovery import unavailable
+    from clawock.market_data.stock_discovery import compact_coverage, unavailable
 
     try:
         result = subprocess.run(clawock_argv('research-inbox', 'collect'),
-                                cwd=WS, capture_output=True, text=True, timeout=25)
+                                cwd=WS, capture_output=True, text=True, timeout=90)
         if result.returncode != 0:
-            return unavailable('Nasdaq discovery command failed'), []
+            return unavailable('US/HK discovery command failed'), []
         payload = json.loads(result.stdout)
         if not isinstance(payload, dict) or 'status' not in payload:
             raise ValueError('discovery command returned no status')
-        return payload, []
+        return compact_coverage(payload), []
     except Exception as exc:
-        return unavailable(f'Nasdaq discovery failed ({type(exc).__name__})'), []
+        return unavailable(f'US/HK discovery failed ({type(exc).__name__})'), []
 
 
 def catalysts_node():

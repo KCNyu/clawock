@@ -132,7 +132,7 @@ def test_preflight_runs_bounded_command_and_keeps_failure_out_of_book_issues(mon
 
     def run(argv, **kwargs):
         assert argv[-2:] == ['research-inbox', 'collect']
-        assert kwargs['timeout'] == 25
+        assert kwargs['timeout'] == 90
         return SimpleNamespace(returncode=0, stdout=json.dumps(screen([row('MED')])))
 
     monkeypatch.setattr(P.subprocess, 'run', run)

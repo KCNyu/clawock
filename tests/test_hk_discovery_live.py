@@ -10,9 +10,19 @@ from clawock.market_data import hk_discovery as H, hk_discovery_live as L, stock
 NOW = datetime(2026, 10, 30, 10, tzinfo=timezone.utc)
 
 
+@pytest.fixture(autouse=True)
+def offline_sources(monkeypatch):
+    from clawock.market_data import hk_discovery_scan as S, hk_discovery_eastmoney as E
+    def fail(*args):
+        raise ValueError('synthetic unavailable source')
+    monkeypatch.setattr(S, 'fetch_roster', fail)
+    monkeypatch.setattr(E, 'fetch_quotes', fail)
+    monkeypatch.setattr(E, 'fetch_classifications', lambda deadline: ({}, {'missing': []}))
+
+
 def wire(ticker='01234', stamp='2026/10/30 16:08:14', **fields):
     cells = [''] * 46
-    for i, value in {1: 'Synthetic', 2: ticker, 3: '10', 30: stamp,
+    for i, value in {1: 'Synthetic', 2: ticker, 3: '10', 4: '9.9', 30: stamp,
                      32: '1', 37: '30000000', 45: '200', **{int(k): v for k, v in fields.items()}}.items():
         cells[i] = value
     return f'v_r_hk{ticker}="' + '~'.join(cells) + '";'

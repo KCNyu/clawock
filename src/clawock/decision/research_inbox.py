@@ -148,6 +148,7 @@ def view(workspace, *, today, limit=12, highlights_only=False):
         if highlights_only and not (row["due"] or (row["new"] and row["status"] == "pending")):
             continue
         row["status_label"] = STATES[row["status"]]
+        row["gate_draft_command"] = f"clawock research-inbox draft {row['ticker']} --market {row['market']}"
         gate = gates.get(row["ticker"]) or {}
         row["gate"] = {k: gate[k] for k in ("gate_id", "cleared", "verdict", "assessed_at") if k in gate}
         row["gate_artifact"] = paths.get(row["ticker"])
@@ -169,6 +170,21 @@ def attach(workspace, discovery, *, today):
     return result
 
 
+def draft(workspace, market, ticker):
+    """Use a stored candidate or discover it now; never write authorization artifacts."""
+    from .entry_draft import build
+
+    key = _key(market, ticker)
+    row = _load(_path(workspace))["rows"].get(key)
+    if row is None:
+        from clawock.market_data.stock_discovery import collect
+        found = collect(workspace, market=market)
+        row = next((r for r in found.get("candidates", []) if _key(r["market"], r["ticker"]) == key), None)
+        if row is None:
+            raise ValueError("not a stored or current candidate; discovery status=" + found["status"])
+    return build(row, workspace=Path(workspace))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="clawock research-inbox", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -176,6 +192,9 @@ def main(argv=None):
     listing = sub.add_parser("list")
     listing.add_argument("--highlights", action="store_true")
     listing.add_argument("--limit", type=int, default=50)
+    drafting = sub.add_parser("draft", help="emit an unassessed entry-gate JSON template; does not clear the gate")
+    drafting.add_argument("ticker")
+    drafting.add_argument("--market", required=True, choices=["US", "HK"])
     setting = sub.add_parser("set")
     setting.add_argument("ticker")
     setting.add_argument("--market", required=True, choices=["US", "HK"])
@@ -189,6 +208,8 @@ def main(argv=None):
         if args.command == "collect":
             from clawock.market_data.stock_discovery import collect
             result = attach(workspace_root(), collect(workspace_root(), market="all"), today=today)
+        elif args.command == "draft":
+            result = draft(workspace_root(), args.market, args.ticker)
         elif args.command == "set":
             result = set_status(workspace_root(), args.market, args.ticker, args.status,
                                 reason=args.reason, review_on=args.review_on)

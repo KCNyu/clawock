@@ -212,6 +212,20 @@ def collect(workspace: Path, *, fetcher=None, market="US"):
         return unavailable(f"Nasdaq discovery failed ({type(exc).__name__})")
 
 
+def compact_coverage(discovery, *, limit=20):
+    """Keep a bounded same-run diagnostic sample in brief/packet context."""
+    from copy import deepcopy
+
+    result = deepcopy(discovery)
+    hk = result if result.get("market") == "HK" else (result.get("markets") or {}).get("HK", {})
+    for field in ("missing", "discrepancies"):
+        detail = hk.get(field)
+        if isinstance(detail, dict) and len(detail) > limit:
+            hk[field + "_omitted_count"] = len(detail) - limit
+            hk[field] = dict(sorted(detail.items())[:limit])
+    return result
+
+
 def candidate_lines(discovery, *, limit=3):
     """Shared bounded presentation; queue highlights never authorize a trade."""
     if not discovery or discovery.get("status") in {"unconfigured", "disabled"}:
@@ -249,7 +263,7 @@ def candidate_lines(discovery, *, limit=3):
     hk = discovery if discovery.get("market") == "HK" else (discovery.get("markets") or {}).get("HK", {})
     lines.extend(hk.get("degraded", []))
     if discovery.get("market") == "HK" or (discovery.get("markets") or {}).get("HK", {}).get("status") in {"ok", "no_candidates", "partial"}:
-        lines.append("港股：收盘快照的衍生研究候选，不发布原始行情；仍须 entry-gate。")
+        lines.append("港股：按证据中的成交价/收盘口径生成研究候选，不发布原始行情；仍须 entry-gate。")
     if discovery.get("market") != "HK":
         lines.append("Nasdaq 公开快照，行情时间未核验；目标价/评级缺失，候选不授权交易")
     return lines
