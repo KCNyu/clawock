@@ -110,3 +110,25 @@ def test_structurally_corrupt_inbox_still_preserves_fresh_discovery(tmp_path):
     assert result["inbox"]["status"] == "unavailable"
     assert result["candidates"] == [CANDIDATE]
     assert path.read_text() == content
+
+
+def test_public_gate_link_is_pinned_and_disappears_after_local_edit(tmp_path):
+    import subprocess
+    def git(*args):
+        return subprocess.check_output(["git", "-C", str(tmp_path), *args],
+                                       text=True, stderr=subprocess.DEVNULL).strip()
+    git("init")
+    git("config", "user.email", "fixture@example.test")
+    git("config", "user.name", "Fixture")
+    artifact = tmp_path / "memory/entry-gates/test.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text("{}")
+    git("add", "memory/entry-gates/test.json")
+    git("commit", "-m", "fixture")
+    git("remote", "add", "origin", "https://github.com/KCNyu/clawock.git")
+    commit = git("rev-parse", "HEAD")
+    git("update-ref", "refs/remotes/origin/master", commit)
+    path = "memory/entry-gates/test.json"
+    assert I._published_gates(tmp_path)[path] == f"https://github.com/KCNyu/clawock/blob/{commit}/{path}"
+    artifact.write_text('{"changed": true}')
+    assert path not in I._published_gates(tmp_path)

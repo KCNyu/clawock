@@ -113,8 +113,9 @@ def _published_gates(workspace):
             return {}
         commit = git("rev-parse", "origin/master")
         paths = git("ls-tree", "-r", "--name-only", commit, "--", "memory/entry-gates").splitlines()
+        changed = set(git("diff", "--name-only", commit, "--", "memory/entry-gates").splitlines())
         return {path: f"https://github.com/{match[1]}/blob/{commit}/{quote(path, safe='/')}"
-                for path in paths if git("hash-object", "--", path) == git("rev-parse", f"{commit}:{path}")}
+                for path in paths if path not in changed}
     except (OSError, subprocess.SubprocessError):
         return {}
 
