@@ -30,7 +30,6 @@ SECTOR_LABELS = {
 }
 
 
-
 def validate_policy(policy):
     if not isinstance(policy, dict) or policy.get("schema_version") != 1:
         raise ValueError("stock discovery policy requires schema_version 1")
@@ -55,7 +54,6 @@ def _number(value):
     if isinstance(value, str):
         value = value.strip().replace(",", "").replace("$", "").replace("%", "")
     return to_strict_finite_number(value)
-
 
 
 def screen_snapshot(payload, portfolio, registry, policy, *, retrieved_at):

@@ -31,4 +31,3 @@ def excluded_exposure(portfolio, registry):
                 if meta.get(key):
                     blocked.add(str(meta[key]).upper())
     return blocked
-
