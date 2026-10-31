@@ -150,7 +150,7 @@ def test_dreaming_keeps_primary_and_renders_a_real_fallback_chain(registry):
         'allowedModels': ['minimax/MiniMax-M3.1-Flash', 'openai/gpt-6-luna']}
     assert out['agents']['defaults']['models']['openai/gpt-6-luna'] == {
         'agentRuntime': {'id': 'codex'}, 'params': {'thinking': 'max'}}
-    assert registry.chain('chat')['fallbacks'] == ['deepseek/deepseek-flash']
+    assert registry.chain('chat')['fallbacks'] == ['minimax/MiniMax-M3.1-Flash']
     assert registry.chain('subagents')['fallbacks'] == []
     # Removing the fallback must clear the rendered chain, too.
     registry.chains['dreaming']['models'] = ['flash']
