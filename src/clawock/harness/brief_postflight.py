@@ -915,6 +915,7 @@ from ._harness_common import (  # noqa: E402
     rebuild_dashboard,
 )
 from .brief_card import brief_url, build_brief_card  # noqa: E402
+from .run_usage import footer as run_usage_footer  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
     delivered_channels, slot_shipped,
@@ -1785,7 +1786,10 @@ def main(argv=None):
         except Exception:
             pass
     elif status in ('pass', 'warn'):
-        card = build_brief_card(today, decision_packet=decision_packet)
+        # Same two-line footer as direct chat. The watchdog reads it back from
+        # the receipt and reuses it on a backstop send.
+        card_footer = run_usage_footer()
+        card = build_brief_card(today, decision_packet=decision_packet, footer=card_footer)
         message = (wechat_prefix + card).strip()
         first_line = card.strip().splitlines()[0] if card.strip() else ''
         # Take the send right before sending, not after (#508). The marker below
@@ -1836,6 +1840,8 @@ def main(argv=None):
                             else int(datetime.now().timestamp() * 1000)),
                         sent_ok=wechat_ok, tg_ok=telegram_ok, out=out,
                         first_line=first_line,
+                        # Reused verbatim by brief_watchdog's backstop card.
+                        **({'usage_footer': card_footer} if card_footer else {}),
                         # What the card's link showed when it went out (#3105).
                         report_sha256=(prior_receipt.get('report_sha256') if after_delivery
                                        else report_sha256(md_path))),

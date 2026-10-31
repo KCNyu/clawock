@@ -670,11 +670,22 @@ def main():
     # Trust the postflight send-marker, not the poisoned run-record `delivered`.
     marker_path = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
     marker = delivery_receipts.read_receipt(marker_path)
+    # The primary send recorded the footer it used; a backstop copy carries the
+    # same evidence instead of looking for a live run that already ended.
+    card_footer = (marker or {}).get('usage_footer')
+    if not isinstance(card_footer, str):
+        card_footer = ''
+
+    def card_for_backstop(day):
+        # Keep the one-argument call when there is no footer, so a backstop over
+        # an old receipt is byte-for-byte the card it always built.
+        return (build_brief_card(day, footer=card_footer) if card_footer
+                else build_brief_card(day))
     # WeChat is judged on its own (2026-09-17): Telegram having the card says
     # nothing about WeChat. The receipt path includes today's date, so its age
     # cannot turn a confirmed delivery into a missing delivery (#2121).
     if marker:
-        wechat_backstop('brief', tag, build_brief_card(today), marker, marker_path,
+        wechat_backstop('brief', tag, card_for_backstop(today), marker, marker_path,
                         WS / 'memory' / '.tmp' / f'watchdog-brief-wechat-{today}.done',
                         args.dry_run, wechat=send_wechat, telegram=send_telegram,
                         resolve=resolve_wechat_target)
@@ -693,7 +704,7 @@ def main():
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed (tg_ok=false)')
 
-    message = build_brief_card(today)
+    message = card_for_backstop(today)
     claim = delivery_receipts.read_receipt(delivery_receipts.claim_path(
         WS / 'memory' / '.tmp', 'brief', date=today)) if not marker else None
     gap = wechat_gap_reason(claim)

@@ -14,12 +14,15 @@ the alias has now been retired.
 from __future__ import annotations
 
 import json
+import math
 import os
 import shutil
 import sqlite3
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Mapping
 
@@ -500,19 +503,25 @@ def _fossil_jobs(paths: OpenClawPaths | None = None):
     return None
 
 
-def _sqlite_runs(job_id, paths: OpenClawPaths | None = None):
-    """Return one job's finished runs oldest→newest, or None if SQLite is unreadable."""
+def _sqlite_runs(job_id, paths: OpenClawPaths | None = None, *, since_ms=None):
+    """Return one job's finished runs oldest→newest, or None if SQLite is unreadable.
+
+    `since_ms` bounds the read to runs that finished at or after it; the usage
+    footer asks for one calendar day, not the job's whole history.
+    """
     try:
         with _open_state_db(paths) as conn:
             conn.execute("PRAGMA query_only = ON")
             store_key = _sqlite_store_key(conn)
             if store_key is None:
                 return []
-            rows = conn.execute(
-                "SELECT entry_json FROM cron_run_logs "
-                "WHERE store_key = ? AND job_id = ? ORDER BY ts, seq",
-                (store_key, job_id),
-            ).fetchall()
+            query = ("SELECT entry_json FROM cron_run_logs "
+                     "WHERE store_key = ? AND job_id = ?")
+            args = [store_key, job_id]
+            if since_ms is not None:
+                query += " AND ts >= ?"
+                args.append(int(since_ms))
+            rows = conn.execute(query + " ORDER BY ts, seq", args).fetchall()
         entries = [json.loads(row[0]) for row in rows]
         if not all(isinstance(entry, dict) for entry in entries):
             raise ValueError("cron run SQLite row is not a JSON object")
@@ -721,3 +730,263 @@ def is_installed(paths: OpenClawPaths | None = None) -> bool:
     binary = (paths or runtime_paths()).binary
     return (Path(binary).exists() if Path(binary).is_absolute()
             else shutil.which(binary) is not None)
+
+
+# ── The run a delivered card came from ───────────────────────────────────────
+#: A cron row still marked `running` longer than this is a crash leftover, not
+#: the turn that is asking for its footer. The longest configured turn is 1740s;
+#: this leaves room for a slow postflight without adopting yesterday's row.
+RUNNING_TASK_MAX_AGE_MS = 60 * 60 * 1000
+
+
+@dataclass(frozen=True)
+class RunUsage:
+    """What one live cron turn used, read from the runtime's own records.
+
+    Every field is evidence, never a guess: `turn_usd` is the sum of the
+    per-call `usage.cost.total` values the runtime wrote into the session
+    transcript, and `day_usd` adds the same number for this job's earlier runs
+    today. None means the source could not answer — the card then omits that
+    piece instead of printing a zero.
+    """
+
+    model: str | None
+    provider: str | None
+    turn_usd: float | None
+    day_usd: float | None
+    cache_hit_pct: int | None
+    context_pct: int | None
+
+
+@dataclass(frozen=True)
+class _TranscriptUsage:
+    model: str | None
+    provider: str | None
+    turn_usd: float | None
+    cache_hit_pct: int | None
+    prompt_tokens: int | None
+
+
+def _finite_number(value) -> bool:
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(value))
+
+
+def _token_count(value) -> int:
+    return int(value) if _finite_number(value) and value > 0 else 0
+
+
+def _scan_transcript(path: Path) -> _TranscriptUsage | None:
+    """Sum one session transcript's assistant-message cost and token buckets."""
+    model = provider = None
+    spent = 0.0
+    priced = False
+    unpriced = False
+    input_tokens = cache_read = cache_write = 0
+    prompt_tokens = None
+    try:
+        with path.open(encoding='utf-8') as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(event, dict) or event.get('type') != 'message':
+                    continue
+                message = event.get('message')
+                if not isinstance(message, dict) or message.get('role') != 'assistant':
+                    continue
+                if isinstance(message.get('model'), str) and message['model'].strip():
+                    model = message['model'].strip()
+                if isinstance(message.get('provider'), str) and message['provider'].strip():
+                    provider = message['provider'].strip()
+                usage = message.get('usage')
+                if not isinstance(usage, dict):
+                    continue
+                call_input = _token_count(usage.get('input'))
+                call_read = _token_count(usage.get('cacheRead'))
+                call_write = _token_count(usage.get('cacheWrite'))
+                input_tokens += call_input
+                cache_read += call_read
+                cache_write += call_write
+                call_total = (call_input + _token_count(usage.get('output'))
+                              + call_read + call_write)
+                declared_total = _token_count(usage.get('totalTokens'))
+                if declared_total or call_total:
+                    # The last call's prompt is the context the turn left behind;
+                    # an empty call after a failed hop must not erase it.
+                    prompt_tokens = max(declared_total, call_total)
+                cost = usage.get('cost')
+                amount = cost.get('total') if isinstance(cost, dict) else None
+                if _finite_number(amount) and amount >= 0:
+                    spent += float(amount)
+                    priced = True
+                elif call_total:
+                    # Tokens ran, but the runtime wrote no price for them. A sum
+                    # over only the priced calls would understate the bill.
+                    unpriced = True
+    except OSError:
+        return None
+    prompt_total = input_tokens + cache_read + cache_write
+    return _TranscriptUsage(
+        model=model,
+        provider=provider,
+        turn_usd=round(spent, 10) if priced and not unpriced else None,
+        cache_hit_pct=(round(cache_read / prompt_total * 100)
+                       if prompt_total > 0 else None),
+        prompt_tokens=prompt_tokens,
+    )
+
+
+def _model_context_window(config_file: Path, provider, model) -> int | None:
+    """The model's advertised window, from the runtime's own model table."""
+    if not model:
+        return None
+    try:
+        config = json.loads(config_file.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return None
+    providers = ((config.get('models') or {}).get('providers') or {})
+    if not isinstance(providers, dict):
+        return None
+    ordered = ([providers[provider]] if provider in providers else [])
+    ordered += [row for name, row in providers.items() if name != provider]
+    for entry in ordered:
+        if not isinstance(entry, dict):
+            continue
+        for row in entry.get('models') or []:
+            if not isinstance(row, dict) or row.get('id') != model:
+                continue
+            window = row.get('contextWindow')
+            if _finite_number(window) and window > 0:
+                return int(window)
+    return None
+
+
+def _local_midnight_ms(now_ms: int) -> int:
+    start = datetime.fromtimestamp(now_ms / 1000).astimezone()
+    return int(start.replace(hour=0, minute=0, second=0, microsecond=0).timestamp() * 1000)
+
+
+def _running_cron_tasks(paths: OpenClawPaths, now_ms: int) -> list[dict] | None:
+    """Live `task_runs` rows for cron turns that are still in flight."""
+    try:
+        with _open_state_db(paths) as conn:
+            conn.execute("PRAGMA query_only = ON")
+            rows = conn.execute(
+                "SELECT child_session_key, source_id, started_at, last_event_at "
+                "FROM task_runs WHERE runtime = 'cron' AND status = 'running' "
+                "ORDER BY created_at DESC"
+            ).fetchall()
+    except Exception:
+        return None
+    out = []
+    for session_key, job_id, started_at, last_event_at in rows:
+        anchor = started_at if _finite_number(started_at) else last_event_at
+        if not _finite_number(anchor) or anchor < now_ms - RUNNING_TASK_MAX_AGE_MS:
+            continue
+        if not isinstance(session_key, str) or not session_key:
+            continue
+        out.append({'session_key': session_key, 'job_id': job_id,
+                    'started_at': int(started_at) if _finite_number(started_at) else None})
+    # The scheduler runs one agent turn at a time (maxConcurrent), so a second
+    # in-window row is a crash leftover. Newest is the turn reading this.
+    out.sort(key=lambda task: task['started_at'] or 0, reverse=True)
+    return out
+
+
+def _job_prior_day_cost(paths: OpenClawPaths, job_id, *, day_start_ms: int,
+                        current_started_ms: int | None,
+                        current_session_id: str | None) -> float | None:
+    """This job's already-finished runs today, in the same costing unit."""
+    runs = _sqlite_runs(job_id, paths, since_ms=day_start_ms)
+    if runs is None:
+        return None
+    total = 0.0
+    seen = set()
+    for entry in runs:
+        run_at = entry.get('runAtMs', entry.get('ts'))
+        if not _finite_number(run_at) or run_at < day_start_ms:
+            continue
+        if current_started_ms is not None and run_at >= current_started_ms:
+            continue
+        session_id = entry.get('sessionId')
+        if not isinstance(session_id, str) or not session_id:
+            return None
+        if session_id == current_session_id or session_id in seen:
+            continue
+        seen.add(session_id)
+        scan = _scan_transcript(paths.sessions_dir / f'{session_id}.jsonl')
+        if scan is None or scan.turn_usd is None:
+            return None
+        total += scan.turn_usd
+    return total
+
+
+def _usage_for_task(paths: OpenClawPaths, task: dict, now_ms: int) -> RunUsage | None:
+    job_id = task.get('job_id')
+    if not isinstance(job_id, str) or not job_id:
+        return None
+    try:
+        store = json.loads((paths.sessions_dir / 'sessions.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return None
+    entry = store.get(task['session_key']) if isinstance(store, dict) else None
+    if not isinstance(entry, dict):
+        return None
+    session_id = entry.get('sessionId')
+    if not isinstance(session_id, str) or not session_id:
+        return None
+    scan = _scan_transcript(paths.sessions_dir / f'{session_id}.jsonl')
+    if scan is None:
+        return None
+    model = scan.model or (entry.get('model') if isinstance(entry.get('model'), str) else None)
+    provider = scan.provider or (
+        entry.get('modelProvider') if isinstance(entry.get('modelProvider'), str) else None)
+    if not model:
+        return None
+    budget = entry.get('contextTokens')
+    if not (_finite_number(budget) and budget > 0):
+        budget = _model_context_window(paths.config_file, provider, model)
+    context_pct = (round(scan.prompt_tokens / budget * 100)
+                   if scan.prompt_tokens and _finite_number(budget) and budget > 0 else None)
+    prior = _job_prior_day_cost(
+        paths, job_id, day_start_ms=_local_midnight_ms(now_ms),
+        current_started_ms=task['started_at'], current_session_id=session_id)
+    day_usd = (round(prior + scan.turn_usd, 10)
+               if prior is not None and scan.turn_usd is not None else None)
+    return RunUsage(
+        model=model,
+        provider=provider,
+        turn_usd=scan.turn_usd,
+        day_usd=day_usd,
+        cache_hit_pct=scan.cache_hit_pct,
+        context_pct=context_pct,
+    )
+
+
+def current_cron_run_usage(*, paths: OpenClawPaths | None = None,
+                           now_ms: int | None = None) -> RunUsage | None:
+    """The live cron turn's model, cost and token shape, or None.
+
+    The postflight runs inside that turn, so the runtime's own `task_runs` row
+    is the identity: its child session key points at the session store entry
+    (current model and context budget), whose transcript carries the per-call
+    usage the runtime already priced. This is the same evidence the reply footer
+    is built from; nothing here estimates a token or invents a price.
+
+    None is deliberate for a dry run, a manual postflight, or an unreadable
+    state DB — the card then has no footer at all. If a stale `running` row is
+    newer than the live one, the youngest candidate that resolves wins; the
+    scheduler runs one turn at a time, so only one of them can be this process.
+    """
+    selected = paths or runtime_paths()
+    now = int(now_ms if now_ms is not None else time.time() * 1000)
+    for task in _running_cron_tasks(selected, now) or []:
+        usage = _usage_for_task(selected, task, now)
+        if usage is not None:
+            return usage
+    return None

@@ -99,6 +99,7 @@ from clawock.harness import chat_card
 from clawock.decision.plans import plan_holds  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
 from clawock.harness.intraday_preflight import can_silence  # noqa: E402
+from clawock.harness.run_usage import append as run_usage_append  # noqa: E402
 
 # A report file older than this is assumed to be a previous slot's leftover. Kept
 # below the 30min slot cadence (and aligned with the already_delivered window) so a
@@ -1056,6 +1057,10 @@ def main(argv=None):
             message = (wechat_prefix + body).strip()
             if advisory_suffix:
                 message += '\n\n' + advisory_suffix
+            # Same two-line footer as direct chat, appended after validation and
+            # stored in the marker so a backstop re-send keeps it. No live run
+            # (manual/dry) means no footer, never a zero placeholder.
+            message = run_usage_append(message)
             # Same race as #508 on the report path: the marker is written only
             # after both sends return, so a second postflight started inside
             # that window sees "not delivered" and doubles the slot. The claim

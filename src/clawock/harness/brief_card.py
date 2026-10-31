@@ -167,7 +167,13 @@ def _inject_early_candidate_section(card, packet):
     return '\n'.join(prefix + suffix).strip()
 
 
-def build_brief_card(today, decision_packet=None):
+def _with_usage_footer(card, footer):
+    """One compact block at the card's foot, exactly as direct chat shows it."""
+    footer = (footer or '').strip()
+    return f'{card.rstrip()}\n\n{footer}' if footer else card
+
+
+def build_brief_card(today, decision_packet=None, *, footer=''):
     """The WeChat card for the 盘前深度简报 — single source of truth shared by
     brief_postflight (primary send) and brief_watchdog (backstop).
 
@@ -187,7 +193,8 @@ def build_brief_card(today, decision_packet=None):
         if card_file.exists():
             txt = card_file.read_text().strip()
             if txt:
-                return _inject_early_candidate_section(txt, decision_packet)
+                return _with_usage_footer(
+                    _inject_early_candidate_section(txt, decision_packet), footer)
     except Exception:
         pass  # fall through to deterministic build
     from clawock.decision.plans import ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS, PRICE_CONDITIONS
@@ -229,4 +236,5 @@ def build_brief_card(today, decision_packet=None):
     except Exception:
         pass  # link-only fallback
     lines += ['', f'完整报告：{url}']
-    return _inject_early_candidate_section('\n'.join(lines), decision_packet)
+    return _with_usage_footer(
+        _inject_early_candidate_section('\n'.join(lines), decision_packet), footer)
