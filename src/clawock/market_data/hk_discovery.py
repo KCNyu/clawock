@@ -1,8 +1,4 @@
-"""HK research discovery from an operator-reviewed, licensed local snapshot.
-
-No vendor endpoint is enabled by this module. The publisher/adapter supplies
-normalized inputs only after checking its agreement for this public use.
-"""
+"""HK derived research candidates from existing quotes or a licensed snapshot."""
 from collections import Counter
 from datetime import date, datetime, timezone
 import hashlib
@@ -62,11 +58,16 @@ def _authorization(auth, now):
 
 
 def screen_snapshot(snapshot, auth, portfolio, registry, *, now, receipt_hash):
-    from clawock.market_data.discovery_common import excluded_exposure, MISSING
-
     _authorization(auth, now)
     if snapshot.get("schema_version") != 1 or snapshot.get("source_id") != auth["source_id"]:
         raise ValueError("snapshot source mismatch")
+    source = {k: auth[k] for k in ("source_id", "source_name", "terms_url", "clause")}
+    return _screen(snapshot, source, portfolio, registry, now=now, receipt_hash=receipt_hash)
+
+
+def _screen(snapshot, source, portfolio, registry, *, now, receipt_hash=None):
+    from clawock.market_data.discovery_common import excluded_exposure, MISSING
+
     session = latest_completed_session("HK", at=now)
     if session is None or snapshot.get("session_date") != session.isoformat():
         raise ValueError("snapshot not latest completed session")
@@ -112,10 +113,11 @@ def screen_snapshot(snapshot, auth, portfolio, registry, *, now, receipt_hash):
             "ticker": ticker, "market": "HK", "name": name,
             "sector": sector, "sector_label": sector, "industry": industry,
             "state": "needs_entry_gate", "allowed": False,
-            "reason": "获授权收盘快照通过规模、流动性与涨跌幅筛选；跨板块待研究",
-            "evidence": {"source": auth["source_id"], "retrieved_at": now.isoformat(),
+            "reason": "收盘快照通过规模、流动性与涨跌幅筛选；跨板块待研究",
+            "evidence": {"source": source["source_id"], "retrieved_at": now.isoformat(),
                          "observed_at": observed.isoformat(), "session_date": session.isoformat(),
-                         "freshness": "latest_completed_session", "authorization_sha256": receipt_hash},
+                         "freshness": "latest_completed_session",
+                         **({"authorization_sha256": receipt_hash} if receipt_hash else {})},
             "missing_evidence": list(MISSING),
             "next_action": "核验报价与一手披露，运行 entry-gate，再决定是否深研",
             "quote_request": {"ticker": ticker, "region": "hk"},
@@ -134,9 +136,9 @@ def screen_snapshot(snapshot, auth, portfolio, registry, *, now, receipt_hash):
             "candidates": selected, "scanned_count": len(rows), "eligible_count": len(eligible),
             "rejections": dict(rejected), "policy": dict(POLICY),
             "publication": "derived_candidates_and_security_metadata_only",
-            "source": {k: auth[k] for k in ("source_id", "source_name", "terms_url", "clause")},
+            "source": dict(source),
             "limitations": ["收盘快照只生成研究候选，不是实时交易信号；不发布原始行情",
-                            "源覆盖由授权接入方声明；不承诺港股全市场覆盖",
+                            "不承诺港股全市场覆盖",
                             "目标价与评级缺失；候选不授权交易"]}
 
 
@@ -146,7 +148,8 @@ def collect(workspace, *, now=None):
     base = Path(workspace) / ".cache" / "hk-discovery"
     auth_path = base / "authorization.json"
     if not auth_path.exists():
-        return unavailable()
+        from clawock.market_data.hk_discovery_live import collect_live
+        return collect_live(workspace, now=now or datetime.now(timezone.utc))
     now = now or datetime.now(timezone.utc)
     try:
         auth, receipt_hash = _read(auth_path, limit=16384)

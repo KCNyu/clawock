@@ -185,6 +185,8 @@ def collect(workspace: Path, *, fetcher=None, market="US"):
         statuses = {us["status"], hk["status"]}
         status = ("ok" if candidates else "unavailable" if "unavailable" in statuses
                   else "no_candidates" if "no_candidates" in statuses else us["status"])
+        if statuses & {"partial", "incomplete"}:
+            status = "partial" if candidates else "incomplete"
         return {**us, "market": "all", "status": status, "candidates": candidates,
                 "markets": {"US": {"status": us["status"]}, "HK": hk}}
     if market != "US":
@@ -240,14 +242,14 @@ def candidate_lines(discovery, *, limit=3):
         if inbox:
             lines.append("研究收件箱不可用；以下为本次发现，未覆盖已有研究状态。")
         rows = discovery.get("candidates") or []
-        if not rows and discovery.get("status") != "unavailable":
+        if not rows and discovery.get("status") in {"ok", "no_candidates"}:
             lines.append("本次快照没有符合筛选条件的持仓外候选")
         for row in rows[:limit]:
             lines.append(f"- {row['ticker']} · {row['sector_label']}：核验报价、一手披露及入场否决后再深研")
-    if (discovery.get("markets") or {}).get("HK", {}).get("status") == "unavailable":
-        lines.extend(discovery["markets"]["HK"]["degraded"])
-    if discovery.get("market") == "HK" or (discovery.get("markets") or {}).get("HK", {}).get("status") in {"ok", "no_candidates"}:
-        lines.append("港股：获授权收盘快照的衍生研究候选，不发布原始行情；仍须 entry-gate。")
+    hk = discovery if discovery.get("market") == "HK" else (discovery.get("markets") or {}).get("HK", {})
+    lines.extend(hk.get("degraded", []))
+    if discovery.get("market") == "HK" or (discovery.get("markets") or {}).get("HK", {}).get("status") in {"ok", "no_candidates", "partial"}:
+        lines.append("港股：收盘快照的衍生研究候选，不发布原始行情；仍须 entry-gate。")
     if discovery.get("market") != "HK":
         lines.append("Nasdaq 公开快照，行情时间未核验；目标价/评级缺失，候选不授权交易")
     return lines
