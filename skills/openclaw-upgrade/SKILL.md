@@ -36,20 +36,26 @@ The updater replaces the installed `dist/` tree. From the live workspace run:
 bash ops/host/reapply_openclaw_patches.sh
 ```
 
-The wrapper applies these idempotent host scripts in order:
+The versioned patch kit owns the entire dist edit set. Its ordered inventory and
+per-bundle postconditions are in `ops/host/openclaw-patches/manifest.json`; source
+adapters live beside it (the two Python dreaming adapters remain under `ops/host/`).
+The historical scripts under `/root/tools/openclaw/current/` are not upgrade inputs.
+Do not edit or invoke them to update the managed kit.
 
-1. `/root/tools/openclaw/current/patch-embedding-threads1.sh`
-2. `/root/tools/openclaw/current/patch-memory-search-timeout.sh`
-3. `/root/tools/openclaw/current/patch-minimax-response-header-timeout.sh`
-4. `/root/tools/openclaw/current/patch-dreaming-narrative-race.sh`
-5. `/root/tools/openclaw/current/patch-minimax-m3x-adaptive-thinking.sh`
-6. `/root/tools/openclaw/current/patch-hook-relay-exec.sh` (backport of upstream #109446; it exits
-   cleanly once the new OpenClaw already execs native hook relays)
-7. `/root/tools/openclaw/current/patch-reply-session-cost.sh` (adds
-   `cost.session_usd`, the usage-family cumulative, to the reply footer)
-8. `/root/tools/openclaw/current/patch-cache-hit-pct-exact.sh` (adds
-   `usage.cache_hit_pct_exact`, the unrounded percentage, next to the existing
-   integer `usage.cache_hit_pct`; `--revert` removes only its two lines)
+Run `bash ops/host/reapply_openclaw_patches.sh --plan` first to rehearse against
+isolated copies. It resolves each bundle unambiguously, runs all ten adapters and
+checks postconditions and JavaScript syntax before any installed bundle is written.
+`apply` retains a transaction receipt and recovery copies; on write failure it
+restores the pre-run bytes. A process kill can leave a prepared receipt: use the
+hash-guarded rollback command in `docs/operations/openclaw-patch-kit.md` before
+retrying. A multi-file install is not one atomic filesystem operation; keep the
+gateway idle and do not restart until the whole wrapper succeeds.
+
+The JSON report identifies the package version, manifest and adapter hashes, patch
+IDs, and before/after bundle hashes. A version outside `validated_versions` is a
+compatibility-review signal, not automatic proof of safety from passing anchors.
+For supported native upstream fixes, record the accepted postconditions in the
+manifest; do not delete a failing patch just to pass the gate.
 
 MiniMax `service_tier: "priority"` was retired on 2026-10-19: MiniMax bills it at
 1.5x the standard rate against the Token Plan. Do not reapply
@@ -57,8 +63,10 @@ MiniMax `service_tier: "priority"` was retired on 2026-10-19: MiniMax bills it a
 
 It also replays `ops/host/install_skillhub_plugin.sh` and `ops/host/install_memory_corpus_plugin.sh`, restoring the two versioned host extensions outside pnpm. The skill registry policy is stable system context, never a user-turn prefix. `--check-only` verifies the installed extension bytes as well.
 
-It then verifies every patch marker (including the header deadline value), runs `node --check` on every modified bundle,
-and compiles the maintenance detector. It does **not** restart the gateway.
+The kit checks each patch on its specific bundle (including the header deadline value
+and every dreaming race forwarding hop), then runs `node --check`. It does **not**
+restart the gateway. `--check-only` rehearses the kit without writing installed files;
+any proposed edit means the installation is not yet aligned.
 
 Any missing script, changed source anchor, syntax error, or missing marker is a
 hard stop: do not restart and do not declare the upgrade complete. Inspect the

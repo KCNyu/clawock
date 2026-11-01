@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "validated_versions": [
+    "2026.7.1-2"
+  ],
+  "patches": [
+    {
+      "id": "embedding-threads1",
+      "script": "openclaw-patches/patch-embedding-threads1.sh",
+      "targets": [
+        {
+          "selector": "function createLocalEmbeddingProviderInProcess",
+          "required": [
+            "threads: 1, batchSize: 512"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "memory-search-timeout",
+      "script": "openclaw-patches/patch-memory-search-timeout.sh",
+      "targets": [
+        {
+          "selector": "const MEMORY_SEARCH_TOOL_TIMEOUT_MS",
+          "required": [
+            "const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 60000;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "minimax-response-header-timeout",
+      "script": "openclaw-patches/patch-minimax-response-header-timeout.sh",
+      "targets": [
+        {
+          "selector": "function buildGuardedModelFetch(model, timeoutMs, options)",
+          "required": [
+            "clawock-minimax-response-header-timeout-v3",
+            "MiniMax response-header timeout after 60000ms"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dreaming-narrative-race",
+      "script": "openclaw-patches/patch-dreaming-narrative-race.sh",
+      "targets": [
+        {
+          "selector": "function lifecycleTranscriptIsReclaimable",
+          "required": [
+            "clawock-dreaming-race-v2",
+            "protectInFlightSessions: params.protectInFlightSessions"
+          ]
+        },
+        {
+          "selector": "const DETACHED_NARRATIVE_CONCURRENCY",
+          "required": [
+            "clawock-dreaming-race-v2",
+            "protectInFlightSessions: true"
+          ]
+        },
+        {
+          "selector": "archiveRemovedEntryTranscripts: params.archiveRemovedEntryTranscripts",
+          "required": [
+            "clawock-dreaming-race-v2",
+            "protectInFlightSessions: params.protectInFlightSessions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "minimax-m3x-adaptive-thinking",
+      "script": "openclaw-patches/patch-minimax-m3x-adaptive-thinking.sh",
+      "targets": [
+        {
+          "selector": "function createMinimaxThinkingDisabledWrapper",
+          "required": [
+            "clawock-minimax-m3x-adaptive-thinking"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hook-relay-exec",
+      "script": "openclaw-patches/patch-hook-relay-exec.sh",
+      "targets": [
+        {
+          "selector": "function buildNativeHookRelayCommand",
+          "any_of": [
+            "clawock-hook-relay-exec",
+            "NATIVE_HOOK_RELAY_EXEC_PREFIX",
+            "`exec ${command}`"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reply-session-cost",
+      "script": "openclaw-patches/patch-reply-session-cost.sh",
+      "targets": [
+        {
+          "selector": "function buildReplyUsageState",
+          "required": [
+            "clawock-reply-session-cost-v1",
+            "sessionUsd: typeof params.sessionUsd"
+          ]
+        },
+        {
+          "selector": "function persistSessionUsageUpdate",
+          "required": [
+            "clawock-reply-session-cost-v1",
+            "session_usd: typeof state.sessionUsd",
+            "patch.sessionCostUsd = nextSessionCostUsd"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cache-hit-pct-exact",
+      "script": "openclaw-patches/patch-cache-hit-pct-exact.sh",
+      "targets": [
+        {
+          "selector": "function buildUsageContract",
+          "required": [
+            "clawock-cache-hit-pct-exact-v1",
+            "cache_hit_pct_exact: cacheHitPctExact"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dreaming-fallbacks",
+      "script": "patch_dreaming_fallbacks.py",
+      "targets": [
+        {
+          "selector": "const DETACHED_NARRATIVE_CONCURRENCY",
+          "required": [
+            "clawock-dreaming-fallbacks-v1",
+            "hasExplicitFallbacks"
+          ]
+        },
+        {
+          "path": "extensions/memory-core/openclaw.plugin.json",
+          "required": [
+            "\"fallbacks\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dreaming-review",
+      "script": "patch_dreaming_review.py",
+      "targets": [
+        {
+          "selector": "async function applyShortTermPromotions(options)",
+          "required": [
+            "clawock-dreaming-review-v1",
+            "promotion-candidates.md",
+            "budgetChars: Number.MAX_SAFE_INTEGER"
+          ]
+        }
+      ]
+    }
+  ]
+}
