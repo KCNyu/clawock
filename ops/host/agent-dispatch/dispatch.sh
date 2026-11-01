@@ -12,6 +12,7 @@
 #   dispatch.sh summary [--since YYYY-MM-DD] [--agent a,b] [--all] [--json]  # per-agent totals (frozen results; cost is an estimate)
 #   dispatch.sh mandate <id> [check <action>]  # machine-readable authorization created at dispatch
 #   dispatch.sh cancel <id>          # stop a running task (records state=cancelled)
+#   dispatch.sh history [--json] [query] [--agent codex] [--since YYYY-MM-DD] [--before id]
 #   dispatch.sh queue [--json]       # each agent's lock holder and queue in real order (task_queue_ops.py)
 #   dispatch.sh adopt <bg-id|session-id> [--dry-run] [options] [< more.md]
 #                                    # resume a claude session dispatch did not start (a `claude --bg`
@@ -76,9 +77,9 @@ case "$cmd" in
     exec python3 /root/tools/agent-dispatch/read-result.py "$@" ;;
   log)
     exec python3 /root/tools/agent-dispatch/task_queue_ops.py log "$@" ;;
-  summary)
-    if [ "${1:-}" = --json ]; then shift; exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json summary "$@"; fi
-    exec python3 /root/tools/agent-dispatch/task_queue_ops.py summary "$@" ;;
+  summary|history)
+    if [ "${1:-}" = --json ]; then shift; exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json "$cmd" "$@"; fi
+    exec python3 /root/tools/agent-dispatch/task_queue_ops.py "$cmd" "$@" ;;
   inbox)
     exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json brief "${1:-}" ;;
   queue)
