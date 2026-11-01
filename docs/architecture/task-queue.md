@@ -415,8 +415,8 @@ as a service; re-read this section after a Claude Code upgrade that changes `cla
 | `EFFORT_USED` | the effort of the latest attempt (`MODEL_USED` is its model) |
 | `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` | the legs (`weixin`, `telegram`, or an unknown name) of the latest notification that were delivered / failed, and when |
 | `NEEDS` / `NEED_SUMMARY` | the model's last `NEEDS:` line: `none` or one concrete action for a person (api 5) |
-| `STAGE` / `ATTENTION` | the stage table: `working/queued`, `working`, `person/review`, `person/blocked`, `idle` or `ended`; `ATTENTION` is `person`, `none` or `unknown` |
-| `NOTICE` | what the runner did with the end notice: `attempted`, `none` (`--notify none`) or `suppressed` (`DONE` + `NEEDS: none`) |
+| `STAGE` / `ATTENTION` | the stage table: `working/queued`, `working`, `person/review`, `person/blocked`, `idle` or `ended`; `ATTENTION` is `person`, `none` or `unknown`, a recorded fact for the chip and `needs_person` |
+| `NOTICE` | whether the runner attempted the end notice: `attempted` or `none` (`--notify none`) |
 | `RESTART` | the model's last `RESTART:` line: what it restarted, when, and the result |
 | `MANDATE_POLICY_VERSION` | the `dispatch.sh`+`run-agent.sh` hash the task's mandate was accepted under (api 5) |
 | `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; `5` also publishes the mandate and `NEEDS/STAGE/ATTENTION`; absent before |
@@ -551,13 +551,16 @@ Each leg is `openclaw message send --channel … --target …` with the targets 
 The legs run in parallel, each once, with a time limit: 60 s for the end-of-task and the
 quota-wait notice, 30 s on the cancel path (bounded by the unit's stop budget).
 
-**When the end notice is sent.** The agent's last `NEEDS:` line is a structured fact, not
-prose to guess from. `ATTENTION=person` (a blocked/failed/timeout/quota end, `PARTIAL`, or a
-`DONE` whose `NEEDS` names an action) sends the notice and wakes the dispatching session. A
-clean `DONE` with `NEEDS: none` records `NOTICE=suppressed` and sends nothing: `result.env`
-and the chip still show the outcome, and `/dispatch-list` remains the place to look. A missing
-`NEEDS` line is `unknown` and keeps the old notice — silence must be reported, not inferred.
-A `cancelled` task also keeps its notice. The same gate decides the wake turn below.
+**The end notice.** Every terminal task attempts the end notice on each configured leg
+(`--notify none` is the only exception) and wakes the dispatching session unless it was
+cancelled or `--notify none`. The agent's last `NEEDS:` line is still a structured fact: `ATTENTION` folds it
+with the runner's state for the chip and `needs_person`, but it no longer decides whether
+the notice is sent. A clean `DONE` with `NEEDS: none` is `ATTENTION=none`/`STAGE=idle` and
+still gets the notice; a missing `NEEDS` line is `unknown` and changes nothing. The WeChat
+leg is mirrored into this chat's transcript, so the notice is in the session's context;
+the Telegram leg goes to its own target and is only a notification. The separate wake turn
+below is what gives the session a turn. A `cancelled` task still sends its notice (30 s
+timeout) but starts no wake turn.
 
 The end-of-task notice ends with two separate optional lines, never one combined amount:
 `额度：…` is what the agent's account has left (claude/codex's quota window, or dsh's
@@ -609,7 +612,7 @@ session). `wake-session.py` owns all of it; the runner calls it once next to `no
 | Which session | `ORIGIN_SESSION` in `meta.env`, recorded by `dispatch.sh`: `--origin-session <key>`; else `OPENCLAW_MCP_SESSION_KEY` (a CLI-backend turn has it); else, when `dispatch.sh` is a descendant of the gateway process, the one chat whose `sessions.json` row says `running`. Two chats mid-turn is ambiguous and records nothing. A task continued with `append` reports to whoever continued it, else to its first origin |
 | No session | dsh, a terminal, cron, patrol: the task sends its messages and starts no turn. There is no conversation to continue, and a turn in the main session would arrive without context |
 | Which sessions can be woken | `agent:<id>:main` and `agent:<id>:<channel>:direct:<peer>`. Cron, dreaming and other isolated sessions have no reader |
-| Which events | the end of a task whose end notice was sent (`ATTENTION=person` or `unknown`) and its first quota wait. A suppressed `DONE` + `NEEDS: none` and a `cancelled` task start no turn. `--notify none` tasks (patrol rounds) never wake |
+| Which events | the end of a task whose end notice was attempted (any `--notify` other than `none`; `ATTENTION` no longer gates it) and its first quota wait. A `cancelled` task starts no turn. `--notify none` tasks (patrol rounds) never wake |
 | How | `openclaw agent --session-key <origin> --message-file …`, in a transient unit `agent-dispatch-wake-<hash>-…`, because the turn outlives the runner. The reply is not delivered to the chat: the legs are the one message kcn gets about an event, and a delivered reply was a second message about the same task in the same WeChat chat. When the assistant carried on with work kcn had asked for, it says so with its own message tool |
 | What the turn is told | a pointer: the notice's first line (task, agent, state, the model's own status), the task id and `dispatch.sh result <id>`. Not the notice: the legs carried that, and the WeChat leg lands in the same chat, so a copy in the turn showed kcn the same text twice. The legs never depend on the turn: `wake.off`, the hourly cap and the chain depth only decide whether a turn starts |
 | Once per event | the call sits beside `notify()`, not in its per-leg loop: two legs, one turn. Pending copies coalesce. Only a successful turn (`rc=0`, `status=ok`) writes the marker per (session, task, event) under `/root/logs/agent-dispatch/.wake/<hash>/seen/` and removes its spool files. Acknowledged `end` and `quota` events do not wake again, across unit restarts |

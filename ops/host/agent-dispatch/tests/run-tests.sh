@@ -613,7 +613,7 @@ expect "the default mandate allows restart and live refresh" \
   "allow allow True"
 expect_grep "the prompt carries the restart authorization" "默认授权" "$d40a/prompt.md"
 expect_grep "the prompt asks for the NEEDS line" "NEEDS: none" "$d40a/prompt.md"
-expect_grep "the prompt explains the notification gate" "派发方才通知人" "$d40a/prompt.md"
+expect_grep "the prompt says the end notice is still sent" "派发底座仍会发通知" "$d40a/prompt.md"
 if [ -n "$d40a" ] && [[ "$id40a" == mandate-gen-* ]]; then rm -rf "${d40a:?}"; fi
 
 echo; echo "=== [55] dispatch.sh adopt: a claude session dispatch did not start becomes a resume task"
@@ -672,9 +672,9 @@ expect "one send per leg, to each channel's own target" "$(sort "$FAKE_DIR/openc
 expect_grep "the log names each leg" "notify: sent (telegram)" "$d35/run.log"
 
 # kcn 2026-11-01 (afternoon): the attention gate no longer silences a clean DONE/NEEDS: none.
-# The end notice and the origin-session wake are back for every terminal state; ATTENTION is
-# still recorded as a fact for the task chip.
-echo; echo "=== [35b] NEEDS: none still sends the end notice and wakes the origin session ($(date +%T))"
+# The end notice is back for every terminal state; ATTENTION is still recorded as a fact for
+# the task chip. The wake turn is covered by [41a], where the fake wake command is set up.
+echo; echo "=== [35b] NEEDS: none still sends the end notice ($(date +%T))"
 reset_fake claude needs-none
 d35b=$(mk notify-quiet claude 900 300 weixin,telegram)
 e35b=0; bash "$R" "$d35b" || e35b=$?
@@ -830,6 +830,23 @@ expect "the same (session, task, event) never wakes twice" "$(wakes)" "$SA quiet
 expect_grep "and says why" "wake: skipped (end): this session was already told" "$d41/run.log"
 again "$d41" quota; again "$d41" quota
 expect "a quota wait wakes once more, a second one does not" "$(wc -l <"$FAKE_DIR/wake.turns")" 2
+
+echo; echo "=== [41a] a quiet DONE still wakes; a cancel does not ($(date +%T))"
+# reset_fake clears wake.turns, so each case below counts only its own turn.
+reset_fake claude needs-none
+d41a=$(mk wake-quiet claude 900 300 weixin,telegram); echo "ORIGIN_SESSION=$SA" >>"$d41a/meta.env"
+e41a=0; bash "$R" "$d41a" || e41a=$?
+expect "quiet DONE exit/state and both legs" "$e41a/$(field "$d41a" STATE)/$(field "$d41a" NOTIFIED)" "0/ok/weixin,telegram"
+expect "a quiet DONE wakes the dispatching session" "$(wakes)" "$SA quiet"
+expect_grep "the wake turn points at the quiet task's report" "dispatch.sh result wake-quiet" "$FAKE_DIR/wake.messages"
+reset_fake claude slow-ok; echo 8 >"$FAKE_DIR/claude.slow"
+d41b=$(mk wake-cancel claude 900 300 weixin,telegram); echo "ORIGIN_SESSION=$SA" >>"$d41b/meta.env"
+bash "$R" "$d41b" & p41b=$!
+for _ in $(seq 30); do grep -q 'attempt 1/' "$d41b/run.log" 2>/dev/null && break; sleep 1; done
+kill -TERM "$p41b"; e41b=0; wait "$p41b" || e41b=$?
+expect "cancel exit/state" "$e41b/$(field "$d41b" STATE)" 143/cancelled
+expect "cancel still sends both legs" "$(field "$d41b" NOTIFIED)" "weixin,telegram"
+expect "cancel starts no turn" "$(wakes)" ""
 
 echo; echo "=== [42] where no turn is started ($(date +%T))"
 reset_fake claude slow-ok
