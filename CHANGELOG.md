@@ -13,6 +13,32 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.4.2] — 2026-11-01
+
+### Added
+
+- HK discovery outside the book: licensed snapshots, dual-source coverage and gated drafts ([#3228](https://github.com/KCNyu/clawock/pull/3228), [#3230](https://github.com/KCNyu/clawock/pull/3230), [#3232](https://github.com/KCNyu/clawock/pull/3232)).
+- Machine-readable dispatch mandate with attention-gated completion notices ([#3231](https://github.com/KCNyu/clawock/pull/3231)).
+- Research inbox persisted to the workspace, with valuation provenance on the exposed records ([#3218](https://github.com/KCNyu/clawock/pull/3218)).
+- Delivered cron cards name the model and the run cost ([#3226](https://github.com/KCNyu/clawock/pull/3226)).
+- Reply footer reports session cost and the exact cache-hit percentage ([#3224](https://github.com/KCNyu/clawock/pull/3224), [#3229](https://github.com/KCNyu/clawock/pull/3229)).
+- Every configured model carries its official list price, including DeepSeek V4.1 Flash peak and off-peak rates and MiniMax-M3.1-Flash ([#3223](https://github.com/KCNyu/clawock/pull/3223), [#3225](https://github.com/KCNyu/clawock/pull/3225), [#3227](https://github.com/KCNyu/clawock/pull/3227)).
+
+### Changed
+
+- The chat chain asks DeepSeek first and falls back to MiniMax ([#3220](https://github.com/KCNyu/clawock/pull/3220)).
+- Today's P&L moves into the chat card summary table, and every card gives one answer per holding ([#3194](https://github.com/KCNyu/clawock/pull/3194), [#3195](https://github.com/KCNyu/clawock/pull/3195)).
+- The Risk exposure card is rebuilt per currency leg and the side stripes are retired ([#3185](https://github.com/KCNyu/clawock/pull/3185)).
+
+### Fixed
+
+- Risk guardrails carry missing book values consistently, and console help no longer exceeds its own guardrail ([#3215](https://github.com/KCNyu/clawock/pull/3215), [#3222](https://github.com/KCNyu/clawock/pull/3222)).
+- Dashboard holdings keep missing daily ranges, and the duplicate overflow selector is gone ([#3211](https://github.com/KCNyu/clawock/pull/3211), [#3213](https://github.com/KCNyu/clawock/pull/3213)).
+- News-heavy days trim tail events instead of stopping the brief, pre-open fallback scans skip completed work, and a failed FX fetch reads the cached rate ([#3184](https://github.com/KCNyu/clawock/pull/3184), [#3199](https://github.com/KCNyu/clawock/pull/3199), [#3209](https://github.com/KCNyu/clawock/pull/3209)).
+- Cron health counts report commits that carry a validation suffix, and the intraday watchdog rebuilds the slot context when every attempt failed before preflight ([#3197](https://github.com/KCNyu/clawock/pull/3197), [#3198](https://github.com/KCNyu/clawock/pull/3198)).
+- Dreaming candidates are reviewed before permanent promotion ([#3193](https://github.com/KCNyu/clawock/pull/3193)).
+- Pillow floor raised to 13.0.0, the first release without open advisories ([#3182](https://github.com/KCNyu/clawock/pull/3182)).
+
 ## [0.4.1] — 2026-10-23
 
 ### Added
