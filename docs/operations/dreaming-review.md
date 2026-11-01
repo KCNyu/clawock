@@ -88,3 +88,20 @@ Restart only an idle gateway. Revert the gate commit through a PR and CI, then r
 recover reviewed entries individually from the private before-image. Removing
 both boundaries restores the original unsafe behavior, so keep automatic
 promotion/publication paused until a corrected gate is active.
+
+## Artifact health
+
+`ops/system_check.py` checks the latest dated batch inside DREAMS' diary markers,
+independently of the cron result. Empty entries or the upstream fallback sentence,
+a stale date, a future date, and unreadable/unknown diary formats produce a warning.
+The daily 03:00 HKT run has until 04:00 before today's artifact is expected. Old
+placeholders do not keep warning once a newer batch has recovered. A non-placeholder
+entry is only evidence of output, not semantic quality or successful promotion.
+This check does not rewrite the diary, change cron status, retry models, or send
+another notification; it participates in the existing system health report.
+
+When the private candidate file or reviewed-memory section is present, the old
+brief-age promotion metric is skipped: explicit review may intentionally leave all
+recent briefs unpromoted. Its informational result is not proof that the patch is
+active or that pending candidates have been reviewed. Inspect the private review
+receipts as described above; narrative health and promotion approval are separate.

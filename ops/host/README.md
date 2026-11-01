@@ -18,7 +18,8 @@ python3 ops/host/cron_health_check.py
 runner asks it who takes an agent lock next, and the dsh task chip runs every write
 (cancel, …) through it. Contract, exit codes and queue order:
 `docs/architecture/task-queue.md`. It is installed next to the host-local runner, and
-merging does not install it:
+merging alone does not install it. `refresh_live.sh` installs and verifies differing copies,
+including when HEAD is already current, without restarting services. Direct recovery commands:
 
 ```bash
 ops/host/install_task_queue_ops.sh           # task_queue_ops.py + model_prices.json: saves .before-update, installs atomically, cmp

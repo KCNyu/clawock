@@ -225,3 +225,51 @@ def test_briefs_that_stopped_reaching_memory_are_reported(system_check, workspac
 
     assert status("2026-09-25") == system_check.WARNING
     assert status("2026-09-30") == system_check.OK
+
+
+def test_review_gated_promotions_do_not_report_brief_age_as_failure(system_check, workspace):
+    private = workspace / 'memory/.dreams'
+    private.mkdir()
+    (private / 'promotion-candidates.md').write_text('')
+    result = system_check.Result()
+    system_check.check_memory_promotion(result)
+    assert result.checks[0][1] == system_check.OK
+    assert 'explicit review gate' in result.checks[0][2]
+
+
+@pytest.mark.parametrize(('entries', 'expected', 'detail'), [
+    ([('November 1, 2026', 'A real narrative')], 'OK', 'non-placeholder'),
+    ([('November 1, 2026', None)] * 3, 'WARNING', '3/3'),
+    ([('November 1, 2026', None), ('November 1, 2026', 'A real narrative')], 'WARNING', '1/2'),
+    ([('October 31, 2026', 'A real narrative')], 'WARNING', 'stale'),
+    ([('November 2, 2026', 'A real narrative')], 'WARNING', 'future'),
+    ([('October 31, 2026', None), ('November 1, 2026', 'Recovered')], 'OK', 'non-placeholder'),
+    ([('unknown date', 'Text')], 'WARNING', 'timestamp'),
+    ([], 'WARNING', 'no dated'),
+])
+def test_dreaming_checks_latest_artifact_not_cron_status(system_check, workspace, entries, expected, detail):
+    from datetime import datetime, timezone
+    body = '\n'.join(f'\n---\n\n*{day} at 3:00 AM GMT+8*\n\n'
+                     + (system_check.DREAMING_PLACEHOLDER if text is None else text) + '\n'
+                     for day, text in entries)
+    (workspace / 'DREAMS.md').write_text('<!-- openclaw:dreaming:diary:start -->\n' + body
+                                         + '\n<!-- openclaw:dreaming:diary:end -->')
+    result = system_check.Result()
+    system_check.check_dreaming_narrative(result, now=datetime(2026, 11, 1, 4, tzinfo=timezone.utc))
+    assert result.checks[0][1] == getattr(system_check, expected)
+    assert detail in result.checks[0][2]
+
+
+def test_dreaming_missing_marker_and_pre_run_grace(system_check, workspace):
+    from datetime import datetime, timezone
+    diary = workspace / 'DREAMS.md'
+    diary.write_text('bad format')
+    result = system_check.Result()
+    system_check.check_dreaming_narrative(result)
+    assert result.checks[0][1] == system_check.WARNING
+    diary.write_text('<!-- openclaw:dreaming:diary:start -->\n---\n\n'
+                     '*October 31, 2026 at 3:00 AM GMT+8*\n\nA narrative\n'
+                     '<!-- openclaw:dreaming:diary:end -->')
+    result = system_check.Result()
+    system_check.check_dreaming_narrative(result, now=datetime(2026, 10, 31, 19, 30, tzinfo=timezone.utc))
+    assert result.checks[0][1] == system_check.OK

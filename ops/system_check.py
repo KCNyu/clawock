@@ -2024,6 +2024,61 @@ def _memory_curation_gaps():
     return orphans, dangling
 
 
+DREAMING_PLACEHOLDER = 'A memory trace surfaced, but details were unavailable in this run.'
+
+
+def check_dreaming_narrative(r, *, now=None):
+    """Judge the latest diary batch, independently of the cron's success status.
+
+    This is an artifact check, not a verdict on candidate promotion or prose quality.
+    Only the upstream diary section is parsed; deep-sleep metadata is not a narrative.
+    """
+    from datetime import timedelta
+    from zoneinfo import ZoneInfo
+
+    diary = WS / 'DREAMS.md'
+    if not diary.exists():
+        return  # Workspaces without dreaming have no artifact contract.
+    try:
+        text = diary.read_text()
+        section = re.search(
+            r'<!-- openclaw:dreaming:diary:start -->(.*?)'
+            r'<!-- openclaw:dreaming:diary:end -->', text, re.S)
+        if not section:
+            raise ValueError('missing diary section markers')
+        entries = re.findall(r'^\*([^\n]+)\*\s*\n(.*?)(?=^---\s*$|\Z)',
+                             section[1], re.M | re.S)
+        months = {name: i for i, name in enumerate(
+            'January February March April May June July August September October November December'.split(), 1)}
+        batches = {}
+        for stamp, body in entries:
+            match = re.fullmatch(r'([A-Za-z]+) (\d{1,2}), (\d{4}) at .+', stamp)
+            if not match or match[1] not in months:
+                raise ValueError('unrecognized diary timestamp')
+            day = date(int(match[3]), months[match[1]], int(match[2]))
+            batches.setdefault(day, []).append(body.strip())
+        if not batches:
+            raise ValueError('no dated diary entries')
+        now = now or datetime.now(timezone.utc)
+        local = now.astimezone(ZoneInfo('Asia/Hong_Kong'))
+        # 03:00 scheduled run, with an hour to finish before expecting today's artifact.
+        expected = local.date() - timedelta(days=local.hour < 4)
+        latest = max(batches)
+        bodies = batches[latest]
+        missing = sum(not body or body == DREAMING_PLACEHOLDER for body in bodies)
+        problems = []
+        if latest < expected:
+            problems.append(f'stale diary: latest {latest}, expected {expected}')
+        if latest > local.date():
+            problems.append(f'future diary date {latest}')
+        if missing:
+            problems.append(f'{missing}/{len(bodies)} latest entries empty or fallback placeholders')
+        r.add('dreaming narrative', WARNING if problems else OK,
+              '; '.join(problems) if problems else f'{latest}: {len(bodies)} non-placeholder entries')
+    except (OSError, UnicodeError, ValueError) as exc:
+        r.add('dreaming narrative', WARNING, f'diary unavailable: {exc}')
+
+
 MEMORY_PROMOTION_LAG_BRIEFS = 3
 
 
@@ -2038,6 +2093,12 @@ def check_memory_promotion(r):
     on disk. WARN only — recall quality is not a publish invariant.
     """
     memory = WS / 'MEMORY.md'
+    if (WS / 'memory/.dreams/promotion-candidates.md').exists() or (
+            memory.exists() and '## Reviewed Dreaming Memory' in memory.read_text()):
+        r.add('memory promotion', OK,
+              'explicit review gate: brief age is not a promotion health metric; '
+              'inspect private review receipts for pending candidates')
+        return
     briefs = sorted(p.name[:10] for p in (WS / 'memory').glob('20??-??-??-pre-open.md'))
     if not memory.exists() or not briefs:
         return
@@ -2272,6 +2333,7 @@ def main():
         check_trading_calendar_horizon,
         check_macro_calendar_horizon,
         check_memory_index,
+        check_dreaming_narrative,
         check_memory_promotion,
         check_memory_curation,
         check_benchmark_freshness,
