@@ -304,3 +304,13 @@ No autonomous process edits the seed, lifts chattr, opens PRs or merges code.
 The promotion writer uses a private candidate file; the commit job screens candidates
 and requires explicit review receipts before adding permanent conclusions. Installation,
 review, verification and rollback: [dreaming review](../../docs/operations/dreaming-review.md).
+
+## Versioned OpenClaw patch kit
+
+`openclaw-patches/manifest.json` owns the ordered dist adaptations and per-target
+postconditions. `manage_openclaw_patches.py` rehearses the complete set in isolated
+copies, then journals and installs verified edits with guarded recovery. The
+upgrade wrapper no longer executes host-local patch sources. Use
+`reapply_openclaw_patches.sh --plan` before applying, and `--check-only` afterward.
+See `docs/operations/openclaw-patch-kit.md` for receipts, recovery and the separate
+idle-gateway/restart requirement.

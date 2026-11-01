@@ -68,6 +68,7 @@ belongs here.
 
 - [`release.md`](operations/release.md) — publishing to PyPI/npm, and running the
   latest code on the host without a release.
+- [`openclaw-patch-kit.md`](operations/openclaw-patch-kit.md) — versioned dist adaptations, isolated rehearsal, transaction receipts and guarded rollback.
 - [`dreaming-review.md`](operations/dreaming-review.md) — private candidates, explicit review receipts, permanent promotion and rollback.
 - [`models.md`](operations/models.md) — `config/models.toml`: every model, its parameters and which scenario uses it; OpenClaw, cron, dsh and the MiniMax client follow it.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of

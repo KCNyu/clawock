@@ -1,104 +1,22 @@
 #!/usr/bin/env bash
-# Reapply and verify every host-local OpenClaw dist patch that an upgrade wipes.
-#
-# This script intentionally does not restart the gateway. The upgrade operator
-# must first prove that no cron run is in flight, then restart exactly once.
+# Upgrade entry: the tracked kit stages and verifies all dist patches before writing.
+# Plugin installation stays separate. This script never restarts the gateway.
 set -euo pipefail
-
-RUN_MODE="${1:-apply}"
-PATCH_ROOT="/root/tools/openclaw/current"
-PATCH_SCRIPTS=(
-  "$PATCH_ROOT/patch-embedding-threads1.sh"
-  "$PATCH_ROOT/patch-memory-search-timeout.sh"
-  "$PATCH_ROOT/patch-minimax-response-header-timeout.sh"
-  "$PATCH_ROOT/patch-dreaming-narrative-race.sh"
-  "$PATCH_ROOT/patch-minimax-m3x-adaptive-thinking.sh"
-  "$PATCH_ROOT/patch-hook-relay-exec.sh"
-  "$PATCH_ROOT/patch-reply-session-cost.sh"
-  "$PATCH_ROOT/patch-cache-hit-pct-exact.sh"
-)
-
-case "$RUN_MODE" in
+HOST="$(cd "$(dirname "$0")" && pwd)"
+case "${1:-apply}" in
   apply)
-    for patch_script in "${PATCH_SCRIPTS[@]}"; do
-      if [[ ! -x "$patch_script" ]]; then
-        echo "[openclaw-patches] ERROR: missing executable $patch_script" >&2
-        exit 1
-      fi
-      "$patch_script"
-    done
-    python3 "$(dirname "$0")/patch_dreaming_fallbacks.py"
-    python3 "$(dirname "$0")/patch_dreaming_review.py"
-    bash "$(dirname "$0")/install_skillhub_plugin.sh"
-    bash "$(dirname "$0")/install_memory_corpus_plugin.sh"
+    python3 "$HOST/manage_openclaw_patches.py" apply
+    bash "$HOST/install_skillhub_plugin.sh"
+    bash "$HOST/install_memory_corpus_plugin.sh"
     ;;
   --check-only)
-    python3 "$(dirname "$0")/patch_dreaming_fallbacks.py" --check
-    python3 "$(dirname "$0")/patch_dreaming_review.py" --check
-    bash "$(dirname "$0")/install_skillhub_plugin.sh" --check
-    bash "$(dirname "$0")/install_memory_corpus_plugin.sh" --check
+    python3 "$HOST/manage_openclaw_patches.py" check
+    bash "$HOST/install_skillhub_plugin.sh" --check
+    bash "$HOST/install_memory_corpus_plugin.sh" --check
     ;;
-  *)
-    echo "usage: $0 [--check-only]" >&2
-    exit 2
+  --plan)
+    exec python3 "$HOST/manage_openclaw_patches.py" plan
     ;;
+  *) echo "usage: $0 [--plan|--check-only]" >&2; exit 2 ;;
 esac
-
-OCLAW_REAL="$(realpath /root/.local/share/pnpm/global/5/node_modules/openclaw)"
-DIST="$OCLAW_REAL/dist"
-if [[ ! -d "$DIST" ]]; then
-  echo "[openclaw-patches] ERROR: OpenClaw dist directory missing: $DIST" >&2
-  exit 1
-fi
-
-# The last entry verifies the deadline VALUE, not just the patch generation.
-# The MiniMax header deadline separates two measured latency populations and
-# the success population drifts right as injected context grows (issue #506),
-# so a stale patch script that still writes the old number must not pass merely
-# because its marker looks current.
-PATCH_MARKERS=(
-  "threads: 1, batchSize: 512"
-  "const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 60000;"
-  "clawock-minimax-response-header-timeout-v3"
-  "MiniMax response-header timeout after 60000ms"
-  "clawock-dreaming-race-v2"
-  "clawock-minimax-m3x-adaptive-thinking"
-  "clawock-hook-relay-exec"
-  "clawock-reply-session-cost-v1"
-  "clawock-cache-hit-pct-exact-v1"
-)
-PATCH_LABELS=(
-  "single-thread local embeddings"
-  "60s memory_search deadline"
-  "MiniMax 60s response-header deadline"
-  "MiniMax response-header deadline value"
-  "concurrent dreaming sweep reclaims a running phase"
-  "MiniMax-M3.x always-adaptive thinking"
-  "Codex native hook relays exec (upstream #109446 backport)"
-  "reply footer session cost (cost.session_usd)"
-  "reply footer exact cache-hit percentage (usage.cache_hit_pct_exact)"
-)
-
-declare -a syntax_targets=()
-for index in "${!PATCH_MARKERS[@]}"; do
-  marker="${PATCH_MARKERS[$index]}"
-  label="${PATCH_LABELS[$index]}"
-  mapfile -t matches < <(
-    grep -rlF --include='*.js' -- "$marker" "$DIST" 2>/dev/null || true
-  )
-  if [[ "${#matches[@]}" -eq 0 ]]; then
-    echo "[openclaw-patches] ERROR: marker missing for $label" >&2
-    exit 1
-  fi
-  syntax_targets+=("${matches[@]}")
-  echo "[openclaw-patches] marker ok: $label"
-done
-
-mapfile -t unique_targets < <(printf '%s\n' "${syntax_targets[@]}" | sort -u)
-for target in "${unique_targets[@]}"; do
-  node --check "$target"
-done
-python3 -m py_compile "$PATCH_ROOT/memory_index_maintenance.py"
-
-echo "[openclaw-patches] all ${#PATCH_SCRIPTS[@]} patches and modified bundles verified"
-echo "[openclaw-patches] gateway was not restarted"
+echo '[openclaw-patches] patch kit and host extensions verified; gateway was not restarted'

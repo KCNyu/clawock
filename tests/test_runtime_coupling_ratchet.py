@@ -465,9 +465,6 @@ HOST_OWNED_SHELL = {
     "ops/host/gold_dca_refresh.sh": (
         1, "host cron wrapper around the installed CLI, run from the live "
            "checkout"),
-    "ops/host/reapply_openclaw_patches.sh": (
-        2, "patches the runtime's own pnpm install after an upgrade: the "
-           "install directory and the patch root are the subject of the script"),
     "ops/growth/rick_broadcast_nostr.sh": (
         2, "host cron wrapper that reads the Nostr key from this machine's "
            "runtime dir and posts from the live checkout — the broadcast has "
