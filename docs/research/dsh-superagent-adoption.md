@@ -56,31 +56,39 @@ absolute path. A task that calls `openclaw gateway restart` directly, or `system
 still bypasses the wrapper. The contract says to use the wrapper, and the denial record makes
 the bypass visible after the fact, but it is not syscall-level enforcement.
 
-### 2. Stage by what the task waits for, and notify only when a person is needed
+### 2. Stage by what the task waits for; the notice is not gated by it
 
 The prototype's stage table is ordered; the first matching row wins. Our runner already knows
 the facts (`STATE`, `OUTCOME`, `WAITING`, the model's final report), but it had no structured
-“does a person have to act?” field and always called `notify()` and `wake_origin()`. Now:
+“does a person have to act?” field and always called `notify()` and `wake_origin()`. It now
+records the stage and `NEEDS`. The first version also gated the notice on `ATTENTION`; kcn
+reversed that gate the same afternoon.
+
+**Update, 2026-11-01 (afternoon).** kcn: “我觉得还是有通知的好 而且我们之前还专门做了说微信的会进上下文，telegram的就是只通知”. A quiet `DONE` with `NEEDS: none` must still send
+the end notice and wake the dispatching session: the WeChat leg enters the chat's context,
+Telegram is notification-only, and a cancel still starts no turn. `STAGE`/`ATTENTION` remain
+recorded facts for the chip and `needs_person`, but they no longer decide whether the runner
+speaks. The table and rules below describe the current runner.
 
 | Field | Values | Owner |
 |---|---|---|
 | `NEEDS` | `none` or one concrete action, from the last line starting `NEEDS:` in the report | the agent, read by `classify_finish` in `run-agent.sh` |
 | `NEED_SUMMARY` | the same text, capped at 300 characters | runner |
 | `STAGE` | `working/queued`, `working`, `person/review`, `person/blocked`, `idle`, `ended` | runner (`write_result`, `classify_finish`) |
-| `ATTENTION` | `person`, `none`, `unknown` | runner |
-| `NOTICE` | `attempted`, `none`, `suppressed` | `finish()` |
+| `ATTENTION` | `person`, `none`, `unknown`, recorded for the chip and `needs_person` | runner |
+| `NOTICE` | `attempted`, `none` (`--notify none`) | `finish()` |
 | `RESTART` | the last `RESTART:` line (what/when/result) | the agent, published by the runner |
 
 The rules, in order:
 
 - `cancelled` → `ATTENTION=unknown`; the end notice stays (a stop is still news to the
   dispatcher), but no wake turn, as before.
-- `ok` + `NEEDS: none` → `ATTENTION=none`, `STAGE=idle`, `NOTICE=suppressed`; no WeChat or
-  Telegram send and no wake turn. `result.env`, the task chip and `/dispatch-list` still show
-  the outcome.
+- `ok` + `NEEDS: none` → `ATTENTION=none`, `STAGE=idle`, `NOTICE=attempted`; the notice goes
+  out on every configured leg and wakes the dispatching session (unless `--notify none`).
+  This is the row the afternoon update restored.
 - `ok` + a concrete `NEEDS` → `ATTENTION=person`, `STAGE=person/review`; send and wake.
-- `ok` + no `NEEDS` line → `ATTENTION=unknown`; keep the old notice. Silence has to be
-  reported, never inferred from prose.
+- `ok` + no `NEEDS` line → `ATTENTION=unknown`; the notice goes out as before. Silence has to
+  be reported, never inferred from prose.
 - `partial` / `unverified` → `ATTENTION=person` even if the report says `NEEDS: none`;
   the work is not done.
 - `blocked` / `failed` / `timeout` / `quota` → `ATTENTION=person`, `STAGE=person/blocked`.
@@ -122,13 +130,13 @@ load-bearing and were not simplified to match its model.
 |---|---|
 | `ops/host/agent-dispatch/mandate.py` | new: create/show/check/violations; immutable `mandate.json`; exit `3` on deny and append the audit line |
 | `ops/host/agent-dispatch/dispatch.sh` § Options, § contract heredoc, § `mandate` subcommand | `--no-restart`/`--allow-restart`; create the mandate before the unit; require `NEEDS` + `RESTART` + `STATUS`; `show_state` prints stage/needs/attention |
-| `ops/host/agent-dispatch/run-agent.sh` § RUNNER_API, § `write_result`, § `classify_finish`, § `finish` | api 5; parse `NEEDS`/`RESTART`; publish the fields; suppress the end notice and wake when `ATTENTION=none` |
+| `ops/host/agent-dispatch/run-agent.sh` § RUNNER_API, § `write_result`, § `classify_finish`, § `finish` | api 5; parse `NEEDS`/`RESTART`; publish the fields; `ATTENTION` no longer gates the end notice or wake (reverted 2026-11-01 afternoon) |
 | `ops/host/refresh_live.sh` § mandate guard | checks `live.refresh` and `gateway.restart` before any write; records a failed check |
 | `ops/host/restart_gateway.sh` | new guarded wrapper: `--check` decides only, otherwise records and restarts |
 | `ops/host/install_agent_dispatch.sh` § FILES | installs `mandate.py` and `tests/test_mandate.py` |
 | `ops/host/task_queue_ops.py` § `cmd_summary` | `needs_person` per agent, from `ATTENTION` or the legacy terminal states |
 | `ops/host/agent-dispatch/tests/test_mandate.py` | create/immutable/deny/allow/unknown action/legacy, plus the real `restart_gateway.sh --check` and `refresh_live.sh` refusal |
-| `ops/host/agent-dispatch/tests/run-tests.sh` § `[35b]`, `[40a]` | quiet `DONE` sends nothing, a real `NEEDS` still sends, `PARTIAL` is not quiet; a dispatch through a fake `systemd-run` writes the mandate and appends the contract |
+| `ops/host/agent-dispatch/tests/run-tests.sh` § `[35b]`, `[40a]`, `[41a]` | a quiet `DONE` still sends on both legs and wakes, a cancel starts no turn, a real `NEEDS` still sends, `PARTIAL` is not quiet; a dispatch through a fake `systemd-run` writes the mandate and appends the contract |
 | `docs/architecture/task-queue.md` § Mandate, § Runner fields, § Notifications, § wake table | the operational contract |
 | `~/.agents/skills/agent-dispatch/SKILL.md` § Send the request / Continue or inspect | `--no-restart`, the mandate file, `NEEDS`/`RESTART` report rule |
 | `~/.agents/AGENTS.md` § Delegation | one paragraph: restart is authorized by default, `--no-restart` is the exception, reports carry `NEEDS` |
@@ -146,7 +154,7 @@ Before (the old runner, observed in this task's own log): `finish()` called
 The 2026-11-01 incident is the other half: a brief said “不要重启网关” and the worker ran
 `refresh_live.sh` and restarted the gateway anyway.
 
-After, on the worktree (`codex/superagent-adoption`):
+When the gate was first adopted, on the worktree (`codex/superagent-adoption`):
 
 ```
 DISPATCH_TEST_CASES=notify AGENT_DISPATCH_RUNNER=... bash ops/host/agent-dispatch/tests/run-tests.sh
@@ -165,22 +173,39 @@ python3 -m unittest ops/host/agent-dispatch/tests/test_mandate.py
   Ran 6 tests ... OK
 
 [40a] a dispatch through a fake systemd-run wrote mandate.json (actions allow/allow,
-      policy_version dispatch-…), and prompt.md contains 默认授权, NEEDS: none and the
-      notification-gate sentence.
+      policy_version dispatch-…), and prompt.md contains 默认授权 and NEEDS: none.
 ```
 
-The denial evidence is the pair `<task>/mandate-violations.jsonl` plus exit `3`; the quiet
-evidence is `NOTICE=suppressed`, no `openclaw.sends` line, and no `notify:` send in `run.log`.
+After the same-day reversal (`codex/notify-quiet-done`):
+
+```
+DISPATCH_TEST_CASES=names,notify AGENT_DISPATCH_RUNNER=... bash ops/host/agent-dispatch/tests/run-tests.sh
+  [35b] NEEDS/ATTENTION/NOTICE recorded  none/none/attempted
+        both legs send for a quiet end   2
+        no suppression line is written   0
+        PARTIAL is not a quiet end       partial/person/attempted
+  [41a] a quiet DONE wakes the dispatching session
+        cancel still sends both legs     weixin,telegram
+        cancel starts no turn            (none)
+  [40a] the prompt asks for the NEEDS line
+        the prompt says the end notice is still sent
+  PASS
+```
+
+The denial evidence is the pair `<task>/mandate-violations.jsonl` plus exit `3`. The end-notice
+evidence is now `NOTICE=attempted`, one `openclaw.sends` line per leg, `notify: sent (<leg>)` in
+`run.log`, and one wake turn for the origin session; a cancel has no turn.
 
 ## Remaining risks / not done
 
 - **Bypass:** a task that runs `openclaw gateway restart` or `systemctl` directly is not
   stopped. The wrapper and the contract are the enforceable path; full enforcement would need
   a sandbox or a PATH shim, which this host deliberately does not have.
-- **Model compliance:** `NEEDS` is a line the model must write. A missing line keeps the old
-  notice (never silence), but a model that writes `NEEDS: none` when it should have asked for
-  a decision can still under-notify. The contract says not to invent an action and not to
-  hide one; only the report can be audited.
+- **Model compliance:** `NEEDS` is a line the model must write. A missing line is `unknown`
+  and the notice goes out as before; a model that writes `NEEDS: none` when it should have
+  asked for a decision no longer suppresses the notice, but it can still misreport the count of
+  tasks that want a person. The contract says not to invent an action and not to hide one;
+  only the report can be audited.
 - **`--no-restart` is conservative:** `refresh_live.sh` checks both actions before any write,
   so a task with `--no-restart` cannot even fast-forward without a restart. That is deliberate
   (no half-applied live state), but it means the flag is “do not touch the live desk”, not
@@ -188,7 +213,7 @@ evidence is `NOTICE=suppressed`, no `openclaw.sends` line, and no `notify:` send
 - **The task chip does not render `ATTENTION` yet.** `result.env` and `task_queue_ops.py summary`
   carry it (`needs_person` per agent), and `dispatch.sh status` prints it, but the dsh chip still
   shows the old `done`/`partial` word. Adding a badge would need a plugin build and a dsh
-  restart; the notification gate is independent of it.
+  restart; the end notice no longer depends on it.
 - **Patrol `observe` mode** is not implemented. The #3221 evidence (a measurement-basis
   difference filed as an issue and closed `not planned`) is the case for it; it belongs to
   patrol's `file_issue.sh` gate, not to this change.

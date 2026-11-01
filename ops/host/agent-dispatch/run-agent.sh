@@ -25,8 +25,9 @@ set -uo pipefail
 # changes (deadline, attempts, resumes) below api 3. Api 4 writes attempt<N>.env when run N
 # launches its CLI and when it returns, so a brief tells an append taken by a run that never
 # started from a delivered one; dispatch.sh names the runner api when it refuses an append.
-# Api 5 adds the machine-readable mandate and the NEEDS/STAGE/ATTENTION fields the notification
-# gate reads (docs/architecture/task-queue.md § Mandate and § When the end notice is sent).
+# Api 5 adds the machine-readable mandate and the NEEDS/STAGE/ATTENTION fields the task chip
+# reads. ATTENTION no longer gates the end notice (docs/architecture/task-queue.md § Mandate
+# and § The end notice).
 RUNNER_API=5
 
 DIR="$1"
@@ -171,8 +172,8 @@ SLOT=""   # set by acquire_slot while this attempt holds a run slot; published i
 # latest notification that were delivered / failed, at NOTIFY_AT; readers stop grepping run.log.
 QUEUED_AT="" WAKE_AT="" NOTIFIED="" NOTIFY_FAILED="" NOTIFY_AT=""
 # Structured end state (runner api 5): NEEDS is the agent's own "does a person have to act?"
-# line; ATTENTION folds it with the runner's state so the end notice is sent only when a person
-# is needed. STAGE is the prototype's stage table: working/queued, working, person/*, idle.
+# line; ATTENTION folds it with the runner's state for the chip and the needs_person count.
+# STAGE is the prototype's stage table: working/queued, working, person/*, idle.
 NEEDS="" NEED_SUMMARY="" STAGE="" ATTENTION="" NOTICE="" RESTART=""
 META_EFFORT=$EFFORT
 TOKENS_IN="" TOKENS_CACHE_W="" TOKENS_CACHE_R="" TOKENS_OUT="" TOKENS_TOTAL="" COST_USD=""
@@ -214,11 +215,11 @@ classify_finish() {
   RESTART=$(printf '%s\n' "$FINAL_TEXT" | sed -n 's/^RESTART:[[:space:]]*//p' | tail -1 | sed 's/[[:space:]]*$//')
   [ "${#RESTART}" -le 300 ] || RESTART=${RESTART:0:300}
   if [ "$STATE" = cancelled ]; then
-    ATTENTION=unknown STAGE=ended   # a stop still tells the dispatcher; only a clean DONE+nothing is quiet
+    ATTENTION=unknown STAGE=ended   # a stop still tells the dispatcher; it just starts no wake turn
   elif [ "$STATE" = ok ] && [ "$NEEDS" = none ]; then
-    ATTENTION=none STAGE=idle
+    ATTENTION=none STAGE=idle       # a recorded fact for the chip; the notice still goes out
   elif [ "$STATE" = ok ] && [ -z "$NEEDS" ]; then
-    ATTENTION=unknown STAGE=ended   # a clean run that never said; keep the old notice, not silence
+    ATTENTION=unknown STAGE=ended   # a clean run that never said; unknown is not none
   elif [ "$STATE" = ok ] || [ "$STATE" = partial ] || [ "$STATE" = unverified ]; then
     ATTENTION=person STAGE=person/review
   else
@@ -584,20 +585,17 @@ $(printf '%s' "$FINAL_TEXT" | clip tail 500)
 ${resume_hint}${open_hint}${quota}${cost}
 id：$ID
 日志：$DIR/run.log"
-  # The gate from docs/003: speak when a person must act, or when the result is ready to use.
-  # A clean DONE that reports NEEDS: none is recorded and shown in the chip, but sends no end
-  # notice and wakes no session. Missing or malformed NEEDS keeps the old behaviour (unknown).
-  if [ "$ATTENTION" = none ]; then
-    NOTICE=suppressed
-    echo "notify: suppressed (state=$STATE needs=none); recorded in result.env and the task chip"
-    write_result
-  else
-    if [ "$NOTIFY" = none ]; then NOTICE=none; write_result; else NOTICE=attempted; fi
-    notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"
-    # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
-    # on the attempt stop, the quota line and the legs.
-    [ "$STATE" = cancelled ] || wake_origin end "$notice"
-  fi
+  # kcn 2026-11-01: every terminal task reports again; a non-cancel task with an origin
+  # session also wakes it. The attention gate (#3231) silenced a clean DONE that reported
+  # NEEDS: none; he still wants that end notice. OpenClaw mirrors the WeChat leg into this
+  # chat, so the context belongs here; the Telegram leg stays a plain notification, and
+  # wake_origin gives the session its turn. ATTENTION is still recorded in result.env for the
+  # task chip; it just no longer decides whether we speak.
+  if [ "$NOTIFY" = none ]; then NOTICE=none; write_result; else NOTICE=attempted; fi
+  notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"
+  # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
+  # on the attempt stop, the quota line and the legs.
+  [ "$STATE" = cancelled ] || wake_origin end "$notice"
   printf 'terminal\n' >"$DIR/.inbox-state.tmp"
   mv -f "$DIR/.inbox-state.tmp" "$DIR/inbox-state"
   echo "==================== $(ts) $ID end state=$STATE outcome=${OUTCOME:--} rc=${RC:--} ===================="

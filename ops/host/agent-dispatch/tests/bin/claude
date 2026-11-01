@@ -7,7 +7,7 @@
 #   ok-no-status  : clean success whose result has no STATUS line
 #   hang-then-ok  : 1st call never finishes (to be interrupted by an append); later calls succeed
 #   slow-ok       : every call sleeps $FAKE_DIR/claude.slow seconds (default 8), then succeeds
-#   needs-none    : succeeds with NEEDS: none, the quiet end the notification gate suppresses
+#   needs-none    : succeeds with NEEDS: none (still sends the end notice and wakes)
 #   needs-action  : succeeds with a concrete NEEDS action (the end notice must go out)
 #   needs-none-partial: PARTIAL with NEEDS: none (a partial task still needs a person)
 #   usage-ok      : writes one assistant message with usage to the transcript (twice, like the

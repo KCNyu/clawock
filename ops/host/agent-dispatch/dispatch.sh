@@ -392,7 +392,7 @@ cat >>"$DIR/prompt.md" <<'EOF'
 结束时用中文写简短报告：做了什么，改了哪些文件或 commit，验证了什么，还有什么没做或有什么风险。报告最后两行固定为：
 `NEEDS: none`（无事可做）或 `NEEDS: <一句具体、可执行的人的动作>`（要人决定/审核/授权/处理）
 `STATUS: DONE|PARTIAL|BLOCKED`
-只有 `NEEDS` 非 `none`，或 `STATUS` 非 `DONE` 时，派发方才通知人；无事时不要编一个动作。
+任务结束时派发底座仍会发通知，非取消任务还会唤醒派发会话（两者都以 `--notify none` 除外）；`NEEDS`/`STATUS` 只说明状态，无事时不要编一个动作。
 EOF
 
 # Which session dispatched this, and how deep in a chain of wake turns (kcn 2026-10-12: the task
