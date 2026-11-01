@@ -513,6 +513,68 @@ def leg_debts(leg: str, path: Path = LEDGER) -> tuple[list[dict] | None, str | N
         return None, f"{type(exc).__name__}: {exc}"[:200]
 
 
+def followups(path: Path = LEDGER, *, leg=None, now=None, limit=12) -> dict:
+    """Read-only review queue over the existing breach ledger, never a new order.
+
+    Recheck deadlines at read time: a cached active override or may_stand flag
+    must not hide an expiry just because the morning reconciler has not run.
+    Resolved records are the only records excluded automatically.
+    """
+    current = _now(now)
+    out = {"status": "ok", "as_of": _stamp(current), "ledger_updated_at": None,
+           "rows": [], "total": 0, "omitted": 0}
+    try:
+        if not Path(path).is_file():
+            raise ValueError("risk ledger missing")
+        ledger = load_ledger(path)
+        out["ledger_updated_at"] = ledger.get("updated_at")
+        rows = []
+        for record in ledger["records"]:
+            if not isinstance(record, dict):
+                raise ValueError("invalid risk record")
+            if record.get("status") == "resolved":
+                continue
+            if leg and str(record.get("leg") or "").upper() != leg.upper():
+                continue
+            override = record.get("override") or {}
+            adaptive = record.get("adaptive") or {}
+            execution = record.get("execution") or {}
+            expires = _parse_stamp(override.get("expires_at"))
+            due = None
+            if override_is_active(record, current):
+                state, reason = "scheduled", "限时豁免，到期复查"
+                due = _stamp(expires)
+            elif override.get("status") in {"active", "expired", "invalid"}:
+                state, reason = "due", "豁免已到期或无效，重新核对风险"
+                due = _stamp(expires) if expires else None
+            elif execution.get("status") in {"confirmed", "evidence_present"}:
+                state, reason = "verify", "已有执行记录，核验风险是否消退"
+            elif adaptive.get("eligible"):
+                forced = _parse_stamp(adaptive.get("forced_on"))
+                # forced_on is the ledger's UTC calendar date, same as _adaptive.
+                if adaptive.get("must_reissue") or (forced and forced.date() <= current.astimezone(timezone.utc).date()):
+                    state, reason = "due", "延期复查已到期或风险恶化，重新评估"
+                elif forced:
+                    state, reason = "scheduled", "暂缓重提，到期复查"
+                else:
+                    state, reason = "verify", "延期复查日期缺失，核对账本"
+                due = adaptive.get("forced_on") if forced else None
+            elif (record.get("acknowledgement") or {}).get("status") == "acknowledged":
+                state, reason = "watch", "已确认承担风险，仍待风险消退"
+            else:
+                state, reason = "undecided", "尚未记录处置决定"
+            rows.append({"breach_id": record.get("breach_id"), "ticker": record.get("ticker"),
+                         "leg": record.get("leg"), "type": record.get("type"),
+                         "state": state, "reason": reason, "review_at": due,
+                         "last_seen_at": record.get("last_seen_at")})
+        rank = {"due": 0, "verify": 1, "undecided": 2, "scheduled": 3, "watch": 4}
+        rows.sort(key=lambda row: (rank[row["state"]], row["review_at"] or "", str(row["breach_id"])))
+        out.update(rows=rows[:limit], total=len(rows), omitted=max(0, len(rows) - limit))
+    except (OSError, ValueError, TypeError, AttributeError):
+        out.update(status="unavailable", rows=[], error="风控账本缺失或不可读，复查清单未生成")
+    return out
+
+
 #: Advice the book keeps declining (kcn 2026-09-12:「我们长期不听的模型建议可以考虑有一个
 #: 自适应机制」). Measured the same day: 58 of the 61 active calls not followed in 30 days
 #: were the same three risk_rule cuts (07226 / RKLX / SPCH), re-issued every morning for
@@ -1136,6 +1198,9 @@ def main(argv=None) -> int:
     parser.add_argument("--ledger", type=Path, default=LEDGER)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("list")
+    review = sub.add_parser("followups", help="read pending risk reviews without changing the ledger")
+    review.add_argument("--leg", choices=("HK", "US"))
+    review.add_argument("--json", action="store_true")
     ack = sub.add_parser("ack")
     ack.add_argument("breach_id")
     ack.add_argument("--note", required=True)
@@ -1149,6 +1214,20 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        if args.command == "followups":
+            view = followups(args.ledger, leg=args.leg, limit=100)
+            if args.json:
+                print(json.dumps(view, ensure_ascii=False, indent=2))
+            elif view["status"] != "ok":
+                print(view["error"])
+            else:
+                print(f"风险待复查：{view['total']} 项；账本核对于 {view['ledger_updated_at'] or '未知'}")
+                for item in view["rows"]:
+                    print(item["breach_id"], item["ticker"] or item["leg"], item["reason"],
+                          item["review_at"] or "无约定日期")
+                if view["omitted"]:
+                    print(f"另有 {view['omitted']} 项未展开")
+            return 0 if view["status"] == "ok" else 2
         if args.command == "list":
             ledger = load_ledger(args.ledger)
             for row in ledger["records"]:

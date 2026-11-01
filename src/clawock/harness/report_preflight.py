@@ -506,6 +506,12 @@ def _collect(argv=None):
         'needs_risk_section': (signals['alert'] >= 1
                                or (signals['stop'] + signals['trim']) >= 2),
     }
+    from clawock.decision import session_review
+    result['session_review'] = session_review.build(
+        WS, args.market, now=started_at, plan_triggers=plan_triggers,
+        unrefreshed=coverage['unrefreshed'])
+    result['risk_followups'] = risk_ledger.followups(
+        WS / 'memory' / 'risk_breaches.json', leg=args.market.upper(), now=started_at)
     result['context_id'] = compute_context_id(result)
 
     TMP.mkdir(parents=True, exist_ok=True)

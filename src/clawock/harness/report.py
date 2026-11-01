@@ -67,7 +67,17 @@ def assemble_message(ctx, prose):
                          (ctx.get('raw_wechat_block') or '').strip(), prose,
                          held=plan_holds(ctx.get('plan_context')),
                          debts=ctx.get('risk_debts') or (),
-                         debts_error=ctx.get('risk_debts_error'))
+                         debts_error=ctx.get('risk_debts_error'),
+                         session_review=ctx.get('session_review'),
+                         risk_followups=ctx.get('risk_followups'))
+
+
+def fallback_block(ctx):
+    """Keep the analyzer first line used by receipts; include deterministic reviews."""
+    from clawock.harness.chat_card import review_sections
+    block = (ctx.get('raw_wechat_block') or '').strip()
+    extra = review_sections(ctx.get('session_review'), ctx.get('risk_followups'))
+    return block + ('\n' + '\n'.join(extra) if extra else '')
 
 
 def validate(body, ctx, model_text):

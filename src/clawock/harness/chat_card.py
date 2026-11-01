@@ -12,6 +12,7 @@ is built from the slot's structured data, in the order a reader asks:
     **欠着的账**              open risk breaches with no exit on record (risk.py)
     **本档变化**              each new mover with its underlying and news status,
                               T+0 / observation changes, new primary information
+    **盘前至本档** / **风险待复查**  session recap and existing ledger review dates
     holdings table            the analyzer's table, byte for byte
     **接下来盯**              setups and candidates; postflight adds 下一触发
     **加仓侧**                only rows that are not a plain 等待
@@ -298,8 +299,68 @@ def section_rows(block_text: str) -> list[str]:
     return rows
 
 
+def review_sections(session_review=None, risk_followups=None) -> list[str]:
+    """Deterministic recap/review blocks shared by intraday and report cards."""
+    lines = []
+    if session_review is not None:
+        view = session_review
+        rows = []
+        if view.get('plan_status') != 'ok':
+            rows.append(bullet('本交易日盘前计划未读到，无法对照；不沿用其他日期计划'))
+        else:
+            day = view.get('session', '').partition(':')[2]
+            rows.append(bullet(f'对照 {day} 盘前计划（当前版本）'))
+            counts = view['counts']
+            rows.append(bullet(f"执行账记录：已执行 {counts['followed']}，已记未执行 {counts['not_followed']}，"
+                               f"待核验 {counts['unknown']}；另有 {counts['passive']} 项持有/观察"))
+            changes = [r for r in view.get('rows', []) if r['execution'] in {'followed', 'not_followed'}]
+            if changes:
+                labels = {'followed': '已执行', 'not_followed': '已记未执行'}
+                rows.append(bullet('；'.join(f"{ticker(r['ticker'])} {labels[r['execution']]}" for r in changes[:3])
+                                   + ('（仅列前三项）' if len(changes) > 3 else '')))
+            if view.get('execution_status') != 'ok':
+                rows.append(bullet('执行账未读到，不能确认是否成交'))
+            hits = view.get('current_triggers') or []
+            if hits:
+                rows.append(bullet('当前行情满足盘前价格条件：' + '、'.join(ticker(t) for t in hits[:3])
+                                   + ('等' if len(hits) > 3 else '') + '（触价不等于成交）'))
+            else:
+                rows.append(bullet('本档无已验证的盘前价格条件命中，不代表盘中从未触发'))
+        if view.get('intraday_status') == 'ok':
+            signals = view.get('observed_signals') or []
+            if signals:
+                names = sorted({r['ticker'] for r in signals})
+                rows.append(bullet('盘中已报信号：' + '、'.join(ticker(t) for t in names[:3])
+                                   + ('等' if len(names) > 3 else '') + '（历史观察，不代表当前仍触发）'))
+        else:
+            rows.append(bullet('本交易日盘中送达记录未取得，无法回顾已报信号'))
+        if view.get('omitted') or view.get('trigger_omitted') or view.get('signal_omitted'):
+            rows.append(bullet('摘要仅列部分，完整记录见当日计划、执行账与盘中记录'))
+        lines += section('**盘前至本档**', rows)
+    if risk_followups is not None:
+        view = risk_followups
+        if view.get('status') != 'ok':
+            rows = [bullet('风控账本未读到，待复查事项未知')]
+        else:
+            rows = []
+            for item in view.get('rows', [])[:3]:
+                subject = ticker(item.get('ticker') or item.get('leg') or '账户')
+                due = item.get('review_at')
+                when = f" · 复查时间 {due}（UTC）" if due else ''
+                rows.append(bullet(f"{subject} {item['reason']}{when}"))
+            remaining = view.get('total', 0) - len(rows)
+            if remaining:
+                rows.append(bullet(f'另有 {remaining} 项；可查 `clawock risk followups`'))
+            if not rows:
+                rows = [bullet('账本当前没有未结风险项')]
+            stamp = view.get('ledger_updated_at') or '未知'
+            rows.append(bullet(f'账本核对于 {stamp}；复查事项不是新的买卖指令'))
+        lines += section('**风险待复查**', rows)
+    return lines
+
+
 def render(*, analyzer: str, health=(), action=(), recommendation='', debts=(), changes=(),
-           watch=(), add_side=()) -> str:
+           watch=(), add_side=(), session_review=None, risk_followups=None) -> str:
     parts = split_analyzer(analyzer)
     lines = [title_line(parts['title'])]
     lines += summary_lines(parts['book'], parts['risk'])
@@ -313,6 +374,7 @@ def render(*, analyzer: str, health=(), action=(), recommendation='', debts=(), 
         lines += ['', recommendation]
     lines += section(DEBTS, debts)
     lines += section(CHANGES, changes or [bullet('本档无新变化')])
+    lines += review_sections(session_review, risk_followups)
     if parts['table']:
         lines += ['', *parts['table']]
     lines += section(WATCH, watch)
@@ -437,7 +499,7 @@ def prose_markdown(prose: str) -> str:
 
 
 def render_report(title: str, block: str, prose: str, *, held=(), debts=(),
-                  debts_error=None) -> str:
+                  debts_error=None, session_review=None, risk_followups=None) -> str:
     """The open/mid/pm/close card. `held` and `debts` are the same inputs the
     intraday card gets (`plans.plan_holds`, `risk.open_debts`), so a stop is a
     to-do, a held stance or an owed exit by one rule on both."""
@@ -460,6 +522,7 @@ def render_report(title: str, block: str, prose: str, *, held=(), debts=(),
                              + (f' · {why}' if why else '')))
     lines += section(ACTION, action)
     lines += section(DEBTS, debt_rows(debts, ordered=ordered, held=held, error=debts_error))
+    lines += review_sections(session_review, risk_followups)
     if parts['table']:
         lines += ['', *parts['table']]
 
