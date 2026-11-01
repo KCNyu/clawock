@@ -19,7 +19,9 @@ import tempfile
 import uuid
 
 HOST = Path(__file__).resolve().parent
-sys.path.insert(0, str(HOST.parents[1] / 'src'))
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / 'src'))
 DEFAULT_MANIFEST = HOST / 'openclaw-patches/manifest.json'
 
 
