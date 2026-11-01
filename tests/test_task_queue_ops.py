@@ -815,3 +815,64 @@ def test_summary_counts_an_explicit_person_action_and_not_a_quiet_done(q):
     code, out = q.run("summary")
     assert code == 0
     assert out["agents"]["claude"]["needs_person"] == 1
+
+
+def test_history_search_pages_and_no_side_effects(q):
+    for tid, stamp, name in [('older', '2026-10-30 10:00:00', '简报 Context'),
+                             ('a', '2026-11-01 10:00:00', '简报 context'),
+                             ('b', '2026-11-01 10:00:00', '简报 CONTEXT')]:
+        d = q.task(tid, agent='codex', result='STATE=ok\nOUTCOME=DONE\n', active=False)
+        with (d / 'meta.env').open('a') as f:
+            f.write(f'CREATED={stamp}\nNAME={name}\nORIGIN_SESSION=private-origin\n')
+        (d / 'prompt.md').write_text('private prompt')
+    q.task('patrol-round', agent='codex', result='STATE=ok\n', active=False)
+    q.task('live', agent='claude', result='STATE=running\n', active=False)
+    before = {str(p): p.read_bytes() for p in q.tasks.rglob('*') if p.is_file()}
+    code, out = q.run('history', '简报 context', '--agent', 'codex', '--state', 'ok', '--limit', '1')
+    assert code == 0 and [r['id'] for r in out['tasks']] == ['b']
+    assert out['next_before'] == 'b' and out['has_more']
+    # New arrivals do not shift the next page as an offset would.
+    d = q.task('new', agent='codex', result='STATE=ok\n', active=False)
+    with (d / 'meta.env').open('a') as f:
+        f.write('CREATED=2026-11-02 10:00:00\nNAME=简报 context\n')
+    code, out = q.run('history', '简报 context', '--before', 'b', '--since', '2026-11-01')
+    assert code == 0 and [r['id'] for r in out['tasks']] == ['a']
+    assert out['next_before'] is None
+    assert 'private' not in json.dumps(out)
+    assert not q.calls.exists()
+    assert all(Path(p).read_bytes() == contents for p, contents in before.items())
+    assert 'patrol-round' not in [r['id'] for r in q.run('history')[1]['tasks']]
+    assert 'patrol-round' in [r['id'] for r in q.run('history', '--all')[1]['tasks']]
+    assert [r['id'] for r in q.run('history', 'done')[1]['tasks']] == ['b', 'a', 'older']
+
+
+def test_history_legacy_bounds_and_errors(q):
+    d = q.task('legacy', result='', active=False)
+    with (d / 'meta.env').open('a') as f:
+        f.write('NAME=token=hidden ' + 'x' * 1000 + '\n')
+    code, out = q.run('history')
+    assert code == 0
+    row = out['tasks'][0]
+    assert row['state'] == 'pending' and row['attention'] == 'unknown'
+    assert len(row['name']) <= 240 and 'hidden' not in row['name']
+    for flags in [('--limit', '0'), ('--limit', '51'), ('--since', '2026-02-30'),
+                  ('--since', '20261101'), ('--before', '../escape'), ('--before', 'absent')]:
+        code, out = q.run('history', *flags)
+        assert code in (2, 4) and not out['ok']
+
+
+def test_history_dispatch_wrapper_and_text(q):
+    q.task('past-work', result='STATE=ok\nOUTCOME=DONE\n', active=False)
+    wrapper = q.root / 'dispatch.sh'
+    wrapper.write_text((ROOT / 'ops/host/agent-dispatch/dispatch.sh').read_text()
+                       .replace('/root/tools/agent-dispatch', str(q.tools))
+                       .replace('/root/logs/agent-dispatch', str(q.tasks)))
+    (q.tools / 'task_queue_ops.py').write_text(OPS.read_text())
+    for flags in [('history', '--json', 'past'), ('history', 'past')]:
+        r = subprocess.run(['bash', str(wrapper), *flags], env=q.env, capture_output=True, text=True, timeout=10)
+        assert r.returncode == 0, r.stderr
+        if '--json' in flags:
+            assert json.loads(r.stdout)['tasks'][0]['id'] == 'past-work'
+        else:
+            assert 'past-work' in r.stdout and 'ok/DONE' in r.stdout
+    assert not q.calls.exists()

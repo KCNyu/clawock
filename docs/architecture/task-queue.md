@@ -690,9 +690,41 @@ Deliberately out of scope, each for a recorded reason:
 - **Per-model cost charts and live token counters.** Nothing collects continuously, and a
   subscription window is not an API bill.
 
-Searching ended tasks by title, id or outcome is the next thing worth measuring: the list
-shows only the most recent few. It would be a read-only paged index, separate from the
-active poll.
+### Find earlier work without loading whole conversations
+
+This applies the lightweight-identifier / just-in-time retrieval pattern described in
+[Anthropic's context engineering article](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+(published 2025-09-29, consulted 2026-11-01): find a relevant record before loading its body.
+The existing task records are the source of truth; retrieval adds no new memory or authority.
+
+`dispatch.sh history [--json] [query]` searches task **metadata** (id, name, runner state,
+model outcome), newest creation first. Query words are case-insensitive AND substrings,
+including Chinese. Use `--agent codex`, `--state ok`, `--since 2026-11-01`, and `--limit 10`
+(1–50). Patrol rounds are excluded unless `--all` is supplied. This includes live and legacy
+tasks; an absent result is `pending`, absent attention is explicitly `unknown`.
+
+```bash
+/root/tools/agent-dispatch/dispatch.sh history --json 'brief' --agent codex --limit 5
+/root/tools/agent-dispatch/dispatch.sh history 'brief' --agent codex --limit 5 --before TASK_ID
+/root/tools/agent-dispatch/dispatch.sh inbox TASK_ID
+/root/tools/agent-dispatch/dispatch.sh log TASK_ID
+/root/tools/agent-dispatch/dispatch.sh result TASK_ID
+```
+
+Keep the same filters on the next call and use `next_before` as `--before`. The exclusive
+cursor is the task's `(CREATED, id)` pair, so newly created tasks do not shift subsequent pages.
+The cursor task must still exist. Creation times use the host's recorded local time; records
+without a timestamp sort last and are excluded by `--since`. Each displayed field is redacted,
+whitespace-normalized and capped at 240 characters. `has_more` reports another page, not a
+frozen snapshot: concurrent completions can change state/outcome matches.
+
+The owner is `task_queue_ops.py history`; it reads only `meta.env` and `result.env`, does not
+scan prompts, reports or sessions, does not call systemd, and writes no index. It scans local
+metadata per request, separate from active queue polling. The output deliberately omits
+origin/session ids and brief contents. Retrieve `inbox`, `log` (including its existing JSON
+timeline), or `result` only after selecting an id. This is a local CLI/agent capability;
+there is no new WeChat slash command or dsh UI. Install both the runner wrapper and the queue
+ops entry after merging (the latter is a manual `install_task_queue_ops.sh` step).
 
 Wake observations are separate from task outcomes: `wake-quota.json` and `wake-end.json`
 record `pending`, `inflight`, `failed` or `acknowledged`, event ID, attempt count,

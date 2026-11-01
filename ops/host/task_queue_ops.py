@@ -350,6 +350,58 @@ def cmd_list(_args) -> dict:
     }
 
 
+def cmd_history(args) -> dict:
+    """Read a small metadata index, then let callers fetch brief/log/result by id."""
+    if not 1 <= args.limit <= 50:
+        raise OpsError(2, "--limit must be between 1 and 50")
+    if args.since:
+        from datetime import date
+        try:
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.since):
+                raise ValueError
+            date.fromisoformat(args.since)
+        except ValueError:
+            raise OpsError(2, "--since takes a valid YYYY-MM-DD") from None
+    before = None
+    if args.before:
+        d = task_dir(args.before)
+        before = (read_env(d / "meta.env").get("CREATED", ""), d.name)
+    terms = args.query.casefold().split()
+    rows = []
+    for meta_file in TASKS_DIR.glob("*/meta.env"):
+        d = meta_file.parent
+        if not ID_RE.fullmatch(d.name) or (d.name.startswith("patrol-") and not args.all):
+            continue
+        meta, result = read_env(meta_file), read_env(d / "result.env")
+        created = meta.get("CREATED", "")
+        if before is not None and (created, d.name) >= before:
+            continue
+        if args.since and created[:10] < args.since:
+            continue
+        state = result.get("STATE") or "pending"
+        if args.agent and meta.get("AGENT") != args.agent:
+            continue
+        if args.state and state != args.state:
+            continue
+        searchable = " ".join((d.name, meta.get("NAME", ""), state, result.get("OUTCOME", ""))).casefold()
+        if not all(term in searchable for term in terms):
+            continue
+        # Only the index fields: never prompts, session ids, origins or raw logs.
+        row = {"id": d.name, "created": created, "name": meta.get("NAME", ""),
+               "agent": meta.get("AGENT", ""), "state": state,
+               "outcome": result.get("OUTCOME", ""),
+               "attention": result.get("ATTENTION") or "unknown"}
+        rows.append(row)
+    rows.sort(key=lambda r: (r["created"], r["id"]), reverse=True)
+    page = rows[:args.limit]
+    more = len(rows) > args.limit
+    # Keep every displayed field bounded and on one line, including legacy metadata.
+    shown = [{k: " ".join(redact(v).split())[:240] for k, v in r.items()} for r in page]
+    return {"ok": True, "tasks": shown, "has_more": more,
+            "next_before": page[-1]["id"] if more else None,
+            "note": "Metadata only; read brief, log or result by id. Pages are not a frozen snapshot."}
+
+
 # ---- cancel -------------------------------------------------------------------------------
 
 def resume_hint(meta: dict, session: str) -> str:
@@ -1370,6 +1422,15 @@ def parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="action", required=True)
     sub.add_parser("version").set_defaults(fn=cmd_version)
     sub.add_parser("list").set_defaults(fn=cmd_list)
+    hist = sub.add_parser("history", help="search task metadata, newest created first")
+    hist.add_argument("query", nargs="?", default="", help="words in id, name, state or outcome (AND)")
+    hist.add_argument("--agent", choices=AGENTS)
+    hist.add_argument("--state", help="exact runner STATE (ok, blocked, running, ...)")
+    hist.add_argument("--since", help="created on or after YYYY-MM-DD (host time)")
+    hist.add_argument("--before", help="exclusive task id cursor returned as next_before")
+    hist.add_argument("--limit", type=int, default=10, help="page size, 1–50")
+    hist.add_argument("--all", action="store_true", help="include patrol-* rounds")
+    hist.set_defaults(fn=cmd_history)
     h = sub.add_parser("head")
     h.add_argument("agent")
     h.set_defaults(fn=cmd_head)
@@ -1433,6 +1494,15 @@ def human(action: str, out: dict) -> str:
                 lines.append(f"  {r['position']}. {r['id']}  {tag}  waited {r['waited_sec'] // 60}m")
             for r in g["unqueued"]:
                 lines.append(f"  !  {r['id']}  not ordered: {r['reason']}")
+        return "\n".join(lines)
+    if action == "history":
+        lines = [f"{r['created'] or '?'}  {r['id']}  {r['agent']}  {r['state']}/{r['outcome'] or '-'}  "
+                 f"attention={r['attention']}  {r['name']}" for r in out["tasks"]]
+        if not lines:
+            lines = ["No matching tasks."]
+        if out["next_before"]:
+            lines.append(f"More: repeat the same filters with --before {out['next_before']}")
+        lines.append(out["note"])
         return "\n".join(lines)
     if action == "log":
         return "\n".join(out["lines"])
