@@ -274,7 +274,9 @@ def test_every_context_field_declares_its_semantics():
         counts[layers.field_semantics(field)] = counts.get(
             layers.field_semantics(field), 0) + 1
     assert layers.field_semantics("intraday_recommendations") == "mixed"
-    assert counts == {"observation": len(known) - 24, "policy": 11, "mixed": 11, "control": 2}
+    assert layers.field_semantics("session_review") == "mixed"
+    assert layers.field_semantics("risk_followups") == "mixed"
+    assert counts == {"observation": len(known) - 26, "policy": 11, "mixed": 13, "control": 2}
 
 
 def test_the_intraday_index_names_the_rule_outputs_present():
