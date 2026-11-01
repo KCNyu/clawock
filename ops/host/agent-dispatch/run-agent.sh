@@ -584,20 +584,16 @@ $(printf '%s' "$FINAL_TEXT" | clip tail 500)
 ${resume_hint}${open_hint}${quota}${cost}
 id：$ID
 日志：$DIR/run.log"
-  # The gate from docs/003: speak when a person must act, or when the result is ready to use.
-  # A clean DONE that reports NEEDS: none is recorded and shown in the chip, but sends no end
-  # notice and wakes no session. Missing or malformed NEEDS keeps the old behaviour (unknown).
-  if [ "$ATTENTION" = none ]; then
-    NOTICE=suppressed
-    echo "notify: suppressed (state=$STATE needs=none); recorded in result.env and the task chip"
-    write_result
-  else
-    if [ "$NOTIFY" = none ]; then NOTICE=none; write_result; else NOTICE=attempted; fi
-    notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"
-    # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
-    # on the attempt stop, the quota line and the legs.
-    [ "$STATE" = cancelled ] || wake_origin end "$notice"
-  fi
+  # kcn 2026-11-01: every terminal task reports and wakes the origin session again.
+  # The attention gate (#3231) silenced a clean DONE that reported NEEDS: none; he still
+  # wants that end notice — the WeChat leg wakes this session (which is where the context
+  # belongs) and the Telegram leg stays a plain notification. ATTENTION is still recorded
+  # in result.env for the task chip; it just no longer decides whether we speak.
+  if [ "$NOTIFY" = none ]; then NOTICE=none; write_result; else NOTICE=attempted; fi
+  notify "$notice" "${FINISH_NOTIFY_TIMEOUT:-60}"
+  # Not for a cancel: somebody stopped the task on purpose, and on_signal's 80s is already spent
+  # on the attempt stop, the quota line and the legs.
+  [ "$STATE" = cancelled ] || wake_origin end "$notice"
   printf 'terminal\n' >"$DIR/.inbox-state.tmp"
   mv -f "$DIR/.inbox-state.tmp" "$DIR/inbox-state"
   echo "==================== $(ts) $ID end state=$STATE outcome=${OUTCOME:--} rc=${RC:--} ===================="

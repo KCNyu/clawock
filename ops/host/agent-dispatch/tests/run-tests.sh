@@ -671,16 +671,17 @@ expect "both legs recorded as sent" "$(field "$d35" NOTIFIED)/$(field "$d35" NOT
 expect "one send per leg, to each channel's own target" "$(sort "$FAKE_DIR/openclaw.sends" | xargs)" "test test tg-test tg-target"
 expect_grep "the log names each leg" "notify: sent (telegram)" "$d35/run.log"
 
-# kcn 2026-11-01: a clean DONE that reports NEEDS: none is recorded, not sent. The line is the
-# structured fact; a missing line stays unknown and keeps the old notice (case [35] above).
-echo; echo "=== [35b] NEEDS: none suppresses the end notice; a real action still sends ($(date +%T))"
+# kcn 2026-11-01 (afternoon): the attention gate no longer silences a clean DONE/NEEDS: none.
+# The end notice and the origin-session wake are back for every terminal state; ATTENTION is
+# still recorded as a fact for the task chip.
+echo; echo "=== [35b] NEEDS: none still sends the end notice and wakes the origin session ($(date +%T))"
 reset_fake claude needs-none
 d35b=$(mk notify-quiet claude 900 300 weixin,telegram)
 e35b=0; bash "$R" "$d35b" || e35b=$?
 expect "quiet task still finishes ok" "$e35b/$(field "$d35b" STATE)/$(field "$d35b" OUTCOME)" 0/ok/DONE
-expect "NEEDS/ATTENTION/NOTICE recorded" "$(field "$d35b" NEEDS)/$(field "$d35b" ATTENTION)/$(field "$d35b" NOTICE)" "none/none/suppressed"
-expect "no completion message was sent" "$(send_count)" 0
-expect_grep "the log says why it was quiet" "notify: suppressed" "$d35b/run.log"
+expect "NEEDS/ATTENTION/NOTICE recorded" "$(field "$d35b" NEEDS)/$(field "$d35b" ATTENTION)/$(field "$d35b" NOTICE)" "none/none/attempted"
+expect "both legs send for a quiet end" "$(send_count)" 2
+expect "no suppression line is written" "$(grep -c 'notify: suppressed' "$d35b/run.log")" 0
 expect_grep "the stage is idle, not working" "STAGE=idle" "$d35b/result.env"
 
 reset_fake claude needs-action
