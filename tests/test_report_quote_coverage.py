@@ -45,6 +45,11 @@ def test_a_carried_price_is_named_in_the_block_and_the_context(tmp_path, monkeyp
     assert preflight._collect(['--market', 'hk', '--phase', 'open']) == 0
     ctx = json.loads(next(tmp_path.glob('report-context-hk-open-*.json')).read_text())
 
+    assert ctx['session_review']['plan_status'] == 'unavailable'
+    assert ctx['risk_followups']['status'] == 'unavailable'
+    from clawock.harness.report import assemble_message
+    rendered = assemble_message(ctx, '')
+    assert '**盘前至本档**' in rendered and '**风险待复查**' in rendered
     assert ctx['quote_coverage'] == {'refreshed': 1, 'active': 2, 'unrefreshed': ['02208']}
     lines = ctx['raw_wechat_block'].splitlines()
     assert lines[0] == BLOCK.splitlines()[0]  # the watchdog's anchor

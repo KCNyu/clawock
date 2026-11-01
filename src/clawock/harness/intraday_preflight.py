@@ -1968,11 +1968,20 @@ def _collect(argv=None):
         delivery_mode = 'full_delta'
         should_alert = True
         alert_reasons = [*alert_reasons, '条件下单建议待人工确认']
+    from clawock.decision import session_review
+    review = session_review.build(
+        WS, args.market, now=now, plan_triggers=plan_triggers,
+        unrefreshed=coverage.get('unrefreshed') or [])
+    followups = risk_ledger.followups(
+        WS / 'memory' / 'risk_breaches.json', leg=args.market.upper(), now=now)
     if raw_block is None:
         raw_block = chat_card.render(
+            session_review=review, risk_followups=followups,
             analyzer=stdout.strip(), recommendation=recommendation_block, **card_parts)
-    elif recommendation_block:
-        raw_block += '\n\n' + recommendation_block
+    else:
+        raw_block += '\n' + '\n'.join(chat_card.review_sections(review, followups))
+        if recommendation_block:
+            raw_block += '\n\n' + recommendation_block
     result = {
         'status':           'ok',
         'market':           args.market,
@@ -1980,6 +1989,8 @@ def _collect(argv=None):
         'time':             now.strftime('%H:%M'),
         'generated_at':     now.isoformat(timespec='seconds'),
         'raw_wechat_block': raw_block,
+        'session_review': review,
+        'risk_followups': followups,
         'intraday_research': research,
         'intraday_recommendations': recommendations,
         # `new` move/trigger rows (the ↑ line; WeChat bolds them, Telegram

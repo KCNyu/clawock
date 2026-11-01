@@ -52,6 +52,7 @@ CORE_FIELDS = {
     'strategy_checks': 'constraints', 'strategy_conflicts': 'constraints',
     'strategy_escalations': 'constraints', 'policy_evidence_errors': 'constraints',
     'risk_debts': 'constraints', 'risk_debts_error': 'constraints',
+    'risk_followups': 'constraints', 'session_review': 'change',
     # 加仓侧与边缘候选
     'add_side_reads': 'add_side', 'soft_candidates': 'add_side',
     # 异动归因与资讯
@@ -82,6 +83,7 @@ POLICY_FIELDS = (
 )
 MIXED_FIELDS = (
     'analyzer_block', 'raw_wechat_block', 'semantic_state', 'semantic_delta',
+    'risk_followups', 'session_review',
     'prior_semantic_state', 'mover_thesis', 'mover_news', 'anomaly_search',
     'active_information_candidates', 'intraday_research', 'intraday_recommendations',
 )

@@ -97,6 +97,7 @@ named call away — not truncation.
 | `analyzer_block` | the analyzer's stdout exactly — the only place signal reason lines live after the card folds them |
 | `raw_wechat_block` | the card as kcn will read it (do not restate it) |
 | `full_holdings` | every holding: price, day move, quote freshness, distance to plan trigger lines |
+| `session_review`, `risk_followups` | same-session plan progress, previously delivered signals, and read-only risk review queue; available in core and rendered deterministically ([contract](session-reviews.md)); live |
 | `plan_context`, `plan_triggers`, `watch_levels` | open plans including 0-share watch decisions; triggers this slot's prices meet; the brief's watch lines |
 | `holding_policies`, `strategy_*` | per-holding strategy exceptions, checks and escalations |
 | `semantic_state` (seen sets), `semantic_delta`, `semantic_unchanged` | what was already delivered today, what changed since |

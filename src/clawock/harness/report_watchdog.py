@@ -58,6 +58,7 @@ from datetime import datetime
 
 from clawock.automation import delivery_receipts
 from clawock.sessions import hkt_today
+from clawock.harness.report import fallback_block
 from ._watchdog_common import (
     deterministic_fallback,
     WS, HKT, log, find_job_id, today_runs,
@@ -243,7 +244,7 @@ def main():
         ctx = _read_json(ctx_path)
         raw_block = (ctx.get('raw_wechat_block') or '').strip()
         if built and raw_block:
-            body = deterministic_fallback(raw_block, tag, '报告尝试全部失败，未生成上下文')
+            body = deterministic_fallback(fallback_block(ctx), tag, '报告尝试全部失败，未生成上下文')
             target = telegram_target()
             tg_ok, tg_out = send_telegram(target, body, args.dry_run)
             log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
@@ -338,7 +339,7 @@ def main():
         if not wechat_body and transcript_loop_score(session_id)[0] < LOOP_THRESHOLD:
             wechat_body = last_report_text(session_id, raw_block_first)
         if not wechat_body:
-            wechat_body = deterministic_fallback(raw_block, tag, '报告文本不在回执与会话里')
+            wechat_body = deterministic_fallback(fallback_block(ctx), tag, '报告文本不在回执与会话里')
         wechat_backstop(
             'report', tag, wechat_body.strip(), marker,
             delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'report',
@@ -379,7 +380,7 @@ def main():
     looped = loop_score >= LOOP_THRESHOLD
     if not block_present or looped:
         reason = '循环' if looped else '未完成'
-        body = deterministic_fallback(raw_block, tag, reason)
+        body = deterministic_fallback(fallback_block(ctx), tag, reason)
         target = telegram_target()
         tg_ok, tg_out = send_telegram(target, body, args.dry_run)
         log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
@@ -410,7 +411,7 @@ def main():
         # Prose mode: the transcript holds a postflight status line, not a report —
         # mirroring `summary` would send kcn a JSON blob. Rebuild from the context
         # instead; the data block is the part a backstop actually owes him.
-        report = deterministic_fallback(raw_block, tag, '报告文本不在会话里')
+        report = deterministic_fallback(fallback_block(ctx), tag, '报告文本不在会话里')
 
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed' if not marker.get('tg_ok')

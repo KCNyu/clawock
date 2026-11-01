@@ -796,3 +796,19 @@ def test_missing_policy_sends_full_card_instead_of_silencing(monkeypatch, tmp_pa
     (tmp_path / 'config/intraday-delivery.json').unlink()
     assert run(copy.deepcopy(current))['delivery_mode'] == 'full_delta'
     assert 'always_full' in capsys.readouterr().err
+
+
+def test_session_reviews_are_frozen_in_context_and_card(monkeypatch, tmp_path):
+    current, run = _wire_preflight(monkeypatch, tmp_path)
+    previous = copy.deepcopy(current)
+    previous['setups'] = []
+    ctx = run(previous)
+    assert ctx['session_review']['session'] == 'us:2026-08-13'
+    assert ctx['risk_followups']['status'] == 'unavailable'
+    assert '**盘前至本档**' in ctx['raw_wechat_block']
+    assert '**风险待复查**' in ctx['raw_wechat_block']
+    from clawock.harness._harness_common import compute_context_id
+    original = ctx.pop('context_id')
+    assert compute_context_id(ctx) == original
+    ctx['risk_followups']['status'] = 'ok'
+    assert compute_context_id(ctx) != original
