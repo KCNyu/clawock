@@ -299,6 +299,23 @@ def section_rows(block_text: str) -> list[str]:
     return rows
 
 
+def _review_stamp(value):
+    """Display ledger timestamps in the reader's timezone, without changing deadlines."""
+    from datetime import datetime
+    from clawock.sessions import HKT
+    if not value:
+        return '未知'
+    try:
+        stamp = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        if len(value) == 10:
+            return stamp.strftime('%m/%d') + '（UTC 日）'
+        if stamp.tzinfo is None:
+            return '时区未知'
+        return stamp.astimezone(HKT).strftime('%m/%d %H:%M') + ' 港时'
+    except (ValueError, TypeError, AttributeError):
+        return '未知'
+
+
 def review_sections(session_review=None, risk_followups=None) -> list[str]:
     """Deterministic recap/review blocks shared by intraday and report cards."""
     lines = []
@@ -346,14 +363,14 @@ def review_sections(session_review=None, risk_followups=None) -> list[str]:
             for item in view.get('rows', [])[:3]:
                 subject = ticker(item.get('ticker') or item.get('leg') or '账户')
                 due = item.get('review_at')
-                when = f" · 复查时间 {due}（UTC）" if due else ''
+                when = f" · 复查 {_review_stamp(due)}" if due else ''
                 rows.append(bullet(f"{subject} {item['reason']}{when}"))
             remaining = view.get('total', 0) - len(rows)
             if remaining:
-                rows.append(bullet(f'另有 {remaining} 项；可查 `clawock risk followups`'))
+                rows.append(bullet(f'另有 {remaining} 项，可问「风险待复查」查看'))
             if not rows:
                 rows = [bullet('账本当前没有未结风险项')]
-            stamp = view.get('ledger_updated_at') or '未知'
+            stamp = _review_stamp(view.get('ledger_updated_at'))
             rows.append(bullet(f'账本核对于 {stamp}；复查事项不是新的买卖指令'))
         lines += section('**风险待复查**', rows)
     return lines

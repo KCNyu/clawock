@@ -63,3 +63,12 @@ def test_followups_cli_is_read_only(tmp_path, capsys):
     assert risk.main(['--ledger', str(path), 'followups', '--leg', 'US', '--json']) == 0
     assert json.loads(capsys.readouterr().out)['total'] == 1
     assert json.loads(path.read_text()) == before
+
+
+def test_card_keeps_deadline_timezone_and_review_distinct_from_orders(tmp_path):
+    from clawock.harness.chat_card import review_sections
+    path = write(tmp_path, [record('future', status='overridden', override={
+        'status': 'active', 'reason': 'wait', 'expires_at': '2026-11-02T08:00:00+00:00'})])
+    text = '\n'.join(review_sections(risk_followups=risk.followups(path, now=NOW)))
+    assert '11/02 16:00 港时' in text and '不是新的买卖指令' in text
+    assert '**待你处理**' not in text
