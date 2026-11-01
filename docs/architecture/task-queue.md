@@ -18,9 +18,11 @@ steer it. Three parties touch that queue; this page is the contract between them
 The live checkout (`/root/.openclaw/workspace`) is fast-forwarded by cron all day, so it
 is the *repository's* copy of the ops entry and the runner, not the running one. Merging
 installs nothing under `/root/tools/`. `refresh_live.sh` (the step that applies a merge to
-this host) installs the runner whenever the installed copy differs from the checkout, compared
-by content, because cron's pushes fast-forward the checkout too; the ops entry is still
-installed by hand, and the chip shows when it lags (see *Version skew*).
+this host) installs both the runner and queue ops whenever their installed copies differ
+from the checkout, compared by content, because cron's pushes fast-forward the checkout too.
+Queue ops installation saves the previous files and verifies the installed bytes without
+restarting services; a failed install fails refresh. The chip also shows when it lags
+(see *Version skew*).
 
 ## The ops entry
 
@@ -727,7 +729,7 @@ metadata per request, separate from active queue polling. The output deliberatel
 origin/session ids and brief contents. Retrieve `inbox`, `log` (including its existing JSON
 timeline), or `result` only after selecting an id. This is a local CLI/agent capability;
 there is no new WeChat slash command or dsh UI. Install both the runner wrapper and the queue
-ops entry after merging (the latter is a manual `install_task_queue_ops.sh` step).
+ops entry after merging by running `refresh_live.sh`.
 
 Wake observations are separate from task outcomes: `wake-quota.json` and `wake-end.json`
 record `pending`, `inflight`, `failed` or `acknowledged`, event ID, attempt count,

@@ -649,7 +649,10 @@ if [ "${DISPATCH_WRAPPED:-0}" != 1 ]; then
   created=$(date -d "$CREATED" +%s 2>/dev/null) || created=0
   ceiling=$(( created + 72 * 3600 ))
   [ "$ceiling" -gt "$DEADLINE_EPOCH" ] || ceiling=$DEADLINE_EPOCH
-  exec env DISPATCH_WRAPPED=1 timeout -k 80 "$(( ceiling - $(now) - 10 ))" bash "$0" "$@"
+  # Preserve the runner's cancellation exit (143). Some timeout versions map even
+  # an externally delivered TERM to 124 unless this is explicit. Internal deadline
+  # handling and the 80s hard-kill backstop remain unchanged.
+  exec env DISPATCH_WRAPPED=1 timeout --preserve-status -k 80 "$(( ceiling - $(now) - 10 ))" bash "$0" "$@"
 fi
 
 echo "==================== $(ts) $ID start ===================="

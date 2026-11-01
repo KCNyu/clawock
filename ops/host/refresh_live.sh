@@ -18,8 +18,7 @@
 #      copy, so `ops/host/agent-dispatch/` changes reach it only through
 #      `install_agent_dispatch.sh` (atomic per file, `.before-update`, cmp;
 #      running tasks keep the file they opened). The queue ops entry next to it
-#      (`install_task_queue_ops.sh`) is still installed by hand: the dsh chip
-#      shows its installed-vs-checkout hash (docs/architecture/task-queue.md).
+#      (`install_task_queue_ops.sh`) follows the same content check and install.
 #   4. the patrol's round assets — prompts, lessons, axes and the filing gate are
 #      read from /root/tools/clawock-patrol, a copy, so `ops/host/clawock-patrol/`
 #      changes reach it only through `install_patrol_assets.sh` (same shape as
@@ -95,15 +94,16 @@ record_restart() {  # <what> — the task report also carries the RESTART line t
   printf '%s action=%s task=%s source=refresh_live.sh\n' "$(date '+%F %T')" "$1" "$AGENT_DISPATCH_TASK_ID" \
     >>"/root/logs/agent-dispatch/$AGENT_DISPATCH_TASK_ID/restarts.log" 2>/dev/null || true
 }
-# The queue ops entry the runner and the desk's queue actions call is the installed copy in
-# the same directory, not this checkout (ops/ is outside the editable install). Installing it
-# stays a manual step (install_task_queue_ops.sh says why), so this script only names it —
-# and never calls such a merge "python only" (#2067).
+# Queue actions also run from an installed copy, independently of the runner.
 ops_differs() {
   [ -d "$RUNNER_DIR" ] && [ -f ops/host/install_task_queue_ops.sh ] &&
     ! bash ops/host/install_task_queue_ops.sh --check >/dev/null 2>&1
 }
-OPS_MANUAL="run ops/host/install_task_queue_ops.sh (manual; refresh_live does not install it)"
+install_ops() {
+  bash ops/host/install_task_queue_ops.sh
+  bash ops/host/install_task_queue_ops.sh --check
+}
+OPS_INSTALL="needs install_task_queue_ops.sh (installed automatically on refresh)"
 # Patrol assets, compared by content like the runner and for the same reason.
 PATROL_DIR="${PATROL_TOOL_DIR:-/root/tools/clawock-patrol}"
 patrol_differs() {
@@ -139,7 +139,7 @@ if [ "$behind" = "0" ]; then
   ops_stale=0
   if ops_differs; then
     ops_stale=1
-    echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
+    echo "  → the installed queue ops entry differs from this checkout: $OPS_INSTALL"
   fi
   runner_stale=0
   if runner_differs; then
@@ -161,6 +161,7 @@ if [ "$behind" = "0" ]; then
     [ "$ops_stale" = "1" ] && exit 1
     exit 0
   fi
+  [ "$ops_stale" = "1" ] && install_ops
   [ "$runner_stale" = "1" ] && install_runner
   [ "$patrol_stale" = "1" ] && install_patrol
   [ "$memory_stale" = "1" ] && install_memory_kit
@@ -198,9 +199,9 @@ if [ "$needs_runner" = "0" ] && runner_differs; then
   echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
   pending=$((pending + 1))
 fi
-[ "$needs_ops" = "1" ] && echo "  → queue ops entry moved: $OPS_MANUAL"
+[ "$needs_ops" = "1" ] && echo "  → queue ops entry moved: $OPS_INSTALL"
 if [ "$needs_ops" = "0" ] && ops_differs; then
-  echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
+  echo "  → the installed queue ops entry differs from this checkout: $OPS_INSTALL"
   pending=$((pending + 1))
 fi
 # Only when nothing above is owed: "python only" next to an install line is a contradiction.
@@ -271,8 +272,10 @@ if [ "$needs_memory" = "1" ] && [ ! -d "$MEMORY_KIT_DIR" ]; then
 elif [ "$needs_memory" = "1" ] || memory_kit_differs; then
   install_memory_kit
 fi
-if ops_differs; then
-  echo "  → the installed queue ops entry differs from this checkout: $OPS_MANUAL"
+if [ "$needs_ops" = "1" ] && [ ! -d "$RUNNER_DIR" ]; then
+  echo "no agent-dispatch installation on this host — skipped the queue ops install" >&2
+elif [ "$needs_ops" = "1" ] || ops_differs; then
+  install_ops
 fi
 
 # Say what is live now rather than assuming the steps above took: an install

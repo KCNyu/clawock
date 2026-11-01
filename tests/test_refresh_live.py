@@ -292,3 +292,44 @@ def test_patrol_assets_are_installed_by_content_like_the_runner(desk, tmp_path):
     assert done.returncode == 1 and "is at origin/master" in done.stdout, done.stdout
     assert run().returncode == 0
     assert run("--check").returncode == 0
+
+
+@pytest.mark.parametrize('advance', [False, True])
+def test_queue_ops_drift_is_installed_and_verified_without_restart(desk, tmp_path, advance):
+    upstream, checkout = desk
+    _with_queue_ops(upstream, checkout)
+    installed = tmp_path / 'agent-dispatch'
+    installed.mkdir()
+    (installed / 'task_queue_ops.py').write_text('# previous version\n')
+    if advance:
+        _advance(upstream, 'ops/host/model_prices.json', '{}\n')
+    env = {'PATH': '/usr/bin:/bin', 'HOME': str(checkout), 'LIVE_CHECKOUT': str(checkout),
+           'AGENT_DISPATCH_DIR': str(installed)}
+
+    def run(*args):
+        return subprocess.run(['bash', str(SCRIPT), *args], capture_output=True, text=True, env=env)
+
+    before = run('--check')
+    assert before.returncode == 1
+    assert (installed / 'task_queue_ops.py').read_text() == '# previous version\n'
+    result = run()
+    assert result.returncode == 0, result.stdout + result.stderr
+    for name in ('task_queue_ops.py', 'model_prices.json'):
+        assert (installed / name).read_bytes() == (checkout / 'ops/host' / name).read_bytes()
+    assert (installed / 'task_queue_ops.py.before-update').read_text() == '# previous version\n'
+    assert run('--check').returncode == 0
+    assert run().returncode == 0
+    assert (installed / 'task_queue_ops.py.before-update').read_text() == '# previous version\n'
+
+
+def test_queue_ops_install_failure_fails_refresh(desk, tmp_path):
+    upstream, checkout = desk
+    _with_queue_ops(upstream, checkout)
+    _advance(upstream, 'ops/host/model_prices.json', 'invalid json\n')
+    installed = tmp_path / 'agent-dispatch'
+    installed.mkdir()
+    result = subprocess.run(['bash', str(SCRIPT)], capture_output=True, text=True,
+                            env={'PATH': '/usr/bin:/bin', 'HOME': str(checkout),
+                                 'LIVE_CHECKOUT': str(checkout), 'AGENT_DISPATCH_DIR': str(installed)})
+    assert result.returncode != 0
+    assert not (installed / 'task_queue_ops.py').exists()

@@ -8,8 +8,8 @@
 #   ops/host/install_task_queue_ops.sh --rollback  # restore the copies saved by the last install
 #
 # Merging does not install: /root/tools/agent-dispatch is host-local, and refresh_live.sh
-# leaves it alone. The chip shows both hashes (installed vs. this repository's copy in the live
-# checkout), so a merged-but-not-installed entry is visible there.
+# installs it whenever the installed bytes differ, including when the checkout is current.
+# The chip also shows installed vs. checkout hashes. Installation does not restart services.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
