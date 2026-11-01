@@ -13,6 +13,8 @@ belongs here.
 - [`decision-architecture.md`](architecture/decision-architecture.md) — who owns
   observations, computation, rule outputs, the hypothesis and the accounting; the
   `observations` and `compute` tools, immutable method proposals and prospective three-arm trials.
+- [`session-reviews.md`](architecture/session-reviews.md) — same-session plan progress and
+  read-only risk follow-ups on market cards.
 - [`intraday-agent.md`](architecture/intraday-agent.md) — the intraday agent
   contract: context layering, card blocks, workflow ownership, objective and
   which rules are gates.

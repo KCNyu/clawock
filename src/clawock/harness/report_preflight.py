@@ -470,6 +470,13 @@ def _collect(argv=None):
         live_ctx = {'as_of': None, 'sources': {}, 'summary': {},
                     'degraded': [f'实时资讯（{type(exc).__name__}）']}
 
+    from clawock.decision import session_review
+    review = session_review.build(
+        WS, args.market, now=started_at, plan_triggers=plan_triggers,
+        unrefreshed=coverage['unrefreshed'])
+    followups = risk_ledger.followups(
+        WS / 'memory' / 'risk_breaches.json', leg=args.market.upper(), now=started_at)
+
     result = {
         'status':             'ok',
         'market':             args.market,
@@ -495,6 +502,8 @@ def _collect(argv=None):
         'holding_policies_error': policy_error,
         'risk_debts':         debts,
         'risk_debts_error':   debts_error,
+        'session_review':     review,
+        'risk_followups':     followups,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
         # Live filings and news per holding (cite carries each item's own
@@ -506,12 +515,6 @@ def _collect(argv=None):
         'needs_risk_section': (signals['alert'] >= 1
                                or (signals['stop'] + signals['trim']) >= 2),
     }
-    from clawock.decision import session_review
-    result['session_review'] = session_review.build(
-        WS, args.market, now=started_at, plan_triggers=plan_triggers,
-        unrefreshed=coverage['unrefreshed'])
-    result['risk_followups'] = risk_ledger.followups(
-        WS / 'memory' / 'risk_breaches.json', leg=args.market.upper(), now=started_at)
     result['context_id'] = compute_context_id(result)
 
     TMP.mkdir(parents=True, exist_ok=True)
