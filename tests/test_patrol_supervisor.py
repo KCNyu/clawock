@@ -532,7 +532,9 @@ def test_the_prompts_head_line_is_cut_by_characters_not_bytes(tmp_path):
     subject = "feat(dsh): /dispatch-list 改为任务芯片面板的文本版，复用 dsh 插件代码 (#2168)"
     subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q",
                     "--allow-empty", "-m", subject], check=True)
-    old = subprocess.run(["bash", "-c", "git -C \"$1\" log -1 --format='%h %s' | cut -c1-80", "test", str(repo)],
+    # Explicit bytes reproduce the historical failure even when newer cut -c
+    # supports multibyte characters under the runner locale.
+    old = subprocess.run(["bash", "-c", "git -C \"$1\" log -1 --format='%h %s' | cut -b1-80", "test", str(repo)],
                          capture_output=True, timeout=10).stdout
     with pytest.raises(UnicodeDecodeError):  # the old cut really splits a character on this subject
         old.decode("utf-8")
