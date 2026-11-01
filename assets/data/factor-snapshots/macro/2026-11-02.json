@@ -1,0 +1,172 @@
+{
+  "vix": {
+    "symbol": "^VIX",
+    "price": 19.42,
+    "prev": 17.2,
+    "change_pct": 12.91,
+    "source": "yahoo",
+    "as_of": 1793391301
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 4.929,
+    "prev": 4.989,
+    "change_pct": -1.2,
+    "source": "yahoo",
+    "as_of": 1793386794,
+    "yield_pct": 4.929
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 101.946,
+    "prev": 101.879,
+    "change_pct": 0.07,
+    "source": "yahoo",
+    "as_of": 1793574622
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 23294.42,
+    "prev": 22958.65,
+    "change_pct": 1.46,
+    "source": "tencent",
+    "as_of": "2026-10-30"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 3754.9,
+    "prev": 3744.14,
+    "change_pct": 0.29,
+    "source": "tencent",
+    "as_of": "2026-10-30"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7580.07,
+    "prev": 7720.39,
+    "change_pct": -1.82,
+    "source": "tencent",
+    "as_of": "2026-10-30"
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 25437.0,
+    "prev": 26184.72,
+    "change_pct": -2.86,
+    "source": "tencent",
+    "as_of": "2026-10-30"
+  },
+  "fear_greed": {
+    "score": 26.2,
+    "rating": "fear",
+    "prev_close": 34.6,
+    "prev_1_week": 16.7,
+    "as_of": "2026-10-30T23:59:48+00:00"
+  },
+  "fed_press": [
+    {
+      "date": "2026-10-29",
+      "title": "Federal Reserve Board announces approval of application by The Bank of Nova Scotia",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20261029a.htm"
+    },
+    {
+      "date": "2026-10-28",
+      "title": "Federal Reserve issues FOMC statement",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
+    }
+  ],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-10-30",
+    "status": "ok",
+    "age_days": 2,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.06,
+      "1.5m": 4.09,
+      "2m": 4.16,
+      "3m": 4.16,
+      "4m": 4.18,
+      "6m": 4.25,
+      "1y": 4.36,
+      "2y": 4.56,
+      "3y": 4.65,
+      "5y": 4.71,
+      "7y": 4.8,
+      "10y": 4.94,
+      "20y": 5.34,
+      "30y": 5.31
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 38.0,
+    "spread_10y_3m_bps": 78.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
+  "volatility": {
+    "vix": {
+      "symbol": "VIX",
+      "price": 19.42,
+      "prev": 17.2,
+      "change_pct": 12.91,
+      "source": "cboe",
+      "as_of": "2026-10-30",
+      "previous_as_of": "2026-10-29",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
+    },
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 19.25,
+      "prev": 15.87,
+      "change_pct": 21.3,
+      "source": "cboe",
+      "as_of": "2026-10-30",
+      "previous_as_of": "2026-10-29",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 20.78,
+      "prev": 19.37,
+      "change_pct": 7.28,
+      "source": "cboe",
+      "as_of": "2026-10-30",
+      "previous_as_of": "2026-10-29",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": {
+      "symbol": "SKEW",
+      "price": 149.76,
+      "prev": 151.03,
+      "change_pct": -0.84,
+      "source": "cboe",
+      "as_of": "2026-10-30",
+      "previous_as_of": "2026-10-29",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv"
+    }
+  },
+  "volatility_term_structure": {
+    "vix_to_vix3m": 0.9346,
+    "as_of": "2026-10-30",
+    "source": "cboe",
+    "frequency": "daily_close"
+  },
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "ok",
+    "treasury_curve": "ok"
+  },
+  "generated_at": "2026-11-01T23:20:24.634040+00:00"
+}
