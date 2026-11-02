@@ -2077,7 +2077,7 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
   // `secrets.providers.<provider>` — a JSON file plus an absolute JSON
   // pointer id — and keep the plain string shape working (pinned above).
   const refTmp = fsMod.mkdtempSync(pathMod.join(osMod.tmpdir(), "mmref-"));
-  const refCfgPath = pathMod.join(refTmp, "openclaw.json");
+  const refCfgPath = pathMod.join(refTmp, "gateway-keys.json");
   const secretsPath = pathMod.join(refTmp, "credentials.json");
   fsMod.writeFileSync(secretsPath, JSON.stringify({
     models: { providers: { minimax: { apiKey: "mm-from-secrets" } } },
