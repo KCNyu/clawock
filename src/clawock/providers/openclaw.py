@@ -737,6 +737,9 @@ def is_installed(paths: OpenClawPaths | None = None) -> bool:
 #: the turn that is asking for its footer. The longest configured turn is 1740s;
 #: this leaves room for a slow postflight without adopting yesterday's row.
 RUNNING_TASK_MAX_AGE_MS = 60 * 60 * 1000
+#: A live cron turn appends to its transcript throughout; a file written within
+#: this window belongs to the turn asking for its footer, not an older run.
+LIVE_TRANSCRIPT_MAX_AGE_MS = 10 * 60 * 1000
 
 
 @dataclass(frozen=True)
@@ -928,23 +931,120 @@ def _job_prior_day_cost(paths: OpenClawPaths, job_id, *, day_start_ms: int,
     return total
 
 
-def _usage_for_task(paths: OpenClawPaths, task: dict, now_ms: int) -> RunUsage | None:
-    job_id = task.get('job_id')
-    if not isinstance(job_id, str) or not job_id:
-        return None
+def _read_session_store(paths: OpenClawPaths) -> dict | None:
+    """The runtime's session store, or None when it cannot answer."""
     try:
         store = json.loads((paths.sessions_dir / 'sessions.json').read_text(encoding='utf-8'))
     except (OSError, ValueError):
         return None
-    entry = store.get(task['session_key']) if isinstance(store, dict) else None
+    return store if isinstance(store, dict) else None
+
+
+def _cron_turn_header(path: Path) -> tuple[str, str] | None:
+    """`(job id, job name)` from a transcript's own `[cron:…]` first message."""
+    try:
+        with path.open(encoding='utf-8') as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = json.loads(line)
+                except ValueError:
+                    continue
+                message = event.get('message') if isinstance(event, dict) else None
+                if not isinstance(message, dict) or message.get('role') != 'user':
+                    continue
+                content = message.get('content')
+                if isinstance(content, list):
+                    content = '\n'.join(
+                        block.get('text', '') for block in content
+                        if isinstance(block, dict) and isinstance(block.get('text'), str))
+                if not isinstance(content, str):
+                    continue
+                text = content.lstrip()
+                if not text.startswith('[cron:'):
+                    continue
+                close = text.find(']')
+                if close < 0:
+                    continue
+                parts = text[len('[cron:'):close].split(None, 1)
+                if len(parts) != 2 or not parts[1].strip():
+                    continue
+                return parts[0], parts[1].strip()
+    except OSError:
+        return None
+    return None
+
+
+def _live_cron_transcript(paths: OpenClawPaths, job: str, now_ms: int):
+    """`(mtime, path, job id)` for the transcript `job` is writing, or None."""
+    try:
+        candidates = [path for path in paths.sessions_dir.glob('*.jsonl')
+                      if not path.name.endswith('.trajectory.jsonl')]
+    except OSError:
+        return None
+    best = None
+    for path in candidates:
+        try:
+            modified = path.stat().st_mtime * 1000
+        except OSError:
+            continue
+        if modified < now_ms - LIVE_TRANSCRIPT_MAX_AGE_MS:
+            continue
+        header = _cron_turn_header(path)
+        if header is None or header[1] != job:
+            continue
+        if best is None or modified > best[0]:
+            best = (modified, path, header[0])
+    return best
+
+
+def _live_cron_task(paths: OpenClawPaths, job: str, now_ms: int) -> dict | None:
+    """The identity of the named cron job's in-flight turn, or None.
+
+    While a turn runs, the job's session-store entry is recent but carries no
+    `sessionId`: the runtime clears it at start and records the new session only
+    when the turn ends. A running `task_runs` row therefore names a session the
+    store cannot resolve yet. The transcript the job is writing is the identity
+    in that window — its own `[cron:<job id> <name>]` header plus a write inside
+    the live window — and `task_runs` stays the fallback for a saved session.
+    """
+    store = _read_session_store(paths)
+    if store is None:
+        return None
+    key = entry = None
+    for candidate_key, candidate in store.items():
+        if isinstance(candidate, dict) and candidate.get('label') == f'Cron: {job}':
+            key, entry = candidate_key, candidate
+            break
     if not isinstance(entry, dict):
         return None
-    session_id = entry.get('sessionId')
+    started = entry.get('updatedAt')
+    if not (_finite_number(started) and started >= now_ms - RUNNING_TASK_MAX_AGE_MS):
+        return None
+    saved = entry.get('sessionId')
+    if isinstance(saved, str) and saved:
+        # The turn already saved its session. Only a live `task_runs` row may
+        # still claim it, so a manual postflight does not reuse it.
+        return None
+    live = _live_cron_transcript(paths, job, now_ms)
+    if live is None:
+        return None
+    _, path, job_id = live
+    return {'session_key': key, 'job_id': job_id,
+            'session_id': path.stem, 'started_at': int(started)}
+
+
+def _usage_for_session(paths: OpenClawPaths, *, session_id, job_id, started_at,
+                       now_ms: int, entry=None) -> RunUsage | None:
+    """One session transcript's usage, with the store as metadata fallback."""
     if not isinstance(session_id, str) or not session_id:
         return None
     scan = _scan_transcript(paths.sessions_dir / f'{session_id}.jsonl')
     if scan is None:
         return None
+    entry = entry if isinstance(entry, dict) else {}
     model = scan.model or (entry.get('model') if isinstance(entry.get('model'), str) else None)
     provider = scan.provider or (
         entry.get('modelProvider') if isinstance(entry.get('modelProvider'), str) else None)
@@ -955,9 +1055,12 @@ def _usage_for_task(paths: OpenClawPaths, task: dict, now_ms: int) -> RunUsage |
         budget = _model_context_window(paths.config_file, provider, model)
     context_pct = (round(scan.prompt_tokens / budget * 100)
                    if scan.prompt_tokens and _finite_number(budget) and budget > 0 else None)
-    prior = _job_prior_day_cost(
-        paths, job_id, day_start_ms=_local_midnight_ms(now_ms),
-        current_started_ms=task['started_at'], current_session_id=session_id)
+    prior = None
+    if isinstance(job_id, str) and job_id:
+        prior = _job_prior_day_cost(
+            paths, job_id, day_start_ms=_local_midnight_ms(now_ms),
+            current_started_ms=started_at if _finite_number(started_at) else None,
+            current_session_id=session_id)
     day_usd = (round(prior + scan.turn_usd, 10)
                if prior is not None and scan.turn_usd is not None else None)
     return RunUsage(
@@ -970,24 +1073,45 @@ def _usage_for_task(paths: OpenClawPaths, task: dict, now_ms: int) -> RunUsage |
     )
 
 
+def _usage_for_task(paths: OpenClawPaths, task: dict, now_ms: int) -> RunUsage | None:
+    store = _read_session_store(paths)
+    entry = store.get(task.get('session_key')) if store is not None else None
+    session_id = task.get('session_id')
+    if not isinstance(session_id, str) or not session_id:
+        session_id = entry.get('sessionId') if isinstance(entry, dict) else None
+    return _usage_for_session(
+        paths, session_id=session_id, job_id=task.get('job_id'),
+        started_at=task.get('started_at'), now_ms=now_ms, entry=entry)
+
+
 def current_cron_run_usage(*, paths: OpenClawPaths | None = None,
-                           now_ms: int | None = None) -> RunUsage | None:
+                           now_ms: int | None = None,
+                           job: str | None = None) -> RunUsage | None:
     """The live cron turn's model, cost and token shape, or None.
 
-    The postflight runs inside that turn, so the runtime's own `task_runs` row
-    is the identity: its child session key points at the session store entry
-    (current model and context budget), whose transcript carries the per-call
-    usage the runtime already priced. This is the same evidence the reply footer
-    is built from; nothing here estimates a token or invents a price.
+    A postflight names the job it serves. While that turn runs, the session
+    store holds the job's entry without a `sessionId` (the runtime fills it in
+    when the turn ends), so the live transcript is found from the job's own
+    `[cron:<job id> <name>]` header and a write inside the turn window. The
+    runtime's `task_runs` row is the fallback identity, and the only one for a
+    caller that names no job.
 
-    None is deliberate for a dry run, a manual postflight, or an unreadable
-    state DB — the card then has no footer at all. If a stale `running` row is
-    newer than the live one, the youngest candidate that resolves wins; the
-    scheduler runs one turn at a time, so only one of them can be this process.
+    The transcript carries the per-call usage the runtime already priced, so
+    nothing here estimates a token or invents a price. None is deliberate for a
+    dry run, a manual postflight, or an unreadable state DB — the card then has
+    no footer at all. If a stale `running` row is newer than the live one, the
+    youngest candidate that resolves wins; the scheduler runs one turn at a
+    time, so only one of them can be this process.
     """
     selected = paths or runtime_paths()
     now = int(now_ms if now_ms is not None else time.time() * 1000)
-    for task in _running_cron_tasks(selected, now) or []:
+    tasks = []
+    if isinstance(job, str) and job.strip():
+        live = _live_cron_task(selected, job.strip(), now)
+        if live is not None:
+            tasks.append(live)
+    tasks.extend(_running_cron_tasks(selected, now) or [])
+    for task in tasks:
         usage = _usage_for_task(selected, task, now)
         if usage is not None:
             return usage

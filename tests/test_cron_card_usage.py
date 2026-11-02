@@ -6,6 +6,7 @@ out of the runtime's own task/session/transcript records. The card-level tests
 then pin that a footer rides at the foot and that an absent one changes nothing.
 """
 import json
+import os
 import sqlite3
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -54,22 +55,35 @@ def _state_db(paths):
     return conn
 
 
+JOB = '盘前深度简报'
+
+
 def _write_sessions(paths, *, session_id='sess-now', model='MiniMax-M3.1-Flash',
-                    provider_id='minimax', context_tokens=None):
+                    provider_id='minimax', context_tokens=None,
+                    label=f'Cron: {JOB}', updated_at=None):
     paths.sessions_dir.mkdir(parents=True, exist_ok=True)
-    entry = {'sessionId': session_id, 'model': model, 'modelProvider': provider_id}
+    entry = {'sessionId': session_id, 'model': model, 'modelProvider': provider_id,
+             'label': label}
     if context_tokens is not None:
         entry['contextTokens'] = context_tokens
+    if updated_at is not None:
+        entry['updatedAt'] = updated_at
     (paths.sessions_dir / 'sessions.json').write_text(json.dumps({
         'agent:main:cron:job-1': entry,
     }))
 
 
-def _write_transcript(paths, session_id, messages):
+def _write_transcript(paths, session_id, messages, *, header=None, mtime=None):
     paths.sessions_dir.mkdir(parents=True, exist_ok=True)
     lines = [json.dumps({'type': 'session', 'id': session_id})]
+    if header is not None:
+        lines.append(json.dumps({
+            'type': 'message', 'message': {'role': 'user', 'content': header}}))
     lines += [json.dumps({'type': 'message', 'message': message}) for message in messages]
-    (paths.sessions_dir / f'{session_id}.jsonl').write_text('\n'.join(lines) + '\n')
+    path = paths.sessions_dir / f'{session_id}.jsonl'
+    path.write_text('\n'.join(lines) + '\n')
+    if mtime is not None:
+        os.utime(path, (mtime, mtime))
 
 
 def _assistant(*, model='MiniMax-M3.1-Flash', provider_id='minimax', input_tokens=0,
@@ -294,6 +308,101 @@ def test_missing_runtime_tables_are_quiet(tmp_path):
     assert provider.current_cron_run_usage(paths=paths, now_ms=NOW) is None
 
 # ── card composition ────────────────────────────────────────────────────────
+
+# ── resolving the live turn while the session store has no session id ───────
+# Measured live on 2026-11-02: during a cron turn the job's session-store entry
+# is fresh but `sessionId` is null (the runtime records it at turn end), so the
+# running `task_runs` row points at a session the store cannot name. The card
+# then shipped without its footer. These pin the transcript path that fixes it.
+
+def _live_turn(tmp_path, *, session_id=None, label=f'Cron: {JOB}',
+               started_at=NOW - 60_000, mtime=None, header=f'[cron:job-1 {JOB}] 简报',
+               running=True):
+    paths = _paths(tmp_path)
+    conn = _state_db(paths)
+    if running:
+        _running_task(conn)
+    conn.commit()
+    conn.close()
+    _write_sessions(paths, session_id=session_id, label=label,
+                    updated_at=started_at)
+    _write_transcript(
+        paths, 'sess-live',
+        [_assistant(cost=0.02, input_tokens=100, output_tokens=50,
+                    cache_read=850, total_tokens=1000)],
+        header=header, mtime=(mtime if mtime is not None else (NOW - 5_000) / 1000))
+    paths.config_file.write_text(json.dumps({
+        'models': {'providers': {'minimax': {'models': [
+            {'id': 'MiniMax-M3.1-Flash', 'contextWindow': 2000},
+        ]}}},
+    }))
+    return paths
+
+
+def test_the_live_turn_is_read_before_the_store_has_a_session_id(tmp_path):
+    paths = _live_turn(tmp_path)
+
+    usage = provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB)
+
+    assert usage is not None
+    assert usage.model == 'MiniMax-M3.1-Flash'
+    assert usage.turn_usd == 0.02
+    assert usage.day_usd == 0.02
+    assert usage.cache_hit_pct == 89
+    assert usage.context_pct == 48
+
+
+def test_a_caller_that_names_no_job_does_not_adopt_a_transcript(tmp_path):
+    paths = _live_turn(tmp_path)
+
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW) is None
+
+
+def test_a_saved_session_is_not_reused_by_a_manual_postflight(tmp_path):
+    paths = _live_turn(tmp_path, session_id=None, running=False)
+    # The turn is over: the runtime has filled the session id in.
+    _write_sessions(paths, session_id='sess-saved', updated_at=NOW - 60_000)
+
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
+
+
+def test_a_transcript_for_another_job_is_not_adopted(tmp_path):
+    paths = _live_turn(tmp_path, header='[cron:job-1 港股开盘报告] 报告')
+
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
+
+
+def test_an_old_transcript_is_not_the_live_turn(tmp_path):
+    paths = _live_turn(tmp_path, mtime=(NOW - 20 * 60 * 1000) / 1000)
+
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
+
+
+def test_a_partially_written_transcript_still_reports_the_turn(tmp_path):
+    paths = _live_turn(tmp_path)
+    transcript = paths.sessions_dir / 'sess-live.jsonl'
+    with transcript.open('a') as handle:
+        handle.write('{"type": "message", "message": {"role": "assis')
+
+    usage = provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB)
+
+    assert usage is not None
+    assert usage.turn_usd == 0.02
+
+
+def test_footer_and_append_pass_the_job_name(monkeypatch):
+    seen = []
+
+    def fake_usage(**kwargs):
+        seen.append(kwargs.get('job'))
+        return None
+
+    monkeypatch.setattr(run_usage.openclaw, 'current_cron_run_usage', fake_usage)
+
+    assert run_usage.footer(job=JOB) == ''
+    assert run_usage.append('card', job=JOB) == 'card'
+    assert seen == [JOB, JOB]
+
 
 def test_brief_card_puts_the_footer_at_its_foot(tmp_path, monkeypatch):
     monkeypatch.setattr(brief_card, 'WS', tmp_path)

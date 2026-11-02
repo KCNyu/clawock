@@ -1788,7 +1788,7 @@ def main(argv=None):
     elif status in ('pass', 'warn'):
         # Same two-line footer as direct chat. The watchdog reads it back from
         # the receipt and reuses it on a backstop send.
-        card_footer = run_usage_footer()
+        card_footer = run_usage_footer(job=job_name)
         card = build_brief_card(today, decision_packet=decision_packet, footer=card_footer)
         message = (wechat_prefix + card).strip()
         first_line = card.strip().splitlines()[0] if card.strip() else ''
