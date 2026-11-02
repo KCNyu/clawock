@@ -244,3 +244,36 @@ def test_the_gate_wording_names_the_prior_close_gap_on_its_own(tmp_path):
     # The old "provider froze at yesterday's close" sentence must not explain a
     # placeholder this resolver wrote itself.
     assert not any("四位小数完全相等" in message for message in messages)
+
+
+@pytest.mark.parametrize('postclose', [False, True])
+@pytest.mark.parametrize('flags', [
+    {'quote_incomplete': True, 'quote_incomplete_prev_close': True},
+    {'quote_incomplete': True},
+    {'quote_incomplete': True, 'quote_stale_asof': '2026-10-30'},
+])
+def test_refresh_does_not_promote_an_untrusted_stored_close(postclose, flags):
+    holding = _holding(prev_close=9.0, **flags)
+    result = _apply(
+        {'c': 9.55, 'dp': 0, 'source': 'Nasdaq API (etf)'}, holding,
+        {'RKLX': (9.55, '2026-11-02')} if postclose else {})
+    assert result['quote_incomplete_prev_close'] is True
+    assert session_change_pct(result) is None
+
+
+def test_placeholder_stays_unknown_across_two_refreshes_then_recovers():
+    holding = _holding(prev_close=0, prev_close_date='')
+    for price in (9.55, 9.65):
+        _apply({'c': price, 'dp': 0, 'source': 'Nasdaq API (etf)'}, holding)
+        assert holding['quote_incomplete_prev_close'] is True
+        assert session_change_pct(holding) is None
+    _apply({'c': 9.65, 'pc': 9.8, 'source': 'Nasdaq API (etf)'}, holding)
+    assert not holding.get('quote_incomplete_prev_close')
+    assert session_change_pct(holding) == pytest.approx((9.65 / 9.8 - 1) * 100)
+
+
+def test_verified_stored_close_can_measure_a_real_zero_return():
+    holding = _apply({'c': 9.8, 'dp': 0, 'source': 'Nasdaq API (etf)'},
+                     _holding(quote_incomplete=True, quote_incomplete_range=True))
+    assert not holding.get('quote_incomplete_prev_close')
+    assert session_change_pct(holding) == 0

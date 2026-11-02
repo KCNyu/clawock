@@ -20,6 +20,7 @@ Usage:
 
 import copy
 import json
+import math
 import fcntl
 import os
 import sys
@@ -34,7 +35,7 @@ from clawock import sessions as trading_calendar
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
-from clawock.portfolio.math import active_holdings, number, day_pnl, ledger_rows
+from clawock.portfolio.math import active_holdings, number, day_pnl, ledger_rows, quote_session_comparable
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.safe_io import carried_value
 from clawock.workspace import workspace_root
@@ -194,20 +195,11 @@ def load_api_keys() -> Dict[str, str]:
 def get_nasdaq_quote(ticker: str) -> Optional[Dict]:
     """Nasdaq API – JSON, no auth, covers stocks and ETFs.
 
-    The `/info` endpoint carries NO `summaryData` block (verified 2026-07-27 for
-    stocks and etf assetclasses: its data keys are symbol/companyName/stockType/
-    exchange/isNasdaqListed/isNasdaq100/isHeld/primaryData/secondaryData/
-    marketStatus/assetClass/keyStats/notifications). PreviousClose / OpenPrice /
-    TodayHighLow live on the separate `/summary` endpoint. The previous
-    `_parse_price(...) or price` fallbacks therefore fired on EVERY call and
-    silently manufactured `o == h == l == c == pc` — which (a) made the
-    degenerate-range alarm fire for 100% of tickers, so it warned about nothing,
-    and (b) let a stale `lastSalePrice` sail through as "unchanged today".
-
-    So: report only what the payload actually contains. Missing fields stay
-    None and the caller decides (see `_quote_is_complete` → try a richer
-    provider). `nc` (netChange) is kept because it is exact and is the only
-    reliable way to rebuild a prior close from this endpoint.
+    `/info` carries the print timestamp and (when available) the same
+    response's `keyStats.dayrange` in low - high order. Read that range
+    without an extra undated `/summary` request. Older payloads may carry
+    summaryData instead. Missing values stay None; never synthesize OHLC
+    from the current price. `nc` is retained for the stale-print guard.
     """
     headers = {
         'Accept': 'application/json, text/plain, */*',
@@ -235,10 +227,23 @@ def get_nasdaq_quote(ticker: str) -> Optional[Dict]:
 
             high = low = None
             day_range = (summary.get('TodayHighLow') or {}).get('value') or ''
-            if ' - ' in day_range:
-                parts = day_range.split(' - ')
-                high = _parse_price(parts[1]) if len(parts) > 1 else None
-                low  = _parse_price(parts[0]) if parts else None
+            if not day_range:
+                stats = body.get('keyStats') or {}
+                day_range = (stats.get('dayrange') or {}).get('value') or ''
+            if isinstance(day_range, str):
+                if ' - ' in day_range:
+                    parts = day_range.split(' - ')
+                elif '/' in day_range:
+                    # summaryData uses high/low; keyStats uses low - high.
+                    parts = list(reversed(day_range.split('/')))
+                else:
+                    parts = []
+                if len(parts) == 2:
+                    low, high = map(_parse_price, parts)
+                    if not (low is not None and high is not None
+                            and math.isfinite(low) and math.isfinite(high)
+                            and 0 < low <= high):
+                        high = low = None
 
             nc = _parse_price(primary.get('netChange'))
             pct_str = (primary.get('percentageChange') or '').replace('%', '').replace('+', '').strip()
@@ -1029,8 +1034,8 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
             existing_pc      = holding.get('prev_close', 0)
             existing_pc_date = holding.get('prev_close_date', '')
             api_dp           = q.get('dp', 0)
-            if existing_pc > 0 and existing_pc_date and \
-                    existing_pc_date == expected_prev_session:
+            if (existing_pc > 0 and quote_session_comparable(holding)
+                    and existing_pc_date == expected_prev_session):
                 pc, pc_date = existing_pc, existing_pc_date
                 prev_close_ok = True
             elif api_dp and abs(api_dp) > 0.01:
@@ -1059,7 +1064,7 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
             pc = round(c / (1 + api_dp / 100), 4)
             pc_date = prev_session
             prev_close_ok = True
-        elif (existing_pc > 0 and existing_pc != c
+        elif (existing_pc > 0 and quote_session_comparable(holding)
               and existing_pc_date == expected_prev_session):
             pc, pc_date = existing_pc, existing_pc_date
             prev_close_ok = True

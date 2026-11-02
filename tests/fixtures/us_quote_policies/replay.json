@@ -2199,7 +2199,8 @@
               "stale_price_repair": {
                 "old": true
               },
-              "quote_incomplete": true
+              "quote_incomplete": true,
+              "quote_incomplete_range": true
             },
             {
               "ticker": "CLOSED",
@@ -2638,7 +2639,8 @@
               "stale_price_repair": {
                 "old": true
               },
-              "quote_incomplete": true
+              "quote_incomplete": true,
+              "quote_incomplete_range": true
             },
             {
               "ticker": "CLOSED",
@@ -3296,7 +3298,8 @@
               "stale_price_repair": {
                 "old": true
               },
-              "quote_incomplete": true
+              "quote_incomplete": true,
+              "quote_incomplete_range": true
             },
             {
               "ticker": "CLOSED",
