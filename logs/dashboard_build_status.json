@@ -1,19 +1,19 @@
 {
-  "checked_at": "2026-11-02T00:21:51Z",
+  "checked_at": "2026-11-02T01:35:07Z",
   "ok": true,
   "build_ok": true,
   "publish_ok": true,
   "lock_busy": false,
   "warn_count": 0,
   "repair_count": 0,
-  "tail": "  brief-context source: brief-context-2026-11-02.json\n✓ wrote assets/data/overview.json (57,999 bytes)\n✓ wrote assets/data/dashboard.json (146,286 bytes)\n✓ wrote assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n✓ wrote assets/data/decision_trail.json (decision trail sidecar: traces + plan timeline)\n  US: 16 holdings, 4 active, value $2655\n  HK: 7 holdings, 6 active, value HK$47222\n  Snapshots: 90 embedded / 124 on disk\n  Plans: 5 embedded / 117 on disk\n  Snapshots: 90 | Plans: 5\n  FX USDHKD: 7.8457 (Frankfurter)\ndecision_map: 1149 decisions · 34 signals · 18 tickers · 190549 bytes (no_panel_scores)\n\n  ✓ data-plane: published 8 outputs as 1fa54237f849 → git@github.com:KCNyu/clawock.git data-plane\n· data-plane: 1fa54237f849 differs from 5a6cc5fb834c only in automation status — pages polls read it from the branch; no site deploy requested",
+  "tail": "  brief-context source: brief-context-2026-11-02.json\n✓ wrote assets/data/overview.json (58,724 bytes)\n✓ wrote assets/data/dashboard.json (147,226 bytes)\n✓ wrote assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n✓ wrote assets/data/decision_trail.json (decision trail sidecar: traces + plan timeline)\n  US: 16 holdings, 4 active, value $2655\n  HK: 7 holdings, 6 active, value HK$48314\n  Snapshots: 90 embedded / 124 on disk\n  Plans: 5 embedded / 117 on disk\n  Snapshots: 90 | Plans: 5\n  FX USDHKD: 7.8457 (Frankfurter)\ndecision_map: 1149 decisions · 34 signals · 18 tickers · 190549 bytes (no_panel_scores)\n\n  ✓ data-plane: published 8 outputs as 2a6e63cebd57 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock",
   "timings_s": {
-    "prepare_inputs": 0.542,
-    "fetch_data_plane": 0.663,
-    "workflow_outcomes": 0.283,
-    "dashboard_build": 2.858,
-    "decision_map": 4.979,
-    "publish_generation": 11.462,
+    "prepare_inputs": 0.549,
+    "fetch_data_plane": 0.705,
+    "workflow_outcomes": 0.319,
+    "dashboard_build": 4.11,
+    "decision_map": 6.812,
+    "publish_generation": 11.346,
     "skipped": false
   }
 }
