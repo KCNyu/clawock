@@ -129,6 +129,32 @@
       ]
     },
     {
+      "id": "anthropic-sonnet5-costless",
+      "script": "openclaw-patches/patch-anthropic-sonnet5-costless.sh",
+      "targets": [
+        {
+          "selector": "function applyAnthropicSonnet5Cost",
+          "required": [
+            "clawock-anthropic-sonnet5-costless-v1",
+            "const existingCost = params.model.cost;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "codex-cli-runtime-state",
+      "script": "openclaw-patches/patch-codex-cli-runtime-state.sh",
+      "targets": [
+        {
+          "selector": "registrationMode: \"cli-metadata\"",
+          "required": [
+            "clawock-codex-cli-runtime-state-v1",
+            "openSyncKeyedStore is unavailable during CLI metadata registration"
+          ]
+        }
+      ]
+    },
+    {
       "id": "dreaming-fallbacks",
       "script": "patch_dreaming_fallbacks.py",
       "targets": [

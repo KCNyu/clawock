@@ -41,6 +41,41 @@ console.log(buildNativeHookRelayCommand({command: "relay"}));
 }
 console.log(JSON.stringify(buildUsageContract(997, 1000)));
 ''')
+    (dist / 'anthropic.js').write_text('''function applyAnthropicSonnet5Cost(params) {
+\tif (!isAnthropicSonnet5Model(params.modelId)) return;
+\tconst cost = resolveAnthropicSonnet5Cost();
+\tif (params.model.cost.input === cost.input && params.model.cost.output === cost.output && params.model.cost.cacheRead === cost.cacheRead && params.model.cost.cacheWrite === cost.cacheWrite) return;
+\treturn {
+\t\t...params.model,
+\t\tcost
+\t};
+}
+function isAnthropicSonnet5Model(modelId) { return modelId === "claude-sonnet-5"; }
+function resolveAnthropicSonnet5Cost() { return { input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5 }; }
+const cost = applyAnthropicSonnet5Cost({
+\tmodelId: "claude-sonnet-5",
+\tmodel: { id: "claude-sonnet-5", provider: "anthropic", input: ["text"] }
+}).cost;
+console.log(JSON.stringify(cost));
+''')
+    (dist / 'loader.js').write_text('''function buildCliPluginApi(validatedConfig, cfg) {
+\treturn {
+\t\t\tregistrationMode: "cli-metadata",
+\t\t\tconfig: cfg,
+\t\t\tpluginConfig: validatedConfig.value,
+\t\t\truntime: {},
+\t};
+}
+const api = buildCliPluginApi({ value: {} }, {});
+const store = api.runtime.state.openSyncKeyedStore({ namespace: "fixture" });
+let threw = false;
+try {
+\tstore.read;
+} catch (error) {
+\tthrew = error.message.includes("CLI metadata registration");
+}
+console.log(JSON.stringify({ registered: true, threw }));
+''')
     return install
 
 
@@ -115,6 +150,30 @@ return `exec ${command}`;
     assert report['changes'] == []
 
 
+def test_anthropic_costless_and_codex_cli_runtime_adapters(tmp_path, installation):
+    dist = installation / 'dist'
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.run(['node', str(dist / 'anthropic.js')], check=True, capture_output=True)
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.run(['node', str(dist / 'loader.js')], check=True, capture_output=True)
+
+    report, old, new = plan(
+        tmp_path, installation, ['anthropic-sonnet5-costless', 'codex-cli-runtime-state'])
+    assert len(report['changes']) == 2
+    result = kit.commit(installation, report, old, new, tmp_path / 'state')
+    assert result['status'] == 'applied'
+
+    cost = json.loads(subprocess.check_output(['node', str(dist / 'anthropic.js')], text=True))
+    assert cost == {'input': 2, 'output': 10, 'cacheRead': 0.2, 'cacheWrite': 2.5}
+    loader = json.loads(subprocess.check_output(['node', str(dist / 'loader.js')], text=True))
+    assert loader == {'registered': True, 'threw': True}
+
+    stage2 = tmp_path / 'stage2'
+    stage2.mkdir()
+    replay, _, _ = kit.prepare(installation, tmp_path / 'manifest.json', stage2)
+    assert replay['changes'] == []
+
+
 def test_concurrent_live_edit_refuses_entire_commit(tmp_path, installation):
     report, old, new = plan(tmp_path, installation, ['memory-search-timeout'])
     path = installation / 'dist/memory.js'
@@ -153,7 +212,7 @@ def test_rollback_refuses_to_overwrite_later_edits(tmp_path, installation):
 
 def test_all_adapters_are_tracked_and_cannot_default_to_the_live_package():
     data = kit.load_manifest(kit.DEFAULT_MANIFEST)
-    assert len(data['patches']) == 10
+    assert len(data['patches']) == 12
     for patch in data['patches']:
         source = HOST / patch['script']
         assert source.is_file()

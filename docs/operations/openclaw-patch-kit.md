@@ -8,7 +8,7 @@ two existing host-extension installers. Gateway restart remains a separate step.
 ## Ownership
 
 `openclaw-patches/manifest.json` owns ordered patch IDs, adapter paths, target
-selectors and required postconditions. The eight shell adapters live beside it;
+selectors and required postconditions. The ten shell adapters live beside it;
 `patch_dreaming_fallbacks.py` and `patch_dreaming_review.py` are the two existing
 Python adapters. A target selector must resolve to exactly one bundle. Shared
 bundles are copied once, and adapters see earlier staged edits in manifest order.

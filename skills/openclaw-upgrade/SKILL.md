@@ -43,7 +43,7 @@ The historical scripts under `/root/tools/openclaw/current/` are not upgrade inp
 Do not edit or invoke them to update the managed kit.
 
 Run `bash ops/host/reapply_openclaw_patches.sh --plan` first to rehearse against
-isolated copies. It resolves each bundle unambiguously, runs all ten adapters and
+isolated copies. It resolves each bundle unambiguously, runs all twelve adapters and
 checks postconditions and JavaScript syntax before any installed bundle is written.
 `apply` retains a transaction receipt and recovery copies; on write failure it
 restores the pre-run bytes. A process kill can leave a prepared receipt: use the
