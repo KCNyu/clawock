@@ -2071,6 +2071,66 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     globalThis.fetch = originalFetch;
     fsMod.rmSync(tmpCfg, { recursive: true, force: true });
   }
+
+  // Since 2026-11 `openclaw config patch` writes provider keys as secret
+  // references instead of strings. The fallback must resolve them through
+  // `secrets.providers.<provider>` — a JSON file plus an absolute JSON
+  // pointer id — and keep the plain string shape working (pinned above).
+  const refTmp = fsMod.mkdtempSync(pathMod.join(osMod.tmpdir(), "mmref-"));
+  const refCfgPath = pathMod.join(refTmp, "openclaw.json");
+  const secretsPath = pathMod.join(refTmp, "credentials.json");
+  fsMod.writeFileSync(secretsPath, JSON.stringify({
+    models: { providers: { minimax: { apiKey: "mm-from-secrets" } } },
+  }));
+  const refConfig = (apiKey, localProvider) => JSON.stringify({
+    models: { providers: { minimax: { apiKey } } },
+    secrets: { providers: { local: localProvider } },
+  });
+  const ref = { source: "file", provider: "local", id: "/models/providers/minimax/apiKey" };
+  let sawRefAuth = "";
+  globalThis.fetch = async (url, init) => {
+    sawRefAuth = init.headers.authorization;
+    return new Response(JSON.stringify({
+      base_resp: { status_code: 0, status_msg: "success" },
+      model_remains: [{ model: "general", current_interval_remaining_percent: 50 }],
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    fsMod.writeFileSync(refCfgPath, refConfig(ref, { source: "file", path: secretsPath, mode: "json" }));
+    const mmRef = await createMinimaxService(
+      { credentials: { resolve: async () => undefined } },
+      { openclawConfigPath: refCfgPath },
+    ).get(true);
+    assert.equal(sawRefAuth, "Bearer mm-from-secrets", "the secret reference resolves through secrets.providers.local");
+    assert.equal(mmRef.status, "fresh");
+
+    // A reference whose provider file is missing is a failed read, not
+    // "not configured": the key IS configured, it just cannot be read.
+    fsMod.writeFileSync(refCfgPath, refConfig(ref, {
+      source: "file", path: pathMod.join(refTmp, "gone.json"), mode: "json",
+    }));
+    const mmGone = await createMinimaxService(
+      { credentials: { resolve: async () => undefined } },
+      { openclawConfigPath: refCfgPath },
+    ).get(true);
+    assert.equal(mmGone.status, "failed");
+    assert.match(mmGone.message, /密钥文件不存在/);
+
+    // ... and so is an id the file does not carry.
+    fsMod.writeFileSync(refCfgPath, refConfig(
+      { source: "file", provider: "local", id: "/models/providers/minimax/nope" },
+      { source: "file", path: secretsPath, mode: "json" },
+    ));
+    const mmMissingId = await createMinimaxService(
+      { credentials: { resolve: async () => undefined } },
+      { openclawConfigPath: refCfgPath },
+    ).get(true);
+    assert.equal(mmMissingId.status, "failed");
+    assert.match(mmMissingId.message, /找不到段/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    fsMod.rmSync(refTmp, { recursive: true, force: true });
+  }
 });
 
 test("balance: claude subscription windows via the OAuth usage endpoint", async () => {
