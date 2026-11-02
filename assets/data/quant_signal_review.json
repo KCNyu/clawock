@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-10-30",
-  "days_logged": 103,
+  "as_of": "2026-11-02",
+  "days_logged": 104,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "frozen_feed_excluded": 57,
   "closed_market_rows_excluded": 7,
@@ -19,19 +19,19 @@
       "reverse_edge_significant": false,
       "sample_sufficient": false,
       "min_n": 20,
-      "non_overlap_cap": 192,
+      "non_overlap_cap": 194,
       "decision_direction": null,
       "usable": false,
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "trend_off_avoid": {
-      "n_events": 579,
-      "n_dates": 95,
+      "n_events": 585,
+      "n_dates": 96,
       "n_tickers": 10,
-      "hit_rate": 0.608,
+      "hit_rate": 0.61,
       "ci95": [
-        0.502,
-        0.702
+        0.504,
+        0.705
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": true,
@@ -44,13 +44,13 @@
       "note": ""
     },
     "rsi_oversold_bounce": {
-      "n_events": 53,
-      "n_dates": 29,
+      "n_events": 54,
+      "n_dates": 30,
       "n_tickers": 9,
-      "hit_rate": 0.528,
+      "hit_rate": 0.519,
       "ci95": [
-        0.245,
-        0.909
+        0.237,
+        0.903
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -101,13 +101,13 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n_events": 441,
-      "n_dates": 84,
+      "n_events": 449,
+      "n_dates": 85,
       "n_tickers": 12,
-      "hit_rate": 0.624,
+      "hit_rate": 0.626,
       "ci95": [
-        0.512,
-        0.72
+        0.509,
+        0.722
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": true,
@@ -120,6 +120,6 @@
       "note": ""
     }
   },
-  "summary": "trend_off_avoid 原向 61%[50–70](events=579, dates=95, tickers=10)、stop_breach_continue 原向 62%[51–72](events=441, dates=84, tickers=12)",
+  "summary": "trend_off_avoid 原向 61%[50–70](events=585, dates=96, tickers=10)、stop_breach_continue 原向 63%[51–72](events=449, dates=85, tickers=12)",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

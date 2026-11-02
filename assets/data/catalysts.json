@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-30T08:38:26.575841+08:00",
+  "generated_at": "2026-11-02T08:03:37.700550+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-10-30",
-  "window_end": "2026-11-13",
+  "window_start": "2026-11-02",
+  "window_end": "2026-11-16",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -16,7 +16,7 @@
       "time": "bmo",
       "eps_estimate": 0.3696,
       "eps_actual": null,
-      "revenue_estimate_m": 797.27,
+      "revenue_estimate_m": 797.7,
       "quarter": 3,
       "year": 2026
     },
@@ -48,11 +48,6 @@
   "fomc": [],
   "macro_events": [
     {
-      "date": "2026-10-30",
-      "type": "PCE",
-      "detail": "Sep PCE price index (BEA, Fed preferred inflation gauge)"
-    },
-    {
       "date": "2026-11-06",
       "type": "NFP",
       "detail": "Oct jobs report (Non-Farm Payrolls); BLS 8:30 ET"
@@ -67,7 +62,7 @@
   "summary": {
     "earnings_count": 2,
     "fomc_in_window": 0,
-    "macro_count": 3,
+    "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
     "highest_impact_within_7d": "NFP 2026-11-06"
