@@ -327,8 +327,8 @@ function readOpenclawProviderKey(configPath, provider) {
 	try {
 		cfg = JSON.parse(readFileSync(configPath, "utf8"));
 		if (typeof cfg !== "object" || cfg === null) throw new Error("配置不是对象");
-	} catch (cause) {
-		throw new Error(`OpenClaw 配置读不出来(${configPath}):` + (cause instanceof Error ? cause.message : String(cause)));
+	} catch {
+		throw new Error(`OpenClaw 配置读不出来(${configPath}):请检查文件权限和 JSON 格式`);
 	}
 	const key = (((cfg?.models ?? {}).providers ?? {})[provider] ?? {}).apiKey;
 	if (typeof key === "string") return key !== "" ? key : void 0;
@@ -369,8 +369,8 @@ function readOpenclawSecretRef(cfg, ref) {
 	let doc;
 	try {
 		doc = JSON.parse(readFileSync(secretPath, "utf8"));
-	} catch (cause) {
-		throw new Error(`OpenClaw 密钥文件读不出来(${secretPath}):` + (cause instanceof Error ? cause.message : String(cause)));
+	} catch {
+		throw new Error(`OpenClaw 密钥文件读不出来(${secretPath}):请检查文件权限和 JSON 格式`);
 	}
 	const value = readJsonPointerValue(doc, ref.id);
 	if (typeof value !== "string") throw new Error(`OpenClaw 密钥引用 ${ref.id} 的值不是字符串(${secretPath})`);
