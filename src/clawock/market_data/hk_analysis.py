@@ -435,9 +435,12 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     # (TODAY_LEG still reconciles) while the date says which session it is
     # measured from. When that stored close is older than the session we
     # should be comparing against — or absent entirely — the day change is
-    # not today's, and the holding says so through the same
-    # `quote_incomplete` flag the US path already sets and integrity
-    # already surfaces.
+    # not today's, and the holding says so through `quote_incomplete` (the
+    # aggregate bit older readers still consult) plus the narrower
+    # `quote_incomplete_prev_close` that the day-change arithmetic vetoes on.
+    # A provider that supplies the price but no intraday range does not
+    # invalidate this comparison; HK range fields are preserved or cleared
+    # per session below, never inferred from a missing field.
     approximated_pc = q.get('_pc_quality') in ('open-as-pc', 'missing')
     raw_pc = h.get('prev_close')
     stored_pc = float(raw_pc) if isinstance(raw_pc, (int, float)) and raw_pc > 0 else None
@@ -474,8 +477,10 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
         incomplete = not stored_pc or h.get('prev_close_date') != hk_prev_session
         if incomplete:
             h['quote_incomplete'] = True
+            h['quote_incomplete_prev_close'] = True
         else:
             h.pop('quote_incomplete', None)
+            h.pop('quote_incomplete_prev_close', None)
     else:
         h['prev_close']       = round(pc, 3)
         h['prev_close_date']  = hk_prev_session
@@ -483,6 +488,7 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
         h['today_change']     = round((c - pc) * shrs, 2)
         # A healthy fetch clears it; a flag nobody retires is its own defect.
         h.pop('quote_incomplete', None)
+        h.pop('quote_incomplete_prev_close', None)
     if not approximated_pc or stored_pc:
         quote_day = _hk_quote_session(now_hkt)
         amount, base = day_pnl(h, quote_day.isoformat(), current=c, market='hk')

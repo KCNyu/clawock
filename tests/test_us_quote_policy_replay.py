@@ -98,7 +98,7 @@ def test_prior_close_ladder_prefers_provider_move_to_stored_close():
     holding = {'prev_close': 24, 'prev_close_date': '2026-08-04'}
     assert quotes._resolve_prev_close(
         q, holding, {}, ticker='PLTU', today_et_date='2026-08-05',
-        expected_prev_session='2026-08-04') == (30, 25, '2026-08-04')
+        expected_prev_session='2026-08-04') == (30, 25, '2026-08-04', True)
 
 
 @pytest.mark.parametrize('ticker,provider_has_quote', [

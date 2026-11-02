@@ -2461,7 +2461,9 @@
                 "pnl_percent": 15.0,
                 "today_change": 0.0,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -2534,7 +2536,9 @@
                 "pnl_percent": 15.0,
                 "today_change": 0.0,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -3117,7 +3121,9 @@
                 "pnl_percent": 16.25,
                 "today_change": 0.0,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 17:00 ET"
+                "data_source": "Finnhub Aug 05, 2026 17:00 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -3190,7 +3196,9 @@
                 "pnl_percent": 16.25,
                 "today_change": 0.0,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 17:00 ET"
+                "data_source": "Finnhub Aug 05, 2026 17:00 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -4240,7 +4248,9 @@
                 "pnl_percent": -31.625,
                 "today_change": 0.0,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET",
+                "quote_incomplete_range": true,
+                "quote_stale_asof": "2026-08-03"
               },
               {
                 "ticker": "CLOSED",
@@ -4314,7 +4324,9 @@
                 "pnl_percent": -31.625,
                 "today_change": 0.0,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET",
+                "quote_incomplete_range": true,
+                "quote_stale_asof": "2026-08-03"
               },
               {
                 "ticker": "CLOSED",
@@ -4895,7 +4907,9 @@
                 "pnl_percent": 15.0,
                 "today_change": 11.8,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_range": true
               },
               {
                 "ticker": "CLOSED",
@@ -4968,7 +4982,9 @@
                 "pnl_percent": 15.0,
                 "today_change": 11.8,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 12:01 ET"
+                "data_source": "Finnhub Aug 05, 2026 12:01 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_range": true
               },
               {
                 "ticker": "CLOSED",
@@ -5549,7 +5565,9 @@
                 "pnl_percent": 12.05,
                 "today_change": 11.49,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 08:00 ET"
+                "data_source": "Finnhub Aug 05, 2026 08:00 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_range": true
               },
               {
                 "ticker": "CLOSED",
@@ -5622,7 +5640,9 @@
                 "pnl_percent": 12.05,
                 "today_change": 11.49,
                 "volume": 100,
-                "data_source": "Finnhub Aug 05, 2026 08:00 ET"
+                "data_source": "Finnhub Aug 05, 2026 08:00 ET",
+                "quote_incomplete": true,
+                "quote_incomplete_range": true
               },
               {
                 "ticker": "CLOSED",

@@ -992,12 +992,19 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
     # Ticker-reuse / fresh-IPO trap (SPCX 2026-06-12): a "previous close" bar
     # dated weeks ago is the *old* instrument that used to own this ticker —
     # a day-change computed against it is fiction (SPCX showed +637%).
+    #
+    # The fourth return value says whether the resolved number is a real prior
+    # session close (or a provider move measured against one), as opposed to
+    # the last-resort `pc = c` that exists only to keep the arithmetic finite.
+    # The day-change consumers read that bit; they must not infer it from
+    # `prev_close` being present, because the fallback writes a number too.
     poly_pc = prev_closes.get(t)
     if poly_pc and poly_pc[1] < expected_prev_session:
         print(f"  ⚠ {t}: Polygon prev_close dated {poly_pc[1]} "
               f"(< expected session {expected_prev_session}) "
               f"— stale bar / ticker reuse, ignoring")
         poly_pc = None
+    prev_close_ok = False
     if poly_pc:
         pc, pc_date = poly_pc
         # ── Post-close authority + stale-current guard (①②) ──────────────────
@@ -1025,10 +1032,14 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
             if existing_pc > 0 and existing_pc_date and \
                     existing_pc_date == expected_prev_session:
                 pc, pc_date = existing_pc, existing_pc_date
+                prev_close_ok = True
             elif api_dp and abs(api_dp) > 0.01:
                 pc = round(c / (1 + api_dp / 100), 4)
                 pc_date = expected_prev_session
+                prev_close_ok = True
             # else: leave pc = today's close (today_change falls back to 0, safe)
+        else:
+            prev_close_ok = pc_date == expected_prev_session
     else:
         # A prior close belongs to the PRIOR session, so it is stamped with
         # _prev_trading_day() — never today. Stamping today_et_date here (the
@@ -1043,16 +1054,19 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
         api_dp = q.get('dp', 0)
         if api_pc is not None and api_pc != c:
             pc, pc_date = api_pc, prev_session
+            prev_close_ok = True
         elif api_dp and abs(api_dp) > 0.01:
             pc = round(c / (1 + api_dp / 100), 4)
             pc_date = prev_session
+            prev_close_ok = True
         elif (existing_pc > 0 and existing_pc != c
               and existing_pc_date == expected_prev_session):
             pc, pc_date = existing_pc, existing_pc_date
+            prev_close_ok = True
         else:
             pc, pc_date = c, prev_session
 
-    return c, pc, pc_date
+    return c, pc, pc_date, prev_close_ok
 
 
 def _stale_last_price_guard(q, c, pc, pc_date, *, ticker, today_et_date, now_et):
@@ -1186,7 +1200,7 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
     cost = holding['cost_basis']
     shrs = number(holding['shares'])
 
-    c, pc, pc_date = _resolve_prev_close(
+    c, pc, pc_date, prev_close_ok = _resolve_prev_close(
         q, holding, prev_closes, ticker=t, today_et_date=today_et_date,
         expected_prev_session=expected_prev_session)
 
@@ -1205,7 +1219,31 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
         holding['stale_price_repair'] = stale_repair
     else:
         holding.pop('stale_price_repair', None)
-    if q.get('incomplete'):
+    # Two independent gaps, because they invalidate different numbers:
+    #   prev_close — no date-matched prior close, so the session return is
+    #                unknown (the `pc = c` fallback is never a measurement);
+    #   range      — the provider gave no intraday high/low, so day_high/low
+    #                come from the local accumulator and must not read as the
+    #                official range. The price itself is still current.
+    # A print from an earlier session keeps its own field so the refresh
+    # coverage can tell "old price" apart from "current price, missing range".
+    # `quote_incomplete` stays as the aggregate bit for readers written before
+    # this split (and for rows refreshed by an older writer).
+    stale_asof = q.get('stale_asof')
+    range_incomplete = bool(stale_asof) or q.get('h') is None or q.get('l') is None
+    if prev_close_ok:
+        holding.pop('quote_incomplete_prev_close', None)
+    else:
+        holding['quote_incomplete_prev_close'] = True
+    if range_incomplete:
+        holding['quote_incomplete_range'] = True
+    else:
+        holding.pop('quote_incomplete_range', None)
+    if stale_asof:
+        holding['quote_stale_asof'] = stale_asof
+    else:
+        holding.pop('quote_stale_asof', None)
+    if not prev_close_ok or range_incomplete or stale_asof:
         holding['quote_incomplete'] = True
     else:
         holding.pop('quote_incomplete', None)
