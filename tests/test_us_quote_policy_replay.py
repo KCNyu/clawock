@@ -4,7 +4,10 @@ Inputs combine incident quotes already captured in test_us_quote_staleness with
 synthetic boundary cases. Expected documents and diagnostics were captured from
 master db5f1d644 BEFORE extraction; additional branch cases were captured from
 fb31168ab before the #2754 fix. Tests never regenerate the oracle. No live
-portfolio, credentials or network are involved.
+portfolio, credentials or network are involved. The three stored-close reuse
+cases explicitly mark their old aggregate gap as range-only after the quality
+split; their numeric oracles are unchanged. Legacy unknown quality is covered
+by test_quote_incomplete_split.
 """
 import copy
 import json

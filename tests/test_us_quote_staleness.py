@@ -844,3 +844,37 @@ class TestIntegrityGateCatchesStalePrice:
         })
         codes = {f["code"] for f in self._findings(tmp_path, incomplete)}
         assert "STALE_PRICE" in codes
+
+
+@pytest.mark.parametrize('value,expected', [
+    ('71.66 - 75.87', (71.66, 75.87)),
+    ('N/A', (None, None)),
+    ('75.87 - 71.66', (None, None)),
+    ('NaN - 75.87', (None, None)),
+    ('0 - 75.87', (None, None)),
+    ('71 - 72 - 73', (None, None)),
+])
+def test_nasdaq_reads_only_valid_info_dayrange(monkeypatch, value, expected):
+    payload = json.loads(json.dumps(NASDAQ_INFO_NO_SUMMARY))
+    payload['data']['keyStats'] = {'dayrange': {'value': value}}
+    calls = []
+
+    def get(url, **kwargs):
+        calls.append(url)
+        return _FakeResp(payload)
+
+    monkeypatch.setattr(F.SESSION, 'get', get)
+    quote = F.get_nasdaq_quote('PLTU')
+    assert (quote['l'], quote['h']) == expected
+    assert quote['o'] is None
+    assert quote['pc'] is None
+    assert quote['asof_date'] == '2026-07-27'
+    assert len(calls) == 1 and '/info?' in calls[0]
+
+
+def test_nasdaq_summary_high_low_slash_order(monkeypatch):
+    payload = json.loads(json.dumps(NASDAQ_INFO_NO_SUMMARY))
+    payload['data']['summaryData'] = {'TodayHighLow': {'value': '$75.87/$71.665'}}
+    monkeypatch.setattr(F.SESSION, 'get', lambda *a, **k: _FakeResp(payload))
+    quote = F.get_nasdaq_quote('PLTU')
+    assert (quote['l'], quote['h']) == (71.665, 75.87)

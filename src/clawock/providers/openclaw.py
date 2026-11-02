@@ -977,7 +977,8 @@ def _cron_turn_header(path: Path) -> tuple[str, str] | None:
     return None
 
 
-def _live_cron_transcript(paths: OpenClawPaths, job: str, now_ms: int):
+def _live_cron_transcript(paths: OpenClawPaths, job: str, now_ms: int, *,
+                          job_id: str, started_at: int):
     """`(mtime, path, job id)` for the transcript `job` is writing, or None."""
     try:
         candidates = [path for path in paths.sessions_dir.glob('*.jsonl')
@@ -990,10 +991,10 @@ def _live_cron_transcript(paths: OpenClawPaths, job: str, now_ms: int):
             modified = path.stat().st_mtime * 1000
         except OSError:
             continue
-        if modified < now_ms - LIVE_TRANSCRIPT_MAX_AGE_MS:
+        if modified < max(started_at, now_ms - LIVE_TRANSCRIPT_MAX_AGE_MS):
             continue
         header = _cron_turn_header(path)
-        if header is None or header[1] != job:
+        if header != (job_id, job):
             continue
         if best is None or modified > best[0]:
             best = (modified, path, header[0])
@@ -1028,7 +1029,11 @@ def _live_cron_task(paths: OpenClawPaths, job: str, now_ms: int) -> dict | None:
         # The turn already saved its session. Only a live `task_runs` row may
         # still claim it, so a manual postflight does not reuse it.
         return None
-    live = _live_cron_transcript(paths, job, now_ms)
+    if not isinstance(key, str) or ':cron:' not in key:
+        return None
+    job_id = key.split(':cron:', 1)[1].split(':', 1)[0]
+    live = _live_cron_transcript(paths, job, now_ms,
+                                 job_id=job_id, started_at=int(started))
     if live is None:
         return None
     _, path, job_id = live
@@ -1110,7 +1115,13 @@ def current_cron_run_usage(*, paths: OpenClawPaths | None = None,
         live = _live_cron_task(selected, job.strip(), now)
         if live is not None:
             tasks.append(live)
-    tasks.extend(_running_cron_tasks(selected, now) or [])
+    fallback = _running_cron_tasks(selected, now) or []
+    if isinstance(job, str) and job.strip():
+        store = _read_session_store(selected) or {}
+        fallback = [task for task in fallback
+                    if isinstance(store.get(task.get('session_key')), dict)
+                    and store[task['session_key']].get('label') == f'Cron: {job.strip()}']
+    tasks.extend(fallback)
     for task in tasks:
         usage = _usage_for_task(selected, task, now)
         if usage is not None:

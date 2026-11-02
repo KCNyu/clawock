@@ -416,3 +416,39 @@ def test_brief_card_puts_the_footer_at_its_foot(tmp_path, monkeypatch):
     assert card.endswith(footer)
     assert brief_card.build_brief_card(
         '2026-10-31', decision_packet={}, footer='') == card[: -len(footer) - 2]
+
+
+def test_named_job_never_falls_back_to_another_running_job(tmp_path):
+    paths = _paths(tmp_path)
+    conn = _state_db(paths)
+    _running_task(conn)
+    conn.close()
+    _write_sessions(paths, label='Cron: other job')
+    _write_transcript(paths, 'sess-now', [_assistant(cost=0.7)])
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW).turn_usd == 0.7
+
+
+def test_named_job_retains_its_own_running_task_fallback(tmp_path):
+    paths = _paths(tmp_path)
+    conn = _state_db(paths)
+    _running_task(conn)
+    conn.close()
+    _write_sessions(paths)
+    _write_transcript(paths, 'sess-now', [_assistant(cost=0.7)])
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB).turn_usd == 0.7
+
+
+def test_live_transcript_must_match_job_id_as_well_as_name(tmp_path):
+    paths = _live_turn(tmp_path, header=f'[cron:other-id {JOB}] brief')
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
+
+
+def test_recent_previous_run_is_not_the_new_turn(tmp_path):
+    paths = _live_turn(tmp_path, mtime=(NOW - 120_000) / 1000)
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
+
+
+def test_a_long_running_turn_with_recent_writes_still_has_usage(tmp_path):
+    paths = _live_turn(tmp_path, started_at=NOW - 25 * 60_000)
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB).turn_usd == 0.02
