@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-30T18:16:07.151105+00:00",
+  "generated_at": "2026-11-02T00:59:38.767679+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -16,21 +16,997 @@
     "musk": "success",
     "ark": "success",
     "serenity": "failed",
-    "duan": "success",
+    "duan": "success_empty",
     "honghao": "success",
     "burry": "success",
     "pelosi": "success"
   },
-  "llm_filtered": false,
-  "llm_filter_status": "failed",
+  "llm_filtered": true,
+  "llm_filter_status": "ok",
   "counts": {
-    "total": 0,
+    "total": 21,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "new_ideas": 9,
+    "sector_hits": 11
   },
-  "items": [],
+  "items": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Is Still Short Palantir. Here's What Its Nov. 2 Report Has to Show.",
+      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOWUlzQm5neHNtV2hGdENpOXBtOWhyMy1pUmZCSnAyQWNyM240RkVKckdpbVhYMDhBenhPdGNVakNQMFh4NW5uejF1TTluVkNOZTIzMGNMZG9GZmpmSC1OVDlsU1l6NFZRcE9wUHBNUzlweGRTMDhBRXZpVnhvcTBweWdCOVFtS2l6UE5xUUpSQUkxVnpzRlhXUG9QcWdlY1V4M2NKcFp3anN3bWRZQTFhcVlHWk1ibmxfTlF5VVBR?oc=5",
+      "published": "2026-10-31T09:17:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PLTR"
+      ],
+      "sectors": [
+        "AI",
+        "软件",
+        "数据分析"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 87,
+      "summary_cn": "据报道，Michael Burry仍然做空Palantir（PLTR），延续其针对AI高估值公司的看空交易。"
+    },
+    {
+      "author": "Burry",
+      "text": "NVDA, PLTR, CAT Defy Michael Burry’s AI Bet — ‘Big Short’ Investor Warns Of Future ‘Ghost Towns’",
+      "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPZXN5VWF0dE52LXRJQlJoMmRYN0Z1UTEtS2JzakVsZzZYNmprczlfaE9iTDQzWTNRNThPOWpfUDJhSmFjN19Bdkh0bXlOa3hXLXQxTGx5cVdZTEN5VFhZdXkwTWZfQ3NieDVnRGdoOFJpaVpsaGFwYWQ0VnQ0Ul82MEM0SEFzY29HY2htYy1obVlad1d2TjZzX2UyMWZ6X0w0eFVscXozSXlwSDJ3Zi1HU2g0RXRoSEE?oc=5",
+      "published": "2026-10-31T22:55:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "NVDA",
+        "PLTR",
+        "CAT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CAT",
+        "NVDA",
+        "PLTR"
+      ],
+      "sectors": [
+        "AI",
+        "数据中心",
+        "工业"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，英伟达（NVDA）、Palantir（PLTR）和卡特彼勒（CAT）无视Michael Burry的看空押注并上涨，而Burry警告AI可能造成未来“鬼城”。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Tempus AI, Inc.(TEM) 买入 ARKK 93,407 股 / ARKG 61,114 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1841,
+      "tickers": [
+        "TEM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TEM"
+      ],
+      "sectors": [
+        "AI",
+        "医疗科技"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "buy",
+      "relevance": 73,
+      "summary_cn": "ARK Invest于2026年10月30日买入ARKK和ARKG中的Tempus AI（TEM）共154,521股，单只ETF占比0.18%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Eli Lilly and Company(LLY) 卖出 ARKK 17,626 股（最大单只 ETF 占比 0.39%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3878,
+      "tickers": [
+        "LLY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LLY"
+      ],
+      "sectors": [
+        "医疗保健",
+        "制药"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 72,
+      "summary_cn": "ARK Invest于2026年10月30日卖出ARKK持有的17,626股礼来（LLY），单只ETF占比0.39%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Illumina Inc(ILMN) 买入 ARKK 43,130 股（最大单只 ETF 占比 0.16%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1562,
+      "tickers": [
+        "ILMN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ILMN"
+      ],
+      "sectors": [
+        "医疗科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest于2026年10月30日买入ARKK持有的43,130股Illumina（ILMN），单只ETF占比0.16%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Robinhood Markets, Inc.(HOOD) 买入 ARKF 13,757 股（最大单只 ETF 占比 0.15%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1496,
+      "tickers": [
+        "HOOD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "HOOD"
+      ],
+      "sectors": [
+        "金融科技",
+        "加密货币交易"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "buy",
+      "relevance": 71,
+      "summary_cn": "ARK Invest于2026年10月30日买入ARKF持有的13,757股Robinhood（HOOD），单只ETF占比0.15%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Bullish(BLSH) 卖出 ARKK 115,132 股 / ARKW 61,771 股 / ARKF 61,470 股（最大单只 ETF 占比 0.19%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1943,
+      "tickers": [
+        "BLSH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BLSH"
+      ],
+      "sectors": [
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年10月30日从ARKK、ARKW和ARKF合计卖出115,132股Bullish（BLSH），单只ETF占比0.19%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 50,859 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1836,
+      "tickers": [
+        "CDNA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CDNA"
+      ],
+      "sectors": [
+        "医疗科技",
+        "基因检测"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年10月30日卖出ARKG持有的50,859股CareDx（CDNA），单只ETF占比0.18%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Has Incredible News for Micron Stock Investors",
+      "url": "",
+      "published": "Sat, 31 Oct 2026 15:14:01 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "半导体"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "endorse",
+      "relevance": 64,
+      "summary_cn": "据报道，马斯克释放利好美光（MU）投资者的消息，对该股持积极态度。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk calls Earth’s data centers “peanuts” next to what SpaceX is planning in orbit",
+      "url": "",
+      "published": "Sun, 01 Nov 2026 19:34:53 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "数据中心",
+        "卫星互联网"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克称地球上的数据中心相较SpaceX计划建设的轨道设施规模仍然很小。"
+    },
+    {
+      "author": "洪灏",
+      "text": "內地追稅業界料掀富豪財富搬家潮離岸信託須納稅資產或轉移美港恐受影響- 20261102 - 報章內容",
+      "url": "https://news.google.com/rss/articles/CBMi_wNBVV95cUxQSE96aGoxTGlFdFk5ZlA5VnFIWWFaVFZaZEJzdDdSUUlKSU9QZmFlb3RzSHduUmxRbGtwRjVZMGp6WFdBaU1JVkh2LXhiMXBVem90OEl2STFLQy1MYV8xVjRncEJxSXNCelByRmpEZk5RRkkwYlpZejNGS01sX0NnWUJJZ2l3QU9pNTBmcWFYaTIwMlJoVDdIeDB5WXNLQ215RmloUDBVNXNLMHo3WXZnODBOX0RKaGdZNE1HQVJ3WHpMeFItTV9mMk1icEN3d1BhTWRheVZZSVV5bTM0Sm1HZDJQa2Vlbk1uZUV4QXBYWU9FRkpfaWVkVnRCRUpVbFlEblZsbE5Jb2FXTE1BOC1tVl9jdHpwQi16ak8yOXJxM0dNWnU1WDl2WXhoV3QzMktHanpjQ2NNV3pRUlhxRDQ4bTJUZDdBeHVpTFdnWFJMd0pNMllUQjJnZFVNbTAxdkFsSkpBRktzVHhRUjNDekxlQjZlZVpvV1lXejFYcGhGdV9TQ3VjZXo4UnBQNUwwRm5UTEpjY0ZKbGZDT2xIRXZDWkJ6QjF1LU1pc0ZfbC13YmNJT01OYk9BUTM5eVVNdVd0ckhCdGVMU2UxNlVDSGMxMk11eHZaUkpRR19POXQ0MGRFdG54TjVXS0ZHakFlaGJRWXNkUWIwUDZOdVIyRXpv?oc=5",
+      "published": "2026-11-01T20:30:33+00:00",
+      "origin": "gnews-rss",
+      "source": "明報財經網",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国税务",
+        "离岸信托",
+        "香港市场",
+        "财富管理"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 67,
+      "summary_cn": "据报道，内地追税可能引发富豪财富外迁，并令离岸信托及香港资产市场受到影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "New Report: Trump Administration Has Benefited Elon Musk’s Businesses Across 25 Federal Agencies",
+      "url": "",
+      "published": "Fri, 30 Oct 2026 19:24:40 GMT",
+      "origin": "gnews-rss",
+      "source": "Democracy Defenders Fund",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "政府采购"
+      ],
+      "sector_holdings": [
+        "00100",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道，报告认为特朗普政府的政策使马斯克的SpaceX和xAI等业务从多个联邦机构受益。"
+    },
+    {
+      "author": "洪灏",
+      "text": "舊劇本重演：中國救市",
+      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOUXBxM2FvYXJRU1JNZFBLQzJUSVhmSlNsYVc1ZUNQMGljZXQ0blJiaW5nNGxMN0h3cl9ucGRHcGxCeUtwLWF4R2lEMkh5NHo0akFSdlVhWjZGTjRPWlFET3haOGNjNzc0Zi1FdXljNzhSXzF4MlhYZGpWc2N4ZDdDeUtDN3UzX2VLZFNRWW9iU3lzQkZpNlFEU0RVdjVkOXgwX3BpaGVRdmJLeUczS0VHZHlXWGp3eWFUOWtnUkVkbWlsNzV0T0gtdDZXejM4LWs2Z0NzTHg4RDljUXN2?oc=5",
+      "published": "2026-11-01T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国股市",
+        "政策救市",
+        "港股科技"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 61,
+      "summary_cn": "据报道，洪灏以“旧剧本重演：中国救市”为题，暗示中国可能再次推出托底市场的政策。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Bill Gates Warns of AI-Driven Job Crisis, Pelosi Blames Trump and More: This Week in Economy",
+      "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOMW5wNFF5eG90ZXVPUDB3SmMtcmpFaXJmcnNiZkh2NUNiY1JrUWJWT2pubFBaelNKaUJXMjlWc0N1U1EtRTc5NzJDREk4d01HemVwakQ3SG9QNEV5SkkwaDdnV0RoOERTczlhdkdFNlFtbU9aSFNtdWVTdkI3cGt6VkNya0hGWjM2NGJ4SWpMYlBhd2VfVl9WSHAxcUVYWFk5Q25lbG9ybkUwNVpRaThWTlotcWJ3QkY4SEhrcEttb2NMSzBqYVNQMEFvdU5RVGtxWTBtSkdYUENCeVNQUEVtNzZmVQ?oc=5",
+      "published": "2026-11-01T11:00:07+00:00",
+      "origin": "gnews-rss",
+      "source": "TradingView",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "就业市场",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "据报道，比尔·盖茨警告AI驱动型就业危机，Pelosi则将相关经济问题归咎于特朗普。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Politicians Attack Data Centers While Profiting from their Construction",
+      "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNVFVoZGdHanhoSUxMUC1oOFhwblllWnd0dEdMdW5LdkhBVE9US1REaUZVcndpZ1Z2dExJQXNYdWgyR0FYMEJtcUk5dUNCQnVhWE5VQ2hjcVhMT0ZYVUtxbEloSEYwVllxQ05NZDdadjNXUWJfRW43SlhmZzZhNnlaaFJYZUZ5aFdYa3FQOVJn?oc=5",
+      "published": "2026-10-31T19:48:23+00:00",
+      "origin": "gnews-rss",
+      "source": "Mother Jones",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "数据中心",
+        "监管",
+        "基础设施建设"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 57,
+      "summary_cn": "据报道，美国政界人士一边抨击数据中心建设，一边从相关建设活动获利，显示AI基础设施面临潜在政策阻力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Issues Serious Hack Warning Amid Bitcoin And Crypto Price Crash Fear",
+      "url": "",
+      "published": "Sun, 01 Nov 2026 12:30:06 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "网络安全"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 56,
+      "summary_cn": "据报道，马斯克在比特币及加密资产价格下跌担忧之际发出严重黑客警告。"
+    },
+    {
+      "author": "Musk",
+      "text": "Court Denies xAI’s Motion to Dismiss Air Pollution Lawsuit Against Elon Musk’s company",
+      "url": "",
+      "published": "Sat, 31 Oct 2026 00:45:10 GMT",
+      "origin": "gnews-rss",
+      "source": "Earthjustice",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管",
+        "环保"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 56,
+      "summary_cn": "据报道，法院驳回xAI要求撤销空气污染诉讼的动议，AI企业面临环境监管压力。"
+    },
+    {
+      "author": "洪灏",
+      "text": "匯豐：近年無因數碼化轉型減人手 - 20261102 - 經濟",
+      "url": "https://news.google.com/rss/articles/CBMiuAJBVV95cUxPbUQ5X2hTSU9rS0JCblFCTXNrOUFINXdQNmNXbFJQeFJBTm5EcUVfTkJNaVJtRkdxN1lNSGhFNEd3eTQ2d1RmZFItaHRISlRxVlJiRmFzbTZReWhDcGUyUUdrSndzRnFwQ3FqSkhoTXVwSV91ZDRrYTZ1RFdUVUd5MWhfVl9kOWtjbHZiZi14a2FjRjdiby1XNlZMeWxldTNXQ0hzLTZvTUNUd3JPTUl1TGZrQ0RYMklicDZpUXg4Tm9JVG9BMFZQdjdaMzNkWTVxX0ZweV9CR3BUQWlWNDdCSU5kLVR1WXhLS3VpYlJTenJEbzRZOTNKZU9uLUx3aXZUcXptM0FhTUczTXAtenF3SFR1SDBianlPMTYyOGdMc0owSWJ1NkdZR2F3Qndvc1BEdFVrdjRqbkw?oc=5",
+      "published": "2026-11-01T20:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "明報新聞網",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数字化转型",
+        "AI",
+        "劳动力市场",
+        "中国经济"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 53,
+      "summary_cn": "据报道，汇丰认为近年企业数码化转型正在减少人手，反映自动化对中国就业结构的潜在影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "Texans fear SpaceX will control Boca Chica",
+      "url": "",
+      "published": "Sat, 31 Oct 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Texas Tribune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "卫星互联网"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "据报道，得州居民担忧SpaceX控制Boca Chica发射基地，显示其扩张面临地方层面的阻力。"
+    },
+    {
+      "author": "Musk",
+      "text": "'Bad time to troll': Binance co-founder Zhao asks Musk for support after hack",
+      "url": "",
+      "published": "Fri, 30 Oct 2026 13:28:42 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "网络安全"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道，币安联合创始人赵长鹏在遭遇黑客攻击后请求马斯克提供支持。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Will Democrats block the stock trading ban again after the midterm elections?",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPWkVKUVdLMzBvbm1WUTJnWXNobEpZdXdjMWxkY1YtZHNqWVNNLTJsRGpZTDdFdzBkSHpKR1E1ZXRvSnE4MmxMX01tZFo1aDhQY1JoQVlJVW5TVUJaYm9VMVpjNFZKbENNOHdsaGVSRWRZTVFkOXQwWXNWdFJRMU1kUENBYWVLWEp3UmFfVmhQTDVHNkJQQVNuWWE2aVpzajJKdVHSAacBQVVfeXFMT3lUT0FkMVZnbHJEd0l2Z25YNVFJTk14WkxkWDNtdU9QaXhTOVM1R2pyamxiTXlVNlBhOEUyY0lRTWhTYVp4enBsdHpzblFXTmxfdEZkOHNrYWJDTmFMSjgxNHU4Qy0yUHhRUWtBNHhnaERZZFZFMnFCZ1FMMER1UU82Q1dVZldxOGxzaFBNN09xaURHV1RaQWh4NTI0UUpES0p5cnlyNnM?oc=5",
+      "published": "2026-11-01T18:21:56+00:00",
+      "origin": "gnews-rss",
+      "source": "Fox News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "股票交易监管",
+        "国会政治",
+        "资本市场"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 59,
+      "summary_cn": "据报道，国会民主党可能在中期选举后再次推动股票交易禁令，增加美国资本市场监管的不确定性。"
+    }
+  ],
   "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  "new_ideas": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Is Still Short Palantir. Here's What Its Nov. 2 Report Has to Show.",
+      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOWUlzQm5neHNtV2hGdENpOXBtOWhyMy1pUmZCSnAyQWNyM240RkVKckdpbVhYMDhBenhPdGNVakNQMFh4NW5uejF1TTluVkNOZTIzMGNMZG9GZmpmSC1OVDlsU1l6NFZRcE9wUHBNUzlweGRTMDhBRXZpVnhvcTBweWdCOVFtS2l6UE5xUUpSQUkxVnpzRlhXUG9QcWdlY1V4M2NKcFp3anN3bWRZQTFhcVlHWk1ibmxfTlF5VVBR?oc=5",
+      "published": "2026-10-31T09:17:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PLTR"
+      ],
+      "sectors": [
+        "AI",
+        "软件",
+        "数据分析"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 87,
+      "summary_cn": "据报道，Michael Burry仍然做空Palantir（PLTR），延续其针对AI高估值公司的看空交易。"
+    },
+    {
+      "author": "Burry",
+      "text": "NVDA, PLTR, CAT Defy Michael Burry’s AI Bet — ‘Big Short’ Investor Warns Of Future ‘Ghost Towns’",
+      "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPZXN5VWF0dE52LXRJQlJoMmRYN0Z1UTEtS2JzakVsZzZYNmprczlfaE9iTDQzWTNRNThPOWpfUDJhSmFjN19Bdkh0bXlOa3hXLXQxTGx5cVdZTEN5VFhZdXkwTWZfQ3NieDVnRGdoOFJpaVpsaGFwYWQ0VnQ0Ul82MEM0SEFzY29HY2htYy1obVlad1d2TjZzX2UyMWZ6X0w0eFVscXozSXlwSDJ3Zi1HU2g0RXRoSEE?oc=5",
+      "published": "2026-10-31T22:55:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "NVDA",
+        "PLTR",
+        "CAT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CAT",
+        "NVDA",
+        "PLTR"
+      ],
+      "sectors": [
+        "AI",
+        "数据中心",
+        "工业"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，英伟达（NVDA）、Palantir（PLTR）和卡特彼勒（CAT）无视Michael Burry的看空押注并上涨，而Burry警告AI可能造成未来“鬼城”。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Tempus AI, Inc.(TEM) 买入 ARKK 93,407 股 / ARKG 61,114 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1841,
+      "tickers": [
+        "TEM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TEM"
+      ],
+      "sectors": [
+        "AI",
+        "医疗科技"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "buy",
+      "relevance": 73,
+      "summary_cn": "ARK Invest于2026年10月30日买入ARKK和ARKG中的Tempus AI（TEM）共154,521股，单只ETF占比0.18%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Eli Lilly and Company(LLY) 卖出 ARKK 17,626 股（最大单只 ETF 占比 0.39%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3878,
+      "tickers": [
+        "LLY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LLY"
+      ],
+      "sectors": [
+        "医疗保健",
+        "制药"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 72,
+      "summary_cn": "ARK Invest于2026年10月30日卖出ARKK持有的17,626股礼来（LLY），单只ETF占比0.39%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Illumina Inc(ILMN) 买入 ARKK 43,130 股（最大单只 ETF 占比 0.16%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1562,
+      "tickers": [
+        "ILMN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ILMN"
+      ],
+      "sectors": [
+        "医疗科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest于2026年10月30日买入ARKK持有的43,130股Illumina（ILMN），单只ETF占比0.16%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Robinhood Markets, Inc.(HOOD) 买入 ARKF 13,757 股（最大单只 ETF 占比 0.15%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1496,
+      "tickers": [
+        "HOOD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "HOOD"
+      ],
+      "sectors": [
+        "金融科技",
+        "加密货币交易"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "buy",
+      "relevance": 71,
+      "summary_cn": "ARK Invest于2026年10月30日买入ARKF持有的13,757股Robinhood（HOOD），单只ETF占比0.15%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Bullish(BLSH) 卖出 ARKK 115,132 股 / ARKW 61,771 股 / ARKF 61,470 股（最大单只 ETF 占比 0.19%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1943,
+      "tickers": [
+        "BLSH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BLSH"
+      ],
+      "sectors": [
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年10月30日从ARKK、ARKW和ARKF合计卖出115,132股Bullish（BLSH），单只ETF占比0.19%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 50,859 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-10-30T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1836,
+      "tickers": [
+        "CDNA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CDNA"
+      ],
+      "sectors": [
+        "医疗科技",
+        "基因检测"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026年10月30日卖出ARKG持有的50,859股CareDx（CDNA），单只ETF占比0.18%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Has Incredible News for Micron Stock Investors",
+      "url": "",
+      "published": "Sat, 31 Oct 2026 15:14:01 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "半导体"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "endorse",
+      "relevance": 64,
+      "summary_cn": "据报道，马斯克释放利好美光（MU）投资者的消息，对该股持积极态度。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk calls Earth’s data centers “peanuts” next to what SpaceX is planning in orbit",
+      "url": "",
+      "published": "Sun, 01 Nov 2026 19:34:53 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "数据中心",
+        "卫星互联网"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克称地球上的数据中心相较SpaceX计划建设的轨道设施规模仍然很小。"
+    },
+    {
+      "author": "洪灏",
+      "text": "內地追稅業界料掀富豪財富搬家潮離岸信託須納稅資產或轉移美港恐受影響- 20261102 - 報章內容",
+      "url": "https://news.google.com/rss/articles/CBMi_wNBVV95cUxQSE96aGoxTGlFdFk5ZlA5VnFIWWFaVFZaZEJzdDdSUUlKSU9QZmFlb3RzSHduUmxRbGtwRjVZMGp6WFdBaU1JVkh2LXhiMXBVem90OEl2STFLQy1MYV8xVjRncEJxSXNCelByRmpEZk5RRkkwYlpZejNGS01sX0NnWUJJZ2l3QU9pNTBmcWFYaTIwMlJoVDdIeDB5WXNLQ215RmloUDBVNXNLMHo3WXZnODBOX0RKaGdZNE1HQVJ3WHpMeFItTV9mMk1icEN3d1BhTWRheVZZSVV5bTM0Sm1HZDJQa2Vlbk1uZUV4QXBYWU9FRkpfaWVkVnRCRUpVbFlEblZsbE5Jb2FXTE1BOC1tVl9jdHpwQi16ak8yOXJxM0dNWnU1WDl2WXhoV3QzMktHanpjQ2NNV3pRUlhxRDQ4bTJUZDdBeHVpTFdnWFJMd0pNMllUQjJnZFVNbTAxdkFsSkpBRktzVHhRUjNDekxlQjZlZVpvV1lXejFYcGhGdV9TQ3VjZXo4UnBQNUwwRm5UTEpjY0ZKbGZDT2xIRXZDWkJ6QjF1LU1pc0ZfbC13YmNJT01OYk9BUTM5eVVNdVd0ckhCdGVMU2UxNlVDSGMxMk11eHZaUkpRR19POXQ0MGRFdG54TjVXS0ZHakFlaGJRWXNkUWIwUDZOdVIyRXpv?oc=5",
+      "published": "2026-11-01T20:30:33+00:00",
+      "origin": "gnews-rss",
+      "source": "明報財經網",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国税务",
+        "离岸信托",
+        "香港市场",
+        "财富管理"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 67,
+      "summary_cn": "据报道，内地追税可能引发富豪财富外迁，并令离岸信托及香港资产市场受到影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "New Report: Trump Administration Has Benefited Elon Musk’s Businesses Across 25 Federal Agencies",
+      "url": "",
+      "published": "Fri, 30 Oct 2026 19:24:40 GMT",
+      "origin": "gnews-rss",
+      "source": "Democracy Defenders Fund",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "政府采购"
+      ],
+      "sector_holdings": [
+        "00100",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道，报告认为特朗普政府的政策使马斯克的SpaceX和xAI等业务从多个联邦机构受益。"
+    },
+    {
+      "author": "洪灏",
+      "text": "舊劇本重演：中國救市",
+      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOUXBxM2FvYXJRU1JNZFBLQzJUSVhmSlNsYVc1ZUNQMGljZXQ0blJiaW5nNGxMN0h3cl9ucGRHcGxCeUtwLWF4R2lEMkh5NHo0akFSdlVhWjZGTjRPWlFET3haOGNjNzc0Zi1FdXljNzhSXzF4MlhYZGpWc2N4ZDdDeUtDN3UzX2VLZFNRWW9iU3lzQkZpNlFEU0RVdjVkOXgwX3BpaGVRdmJLeUczS0VHZHlXWGp3eWFUOWtnUkVkbWlsNzV0T0gtdDZXejM4LWs2Z0NzTHg4RDljUXN2?oc=5",
+      "published": "2026-11-01T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国股市",
+        "政策救市",
+        "港股科技"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 61,
+      "summary_cn": "据报道，洪灏以“旧剧本重演：中国救市”为题，暗示中国可能再次推出托底市场的政策。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Bill Gates Warns of AI-Driven Job Crisis, Pelosi Blames Trump and More: This Week in Economy",
+      "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOMW5wNFF5eG90ZXVPUDB3SmMtcmpFaXJmcnNiZkh2NUNiY1JrUWJWT2pubFBaelNKaUJXMjlWc0N1U1EtRTc5NzJDREk4d01HemVwakQ3SG9QNEV5SkkwaDdnV0RoOERTczlhdkdFNlFtbU9aSFNtdWVTdkI3cGt6VkNya0hGWjM2NGJ4SWpMYlBhd2VfVl9WSHAxcUVYWFk5Q25lbG9ybkUwNVpRaThWTlotcWJ3QkY4SEhrcEttb2NMSzBqYVNQMEFvdU5RVGtxWTBtSkdYUENCeVNQUEVtNzZmVQ?oc=5",
+      "published": "2026-11-01T11:00:07+00:00",
+      "origin": "gnews-rss",
+      "source": "TradingView",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "就业市场",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "据报道，比尔·盖茨警告AI驱动型就业危机，Pelosi则将相关经济问题归咎于特朗普。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Politicians Attack Data Centers While Profiting from their Construction",
+      "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNVFVoZGdHanhoSUxMUC1oOFhwblllWnd0dEdMdW5LdkhBVE9US1REaUZVcndpZ1Z2dExJQXNYdWgyR0FYMEJtcUk5dUNCQnVhWE5VQ2hjcVhMT0ZYVUtxbEloSEYwVllxQ05NZDdadjNXUWJfRW43SlhmZzZhNnlaaFJYZUZ5aFdYa3FQOVJn?oc=5",
+      "published": "2026-10-31T19:48:23+00:00",
+      "origin": "gnews-rss",
+      "source": "Mother Jones",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "数据中心",
+        "监管",
+        "基础设施建设"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 57,
+      "summary_cn": "据报道，美国政界人士一边抨击数据中心建设，一边从相关建设活动获利，显示AI基础设施面临潜在政策阻力。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Issues Serious Hack Warning Amid Bitcoin And Crypto Price Crash Fear",
+      "url": "",
+      "published": "Sun, 01 Nov 2026 12:30:06 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "网络安全"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 56,
+      "summary_cn": "据报道，马斯克在比特币及加密资产价格下跌担忧之际发出严重黑客警告。"
+    },
+    {
+      "author": "Musk",
+      "text": "Court Denies xAI’s Motion to Dismiss Air Pollution Lawsuit Against Elon Musk’s company",
+      "url": "",
+      "published": "Sat, 31 Oct 2026 00:45:10 GMT",
+      "origin": "gnews-rss",
+      "source": "Earthjustice",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管",
+        "环保"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "attack",
+      "relevance": 56,
+      "summary_cn": "据报道，法院驳回xAI要求撤销空气污染诉讼的动议，AI企业面临环境监管压力。"
+    },
+    {
+      "author": "洪灏",
+      "text": "匯豐：近年無因數碼化轉型減人手 - 20261102 - 經濟",
+      "url": "https://news.google.com/rss/articles/CBMiuAJBVV95cUxPbUQ5X2hTSU9rS0JCblFCTXNrOUFINXdQNmNXbFJQeFJBTm5EcUVfTkJNaVJtRkdxN1lNSGhFNEd3eTQ2d1RmZFItaHRISlRxVlJiRmFzbTZReWhDcGUyUUdrSndzRnFwQ3FqSkhoTXVwSV91ZDRrYTZ1RFdUVUd5MWhfVl9kOWtjbHZiZi14a2FjRjdiby1XNlZMeWxldTNXQ0hzLTZvTUNUd3JPTUl1TGZrQ0RYMklicDZpUXg4Tm9JVG9BMFZQdjdaMzNkWTVxX0ZweV9CR3BUQWlWNDdCSU5kLVR1WXhLS3VpYlJTenJEbzRZOTNKZU9uLUx3aXZUcXptM0FhTUczTXAtenF3SFR1SDBianlPMTYyOGdMc0owSWJ1NkdZR2F3Qndvc1BEdFVrdjRqbkw?oc=5",
+      "published": "2026-11-01T20:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "明報新聞網",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数字化转型",
+        "AI",
+        "劳动力市场",
+        "中国经济"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 53,
+      "summary_cn": "据报道，汇丰认为近年企业数码化转型正在减少人手，反映自动化对中国就业结构的潜在影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "Texans fear SpaceX will control Boca Chica",
+      "url": "",
+      "published": "Sat, 31 Oct 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Texas Tribune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "卫星互联网"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "据报道，得州居民担忧SpaceX控制Boca Chica发射基地，显示其扩张面临地方层面的阻力。"
+    }
+  ]
 }
