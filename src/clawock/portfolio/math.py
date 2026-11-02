@@ -13,16 +13,59 @@ from clawock.safe_io import to_strict_finite_number
 from clawock.safe_io import carried_value  # noqa: F401  re-exported (#2967)
 
 
+def _pre_split_incomplete(holding: Mapping[str, Any]) -> bool:
+    """True for a degraded row written before the two quality flags existed.
+
+    The old single flag cannot say which piece is missing, so it keeps its old
+    conservative meaning until the next refresh rewrites the row with
+    ``quote_incomplete_prev_close`` / ``quote_incomplete_range``.
+    """
+    if not holding.get("quote_incomplete"):
+        return False
+    return not (holding.get("quote_incomplete_prev_close")
+                or holding.get("quote_incomplete_range")
+                or holding.get("quote_stale_asof"))
+
+
+def quote_session_comparable(holding: Mapping[str, Any]) -> bool:
+    """Whether ``current_price`` and ``prev_close`` describe adjacent sessions.
+
+    Only a missing/untrusted prior close or a print from an earlier session
+    makes the session comparison invalid. A quote without a real intraday
+    range still has a usable price-to-prior-close return: the range feeds
+    day_high/day_low and the range cards, not this return.
+    """
+    if holding.get("quote_stale_asof"):
+        return False
+    if holding.get("quote_incomplete_prev_close"):
+        return False
+    return not _pre_split_incomplete(holding)
+
+
+def quote_price_is_current(holding: Mapping[str, Any]) -> bool:
+    """Whether the price print itself belongs to the row's session.
+
+    A missing prior close does not make a fresh print stale, and a locally
+    accumulated range does not either. Only ``quote_stale_asof`` (or a row
+    from before the split, whose old flag may have meant exactly that) does.
+    """
+    if holding.get("quote_stale_asof"):
+        return False
+    return not _pre_split_incomplete(holding)
+
+
 def session_change_pct(holding: Mapping[str, Any]) -> float | None:
     """Quoted price return against the prior close, independent of fills.
 
     Position day P&L uses fill prices for new lots; a session-labelled price
-    change must not use that capital denominator. Incomplete quotes have no
-    trustworthy session comparison.
+    change must not use that capital denominator. The veto is the *prior
+    close*, not quote completeness as a whole: a quote with a real prior close
+    and a locally accumulated (rather than provider-supplied) daily range can
+    still state its return against that close.
     """
     current = to_strict_finite_number(holding.get("current_price"))
     previous = to_strict_finite_number(holding.get("prev_close"))
-    if holding.get("quote_incomplete") or current is None or previous is None:
+    if not quote_session_comparable(holding) or current is None or previous is None:
         return None
     if current <= 0 or previous <= 0:
         return None

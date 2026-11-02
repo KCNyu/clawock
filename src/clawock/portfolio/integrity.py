@@ -59,7 +59,8 @@ data_source 里的 provider 名，而在这之前没有任何消费者读过那�
 「取到了价」和「主源还活着」是同一件事（#1116）。刻意不做成 WARN：实测
 2026-08-19..28 美股整本账天天走 Finnhub（Nasdaq 的 /info 端点不带前收，
 _quote_is_complete 因此弃用它——链在正常工作），逐日报警只会喂出一条没人看的
-黄灯。真正的降级另有其闸：报价源给不出前收 → quote_incomplete → STALE_PRICE。
+黄灯。真正的降级另有其闸：报价源给不出前收 → `quote_incomplete_prev_close`
+→ STALE_PRICE（日内区间缺失则走 `quote_incomplete_range`，措辞分开）。
   QUOTE_DIVERGENCE 港股 Tencent/Eastmoney 现价或前收偏差 >1%             WARN
   PREV_CLOSE_SESSION prev_close == memory/bars 在 prev_close_date 那天的收盘  WARN
                  → 休市日抓价把前收日盖成报价自己那一场（#2270）
@@ -977,9 +978,13 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
             # prev_close_date == day_session_date，而写坏 prev_close_date 恰恰是同一个
             # bug 的产物 → 会把这道闸对着「正需要拦的行」关掉。这里只认
             # prev_close_date < day_session_date（真·上一交易日）这一种情况。
+            # 但 pc==c 若是解析器自己的「没有可信前收」占位，就不是「报价源停在
+            # 昨收」，交由下面的 quote_incomplete_prev_close 说明，避免同一行两条
+            # 互相矛盾的解释。
             if (cur is not None and prev is not None and sh
                     and h.get('prev_close_date') and sess_date
                     and h['prev_close_date'] < sess_date
+                    and not h.get('quote_incomplete_prev_close')
                     and abs(cur - prev) < 1e-4):
                 add('STALE_PRICE', 'WARN',
                     f'{t} current_price={cur:.4f} 与上一交易日前收 {prev:.4f}'
@@ -1016,11 +1021,30 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
                     f"{t} Tencent 与 Eastmoney 报价分歧：现价 {divergence.get('c_div_pct')}%，"
                     f"前收 {divergence.get('pc_div_pct')}%；仍采用 Tencent，请复核（{h.get('data_source')}）",
                     region, t)
-            if h.get('quote_incomplete'):
-                add('STALE_PRICE', 'WARN',
-                    f'{t} 报价不完整（缺前收/日内区间），所有 provider 都没给全；'
-                    f'day_high/day_low 仅由本地累积器推得，别当真实区间读',
-                    region, t)
+            stale_asof = h.get('quote_stale_asof')
+            prev_incomplete = bool(h.get('quote_incomplete_prev_close'))
+            range_incomplete = bool(h.get('quote_incomplete_range'))
+            # Rows written before the split carry only the aggregate bit; keep
+            # its old wording so an unrefreshed book is not silently forgiven.
+            legacy_incomplete = bool(h.get('quote_incomplete')) and not (
+                stale_asof or prev_incomplete or range_incomplete)
+            reasons = []
+            if stale_asof:
+                reasons.append(
+                    f'报价是 {stale_asof} 的旧 print（不是本场），当日涨跌不可比')
+            if prev_incomplete:
+                reasons.append('缺可信前收（上一交易日收盘），当日涨跌不可算')
+            if range_incomplete:
+                reasons.append(
+                    '日内区间也不是本场，只由本地累积器推得，别当真实区间读'
+                    if stale_asof else
+                    '缺日内区间，day_high/day_low 仅由本地累积器推得，别当真实区间读')
+            if legacy_incomplete:
+                reasons.append(
+                    '报价不完整（缺前收/日内区间），所有 provider 都没给全；'
+                    'day_high/day_low 仅由本地累积器推得，别当真实区间读')
+            if reasons:
+                add('STALE_PRICE', 'WARN', f'{t} ' + '；'.join(reasons), region, t)
 
         if quote_sources:
             quote_ledger[region] = {

@@ -81,9 +81,9 @@ def test_no_verified_prior_close_flags_the_holding_instead_of_inventing_one(
         tmp_path, monkeypatch):
     """Nothing on file to fall back to → the day change is unknown, and says so.
 
-    `quote_incomplete` is the flag the US path already sets and that integrity
-    and intraday_preflight already read — a new flag would be a fourth word for
-    the same thing.
+    The narrow `quote_incomplete_prev_close` is the bit the day-change
+    arithmetic reads; `quote_incomplete` stays as the aggregate bit older
+    readers (integrity, intraday_preflight) already consult.
     """
     today, prior = _sessions()
     _book(tmp_path, monkeypatch, {
@@ -95,6 +95,7 @@ def test_no_verified_prior_close_flags_the_holding_instead_of_inventing_one(
     h = hk.update_hk_portfolio(dry_run=True)["portfolios"]["hk_stocks"]["holdings"][0]
 
     assert h["quote_incomplete"] is True
+    assert h["quote_incomplete_prev_close"] is True
     assert "prev_close" not in h, "an open is not a prior close"
     assert h["today_change_pct"] is None
     assert h["today_change"] is None
@@ -118,6 +119,7 @@ def test_a_healthy_fetch_retires_the_flag(tmp_path, monkeypatch):
     h = hk.update_hk_portfolio(dry_run=True)["portfolios"]["hk_stocks"]["holdings"][0]
 
     assert "quote_incomplete" not in h
+    assert "quote_incomplete_prev_close" not in h
 
 
 def test_a_stale_prior_close_is_degraded_even_though_it_is_real(
@@ -133,6 +135,7 @@ def test_a_stale_prior_close_is_degraded_even_though_it_is_real(
     h = hk.update_hk_portfolio(dry_run=True)["portfolios"]["hk_stocks"]["holdings"][0]
 
     assert h["quote_incomplete"] is True
+    assert h["quote_incomplete_prev_close"] is True
     assert h["prev_close_date"] == "2026-01-02", (
         "the date is what makes the staleness legible; restamping it hides it")
 

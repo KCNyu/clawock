@@ -369,7 +369,8 @@
                 "stock_name": "MINIMAX-W",
                 "day_session_date": "2026-10-06T10:00:00+08:00",
                 "data_source": "stooq Oct 06 10:00 HKT",
-                "day_open": 312
+                "day_open": 312,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -419,7 +420,8 @@
                 "stock_name": "MINIMAX-W",
                 "day_session_date": "2026-10-06T10:00:00+08:00",
                 "data_source": "stooq Oct 06 10:00 HKT",
-                "day_open": 312
+                "day_open": 312,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -527,7 +529,8 @@
                 "stock_name": "MINIMAX-W",
                 "day_session_date": "2026-10-06T10:00:00+08:00",
                 "data_source": "stooq Oct 06 10:00 HKT",
-                "day_open": 312
+                "day_open": 312,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -577,7 +580,8 @@
                 "stock_name": "MINIMAX-W",
                 "day_session_date": "2026-10-06T10:00:00+08:00",
                 "data_source": "stooq Oct 06 10:00 HKT",
-                "day_open": 312
+                "day_open": 312,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -679,7 +683,8 @@
                 "stock_name": "MINIMAX-W",
                 "day_session_date": "2026-10-06T10:00:00+08:00",
                 "data_source": "stooq Oct 06 10:00 HKT",
-                "day_open": 312
+                "day_open": 312,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",
@@ -725,7 +730,8 @@
                 "stock_name": "MINIMAX-W",
                 "day_session_date": "2026-10-06T10:00:00+08:00",
                 "data_source": "stooq Oct 06 10:00 HKT",
-                "day_open": 312
+                "day_open": 312,
+                "quote_incomplete_prev_close": true
               },
               {
                 "ticker": "CLOSED",

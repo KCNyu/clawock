@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from clawock import sessions as trading_calendar
+from clawock.portfolio.math import quote_price_is_current
 from clawock.publish import store as publish_store
 from clawock.workspace import without_host_paths, workspace_root
 
@@ -706,11 +707,13 @@ def quote_coverage(market, portfolio_path, *, now=None, started_at=None,
             now.astimezone(fetched_at.tzinfo) - fetched_at
         ).total_seconds() if fetched_at else None
         ticker = row.get('ticker')
-        # US fallback can return an earlier-session print.  The fetch happened,
-        # but ``quote_incomplete`` is the analyzer's explicit warning that the
-        # resulting price is not a fully refreshed live quote.
+        # US fallback can return an earlier-session print. The fetch happened,
+        # but the price is not this session's. `quote_price_is_current` names
+        # exactly that case: a missing prior close or a locally accumulated
+        # range does not make a fresh print stale, while `quote_stale_asof`
+        # (or a pre-split aggregate flag whose meaning is unknown) does.
         if (since_start is not None and since_start >= -60 and until_end >= -60
-                and not row.get('quote_incomplete')):
+                and quote_price_is_current(row)):
             refreshed.append(ticker)
         else:
             unrefreshed.append(ticker)
