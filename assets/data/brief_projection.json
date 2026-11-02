@@ -3,11 +3,12 @@
   "generated_at": "2026-11-02T08:05:00.678766+08:00",
   "as_of": "2026-11-02",
   "context_generation_id": "fbca481e60a978bc",
-  "judgment_status": "invalid",
-  "judgment_issues": [
-    "judgment narrative calibration_read exceeds 600 chars"
-  ],
-  "portfolio_judgment": null,
+  "judgment_status": "valid",
+  "judgment_issues": [],
+  "portfolio_judgment": {
+    "assessment": "今天只有一条主线：把收费的杠杆关掉。RKLX 整仓换成 1x 的 RKLB，SPCH 挂一个能成交的减仓条件，其余七只维持不动；七个左档加仓候选今天一个都不做。",
+    "counterargument": "反方最强的一条是：SpaceX 与 MiniMax 的长期故事还没坏，今天把 2x 关掉等于在修复开始前离场。07226 每月只付 0.81% 的横盘损耗、SPCH 每月 3.37%，而组合浮亏已经深到港股腿 -58.8%、美股腿 -40.2%，这个位置砍最容易砍在地板上。"
+  },
   "tickers": [
     {
       "ticker": "RKLX",
@@ -58,10 +59,24 @@
         "rank": 0,
         "state": "critical"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "RKLX",
+        "verdict": "bearish",
+        "confidence": 0.75,
+        "disposition": "reject",
+        "assessment": "10 股 2x 仓位，成本 49.69、现价 9.80、浮亏 80.28%，只占美股腿 3.69%、合计 98 美元。标的 RKLB 收 54.73，200 日线下方 31.4%、RSI 40.0、波动年化 70.11%；这只 2x 上一场跌 15.08% 而标的只跌 7.39%，多出的 7.7 个百分点是当日重置与溢价的账单。11 月 9 日标的财报。",
+        "counterargument": "整仓只有 98 美元，砍掉对组合收益几乎没有影响；标的离 200 日线 -31.4% 已经跌深，1x 现货接在低位比 2x 便宜。",
+        "rationale": "过去 17 个 episode 胜率 53%，清仓 8 次赢 6；硬止损与杠杆制度两条义务同时压着，而这只票没有观望这个选项，所以今天执行。对这只 2x 产品是否决，同一标的的 1x 由另一条腿承接。",
+        "falsifier": "标的收复 200 日线且杠杆制度灯转绿，才谈买回 2x；否则 1x 也不加。",
+        "next_evidence": "标的 11 月 9 日财报与 200 日线 79.838；下一次把 1x 的规模问题摆到台面上。",
+        "fundamentals": "标的属航天发射与空间系统，Q3 财报定在 11 月 9 日；本代未取到它的原始报表，标的基本面只能用公司披露与同业价格代替。",
+        "cross_market": "跟随美股科技 beta，与港股 AI 无关；它在纳指 -3.46% 的夜里和整个航天板块一起被去杠杆。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新；隔夜软消息只有三只值得关注的太空股、跌超 50% 的航天股或是买点这类选股内容，没有公司层面的新信息。",
+        "peer_read": "题材跌、自己跌得更多：标的 -7.39%、同业 ASTS -4.88%、本产品 -15.08%，差 7.7 个百分点；落后的不是基本面，是 2x 结构。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
-        "effective": "wait",
+        "effective": "reject",
         "departs_from_policy": false,
         "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
       }
@@ -113,7 +128,21 @@
         "rank": 0,
         "state": "critical"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "07226",
+        "verdict": "bearish",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "7200 股恒科 2x，成本 4.1175、现价 2.11、浮亏 48.76%，占港股腿 32.17%；标的恒科在 200 日线下方 22.0%、RSI 30.3、波动年化 30.47%，硬止损义务已开 81 天。",
+        "counterargument": "它是这条腿里唯一有 2x 弹性的敞口，恒科一旦反弹它一天能顶 03033 两天；横盘损耗只有每月 0.81%，是几条杠杆里最便宜的一条，硬止损对它是过度反应。",
+        "rationale": "义务已开 81 天，最近一次重提是 10-22，本场没有新的一手催化也没有触发 -51.7% 重置线，按允许的暂缓处理并留痕；同因子换仓今天也不执行，那会把港股腿的单一 ETF 暴露推到单名复核线附近。",
+        "falsifier": "浮亏触及 -51.7% 重置线，或杠杆制度灯在标的收复 200 日线后转绿。",
+        "next_evidence": "恒科指数能否收复 200 日线 4814.97，以及南向资金是否结束净流出。",
+        "fundamentals": "杠杆 ETF 没有基本面；判断完全挂在标的指数的杠杆制度灯上。",
+        "cross_market": "跟随恒科本身，不跟随美股；恒科 3754.90 与 200 日线 4814.97 之间还有 28% 的缺口。",
+        "sentiment_read": "⚠️ 舆情与情绪快照 73 小时未刷新；隔夜可见的板块消息是港股收盘科技指数微跌 0.36%、算力硬件与黄金股重挫，属软信息，不能替代制度灯。",
+        "peer_read": "题材涨、自己跟住：指数 +0.29% 的场子里这只 2x 拿到 +0.76%，单日没有额外衰减；但它的技术读数用的是标的代理，产品的真实动量要看自己的价格。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -168,7 +197,21 @@
         "rank": 1,
         "state": "elevated"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "SPCH",
+        "verdict": "bearish",
+        "confidence": 0.55,
+        "disposition": "wait",
+        "assessment": "300 股 SpaceX 2x，成本 12.06、现价 7.59、浮亏 37.06%，占美股腿 85.77%。正股 SPCX 收 134.72，低于 20 日低点 140.66，RSI 37.2、1 个月跌 9.0%；正股上一场跌 6.37%，它跌 12.86%，多出 8 个百分点。",
+        "counterargument": "正股 Q3 营收 145.75 亿美元、净利 44.04 亿美元、经营现金流 130.97 亿美元，是组合里唯一还在变好的经营数据；Starlink 订阅与 AI 数据中心收入都在扩张，长期弹性值得留。",
+        "rationale": "过去 15 个 episode 胜率 33%，持 8 次只赢 1 次、减 3 次赢 2；所以今天把动作写成减 100 股而不是持有或清仓。",
+        "falsifier": "公司一手披露持续证明增长转化为现金流，且美股腿 β 回到 6.0 以下，后续减仓安排取消。",
+        "next_evidence": "正股 10 月 20 日的 Q3 申报需要一次一手复盘；下一次关注 Starlink 订阅与 AI 数据中心收入口径。",
+        "fundamentals": "正股 10-Q 口径可用：Q3 营收 145.75 亿美元、净利 44.04 亿美元、经营现金流 130.97 亿美元、现金 512.94 亿美元，资产 2540.45 亿美元、负债 772.77 亿美元；这是组合里唯一有硬财务支撑的标的。",
+        "cross_market": "不跟随美股科技：航天板块这一场整体去杠杆，但它比正股多跌 8 个点，跟随的是结构而不是 beta。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新；隔夜软消息偏正面但软，道指期货在上一场杀跌后回升、中期选举被列为本周变量、Starlink 订阅增速被点名；期权链上已有 11 月 165 美元看涨合约在交易，属投机流量不是催化。",
+        "peer_read": "题材跌、自己跌得更多：正股 -6.37%、同业 ASTS -4.88%、IRDM -2.48%，它 -12.86% 垫底；差的是 2x 结构，不是航天叙事。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -218,7 +261,21 @@
         "rank": 2,
         "state": "elevated"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "02208",
+        "verdict": "bearish",
+        "confidence": 0.45,
+        "disposition": "wait",
+        "assessment": "400 股风电现货，成本 14.084、现价 6.91、浮亏 50.94%，RSI 27.7 超卖，1 个月跌 21.4%，收盘在 200 日线下方 43%，处于 52 周区间 1.2% 的位置。",
+        "counterargument": "隔夜预中标大唐黑龙江 350MW 项目，加上风电运营商这一场相对抗跌，它跌 1.71% 属于跟随而不是错杀；若招标转成确认收入，弹性会比现在看起来大。",
+        "rationale": "过去 15 个 episode 胜率 20%，加仓三次只赢一次；超卖这条因子在 54 次事件上的区间跨 50%，没有前瞻优势，超卖不是加仓理由。",
+        "falsifier": "中标转成正式订单并在公司披露里出现收入确认，或价格收复 7.712 的 20 日均线并站稳。",
+        "next_evidence": "黑龙江 350MW 的正式中标公告与在手订单口径；左档今天不做，等确认收入与均线收复。",
+        "fundamentals": "没有一手报表；可核的只有预中标与发明专利两条软消息，收入确认节奏仍要等公司披露。",
+        "cross_market": "与美股无关，跟随 A/H 新能源与电力设备情绪；这一场运营商强于设备，东方电气 -4.95%，它夹在中间。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新，不引用热度；只有专利授权与预中标 350MW 两条公司软消息，没有负面词命中，也没有独立信息族。",
+        "peer_read": "题材跌、自己跌得少：新天绿色 +1.24%、龙源电力 -1.84%、大唐新能源 -2.20%，它 -1.71% 居中，属跟随而不是错杀。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": true,
         "effective": "wait",
@@ -268,7 +325,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "00100",
+        "verdict": "mixed",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "港股腿最大的仓位，也是亏得最多的：140 股、成本 508.47、现价 161.30、浮亏 68.28%，价格贴在 52 周区间最低端 0.1%，RSI 33.4，1 个月跌 33.2%，20 日波动年化 100.45%。",
+        "counterargument": "单名占港股腿 47.82%，配 100.45% 的年化波动，波动目标权重本该只给 0.25；同时它又是 AI 板块 alpha 的主要来源，卖掉就没有板块弹性。",
+        "rationale": "过去 21 个 episode 胜率 43%，减仓那 9 次赢 6 次，是这只票历史上最有效的动作；但今天没有新的证伪披露，也不在可以减的价位上，所以维持不动。",
+        "falsifier": "公司一手披露显示商业化收入或现金流继续恶化，或收盘跌破 20 日低点 155.20 后无法收回。",
+        "next_evidence": "MiniMax 下一份一手经营披露与现金消耗；今天的新信息只有 ADS 现金流量表与 Pika 基于 H3 开源，都不构成商业化确认，所以左档首档今天不做。",
+        "fundamentals": "港股大模型公司，没有 EDGAR 一手报表；可核的只有港股通与 ADS 层面的现金流量表，营收与利润口径缺失，这本身就是持有它最大的信息缺口。",
+        "cross_market": "不跟随美股：纳指上一场 -3.46% 的杀跌没有传导成它的独立崩跌，它跟着港股 AI 板块走，更像板块 beta 加公司故事。",
+        "sentiment_read": "⚠️ 社交舆情数据已 73 小时未刷新，本段没有雪球与富途读数，不用热度下判断；隔夜只有双十一囤 Token、Pika 基于 H3 开源两条正面软消息，没有一手披露支撑，另有谈中美 AI 股票普跌的深度稿，属情绪解读不是催化。",
+        "peer_read": "题材跌、自己相对抗跌：智谱 -9.10%、滴普 -8.37%、云知声 -6.59%、迅策 -6.17%、商汤 -4.33%，它 -4.05% 居中上；但这一场相对抗跌只是一天的结果，不构成反转证据。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": true,
         "effective": "wait",
@@ -318,7 +389,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "03032",
+        "verdict": "bearish",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "200 股恒科 1x ETF，成本 5.405、现价 3.76、浮亏 30.43%，收盘在 200 日线下方 21.7%、MA20 下方，RSI 30.4，1 个月跌 11.4%。",
+        "counterargument": "恒科权重股这一场反弹，美团 +3.47%、网易 +2.49%，如果南向资金回流，1x 是最省成本的一条腿；它比 03033 便宜，但跟踪同一个指数。",
+        "rationale": "过去 11 个 episode 胜率 27%；同一指数已经持 03032 与 07226 三条腿，再加没有依据，它的存在主要是历史仓位而不是今天的判断。",
+        "falsifier": "恒科收复 200 日线 4.802 并连续两日站上 4.016 的 20 日均线。",
+        "next_evidence": "恒科 200 日线位置与南向资金连续净额方向；今天南向仍在净流出的一侧。",
+        "fundamentals": "指数 ETF，没有公司基本面口径；要看的是指数成分盈利与南向资金两条。",
+        "cross_market": "与美股方向相反：纳指上一场 -3.46%，恒科 +0.29%，港股科技这一晚没有跟随美股杀跌。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新；隔夜软消息里有一条 AI 向下、老登开始往上的板块观点，属于风格轮动解读，不构成个股判断。",
+        "peer_read": "题材涨、自己慢：权重股带动指数涨 1% 到 3.5%，它只有 +0.27%；但它与 03033 跟踪同一指数，日间差异是跟踪误差，切换没有意义。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": true,
         "effective": "wait",
@@ -368,7 +453,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "03033",
+        "verdict": "bearish",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "1000 股恒科 1x，成本 5.14、现价 3.692、浮亏 28.17%，200 日线下方 21.7%，RSI 31.9，1 个月跌 11.1%；它同时是 07226 换 1x 的处方目标。",
+        "counterargument": "它是港股腿里唯一不付日度重置费的恒科敞口，如果 07226 最终换仓成 1x，它是最自然的承接位置，而且已经持有 1000 股。",
+        "rationale": "过去 19 个 episode 胜率 26%，加仓三次赢一次；恒科趋势关掉这条规则在 585 次事件上给出 61% 的回避优势，同因子重复加码没有依据。",
+        "falsifier": "恒科收复 200 日线 4.716 并站稳 20 日均线 3.939。",
+        "next_evidence": "07226 是否按硬止损纪律换仓；如果换，03033 的承接量与单名占比要重新算。",
+        "fundamentals": "指数 ETF，无公司基本面；跟踪误差与费率是唯一差异。",
+        "cross_market": "跟随港股自身资金面，不跟随美股；这一晚恒科与纳指方向相反。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新；直接相关的一条是 10 月 28 日的港股通持股分析报道，属于资金面描述，不改变仓位。",
+        "peer_read": "题材涨、自己也涨：权重股反弹带动指数，它 +0.65% 略强于指数 +0.29%；跟踪同一指数的两只 1x 里它占优，但幅度差只是跟踪误差级别。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": true,
         "effective": "wait",
@@ -418,7 +517,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "CRCL",
+        "verdict": "mixed",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "2 股，成本 87、现价 72.54、浮亏 16.62%，上一场跌 9.31%，处在 z 值 -2.88σ 的极端位置，200 日线下方 15.7%、RSI 37.0，回本需要 19.9%，是组合里最接近回本的一只；11 月 4 日盘前财报。",
+        "counterargument": "Q2 营收 7.013 亿美元、净利 4822 万美元、现金 17.30 亿美元，资产负债表干净；稳定币 2030 年 2 万亿美元的行业预期加上监管放松提案，是对它最直接的利好叙事。",
+        "rationale": "过去 11 个 episode 胜率 45%，持 9 次赢 4；财报前 2 股仓位不值得用方向性判断去动，左档今天也不做。",
+        "falsifier": "11 月 4 日财报显示储备规模或营收不及预期，或稳定币板块在它身上出现连续第二场领跌。",
+        "next_evidence": "11 月 4 日盘前财报的一手数字：营收、储备规模、利息收入占比。",
+        "fundamentals": "Q2 口径可用：营收 7.013 亿美元、营业利润 3436 万美元、净利 4822 万美元、经营现金流 5.385 亿美元、现金 17.30 亿美元；资产 771.65 亿美元、负债 736.55 亿美元，其中 USDC 储备是负债端主要部分。",
+        "cross_market": "跟随加密 beta，不跟随美股科技；这一场币安被盗引发的抛售把它和 Coinbase、BKKT 一起打下去，PYPL 却逆势 +0.11%。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新；可见的软消息是币安被盗后分阶段恢复提现、渣打预计稳定币市场 2030 年达 2 万亿美元、分析师讨论一种选举结果对比特币最有利，没有一条能替代 11 月 4 日的财报。",
+        "peer_read": "题材跌、自己跌得更多：Coinbase -10.62%、BKKT -8.66%、HOOD -7.21%、PYPL +0.11%，它 -9.31% 居中偏后；落后的是整个加密 beta，不是稳定币逻辑单独崩坏。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": true,
         "effective": "wait",
@@ -468,7 +581,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "SPCX",
+        "verdict": "mixed",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "1 股正股，成本 147.5、现价 134.72、浮亏 8.66%，是组合里唯一浮亏不到两位数的位置；但价格落在 20 日低点 140.66 下方，RSI 37.2，而同一因子的名义敞口 93.22% 压在它身上。",
+        "counterargument": "10 月 20 日的 Q3 是组合里最好的一份财报，营收从去年同期 55.76 亿美元放大到 145.75 亿美元，净利从 -10.54 亿转为 +44.04 亿；只持 1 股等于几乎没参与这次改善。",
+        "rationale": "过去 9 个 episode 胜率 11%，加仓两次全输；在这次财报的一手复盘补齐之前不重复加仓，左档今天不做。",
+        "falsifier": "一手复盘确认现金流与 Starlink 收入口径可持续，或价格收复 20 日低点 140.66。",
+        "next_evidence": "10 月 20 日 Q3 申报的一手复盘，研究台账里这条是空的，下次走 earnings 复盘流程补上。",
+        "fundamentals": "Q3 营收 145.75 亿美元、净利 44.04 亿美元、经营现金流 130.97 亿美元、研发 45.96 亿美元、现金 512.94 亿美元、股东权益 1767.68 亿美元；资产从年末 920.79 亿膨胀到 2540.45 亿。",
+        "cross_market": "与美股科技 beta 相关但自身有独立节奏；纳指 -3.46% 的夜里正股跌 6.37%，比指数多。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新；隔夜消息里 Starlink 订阅爆发式增长是软标题，另有 10-Q 提交这一条硬事实但没有被升级为可交易事件。",
+        "peer_read": "题材跌、自己居中：IRDM -2.48%、ASTS -4.88%、BKSY -6.93%、RKLB -7.39%，它 -6.37% 居中；正股没有跑输板块，问题出在 2x 那条腿。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": true,
         "effective": "wait",
@@ -518,7 +645,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "07709",
+        "verdict": "neutral",
+        "confidence": 0.52,
+        "disposition": "wait",
+        "assessment": "100 股海力士 2x，成本 20.04、现价 22.40、浮盈 11.78%，但上一场单日跌 12.57%；标的 SK 海力士 1 个月跌 22.9%、RSI 44.8、波动年化 81.06%，隔夜二季度营业利润低于预期。",
+        "counterargument": "存储是 AI 资本开支最直接的受益环节，海力士的季度利润率仍在全球第一，2x 仓位在周期反转时的弹性最高，这次 miss 也许只是节奏问题。",
+        "rationale": "这只票只有 1 个历史 episode，样本不足以支撑任何主动动作；左档今天不做，事件窗口前不主动加也不主动砍 2x。",
+        "falsifier": "海力士后续披露显示存储价格与订单重新转强，或产品价格收复 30 日均线 155.17 后继续站稳。",
+        "next_evidence": "港股对这次业绩的第一手反应与存储现货价格；左档今天不做，等港股开盘的反应。",
+        "fundamentals": "标的季度营业利润低于预期是唯一一条新的公司级信息；产品层面是每日重置的 2x，没有自己的基本面。",
+        "cross_market": "跟随全球科技 beta 与存储周期，与港股 AI 板块无直接关系。",
+        "sentiment_read": "⚠️ 舆情快照 73 小时未刷新；隔夜可见的是软消息，一篇问跌 33% 该卖还是该加的评论与股票社区讨论，没有独立信息族，也没有硬催化。",
+        "peer_read": "题材跌、自己跌得更多：标的 SK 海力士 1 个月 -22.9%，产品上一场 -12.57%；ADR 已经在跌，港股这天的反应还没出，落后的是时差与 2x 结构。"
+      },
       "candidate_disposition": {
         "deterministic_candidate": true,
         "effective": "wait",
