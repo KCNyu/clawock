@@ -1,15 +1,15 @@
 {
   "available": true,
-  "as_of": "2026-10-23",
+  "as_of": "2026-10-30",
   "window_days": 7,
-  "impressions": 23,
+  "impressions": 0,
   "clicks": 0,
-  "impressions_28d": 100,
-  "position": 7.22,
+  "impressions_28d": 27,
+  "position": null,
   "pages_with_impressions": 1,
-  "url_count": 142,
-  "queries_reported": 5,
-  "top_query": "+人工智能 新闻 今日%",
+  "url_count": 148,
+  "queries_reported": 3,
+  "top_query": "tencent29209",
   "sitemap_fetched": null,
-  "readings": 9
+  "readings": 10
 }
