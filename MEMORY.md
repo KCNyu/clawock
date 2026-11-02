@@ -329,3 +329,12 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-28-pre-open.md:9:9 -->
 - Rejected candidate; see private review ledger.
+
+
+## Reviewed Dreaming Memory
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-26-pre-open.md:2:4 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-27.md:3:3 -->
+- Rejected candidate; see private review ledger.
