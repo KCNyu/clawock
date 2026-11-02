@@ -11,16 +11,22 @@ from clawock.harness import chat_card
 from clawock.providers import openclaw
 
 
-def footer(*, paths=None, now_ms=None) -> str:
-    """The two-line footer for the cron turn this process is serving, or ''."""
+def footer(*, paths=None, now_ms=None, job=None) -> str:
+    """The two-line footer for the cron turn this process is serving, or ''.
+
+    `job` names the scheduled job whose card is being sent. The postflights know
+    it (brief/report from their workflow identity, intraday from the preflight
+    heartbeat); naming it is what lets the reader find the live transcript while
+    the runtime's session store still has no `sessionId` for it.
+    """
     try:
-        usage = openclaw.current_cron_run_usage(paths=paths, now_ms=now_ms)
+        usage = openclaw.current_cron_run_usage(paths=paths, now_ms=now_ms, job=job)
     except Exception:
         return ''
     return chat_card.usage_footer(usage)
 
 
-def append(text: str, *, paths=None, now_ms=None) -> str:
+def append(text: str, *, paths=None, now_ms=None, job=None) -> str:
     """`text` with one blank line and the footer, or `text` untouched."""
-    block = footer(paths=paths, now_ms=now_ms)
+    block = footer(paths=paths, now_ms=now_ms, job=job)
     return f'{text.rstrip()}\n\n{block}' if block else text

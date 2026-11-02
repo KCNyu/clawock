@@ -1060,7 +1060,8 @@ def main(argv=None):
             # Same two-line footer as direct chat, appended after validation and
             # stored in the marker so a backstop re-send keeps it. No live run
             # (manual/dry) means no footer, never a zero placeholder.
-            message = run_usage_append(message)
+            message = run_usage_append(
+                message, job=(ctx.get('heartbeat') or {}).get('job'))
             # Same race as #508 on the report path: the marker is written only
             # after both sends return, so a second postflight started inside
             # that window sees "not delivered" and doubles the slot. The claim
