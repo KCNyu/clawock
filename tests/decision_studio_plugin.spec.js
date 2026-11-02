@@ -2127,6 +2127,22 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     ).get(true);
     assert.equal(mmMissingId.status, "failed");
     assert.match(mmMissingId.message, /找不到段/);
+
+    // JSON.parse diagnostics can quote the input, which is a credential file.
+    // Exercise both the newly supported secret file and the gateway config.
+    for (const target of [secretsPath, refCfgPath]) {
+      fsMod.writeFileSync(refCfgPath, refConfig(ref, { source: "file", path: secretsPath }));
+      fsMod.writeFileSync(target, 'sekret');
+      const failed = await createMinimaxService(
+        { credentials: { resolve: async () => undefined } },
+        { openclawConfigPath: refCfgPath },
+      ).get(true);
+      assert.equal(failed.status, "failed");
+      assert.match(failed.message, /读不出来/);
+      assert.ok(!JSON.stringify(failed).includes("sekret"),
+        "credential parse errors must not reach the balance response");
+    }
+
   } finally {
     globalThis.fetch = originalFetch;
     fsMod.rmSync(refTmp, { recursive: true, force: true });

@@ -566,9 +566,9 @@ function readOpenclawProviderKey(configPath: string, provider: string): string |
   try {
     cfg = JSON.parse(readFileSync(configPath, 'utf8'))
     if (typeof cfg !== 'object' || cfg === null) throw new Error('配置不是对象')
-  } catch (cause) {
-    throw new Error(`OpenClaw 配置读不出来(${configPath}):`
-      + (cause instanceof Error ? cause.message : String(cause)))
+  } catch {
+    // JSON.parse errors may quote credential contents; never expose the cause.
+    throw new Error(`OpenClaw 配置读不出来(${configPath}):请检查文件权限和 JSON 格式`)
   }
   const providers = cfg?.models as Record<string, unknown> | undefined ?? {}
   const list = providers.providers as Record<string, Record<string, unknown>> | undefined ?? {}
@@ -641,9 +641,9 @@ function readOpenclawSecretRef(
   let doc: unknown
   try {
     doc = JSON.parse(readFileSync(secretPath, 'utf8'))
-  } catch (cause) {
-    throw new Error(`OpenClaw 密钥文件读不出来(${secretPath}):`
-      + (cause instanceof Error ? cause.message : String(cause)))
+  } catch {
+    // JSON.parse errors may quote credential contents; never expose the cause.
+    throw new Error(`OpenClaw 密钥文件读不出来(${secretPath}):请检查文件权限和 JSON 格式`)
   }
   const value = readJsonPointerValue(doc, ref.id)
   if (typeof value !== 'string') {
