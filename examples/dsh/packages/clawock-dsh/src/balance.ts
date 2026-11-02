@@ -36,7 +36,7 @@
  * verbatim.
  */
 
-import { delimiter, dirname, join } from 'node:path'
+import { delimiter, dirname, join, resolve } from 'node:path'
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { spawn } from 'node:child_process'
@@ -551,7 +551,15 @@ export function readJsonFile(path: string): Record<string, unknown> | undefined 
   }
 }
 
-/** kcn keeps provider keys in the openclaw gateway config at this pointer. */
+/**
+ * kcn keeps provider keys in the openclaw gateway config at this pointer.
+ * Two shapes answer: the plain string the config carried until 2026-11, and
+ * the secret reference `openclaw config patch` writes since then
+ * (`{"source":"file","provider":"local","id":"/models/providers/…/apiKey"}`,
+ * resolved through `secrets.providers.<provider>`). A reference whose file or
+ * id cannot be read throws — the key IS configured, it just cannot be read —
+ * so the row shows the reason instead of a lying 「未配置」 (#2266-style).
+ */
 function readOpenclawProviderKey(configPath: string, provider: string): string | undefined {
   if (!existsSync(configPath)) return undefined
   let cfg: Record<string, unknown>
@@ -566,7 +574,82 @@ function readOpenclawProviderKey(configPath: string, provider: string): string |
   const list = providers.providers as Record<string, Record<string, unknown>> | undefined ?? {}
   const entry = list[provider] ?? {}
   const key = entry.apiKey
-  return typeof key === 'string' && key !== '' ? key : undefined
+  if (typeof key === 'string') return key !== '' ? key : undefined
+  if (typeof key !== 'object' || key === null) return undefined
+  return readOpenclawSecretRef(cfg, key as Record<string, unknown>)
+}
+
+/** Walk an absolute JSON pointer (RFC 6901) into a parsed JSON document. */
+function readJsonPointerValue(root: unknown, pointer: string): unknown {
+  if (!pointer.startsWith('/')) {
+    throw new Error(`密钥引用 id 必须是绝对 JSON 指针(以 / 开头):${pointer}`)
+  }
+  let current: unknown = root
+  for (const raw of pointer.slice(1).split('/')) {
+    const token = raw.replace(/~1/g, '/').replace(/~0/g, '~')
+    if (Array.isArray(current)) {
+      if (!/^(0|[1-9]\d*)$/.test(token) || Number(token) >= current.length) {
+        throw new Error(`密钥引用 id ${pointer} 的段「${token}」越界`)
+      }
+      current = current[Number(token)]
+      continue
+    }
+    if (typeof current !== 'object' || current === null || !Object.hasOwn(current, token)) {
+      throw new Error(`密钥引用 id ${pointer} 找不到段「${token}」`)
+    }
+    current = (current as Record<string, unknown>)[token]
+  }
+  return current
+}
+
+/**
+ * Resolve one `{source, provider, id}` secret reference. Only the `file`
+ * source with `mode: "json"` (openclaw's default) is read here; the reference
+ * `id` is an absolute JSON pointer into the provider's file.
+ */
+function readOpenclawSecretRef(
+  cfg: Record<string, unknown>,
+  ref: Record<string, unknown>,
+): string | undefined {
+  if (ref.source !== 'file') {
+    throw new Error(`OpenClaw 密钥引用来源暂不支持:${String(ref.source)}(只支持 file)`)
+  }
+  if (typeof ref.provider !== 'string' || ref.provider === '') {
+    throw new Error('OpenClaw 密钥引用缺少 provider')
+  }
+  if (typeof ref.id !== 'string' || ref.id === '') {
+    throw new Error('OpenClaw 密钥引用缺少 id')
+  }
+  const secrets = cfg?.secrets as Record<string, unknown> | undefined ?? {}
+  const providerList = secrets.providers as Record<string, Record<string, unknown>> | undefined ?? {}
+  const providerEntry = providerList[ref.provider]
+  if (typeof providerEntry !== 'object' || providerEntry === null) {
+    throw new Error(`OpenClaw secrets.providers.${ref.provider} 不存在`)
+  }
+  if (typeof providerEntry.path !== 'string' || providerEntry.path === '') {
+    throw new Error(`OpenClaw secrets.providers.${ref.provider}.path 缺失`)
+  }
+  if (providerEntry.mode !== undefined && providerEntry.mode !== 'json') {
+    throw new Error(`OpenClaw secrets.providers.${ref.provider} 的 mode ${String(providerEntry.mode)} 暂不支持(只支持 json)`)
+  }
+  // Same rules as openclaw's own resolver: `~` expands, relative paths
+  // resolve against the process cwd (the live path here is absolute).
+  const secretPath = resolve(expandHome(providerEntry.path))
+  if (!existsSync(secretPath)) {
+    throw new Error(`OpenClaw 密钥文件不存在(${secretPath})`)
+  }
+  let doc: unknown
+  try {
+    doc = JSON.parse(readFileSync(secretPath, 'utf8'))
+  } catch (cause) {
+    throw new Error(`OpenClaw 密钥文件读不出来(${secretPath}):`
+      + (cause instanceof Error ? cause.message : String(cause)))
+  }
+  const value = readJsonPointerValue(doc, ref.id)
+  if (typeof value !== 'string') {
+    throw new Error(`OpenClaw 密钥引用 ${ref.id} 的值不是字符串(${secretPath})`)
+  }
+  return value !== '' ? value : undefined
 }
 
 /** The last good snapshot a process left at `path`; null when there is none or it is not one. */
