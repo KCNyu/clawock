@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-29T18:44:02.437003+00:00",
+  "generated_at": "2026-11-02T22:01:14.168976+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n\n- **GOOGL** — Alphabet Q3’26 营收增长 25%、Cloud 增长 103% 且 Search 走强，但盈利不及预期，AI 支出及投资损失拖累利润。  \n  **对 kcn 仓位**：相关 SPCX 敞口由 SPCH（2x）承载，财报后波动将被放大 2 倍；增长强劲与资本开支压力并存。\n- **RKLB** — Neutron 二级段及推力模块抵达 Wallops Island、进入地面测试前检查；分析模型公允值却由约 $105.05 下调至 $102.15。  \n  **对 kcn 仓位**：kcn 持有 RKLX（2x），里程碑利好与进一步延期都会放大 2 倍，短期偏正面但执行风险未消。\n- **CRCL** — Circle 要求 SEC 澄清或放宽稳定币监管规则；USDC 余额创 $20B，Coinbase 的银行合作扩大生态覆盖。  \n  **对 kcn 仓位**：CRCL 获监管选择权及生态需求支撑，但当前只是提案而非规则获批，不宜提前计入全部利好。\n- **TSLA** — Tesla 月内上涨 13%，部分来自 SpaceX 合并传闻、交付超预期及 Barclays 上调；交易条款尚未公布，Q3 利润同比下降。  \n  **对 kcn 仓位**：SPCX 敞口经 SPCH（2x）持有，合并溢价及消息反转的净值影响均会放大 2 倍。\n\n### Per-ticker 简报 (有新闻才列)\n\n- **CRCL**：USDC 生态扩张及 SEC 提案偏正面，但规则未落地、临近财报的市场预期为盈利下滑，整体影响中性偏多。\n- **RKLB**：Neutron 硬件进入地面测试准备阶段，抵消部分延期担忧，但公允值下调显示时间表风险仍高。\n- **SPCX**：GOOGL 业绩混合、TSLA 合并传闻主导相关敞口波动；SPCH 的 2x 杠杆放大上下行风险。\n\n### 风险 watch (若有)\n\n- **CRCL**：SEC 稳定币规则仍属提议阶段；分析师预期下一财报盈利下滑。\n- **RKLB**：Neutron 延期已触发约 3% 公允值下调，RKLX（2x）将放大进一步延期冲击。\n- **SPCX**：GOOGL 的 AI 支出及投资损失压制盈利；TSLA/SpaceX 合并没有正式条款，SPCH（2x）可能放大合并溢价回吐。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: 报道称 SpaceX 正与 EchoStar 商谈收购 Boost Mobile 或取得无线网络接入权，SPCX 盘中约涨 2%–4%，AST SpaceMobile 跌 10%。  \n  **Implication（仓位含义）**: kcn 通过 **SPCH** 持有 SPCX；**2x 杠杆**会同步放大交易消息带来的上涨及利好回吐，消息尚未落定。\n- **RKLB**: 第 99 次 Electron 发射成功，将 iQPS 的 QPS-SAR 地球成像卫星送入轨道。  \n  **Implication（仓位含义）**: kcn 通过 **RKLX** 持有 RKLB；任务成功强化执行能力，**2x 杠杆**放大短线动量，也放大成功预期兑现后的回撤。\n- **CRCL**: Q3 财报将于周三盘前发布，Polymarket 对“超预期”的隐含概率约 73%，但 USDC 储备及 AI 收入风险仍是变量。  \n  **Implication（仓位含义）**: CRCL 直接仓位面临财报跳空风险；73% 是市场定价而非公司指引，不能视为确定性利好。\n- **RKLB**: NASA 新商业空间站采购模式将 Rocket Lab 列为未来发射选项，Neutron 目标于 2027 年首飞，但报道未披露已获订单。  \n  **Implication（仓位含义）**: **RKLX 的 2x** 会放大商业空间站预期带来的重估；订单落地前仍属于远期可选性而非确定收入。\n\n### Per-ticker 简报 (有新闻才列)\n- **SPCX**: Boost Mobile 交易传闻强化其直接进入美国移动通讯市场的逻辑；Verizon 管理层警告显示运营商竞争与监管阻力仍高。\n- **RKLB**: Electron 连续成功发射验证任务执行能力；NASA 商业空间站方案提供长期发射需求，但尚无订单金额或时间表。\n- **CRCL**: 本周财报是近端核心催化；美国国会可能加强加密“中介机构”监管，叠加行业资金外流与安全事件，情绪波动风险偏高。\n\n### 风险 watch\n- **CRCL**: 加密监管仍是政策风险；Binance 报告自 11 月 1 日起净流出 47 亿美元及重大安全事件可能压制行业风险偏好，但并非 Circle 自身经营数据。\n- **SPCX**: Boost Mobile 谈判仍属媒体报道，并非已签署交易；潜在反垄断审查及 incumbent 运营商阻击可能令 SPCH 的 2x 波动迅速反向放大。\n- **RKLB**: NASA 事项仅为发射选项、并非已授予合同；Neutron 的 2027 年时间表若延后，RKLX 的 2x 估值弹性也会反向放大。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Origin Bancorp (OBK) Beats Q3 Earnings and Revenue Estimates",
-        "datetime": 1793226609,
-        "source": "Yahoo",
+        "headline": "Midterms: A Democratic Congress Can't Ban Bitcoin, But It Can Reach Many Intermediaries",
+        "datetime": 1793613094,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e370e93819dabd18ca5f74594d97be8a457025160d2d41dc993aaa101d272cfb"
+        "url": "https://finnhub.io/api/news?id=fa047fa88e286347e8c5d84d667da548aafd4e08c11fe449bc0337ba18e5d81e"
       },
       {
-        "headline": "Will Growing Stablecoin Adoption Strengthen Coinbase's Prospects?",
-        "datetime": 1793206860,
+        "headline": "CRCL Faces Q3 Test as Prediction Markets Bet on Earnings Beat Despite AI Revenue Risks",
+        "datetime": 1793611571,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=14dfb63d2293995e6d5fe2288a41f8cc59b979e0de370678ca4c592014830501"
+        "url": "https://finnhub.io/api/news?id=0f346172fc96704e3e8f97c4ab1fe28905934c31774e96d5e3f071efc8a8ceda"
       },
       {
-        "headline": "Circle Urges SEC to Ease Stablecoin Rules in Crypto Fundraising Proposal",
-        "datetime": 1793202660,
-        "source": "Yahoo",
+        "headline": "Binance Discloses Net Platform Outflows Of $4.7B Since Sunday, November 1",
+        "datetime": 1793602163,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=595b8dbcdf7aa6413b4def081a09ae990bf6c95748ad63364abb0e0e2be31653"
+        "url": "https://finnhub.io/api/news?id=865e952776a85bea17684e2da6aece5d67ae31b24e0a779d8b5a80aeab26e316"
       },
       {
-        "headline": "Analysts Estimate Circle Internet Group, Inc. (CRCL) to Report a Decline in Earnings: What to Look Out for",
-        "datetime": 1793192427,
+        "headline": "3 Crypto Earnings Reports to Watch For First Week of November",
+        "datetime": 1793599200,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=21f874d692970d96aae3d8ee3eeccec1aca9e9af6a2e18242956edd9b741c803"
+        "url": "https://finnhub.io/api/news?id=5fc00cf32fd2ba0b1163a72c52f687b7b2d95cb63a0a2f5a3e5ced25bfed0ec5"
       },
       {
-        "headline": "YieldMax® ETFs Announces Weekly Distributions for Group 2 ETFs",
-        "datetime": 1793184900,
+        "headline": "Binance Hack Shows ‘Everyday Is Zeroday,’ Says Elon Musk: Attack on Platform Biggest Financial Heist in Crypto History",
+        "datetime": 1793593805,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=10a7a63fc43cd19607f9c79f486deb5bc132f93f505c0306270b1801626f41a0"
+        "url": "https://finnhub.io/api/news?id=07a0afdc189fca17af1d82fca0ccc7e01313146c442406c4fe77a49ab2452f44"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab (RKLB) Stock Gets Fair Value Trim After Neutron Delay Raises Execution Risk",
-        "datetime": 1793293967,
+        "headline": "MISSION SUCCESS: Rocket Lab Launches 99th Electron Mission",
+        "datetime": 1793643720,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=785bb6b267edfef79202644beadcb33dda022ed002ae0b60cfc7f666b97b578a"
+        "url": "https://finnhub.io/api/news?id=6aa7cb03c372d7d010e93e3dc78b70325b83c34c001f8ad49f0fd88e4c2075c9"
       },
       {
-        "headline": "Is Rocket Lab Stock Increasing Your Market Risk?",
-        "datetime": 1793274245,
+        "headline": "Rocket Lab (RKLB) Is Emerging As A Key Launch Option For Commercial Stations",
+        "datetime": 1793639486,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ff5edfaa0006bc54f93e283f86d16204eb38e1fde6497a546315477e0d9bfa6d"
+        "url": "https://finnhub.io/api/news?id=3942ac3bb012b399cbea5ef8ae05a8bbad595087de885b0c663e4c3a53089f3d"
       },
       {
-        "headline": "FTAI Aviation (FTAI) Q3 Earnings and Revenues Beat Estimates",
-        "datetime": 1793270704,
+        "headline": "SpaceX Climbs 4% on Reported Boost Mobile Talks; AST SpaceMobile Falls 4%, Rocket Lab Dips",
+        "datetime": 1793634969,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=02a370fcc7ab50d4108b09293b6bb85518db5922e1a4b774aaf4035551b5dbf7"
+        "url": "https://finnhub.io/api/news?id=7a10598f1fa3372f5d2e776c214cef59e4d04ece6918acb3afb2d57642570803"
       },
       {
-        "headline": "RKLB Stock Eyes Best Week In A Month: Neutron, Electron And NASA Updates Stack Up — Why Is Retail Still On The Fence?",
-        "datetime": 1793243145,
+        "headline": "Do Democrats Help Or Hurt SpaceX Stock At $135?",
+        "datetime": 1793625484,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1c1fe346d720651ba8110152bdb2db5b520bff177a5647f532943225d9d97699"
+        "url": "https://finnhub.io/api/news?id=d5db15abada2ded212549822abfc0453ab4a0bf664dd5aef632cea9b7d744d3e"
       },
       {
-        "headline": "IPO Edge NYSE Firesides Scheduled for Dec 7",
-        "datetime": 1793226091,
+        "headline": "The Space Stock With a Much Bigger Opportunity Than Launches",
+        "datetime": 1793623628,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=34ea674bc073a4546b89f530a953ad3f4a825341efd3e9ef3eabe79b99d9e40c"
+        "url": "https://finnhub.io/api/news?id=9255d55ae19c1f13a8766c840a3c667e01ee0bac01d5173b27df2aaed2b5c29e"
       }
     ],
     "SPCX": [
       {
-        "headline": "Barclays sees major Tesla upside for retirement investors",
-        "datetime": 1793296020,
+        "headline": "AST SpaceMobile Sinks 10% as SpaceX Rises 2% on Reported Talks to Buy Boost Mobile",
+        "datetime": 1793649559,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=efdb0a62f93ff31d0c921ff6fb224740459e4bac418deb1ae3fe143c78cbb1bb"
+        "url": "https://finnhub.io/api/news?id=728b64c00870c31217c1849669b530fbaf28aaba31859735b8f10c9fb680a66b"
       },
       {
-        "headline": "Yardeni Says AI Investment Boom Is Here To Stay — But Warns AI Stock Jitters Could Persist",
-        "datetime": 1793295881,
+        "headline": "Verizon's CEO Has a Warning for SpaceX and Its Mobile Plans",
+        "datetime": 1793646842,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6f04db6fffde9215de53c245ec5e8a68c39d0c20388a85778cae133a41093d67"
+        "url": "https://finnhub.io/api/news?id=2c45045c57e1a840176ebd5fd578ad4eaa979c8efcb00d399415504112476959"
       },
       {
-        "headline": "Tesla Just Gained 13% in a Month: Take Profits, or Buy More?",
-        "datetime": 1793295272,
+        "headline": "Why Musk's telecom play is no 'Hail Mary' fix",
+        "datetime": 1793645905,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7d6b478b36960088649cacfa0737a0ca9d755422df80b67c15c69d65efaf2333"
+        "url": "https://finnhub.io/api/news?id=1cd4d0c77eccc544db49f1189c6760e4e468e23632b7946f47422271c100b815"
       },
       {
-        "headline": "GOOGL Q3 Earnings Miss Estimates, Cloud & Search Aid Top-Line Growth",
-        "datetime": 1793292480,
+        "headline": "Active Fund Managers Staged a Big Comeback. Can It Last?",
+        "datetime": 1793645580,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2da1173f1970ee0454e35c600cfcb6f197388caf3eed431a2179a873dac6e5af"
+        "url": "https://finnhub.io/api/news?id=7d414e07a302bc95fc9016a7968a59fbfdb8881f8176b852a038cd5bd195a1b1"
       },
       {
-        "headline": "Here's What a $2,000 Investment in SpaceX Stock Could Be Worth in 10 Years",
-        "datetime": 1793291820,
+        "headline": "Gary Black Cautions Tesla Shareholders On SpaceX Merger Risks: Says Marvell-Lumentum Deal Reaction Offers Early Warning",
+        "datetime": 1793644278,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=448f249033065448a9ce2b1505d4d512b1770245cb48023697ee020e8b3f0904"
+        "url": "https://finnhub.io/api/news?id=ea9d46501fd556757bf9a398b2760f2b36b28f425951ad89fe61ad2d2514afd9"
       }
     ]
   },
