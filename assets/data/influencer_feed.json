@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-03T03:01:33.534803+00:00",
+  "generated_at": "2026-11-03T19:51:26.703174+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,158 +24,255 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 23,
-    "held_hits": 0,
-    "new_ideas": 11,
-    "sector_hits": 11
+    "total": 18,
+    "held_hits": 1,
+    "new_ideas": 13,
+    "sector_hits": 4
   },
   "items": [
     {
-      "author": "Burry",
-      "text": "QUICK SPARK: Michael Burry Adds to JD, BYD as Hong Kong Stocks Languish",
-      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOaTBJZVZZVF9kQ1JYOVBGTjlJaXZaVDBYX0R1YkJ1STZ5WEpFRC1qSW9zMW9qLVd1bkhNTTZWMWRGM2hYS1ZqVGVMbHBvS2VCMXI4WTBCdi1FWjM5VUVpTjBaOTdDWGtEQ1l0d1BLcndCd016YjlFU0I1Q1NndGZMMGFvdm5uYmR3bUladno4dlB5b0ZNX1pGSml2LTBVblYyNXFfWnBtZ3NCa1dpb1dpN1UtQnNXUEVzNmhqWE1ud0E5MlN1NVhF?oc=5",
-      "published": "2026-11-02T16:33:43+00:00",
-      "origin": "gnews-rss",
-      "source": "TradingView",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Circle Internet Group, Inc(CRCL) 买入 ARKK 22,707 股 / ARKW 6,212 股 / ARKF 6,738 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0676,
       "tickers": [
-        "09618",
-        "01211"
+        "CRCL"
       ],
-      "held": [],
-      "new_ideas": [
-        "01211",
-        "09618"
+      "held": [
+        "CRCL"
       ],
+      "new_ideas": [],
       "sectors": [
-        "港股",
-        "电商",
-        "电动车",
-        "中国消费"
+        "加密货币",
+        "金融科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry在港股走弱期间增持京东与比亚迪，属于直接买入动作。"
+      "relevance": 88,
+      "summary_cn": "ARK Invest买入Circle（CRCL）22,707股，并在多只ETF同步建仓。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry’s Fiserv Buyout Math Hits $120 — Reaffirms PayPal As A ‘Fat Pitch’ Amid Global Payments Deal Buzz",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxObVdZTUhWd3dvdElvS1kyVjF4dkRjSGJVM2JoVXdLaEpLZkg0YkNRNzdWTnJxVWo4VkNhal9GSVc0RFZGaHhmWmpZZHRXYml1MG9PdXhxTmlrMkQzcjBjdXJhVlhJN2ZrN2M5aTFWYThWVFVrY3pVNDMtcDVOMDNWM3E3dFBIazF0a1lkUEtQRmdFR2I4dkNjQVVqQW1YZw?oc=5",
-      "published": "2026-11-02T08:48:42+00:00",
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Family Bought Intel in July, Right Before Its Worst Day Since 1974",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOWTNiTktZRnJNY3BnTkE0aGQ2THBwOUFCY0tibU1GNUF5aW9Ob0RsWVhLSTJqNlFvQzA2ZEdTSWlycV9ZeFdhZHg3Z3hyYnZqM3ZaOG42b2stdTlJSFFZT21rZU0zVW8zSjdIQ3Z1V3h5T3pUTDU5UkV0MmZsUFFhTXhxU2g2Zll4a1ZXVk1JakV1LVpvZHVhbFE5cE1JZw?oc=5",
+      "published": "2026-11-03T12:51:07+00:00",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
-        "FISV",
-        "PYPL"
+        "INTC"
       ],
       "held": [],
       "new_ideas": [
-        "FISV",
-        "PYPL"
+        "INTC"
       ],
       "sectors": [
-        "金融科技",
-        "支付",
-        "并购"
+        "半导体"
       ],
       "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 77,
-      "summary_cn": "据报道，Michael Burry认为全球支付并购可使Fiserv估值达到约120美元，并重申PayPal的看多逻辑。"
-    },
-    {
-      "author": "段永平",
-      "text": "大股東增持建滔集團、建滔積層板 (17:16) - 20261102 - 即時財經新聞",
-      "url": "https://news.google.com/rss/articles/CBMimwJBVV95cUxPbjlpQ0JQR1E0RTI2TWREa0NqelpackZySlRwQjBNbzVidDZKM2ZIeE9tcWN3VmRqUkd4aDh2MXB6VUU1ZktNRTZNWHk0X2hNNlBaWkdnVWZ3Z0VIWk53NlpSb0k5UzAxaUVSeHdFU0NpNWk2NjQ1MGZBRFB5ZG9Oc1AxeVJZcWFBVGN1cC00Y2hZdTRTVkFpc0pNNHZhVkhuRXh2ZU8weHdmWGNZUmoxUjZBdk5HTVFEeWttSVZjSTMwT1Nhdmt3RUExQkFRN0tYQXpzWVhhY1pjMjFlRnU4SnZNRllIUVZXRmNLMndQUkxyMEZ4MHljZy1lQXVVUWpMR2pTMl9YVWdqZnQycGxlUkkxLTB5bGdJT3dZ?oc=5",
-      "published": "2026-11-02T09:20:27+00:00",
-      "origin": "gnews-rss",
-      "source": "明報財經網",
-      "tickers": [
-        "00188",
-        "01888"
-      ],
-      "held": [],
-      "new_ideas": [
-        "00188",
-        "01888"
-      ],
-      "sectors": [
-        "港股",
-        "电子材料",
-        "PCB",
-        "科技硬件"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
         "07709"
       ],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，建滔集团及建滔积层板的大股东实施增持，属于直接股东买入动作。"
+      "relevance": 82,
+      "summary_cn": "最新国会披露显示，Pelosi家族于7月买入英特尔（INTC），该交易发生在股价遭遇大跌之前。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Eli Lilly and Company(LLY) 卖出 ARKK 17,626 股（最大单只 ETF 占比 0.39%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-10-30T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.3878,
+      "author": "Burry",
+      "text": "Michael Burry adds to BYD, SFM, JD, sees up to 140% potential in Fiserv (BYDDF:OTCMKTS)",
+      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNbHpwRnlVeV9OVHNtQm4xeVNfYUJxR0tuZWRZYU93TWIyRHhycEdySXUtS1NnUXQ0TVVkQmpubjMzRTl1eUFSNjlTenVhaW5xY1B4T2RWSXdiOFU2MU5wUDlXU2dISV9TUzVjV1VIX0p2LXBOUTl5RzlSaHNleE1hTjVGdkRUWWhLM3NXNnN4UjRiRzZ5TmtOamRlTU02YVdYWDU5aEg1ZzE?oc=5",
+      "published": "2026-11-03T06:52:34+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
       "tickers": [
-        "LLY"
+        "BYDDF",
+        "SFM",
+        "JD",
+        "FI"
       ],
       "held": [],
       "new_ideas": [
-        "LLY"
+        "BYDDF",
+        "FI",
+        "JD",
+        "SFM"
       ],
       "sectors": [
-        "医疗保健",
-        "生物制药"
+        "电动车",
+        "电商",
+        "金融科技",
+        "支付"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry增持比亚迪（BYDDF）、SFM、京东（JD），并认为Fiserv（FI）最高存在140%的上涨空间。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk wants to take on Verizon, AT&T, and T-Mobile. He may have found a way",
+      "url": "",
+      "published": "Tue, 03 Nov 2026 02:54:28 GMT",
+      "origin": "gnews-rss",
+      "source": "Fast Company",
+      "tickers": [
+        "VZ",
+        "T",
+        "TMUS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "T",
+        "TMUS",
+        "VZ"
+      ],
+      "sectors": [
+        "电信",
+        "无线通信"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道，Elon Musk计划挑战Verizon（VZ）、AT&T（T）和T-Mobile（TMUS），可能重塑美国无线通信市场。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry ‘Docked LULU’ For Near-Term ‘Uncertainty’ — Believes Lululemon ‘Will Come Back’",
+      "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOdnVJWk9uaHcxOGJub3FiTHB0NEFqbnJpOUd3bDd2MWdXWndZSXFaRUdsdGRtQjlfeXJ0Y08zVlNkd0I1OEVGUVpQQkhLVzQzTVM3bGxtcHMxWlpRNWNBZDZjQjFIVmlIYXlObHhMb0M1SEktOFN3VTJhUUNFUl9jclh6ZHo1TFg5bFdERlp5UklFRFhfRmRla3kxQXFNN05ZTEoyU09Ga2otbnFQaldybWFzbmNlY2d0U3l6dm85ZS12WG5DUC1DRWpRWFZERU5sV1RjT3BHRUNRQXBGUmlyN0lxcw?oc=5",
+      "published": "2026-11-03T07:08:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "LULU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LULU"
+      ],
+      "sectors": [
+        "可选消费",
+        "零售"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 74,
+      "summary_cn": "据报道，Michael Burry因短期不确定性下调Lululemon（LULU），但同时认为该股未来会回来。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Tesla and SpaceX Block Their Stock From OKX-ICE Tokenized Venue",
+      "url": "",
+      "published": "Tue, 03 Nov 2026 17:46:15 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天",
+        "加密货币",
+        "代币化证券"
+      ],
+      "sector_holdings": [
+        "CRCL",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 73,
+      "summary_cn": "据报道，Tesla（TSLA）和SpaceX阻止其股票进入OKX-ICE代币化交易场所，对传统代币化证券平台构成负面信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX Reportedly Talking With EchoStar About A Boost Mobile Deal",
+      "url": "",
+      "published": "Mon, 02 Nov 2026 14:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Deadline",
+      "tickers": [
+        "SATS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SATS"
+      ],
+      "sectors": [
+        "电信",
+        "卫星通信",
+        "无线通信"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "据报道，SpaceX正与EchoStar（SATS）洽谈Boost Mobile交易，涉及SpaceX卫星通信能力与EchoStar移动业务的合作。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 341,024 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2441,
+      "tickers": [
+        "PSNL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSNL"
+      ],
+      "sectors": [
+        "医疗科技",
+        "基因测序"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK卖出Eli Lilly 17,626股，单只ETF最大占比0.39%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest从ARKG卖出Personalis（PSNL）341,024股，最大单只ETF占比为0.24%。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Tempus AI, Inc.(TEM) 买入 ARKK 93,407 股 / ARKG 61,114 股（最大单只 ETF 占比 0.18%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-30T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1841,
+      "author": "Musk",
+      "text": "Musk’s pay under a SpaceX-Tesla merger: voting control, but no $1 trillion payday​",
+      "url": "",
+      "published": "Tue, 03 Nov 2026 14:51:39 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
       "tickers": [
-        "TEM"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "TEM"
+        "TSLA"
       ],
       "sectors": [
-        "AI医疗",
-        "医疗科技"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
-        "00100"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK和ARKG合计买入Tempus AI 154,521股，单只ETF最大占比0.18%。"
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，Tesla（TSLA）与SpaceX合并方案讨论重点包括Musk的控制权及潜在巨额薪酬，对TSLA治理和估值具有影响。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Bullish(BLSH) 卖出 ARKK 115,132 股 / ARKW 61,771 股 / ARKF 61,470 股（最大单只 ETF 占比 0.19%）",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Bullish(BLSH) 卖出 ARKK 50,196 股 / ARKW 25,178 股 / ARKF 28,798 股（最大单只 ETF 占比 0.10%）",
       "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-30T20:00:00+00:00",
+      "published": "2026-11-02T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1943,
+      "etf_percent": 0.0952,
       "tickers": [
         "BLSH"
       ],
@@ -184,24 +281,49 @@
         "BLSH"
       ],
       "sectors": [
-        "加密货币",
-        "数字资产交易"
+        "医疗科技",
+        "生物科技"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "ARK Invest从多只ETF卖出Bullish（BLSH），最大单只ETF占比为0.10%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Robinhood Markets, Inc.(HOOD) 买入 ARKF 7,703 股（最大单只 ETF 占比 0.09%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0904,
+      "tickers": [
+        "HOOD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "HOOD"
+      ],
+      "sectors": [
+        "金融科技",
+        "加密货币交易",
+        "零售交易"
       ],
       "sector_holdings": [
         "CRCL"
       ],
-      "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK、ARKW及ARKF合计卖出Bullish 238,373股，单只ETF最大占比0.19%。"
+      "stance": "buy",
+      "relevance": 58,
+      "summary_cn": "ARK Invest在ARKF买入Robinhood（HOOD）7,703股，但占比仅0.09%，属于规模较小的常规加仓。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 50,859 股（最大单只 ETF 占比 0.18%）",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 21,929 股（最大单只 ETF 占比 0.09%）",
       "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-30T20:00:00+00:00",
+      "published": "2026-11-02T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1836,
+      "etf_percent": 0.0853,
       "tickers": [
         "CDNA"
       ],
@@ -211,21 +333,21 @@
       ],
       "sectors": [
         "医疗科技",
-        "基因检测"
+        "基因测序"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKG卖出CareDx 50,859股，占比0.18%。"
+      "relevance": 56,
+      "summary_cn": "ARK Invest从ARKG卖出CareDx（CDNA）21,929股，占比0.09%，属于规模较小的常规减仓。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Illumina Inc(ILMN) 买入 ARKK 43,130 股（最大单只 ETF 占比 0.16%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-10-30T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Illumina Inc(ILMN) 买入 ARKG 7,219 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-02T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1562,
+      "etf_percent": 0.0736,
       "tickers": [
         "ILMN"
       ],
@@ -234,142 +356,39 @@
         "ILMN"
       ],
       "sectors": [
+        "医疗科技",
         "基因测序",
-        "生命科学",
-        "医疗科技"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK买入Illumina 43,130股，占比0.16%。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Robinhood Markets, Inc.(HOOD) 买入 ARKF 13,757 股（最大单只 ETF 占比 0.15%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-30T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1496,
-      "tickers": [
-        "HOOD"
-      ],
-      "held": [],
-      "new_ideas": [
-        "HOOD"
-      ],
-      "sectors": [
-        "金融科技",
-        "数字资产交易"
+        "半导体"
       ],
       "sector_holdings": [
-        "CRCL"
+        "07709"
       ],
       "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKF买入Robinhood Markets 13,757股，占比0.15%。"
+      "relevance": 56,
+      "summary_cn": "ARK Invest在ARKG买入Illumina（ILMN）7,219股，但占比仅0.07%，属于规模较小的常规建仓。"
     },
     {
-      "author": "洪灏",
-      "text": "匯豐：穩定幣RedCoin上周推出 暫有1.5萬用戶 (14:51) - 20261102 - 即時財經新聞",
-      "url": "https://news.google.com/rss/articles/CBMiqgJBVV95cUxOd00xNUdyYktjTldsOEl6ZUlLS1JHbUZ4Ui13THo4WDV1RC1CSnhVLVk5dldwMmcydjRyN1hkbHhpZWkxYkk2REM0cWpIandCUUFZUS1VZ0czMXI3Q3RRc0RyRlJlVFFyVDREaFg2TUlqck91S2l2UVU3RHdDeEVLZk1QbG4wTUV3aHE2cFpqN3hWVjJLdVh3OHE2WEhiMEhncEdTV0htdlNnM21zRTNQVVhUR3RyZTgzRU54cWRQTVFycHZuSDNjU2hzS201Qzg1WUt2NlRPVG1VQXMyVXRWamVQakJMMDNpRnc3TUhBMzdPZGJCdkpZWlVra1ZKSUhTSjhMcHk1YTJGSUVaSmZNek5GdnZIbm1TOGRhRlRCZnBxRmxGR1pXRVhB?oc=5",
-      "published": "2026-11-02T06:55:55+00:00",
+      "author": "段永平",
+      "text": "中國巴菲特︱段永平稱A股只持有茅台 (17:11) - 20261102 - 即時財經新聞",
+      "url": "https://news.google.com/rss/articles/CBMiqAJBVV95cUxNX1V3ckhyU1d6UXhUZlBrX2dvZzlES1JidnZRMTRPZzBpSWNyQkhyUW5HRW9TMWh2UW1RQjhSOTVKeDJWRUVQdUZJU2xMYUhqNEFhdTBCV3l2TU5pWEtORTFod2FkQS1BN05ILVRJRmdHUXItUktfelVqeGxDRTJnTW0yT0ZyRk9WSGlId0lIT0RPLTQwdWJTNGVDaEtfQlA4bXZGSEktem1wZkEyb2lBbTZfOWVJRU13TFlaS1VCWmtvMTRCbFNBODlDNUM0Zk52LXFFOC1VTV9wbHpGY1h5WGtDbkM5N0JRZGpYc3c2aFp3d1BpdnRLZHNmQnd1N0VWV1huWWZpSEwtRF9OcGt6YzBhNUJSbllEb0NHeW8yQ19RdXRHaktPVQ?oc=5",
+      "published": "2026-11-02T09:16:02+00:00",
       "origin": "gnews-rss",
       "source": "明報財經網",
       "tickers": [
-        "00005"
+        "600519"
       ],
       "held": [],
       "new_ideas": [
-        "00005"
+        "600519"
       ],
       "sectors": [
-        "稳定币",
-        "加密货币",
-        "金融科技"
+        "白酒",
+        "消费"
       ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 64,
-      "summary_cn": "据报道，汇丰推出的稳定币RedCoin上线一周获得约1.5万名用户，显示传统银行开始切入稳定币应用。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "🥛 Intel’s worst day since 1974 💥",
-      "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE5jSEVZQ2NkOTZmR3JvcWhOTVA3cHliMW92NXFsMlItdTB6a2JzdGxSWUpxVUI0alpsQktKLUNSMHJUT1VpVWJkR2lobEM2dGRPdmJOY201LWJPajA4Vi0xS0xDcklkWlE?oc=5",
-      "published": "2026-11-02T17:05:27+00:00",
-      "origin": "gnews-rss",
-      "source": "Milk Road",
-      "tickers": [
-        "INTC"
-      ],
-      "held": [],
-      "new_ideas": [
-        "INTC"
-      ],
-      "sectors": [
-        "半导体",
-        "芯片"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 63,
-      "summary_cn": "报道以Intel遭遇1974年以来最差单日表现为标题，显示其股价出现显著负面波动。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX weighs Boost Mobile deal in push for Starlink phone service: Report",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 16:12:26 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电信",
-        "商业航天",
-        "卫星通信"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，SpaceX正考虑与Boost Mobile合作，以推动Starlink手机服务落地；SpaceX未上市，不计入可交易代码。"
-    },
-    {
-      "author": "Musk",
-      "text": "Trump Account holders to receive SpaceX stock from Gwynne Shotwell in December",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 18:38:19 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "商业航天",
-        "私人资本市场"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据报道，特朗普账户持有人计划于12月获得Gwynne Shotwell赠送的SpaceX股票；SpaceX未上市，不计入可交易代码。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "据报道，段永平称其在A股只持有贵州茅台（600519），体现其对单一核心标的的集中偏好。"
     },
     {
       "author": "洪灏",
@@ -383,7 +402,8 @@
       "new_ideas": [],
       "sectors": [
         "港股",
-        "中国宏观"
+        "中国资产",
+        "税收政策"
       ],
       "sector_holdings": [
         "03032",
@@ -391,162 +411,23 @@
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 67,
-      "summary_cn": "据报道，洪灏认为缴税期限届满引发的股市冲击中，港股最坏情况已经过去。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s xAI Loses Bid to Escape NAACP Suit Over Gas Turbines",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 15:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg Law News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "燃气轮机",
-        "法律与监管"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 61,
-      "summary_cn": "据报道，马斯克旗下xAI在有关燃气轮机的 NAACP 诉讼中败诉；xAI未上市，不计入可交易代码。"
+      "relevance": 63,
+      "summary_cn": "据报道，在缴税期限届满引发股市重挫后，洪灏认为港股最坏情况已经过去，对港股后续走势持偏乐观态度。"
     },
     {
       "author": "洪灏",
-      "text": "恒指收市升98點北水流出45億元再創最長淨流出記錄累計流出417億 (16:22) - 20261102 - 即時財經新聞",
-      "url": "https://news.google.com/rss/articles/CBMitwNBVV95cUxQV2RkckZvbDMxYkc5R0VsRWlJTWY1NnhUSmk4dTcwbC1BQXdKT2VsdlY0VVZaZWpBd215MHdvMWxCRWZYZldGVU1FTzc3OWdRR1ZLX2RpTFlxN1lGU050RXpfNVlDLTZyWkRJTWR6cFg0RzNSSVl3RkUtNzZqTm1xbEl6bnZXQ3l0Y3lxaTJoM3BDQ3VZU3lXQmpQRllGSzBkX3p1M01jamRTVUxQYW1iLTJvdHR2ZmxKbDJVTTNtbFhCSmpQTGZiR2JiMl9nRkRJTk9pdWJmejVVLW1BVnJlZnNwQ1lQZG9LdF9UTTNOS2NYajB5T1hyQ3FLWUxqODNmcW54MWVaWUp3VW94WnU4cTVsa2RJSzZMY0dRS09EWFBpU2luazFzazdOdDBtcGlzTkZWTy04amJseW1YNGZhbWhMLXFxQUlGcXpPVmpmN2JsQlZKb0Z5OTBUZmVqdnMwRDVUa0RRNUQ4ZFd0RWFBT0VhREZ3QmV5STVfX2dXdldBbHpnVm5XamhRV0R6QjJqV2FTTHZiZ1p0RFB1RVlqRWFxX211cnoyZXpTakVwS0VIdnZsZGVN?oc=5",
-      "published": "2026-11-02T08:25:16+00:00",
-      "origin": "gnews-rss",
-      "source": "明報財經網",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "中国宏观",
-        "资金流向"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 61,
-      "summary_cn": "据报道，恒指上涨98点但北向资金净流出45亿元并创最长连续净流出纪录，反映指数上涨与资金外流背离。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk throttles Grok Bot limits due to ‘unsustainably high’ costs",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 16:23:21 GMT",
-      "origin": "gnews-rss",
-      "source": "TechCrunch",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "大模型",
-        "云服务成本"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，马斯克因成本“不可持续”而限制Grok机器人使用额度，反映AI推理服务成本压力。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Will Democrats block the stock trading ban again after the midterm elections?",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPWkVKUVdLMzBvbm1WUTJnWXNobEpZdXdjMWxkY1YtZHNqWVNNLTJsRGpZTDdFdzBkSHpKR1E1ZXRvSnE4MmxMX01tZFo1aDhQY1JoQVlJVW5TVUJaYm9VMVpjNFZKbENNOHdsaGVSRWRZTVFkOXQwWXNWdFJRMU1kUENBYWVLWEp3UmFfVmhQTDVHNkJQQVNuWWE2aVpzajJKdVHSAacBQVVfeXFMT3lUT0FkMVZnbHJEd0l2Z25YNVFJTk14WkxkWDNtdU9QaXhTOVM1R2pyamxiTXlVNlBhOEUyY0lRTWhTYVp4enBsdHpzblFXTmxfdEZkOHNrYWJDTmFMSjgxNHU4Qy0yUHhRUWtBNHhnaERZZFZFMnFCZ1FMMER1UU82Q1dVZldxOGxzaFBNN09xaURHV1RaQWh4NTI0UUpES0p5cnlyNnM?oc=5",
-      "published": "2026-11-01T18:21:56+00:00",
-      "origin": "gnews-rss",
-      "source": "Fox News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "资本市场监管",
-        "证券交易"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道讨论中期选举后民主党是否再次阻止股票交易禁令，反映证券交易监管仍存在政策不确定性。"
-    },
-    {
-      "author": "Trump",
-      "text": "Greg Abbott is the strong and highly respected Governor of Texas, a State I love and WON BIG three times, including with 6.4 Million Votes in 2024 (The most Votes in History, BY FAR)!   As Governor, Greg is also fighting tirelessly to Champion Texas Values, Grow the Economy, Cut Taxes and Regulations, Support our Amazing Farmers and Ranchers, Advance MADE IN THE U.S.A., Unleash American Energy Dominance, Promote School Choice, Keep our now very Secure Border, SECURE, Stop Migrant Crime, Murderers, and other Criminals from illegally entering our Country, Ensure LAW AND ORDER, Protect our Brave ",
-      "url": "https://www.trumpstruth.org/statuses/43227",
-      "published": "2026-11-02T23:15:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国能源",
-        "税收与监管",
-        "美国制造业"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 56,
-      "summary_cn": "特朗普背书格雷格·阿博特，主张扩大经济、减税放松监管、推进美国制造并强化能源主导地位。"
-    },
-    {
-      "author": "Trump",
-      "text": "I am proud to once again endorse Texas Lieutenant Governor, Dan Patrick, for Re-Election!   As Texas Chair of our Presidential Campaigns in 2016, 2020, and 2024, Dan has been an incredible friend to our Movement, helping us WIN BIG in the Primaries and General Elections. In his next Term, Dan will fight tirelessly alongside of us to Keep our Border SECURE, Stop Migrant Crime, Grow the Economy, Cut Taxes and Regulations, Champion School Choice, Support our Great Military/Vets, Restore American Energy DOMINANCE, and Strongly Protect our always under siege Second Amendment.   Dan's opponent, Vikk",
-      "url": "https://www.trumpstruth.org/statuses/43228",
-      "published": "2026-11-02T23:15:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国能源",
-        "税收与监管"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 53,
-      "summary_cn": "特朗普背书丹·帕特里克竞选连任，其政策主张包括减税放松监管及恢复美国能源主导地位。"
-    },
-    {
-      "author": "洪灏",
-      "text": "舊劇本重演：中國救市",
-      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOUXBxM2FvYXJRU1JNZFBLQzJUSVhmSlNsYVc1ZUNQMGljZXQ0blJiaW5nNGxMN0h3cl9ucGRHcGxCeUtwLWF4R2lEMkh5NHo0akFSdlVhWjZGTjRPWlFET3haOGNjNzc0Zi1FdXljNzhSXzF4MlhYZGpWc2N4ZDdDeUtDN3UzX2VLZFNRWW9iU3lzQkZpNlFEU0RVdjVkOXgwX3BpaGVRdmJLeUczS0VHZHlXWGp3eWFUOWtnUkVkbWlsNzV0T0gtdDZXejM4LWs2Z0NzTHg4RDljUXN2?oc=5",
-      "published": "2026-11-01T17:00:00+00:00",
+      "text": "洪灝：再見九二四？反彈之後還要看盈利|香港經濟日報",
+      "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNVEFzay1RTkpLbThKam1ja3RpWU1mNUN5UEtwNGRSa21uWFlJcDItNW1Od0VYQkNDUEtlTGI0aV82clVvNURTZl9HeXYwUkVVNDRsYVM4QWxNemdqQkFxOFEzM3Mwdk5Wa0s4VXNkUzJTSFVKbmg3dVN1OFlMZ0J5UnRfRVlvVjFxY1VlTHRzMHRVdXc?oc=5",
+      "published": "2026-11-03T16:00:00+00:00",
       "origin": "gnews-rss",
       "source": "香港經濟日報HKET",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中国宏观",
-        "A股",
         "港股",
-        "政策救市"
+        "中国资产",
+        "企业盈利"
       ],
       "sector_holdings": [
         "03032",
@@ -554,130 +435,24 @@
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道，洪灏以“中国救市旧剧本重演”评论当前市场，但标题未提供明确政策细节或具体标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Trump vows to protect Musk, floats pre-emptive staff pardons",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 13:30:39 GMT",
-      "origin": "gnews-rss",
-      "source": "Axios",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "法律与监管",
-        "商业航天"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "特朗普表示将保护马斯克并考虑预防性赦免其员工，涉及企业高管相关法律与监管风险。"
-    },
-    {
-      "author": "Musk",
-      "text": "Inside Musk’s plan to upend the wireless phone industry",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 18:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电信",
-        "智能手机"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "媒体聚焦马斯克颠覆无线电话行业的计划，但该标题未提供具体公司或可交易标的。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Burry",
-      "text": "QUICK SPARK: Michael Burry Adds to JD, BYD as Hong Kong Stocks Languish",
-      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOaTBJZVZZVF9kQ1JYOVBGTjlJaXZaVDBYX0R1YkJ1STZ5WEpFRC1qSW9zMW9qLVd1bkhNTTZWMWRGM2hYS1ZqVGVMbHBvS2VCMXI4WTBCdi1FWjM5VUVpTjBaOTdDWGtEQ1l0d1BLcndCd016YjlFU0I1Q1NndGZMMGFvdm5uYmR3bUladno4dlB5b0ZNX1pGSml2LTBVblYyNXFfWnBtZ3NCa1dpb1dpN1UtQnNXUEVzNmhqWE1ud0E5MlN1NVhF?oc=5",
-      "published": "2026-11-02T16:33:43+00:00",
-      "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [
-        "09618",
-        "01211"
-      ],
-      "held": [],
-      "new_ideas": [
-        "01211",
-        "09618"
-      ],
-      "sectors": [
-        "港股",
-        "电商",
-        "电动车",
-        "中国消费"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry在港股走弱期间增持京东与比亚迪，属于直接买入动作。"
+      "summary_cn": "据报道，洪灏认为本轮反弹之后仍需观察企业盈利兑现情况，提示港股行情存在基本面验证要求。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry’s Fiserv Buyout Math Hits $120 — Reaffirms PayPal As A ‘Fat Pitch’ Amid Global Payments Deal Buzz",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxObVdZTUhWd3dvdElvS1kyVjF4dkRjSGJVM2JoVXdLaEpLZkg0YkNRNzdWTnJxVWo4VkNhal9GSVc0RFZGaHhmWmpZZHRXYml1MG9PdXhxTmlrMkQzcjBjdXJhVlhJN2ZrN2M5aTFWYThWVFVrY3pVNDMtcDVOMDNWM3E3dFBIazF0a1lkUEtQRmdFR2I4dkNjQVVqQW1YZw?oc=5",
-      "published": "2026-11-02T08:48:42+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "FISV",
-        "PYPL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "FISV",
-        "PYPL"
-      ],
-      "sectors": [
-        "金融科技",
-        "支付",
-        "并购"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 77,
-      "summary_cn": "据报道，Michael Burry认为全球支付并购可使Fiserv估值达到约120美元，并重申PayPal的看多逻辑。"
-    },
-    {
-      "author": "段永平",
-      "text": "大股東增持建滔集團、建滔積層板 (17:16) - 20261102 - 即時財經新聞",
-      "url": "https://news.google.com/rss/articles/CBMimwJBVV95cUxPbjlpQ0JQR1E0RTI2TWREa0NqelpackZySlRwQjBNbzVidDZKM2ZIeE9tcWN3VmRqUkd4aDh2MXB6VUU1ZktNRTZNWHk0X2hNNlBaWkdnVWZ3Z0VIWk53NlpSb0k5UzAxaUVSeHdFU0NpNWk2NjQ1MGZBRFB5ZG9Oc1AxeVJZcWFBVGN1cC00Y2hZdTRTVkFpc0pNNHZhVkhuRXh2ZU8weHdmWGNZUmoxUjZBdk5HTVFEeWttSVZjSTMwT1Nhdmt3RUExQkFRN0tYQXpzWVhhY1pjMjFlRnU4SnZNRllIUVZXRmNLMndQUkxyMEZ4MHljZy1lQXVVUWpMR2pTMl9YVWdqZnQycGxlUkkxLTB5bGdJT3dZ?oc=5",
-      "published": "2026-11-02T09:20:27+00:00",
+      "author": "洪灏",
+      "text": "彭博：Anthropic IPO尋求從日本投資者處籌35億美元 (15:03) - 20261102 - 即時財經新聞",
+      "url": "https://news.google.com/rss/articles/CBMiuwJBVV95cUxONXd5TE9odnBPLTV6RlRoanJRNjJReEl5LWFFSlY1eElad3pRMl9VSm42SE1YakdGLUVtWE0xQUt6RkRfcmVkMEhKZTg5akFHOEFjT1hGNmZvT05ydVJzcU9LX3U0V3paY0Q3aDhfWFFOVHNVdjZiMzM5SnpHOHNfT2prRFAtQm9VX0VDc3NnVkVja0dKbzZEZmNFSHQ2eGg2bzlFQnl5ZFNhNUkwNW9td2hfOGdBcndtYUptaVJObjAzUGZmZ1NWXzk4RTl0eGVqalpIU3VjdHh3dWRMOVlka2dieDNDVGNRRk1aU2M4Q0ZJZWZOc1JDU29uaU5sMXNvUWpUc0RhUTZCWDlwd2QwMGxEZXM2aklYUjd0M1puVzl6ODBhRU92aDVCa1R2ODJMZThqUkQ3UjFsZTg?oc=5",
+      "published": "2026-11-02T07:04:56+00:00",
       "origin": "gnews-rss",
       "source": "明報財經網",
-      "tickers": [
-        "00188",
-        "01888"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "00188",
-        "01888"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "港股",
-        "电子材料",
-        "PCB",
-        "科技硬件"
+        "AI",
+        "大模型",
+        "IPO",
+        "私募投资"
       ],
       "sector_holdings": [
         "00100",
@@ -686,143 +461,305 @@
         "07226",
         "07709"
       ],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，建滔集团及建滔积层板的大股东实施增持，属于直接股东买入动作。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据彭博报道，Anthropic拟从日本投资者处募集35亿美元，反映AI领域资本需求及日本投资者对该赛道的兴趣。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Eli Lilly and Company(LLY) 卖出 ARKK 17,626 股（最大单只 ETF 占比 0.39%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-10-30T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.3878,
-      "tickers": [
-        "LLY"
-      ],
+      "author": "洪灏",
+      "text": "在岸人民幣升值 創逾四年最強 連升13日創30年最長 (12:20) - 20261102 - 即時財經新聞",
+      "url": "https://news.google.com/rss/articles/CBMi6gJBVV95cUxNTW1MU2kxT0lZbTdQMVhxbk9PdFBaRkJUa0VlVkJDMFBOTFZQcFFmTnhaM2o1eDdqMVpwMHVTVnd2UGlFazRBX2RpMzZwTkYybHp6ZEhxYnNzYlMxMkJzc2xTU3AwRjNrWFh1WHQyMXVCemZnZE9Kak5ON1kwWndQck5zeE1aVGZSY3E2Z2hzTzRlM0lHUC1GelZCaFIxUW9kVTBJZGF6ZzJ6Rm1fbXFndWtueVRNLVE0VDhPSnRISEl0TUhYd0NVUFNRdkJ4Q0c2T01zemxxandwRWtUOVdGYUdYcDFLZHlFNl9ubUdVcDlGSDZSSkJ6VDZkVXE4M09aMW9UWXdUVVU2WUg3R3VHR1dHamNKSF8tRmJvdkhiUXVRYlVxTGZXY0R4c0NmdTRBZXA3NmVONHFBR2xLblRmWVBWZGg0VGJWTmF5TzUtT2c4SktUWGNKVlNJX05pS0dqNWYyMWc3ek5XZw?oc=5",
+      "published": "2026-11-02T04:24:13+00:00",
+      "origin": "gnews-rss",
+      "source": "明報財經網",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "LLY"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "医疗保健",
-        "生物制药"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK卖出Eli Lilly 17,626股，单只ETF最大占比0.39%。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Tempus AI, Inc.(TEM) 买入 ARKK 93,407 股 / ARKG 61,114 股（最大单只 ETF 占比 0.18%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-30T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1841,
-      "tickers": [
-        "TEM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TEM"
-      ],
-      "sectors": [
-        "AI医疗",
-        "医疗科技"
+        "人民币",
+        "外汇",
+        "中国资产"
       ],
       "sector_holdings": [
-        "00100"
+        "03032",
+        "03033",
+        "07226"
       ],
-      "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK和ARKG合计买入Tempus AI 154,521股，单只ETF最大占比0.18%。"
-    },
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "在岸人民币升值并连续13个交易日走强，创逾四年最强表现，对中国资产汇率环境形成宏观影响。"
+    }
+  ],
+  "held_hits": [
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Bullish(BLSH) 卖出 ARKK 115,132 股 / ARKW 61,771 股 / ARKF 61,470 股（最大单只 ETF 占比 0.19%）",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Circle Internet Group, Inc(CRCL) 买入 ARKK 22,707 股 / ARKW 6,212 股 / ARKF 6,738 股（最大单只 ETF 占比 0.07%）",
       "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-30T20:00:00+00:00",
+      "published": "2026-11-02T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1943,
+      "etf_percent": 0.0676,
       "tickers": [
-        "BLSH"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BLSH"
-      ],
-      "sectors": [
-        "加密货币",
-        "数字资产交易"
-      ],
-      "sector_holdings": [
         "CRCL"
       ],
-      "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK、ARKW及ARKF合计卖出Bullish 238,373股，单只ETF最大占比0.19%。"
-    },
+      "held": [
+        "CRCL"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "金融科技"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 88,
+      "summary_cn": "ARK Invest买入Circle（CRCL）22,707股，并在多只ETF同步建仓。"
+    }
+  ],
+  "new_ideas": [
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：CareDx, Inc.(CDNA) 卖出 ARKG 50,859 股（最大单只 ETF 占比 0.18%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-10-30T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1836,
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Family Bought Intel in July, Right Before Its Worst Day Since 1974",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOWTNiTktZRnJNY3BnTkE0aGQ2THBwOUFCY0tibU1GNUF5aW9Ob0RsWVhLSTJqNlFvQzA2ZEdTSWlycV9ZeFdhZHg3Z3hyYnZqM3ZaOG42b2stdTlJSFFZT21rZU0zVW8zSjdIQ3Z1V3h5T3pUTDU5UkV0MmZsUFFhTXhxU2g2Zll4a1ZXVk1JakV1LVpvZHVhbFE5cE1JZw?oc=5",
+      "published": "2026-11-03T12:51:07+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [
-        "CDNA"
+        "INTC"
       ],
       "held": [],
       "new_ideas": [
-        "CDNA"
+        "INTC"
+      ],
+      "sectors": [
+        "半导体"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "buy",
+      "relevance": 82,
+      "summary_cn": "最新国会披露显示，Pelosi家族于7月买入英特尔（INTC），该交易发生在股价遭遇大跌之前。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry adds to BYD, SFM, JD, sees up to 140% potential in Fiserv (BYDDF:OTCMKTS)",
+      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNbHpwRnlVeV9OVHNtQm4xeVNfYUJxR0tuZWRZYU93TWIyRHhycEdySXUtS1NnUXQ0TVVkQmpubjMzRTl1eUFSNjlTenVhaW5xY1B4T2RWSXdiOFU2MU5wUDlXU2dISV9TUzVjV1VIX0p2LXBOUTl5RzlSaHNleE1hTjVGdkRUWWhLM3NXNnN4UjRiRzZ5TmtOamRlTU02YVdYWDU5aEg1ZzE?oc=5",
+      "published": "2026-11-03T06:52:34+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "BYDDF",
+        "SFM",
+        "JD",
+        "FI"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BYDDF",
+        "FI",
+        "JD",
+        "SFM"
+      ],
+      "sectors": [
+        "电动车",
+        "电商",
+        "金融科技",
+        "支付"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry增持比亚迪（BYDDF）、SFM、京东（JD），并认为Fiserv（FI）最高存在140%的上涨空间。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk wants to take on Verizon, AT&T, and T-Mobile. He may have found a way",
+      "url": "",
+      "published": "Tue, 03 Nov 2026 02:54:28 GMT",
+      "origin": "gnews-rss",
+      "source": "Fast Company",
+      "tickers": [
+        "VZ",
+        "T",
+        "TMUS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "T",
+        "TMUS",
+        "VZ"
+      ],
+      "sectors": [
+        "电信",
+        "无线通信"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道，Elon Musk计划挑战Verizon（VZ）、AT&T（T）和T-Mobile（TMUS），可能重塑美国无线通信市场。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry ‘Docked LULU’ For Near-Term ‘Uncertainty’ — Believes Lululemon ‘Will Come Back’",
+      "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOdnVJWk9uaHcxOGJub3FiTHB0NEFqbnJpOUd3bDd2MWdXWndZSXFaRUdsdGRtQjlfeXJ0Y08zVlNkd0I1OEVGUVpQQkhLVzQzTVM3bGxtcHMxWlpRNWNBZDZjQjFIVmlIYXlObHhMb0M1SEktOFN3VTJhUUNFUl9jclh6ZHo1TFg5bFdERlp5UklFRFhfRmRla3kxQXFNN05ZTEoyU09Ga2otbnFQaldybWFzbmNlY2d0U3l6dm85ZS12WG5DUC1DRWpRWFZERU5sV1RjT3BHRUNRQXBGUmlyN0lxcw?oc=5",
+      "published": "2026-11-03T07:08:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "LULU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LULU"
+      ],
+      "sectors": [
+        "可选消费",
+        "零售"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 74,
+      "summary_cn": "据报道，Michael Burry因短期不确定性下调Lululemon（LULU），但同时认为该股未来会回来。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Tesla and SpaceX Block Their Stock From OKX-ICE Tokenized Venue",
+      "url": "",
+      "published": "Tue, 03 Nov 2026 17:46:15 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天",
+        "加密货币",
+        "代币化证券"
+      ],
+      "sector_holdings": [
+        "CRCL",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 73,
+      "summary_cn": "据报道，Tesla（TSLA）和SpaceX阻止其股票进入OKX-ICE代币化交易场所，对传统代币化证券平台构成负面信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX Reportedly Talking With EchoStar About A Boost Mobile Deal",
+      "url": "",
+      "published": "Mon, 02 Nov 2026 14:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Deadline",
+      "tickers": [
+        "SATS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SATS"
+      ],
+      "sectors": [
+        "电信",
+        "卫星通信",
+        "无线通信"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "据报道，SpaceX正与EchoStar（SATS）洽谈Boost Mobile交易，涉及SpaceX卫星通信能力与EchoStar移动业务的合作。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 341,024 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2441,
+      "tickers": [
+        "PSNL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSNL"
       ],
       "sectors": [
         "医疗科技",
-        "基因检测"
+        "基因测序"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKG卖出CareDx 50,859股，占比0.18%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest从ARKG卖出Personalis（PSNL）341,024股，最大单只ETF占比为0.24%。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Illumina Inc(ILMN) 买入 ARKK 43,130 股（最大单只 ETF 占比 0.16%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-10-30T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1562,
+      "author": "Musk",
+      "text": "Musk’s pay under a SpaceX-Tesla merger: voting control, but no $1 trillion payday​",
+      "url": "",
+      "published": "Tue, 03 Nov 2026 14:51:39 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
       "tickers": [
-        "ILMN"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "ILMN"
+        "TSLA"
       ],
       "sectors": [
-        "基因测序",
-        "生命科学",
-        "医疗科技"
+        "电动车",
+        "航天"
       ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKK买入Illumina 43,130股，占比0.16%。"
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，Tesla（TSLA）与SpaceX合并方案讨论重点包括Musk的控制权及潜在巨额薪酬，对TSLA治理和估值具有影响。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-10-30 调仓：Robinhood Markets, Inc.(HOOD) 买入 ARKF 13,757 股（最大单只 ETF 占比 0.15%）",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Bullish(BLSH) 卖出 ARKK 50,196 股 / ARKW 25,178 股 / ARKF 28,798 股（最大单只 ETF 占比 0.10%）",
       "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-10-30T20:00:00+00:00",
+      "published": "2026-11-02T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1496,
+      "etf_percent": 0.0952,
+      "tickers": [
+        "BLSH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BLSH"
+      ],
+      "sectors": [
+        "医疗科技",
+        "生物科技"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "ARK Invest从多只ETF卖出Bullish（BLSH），最大单只ETF占比为0.10%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-02 调仓：Robinhood Markets, Inc.(HOOD) 买入 ARKF 7,703 股（最大单只 ETF 占比 0.09%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-02T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0904,
       "tickers": [
         "HOOD"
       ],
@@ -832,91 +769,19 @@
       ],
       "sectors": [
         "金融科技",
-        "数字资产交易"
+        "加密货币交易",
+        "零售交易"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年10月30日从ARKF买入Robinhood Markets 13,757股，占比0.15%。"
-    },
-    {
-      "author": "洪灏",
-      "text": "匯豐：穩定幣RedCoin上周推出 暫有1.5萬用戶 (14:51) - 20261102 - 即時財經新聞",
-      "url": "https://news.google.com/rss/articles/CBMiqgJBVV95cUxOd00xNUdyYktjTldsOEl6ZUlLS1JHbUZ4Ui13THo4WDV1RC1CSnhVLVk5dldwMmcydjRyN1hkbHhpZWkxYkk2REM0cWpIandCUUFZUS1VZ0czMXI3Q3RRc0RyRlJlVFFyVDREaFg2TUlqck91S2l2UVU3RHdDeEVLZk1QbG4wTUV3aHE2cFpqN3hWVjJLdVh3OHE2WEhiMEhncEdTV0htdlNnM21zRTNQVVhUR3RyZTgzRU54cWRQTVFycHZuSDNjU2hzS201Qzg1WUt2NlRPVG1VQXMyVXRWamVQakJMMDNpRnc3TUhBMzdPZGJCdkpZWlVra1ZKSUhTSjhMcHk1YTJGSUVaSmZNek5GdnZIbm1TOGRhRlRCZnBxRmxGR1pXRVhB?oc=5",
-      "published": "2026-11-02T06:55:55+00:00",
-      "origin": "gnews-rss",
-      "source": "明報財經網",
-      "tickers": [
-        "00005"
-      ],
-      "held": [],
-      "new_ideas": [
-        "00005"
-      ],
-      "sectors": [
-        "稳定币",
-        "加密货币",
-        "金融科技"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 64,
-      "summary_cn": "据报道，汇丰推出的稳定币RedCoin上线一周获得约1.5万名用户，显示传统银行开始切入稳定币应用。"
+      "relevance": 58,
+      "summary_cn": "ARK Invest在ARKF买入Robinhood（HOOD）7,703股，但占比仅0.09%，属于规模较小的常规加仓。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "SpaceX weighs Boost Mobile deal in push for Starlink phone service: Report",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 16:12:26 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电信",
-        "商业航天",
-        "卫星通信"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，SpaceX正考虑与Boost Mobile合作，以推动Starlink手机服务落地；SpaceX未上市，不计入可交易代码。"
-    },
-    {
-      "author": "Musk",
-      "text": "Trump Account holders to receive SpaceX stock from Gwynne Shotwell in December",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 18:38:19 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "商业航天",
-        "私人资本市场"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据报道，特朗普账户持有人计划于12月获得Gwynne Shotwell赠送的SpaceX股票；SpaceX未上市，不计入可交易代码。"
-    },
-    {
       "author": "洪灏",
       "text": "繳稅限期屆滿累股市重創 洪灝：港股最壞情况已過 (11:03) - 20261102 - 即時財經新聞",
       "url": "https://news.google.com/rss/articles/CBMi8AJBVV95cUxOVTF0Y1BPZENYZDB2Qzd5cTdZY0xTWGZ3RW9HOVJldlBsellmUktFRGZOQ3NXMEhDWVhQa2VWX1otMzBselUzV3FEUm54SVVVRUljRU1DT3Z5NmRteDY5QTFaS183UkdBNHIzai1BVEE4V3g5N0w0UXk3aDNsMVMyNjMwSE9VdEZQdTY1YTdPM2c5OHluREJmZG5lbHhWVE5vS3FnQTJjZHFKdmp6NlU3V05CSktYd1RpX1RYY2czSElGeGV3SzFxbDMzVUU0NTEtdXdXSlNNNVh5M1JwQzY4NmpRdXlENjFYOE9hUzhpVXg0TGQwUGRKUGVuMUx0aU9GWUlDcjZEYUdhYVoxNHRXTUtwNDFlTHNwR1RzZm02WDF4UFVobmhjdXZ2UlpxR0xmd0x6MV9aZzJZWVhUUmo1YUtocDN3eU9tUEtzYnFURXJJb0xNYW51bWlGQUdzZnk2b0RMREprbk51RUdteURsSw?oc=5",
@@ -928,7 +793,8 @@
       "new_ideas": [],
       "sectors": [
         "港股",
-        "中国宏观"
+        "中国资产",
+        "税收政策"
       ],
       "sector_holdings": [
         "03032",
@@ -936,162 +802,23 @@
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 67,
-      "summary_cn": "据报道，洪灏认为缴税期限届满引发的股市冲击中，港股最坏情况已经过去。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s xAI Loses Bid to Escape NAACP Suit Over Gas Turbines",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 15:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg Law News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "燃气轮机",
-        "法律与监管"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 61,
-      "summary_cn": "据报道，马斯克旗下xAI在有关燃气轮机的 NAACP 诉讼中败诉；xAI未上市，不计入可交易代码。"
+      "relevance": 63,
+      "summary_cn": "据报道，在缴税期限届满引发股市重挫后，洪灏认为港股最坏情况已经过去，对港股后续走势持偏乐观态度。"
     },
     {
       "author": "洪灏",
-      "text": "恒指收市升98點北水流出45億元再創最長淨流出記錄累計流出417億 (16:22) - 20261102 - 即時財經新聞",
-      "url": "https://news.google.com/rss/articles/CBMitwNBVV95cUxQV2RkckZvbDMxYkc5R0VsRWlJTWY1NnhUSmk4dTcwbC1BQXdKT2VsdlY0VVZaZWpBd215MHdvMWxCRWZYZldGVU1FTzc3OWdRR1ZLX2RpTFlxN1lGU050RXpfNVlDLTZyWkRJTWR6cFg0RzNSSVl3RkUtNzZqTm1xbEl6bnZXQ3l0Y3lxaTJoM3BDQ3VZU3lXQmpQRllGSzBkX3p1M01jamRTVUxQYW1iLTJvdHR2ZmxKbDJVTTNtbFhCSmpQTGZiR2JiMl9nRkRJTk9pdWJmejVVLW1BVnJlZnNwQ1lQZG9LdF9UTTNOS2NYajB5T1hyQ3FLWUxqODNmcW54MWVaWUp3VW94WnU4cTVsa2RJSzZMY0dRS09EWFBpU2luazFzazdOdDBtcGlzTkZWTy04amJseW1YNGZhbWhMLXFxQUlGcXpPVmpmN2JsQlZKb0Z5OTBUZmVqdnMwRDVUa0RRNUQ4ZFd0RWFBT0VhREZ3QmV5STVfX2dXdldBbHpnVm5XamhRV0R6QjJqV2FTTHZiZ1p0RFB1RVlqRWFxX211cnoyZXpTakVwS0VIdnZsZGVN?oc=5",
-      "published": "2026-11-02T08:25:16+00:00",
-      "origin": "gnews-rss",
-      "source": "明報財經網",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "中国宏观",
-        "资金流向"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 61,
-      "summary_cn": "据报道，恒指上涨98点但北向资金净流出45亿元并创最长连续净流出纪录，反映指数上涨与资金外流背离。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk throttles Grok Bot limits due to ‘unsustainably high’ costs",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 16:23:21 GMT",
-      "origin": "gnews-rss",
-      "source": "TechCrunch",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "大模型",
-        "云服务成本"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，马斯克因成本“不可持续”而限制Grok机器人使用额度，反映AI推理服务成本压力。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Will Democrats block the stock trading ban again after the midterm elections?",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPWkVKUVdLMzBvbm1WUTJnWXNobEpZdXdjMWxkY1YtZHNqWVNNLTJsRGpZTDdFdzBkSHpKR1E1ZXRvSnE4MmxMX01tZFo1aDhQY1JoQVlJVW5TVUJaYm9VMVpjNFZKbENNOHdsaGVSRWRZTVFkOXQwWXNWdFJRMU1kUENBYWVLWEp3UmFfVmhQTDVHNkJQQVNuWWE2aVpzajJKdVHSAacBQVVfeXFMT3lUT0FkMVZnbHJEd0l2Z25YNVFJTk14WkxkWDNtdU9QaXhTOVM1R2pyamxiTXlVNlBhOEUyY0lRTWhTYVp4enBsdHpzblFXTmxfdEZkOHNrYWJDTmFMSjgxNHU4Qy0yUHhRUWtBNHhnaERZZFZFMnFCZ1FMMER1UU82Q1dVZldxOGxzaFBNN09xaURHV1RaQWh4NTI0UUpES0p5cnlyNnM?oc=5",
-      "published": "2026-11-01T18:21:56+00:00",
-      "origin": "gnews-rss",
-      "source": "Fox News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "资本市场监管",
-        "证券交易"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道讨论中期选举后民主党是否再次阻止股票交易禁令，反映证券交易监管仍存在政策不确定性。"
-    },
-    {
-      "author": "Trump",
-      "text": "Greg Abbott is the strong and highly respected Governor of Texas, a State I love and WON BIG three times, including with 6.4 Million Votes in 2024 (The most Votes in History, BY FAR)!   As Governor, Greg is also fighting tirelessly to Champion Texas Values, Grow the Economy, Cut Taxes and Regulations, Support our Amazing Farmers and Ranchers, Advance MADE IN THE U.S.A., Unleash American Energy Dominance, Promote School Choice, Keep our now very Secure Border, SECURE, Stop Migrant Crime, Murderers, and other Criminals from illegally entering our Country, Ensure LAW AND ORDER, Protect our Brave ",
-      "url": "https://www.trumpstruth.org/statuses/43227",
-      "published": "2026-11-02T23:15:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国能源",
-        "税收与监管",
-        "美国制造业"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 56,
-      "summary_cn": "特朗普背书格雷格·阿博特，主张扩大经济、减税放松监管、推进美国制造并强化能源主导地位。"
-    },
-    {
-      "author": "Trump",
-      "text": "I am proud to once again endorse Texas Lieutenant Governor, Dan Patrick, for Re-Election!   As Texas Chair of our Presidential Campaigns in 2016, 2020, and 2024, Dan has been an incredible friend to our Movement, helping us WIN BIG in the Primaries and General Elections. In his next Term, Dan will fight tirelessly alongside of us to Keep our Border SECURE, Stop Migrant Crime, Grow the Economy, Cut Taxes and Regulations, Champion School Choice, Support our Great Military/Vets, Restore American Energy DOMINANCE, and Strongly Protect our always under siege Second Amendment.   Dan's opponent, Vikk",
-      "url": "https://www.trumpstruth.org/statuses/43228",
-      "published": "2026-11-02T23:15:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国能源",
-        "税收与监管"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 53,
-      "summary_cn": "特朗普背书丹·帕特里克竞选连任，其政策主张包括减税放松监管及恢复美国能源主导地位。"
-    },
-    {
-      "author": "洪灏",
-      "text": "舊劇本重演：中國救市",
-      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOUXBxM2FvYXJRU1JNZFBLQzJUSVhmSlNsYVc1ZUNQMGljZXQ0blJiaW5nNGxMN0h3cl9ucGRHcGxCeUtwLWF4R2lEMkh5NHo0akFSdlVhWjZGTjRPWlFET3haOGNjNzc0Zi1FdXljNzhSXzF4MlhYZGpWc2N4ZDdDeUtDN3UzX2VLZFNRWW9iU3lzQkZpNlFEU0RVdjVkOXgwX3BpaGVRdmJLeUczS0VHZHlXWGp3eWFUOWtnUkVkbWlsNzV0T0gtdDZXejM4LWs2Z0NzTHg4RDljUXN2?oc=5",
-      "published": "2026-11-01T17:00:00+00:00",
+      "text": "洪灝：再見九二四？反彈之後還要看盈利|香港經濟日報",
+      "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNVEFzay1RTkpLbThKam1ja3RpWU1mNUN5UEtwNGRSa21uWFlJcDItNW1Od0VYQkNDUEtlTGI0aV82clVvNURTZl9HeXYwUkVVNDRsYVM4QWxNemdqQkFxOFEzM3Mwdk5Wa0s4VXNkUzJTSFVKbmg3dVN1OFlMZ0J5UnRfRVlvVjFxY1VlTHRzMHRVdXc?oc=5",
+      "published": "2026-11-03T16:00:00+00:00",
       "origin": "gnews-rss",
       "source": "香港經濟日報HKET",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中国宏观",
-        "A股",
         "港股",
-        "政策救市"
+        "中国资产",
+        "企业盈利"
       ],
       "sector_holdings": [
         "03032",
@@ -1099,8 +826,59 @@
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道，洪灏以“中国救市旧剧本重演”评论当前市场，但标题未提供明确政策细节或具体标的。"
+      "relevance": 60,
+      "summary_cn": "据报道，洪灏认为本轮反弹之后仍需观察企业盈利兑现情况，提示港股行情存在基本面验证要求。"
+    },
+    {
+      "author": "洪灏",
+      "text": "彭博：Anthropic IPO尋求從日本投資者處籌35億美元 (15:03) - 20261102 - 即時財經新聞",
+      "url": "https://news.google.com/rss/articles/CBMiuwJBVV95cUxONXd5TE9odnBPLTV6RlRoanJRNjJReEl5LWFFSlY1eElad3pRMl9VSm42SE1YakdGLUVtWE0xQUt6RkRfcmVkMEhKZTg5akFHOEFjT1hGNmZvT05ydVJzcU9LX3U0V3paY0Q3aDhfWFFOVHNVdjZiMzM5SnpHOHNfT2prRFAtQm9VX0VDc3NnVkVja0dKbzZEZmNFSHQ2eGg2bzlFQnl5ZFNhNUkwNW9td2hfOGdBcndtYUptaVJObjAzUGZmZ1NWXzk4RTl0eGVqalpIU3VjdHh3dWRMOVlka2dieDNDVGNRRk1aU2M4Q0ZJZWZOc1JDU29uaU5sMXNvUWpUc0RhUTZCWDlwd2QwMGxEZXM2aklYUjd0M1puVzl6ODBhRU92aDVCa1R2ODJMZThqUkQ3UjFsZTg?oc=5",
+      "published": "2026-11-02T07:04:56+00:00",
+      "origin": "gnews-rss",
+      "source": "明報財經網",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "大模型",
+        "IPO",
+        "私募投资"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据彭博报道，Anthropic拟从日本投资者处募集35亿美元，反映AI领域资本需求及日本投资者对该赛道的兴趣。"
+    },
+    {
+      "author": "洪灏",
+      "text": "在岸人民幣升值 創逾四年最強 連升13日創30年最長 (12:20) - 20261102 - 即時財經新聞",
+      "url": "https://news.google.com/rss/articles/CBMi6gJBVV95cUxNTW1MU2kxT0lZbTdQMVhxbk9PdFBaRkJUa0VlVkJDMFBOTFZQcFFmTnhaM2o1eDdqMVpwMHVTVnd2UGlFazRBX2RpMzZwTkYybHp6ZEhxYnNzYlMxMkJzc2xTU3AwRjNrWFh1WHQyMXVCemZnZE9Kak5ON1kwWndQck5zeE1aVGZSY3E2Z2hzTzRlM0lHUC1GelZCaFIxUW9kVTBJZGF6ZzJ6Rm1fbXFndWtueVRNLVE0VDhPSnRISEl0TUhYd0NVUFNRdkJ4Q0c2T01zemxxandwRWtUOVdGYUdYcDFLZHlFNl9ubUdVcDlGSDZSSkJ6VDZkVXE4M09aMW9UWXdUVVU2WUg3R3VHR1dHamNKSF8tRmJvdkhiUXVRYlVxTGZXY0R4c0NmdTRBZXA3NmVONHFBR2xLblRmWVBWZGg0VGJWTmF5TzUtT2c4SktUWGNKVlNJX05pS0dqNWYyMWc3ek5XZw?oc=5",
+      "published": "2026-11-02T04:24:13+00:00",
+      "origin": "gnews-rss",
+      "source": "明報財經網",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人民币",
+        "外汇",
+        "中国资产"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "在岸人民币升值并连续13个交易日走强，创逾四年最强表现，对中国资产汇率环境形成宏观影响。"
     }
   ]
 }
