@@ -338,3 +338,33 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 
 <!-- openclaw-memory-promotion:memory:memory/2026-10-27.md:3:3 -->
 - Rejected candidate; see private review ledger.
+
+
+## Reviewed Dreaming Memory
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-30-pre-open.md:9:9 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-27-pre-open.md:9:9 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-27.md:14:15 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-27.md:19:22 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-27.md:7:10 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-30-pre-open.md:2:4 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-30-pre-open.md:21:21 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-30-pre-open.md:11:11 -->
+- Rejected candidate; see private review ledger.
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-30-pre-open.md:13:13 -->
+- Rejected candidate; see private review ledger.
