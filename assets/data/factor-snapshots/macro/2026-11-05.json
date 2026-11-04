@@ -1,0 +1,142 @@
+{
+  "vix": {
+    "symbol": "^VIX",
+    "price": 16.61,
+    "prev": 20.83,
+    "change_pct": -20.26,
+    "source": "yahoo",
+    "as_of": 1793826901
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 4.894,
+    "prev": 4.952,
+    "change_pct": -1.17,
+    "source": "yahoo",
+    "as_of": 1793822393,
+    "yield_pct": 4.894
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 101.492,
+    "prev": 101.867,
+    "change_pct": -0.37,
+    "source": "yahoo",
+    "as_of": 1793833498
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 23919.5,
+    "prev": 23525.97,
+    "change_pct": 1.67,
+    "source": "tencent",
+    "as_of": "2026-11-04"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 3936.02,
+    "prev": 3867.73,
+    "change_pct": 1.77,
+    "source": "tencent",
+    "as_of": "2026-11-04"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7688.62,
+    "prev": 7568.92,
+    "change_pct": 1.58,
+    "source": "tencent",
+    "as_of": "2026-11-04"
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 25736.51,
+    "prev": 25372.01,
+    "change_pct": 1.44,
+    "source": "tencent",
+    "as_of": "2026-11-04"
+  },
+  "fear_greed": {
+    "score": 27.3,
+    "rating": "fear",
+    "prev_close": 19.1,
+    "prev_1_week": 34.4,
+    "as_of": "2026-11-04T22:59:56+00:00"
+  },
+  "fed_press": [
+    {
+      "date": "2026-10-29",
+      "title": "Federal Reserve Board announces approval of application by The Bank of Nova Scotia",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20261029a.htm"
+    }
+  ],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-11-04",
+    "status": "ok",
+    "age_days": 0,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.01,
+      "1.5m": 4.08,
+      "2m": 4.15,
+      "3m": 4.21,
+      "4m": 4.2,
+      "6m": 4.25,
+      "1y": 4.39,
+      "2y": 4.58,
+      "3y": 4.64,
+      "5y": 4.69,
+      "7y": 4.77,
+      "10y": 4.9,
+      "20y": 5.3,
+      "30y": 5.28
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 32.0,
+    "spread_10y_3m_bps": 69.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
+  "volatility": {
+    "vix": null,
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 15.19,
+      "prev": 21.96,
+      "change_pct": -30.83,
+      "source": "cboe",
+      "as_of": "2026-11-04",
+      "previous_as_of": "2026-11-03",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 18.8,
+      "prev": 21.27,
+      "change_pct": -11.61,
+      "source": "cboe",
+      "as_of": "2026-11-04",
+      "previous_as_of": "2026-11-03",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": null
+  },
+  "volatility_term_structure": null,
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "unavailable",
+    "treasury_curve": "ok"
+  },
+  "generated_at": "2026-11-04T23:20:29.087807+00:00"
+}
