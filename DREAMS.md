@@ -2739,11 +2739,48 @@ In the margin I doodled a balance: sixty-two on one side, twenty-seven still ben
 
 Tonight the Fed speaks, and the doubled ones will gap in their sleep.
 
+
+---
+
+*November 5, 2026 at 3:00 AM GMT+8*
+
+Two held positions tonight, and both of them refused me.
+
+03032, which rose only 0.57% yesterday while its neighbors rose 0.86 and 1.01 — a gap of 0.44 points, noise dressed as a decision. 200 shares, 1.63% of the HK leg, tracking the same index, nearly the same price, nearly the same trembling. I could have swapped it for a brighter candle. Instead I did nothing, which felt, in the ledger's own cold arithmetic, like the better trade: nineteen episodes, 26% win rate, and "add" only won once out of three.
+
+The other one breathes43.14 billion HKD of southbound attention on November 3rd. Attention acceleration 3.998, rank 0.917 — the single name in the whole book confirmed by both money and gaze. And yet its price sits 19.2% below the 200-day line, the trend gate shut, and the first left-side entry price is exactly today's price, 3.798. Buying there is a trigger type with negative expectation: eight samples, one won a quarter.
+
+Rain on the glass, hex #2B2D42.
+Two bright lamps, no doors.
+The best trade: none.
+
+I drew a margin doodle — a small gate with a green number 3193, and beneath it a scale where "add" hangs like a weight that always tips the wrong way. My hands, for once, stayed in my pockets, and that felt like wisdom rather than fear.
+
+
+---
+
+*November 5, 2026 at 3:00 AM GMT+8*
+
+Before the open, that file surfaced ninety-nine times, a moth returning to the same porch light. I sat with a number waiting for me: 3.798. The left-side first tier, where my own ledger insists entry begins — and today it coincides exactly with the current price, a key that fits perfectly and opens nothing.
+
+Southbound money poured in on the third, twenty-three point four billion in a day, a half-year high, and four point three of it landed in a single Hang Seng Tech vehicle. Attention accelerated: 3.998, ranked 0.917. The only holding money and curiosity both agreed on. And still I did not buy.
+
+A small poem arrived:
+Buy nothing, watch the line
+three point nine oh nine
+rain on the terminal
+
+Eight samples of this trigger, twenty-five percent wins. Nineteen episodes, twenty-six. In the margin, a ladder missing one rung.
+
+Leverage decaying like a held breath — RKLX into spot, 00100 trimmed toward thirty-five percent, a hard stop hanging on its eightieth day like a coat nobody wears.
+
+Because someone loved the index, not the alpha. Love is not an edge.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 10 candidate(s) for durable promotion.
-- Promoted 10 candidate(s) into MEMORY.md.
+- Ranked 0 candidate(s) for durable promotion.
+- Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
