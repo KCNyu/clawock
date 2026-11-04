@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-03T19:54:32.981622+00:00",
+  "generated_at": "2026-11-04T20:09:16.105283+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- RKLB: Globalstar 质疑供应商关系可能使 Iridium 交易偏向 Iridium，而 RKLB 正寻求 FCC 快速审批。  \n  对 kcn：kcn 通过 RKLX（2x 杠杆 ETF）持有；审批延迟或附加条件造成的单日利空将被约 2 倍放大。\n- RKLB: CFO 计划出售约 770 万美元股票；分析师预计 Neutron 因延误至 FY2027 第二季度末才亮相。  \n  对 kcn：经 RKLX（2x）持有，内部人减持与关键项目延期叠加会放大估值和执行风险。\n- SPCX: 据报道，SpaceX 正讨论收购或合作运营 Boost Mobile，但尚未签约且交易结构未定。  \n  对 kcn：kcn 通过 SPCH（2x 杠杆 ETF）持有；只能视为战略期权，未落地前不应计入增长或现金流，传闻也会放大 ETF 波动。\n- CRCL: ARK 新增 Circle、Coinbase 与 Robinhood 仓位，但未披露买入 CRCL 的金额；Seeking Alpha 同时警示利润率、基础增长、USDC 竞争及监管压力。  \n  对 kcn：机构买盘仅提供有限情绪支撑，kcn 的 CRCL 仓位仍应受盈利质量与监管风险主导，不宜追涨。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: ARK 增持形成弱利好，但利润率压缩、增长放缓及 USDC 竞争构成更实质压力，整体中性偏谨慎。\n- RKLB: Iridium 交易面临供应商冲突与 FCC 审查，CFO 减持计划及 Neutron 延期增加不确定性；经 RKLX（2x）持有，事件波动被放大。\n- SPCX: Boost Mobile 仅有未签约谈判，股票代币化交易平台亦遭公司反对；战略期权存在，但暂无硬性财务催化，SPCH（2x）会放大题材波动。\n\n### 风险 watch (若有)\n- CRCL: 利润率继续承压、基础增速下降、USDC 竞争及监管不确定性；Binance 黑客事件中稳定币发行方冻结资产，亦提示生态尾部与声誉外溢风险。\n- RKLB: CFO 计划减持、现金消耗、Neutron 延期，以及 Iridium 交易遭 Globalstar 反对并需 FCC 审批。\n- SPCX: Boost Mobile 谈判明确“尚未签约、结构未定”，存在失败风险；OKX-ICE 代币化交易场所争议可能限制其计划中的交易渠道扩张。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: 2026 中期选举民主党横扫后，SpaceX 开盘一度跌逾 7%；潜在国会听证与传票令 Tesla–SpaceX 合并溢价承压。  \n  - **对 kcn 持仓的含义**：通过 **SPCH（SPCX 的 2x ETF）**持有；2x 放大事件日单日波动，若监管与交易审查继续发酵，下行弹性高于现货，不宜把反弹视为风险解除。\n- **CRCL**: Q3 EPS 与营收超预期，但含一次性 ARC token 收入，指引维持不变，并披露裁员约 5%，财报后股价承压。  \n  - **对 kcn 持仓的含义**：CRCL 直接仓位短线混合偏空；指引未上修前，一次性收入推动的 beat 不足以确认持续盈利拐点，暂不追涨。\n- **RKLB**: Q3 财报在即，报道预期收入增长强劲，但利润率承压且估值溢价高，报道时点股价已跌 27.3%。  \n  - **对 kcn 持仓的含义**：通过 **RKLX（RKLB 的 2x ETF）**持有；2x 放大财报日涨跌，若收入达标但利润率不及预期，RKLX 下行更显著，财报前不宜追涨。\n- **SPCX**: Q3 据报超预期、云业务增长强，但巨额算力投入、Starship 执行风险与高估值并存，股价月跌 17.8%。  \n  - **对 kcn 持仓的含义**：**SPCH（2x）**同时放大增长利好与资本开支折价；不能仅凭云业务 beat 判断风险解除，反弹中应控制敞口。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: Q3 超预期叠加约 5% 裁员，但一次性收入占比及指引持平削弱上行催化 - 影响判断：混合偏空，盈利质量与成本执行主导短线表现。\n- **RKLB**: 强劲收入预期与利润率压力、27.3% 跌幅并存 - 影响判断：**RKLX（2x）**将放大 Q3 财报日偏差，事件风险偏高。\n- **SPCX**: 选举后跌逾 7%、潜在传票与合并审查压低溢价；Q3 增长又被资本开支和 Starship 风险抵消 - 影响判断：**SPCH（2x）**将放大消息波动，整体高风险偏空。\n\n### 风险 watch (若有)\n- **CRCL—财务指引/收入质量**：指引仅持平，EPS 超预期含一次性 ARC token 收入；裁员后的执行效果亦需消化。\n- **SPCX—监管/交易风险**：参议员警告可能传票，国会听证或审查 Tesla–SpaceX 合并；目前属于潜在风险，并非已落地处罚或否决。\n- **SPCX—资本开支/执行/估值**：算力投入、Starship 执行风险与高估值同时存在，**SPCH（2x）**会放大相关下跌。\n- **RKLB—利润率/财报事件**：市场预期高增长但利润率承压、估值仍高，**RKLX（2x）**会放大财报不及预期时的损失。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Circle: Coinbase Confirmed Where Hyperliquid's Yield Went",
-        "datetime": 1793680239,
+        "headline": "Circle Internet Group, Inc. (CRCL) Q3 2026 Earnings Call Transcript",
+        "datetime": 1793796279,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0fbf3bf61c3b158fac68aaf89eee9e18adf68d8439b21ae0cd0441e4cc8fb78f"
+        "url": "https://finnhub.io/api/news?id=0982afb855cebed7725cdb6866ff3455406b95280cc93bd5a80ac27876e24fc6"
       },
       {
-        "headline": "Elon Musk Predicts Superintelligent AI Will Use DeFi to ‘Gain Currency for Themselves, not a Human’ After Binance Hack",
-        "datetime": 1793673005,
-        "source": "Yahoo",
+        "headline": "Circle Internet Group (NYSE:CRCL) Q3 Earnings Beat Lifted by One-Time ARC Token Revenue as Guidance Holds",
+        "datetime": 1793795143,
+        "source": "ChartMill",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=58e5414b07d5ede63254fb73df2ef8c6b153827464e58d55075fdbcd1b26b329"
+        "url": "https://finnhub.io/api/news?id=f28d90d95eb6e7498e39d685514feeef16d4c90610ce10bcbf75bcc3476252b2"
       },
       {
-        "headline": "Cathie Wood Sells $2.3 Million Of Peter Thiel-Backed Bullish Shares, Ark Adds Crypto Names Coinbase, Circle, Robinhood",
-        "datetime": 1793657897,
+        "headline": "Circle Internet Cuts 5% of Staff, Beats Estimates: What's Weighing on the Stock?",
+        "datetime": 1793788182,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f219dfb662e716f1459ff68a42140ce7a136e8edc5ed0de7a06c037b84fee983"
+        "url": "https://finnhub.io/api/news?id=c4a401ff8dc2cb0c3f26da9d1aac9b35d900ad203082a7ce1657f2550fea5f52"
       },
       {
-        "headline": "North Korea Is Laundering Binance Hack Loot at One New Wallet Every 25 Seconds",
-        "datetime": 1793645163,
-        "source": "Yahoo",
+        "headline": "Circle Internet Group Q3 2026 Earnings Call Transcript",
+        "datetime": 1793787590,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0a52a0a4c7bcf7278cc5a58ec2cd8df808163490d17e3b7416541abbdaa75461"
+        "url": "https://finnhub.io/api/news?id=df222de0c636174662dde2def76281aeffee92c5c9b33ff6167bade3061be151"
       },
       {
-        "headline": "Institutional Tokenization Through the Canton Network – Initiation Report",
-        "datetime": 1793639142,
-        "source": "Yahoo",
+        "headline": "Circle Internet Group, Inc. 2026 Q3 - Results - Earnings Call Presentation",
+        "datetime": 1793781163,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1f06a41e43b0c090b0a65fb000d04bacda38c9f48eca0a799e724021bb15d07b"
+        "url": "https://finnhub.io/api/news?id=72e62bacb7653bb5329c6a36a7734ca7e218f7105da537469e4bf9f8c82f3169"
       }
     ],
     "RKLB": [
       {
-        "headline": "RKLB Stock’s Next Big Breakthrough Could Change Its Long-Term Growth Outlook",
-        "datetime": 1793713622,
+        "headline": "Got $5,000? 2 Growth Stocks Powering the Next Phase of the Space Economy.",
+        "datetime": 1793811900,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=14d9735542d25c1af0623b0568d30e35bb6daadfb9080b456c76ff849abc08e9"
+        "url": "https://finnhub.io/api/news?id=266dd9e726b6d7b14354d672eb851eb63259410d0c19fca5708789f8eec658ff"
       },
       {
-        "headline": "The 10-Year Treasury Eased to 4.9%. Here's Why Oklo, Archer, and Rocket Lab All Got Crushed -- and Which One I'd Buy Anyway.",
-        "datetime": 1793707200,
+        "headline": "Rocket Lab to Report Q3 Earnings: Should Investors Hold or Fold?",
+        "datetime": 1793805660,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4dfaa12d77729dd621f8b16837597a4438ebc363dc61beca3a2fa7ad12bbf95d"
+        "url": "https://finnhub.io/api/news?id=b3be26e735fd2b41591c5e4666eab3b38355dc5d7fcb972e7f283311e0192759"
       },
       {
-        "headline": "Rocket Lab: The Cash Burn Is Just One Of Many Issues Facing This Name - Earnings Preview",
-        "datetime": 1793699155,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9a11b668188c47fbbf8a53ecd2983d6b46b5fdfd87463864f4e4783bb56c674c"
-      },
-      {
-        "headline": "RKLB’s Iridium Deal Draws Heat As Globalstar Echoes SpaceX Concerns — Rocket Lab Seeks Fast FCC Approval",
-        "datetime": 1793688472,
+        "headline": "SPCX Sinks 17.8% in a Month as Growth Meets Rising Spending Risks",
+        "datetime": 1793805600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2775421af30557aa76027f2216b9204c93643ba0db74eef8964fcfe025c2cfbe"
+        "url": "https://finnhub.io/api/news?id=dbc8e298cb1584c7f0bcc7244cad78795653dea2dc8051866411c55db236a5c6"
       },
       {
-        "headline": "RKLB Stock Rises Overnight Despite CFO’s $7.7M Sale Plan — This Analyst Sticks To $90 Target Even Amid Neutron Setback",
-        "datetime": 1793672289,
+        "headline": "Is SPCX Worth Buying as Growth Surges but Valuation Stays Stretched?",
+        "datetime": 1793805480,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5b39dc0c540a1a86cadd13105ef05b5e1a203e707d1947aeaeed420043dc7a51"
+        "url": "https://finnhub.io/api/news?id=5d7ef4622b02bd5d787883d6b5c302c5f73c8a1eaf3cc94970e6505310aed73f"
+      },
+      {
+        "headline": "SPCX Cloud Growth Reshapes the Earnings Story After a Blowout Q3 Beat",
+        "datetime": 1793805360,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a7a56d10c24ad9ca1cd579102bff43e365de81b0aba789a5cc82a63431a5a592"
       }
     ],
     "SPCX": [
       {
-        "headline": "Millions of Children Are About to Receive SpaceX Stock",
-        "datetime": 1793728845,
+        "headline": "Elon Musk’s Tesla and SpaceX Stocks Fall After Democrats Sweep Elections, Senator Warns of ‘Subpoenas’",
+        "datetime": 1793815185,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a2028c55ee5f5169711b5bc9be58d1f6c9dc7ecd2b961995009f754e5f255b05"
+        "url": "https://finnhub.io/api/news?id=7d073def73fad98c91b368bd35530695ed9d018c0abc4bfadda63add8e6ca491"
       },
       {
-        "headline": "SpaceX Could Be Biggest Loser From Successful Anthropic IPO, Finance Professor Warns",
-        "datetime": 1793728813,
+        "headline": "Blue Wave Puts Tesla’s SpaceX Merger Premium at Risk as Democrats Eye Musk’s Companies",
+        "datetime": 1793814440,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d63738406ce8022dbb217bada112595953241ca0f8c4726fc122e2f6d0ce2f75"
+        "url": "https://finnhub.io/api/news?id=0df4cefc378bc11c91816eba7bcfb407414232dca8fe2df79519257cce7575aa"
       },
       {
-        "headline": "Elon Musk’s Tesla and SpaceX Block Their Stock From OKX-ICE Tokenized Venue",
-        "datetime": 1793727975,
+        "headline": "Elon Musk's Political Gamble Just Backfired on Tesla",
+        "datetime": 1793813658,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0bc8996724b1b679ff1302af6294eff6a1848ddc8916086c98b04ace0beba44a"
+        "url": "https://finnhub.io/api/news?id=464474f8065d08a03fd096eb2403aad98972204e052350c85cad98d5a30a6f7a"
       },
       {
-        "headline": "Elon Musk Got Turned Down by 3 Phone Giants. Now SpaceX Is Eyeing Boost Mobile as a Shortcut Around a $300 Billion Build.",
-        "datetime": 1793727014,
+        "headline": "Qualcomm to report Q4 earnings amid slowing smartphone, PC sales",
+        "datetime": 1793813600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f42f65ec24af92ad1be1e64ff52498e4bcaeb2927468178c4d1672e18351d3d1"
+        "url": "https://finnhub.io/api/news?id=27e1a28f31bc2044410778d0b334adb6e595617686f2c1e7834dff02c92b2b23"
       },
       {
-        "headline": "Why the Anthropic IPO 'could be the swing vote' for Wall Street bank stocks",
-        "datetime": 1793726430,
+        "headline": "SMCI Stock Near 3-Month Low: Super Micro’s Earnings Beat Fails To Ease Analyst Concerns Over Margins",
+        "datetime": 1793812536,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=154c048a599df622d7ad10190dac2eb33add7e27b2f22571709b9544618f7bdd"
+        "url": "https://finnhub.io/api/news?id=6bd4583e749c7f5793fd4343eed6c22b477f9d7b48dd501480101e0b6c0b030b"
       }
     ]
   },
