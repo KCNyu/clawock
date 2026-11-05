@@ -1,0 +1,142 @@
+{
+  "vix": {
+    "symbol": "^VIX",
+    "price": 28.18,
+    "prev": 16.61,
+    "change_pct": 69.66,
+    "source": "yahoo",
+    "as_of": 1793913301
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 4.837,
+    "prev": 4.894,
+    "change_pct": -1.16,
+    "source": "yahoo",
+    "as_of": 1793908794,
+    "yield_pct": 4.837
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 101.566,
+    "prev": 101.566,
+    "change_pct": null,
+    "source": "yahoo",
+    "as_of": 1793919898
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 24796.98,
+    "prev": 23919.5,
+    "change_pct": 3.67,
+    "source": "tencent",
+    "as_of": "2026-11-05"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 4154.29,
+    "prev": 3936.02,
+    "change_pct": 5.55,
+    "source": "tencent",
+    "as_of": "2026-11-05"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7353.73,
+    "prev": 7688.62,
+    "change_pct": -4.36,
+    "source": "tencent",
+    "as_of": "2026-11-05"
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 24315.0,
+    "prev": 25736.51,
+    "change_pct": -5.52,
+    "source": "tencent",
+    "as_of": "2026-11-05"
+  },
+  "fear_greed": {
+    "score": 19.9,
+    "rating": "extreme fear",
+    "prev_close": 27.3,
+    "prev_1_week": 30.8,
+    "as_of": "2026-11-05T23:02:28+00:00"
+  },
+  "fed_press": [
+    {
+      "date": "2026-11-05",
+      "title": "Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261105a.htm"
+    }
+  ],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-11-05",
+    "status": "ok",
+    "age_days": 0,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.03,
+      "1.5m": 4.07,
+      "2m": 4.15,
+      "3m": 4.17,
+      "4m": 4.16,
+      "6m": 4.19,
+      "1y": 4.28,
+      "2y": 4.46,
+      "3y": 4.53,
+      "5y": 4.59,
+      "7y": 4.7,
+      "10y": 4.84,
+      "20y": 5.27,
+      "30y": 5.25
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 38.0,
+    "spread_10y_3m_bps": 67.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
+  "volatility": {
+    "vix": null,
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 32.66,
+      "prev": 15.19,
+      "change_pct": 115.01,
+      "source": "cboe",
+      "as_of": "2026-11-05",
+      "previous_as_of": "2026-11-04",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 25.55,
+      "prev": 18.8,
+      "change_pct": 35.9,
+      "source": "cboe",
+      "as_of": "2026-11-05",
+      "previous_as_of": "2026-11-04",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": null
+  },
+  "volatility_term_structure": null,
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "unavailable",
+    "treasury_curve": "ok"
+  },
+  "generated_at": "2026-11-05T23:20:26.349529+00:00"
+}
