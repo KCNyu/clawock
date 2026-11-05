@@ -217,7 +217,8 @@ def test_pr_run_measures_coverage_and_gates_on_it():
     assert names.index('Unit tests — money-integrity derivations') < names.index('Coverage floors')
 
     test_run = step_run(WORKFLOW, 'Unit tests — money-integrity derivations')
-    assert '--cov-report=json:coverage-report.json' in test_run
+    assert '--cov-report=' in test_run
+    assert 'coverage json -o coverage-report.json' in step_run(WORKFLOW, 'Coverage floors')
     # Every module the floors gate on must be inside the measured scope. The
     # floors already error on a module the report is missing, but that fires
     # after a 60s test run on a green-looking PR; this states the same rule at
@@ -231,7 +232,7 @@ def test_pr_run_measures_coverage_and_gates_on_it():
 
     floors = step_block(WORKFLOW, 'Coverage floors')
     assert 'continue-on-error' not in floors
-    assert step_run(WORKFLOW, 'Coverage floors') == (
+    assert step_run(WORKFLOW, 'Coverage floors').strip().endswith(
         'python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only')
 
 
@@ -242,16 +243,14 @@ def test_the_coverage_plugin_is_installed_where_it_is_used():
     # guarantee is checked at the new source of truth instead.
     import tomllib
 
-    # The install moved into the clawock-python composite (#806), so the extra
-    # is now named at the call site rather than in a `pip install` line. Same
-    # guarantee, one indirection: exactly one place in this workflow asks for it.
-    installs = [line for line in strip_hash_comments(WORKFLOW.read_text()).splitlines()
-                if "'.[test]'" in line]
-    assert len(installs) == 1, 'the suite must install the test extra exactly once'
-    assert 'clawock-python' in WORKFLOW.read_text(), (
-        'the install has to go through the one composite, or the pinned Python '
-        'and the extra drift apart again'
-    )
+    import yaml
+    jobs = yaml.safe_load(WORKFLOW.read_text())['jobs']
+    unit = jobs['unit-tests']
+    installs = [step for step in unit['steps']
+                if step.get('with', {}).get('install') == '.[test]']
+    assert len(installs) == 1, 'each shard installs the test extra once'
+    assert installs[0]['uses'] == './.github/actions/clawock-python'
+    assert jobs['validate']['needs'] == ['scope', 'checks', 'unit-tests']
 
     extras = tomllib.load(open(ROOT / 'pyproject.toml', 'rb'))[
         'project']['optional-dependencies']

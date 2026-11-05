@@ -351,7 +351,7 @@ jobs:
             python3 ops/ci/commit_secret_scan.py --commit HEAD
           fi
 
-      - name: Detect code changes
+      - name: Read classified lanes
         id: changes
         env:
           LANES: ${{ toJSON(needs.scope.outputs) }}
@@ -451,7 +451,7 @@ jobs:
         if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
         uses: ./.github/actions/clawock-python
         with:
-          install: '.[test]'
+          install: ${{ needs.scope.outputs.book == 'true' && '.[test]' || '.' }}
 
       # A push that changed only the book (`push_scope.BOOK_GLOBS`: price and
       # intraday refreshes, the brief's plan and ledger rows, the EOD archive)
@@ -637,6 +637,9 @@ jobs:
         shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Dashboard fixtures verify provenance against origin/master history.
+          fetch-depth: 0
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
         with:
@@ -648,7 +651,10 @@ jobs:
           CI_SHARD_TOTAL: '4'
         run: |
           python3 -m pytest tests/ -q -n auto -p ops.ci.pytest_shard \
-            --durations=20 --cov=clawock --cov=ops --cov-report= \
+            --durations=20 \
+            --cov=clawock \
+            --cov=ops \
+            --cov-report= \
             --junitxml=junit.xml
       - name: Upload shard coverage
         uses: actions/upload-artifact@v7
@@ -677,7 +683,8 @@ jobs:
           CODE: ${{ needs.scope.outputs.code }}
           UNIT: ${{ needs.unit-tests.result }}
         run: |
-          test "$SCOPE" = success && test "$CHECKS" = success
+          test "$SCOPE" = success
+          test "$CHECKS" = success
           if [ "$CODE" = true ]; then test "$UNIT" = success; fi
       - uses: actions/checkout@v7
         if: needs.scope.outputs.code == 'true'
@@ -688,7 +695,7 @@ jobs:
           install: none
       - name: Install coverage report reader
         if: needs.scope.outputs.code == 'true'
-        run: pip install --quiet 'coverage>=7.10'
+        run: pip install --quiet --group coverage
       - name: Download shard coverage
         if: needs.scope.outputs.code == 'true'
         uses: actions/download-artifact@v8

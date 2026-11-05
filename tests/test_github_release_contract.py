@@ -102,7 +102,7 @@ def test_the_release_pins_the_npm_that_publishes():
         assert "uses: ./.github/actions/clawock-node" in job
     assert workflow.index("uses: ./.github/actions/clawock-node") < workflow.index("publish_dsh_plugin.sh")
     ci = (ROOT / ".github/workflows/ci.yml").read_text()
-    validate = ci.split("\n  validate:", 1)[1]
+    validate = ci.split("\n  checks:", 1)[1]
     assert validate.index("uses: ./.github/actions/clawock-node") < validate.index("npm install --include=dev")
 
 
