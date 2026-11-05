@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T20:05:45.318170+00:00",
+  "generated_at": "2026-11-05T01:44:25.061019+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,12 +24,162 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 15,
+    "total": 17,
     "held_hits": 0,
-    "new_ideas": 10,
-    "sector_hits": 4
+    "new_ideas": 11,
+    "sector_hits": 5
   },
   "items": [
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Family Bought Intel in July, Right Before Its Worst Day Since 1974",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOWTNiTktZRnJNY3BnTkE0aGQ2THBwOUFCY0tibU1GNUF5aW9Ob0RsWVhLSTJqNlFvQzA2ZEdTSWlycV9ZeFdhZHg3Z3hyYnZqM3ZaOG42b2stdTlJSFFZT21rZU0zVW8zSjdIQ3Z1V3h5T3pUTDU5UkV0MmZsUFFhTXhxU2g2Zll4a1ZXVk1JakV1LVpvZHVhbFE5cE1JZw?oc=5",
+      "published": "2026-11-03T12:51:07+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "INTC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "INTC"
+      ],
+      "sectors": [
+        "半导体",
+        "芯片"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "buy",
+      "relevance": 86,
+      "summary_cn": "最新国会披露显示，Pelosi家族在7月买入Intel，时间点恰逢该股遭遇自1974年以来最严重的单日下跌。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry adds to BYD, SFM, JD, sees up to 140% potential in Fiserv (BYDDF:OTCMKTS)",
+      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNbHpwRnlVeV9OVHNtQm4xeVNfYUJxR0tuZWRZYU93TWIyRHhycEdySXUtS1NnUXQ0TVVkQmpubjMzRTl1eUFSNjlTenVhaW5xY1B4T2RWSXdiOFU2MU5wUDlXU2dISV9TUzVjV1VIX0p2LXBOUTl5RzlSaHNleE1hTjVGdkRUWWhLM3NXNnN4UjRiRzZ5TmtOamRlTU02YVdYWDU5aEg1ZzE?oc=5",
+      "published": "2026-11-03T06:52:34+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "BYD",
+        "BYDDF",
+        "SFM",
+        "JD",
+        "FISV"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BYD",
+        "BYDDF",
+        "FISV",
+        "JD",
+        "SFM"
+      ],
+      "sectors": [
+        "电动车",
+        "农业",
+        "电商",
+        "金融科技"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 83,
+      "summary_cn": "据媒体报道，Michael Burry加仓BYD、SFM和JD，并认为Fiserv最高可能拥有140%的上涨空间。"
+    },
+    {
+      "author": "Burry",
+      "text": "Ray Dalio Is Warning of an AI Bubble. Michael Burry’s Bets Against Nvidia and Palantir Add to the Debate.",
+      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOdjNUZ1ZpcjRWN2ZVenFNRzJUM3RFZE9yWWtmQkN1dlJibUZMWEV2SlQyaFA0dEhpUll6dVdJU3pzeEpoa25JNFZ3Mm9namYzU0UwOXRkQ01qWFdvWXQydVI1OTZ5UG8yRGFRWnIzeXZ3ZW1ncENiUTc2M1BNMmd3bDhrLTFVN3BrM05VUlJYLW1PR28xeWtoR3RPSHFZYnN0OXBmeGdMdjFBaUh2Q2k0Zld2UEkzMExwcDYzR01ueUtkMHotZk9PaEt0OTRtVEhvN1ZqWk5Rc083eXVDN3pJ?oc=5",
+      "published": "2026-11-04T14:36:26+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "NVDA",
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA",
+        "PLTR"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "软件"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据媒体报道，Michael Burry对Nvidia和Palantir的押注属于做空方向，并认为AI存在泡沫风险。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi Retires From Congress: Goodbye to Her Stock Picks - Amazon.com (NASDAQ:AMZN), Alphabet (NASD",
+      "url": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxQcFBQX1ZGeTZzRmlvRHlSZ2JobEhfTy1tMUZTN21scFQ4LUtqSFNadkdSc3VuRVR2TndWQ2ZzdXFPcmdjalVUMXpCMkJ6ZWxYaTlYQ1kzVkw4dHdyZE9EbDdsQ1ZiREJnbzNpX08yamRoMDc1SlJSNktwclo2bGQ2d0traDBGXzZVSG5RZ2JLdUloREhWVUZobFpwM3BxMEtIczdsS0tGWlVDcFlFRFhJM3hHUFhITmZiNlNrTGx5ejQ1MkpFT25ZbG50N2VObDFhODZjU0hXS0FuemFzZnJlX3FQbm5pVmR6amlKWXdB?oc=5",
+      "published": "2026-11-03T23:55:14+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "AMZN",
+        "GOOG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN",
+        "GOOG"
+      ],
+      "sectors": [
+        "电商",
+        "云计算",
+        "AI",
+        "互联网"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 82,
+      "summary_cn": "最新国会披露显示，Pelosi家族持有Amazon和Alphabet股票。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla, SpaceX Dive As Elon Musk's Big GOP Election Bet Fails",
+      "url": "",
+      "published": "Wed, 04 Nov 2026 21:03:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天",
+        "美国政治"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "据媒体报道，在马斯克支持的共和党候选人在得州选举失利后，Tesla与SpaceX相关股票大跌。"
+    },
     {
       "author": "Cathie Wood",
       "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 435,977 股（最大单只 ETF 占比 0.33%）",
@@ -46,14 +196,37 @@
         "PSNL"
       ],
       "sectors": [
-        "基因测序",
-        "生物科技",
-        "医疗"
+        "医疗科技",
+        "基因组学"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest在ARKG中卖出Personalis（PSNL）435,977股，单日调仓占该ETF比重0.33%，属于规模较大的机构减仓。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG中卖出435,977股Personalis，单只ETF交易占比达0.33%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Compass Pathways PLC(CMPS) 买入 ARKG 600,709 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-03T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.257,
+      "tickers": [
+        "CMPS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CMPS"
+      ],
+      "sectors": [
+        "医疗科技",
+        "心理健康服务"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG中买入600,709股Compass Pathways，单只ETF交易占比达0.26%。"
     },
     {
       "author": "Cathie Wood",
@@ -76,8 +249,33 @@
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest在ARKF中卖出CrowdStrike（CRWD）6,901股，单日调仓占该ETF比重0.23%，属于规模较大的机构减仓。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKF中卖出6,901股CrowdStrike，单只ETF交易占比达0.23%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Shopify Inc.(SHOP) 买入 ARKK 63,238 股 / ARKW 17,129 股 / ARKF 7,646 股（最大单只 ETF 占比 0.15%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-11-03T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1502,
+      "tickers": [
+        "SHOP"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SHOP"
+      ],
+      "sectors": [
+        "电商",
+        "软件",
+        "支付科技"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest同时在ARKK、ARKW和ARKF中合计买入Shopify共88,013股，最大单只ETF交易占比为0.15%。"
     },
     {
       "author": "Cathie Wood",
@@ -95,70 +293,13 @@
         "TOST"
       ],
       "sectors": [
-        "金融科技",
-        "支付",
+        "餐饮科技",
         "软件"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 77,
-      "summary_cn": "ARK Invest在ARKF中卖出Toast（TOST）47,311股，单日调仓占该ETF比重0.22%，机构减持该餐饮支付与软件公司。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry adds to BYD, SFM, JD, sees up to 140% potential in Fiserv (BYDDF:OTCMKTS)",
-      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNbHpwRnlVeV9OVHNtQm4xeVNfYUJxR0tuZWRZYU93TWIyRHhycEdySXUtS1NnUXQ0TVVkQmpubjMzRTl1eUFSNjlTenVhaW5xY1B4T2RWSXdiOFU2MU5wUDlXU2dISV9TUzVjV1VIX0p2LXBOUTl5RzlSaHNleE1hTjVGdkRUWWhLM3NXNnN4UjRiRzZ5TmtOamRlTU02YVdYWDU5aEg1ZzE?oc=5",
-      "published": "2026-11-03T06:52:34+00:00",
-      "origin": "gnews-rss",
-      "source": "Seeking Alpha",
-      "tickers": [
-        "BYDDF",
-        "SFM",
-        "JD",
-        "FI"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BYDDF",
-        "FI",
-        "JD",
-        "SFM"
-      ],
-      "sectors": [
-        "电动车",
-        "必需消费品",
-        "电商",
-        "支付软件"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 76,
-      "summary_cn": "媒体报道称Michael Burry增持比亚迪（BYDDF）、Smart & Final（SFM）和京东（JD），并认为Fiserv（FI）最高有140%的上涨潜力。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Compass Pathways PLC(CMPS) 买入 ARKG 600,709 股（最大单只 ETF 占比 0.26%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-03T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.257,
-      "tickers": [
-        "CMPS"
-      ],
-      "held": [],
-      "new_ideas": [
-        "CMPS"
-      ],
-      "sectors": [
-        "医疗",
-        "生物科技",
-        "数字医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 75,
-      "summary_cn": "ARK Invest在ARKG中买入Compass Pathways（CMPS）600,709股，单日调仓占该ETF比重0.26%，显示机构增加配置。"
+      "relevance": 71,
+      "summary_cn": "ARK Invest在ARKF中卖出47,311股Toast，单只ETF交易占比达0.22%。"
     },
     {
       "author": "Cathie Wood",
@@ -177,113 +318,14 @@
       ],
       "sectors": [
         "互联网",
+        "AI",
         "云计算",
-        "人工智能"
+        "广告"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 75,
-      "summary_cn": "ARK Invest在ARKQ中卖出Alphabet（GOOG）12,530股，单日调仓占该ETF比重0.20%，体现机构对大型互联网及AI相关平台进行减仓。"
-    },
-    {
-      "author": "Burry",
-      "text": "Ray Dalio Is Warning of an AI Bubble. Michael Burry’s Bets Against Nvidia and Palantir Add to the Debate.",
-      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOdjNUZ1ZpcjRWN2ZVenFNRzJUM3RFZE9yWWtmQkN1dlJibUZMWEV2SlQyaFA0dEhpUll6dVdJU3pzeEpoa25JNFZ3Mm9namYzU0UwOXRkQ01qWFdvWXQydVI1OTZ5UG8yRGFRWnIzeXZ3ZW1ncENiUTc2M1BNMmd3bDhrLTFVN3BrM05VUlJYLW1PR28xeWtoR3RPSHFZYnN0OXBmeGdMdjFBaUh2Q2k0Zld2UEkzMExwcDYzR01ueUtkMHotZk9PaEt0OTRtVEhvN1ZqWk5Rc083eXVDN3pJ?oc=5",
-      "published": "2026-11-04T14:36:26+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "NVDA",
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA",
-        "PLTR"
-      ],
-      "sectors": [
-        "人工智能",
-        "半导体",
-        "国防科技"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "媒体报道称Ray Dalio警告存在AI泡沫，且Michael Burry持有英伟达（NVDA）和Palantir（PLTR）的看跌押注，AI高估值风险受到关注。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Nancy Pelosi’s Family Bought Intel in July, Right Before Its Worst Day Since 1974",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOWTNiTktZRnJNY3BnTkE0aGQ2THBwOUFCY0tibU1GNUF5aW9Ob0RsWVhLSTJqNlFvQzA2ZEdTSWlycV9ZeFdhZHg3Z3hyYnZqM3ZaOG42b2stdTlJSFFZT21rZU0zVW8zSjdIQ3Z1V3h5T3pUTDU5UkV0MmZsUFFhTXhxU2g2Zll4a1ZXVk1JakV1LVpvZHVhbFE5cE1JZw?oc=5",
-      "published": "2026-11-03T12:51:07+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "INTC"
-      ],
-      "held": [],
-      "new_ideas": [
-        "INTC"
-      ],
-      "sectors": [
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "国会披露最新显示，Nancy Pelosi家族于7月买入英特尔（INTC），但该交易发生在30至45天前，披露后股价遭遇自1974年以来最差单日表现。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Shopify Inc.(SHOP) 买入 ARKK 63,238 股 / ARKW 17,129 股 / ARKF 7,646 股（最大单只 ETF 占比 0.15%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-11-03T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1502,
-      "tickers": [
-        "SHOP"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SHOP"
-      ],
-      "sectors": [
-        "电子商务",
-        "软件",
-        "金融科技"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKK、ARKW和ARKF中合计买入Shopify（SHOP）88,013股，单只ETF最大调仓占比0.15%，机构增加电子商务软件敞口。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX and Tesla Stocks Tumble After Elon Musk-Backed Candidates Lose in Texas",
-      "url": "",
-      "published": "Wed, 04 Nov 2026 18:39:08 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "媒体报道称，Elon Musk支持的政治候选人败选后，SpaceX和特斯拉股价下跌，显示政治选举结果对Musk相关资产情绪构成压力。"
+      "relevance": 71,
+      "summary_cn": "ARK Invest在ARKQ中卖出12,530股Alphabet，单只ETF交易占比达0.20%。"
     },
     {
       "author": "洪灏",
@@ -298,40 +340,17 @@
       "sectors": [
         "A股",
         "港股",
-        "政策"
+        "国家队"
       ],
       "sector_holdings": [
+        "00100",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "据香港经济日报报道，国家队发力推动A股和港股齐涨，反映政策性资金对两地股市形成支撑。"
-    },
-    {
-      "author": "洪灏",
-      "text": "港股減不確定性因素 券商：淡友「冚倉」|香港經濟日報",
-      "url": "https://news.google.com/rss/articles/CBMi2AJBVV95cUxNNm9Ea1E1c1hmeVQwc0hRcGFGenBrdWlwSDIxNlN0NXY1ZjR1MEhDUkI5ZG04ekFTeThvUzlVVXVoSXNCV1Q1NnpwN0FVaW0xMWhhNTNhWVNPR0VNM0JUM2Q4SEFlYzA2dVhXaEhsaW1lMjNDNThENFNsNkN1ZlR5Q0RFNGNSY2w5RE44LXo5aWUtVkd4dXFDelJFbXFwRjRXRzduYkotR1diTjZYdklfdmM1RHpZWm5TbTk2ZzhOd2pLdVZ0OUdZelVrZnBvajhVNEVEOXJnaU0tMXA0c3NzTUFPeFZ2Y005WkNNSlgtamZCQmRrT3BMcUxEQ0h4bW12dGNxRDhGQXhCclcwU0pPeUw1aG94eGUzSTJZRnIwcy16N09iNlQzUFhIZmo3UTRwN0o3WFZuUTlsbkJoNXlvVXJrUy1hRnZIZVA4d1F0ZG1fbmFCNXZZVw?oc=5",
-      "published": "2026-11-04T16:29:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "券商",
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据香港经济日报报道，港股不确定性因素下降后券商看空者开始平仓，市场空头压力可能阶段性缓解。"
+      "relevance": 72,
+      "summary_cn": "据报道，在“国家队”资金发力带动下，A股与港股同步上涨。"
     },
     {
       "author": "洪灏",
@@ -346,16 +365,64 @@
       "sectors": [
         "A股",
         "港股",
-        "宏观经济"
+        "盈利周期"
       ],
       "sector_holdings": [
+        "00100",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据香港经济日报报道，洪灏认为经历反弹后仍需观察盈利表现，提示港股及A股后续行情存在不确定性。"
+      "relevance": 67,
+      "summary_cn": "据报道，洪灏认为市场在“924行情”式反弹后仍需观察企业盈利兑现情况。"
+    },
+    {
+      "author": "洪灏",
+      "text": "港股減不確定性因素 券商：淡友「冚倉」|香港經濟日報",
+      "url": "https://news.google.com/rss/articles/CBMiuwJBVV95cUxPV2hrM2lnNjhhS05YTEdLcGY2WFlJWVlZVl96dFJLVHNlNWgzSGlzUW1KcE9ha3lJREx4dVktbUtIODNHQ0pObFRRcHZyQldDd1VGYTdrYWN1NVpoOEtBNkx1OGNiOEFNRVRMTEtiVEdERER0NWZiMVlFZmMyOGJNcUcwdVV6azE1NkZKUFQ2ZjliektNZkhoVTBnM0djMnhzTzdDS2oyRXhzZG5jVVJoX1JjRzd4QlJWRUt1RlZOSUl4N1NjU0lhUlpmTDJENUhfUWRDQ29UNFpESDRRWTRFNl81bDdEV3Uta1Y5dC1DQndmbnJCZmlES0RNY0tQMjJvc2p3SHBHdERNbjQwcDEwMzJlX0xrekdkZTdpQjZFdWJmN21pQlg0TjI5UExQdi0xY1FPZWFvZWNxdlU?oc=5",
+      "published": "2026-11-04T16:29:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "港股",
+        "券商",
+        "做空交易"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，港股市场不确定性下降，券商淡友被形容为正在“平仓”。"
+    },
+    {
+      "author": "Burry",
+      "text": "Anthropic’s Amended Prospectus Form S-1/A: 3rd Quarter Results & More Questions",
+      "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE1NbWRTeFNJMTBBajhhSkVobkdNeUxNZy00UlNacjV2RV8tdmNsTjdMeGxQcWJlSW5sNTE1UUdBWFFrZGtQcVRNNEpiLXZvQmRRa2xOYzd6SEdkVDVReVNwTktUY3NDWm9RZHJUYjhPLVdrYXN0S3dRbE1DTQ?oc=5",
+      "published": "2026-11-04T20:50:33+00:00",
+      "origin": "gnews-rss",
+      "source": "Cassandra Unchained | Michael Burry",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "IPO",
+        "大语言模型"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "neutral",
+      "relevance": 61,
+      "summary_cn": "据报道，Anthropic提交修订后的S-1/A招股文件，披露第三季度业绩并引发更多业务问题。"
     },
     {
       "author": "Pelosi",
@@ -369,38 +436,187 @@
       "new_ideas": [],
       "sectors": [
         "加密货币",
+        "预测市场",
         "美国政治"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道Nancy Pelosi支持Hakeem Jeffries竞选众议院议长，加密市场人士对此表示欢迎并给予其约95%的胜选概率。"
+      "relevance": 54,
+      "summary_cn": "据报道，Pelosi支持Hakeem Jeffries竞选众议院议长，加密市场交易者给予Jeffries约95%的胜选概率。"
     },
     {
-      "author": "Musk",
-      "text": "Inside Musk’s plan to upend the wireless phone industry",
-      "url": "",
-      "published": "Mon, 02 Nov 2026 18:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
+      "author": "Trump",
+      "text": "Stock Market just hit another Record High — 91 Days in just a short period of time — Less than two years. Your 401(k)s are through the roof. Record Setting All! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43486",
+      "published": "2026-11-04T17:27:54+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电信",
-        "手机",
-        "人工智能"
+        "美股",
+        "宏观经济"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "媒体报道聚焦Elon Musk计划搅动无线手机行业，可能影响通信设备、手机及相关科技平台的竞争格局。"
+      "relevance": 58,
+      "summary_cn": "特朗普称美股连续91天刷新纪录并创下新高，强调股市及401(k)账户表现强劲。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Family Bought Intel in July, Right Before Its Worst Day Since 1974",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOWTNiTktZRnJNY3BnTkE0aGQ2THBwOUFCY0tibU1GNUF5aW9Ob0RsWVhLSTJqNlFvQzA2ZEdTSWlycV9ZeFdhZHg3Z3hyYnZqM3ZaOG42b2stdTlJSFFZT21rZU0zVW8zSjdIQ3Z1V3h5T3pUTDU5UkV0MmZsUFFhTXhxU2g2Zll4a1ZXVk1JakV1LVpvZHVhbFE5cE1JZw?oc=5",
+      "published": "2026-11-03T12:51:07+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "INTC"
+      ],
+      "held": [],
+      "new_ideas": [
+        "INTC"
+      ],
+      "sectors": [
+        "半导体",
+        "芯片"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "buy",
+      "relevance": 86,
+      "summary_cn": "最新国会披露显示，Pelosi家族在7月买入Intel，时间点恰逢该股遭遇自1974年以来最严重的单日下跌。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry adds to BYD, SFM, JD, sees up to 140% potential in Fiserv (BYDDF:OTCMKTS)",
+      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNbHpwRnlVeV9OVHNtQm4xeVNfYUJxR0tuZWRZYU93TWIyRHhycEdySXUtS1NnUXQ0TVVkQmpubjMzRTl1eUFSNjlTenVhaW5xY1B4T2RWSXdiOFU2MU5wUDlXU2dISV9TUzVjV1VIX0p2LXBOUTl5RzlSaHNleE1hTjVGdkRUWWhLM3NXNnN4UjRiRzZ5TmtOamRlTU02YVdYWDU5aEg1ZzE?oc=5",
+      "published": "2026-11-03T06:52:34+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "BYD",
+        "BYDDF",
+        "SFM",
+        "JD",
+        "FISV"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BYD",
+        "BYDDF",
+        "FISV",
+        "JD",
+        "SFM"
+      ],
+      "sectors": [
+        "电动车",
+        "农业",
+        "电商",
+        "金融科技"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 83,
+      "summary_cn": "据媒体报道，Michael Burry加仓BYD、SFM和JD，并认为Fiserv最高可能拥有140%的上涨空间。"
+    },
+    {
+      "author": "Burry",
+      "text": "Ray Dalio Is Warning of an AI Bubble. Michael Burry’s Bets Against Nvidia and Palantir Add to the Debate.",
+      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOdjNUZ1ZpcjRWN2ZVenFNRzJUM3RFZE9yWWtmQkN1dlJibUZMWEV2SlQyaFA0dEhpUll6dVdJU3pzeEpoa25JNFZ3Mm9namYzU0UwOXRkQ01qWFdvWXQydVI1OTZ5UG8yRGFRWnIzeXZ3ZW1ncENiUTc2M1BNMmd3bDhrLTFVN3BrM05VUlJYLW1PR28xeWtoR3RPSHFZYnN0OXBmeGdMdjFBaUh2Q2k0Zld2UEkzMExwcDYzR01ueUtkMHotZk9PaEt0OTRtVEhvN1ZqWk5Rc083eXVDN3pJ?oc=5",
+      "published": "2026-11-04T14:36:26+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "NVDA",
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA",
+        "PLTR"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "软件"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据媒体报道，Michael Burry对Nvidia和Palantir的押注属于做空方向，并认为AI存在泡沫风险。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi Retires From Congress: Goodbye to Her Stock Picks - Amazon.com (NASDAQ:AMZN), Alphabet (NASD",
+      "url": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxQcFBQX1ZGeTZzRmlvRHlSZ2JobEhfTy1tMUZTN21scFQ4LUtqSFNadkdSc3VuRVR2TndWQ2ZzdXFPcmdjalVUMXpCMkJ6ZWxYaTlYQ1kzVkw4dHdyZE9EbDdsQ1ZiREJnbzNpX08yamRoMDc1SlJSNktwclo2bGQ2d0traDBGXzZVSG5RZ2JLdUloREhWVUZobFpwM3BxMEtIczdsS0tGWlVDcFlFRFhJM3hHUFhITmZiNlNrTGx5ejQ1MkpFT25ZbG50N2VObDFhODZjU0hXS0FuemFzZnJlX3FQbm5pVmR6amlKWXdB?oc=5",
+      "published": "2026-11-03T23:55:14+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "AMZN",
+        "GOOG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AMZN",
+        "GOOG"
+      ],
+      "sectors": [
+        "电商",
+        "云计算",
+        "AI",
+        "互联网"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 82,
+      "summary_cn": "最新国会披露显示，Pelosi家族持有Amazon和Alphabet股票。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla, SpaceX Dive As Elon Musk's Big GOP Election Bet Fails",
+      "url": "",
+      "published": "Wed, 04 Nov 2026 21:03:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天",
+        "美国政治"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "据媒体报道，在马斯克支持的共和党候选人在得州选举失利后，Tesla与SpaceX相关股票大跌。"
+    },
     {
       "author": "Cathie Wood",
       "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Personalis, Inc.(PSNL) 卖出 ARKG 435,977 股（最大单只 ETF 占比 0.33%）",
@@ -417,14 +633,37 @@
         "PSNL"
       ],
       "sectors": [
-        "基因测序",
-        "生物科技",
-        "医疗"
+        "医疗科技",
+        "基因组学"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest在ARKG中卖出Personalis（PSNL）435,977股，单日调仓占该ETF比重0.33%，属于规模较大的机构减仓。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG中卖出435,977股Personalis，单只ETF交易占比达0.33%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Compass Pathways PLC(CMPS) 买入 ARKG 600,709 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-03T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.257,
+      "tickers": [
+        "CMPS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CMPS"
+      ],
+      "sectors": [
+        "医疗科技",
+        "心理健康服务"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG中买入600,709股Compass Pathways，单只ETF交易占比达0.26%。"
     },
     {
       "author": "Cathie Wood",
@@ -447,162 +686,8 @@
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest在ARKF中卖出CrowdStrike（CRWD）6,901股，单日调仓占该ETF比重0.23%，属于规模较大的机构减仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Toast, Inc.(TOST) 卖出 ARKF 47,311 股（最大单只 ETF 占比 0.22%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-11-03T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.2209,
-      "tickers": [
-        "TOST"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TOST"
-      ],
-      "sectors": [
-        "金融科技",
-        "支付",
-        "软件"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 77,
-      "summary_cn": "ARK Invest在ARKF中卖出Toast（TOST）47,311股，单日调仓占该ETF比重0.22%，机构减持该餐饮支付与软件公司。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry adds to BYD, SFM, JD, sees up to 140% potential in Fiserv (BYDDF:OTCMKTS)",
-      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNbHpwRnlVeV9OVHNtQm4xeVNfYUJxR0tuZWRZYU93TWIyRHhycEdySXUtS1NnUXQ0TVVkQmpubjMzRTl1eUFSNjlTenVhaW5xY1B4T2RWSXdiOFU2MU5wUDlXU2dISV9TUzVjV1VIX0p2LXBOUTl5RzlSaHNleE1hTjVGdkRUWWhLM3NXNnN4UjRiRzZ5TmtOamRlTU02YVdYWDU5aEg1ZzE?oc=5",
-      "published": "2026-11-03T06:52:34+00:00",
-      "origin": "gnews-rss",
-      "source": "Seeking Alpha",
-      "tickers": [
-        "BYDDF",
-        "SFM",
-        "JD",
-        "FI"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BYDDF",
-        "FI",
-        "JD",
-        "SFM"
-      ],
-      "sectors": [
-        "电动车",
-        "必需消费品",
-        "电商",
-        "支付软件"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 76,
-      "summary_cn": "媒体报道称Michael Burry增持比亚迪（BYDDF）、Smart & Final（SFM）和京东（JD），并认为Fiserv（FI）最高有140%的上涨潜力。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Compass Pathways PLC(CMPS) 买入 ARKG 600,709 股（最大单只 ETF 占比 0.26%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-03T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.257,
-      "tickers": [
-        "CMPS"
-      ],
-      "held": [],
-      "new_ideas": [
-        "CMPS"
-      ],
-      "sectors": [
-        "医疗",
-        "生物科技",
-        "数字医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 75,
-      "summary_cn": "ARK Invest在ARKG中买入Compass Pathways（CMPS）600,709股，单日调仓占该ETF比重0.26%，显示机构增加配置。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Alphabet Inc.(GOOG) 卖出 ARKQ 12,530 股（最大单只 ETF 占比 0.20%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-11-03T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.2022,
-      "tickers": [
-        "GOOG"
-      ],
-      "held": [],
-      "new_ideas": [
-        "GOOG"
-      ],
-      "sectors": [
-        "互联网",
-        "云计算",
-        "人工智能"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 75,
-      "summary_cn": "ARK Invest在ARKQ中卖出Alphabet（GOOG）12,530股，单日调仓占该ETF比重0.20%，体现机构对大型互联网及AI相关平台进行减仓。"
-    },
-    {
-      "author": "Burry",
-      "text": "Ray Dalio Is Warning of an AI Bubble. Michael Burry’s Bets Against Nvidia and Palantir Add to the Debate.",
-      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOdjNUZ1ZpcjRWN2ZVenFNRzJUM3RFZE9yWWtmQkN1dlJibUZMWEV2SlQyaFA0dEhpUll6dVdJU3pzeEpoa25JNFZ3Mm9namYzU0UwOXRkQ01qWFdvWXQydVI1OTZ5UG8yRGFRWnIzeXZ3ZW1ncENiUTc2M1BNMmd3bDhrLTFVN3BrM05VUlJYLW1PR28xeWtoR3RPSHFZYnN0OXBmeGdMdjFBaUh2Q2k0Zld2UEkzMExwcDYzR01ueUtkMHotZk9PaEt0OTRtVEhvN1ZqWk5Rc083eXVDN3pJ?oc=5",
-      "published": "2026-11-04T14:36:26+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "NVDA",
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA",
-        "PLTR"
-      ],
-      "sectors": [
-        "人工智能",
-        "半导体",
-        "国防科技"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
       "relevance": 72,
-      "summary_cn": "媒体报道称Ray Dalio警告存在AI泡沫，且Michael Burry持有英伟达（NVDA）和Palantir（PLTR）的看跌押注，AI高估值风险受到关注。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Nancy Pelosi’s Family Bought Intel in July, Right Before Its Worst Day Since 1974",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOWTNiTktZRnJNY3BnTkE0aGQ2THBwOUFCY0tibU1GNUF5aW9Ob0RsWVhLSTJqNlFvQzA2ZEdTSWlycV9ZeFdhZHg3Z3hyYnZqM3ZaOG42b2stdTlJSFFZT21rZU0zVW8zSjdIQ3Z1V3h5T3pUTDU5UkV0MmZsUFFhTXhxU2g2Zll4a1ZXVk1JakV1LVpvZHVhbFE5cE1JZw?oc=5",
-      "published": "2026-11-03T12:51:07+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "INTC"
-      ],
-      "held": [],
-      "new_ideas": [
-        "INTC"
-      ],
-      "sectors": [
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "国会披露最新显示，Nancy Pelosi家族于7月买入英特尔（INTC），但该交易发生在30至45天前，披露后股价遭遇自1974年以来最差单日表现。"
+      "summary_cn": "ARK Invest在ARKF中卖出6,901股CrowdStrike，单只ETF交易占比达0.23%。"
     },
     {
       "author": "Cathie Wood",
@@ -620,41 +705,38 @@
         "SHOP"
       ],
       "sectors": [
-        "电子商务",
+        "电商",
         "软件",
-        "金融科技"
+        "支付科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKK、ARKW和ARKF中合计买入Shopify（SHOP）88,013股，单只ETF最大调仓占比0.15%，机构增加电子商务软件敞口。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest同时在ARKK、ARKW和ARKF中合计买入Shopify共88,013股，最大单只ETF交易占比为0.15%。"
     },
     {
-      "author": "Musk",
-      "text": "SpaceX and Tesla Stocks Tumble After Elon Musk-Backed Candidates Lose in Texas",
-      "url": "",
-      "published": "Wed, 04 Nov 2026 18:39:08 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-03 调仓：Toast, Inc.(TOST) 卖出 ARKF 47,311 股（最大单只 ETF 占比 0.22%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-03T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2209,
       "tickers": [
-        "TSLA"
+        "TOST"
       ],
       "held": [],
       "new_ideas": [
-        "TSLA"
+        "TOST"
       ],
       "sectors": [
-        "电动车",
-        "航天"
+        "餐饮科技",
+        "软件"
       ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "媒体报道称，Elon Musk支持的政治候选人败选后，SpaceX和特斯拉股价下跌，显示政治选举结果对Musk相关资产情绪构成压力。"
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 71,
+      "summary_cn": "ARK Invest在ARKF中卖出47,311股Toast，单只ETF交易占比达0.22%。"
     }
   ],
   "sector_hits": [
@@ -671,40 +753,17 @@
       "sectors": [
         "A股",
         "港股",
-        "政策"
+        "国家队"
       ],
       "sector_holdings": [
+        "00100",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "据香港经济日报报道，国家队发力推动A股和港股齐涨，反映政策性资金对两地股市形成支撑。"
-    },
-    {
-      "author": "洪灏",
-      "text": "港股減不確定性因素 券商：淡友「冚倉」|香港經濟日報",
-      "url": "https://news.google.com/rss/articles/CBMi2AJBVV95cUxNNm9Ea1E1c1hmeVQwc0hRcGFGenBrdWlwSDIxNlN0NXY1ZjR1MEhDUkI5ZG04ekFTeThvUzlVVXVoSXNCV1Q1NnpwN0FVaW0xMWhhNTNhWVNPR0VNM0JUM2Q4SEFlYzA2dVhXaEhsaW1lMjNDNThENFNsNkN1ZlR5Q0RFNGNSY2w5RE44LXo5aWUtVkd4dXFDelJFbXFwRjRXRzduYkotR1diTjZYdklfdmM1RHpZWm5TbTk2ZzhOd2pLdVZ0OUdZelVrZnBvajhVNEVEOXJnaU0tMXA0c3NzTUFPeFZ2Y005WkNNSlgtamZCQmRrT3BMcUxEQ0h4bW12dGNxRDhGQXhCclcwU0pPeUw1aG94eGUzSTJZRnIwcy16N09iNlQzUFhIZmo3UTRwN0o3WFZuUTlsbkJoNXlvVXJrUy1hRnZIZVA4d1F0ZG1fbmFCNXZZVw?oc=5",
-      "published": "2026-11-04T16:29:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "券商",
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据香港经济日报报道，港股不确定性因素下降后券商看空者开始平仓，市场空头压力可能阶段性缓解。"
+      "relevance": 72,
+      "summary_cn": "据报道，在“国家队”资金发力带动下，A股与港股同步上涨。"
     },
     {
       "author": "洪灏",
@@ -719,16 +778,64 @@
       "sectors": [
         "A股",
         "港股",
-        "宏观经济"
+        "盈利周期"
       ],
       "sector_holdings": [
+        "00100",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据香港经济日报报道，洪灏认为经历反弹后仍需观察盈利表现，提示港股及A股后续行情存在不确定性。"
+      "relevance": 67,
+      "summary_cn": "据报道，洪灏认为市场在“924行情”式反弹后仍需观察企业盈利兑现情况。"
+    },
+    {
+      "author": "洪灏",
+      "text": "港股減不確定性因素 券商：淡友「冚倉」|香港經濟日報",
+      "url": "https://news.google.com/rss/articles/CBMiuwJBVV95cUxPV2hrM2lnNjhhS05YTEdLcGY2WFlJWVlZVl96dFJLVHNlNWgzSGlzUW1KcE9ha3lJREx4dVktbUtIODNHQ0pObFRRcHZyQldDd1VGYTdrYWN1NVpoOEtBNkx1OGNiOEFNRVRMTEtiVEdERER0NWZiMVlFZmMyOGJNcUcwdVV6azE1NkZKUFQ2ZjliektNZkhoVTBnM0djMnhzTzdDS2oyRXhzZG5jVVJoX1JjRzd4QlJWRUt1RlZOSUl4N1NjU0lhUlpmTDJENUhfUWRDQ29UNFpESDRRWTRFNl81bDdEV3Uta1Y5dC1DQndmbnJCZmlES0RNY0tQMjJvc2p3SHBHdERNbjQwcDEwMzJlX0xrekdkZTdpQjZFdWJmN21pQlg0TjI5UExQdi0xY1FPZWFvZWNxdlU?oc=5",
+      "published": "2026-11-04T16:29:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "港股",
+        "券商",
+        "做空交易"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，港股市场不确定性下降，券商淡友被形容为正在“平仓”。"
+    },
+    {
+      "author": "Burry",
+      "text": "Anthropic’s Amended Prospectus Form S-1/A: 3rd Quarter Results & More Questions",
+      "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE1NbWRTeFNJMTBBajhhSkVobkdNeUxNZy00UlNacjV2RV8tdmNsTjdMeGxQcWJlSW5sNTE1UUdBWFFrZGtQcVRNNEpiLXZvQmRRa2xOYzd6SEdkVDVReVNwTktUY3NDWm9RZHJUYjhPLVdrYXN0S3dRbE1DTQ?oc=5",
+      "published": "2026-11-04T20:50:33+00:00",
+      "origin": "gnews-rss",
+      "source": "Cassandra Unchained | Michael Burry",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "IPO",
+        "大语言模型"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "neutral",
+      "relevance": 61,
+      "summary_cn": "据报道，Anthropic提交修订后的S-1/A招股文件，披露第三季度业绩并引发更多业务问题。"
     },
     {
       "author": "Pelosi",
@@ -742,14 +849,15 @@
       "new_ideas": [],
       "sectors": [
         "加密货币",
+        "预测市场",
         "美国政治"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道Nancy Pelosi支持Hakeem Jeffries竞选众议院议长，加密市场人士对此表示欢迎并给予其约95%的胜选概率。"
+      "relevance": 54,
+      "summary_cn": "据报道，Pelosi支持Hakeem Jeffries竞选众议院议长，加密市场交易者给予Jeffries约95%的胜选概率。"
     }
   ]
 }
