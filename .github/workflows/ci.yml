@@ -650,7 +650,7 @@ jobs:
           CI_SHARD_INDEX: ${{ matrix.shard }}
           CI_SHARD_TOTAL: '4'
         run: |
-          python3 -m pytest tests/ -q -n auto -p ops.ci.pytest_shard \
+          python3 -m pytest tests/ -q -n auto --dist loadfile -p ops.ci.pytest_shard \
             --durations=20 \
             --cov=clawock \
             --cov=ops \

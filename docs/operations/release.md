@@ -57,8 +57,8 @@ it. The rest of this page is that path.
 ## CI before merge
 
 The `CI` workflow classifies the changed paths before installing dependencies.
-Code changes run the full Python suite on four Ubuntu runners. Each collected
-node ID belongs to exactly one shard; `validate` requires all four shards and
+Code changes run the full Python suite on four Ubuntu runners. Each test file
+belongs to exactly one shard and one worker, so module fixtures run once; `validate` requires all four shards and
 combines their coverage before applying the package and settlement-core floors.
 Independent schema, browser and package checks run alongside the suite. The
 checkout retains Git history because dashboard tests verify public provenance.

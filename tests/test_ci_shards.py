@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 import yaml
 
-from ops.ci.pytest_shard import pytest_collection_modifyitems
+from ops.ci.pytest_shard import pytest_collection_modifyitems, shard_for
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -71,3 +71,11 @@ def test_required_gate_executes_fail_closed(scope, checks, code, unit, ok):
     result = subprocess.run(['bash', '-e', '-c', script], env=dict(
         os.environ, SCOPE=scope, CHECKS=checks, CODE=code, UNIT=unit))
     assert (result.returncode == 0) == ok
+
+
+def test_file_fixtures_are_not_duplicated_between_shards_or_workers():
+    ids = ['tests/test_install.py::test_a', 'tests/test_install.py::TestB::test_b[x]']
+    assert shard_for(ids[0], 4) == shard_for(ids[1], 4)
+    jobs = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())['jobs']
+    step = next(s for s in jobs['unit-tests']['steps'] if 'pytest' in s.get('run', ''))
+    assert '--dist loadfile' in step['run']

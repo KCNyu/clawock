@@ -1,6 +1,7 @@
-"""Partition collected node IDs deterministically; xdist workers agree exactly.
+"""Partition test files deterministically; xdist workers agree exactly.
 
 Every test belongs to one shard, including tests added after the last CI run.
+Keep a file together so module-scoped fixtures are not rebuilt on each machine.
 Normal local pytest is unchanged unless both shard environment variables are set.
 """
 import hashlib
@@ -10,7 +11,8 @@ import pytest
 
 
 def shard_for(nodeid: str, total: int) -> int:
-    return int.from_bytes(hashlib.sha256(nodeid.encode()).digest()[:8], 'big') % total
+    path = nodeid.split('::', 1)[0]
+    return int.from_bytes(hashlib.sha256(path.encode()).digest()[:8], 'big') % total
 
 
 @pytest.hookimpl(trylast=True)
