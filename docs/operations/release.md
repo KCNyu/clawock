@@ -54,6 +54,29 @@ Cut a release when the outside world needs the change — a PyPI/npm user, a
 documented install line, a version a skill contract names — and batch fixes into
 it. The rest of this page is that path.
 
+## CI before merge
+
+The `CI` workflow classifies the changed paths before installing dependencies.
+Code changes run the full Python suite on four Ubuntu runners. Each test file
+belongs to exactly one shard and one worker, so module fixtures run once; `validate` requires all four shards and
+combines their coverage before applying the package and settlement-core floors.
+Independent schema and package checks run alongside the suite. Dashboard browser
+cases run on four separate runners; layout and decision-map contracts run once.
+`validate` also requires every selected browser shard to pass. The
+checkout retains Git history because dashboard tests verify public provenance.
+
+README, changelog and `docs/` edits alone do not trigger CI on `master` pushes.
+On PRs they skip tests, builds and Python lint, but retain file-safety checks and
+CodeQL. The external `CodeQL` required check is produced by SARIF processing;
+skipping the whole PR workflow would leave it pending indefinitely. The ruleset
+and its alert enforcement are unchanged. Skills and agent instructions remain
+executable inputs and still run the full suite. Weekly and manual runs cover
+all lanes, including document contracts.
+
+New commits cancel older runs of the same PR. Each `master` push has a separate
+concurrency group, so neither a running nor a pending older commit is replaced.
+Coverage publishing consumes the combined report without rerunning tests.
+
 ## One-time setup (kcn, on the PyPI side)
 
 Trusted publishing is used instead of an API token, so nothing long-lived sits

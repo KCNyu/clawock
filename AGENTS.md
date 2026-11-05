@@ -62,7 +62,9 @@ python3 ops/system_check.py                            # live workspace audit
 ops/host/refresh_live.sh                               # apply a merged PR to this host
 ```
 
-CI runs the full suite on every PR; run only the tests your change touches locally.
+CI shards the full suite on code PRs; documentation-only PRs keep file-safety and
+required CodeQL checks without running tests or builds. Run only the tests your
+change touches locally.
 
 ## Where things live
 

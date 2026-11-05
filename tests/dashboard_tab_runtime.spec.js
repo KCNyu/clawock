@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 const { chromium } = require("playwright");
+const { browserShard } = require("./browser_shard.cjs");
 
 const ROOT = path.resolve(__dirname, "..");
 const DETAIL_PATH = "/assets/js/dashboard.render.js";
@@ -4454,6 +4455,26 @@ async function testNoChartPaintsOneLabelOverAnother(browser, base) {
         await waitForTab(page, tab);
         const result = await settled();
         assert.deepEqual(result.faults, [], `${width}px ${tab}`);
+        if (tab === "reflect") {
+          // The date axis must also remeasure at the widest history window
+          // and when a phone rotates, without hiding the entire date scale.
+          await page.evaluate(() => echarts.getInstanceByDom(
+            document.getElementById("chart-daily-pnl")).dispatchAction({
+            type: "dataZoom", start: 0, end: 100,
+          }));
+          const full = await settled();
+          assert.deepEqual(full.faults, [], `${width}px reflect, full history`);
+          assert(full.painted["chart-daily-pnl"].filter(t => /^\d{2}-\d{2}$/.test(t)).length >= 2,
+            `${width}px: the date scale disappeared`);
+          if (width < 1024) {
+            await page.setViewportSize({ width: 844, height: width });
+            const turned = await settled();
+            assert.deepEqual(turned.faults, [], `${width}px reflect, turned`);
+            await page.setViewportSize({ width, height: 844 });
+            const restored = await settled();
+            assert.deepEqual(restored.faults, [], `${width}px reflect, restored`);
+          }
+        }
         if (tab === "drill") {
           assert.deepEqual(await unnamed(result.painted["chart-weight-conf"]), [], `${width}px: a position has no name`);
           if (width < 1024) {
@@ -4623,9 +4644,13 @@ async function main() {
   // layout settles is load-sensitive (see the verdict-deck case), and re-running
   // one case used to mean editing this list and remembering to put it back.
   const only = (process.env.SPEC_ONLY || "").split(",").map(s => s.trim()).filter(Boolean);
+  const selected = browserShard();
   const run = async (name, fn) => {
+    if (!selected(name)) return;
     if (only.length && !only.includes(name)) return;
+    const started = Date.now();
     await fn();
+    console.log(`${name}: ${Date.now() - started}ms`);
   };
   try {
     await run("testSessionMoneyAndPassiveCoverageAreExplicit", () => testSessionMoneyAndPassiveCoverageAreExplicit(browser, base));

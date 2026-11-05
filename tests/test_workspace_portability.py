@@ -38,6 +38,10 @@ def test_no_workflow_reinstates_a_hand_written_package_list():
             # the artifact under test, and naming it is the point.
             if re.search(r"pip install [^|;]*\bdist/\*", stripped):
                 continue
+            # PEP 735 groups also resolve from pyproject, without installing
+            # runtime dependencies into a report-only job.
+            if re.search(r"pip install .*--group [a-z]+$", stripped.strip()):
+                continue
             if not re.search(r"-e\s+'?\.(\[[a-z,]+\])?'?", stripped):
                 offenders.append(f"{path.name}:{lineno}: {line.strip()}")
 
