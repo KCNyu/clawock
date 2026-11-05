@@ -1,25 +1,14 @@
 {
-  "generated_at": "2026-11-04T08:03:37.096237+08:00",
+  "generated_at": "2026-11-05T08:03:40.147562+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-04",
-  "window_end": "2026-11-18",
+  "window_start": "2026-11-05",
+  "window_end": "2026-11-19",
   "earnings_queried": [
     "CRCL",
     "RKLB",
     "SPCX"
   ],
   "earnings": [
-    {
-      "ticker": "CRCL",
-      "name": "CRCL",
-      "date": "2026-11-04",
-      "time": "bmo",
-      "eps_estimate": 0.3696,
-      "eps_actual": null,
-      "revenue_estimate_m": 797.7,
-      "quarter": 3,
-      "year": 2026
-    },
     {
       "ticker": "RKLB",
       "name": "RKLB",
@@ -32,7 +21,19 @@
       "year": 2026
     }
   ],
-  "recent_earnings": [],
+  "recent_earnings": [
+    {
+      "ticker": "CRCL",
+      "name": "CRCL",
+      "date": "2026-11-04",
+      "time": "bmo",
+      "eps_estimate": 0.3696,
+      "eps_actual": 0.84,
+      "revenue_estimate_m": 797.7,
+      "quarter": 3,
+      "year": 2026
+    }
+  ],
   "fomc": [],
   "macro_events": [
     {
@@ -48,7 +49,7 @@
   ],
   "scheduled_events": [],
   "summary": {
-    "earnings_count": 2,
+    "earnings_count": 1,
     "fomc_in_window": 0,
     "macro_count": 2,
     "scheduled_count": 0,
