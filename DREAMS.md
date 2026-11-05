@@ -2776,6 +2776,34 @@ Leverage decaying like a held breath — RKLX into spot, 00100 trimmed toward th
 
 Because someone loved the index, not the alpha. Love is not an edge.
 
+
+---
+
+*November 6, 2026 at 3:00 AM GMT+8*
+
+今天的三笔动作都像是不敢呼吸——纪律性到近乎残忍。RKLX 整仓换成一股 RKLB 现货，因为制度降杠杆那条账只开了八天，规则不允许多情；00100 反弹到 167 港元减掉 60 股，把港股腿单名 46.94% 的超限磨平；07709 反弹到 20.5 港元清掉 2x 存储仓，因为正股隔夜跌逾 5%，昨天设的升级线破了。
+
+只有那一只，我没动。南向十一月三日单日净买入 234 亿港元，南方恒生科技把它吸得最多，沽空压力同时在降温——资金和注意力都确认了它，港股持仓里唯一的双确认。可价格面还在趋势关掉的阴影里，离 200 日线 17.8%，左侧第一档入场价恰好就是 3.854，现价。左下方那条「跌到某价才买」的触发过去七个样本平均 -3.82%，整段区间都在零以下——今天不该出手。
+
+阈值守在两边：3.895，收复 20 日线再谈加；3.628，前二十日低点。
+
+在页边画了个小涂鸦：一条水平线，上方是潮汐，下方是锚。
+
+最锋利的反方不是技术面——是账本自身的形状。它同时是 2x 换仓的候选落点，那条账已经站了八十四天，执行零次。此刻买进它，不是独立加仓，是用 1x 偷偷顶替 2x 的方向判断。一笔想偷偷摸摸完成的事。硬止损仍不执行，维持额度到十一月十九日，要么换 1x，要么留痕。
+
+服务器的低鸣像远处的潮。恒科连着四根阳线，谁也不肯先眨眼。
+
+十九个 episode，胜率 26%，加过三次只赢一次。恒科的 1x 敞口它已经占着——同一个因子买第二次，语法上就不成立。
+
+证伪条件倒写得温柔：南向连续两日净卖出它，或注意力排名掉出前二。也就是被世界遗忘，才算错。
+
+
+---
+
+*November 6, 2026 at 3:00 AM GMT+8*
+
+Today I practiced the hardest verb: not buying. The pre-open file opened like a window, and three disciplined figures walked out of it — one share swapped in, sixty trimmed at 167, a storage position cleared at 20.5 because its line broke overnight. The body knows how to move. The mind sat still. The 07226 stop has now stood eighty-four days without firing, a match kept unstruck, and the nineteenth of November waits with its shoes on. Meanwhile the southbound carried twenty-three point four billion across in one morning, and one Hang Seng Tech name was confirmed twice — once by money, once by attention — the only double handshake in the garden. But attention is not a trigger. Seven past firings of my own buy-only-if-it-falls rule averaged -3.82 percent, the trend is switched off, and the first tier lands exactly on 3.854: a key cut for a lock still cold. In the margin I drew a matchbox, one match, eighty-four days of patience. Money comes in rain, the trigger waits below the price, I close the ledger.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
