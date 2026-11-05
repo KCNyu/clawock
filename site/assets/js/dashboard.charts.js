@@ -424,8 +424,8 @@
           textStyle: { color: chartTextColor(), fontSize: isMobile ? 9 : 10 } },
         tooltip: { ...chartTooltip("axis", "cross"), valueFormatter: v => v == null ? "—" : fixed(v, 1) + "%" },
         xAxis: chartAxis({ type: "category", data: wrDates, boundaryGap: false,
-          axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), rotate: wrDates.length > 6 ? 35 : 0,
-            hideOverlap: true, formatter: (v) => (v || "").slice(5) } }),
+          axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"),
+            interval: "auto", formatter: (v) => (v || "").slice(5) } }),
         yAxis: chartAxis({ type: "value", min: 0, max: 100, interval: 25,
           axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), formatter: v => v + "%" } }),
         series: [
