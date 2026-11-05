@@ -49,7 +49,7 @@ runs:
         python-version: ${{ inputs.python-version }}
         # Caching keyed on pyproject.toml: the scheduled jobs install the same
         # dependency set every run, and a cold resolve is most of their runtime.
-        cache: pip
+        cache: ${{ inputs.install != 'none' && 'pip' || '' }}
         cache-dependency-path: pyproject.toml
 
     - name: Install clawock

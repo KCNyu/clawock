@@ -123,7 +123,7 @@ def test_coverage_publish_chain_reads_the_lane_that_produces_the_artifact():
 
 def test_validate_publishes_its_detector_answer_as_a_job_output():
     job = TEXT.split("\n  validate:", 1)[1].split("\n  publish-coverage:", 1)[0]
-    assert "code: ${{ steps.changes.outputs.code }}" in job
+    assert "code: ${{ needs.scope.outputs.code }}" in job
 
 
 def test_plugin_sources_trigger_ci_on_master_pushes():
@@ -151,8 +151,7 @@ def test_no_inline_lane_classification_left_in_the_workflow():
     assert "ops/ci/smoke_fx.py" in TEXT, (
         "smoke-data-fetch must run the script, not an inline python -c")
 
-    for step in ("Classify this event",
-                 "Detect code changes",
+    for step in ("Detect code changes",
                  "FX fallback chain"):
         block = step_block(CI, step)
         assert "python3 -c" not in block and 'case "$f"' not in block, (

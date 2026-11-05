@@ -4,7 +4,7 @@ name: CI
 # files that fired together on every PR and master push but carried three
 # different push-path policies and three copies of the same trigger reasoning:
 #
-#   harness-regression.yml -> `validate` (+ publish-coverage, smoke-data-fetch)
+#   harness-regression.yml -> `checks`, `unit-tests`, `validate`
 #   actionlint.yml         -> `lint`
 #   codeql.yml             -> `Analyze (...)` x3 + the aggregate `CodeQL` check
 #
@@ -43,7 +43,6 @@ on:
       - 'site/robots.txt'
       - 'site/briefs.md'
       - 'site/manifest.webmanifest'
-      - 'site/README.md'
       # The shared page layout and the decision-map page. #1209 put both in
       # the classifier's ui lane but not here, so a master push touching only
       # them started no run at all (#1568).
@@ -74,7 +73,6 @@ on:
       - 'examples/profiles/**'
       - 'examples/claude-code/**'
       - 'examples/codex/**'
-      - 'examples/README.md'
       # The book (push_scope.BOOK_GLOBS). A push changing only these runs the
       # `book` lane — the data gates and the tests marked `book` — not the whole
       # suite: an intraday refresh has no code to test, but it can still break
@@ -103,20 +101,16 @@ on:
       # read by the suite, and naming them one by one already left new schemas
       # ungated — a config-only PR then skipped the tests that guard them.
       - 'config/**'
-      - 'docs/**'
       - '.github/workflows/**'
       - 'skills/**'
       - 'AGENTS.md'
       - 'BOOTSTRAP.md'
-      - 'CHANGELOG.md'
       - 'CLAUDE.md'
       - 'DREAMS.md'
       - 'HEARTBEAT.md'
       - 'IDENTITY.md'
       - 'INVESTMENT_SOP.md'
       - 'MEMORY.md'
-      - 'README.md'
-      - 'README.zh.md'
       - 'SOUL.md'
       - 'TOOLS.md'
       - 'USER.md'
@@ -142,56 +136,38 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  lint:
-    # Was actionlint.yml: a 12-second lint should not pay for its own workflow
-    # file, its own trigger block and its own runner on every event. The job
-    # name keeps the required `lint` context byte-identical.
-    #
-    # It is also this workflow's scope job, and deliberately not a *new* job:
-    # it already runs on every event and already pays a checkout to classify
-    # the push, so `analyze` can read the answer from here instead of starting
-    # three runners to compute it again (#910). Adding a separate `scope` job
-    # would have cost every run an extra runner to save three on 22% of pushes.
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
     outputs:
-      analysable: ${{ steps.scope.outputs.analysable }}
+      code: ${{ steps.changes.outputs.code }}
+      book: ${{ steps.changes.outputs.book }}
+      ui: ${{ steps.changes.outputs.ui }}
+      dsplugin: ${{ steps.changes.outputs.dsplugin }}
+      workflows: ${{ steps.changes.outputs.workflows }}
+      analysable: ${{ steps.changes.outputs.analysable }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Detect code changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          python3 ops/ci/push_scope.py --fetch-missing --base "$BASE_SHA" --head "$HEAD_SHA" \
+            | tee -a "$GITHUB_OUTPUT"
+
+  lint:
+    needs: scope
+    if: needs.scope.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
-      # On PRs, schedule and dispatch: always lint — `lint` is a required check
-      # and must report on every PR even when no workflow file changed
-      # (a path-filtered required check waits forever). On master pushes the
-      # workflow fires for any code path below, so gate on an actual diff under
-      # .github/workflows/ instead; undiffable ranges lint anyway (fail toward
-      # running a 12s check rather than skipping it). Classification lives in
-      # ops/ci/push_scope.py — the same classifier the other two gates read.
-      #
-      # The whole classification is published (not just `workflows=`): the
-      # `analysable` lane is what gates CodeQL below. Non-push events answer
-      # "everything" for both lanes — a PR is always linted and always
-      # analysed, which is what the required contexts need.
-      - name: Classify this event
-        id: scope
-        env:
-          BASE_SHA: ${{ github.event.before }}
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event_name }}" != "push" ]; then
-            printf 'workflows=true\nanalysable=true\n' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [ -n "${BASE_SHA:-}" ] && [ "${BASE_SHA}" != "0000000000000000000000000000000000000000" ] \
-             && git fetch --quiet --depth=1 origin "${BASE_SHA}"; then
-            python3 ops/ci/push_scope.py --base "${BASE_SHA}" --head HEAD \
-              | tee -a "$GITHUB_OUTPUT"
-          else
-            echo "no diffable base (${BASE_SHA:-}) — linting and analysing"
-            printf 'workflows=true\nanalysable=true\n' >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Install pinned actionlint
-        if: steps.scope.outputs.workflows == 'true'
+        if: needs.scope.outputs.workflows == 'true'
         env:
           ACTIONLINT_VERSION: '1.7.12'
           ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
@@ -205,16 +181,15 @@ jobs:
           /tmp/actionlint -version
 
       - name: Lint GitHub Actions
-        if: steps.scope.outputs.workflows == 'true'
+        if: needs.scope.outputs.workflows == 'true'
         run: /tmp/actionlint -color
 
       # Correctness-only Python lint (pyflakes + syntax: undefined names,
       # redefinitions, unused imports/variables). Style is deliberately not
       # checked. Until 2026-09-12 no Python linter ran anywhere and 174 of these
       # had accumulated; the rule set lives in pyproject `[tool.ruff.lint]` so a
-      # local `ruff check .` is this exact gate. Every event, like actionlint's
-      # required context: it takes seconds and a path filter on a required
-      # check waits forever.
+      # local `ruff check .` is this exact gate. A skipped lint job still
+      # reports its required context for documentation and runtime data.
       - name: Lint Python (ruff, correctness rules)
         run: pipx run --spec 'ruff==0.16.7' ruff check --output-format github .
 
@@ -224,7 +199,7 @@ jobs:
       # `target-version` already rejects newer grammar; these steps check the rest
       # of what a floor install meets: dependency resolution, and every module's
       # import-time stdlib use. Here, not in a job of its own: `lint` is required
-      # and runs on every event, and this is about 30s beside a 3-minute validate.
+      # and runs on code changes, beside the sharded suite.
       # The version is read from pyproject, not restated, so it checks whatever
       # floor is declared.
       - name: Read the declared Python floor
@@ -269,7 +244,8 @@ jobs:
           sys.exit(1 if failed else 0)
           PY
 
-  validate:
+  checks:
+    needs: scope
     outputs:
       # Job-level mirror of the detector, so sibling jobs can gate without a
       # second checkout: smoke-data-fetch skips unless code changed.
@@ -376,35 +352,15 @@ jobs:
           fi
 
       - name: Detect code changes
-        # Scope the heavy Python steps to files covered by repository contracts.
-        # Documentation and skills are inputs to those tests, so they light the
-        # code lane too. This job and the required `validate` context always run.
-        # We must NOT path-filter the pull_request trigger itself: a required
-        # check that is filtered out never reports and blocks the PR forever —
-        # the same trap that keeps `lint` unfiltered on PRs. Skipped *steps*
-        # count as success, so we gate here. Runs on pushes too (#750): it used
-        # to be PR-only, and the browser/plugin lanes were then unreachable on
-        # master (measured hole, run 31059122903).
-        #
-        # The classification lives in ops/ci/push_scope.py — one classifier for
-        # all three gates (this detector, the lint scope, the CodeQL push
-        # gate), unit-tested against synthetic file lists instead of three
-        # inline copies that could drift apart again. It keeps itself in sync
-        # with the `push:` trigger `paths:` above via
-        # test_ci_trigger_paths.py: a trigger path whose files no lane claims
-        # is a gate that skips itself (#750 proved that claim false once).
-        # Undiffable ranges (schedule, dispatch, brand-new ref) come back as
-        # "everything changed" — running the whole suite is the safe direction.
         id: changes
         env:
-          # A PR compares its own base and head. A push compares the range it
-          # pushed.
-          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
-          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          LANES: ${{ toJSON(needs.scope.outputs) }}
         run: |
-          set -euo pipefail
-          python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
-            | tee -a "$GITHUB_OUTPUT"
+          python3 - <<'PYTHON' >> "$GITHUB_OUTPUT"
+          import json, os
+          for key, value in json.loads(os.environ['LANES']).items():
+              print(f'{key}={value}')
+          PYTHON
 
       # The browser build is ~150MB downloaded from scratch on every UI run.
       # The composite owns the version pin and the cache key — the same key the
@@ -497,36 +453,9 @@ jobs:
         with:
           install: '.[test]'
 
-      - name: Unit tests — money-integrity derivations
-        # `--cov=clawock --cov=ops`, not a list of modules. The list was 34
-        # hand-written targets that reached 75 of the 169 modules under
-        # `src/clawock`; the other 94 — 11,385 statements, a third of the
-        # package — sat outside every floor and outside the number the README
-        # badge publishes. Nothing
-        # enumerated the gap, so a new module joined the unmeasured side by
-        # default (`decision/settlement.py`, `decision/add_alpha.py`,
-        # `decision/regime.py`, `decision/plans.py`, `cli.py` all had).
-        #
-        # COVERAGE_CORE=sysmon: line coverage through sys.monitoring (PEP 669)
-        # instead of a trace function called on every line. Same executed
-        # lines, same report; the suite's wall time drops by about a third.
-        # Needs Python 3.12 and no branch measurement, both of which hold here.
-        # coverage.py warns and falls back to the C tracer if either stops.
-        if: steps.changes.outputs.code == 'true'
-        env:
-          COVERAGE_CORE: sysmon
-        run: |
-          python3 -m pytest tests/ -q \
-            -n auto \
-            --durations=20 \
-            --cov=clawock \
-            --cov=ops \
-            --cov-report=term-missing:skip-covered \
-            --cov-report=json:coverage-report.json
-
       # A push that changed only the book (`push_scope.BOOK_GLOBS`: price and
       # intraday refreshes, the brief's plan and ledger rows, the EOD archive)
-      # has no code to test, so the step above is skipped and this one runs the
+      # has no code to test, so the sharded suite is skipped and this step runs the
       # tests that read the committed book — the money reconciliation module,
       # every test built on the real tree, the instruction-vs-book checks. The
       # data gates below run on both lanes. Coverage is not measured here: a
@@ -534,29 +463,6 @@ jobs:
       - name: Unit tests — the committed book (book-only push)
         if: steps.changes.outputs.book == 'true'
         run: python3 -m pytest tests/ -q -n auto -m book --durations=10
-
-      - name: Coverage floors
-        # Fails the PR when coverage drops below its floors — the badge is only a
-        # readout, this is the part that holds. Runs on PRs too (not just the
-        # publish job) so a regression is caught before merge, not after.
-        if: steps.changes.outputs.code == 'true'
-        run: python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only
-
-      - name: Upload coverage report
-        # The suite is measured once, here. publish-coverage consumes this artifact
-        # instead of running the tests again, so the published badge is the same
-        # number this job gated on — not a second, independently drifting
-        # measurement. Only master pushes have a consumer; PR runs skip the upload.
-        # Deliberately NOT gated on the code lane as well: a master push outside
-        # the code lane then warns about zero files here (#957) — noise, but gating a lane read
-        # on the starting event is the exact shape test_ci_trigger_paths.py bans
-        # after #750, and the consuming job below carries the real gate.
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-report
-          path: coverage-report.json
-          retention-days: 1
 
       - name: Generated cron docs match contract
         if: steps.changes.outputs.code == 'true'
@@ -627,10 +533,14 @@ jobs:
         if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
         run: python3 ops/ci/check_plan_schema.py
 
-      - name: Decision v2 unit tests and ledger audit
+      - name: Decision v2 unit tests (book-only)
+        # The full sharded suite already collects these on code changes.
+        if: steps.changes.outputs.book == 'true'
+        run: python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
+
+      - name: Decision ledger audit
         if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
         run: |
-          python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
           python3 << 'PY'
           import json, glob
           from clawock.decision import ledger as decision_v2
@@ -715,6 +625,90 @@ jobs:
           done
           rm -rf "$tmp"
           echo "OK: rebuild deterministic modulo generation stamps"
+
+  unit-tests:
+    needs: scope
+    if: needs.scope.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
+        with:
+          install: '.[test]'
+      - name: Unit tests — money-integrity derivations
+        env:
+          COVERAGE_CORE: sysmon
+          CI_SHARD_INDEX: ${{ matrix.shard }}
+          CI_SHARD_TOTAL: '4'
+        run: |
+          python3 -m pytest tests/ -q -n auto -p ops.ci.pytest_shard \
+            --durations=20 --cov=clawock --cov=ops --cov-report= \
+            --junitxml=junit.xml
+      - name: Upload shard coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: |
+            .coverage
+            junit.xml
+          include-hidden-files: true
+          retention-days: 1
+
+  validate:
+    # Required context: neither failed/skipped dependencies nor a missing shard
+    # may turn the aggregate green. Floors apply to combined coverage only.
+    needs: [scope, checks, unit-tests]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ needs.scope.outputs.code }}
+    steps:
+      - name: Require all selected lanes
+        env:
+          SCOPE: ${{ needs.scope.result }}
+          CHECKS: ${{ needs.checks.result }}
+          CODE: ${{ needs.scope.outputs.code }}
+          UNIT: ${{ needs.unit-tests.result }}
+        run: |
+          test "$SCOPE" = success && test "$CHECKS" = success
+          if [ "$CODE" = true ]; then test "$UNIT" = success; fi
+      - uses: actions/checkout@v7
+        if: needs.scope.outputs.code == 'true'
+      - name: Set up clawock (Python)
+        if: needs.scope.outputs.code == 'true'
+        uses: ./.github/actions/clawock-python
+        with:
+          install: none
+      - name: Install coverage report reader
+        if: needs.scope.outputs.code == 'true'
+        run: pip install --quiet 'coverage>=7.10'
+      - name: Download shard coverage
+        if: needs.scope.outputs.code == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          pattern: coverage-shard-*
+          path: coverage-shards
+      - name: Coverage floors
+        if: needs.scope.outputs.code == 'true'
+        run: |
+          test "$(find coverage-shards -name .coverage | wc -l)" -eq 4
+          python3 -m coverage combine coverage-shards/coverage-shard-*
+          python3 -m coverage json -o coverage-report.json
+          python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only
+      - name: Upload coverage report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.scope.outputs.code == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage-report.json
+          retention-days: 1
 
   publish-coverage:
     # Master only: the README badge must show what is on master, never a number
@@ -826,9 +820,8 @@ jobs:
     # this checkout by `tests/test_portable_workflow.py`. A gate that lives in
     # this repository's test suite is a promise about this repository.
     #
-    # Runs on every PR rather than behind the code lane: the claim this backs
-    # is a documentation claim as much as a code one, so a docs-only PR that
-    # rewrites the "Try it in five minutes" block must still face it. ~40s.
+    # Code changes exercise the install promise. Documentation alone skips
+    # builds and dependency installation; the weekly backstop still runs it.
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -851,30 +844,12 @@ jobs:
           # lane is the real one instead of "everything".
           python3 ops/ci/push_scope.py --fetch-missing --base "$BASE_SHA" --head "$HEAD_SHA" \
             | tee -a "$GITHUB_OUTPUT"
-        # A pull request runs this job regardless — see the paragraph above — so
-        # the lane only decides the push case. Reading it from `validate`'s
-        # output made every PR wait 170s for an answer it was not going to use.
-
-      # Derived in its own step rather than written into each gate below,
-      # because `test_the_heavy_lanes_are_not_gated_on_the_event_that_started
-      # _the_run` forbids `github.event_name` inside a `steps.changes.outputs.*`
-      # condition — and it is right to. That is the #750 shape: those gates read
-      # `event_name == 'pull_request' && changes...` while the detector itself
-      # was PR-only, so on a master push the detector was skipped, the ANDs went
-      # false, and the two most expensive gates in the repository never ran
-      # outside a PR.
-      #
-      # This is the opposite direction — an OR that makes the job run MORE, over
-      # a detector that runs on every event — but a rule that has to be reasoned
-      # about at each call site is a rule that gets it wrong once. So the event
-      # is folded in here, once, and the gates below read one boolean.
       - name: Lane for this job
         id: lane
         env:
           CODE: ${{ steps.changes.outputs.code }}
-          EVENT: ${{ github.event_name }}
         run: |
-          if [ "$EVENT" = "pull_request" ] || [ "$CODE" = "true" ]; then
+          if [ "$CODE" = "true" ]; then
             echo "run=true" | tee -a "$GITHUB_OUTPUT"
           else
             echo "run=false" | tee -a "$GITHUB_OUTPUT"
@@ -906,45 +881,15 @@ jobs:
         run: examples/cli/minimal-run/run.sh dist/*.whl
 
   analyze:
-    # Was codeql.yml — advanced setup replacing GitHub's default (#782).
-    #
-    # Default setup cannot be path-filtered, and this repository pushes to
-    # master ~35 times a day of which ~85% are pure data commits written by
-    # automation (assets/data/**, memory/**). Measured over three days: 98
-    # CodeQL runs, ~33 a day at 92-105 seconds each — about 55 minutes of
-    # runner time daily spent re-analysing a byte-identical code tree, plus an
-    # Actions list where the real CI results were buried under "Push on master"
-    # rows.
-    #
-    # What is deliberately NOT filtered: the `pull_request` trigger. `Analyze
-    # (actions)`, `Analyze (javascript-typescript)`, `Analyze (python)` and
-    # `CodeQL` are required status checks, and a required check that is
-    # filtered out never reports and blocks the PR forever. So every PR is
-    # analysed in full; only the master-push lane is gated, and now by the same
-    # positive path list every other lane in this file reads instead of a
-    # private ignore-list — plus the data-path guard below for the handful of
-    # watched-but-unanalysable files this trigger does list (portfolio.json,
-    # memory plans/theses).
-    #
-    # The gate moved from a step to the job (#910). It used to live in two
-    # `if:`s on the CodeQL steps, which meant an unanalysable push still
-    # started three runners, checked out the tree and re-ran the classifier
-    # just to conclude there was nothing to do — measured 6 of the last 27
-    # push runs, three jobs each. Reading `lint`'s classification instead
-    # skips the jobs outright.
-    #
-    # `always()` is required because `needs: lint` would otherwise cancel this
-    # job whenever lint is skipped, and `needs.lint.result != 'success'` is the
-    # fail-open half: if the classifier could not run, analyse. A gate that
-    # silently drops CodeQL when its input is missing is the failure mode this
-    # repository has been bitten by before — a discovery gate must fail toward
-    # doing the work. test_ci_codeql_gate.py pins both halves.
+    # The external CodeQL required check is emitted by SARIF processing, not
+    # by a skipped Actions job. Keep analysis on PRs, including documentation,
+    # until that protection can be replaced without losing alert enforcement.
     name: Analyze (${{ matrix.language }})
-    needs: lint
+    needs: scope
     if: >-
-      ${{ always() && (github.event_name != 'push'
-          || needs.lint.result != 'success'
-          || needs.lint.outputs.analysable == 'true') }}
+      ${{ !cancelled() && (github.event_name != 'push'
+          || needs.scope.result != 'success'
+          || needs.scope.outputs.analysable == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

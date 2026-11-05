@@ -23,12 +23,8 @@ runs:
       uses: actions/setup-node@v7
       with:
         node-version: '22'
-
-    - name: Cache npm package downloads
-      uses: actions/cache@v6
-      with:
-        path: ~/.npm
-        key: npm-playwright-${{ inputs.version }}-${{ runner.os }}
+        cache: npm
+        cache-dependency-path: .github/actions/clawock-playwright/action.yml
 
     # Key shared with every other consumer of this composite: a bump changes
     # the key and misses on purpose.

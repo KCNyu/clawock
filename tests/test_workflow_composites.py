@@ -142,7 +142,7 @@ def test_the_required_check_list_has_not_quietly_grown():
     the reasoning above is void and this should be a deliberate decision, not a
     side effect."""
     workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-    job = workflow.split("\n  validate:", 1)[1].split("\n  smoke-data-fetch:", 1)[0]
+    job = workflow.split("\n  checks:", 1)[1].split("\n  smoke-data-fetch:", 1)[0]
     advisory = [name for name in ("Dependency review",) if f"- name: {name}" in job]
     for name in advisory:
         block = job.split(f"- name: {name}", 1)[1].split("- name:", 1)[0]

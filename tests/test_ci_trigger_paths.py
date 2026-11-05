@@ -65,10 +65,10 @@ def test_code_and_tests_stay_gated():
 
 def test_tracked_instruction_and_public_document_surfaces_run_ci():
     """New skill and document files must not silently bypass their contract tests."""
-    roots = {"docs", "skills"}
-    root_docs = {"AGENTS.md", "BOOTSTRAP.md", "CHANGELOG.md", "CLAUDE.md",
+    roots = {"skills"}
+    root_docs = {"AGENTS.md", "BOOTSTRAP.md", "CLAUDE.md",
                  "DREAMS.md", "HEARTBEAT.md", "IDENTITY.md", "INVESTMENT_SOP.md",
-                 "MEMORY.md", "README.md", "README.zh.md", "SOUL.md", "TOOLS.md",
+                 "MEMORY.md", "SOUL.md", "TOOLS.md",
                  "USER.md"}
     names = [name for name in _tracked() if name.split("/", 1)[0] in roots
              or name in root_docs]
@@ -240,6 +240,8 @@ def test_tracked_static_contract_inputs_run_ci():
     pages = [p.replace('**', '*') for p in push_paths(ROOT / '.github/workflows/pages.yml')]
     missing = {}
     for name, sources in readers.items():
+        if push_scope.is_documentation(name):
+            continue
         if any(fnmatch(name, p) for p in push_scope.DATA_GLOBS):
             continue
         if name.startswith('site/assets/') and name in bot:

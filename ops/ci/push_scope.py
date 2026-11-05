@@ -42,6 +42,14 @@ import sys
 
 # Files whose change must run the suite. Keep in sync with the push trigger's
 # positive path list in ci.yml — test_ci_trigger_paths.py holds both halves.
+DOC_GLOBS = ["docs/*", "README.md", "README.zh.md", "CHANGELOG.md",
+             "examples/README.md", "site/README.md"]
+
+
+def is_documentation(path: str) -> bool:
+    return any(fnmatch.fnmatchcase(path, pattern) for pattern in DOC_GLOBS)
+
+
 CODE_GLOBS = [
     "src/*",
     "ops/*",
@@ -71,7 +79,6 @@ CODE_GLOBS = [
     "assets/data/overview.json",
     "assets/data/dashboard.json",
     "config/*",
-    "docs/*",
     ".github/workflows/*",
     ".github/actions/*",
     # Issue chooser/templates are test inputs (public-entry contracts, #2240).
@@ -98,17 +105,15 @@ CODE_GLOBS = [
     "examples/profiles/*",
     "examples/claude-code/*",
     "examples/codex/*",
-    "examples/README.md",
     "site/_config.yml",
     "site/llms.txt",
     "site/faq.md",
     "site/robots.txt",
     "site/briefs.md",
     "site/manifest.webmanifest",
-    "site/README.md",
-    "AGENTS.md", "BOOTSTRAP.md", "CHANGELOG.md", "CLAUDE.md",
+    "AGENTS.md", "BOOTSTRAP.md", "CLAUDE.md",
     "DREAMS.md", "HEARTBEAT.md", "IDENTITY.md", "INVESTMENT_SOP.md",
-    "MEMORY.md", "README.md", "README.zh.md", "SOUL.md", "TOOLS.md",
+    "MEMORY.md", "SOUL.md", "TOOLS.md",
     "USER.md",
 ]
 

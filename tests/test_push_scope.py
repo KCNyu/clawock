@@ -64,8 +64,8 @@ SCENARIOS = [
         id="future issue template: directory gate includes later additions"),
     pytest.param(
         ["docs/operations/release.md", "README.md"],
-        _lanes(code=True, analysable=True), True,
-        id="docs-only PR or push: contract tests run"),
+        _lanes(analysable=True), False,
+        id="docs-only: no push CI or heavy PR checks"),
     pytest.param(
         ["portfolio.json"],
         _lanes(book=True), True,
