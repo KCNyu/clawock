@@ -60,7 +60,9 @@ The `CI` workflow classifies the changed paths before installing dependencies.
 Code changes run the full Python suite on four Ubuntu runners. Each test file
 belongs to exactly one shard and one worker, so module fixtures run once; `validate` requires all four shards and
 combines their coverage before applying the package and settlement-core floors.
-Independent schema, browser and package checks run alongside the suite. The
+Independent schema and package checks run alongside the suite. Dashboard browser
+cases run on four separate runners; layout and decision-map contracts run once.
+`validate` also requires every selected browser shard to pass. The
 checkout retains Git history because dashboard tests verify public provenance.
 
 README, changelog and `docs/` edits alone do not trigger CI on `master` pushes.

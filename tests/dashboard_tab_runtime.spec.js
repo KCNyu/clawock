@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 const { chromium } = require("playwright");
+const { browserShard } = require("./browser_shard.cjs");
 
 const ROOT = path.resolve(__dirname, "..");
 const DETAIL_PATH = "/assets/js/dashboard.render.js";
@@ -4643,9 +4644,13 @@ async function main() {
   // layout settles is load-sensitive (see the verdict-deck case), and re-running
   // one case used to mean editing this list and remembering to put it back.
   const only = (process.env.SPEC_ONLY || "").split(",").map(s => s.trim()).filter(Boolean);
+  const selected = browserShard();
   const run = async (name, fn) => {
+    if (!selected(name)) return;
     if (only.length && !only.includes(name)) return;
+    const started = Date.now();
     await fn();
+    console.log(`${name}: ${Date.now() - started}ms`);
   };
   try {
     await run("testSessionMoneyAndPassiveCoverageAreExplicit", () => testSessionMoneyAndPassiveCoverageAreExplicit(browser, base));

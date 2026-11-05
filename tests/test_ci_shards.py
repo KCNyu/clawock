@@ -44,7 +44,7 @@ def test_combined_gate_requires_every_shard_and_original_floors():
     assert jobs['unit-tests']['strategy']['matrix']['shard'] == [0, 1, 2, 3]
     assert jobs['unit-tests']['strategy']['fail-fast'] is False
     gate = jobs['validate']
-    assert set(gate['needs']) == {'scope', 'checks', 'unit-tests'}
+    assert set(gate['needs']) == {'scope', 'checks', 'unit-tests', 'browser-tests'}
     steps = {s.get('name'): s for s in gate['steps']}
     assert 'test "$UNIT" = success' in steps['Require all selected lanes']['run']
     combine = steps['Coverage floors']['run']
@@ -69,7 +69,7 @@ def test_required_gate_executes_fail_closed(scope, checks, code, unit, ok):
     jobs = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())['jobs']
     script = jobs['validate']['steps'][0]['run']
     result = subprocess.run(['bash', '-e', '-c', script], env=dict(
-        os.environ, SCOPE=scope, CHECKS=checks, CODE=code, UNIT=unit))
+        os.environ, SCOPE=scope, CHECKS=checks, CODE=code, UNIT=unit, UI="false", BROWSER="skipped"))
     assert (result.returncode == 0) == ok
 
 
@@ -79,3 +79,39 @@ def test_file_fixtures_are_not_duplicated_between_shards_or_workers():
     jobs = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())['jobs']
     step = next(s for s in jobs['unit-tests']['steps'] if 'pytest' in s.get('run', ''))
     assert '--dist loadfile' in step['run']
+
+
+@pytest.mark.parametrize('browser,ok', [('success', True), ('failure', False), ('skipped', False)])
+def test_required_gate_requires_selected_browser_shards(browser, ok):
+    jobs = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())['jobs']
+    assert jobs['browser-tests']['strategy']['matrix']['shard'] == [0, 1, 2, 3]
+    script = jobs['validate']['steps'][0]['run']
+    result = subprocess.run(['bash', '-e', '-c', script], env=dict(
+        os.environ, SCOPE='success', CHECKS='success', CODE='true', UNIT='success',
+        UI='true', BROWSER=browser))
+    assert (result.returncode == 0) == ok
+
+
+def test_browser_partition_covers_every_registered_case_once():
+    # Execute the real Node selector against the live registry, without a browser.
+    subprocess.run(['node', '-e', r"""
+      const assert = require('node:assert/strict');
+      const fs = require('node:fs');
+      const { browserShard } = require('./tests/browser_shard.cjs');
+      const source = fs.readFileSync('tests/dashboard_tab_runtime.spec.js', 'utf8');
+      const names = [...source.matchAll(/await run\("([^"\n]+)"/g)].map(m => m[1]);
+      assert(names.length > 50);
+      assert.equal(new Set(names).size, names.length);
+      const selected = [];
+      for (let shard = 0; shard < 4; shard++) {
+        const keep = browserShard({ CI_BROWSER_SHARD_INDEX: String(shard), CI_BROWSER_SHARD_TOTAL: '4' });
+        selected.push(...names.filter(keep));
+      }
+      assert.deepEqual(selected.sort(), names.sort());
+      assert.deepEqual(names.filter(browserShard({})), names);
+      for (const env of [{CI_BROWSER_SHARD_INDEX:'0'},
+        {CI_BROWSER_SHARD_INDEX:'4',CI_BROWSER_SHARD_TOTAL:'4'},
+        {CI_BROWSER_SHARD_INDEX:'',CI_BROWSER_SHARD_TOTAL:'4'}]) {
+        assert.throws(() => browserShard(env));
+      }
+    """], cwd=ROOT, check=True)

@@ -181,7 +181,10 @@ def test_the_heavy_lanes_are_not_gated_on_the_event_that_started_the_run():
 
     The detector runs on every event, so the lanes read only its answer.
     """
-    for lane in ("ui", "dsplugin", "code"):
+    import yaml
+    jobs = yaml.safe_load(WORKFLOW)["jobs"]
+    assert jobs["browser-tests"]["if"] == "needs.scope.outputs.ui == 'true'"
+    for lane in ("dsplugin", "code"):
         gates = re.findall(rf"if: .*steps\.changes\.outputs\.{lane} == 'true'", WORKFLOW)
         assert gates, f"no step gates on the {lane} lane any more"
         offenders = [gate for gate in gates if "github.event_name" in gate]

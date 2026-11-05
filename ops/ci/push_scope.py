@@ -157,7 +157,7 @@ DATA_GLOBS = [
 # used to make a change to it run a browser at all.
 UI_RE = (r"^(site/assets/(css|js)/|site/index\.html$|site/_layouts/|"
          r"site/decimap/|src/clawock/publish/decision_map\.py$|"
-         r"tests/(dashboard_tab_runtime|site_layout_mobile|decimap_board)\.spec\.js$)")
+         r"tests/browser_shard\.cjs$|tests/(dashboard_tab_runtime|site_layout_mobile|decimap_board)\.spec\.js$)")
 # `quota.mjs` imports the package's built lib/balance.js and the plugin spec pins its wording.
 DSPLUGIN_RE = (r"^(.github/actions/clawock-node/|examples/dsh/|ops/host/agent-dispatch/quota\.mjs$|"
                r"ops/host/patrol\.sh$|ops/host/agent-dispatch/resource-pressure\.sh$|"

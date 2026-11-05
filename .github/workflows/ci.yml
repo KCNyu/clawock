@@ -362,40 +362,6 @@ jobs:
               print(f'{key}={value}')
           PYTHON
 
-      # The browser build is ~150MB downloaded from scratch on every UI run.
-      # The composite owns the version pin and the cache key — the same key the
-      # weekly screenshot-refresh uses, so whichever of the two runs first in a
-      # week pays the download and the other one hits.
-      - name: Set up Playwright for the browser contract
-        if: steps.changes.outputs.ui == 'true'
-        uses: ./.github/actions/clawock-playwright
-
-      # The dashboard's manifest-listed outputs and two sidecars live on the data branch,
-      # not on master (#314), so a checkout does not carry them. The browser
-      # contract loads the real page and would time out waiting for a Hero that
-      # never receives its projection.
-      - name: Fetch the published generation
-        if: steps.changes.outputs.ui == 'true'
-        run: python3 ops/pages/fetch_data_plane.py
-
-      - name: Browser contract — Hero, detail tabs, and chart gestures
-        if: steps.changes.outputs.ui == 'true'
-        run: node tests/dashboard_tab_runtime.spec.js
-
-      # The Jekyll chrome every non-dashboard page renders into. `site/index.html`
-      # is `layout: null`, so nothing above measures the shared header at all —
-      # which is how it shipped a two-row nav to every phone.
-      - name: Browser contract — the shared layout on a phone
-        if: steps.changes.outputs.ui == 'true'
-        run: node tests/site_layout_mobile.spec.js
-
-      # The decision map against the real payload: one board, published roll-ups
-      # rather than sums taken in the browser, and no cell whose colour is its
-      # only channel.
-      - name: Browser contract — the decision map board
-        if: steps.changes.outputs.ui == 'true'
-        run: node tests/decimap_board.spec.js
-
       - name: Set up Node for Decision Studio plugin contract
         if: steps.changes.outputs.dsplugin == 'true'
         uses: ./.github/actions/clawock-node
@@ -626,6 +592,34 @@ jobs:
           rm -rf "$tmp"
           echo "OK: rebuild deterministic modulo generation stamps"
 
+  browser-tests:
+    needs: scope
+    if: needs.scope.outputs.ui == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Playwright for the browser contract
+        uses: ./.github/actions/clawock-playwright
+      - name: Fetch the published generation
+        # The live page's payloads are published on data-plane, not master.
+        run: python3 ops/pages/fetch_data_plane.py
+      - name: Browser contract — Hero, detail tabs, and chart gestures
+        env:
+          CI_BROWSER_SHARD_INDEX: ${{ matrix.shard }}
+          CI_BROWSER_SHARD_TOTAL: '4'
+        run: node tests/dashboard_tab_runtime.spec.js
+      - name: Browser contract — the shared layout on a phone
+        if: matrix.shard == 0
+        run: node tests/site_layout_mobile.spec.js
+      - name: Browser contract — the decision map board
+        if: matrix.shard == 0
+        run: node tests/decimap_board.spec.js
+
   unit-tests:
     needs: scope
     if: needs.scope.outputs.code == 'true'
@@ -669,7 +663,7 @@ jobs:
   validate:
     # Required context: neither failed/skipped dependencies nor a missing shard
     # may turn the aggregate green. Floors apply to combined coverage only.
-    needs: [scope, checks, unit-tests]
+    needs: [scope, checks, unit-tests, browser-tests]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -682,10 +676,13 @@ jobs:
           CHECKS: ${{ needs.checks.result }}
           CODE: ${{ needs.scope.outputs.code }}
           UNIT: ${{ needs.unit-tests.result }}
+          UI: ${{ needs.scope.outputs.ui }}
+          BROWSER: ${{ needs.browser-tests.result }}
         run: |
           test "$SCOPE" = success
           test "$CHECKS" = success
           if [ "$CODE" = true ]; then test "$UNIT" = success; fi
+          if [ "$UI" = true ]; then test "$BROWSER" = success; fi
       - uses: actions/checkout@v7
         if: needs.scope.outputs.code == 'true'
       - name: Set up clawock (Python)
