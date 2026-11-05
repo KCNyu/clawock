@@ -1034,8 +1034,12 @@
       },
       xAxis: chartAxis({
         type: "category", data: dates,
-        axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"), rotate: dates.length > 6 ? 35 : 0,
-          hideOverlap: true, formatter: (v) => (v || "").slice(5) },
+        // Horizontal labels let the category axis measure their full width
+        // when choosing an interval, including after zoom/resize. Rotated
+        // labels collided on narrow plots; the slim ECharts bundle has no
+        // LabelLayout extension, so hideOverlap cannot rescue those labels.
+        axisLabel: { color: chartLabelColor(), fontSize: 10, fontFamily: getCSS("--mono"),
+          interval: "auto", formatter: (v) => (v || "").slice(5) },
       }),
       dataZoom: manyPts ? [
         chartDataZoom(zoomStart),
