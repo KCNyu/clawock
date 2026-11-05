@@ -1,11 +1,13 @@
 """A failed or missing shard must block the required gate; tests are not lost."""
+import os
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 import yaml
 
-from ops.ci.pytest_shard import pytest_collection_modifyitems, shard_for
+from ops.ci.pytest_shard import pytest_collection_modifyitems
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,7 +29,6 @@ def test_partition_is_disjoint_and_complete(monkeypatch):
         partitions.append(selected)
     assert set.union(*partitions) == set(ids)
     assert sum(map(len, partitions)) == len(ids)
-    assert [shard_for(n, 4) for n in ids] == [shard_for(n, 4) for n in ids]
 
 
 @pytest.mark.parametrize('index,total', [('4', '4'), ('0', '0'), ('-1', '4'), ('x', '4')])
@@ -54,3 +55,19 @@ def test_combined_gate_requires_every_shard_and_original_floors():
     assert book_step['if'] == "steps.changes.outputs.book == 'true'"
     assert not any('pytest tests/' in s.get('run', '') and '-m book' not in s['run']
                    for s in jobs['checks']['steps'])
+
+
+@pytest.mark.parametrize('scope,checks,code,unit,ok', [
+    ('success', 'success', 'true', 'success', True),
+    ('success', 'success', 'false', 'skipped', True),
+    ('failure', 'skipped', 'false', 'skipped', False),
+    ('success', 'failure', 'false', 'skipped', False),
+    ('success', 'success', 'true', 'failure', False),
+    ('success', 'success', 'true', 'skipped', False),
+])
+def test_required_gate_executes_fail_closed(scope, checks, code, unit, ok):
+    jobs = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())['jobs']
+    script = jobs['validate']['steps'][0]['run']
+    result = subprocess.run(['bash', '-e', '-c', script], env=dict(
+        os.environ, SCOPE=scope, CHECKS=checks, CODE=code, UNIT=unit))
+    assert (result.returncode == 0) == ok

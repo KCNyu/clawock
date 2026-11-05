@@ -706,7 +706,7 @@ jobs:
         if: needs.scope.outputs.code == 'true'
         run: |
           test "$(find coverage-shards -name .coverage | wc -l)" -eq 4
-          python3 -m coverage combine coverage-shards/coverage-shard-*
+          python3 -m coverage combine coverage-shards/coverage-shard-*/.coverage
           python3 -m coverage json -o coverage-report.json
           python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only
       - name: Upload coverage report
