@@ -58,6 +58,10 @@
 #   --no-restart           deny `gateway.restart` in the task's mandate. The default allows a
 #                          restart when it is needed to make the task's change effective;
 #                          refresh_live.sh and restart_gateway.sh check the mandate.
+#   --key <stable>         idempotency key for automated callers: a task with the same key that
+#                          is alive, or succeeded within AGENT_DISPATCH_KEY_TTL_SEC (24h), makes
+#                          this call exit 3 and print the existing id; nothing is started.
+#   --force                with --key: dispatch even when the key is still live (overwrites it).
 set -euo pipefail
 export TZ=Asia/Shanghai
 
@@ -330,7 +334,7 @@ case "$cmd" in
     AGENT=claude
     set -- --name "${ADOPT_NAME:-adopt-${SESSION:0:8}}" --resume "$SESSION" --cwd "$CWD" --prompt-file "$ADOPT_TMP" ${rest[@]+"${rest[@]}"} ;;
   claude|codex|opencode|dsh) AGENT=$cmd ;;
-  *) sed -n '2,60p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,64p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
@@ -341,6 +345,7 @@ FREE_POOL_REPORT="" POOL_SELECTION=""
 FALLBACK_MODELS="" NAME="" PROMPT_FILE="" CWD=/root RESUME="" MODEL="" EFFORT="" TIMEOUT=21600 NOTIFY=weixin,telegram DEADLINE=""
 RESTART_ALLOWED=1   # kcn 2026-11-01: making a task's change effective may restart the gateway;
                     # the default contract records it and --no-restart is the explicit denial
+KEY="" KEY_FORCE=0 KEY_FILE=""  # optional idempotency key for automated callers (see docs § Idempotency key)
 QUOTA_RESUMES=3   # keep in step with run-agent.sh's default (kcn 2026-09-23): long Opus tasks do
                   # not fit in one 5-hour window; pass --quota-resumes 0/1 for short, cheap ones
 TEMPLATE_DIR=/root/tools/agent-dispatch/templates TEMPLATES=()
@@ -364,10 +369,17 @@ while [ $# -gt 0 ]; do
     --origin-session) export AGENT_DISPATCH_ORIGIN_SESSION=$2; shift 2 ;;
     --no-restart) RESTART_ALLOWED=0; shift ;;
     --allow-restart) RESTART_ALLOWED=1; shift ;;
+    --key) [ -n "${2:-}" ] || { echo "--key needs a non-empty value" >&2; exit 2; }; KEY=$2; shift 2 ;;
+    --force) KEY_FORCE=1; shift ;;
     *) echo "unknown option $1" >&2; exit 2 ;;
   esac
 done
 [[ "$NAME" =~ ^[a-z0-9][a-z0-9-]{0,39}$ ]] || { echo "--name must be a short lowercase slug" >&2; exit 2; }
+if [ -n "$KEY" ]; then
+  case "$KEY" in *$'\n'*|*$'\r'*) echo "--key must be one line" >&2; exit 2 ;; esac
+  [ "${#KEY}" -le 512 ] || { echo "--key is limited to 512 characters" >&2; exit 2; }
+fi
+[ "$KEY_FORCE" = 1 ] && [ -z "$KEY" ] && { echo "--force only applies with --key" >&2; exit 2; }
 # patrol-* ids are clawock-patrol rounds: the runner memory-gates them as expendable, `status`
 # hides them and the supervisor prunes them after a week. A manual task with that name got all of
 # that (patrol-issues-batch 2026-09-17, patrol-source-sync 2026-09-23), so the prefix is reserved.
@@ -442,11 +454,63 @@ fi
 DEADLINE=$(date -d "@$DEADLINE_EPOCH" '+%F %T')
 
 ID="$NAME-$(date +%Y%m%d-%H%M%S)"
+KEY_HASH=""
+# Idempotency key for automated callers (docs § Idempotency key). The claim file holds only the
+# hash, the task id and the time; never the prompt. The flock covers check + claim, so two
+# callers with the same key cannot both start a task.
+if [ -n "$KEY" ]; then
+  KEY_HASH=$(printf '%s' "$KEY" | sha256sum | cut -d' ' -f1)
+  KEY_TTL="${AGENT_DISPATCH_KEY_TTL_SEC:-86400}"
+  [[ "$KEY_TTL" =~ ^[0-9]+$ ]] || KEY_TTL=86400
+  key_dir="$BASE/.keys"
+  mkdir -p "$key_dir"
+  exec 9>"$key_dir/.lock"
+  flock -x 9
+  find "$key_dir" -maxdepth 1 -type f -name '*.json' -mtime +30 -delete 2>/dev/null || true
+  key_file="$key_dir/$KEY_HASH.json"
+  if [ -r "$key_file" ] && [ "$KEY_FORCE" != 1 ]; then
+    key_task=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("task_id") or "")' "$key_file" 2>/dev/null) || key_task=""
+    key_created=$(python3 -c 'import json,sys; print(int(json.load(open(sys.argv[1])).get("created_epoch") or 0))' "$key_file" 2>/dev/null) || key_created=0
+    [[ "$key_task" =~ ^[a-z0-9][a-z0-9-]*$ ]] || key_task=""
+    [[ "$key_created" =~ ^[0-9]+$ ]] || key_created=0
+    alive=""
+    age=$(( $(date +%s) - key_created ))
+    if [ -n "$key_task" ] && [ ! -r "$BASE/$key_task/meta.env" ]; then
+      # The winner has claimed the key but has not created the task directory yet (the lock
+      # covers check+claim, not the whole dispatch). A recent claim is alive; a claim whose
+      # task never appeared is stale after five minutes.
+      [ "$age" -lt 300 ] && alive=1
+    elif [ -n "$key_task" ]; then
+      state=""
+      [ ! -r "$BASE/$key_task/result.env" ] || state=$(sed -n 's/^STATE=//p' "$BASE/$key_task/result.env" | tr -d "'\"")
+      unit=$(systemctl is-active "agent-dispatch-$key_task.service" 2>/dev/null || true)
+      if [ "$unit" = active ] || [ "$unit" = activating ]; then
+        alive=1
+      elif [ "$state" = ok ] && [ "$age" -lt "$KEY_TTL" ]; then
+        alive=1
+      elif [ -z "$state" ] && [ "$age" -lt 300 ]; then
+        alive=1   # claimed but its unit has not written result.env yet: still starting
+      fi
+    fi
+    if [ -n "$alive" ]; then
+      echo "duplicate key: existing task $key_task is alive or succeeded within ${KEY_TTL}s; nothing dispatched" >&2
+      echo "existing task: $key_task"
+      flock -u 9; exec 9>&-
+      exit 3
+    fi
+  fi
+  printf '{"hash":"%s","task_id":"%s","created":"%s","created_epoch":%s}\n' \
+    "$KEY_HASH" "$ID" "$(date '+%F %T')" "$(date +%s)" >"$key_file.tmp"
+  chmod 600 "$key_file.tmp"
+  mv -f "$key_file.tmp" "$key_file"
+  KEY_FILE=$key_file
+  flock -u 9; exec 9>&-
+fi
 DIR="$BASE/$ID"
 mkdir -p "$DIR"
 [ -z "$POOL_SELECTION" ] || printf '%s\n' "$POOL_SELECTION" >"$DIR/free-pool-selection.json"
 if [ -n "$PROMPT_FILE" ]; then cp "$PROMPT_FILE" "$DIR/prompt.md"; else cat >"$DIR/prompt.md"; fi
-[ -s "$DIR/prompt.md" ] || { echo "empty prompt" >&2; rm -rf "$DIR"; exit 2; }
+[ -s "$DIR/prompt.md" ] || { echo "empty prompt" >&2; rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"; exit 2; }
 for t in "${TEMPLATES[@]}"; do cat "$TEMPLATE_DIR/$t.md" >>"$DIR/prompt.md"; done
 # Resumed sessions get the contract too: without it the model may skip the STATUS line
 # (fix-merge-1512-continue, 2026-09-14), and the runner then cannot tell done from not done.
@@ -498,7 +562,7 @@ mandate_args=(create --dir "$DIR" --task-id "$ID" --name "$NAME" --agent "$AGENT
 [ -z "$MANDATE_FROM" ] || mandate_args+=(--from "$MANDATE_FROM")
 [ "$RESTART_ALLOWED" = 1 ] || mandate_args+=(--deny-restart)
 python3 "$HELPER_DIR/mandate.py" "${mandate_args[@]}" >/dev/null \
-  || { echo "could not write the task mandate" >&2; rm -rf "$DIR"; exit 2; }
+  || { echo "could not write the task mandate" >&2; rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"; exit 2; }
 
 cat >"$DIR/meta.env" <<EOF
 ID=$(printf %q "$ID")
@@ -507,6 +571,7 @@ NAME=$(printf %q "$NAME")
 CWD=$(printf %q "$CWD")
 RESUME=$(printf %q "$RESUME")
 PARENT_TASK_ID=$(printf %q "${AGENT_DISPATCH_PARENT_TASK_ID:-}")
+KEY_SHA256=$(printf %q "$KEY_HASH")
 ANSWER_OF=$(printf %q "$ANSWER_OF")
 ANSWER_DEPTH=$ANSWER_DEPTH
 MODEL=$(printf %q "$MODEL")
@@ -546,7 +611,7 @@ print("unknown" if not isinstance(agents, list) else
     done
   fi
   if [ -z "$stopped" ]; then
-    rm -rf "$DIR"
+    rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"
     echo "adopt: could not stop background session $ADOPT_STOP (claude stop failed, or it is still listed as running); nothing dispatched" >&2
     exit 1
   fi
