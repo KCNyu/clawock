@@ -287,6 +287,7 @@ export type RowView = {
         text: string;
         tone: BalanceTone;
         level: UsedLevel | null;
+        unit?: string;
     } | null;
     state: SlotChip | null;
     facts: Partial<Record<FactSlot, Fact | null>>;

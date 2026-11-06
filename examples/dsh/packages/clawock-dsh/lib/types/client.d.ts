@@ -179,6 +179,25 @@ export declare function _balanceCadence(reading: boolean, refreshMs: number | un
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export declare const BALANCE_PANEL = "clawock-provider-balance";
+/** Fixed-position anchor for the popover: left edge of the row, just above it, and the room up to the viewport top. */
+export type PopoverAnchor = {
+    left: number;
+    bottom: number;
+    room: number;
+};
+/**
+ * The viewport half of the foot panel's placement, pure so the phone clamps are
+ * pinned without a browser. The panel's CSS width is `min(360px, 100vw - 24px)`
+ * on a phone and `min(380px, 100vw - 24px)` on a wide screen; a row that sits
+ * against the right edge (or inside a drawer offset from x=0) must not push the
+ * card past the viewport, which is what mobile Safari turns into a zoomed-out
+ * page. The bottom is the row's top plus the 8px gap; room always leaves 12px
+ * at the top.
+ */
+export declare function _popoverAnchor(rect: {
+    left: number;
+    top: number;
+}, vw: number, vh: number): PopoverAnchor;
 /** What the task chip's `inject` factory hands the component. */
 export interface TaskQueueInjected {
     /** The last answer this registration fetched, or null cold. */

@@ -30,6 +30,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // The loader module table provides React at runtime; the types come from the
 // @types/react devDependency.
 import * as React from 'react'
+import { createPortal } from 'react-dom'
 import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
@@ -591,11 +592,11 @@ export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
  * (unconfigured / fetch-failed) speak through the note alone.
  */
 function renderRowDetail(row: BalanceRow, t: Translate, now: number): React.ReactElement | null {
-  return renderAllowance(allowanceDetail(row, t, now))
+  return renderAllowance(allowanceDetail(row, t, now), t)
 }
 
 /** panel.ts's AllowanceDetail as the window lines (label · used · reset over a hairline bar) or the money split. */
-function renderAllowance(detail: AllowanceDetail): React.ReactElement | null {
+function renderAllowance(detail: AllowanceDetail, t: Translate): React.ReactElement | null {
   if (detail === null) return null
   if (detail.kind === 'text') return h('div', { className: cx('bp-sub') }, detail.text)
   // 每窗一行:文字读数 + 发丝进度条。静态渲染不做 width 动画,数据刷新整帧替换。
@@ -603,7 +604,10 @@ function renderAllowance(detail: AllowanceDetail): React.ReactElement | null {
     detail.windows.map((w) => h('div', { className: cx('bp-win'), key: w.label },
       h('div', { className: cx('bp-win-line') },
         h('span', { className: cx('bp-win-label') }, w.label),
-        h('span', { className: cx('bp-win-pct') }, w.percent === null ? '—' : Math.round(w.percent) + '%'),
+        // 百分比与条形同源(w.percent→fill),而且写明方向:面板历史上一处 used
+        // 一处 remaining,统一为已用后仍只印裸数字;kcn 2026-11-06 对到 CLI 的
+        // “剩 12%”才确认缺的是这个标签。
+        h('span', { className: cx('bp-win-pct') }, w.percent === null ? '—' : t('balance.usedValue', { percent: Math.round(w.percent) + '%' })),
         h('span', { className: cx('bp-win-reset') }, w.reset === '' ? '' : '↻ ' + w.reset)),
       h('div', { className: cx('bp-win-bar') },
         h('div', {
@@ -911,6 +915,7 @@ export const BALANCE_PANEL = 'clawock-provider-balance'
 /** The prop contract both balance surfaces' popover panel renders (see `panelAttrs`). */
 type PanelAttrs = {
   className: string
+  ref?: React.Ref<HTMLDivElement>
   'data-open': string
   role: 'dialog' | 'none'
   'aria-label': string
@@ -946,11 +951,29 @@ function panelAttrs(open: boolean, label: string, extra?: Partial<PanelAttrs>): 
 }
 
 /** Fixed-position anchor for the popover: left edge of the row, just above it, and the room up to the viewport top. */
-type PopoverAnchor = { left: number; bottom: number; room: number }
+export type PopoverAnchor = { left: number; bottom: number; room: number }
 
 /** Gap the popover keeps from the viewport top, and the least room it is ever given. */
 const POPOVER_TOP_GAP = 12
 const POPOVER_MIN_ROOM = 240
+
+/**
+ * The viewport half of the foot panel's placement, pure so the phone clamps are
+ * pinned without a browser. The panel's CSS width is `min(360px, 100vw - 24px)`
+ * on a phone and `min(380px, 100vw - 24px)` on a wide screen; a row that sits
+ * against the right edge (or inside a drawer offset from x=0) must not push the
+ * card past the viewport, which is what mobile Safari turns into a zoomed-out
+ * page. The bottom is the row's top plus the 8px gap; room always leaves 12px
+ * at the top.
+ */
+export function _popoverAnchor(rect: { left: number; top: number }, vw: number, vh: number): PopoverAnchor {
+  const width = Math.min(vw <= 520 ? 360 : 380, vw - 24)
+  return {
+    left: Math.max(8, Math.min(rect.left, vw - width - 8)),
+    bottom: Math.max(8, vh - rect.top + 8),
+    room: Math.max(POPOVER_MIN_ROOM, Math.min(rect.top - 8 - POPOVER_TOP_GAP, vh - 24)),
+  }
+}
 
 /**
  * The foot popover's open state and anchor, shared by every foot row. While
@@ -963,6 +986,9 @@ function useFootPopover(back?: () => boolean) {
   const [open, setOpen] = useState(false)
   const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
+  // The panel is portaled to <body> (see `renderFootPanel`); it is no longer a
+  // descendant of rootRef, so outside-tap detection has to know both boxes.
+  const panelRef = useRef<HTMLDivElement | null>(null)
   // The listener is attached once per opening; the ref hands it this render's `back`.
   const backRef = useRef(back)
   backRef.current = back
@@ -971,11 +997,12 @@ function useFootPopover(back?: () => boolean) {
     const root = rootRef.current
     if (root === null || typeof window === 'undefined') return
     const rect = root.getBoundingClientRect()
-    setAnchor({
-      left: rect.left,
-      bottom: window.innerHeight - rect.top + 8,
-      room: Math.max(POPOVER_MIN_ROOM, rect.top - 8 - POPOVER_TOP_GAP),
-    })
+    // On a phone the foot sits inside the sidebar drawer, which 0.2.2 slides
+    // with a transform. A fixed panel inside that transformed subtree is
+    // clipped to the 280px drawer (and the 360px panel lost its right edge).
+    // The panel is portaled to <body>; this clamps the viewport half of the
+    // placement (see _popoverAnchor).
+    setAnchor(_popoverAnchor(rect, window.innerWidth, window.innerHeight))
   }
 
   useEffect(() => {
@@ -987,7 +1014,8 @@ function useFootPopover(back?: () => boolean) {
     }
     const onDown = (event: PointerEvent): void => {
       const root = rootRef.current
-      if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
+      const panel = panelRef.current
+      if (event.target instanceof Node && !(root?.contains(event.target) ?? false) && !(panel?.contains(event.target) ?? false)) setOpen(false)
     }
     document.addEventListener('keydown', onKey)
     // Capture phase, unlike the host hook: the composer stops pointerdown from
@@ -1001,7 +1029,37 @@ function useFootPopover(back?: () => boolean) {
     }
   }, [open])
 
-  return { open, setOpen, anchor, place, rootRef }
+  // On a phone the drawer can be closed with the panel still open; the footer
+  // row then slides off screen and a portaled panel would stay behind. Close
+  // when the opener leaves the viewport (desktop never triggers this).
+  useEffect(() => {
+    if (!open || typeof IntersectionObserver === 'undefined') return undefined
+    const root = rootRef.current
+    if (root === null) return undefined
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry !== undefined && !entry.isIntersecting) setOpen(false)
+    })
+    observer.observe(root)
+    return () => { observer.disconnect() }
+  }, [open])
+
+  return { open, setOpen, anchor, place, rootRef, panelRef }
+}
+
+/**
+ * The foot panel lives in a portal on <body>: dsh 0.2.2's phone sidebar is a
+ * transformed drawer with `overflow:hidden`, and a `position:fixed` descendant
+ * of a transformed ancestor is sized and clipped by that ancestor (measured
+ * 2026-11-06 at 390px: a 360px panel lost its right 80px and every reset stamp
+ * was cut). The wrapper carries the `.pbc` class so the panel's scoped CSS and
+ * host tokens still apply; `display:contents` keeps it out of layout.
+ */
+function renderFootPanel(panel: React.ReactElement): React.ReactElement {
+  if (typeof document === 'undefined') return panel
+  return createPortal(
+    h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', 'pbp'), style: { display: 'contents' }, 'data-pp-portal': '' }, panel),
+    document.body,
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -1174,7 +1232,7 @@ function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; s
     h('span', { className: cx('tq-name'), key: 'name' }, view.name),
     value === null ? null : h('span', {
       className: cx('tq-value'), key: 'value', 'data-balance-state': value.tone, 'data-used-level': value.level ?? undefined,
-    }, value.text),
+    }, value.unit === undefined ? null : h('span', { className: cx('tq-unit') }, value.unit), value.text),
     view.state === null ? null : renderChip(view.state, { slot: 'status' }),
     ...slots.map((slot) => {
       const fact = view.facts[slot]!
@@ -1186,7 +1244,8 @@ function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; s
     caption.length === 0 ? null : h('span', { className: cx('tq-caption-line'), key: 'caption' },
       ...caption.map((part, i) => h('span', { key: i, 'data-voice': part.voice, title: part.title }, (i > 0 ? ' · ' : '') + part.text))),
   ].filter((cell): cell is React.ReactElement => cell !== null)
-  const said = [view.name, value?.text, view.state?.title ?? view.state?.text, ...slots.map((slot) => view.facts[slot]!.said ?? view.facts[slot]!.text),
+  const said = [view.name, value === null ? null : (value.unit === undefined ? '' : value.unit + ' ') + value.text,
+    view.state?.title ?? view.state?.text, ...slots.map((slot) => view.facts[slot]!.said ?? view.facts[slot]!.text),
     ...caption.map((part) => part.text)]
     .filter((part) => part != null && part !== '').join(' · ')
   return { cells, said }
@@ -1805,7 +1864,7 @@ function useTaskStats(props: TaskQueueInjected & { t: Translate }, open: boolean
  */
 function renderSourceGroup(group: PanelGroup, t: Translate, ui: PanelUi): React.ReactElement {
   const { source, row, balanceNote } = group
-  const detail = renderAllowance(group.detail)
+  const detail = renderAllowance(group.detail, t)
   return h('section', {
     className: cx('tq-group', 'pp-group'), key: 'g-' + source.key, 'data-pp-group': source.key, 'data-tq-group': source.agent ?? undefined,
     'aria-label': source.label, tabIndex: -1,
@@ -2471,7 +2530,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     }
     return true
   }
-  const { open, setOpen, anchor, place, rootRef } = useFootPopover(closeDetail)
+  const { open, setOpen, anchor, place, rootRef, panelRef } = useFootPopover(closeDetail)
   // The stats read is lazy: it starts on the panel's first open, never on the queue's poll.
   // A host half older than `taskStats` says so with the missing `statsApi` flag; no card, no call.
   const statsCapable = queueState.data.result?.statsApi === true
@@ -2680,7 +2739,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const failed = (queueState.data.error !== null && result === null) || (balanceState.data.error !== null && balanceState.rows.length === 0)
     || lines.some((line) => line.reading.tone === 'stale')
   const railTone: BalanceTone = warn ? 'low' : failed ? 'stale' : 'none'
-  const summary = lines.map((line) => [line.source.label, line.reading.value, line.reading.reset ?? '', line.text]
+  const summary = lines.map((line) => [line.source.label, [line.view.value?.unit, line.reading.value].filter((part) => part != null && part !== '').join(' '), line.reading.reset ?? '', line.text]
     .filter((part) => part !== '').join(' ')).join(' · ')
   const toggle = (key: string | null, opener: HTMLElement | null): void => {
     openerRef.current = opener
@@ -2709,7 +2768,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             'data-active': open && focusKey === source.key ? '' : undefined,
             'aria-expanded': open,
             'aria-haspopup': 'dialog',
-            'aria-label': [source.label, reading.value, reading.reset ?? '', text, t('panel.openGroup', { name: source.label })]
+            'aria-label': [source.label, [view.value?.unit, reading.value].filter((part) => part != null && part !== '').join(' '), reading.reset ?? '', text, t('panel.openGroup', { name: source.label })]
               .filter((part) => part !== '').join(' · '),
             title: reading.title,
             onClick: (event: { currentTarget: HTMLElement }) => { toggle(source.key, event.currentTarget) },
@@ -2726,7 +2785,8 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
         title: t('panel.railTitle', { summary }),
         onClick: (event: { currentTarget: HTMLElement }) => { toggle(null, event.currentTarget) },
       }, h('span', { className: cx('bal-lead'), 'data-balance-state': railTone }, renderBalanceGlyph(railTone, 18, instanceId))),
-    h('div', panelAttrs(open, t('panel.aria'), {
+    renderFootPanel(h('div', panelAttrs(open, t('panel.aria'), {
+      ref: panelRef,
       'data-clawock-popover': BALANCE_PANEL,
       ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px', maxHeight: anchor.room + 'px' } }),
     }),
@@ -2737,7 +2797,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     patrolOpen && model.patrol !== null ? h('div', { className: cx('tq-layer'), key: 'patrol' },
       renderPatrolDetail(model.patrol, t, closePatrol, patrolBackRef)) : null,
     statsOpen && statsViewData !== null ? h('div', { className: cx('tq-layer'), key: 'stats' },
-      renderStatsDetail(statsViewData, t, closeStats, statsBackRef)) : null))
+      renderStatsDetail(statsViewData, t, closeStats, statsBackRef)) : null)))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {

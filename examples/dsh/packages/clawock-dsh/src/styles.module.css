@@ -1619,6 +1619,17 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc.pbf .bp[data-open="false"] {
   transform:scale(.97) translateY(4px)
 }
+/* The foot panel is portaled to <body> (client.ts renderFootPanel): in 0.2.2
+   the phone sidebar is a transformed drawer with overflow:hidden, so a fixed
+   panel inside it is clipped to the drawer and loses its right edge. The
+   wrapper keeps the .pbc scope (tokens and every .pbc .tq-* rule) without
+   taking a box of its own. */
+.pbc.pbp.pbf.tqf.ppf {
+  display:contents
+}
+.pbc.pbp .bp {
+  z-index:80
+}
 @media (prefers-reduced-motion: reduce) {
   .pbc.pbf .bp[data-open="false"] {
     transform:none
@@ -1791,6 +1802,19 @@ body[data-ds-dark-theme] .pbc .bp {
   backdrop-filter:var(--dsw-menu-backdrop-filter);
   pointer-events:none
 }
+/* The panel is taller than any phone viewport, and iOS hides its scrollbar.
+   A short fade at the bottom says the next row continues instead of looking
+   like content cut mid-line (the 2026-11-06 screenshot ended inside a task). */
+.pbc.pbf.tqf .bp::after {
+  content:"";
+  position:absolute;
+  inset:auto 0 0;
+  z-index:1;
+  height:18px;
+  border-radius:0 0 var(--tq-radius) var(--tq-radius);
+  background:linear-gradient(to top, var(--dsw-specific-menu), transparent);
+  pointer-events:none
+}
 .pbc .tq-list,
 .pbc .tq-layer,
 .pbc .tq-detail {
@@ -1943,6 +1967,14 @@ body[data-ds-dark-theme] .pbc .bp {
 /* stale 黄排在用量档之后，与头条 chip、每窗进度条同一优先级：同元素同时带两个属性时
    源序后者赢，读数不可信这件事要压过它（已经过期的）用量档颜色。 */
 .pbc .tq-value[data-balance-state="stale"] { color:var(--tq-text-warn) }
+/* The direction word rides beside the number: '已用 88%' can only mean one
+   thing, which a bare '88%' next to the CLI's '剩 12%' could not. */
+.pbc .tq-unit {
+  margin-right:4px;
+  font:var(--dsw-font-xxs-12);
+  line-height:16px;
+  color:var(--tq-ink-3)
+}
 /* The panel's cells (FACT_CELL). The folded sidebar lines keep their own four-track subgrid below. */
 .pbc .tq-row > .tq-name { grid-column:2 / 5 }
 .pbc .tq-row > .tq-value { grid-column:5 }
