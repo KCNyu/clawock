@@ -1,0 +1,11 @@
+[Unit]
+Description=Mark agent-dispatch tasks whose runner unit disappeared
+Documentation=file:///root/.openclaw/workspace/docs/architecture/task-queue.md
+After=network.target
+
+[Service]
+Type=oneshot
+Environment=PATH=/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/root/tools/agent-dispatch/task_queue_ops.py --source runner reap
+Nice=10
+IOSchedulingClass=idle

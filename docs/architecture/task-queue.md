@@ -55,6 +55,8 @@ task_queue_ops.py [--json] [--source ui|cli|runner] <action> ...
   attempts <id> <n|reset>
   resumes <id> <n|reset>
                      the task's deadline / retry budget / quota-resume budget (runner api 3)
+  reap [--dry-run]   mark tasks whose runner unit disappeared (dispatch.sh doctor); never
+                     deletes, releases a lock or retries
 ```
 
 Exit codes: `0` ok · `2` usage (bad id, bad value) · `3` refused (task ended, action not
@@ -226,6 +228,39 @@ task (the same refusal as `append`/`adopt`). It:
 `dispatch.sh status <id>` and `dispatch.sh result <id>` print the question and answer.
 `dispatch.sh questions --json` is the machine-readable form. There is no inline keyboard,
 no public HTTP answering surface and no cross-task `key` de-duplication yet (phase 2).
+
+### Dead runner reap — `dispatch.sh doctor` / `task_queue_ops.py reap`
+
+A runner is a transient systemd unit. A TERM runs its finish path, but SIGKILL, OOM or a boot
+leave `result.env` at `running`/`queued` with the lock already released and no notice: the task
+looks alive forever. `reap` (alias `dispatch.sh doctor`) scans tasks whose state is
+`running`/`queued`/`pending` and requires all three of:
+
+- `systemctl is-active agent-dispatch-<id>.service` is not active/activating (a starting or
+  restarting unit is excluded);
+- `run.log` has not been written for 120 s (an orphan child still writing is excluded; a task
+  without a log uses the task directory's mtime);
+- `result.env` `UPDATED` is older than 10 minutes (a task without `result.env`
+  uses `meta.env` `CREATED`, then the directory mtime).
+
+Before writing it re-reads `UPDATED` under `.ops.lock` (CAS) and checks the unit again, so a
+runner that wrote between the scan and the write wins; a task whose `.ops.lock` is busy is
+skipped. It then writes `STATE=failed`, `FAILURE_REASON=runner_gone`, `STOP_REASON=runner_gone`,
+`ATTENTION=person`, `STAGE=ended`, clears `WAITING`/`WAKE_AT`/`SLOT`, appends one `reap` line to
+`audit.log`, sends one notice on the task's `NOTIFY` legs (skipped for `NOTIFY=none`; a failed
+leg is recorded, never retried), and writes `.reaped` so a second run does nothing. It never
+deletes the task directory, releases a lock (the dead process already did) or retries. A person
+chooses `dispatch.sh result <id>` or `task_queue_ops.py retry <id>`.
+
+`--dry-run` reports the candidates and writes/notifies nothing. Thresholds are the
+`AGENT_DISPATCH_REAP_LOG_QUIET_SEC` and `AGENT_DISPATCH_REAP_UPDATED_AGE_SEC` overrides (test
+seams; defaults 120 and 600 s).
+
+The timer is `ops/host/agent-dispatch-reap.timer` (10-minute interval, `Persistent=true`) with
+`agent-dispatch-reap.service`; install it once with
+`ops/host/install_agent_dispatch_reap.sh` (`--check`, `--uninstall`). It is separate from
+`refresh_live.sh`, which does not enable timers. The interval is deliberately not inside the
+patrol supervisor: a patrol round that dies must be reaped like any other task.
 
 ### usage — tokens and an estimate, not a bill
 

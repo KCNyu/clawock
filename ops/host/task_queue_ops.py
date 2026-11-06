@@ -29,6 +29,8 @@ Two consumers, one rule each place:
                                     move the whole task's deadline (runner api 3)
       attempts <id> <n|reset>       the retry budget MAX_ATTEMPTS (runner api 3)
       resumes <id> <n|reset>        the quota-resume budget QUOTA_RESUMES (runner api 3)
+      reap [--dry-run]              mark tasks whose runner unit is gone (dispatch.sh doctor);
+                                    never deletes, releases or retries
 
 Exit codes: 0 ok · 2 usage · 3 refused (task ended, not allowed) · 4 unknown task ·
 5 host failure (systemctl, a write) · 6 busy (another write on the same task is in flight).
@@ -61,9 +63,12 @@ import hashlib
 import json
 import os
 import re
+import shlex
+import shutil
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 API = 3
@@ -87,11 +92,24 @@ DSH_ROUTES = ("deepseek-official/deepseek-flash", "deepseek-official/deepseek-v4
 TERMINAL = {"ok", "partial", "unverified", "failed", "blocked", "timeout", "quota", "cancelled"}
 DEFAULT_FAIR_WAIT_SEC = 4 * 3600
 CANCEL_SETTLE_SEC = 4.0
+# Dead-runner reap (dispatch.sh doctor / task_queue_ops.py reap): the three conditions are
+# unit not active, run.log quiet, result.env UPDATED old. Both ages are test seams.
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name) or default)
+    except ValueError:
+        return default
+
+
+REAP_LOG_QUIET_SEC = _env_int("AGENT_DISPATCH_REAP_LOG_QUIET_SEC", 120)
+REAP_UPDATED_AGE_SEC = _env_int("AGENT_DISPATCH_REAP_UPDATED_AGE_SEC", 600)
+REAP_CLEAR = ("WAITING", "WAKE_AT", "SLOT")
 
 TOOLS_DIR = Path(os.environ.get("AGENT_DISPATCH_DIR", "/root/tools/agent-dispatch"))
 TASKS_DIR = Path(os.environ.get("AGENT_DISPATCH_TASKS_DIR", "/root/logs/agent-dispatch"))
 LOCK_DIR = Path(os.environ.get("AGENT_DISPATCH_LOCKDIR", "/root/logs/agent-dispatch"))
 SYSTEMCTL = os.environ.get("AGENT_DISPATCH_SYSTEMCTL", "systemctl")
+NOTIFY_CONF = Path(os.environ.get("AGENT_DISPATCH_NOTIFY_CONF", str(TOOLS_DIR / "notify.env")))
 CLAUDE_HOME = Path(os.environ.get("CLAUDE_CONFIG_DIR", "/root/.claude"))
 OPENCODE_DB = Path(os.environ.get("AGENT_DISPATCH_OPENCODE_DB", "/root/.local/share/opencode/opencode.db"))
 PRICES = Path(os.environ.get("AGENT_DISPATCH_PRICES", str(Path(__file__).resolve().with_name("model_prices.json"))))
@@ -469,6 +487,187 @@ def cmd_cancel(args) -> dict:
                 "message": ("cancelled before it started" if was == "queued"
                             else "stopped; the current step's unsaved progress is lost"
                             + (f"; continue with: {resume_hint(meta, session)}" if session else ""))}
+
+
+# ---- dead runners: mark once, never retry ---------------------------------------------------
+# A runner is a transient systemd unit. TERM runs its finish path, but SIGKILL/OOM/reboot leaves
+# result.env at running/queued with the lock already released and no notice: the task looks alive
+# forever. The reaper only records the fact (STATE=failed, FAILURE_REASON/STOP_REASON=runner_gone,
+# ATTENTION=person, STAGE=ended) and notifies once; it never deletes the directory, releases a
+# lock (a dead process already did) or retries. A person decides between `result` and `retry`.
+#
+# The three conditions keep a live runner safe: `systemctl is-active` excludes a starting or
+# restarting unit, a run.log written within REAP_LOG_QUIET_SEC excludes an orphan child still
+# writing, and result.env UPDATED older than REAP_UPDATED_AGE_SEC excludes a task that has just
+# started. Before writing, UPDATED is re-read under the task lock (CAS), so a runner that wrote
+# between the scan and the write wins. `.reaped` makes the notice once per task.
+
+def _unit_gone(task_id: str) -> bool:
+    """True only when systemctl answered that the unit is not active; an error is 'unknown'."""
+    try:
+        r = subprocess.run([SYSTEMCTL, "is-active", f"agent-dispatch-{task_id}.service"],
+                           capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return r.stdout.strip() not in ("active", "activating", "deactivating", "reloading")
+
+
+def _stamp(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
+def _update_result(d: Path, values: dict[str, str], clear: tuple[str, ...] = ()) -> None:
+    """Replace/add KEY=value lines without executing the file (quoting is bash-safe)."""
+    try:
+        lines = (d / "result.env").read_text(errors="replace").splitlines()
+    except OSError:
+        lines = []
+    seen = set()
+    out = []
+    for line in lines:
+        m = re.match(r"^([A-Z_][A-Z0-9_]*)=", line)
+        key = m[1] if m else ""
+        if key in values:
+            out.append(f"{key}={shlex.quote(str(values[key]))}")
+            seen.add(key)
+        elif key in clear:
+            out.append(f"{key}=''")
+            seen.add(key)
+        else:
+            out.append(line)
+    for key, value in values.items():
+        if key not in seen:
+            out.append(f"{key}={shlex.quote(str(value))}")
+    for key in clear:
+        if key not in seen:
+            out.append(f"{key}=''")
+    tmp = d / ".reap-result.tmp"
+    tmp.write_text("\n".join(out) + "\n")
+    os.replace(tmp, d / "result.env")
+
+
+def _notify_legs(meta: dict, text: str) -> tuple[str, str, str]:
+    """Send one message on each configured leg, in parallel. Never raises."""
+    raw = (meta.get("NOTIFY") or "").split(",")
+    legs = []
+    for leg in raw:
+        leg = leg.strip().lower()
+        if leg and leg != "none" and leg not in legs:
+            legs.append(leg)
+    if not legs:
+        return "", "", ""
+    conf = read_env(NOTIFY_CONF)
+    binary = os.environ.get("AGENT_DISPATCH_OPENCLAW_BIN") or shutil.which("openclaw") or "openclaw"
+    targets = {"weixin": (conf.get("NOTIFY_CHANNEL", ""), conf.get("NOTIFY_TARGET", "")),
+               "telegram": (conf.get("TELEGRAM_CHANNEL", "telegram"), conf.get("TELEGRAM_TARGET", ""))}
+
+    def send(leg: str) -> tuple[str, bool, str]:
+        channel, target = targets.get(leg, ("", ""))
+        if not channel or not target:
+            return leg, False, "target not configured"
+        try:
+            r = subprocess.run([binary, "message", "send", "--channel", channel, "--target", target, "-m", text],
+                               capture_output=True, text=True, timeout=60)
+            return leg, r.returncode == 0, (r.stderr or "").strip().splitlines()[-1][:200] if r.returncode else ""
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return leg, False, str(exc)[:200]
+
+    with ThreadPoolExecutor(max_workers=len(legs)) as pool:
+        results = list(pool.map(send, legs))
+    ok = [leg for leg, good, _ in results if good]
+    bad = [leg for leg, good, _ in results if not good]
+    return ",".join(ok), ",".join(bad), time.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def reap_notice(meta: dict, task_id: str, log_quiet: int, age: int) -> str:
+    name = meta.get("NAME") or task_id
+    agent = meta.get("AGENT") or "?"
+    return (f"⚠️ 委派任务 {name}（{agent}）的 runner 不在了：unit 不是 active，run.log 已静默 "
+            f"{log_quiet // 60} 分钟，结果已 {age // 60} 分钟没更新。\n"
+            f"已标 failed/runner_gone，不会自动重试，也没有删任务目录。\n"
+            f"查看：/root/tools/agent-dispatch/dispatch.sh result {task_id}\n"
+            f"重试：python3 /root/tools/agent-dispatch/task_queue_ops.py retry {task_id}")[:900]
+
+
+def cmd_reap(args) -> dict:
+    now = time.time()
+    reaped, skipped = [], {}
+
+    def skip(reason: str, d: Path) -> None:
+        skipped[reason] = skipped.get(reason, 0) + 1
+        if args.dry_run:
+            print(f"would skip {d.name}: {reason}", file=sys.stderr)
+
+    for meta_file in sorted(TASKS_DIR.glob("*/meta.env")):
+        d = meta_file.parent
+        if not ID_RE.fullmatch(d.name):
+            continue
+        if (d / ".reaped").exists():
+            skip("already_reaped", d)
+            continue
+        meta, result = read_env(meta_file), read_env(d / "result.env")
+        state = result.get("STATE") or "pending"
+        if state in TERMINAL:
+            continue
+        if state not in ("running", "queued", "pending"):
+            skip(f"state_{state}", d)
+            continue
+        if not _unit_gone(d.name):
+            skip("unit_active", d)
+            continue
+        log_quiet = int(now - (_stamp(d / "run.log") if (d / "run.log").exists() else _stamp(d)))
+        if log_quiet < REAP_LOG_QUIET_SEC:
+            skip("log_recent", d)
+            continue
+        updated = stamp_epoch(result.get("UPDATED", "")) or stamp_epoch(meta.get("CREATED", "")) or int(_stamp(d))
+        age = int(now - updated)
+        if age < REAP_UPDATED_AGE_SEC:
+            skip("updated_recent", d)
+            continue
+        row = {"id": d.name, "name": meta.get("NAME", ""), "agent": meta.get("AGENT", ""),
+               "state": state, "log_quiet_sec": log_quiet, "updated_age_sec": age}
+        if args.dry_run:
+            reaped.append(row | {"dry_run": True})
+            continue
+        try:
+            with TaskLock(d):
+                if (d / ".reaped").exists():
+                    skip("already_reaped", d)
+                    continue
+                current = read_env(d / "result.env")
+                if current.get("STATE") in TERMINAL:
+                    skip("state_changed", d)
+                    continue
+                if current.get("UPDATED", "") != result.get("UPDATED", ""):
+                    skip("updated_changed", d)
+                    continue
+                if not _unit_gone(d.name):
+                    skip("unit_active", d)
+                    continue
+                stamp = time.strftime("%Y-%m-%d %H:%M:%S")
+                _update_result(d, {"STATE": "failed", "FAILURE_REASON": "runner_gone",
+                                   "STOP_REASON": "runner_gone", "ATTENTION": "person",
+                                   "STAGE": "ended", "UPDATED": stamp, "REAPED_AT": stamp},
+                               REAP_CLEAR)
+                audit(d, args.source, "reap", f"runner_gone: unit inactive, log quiet {log_quiet}s, "
+                                              f"UPDATED {age}s old")
+                (d / ".reaped").write_text(f"{stamp} source={args.source}\n")
+                ok, bad, at = _notify_legs(meta, reap_notice(meta, d.name, log_quiet, age))
+                _update_result(d, {"NOTIFIED": ok, "NOTIFY_FAILED": bad, "NOTIFY_AT": at,
+                                   "NOTICE": "none" if not ok and not bad else "attempted"})
+                row |= {"notified": ok, "notify_failed": bad, "reaped_at": stamp}
+                reaped.append(row)
+        except OpsError as exc:
+            if exc.code == 6:
+                skip("busy", d)
+                continue
+            raise
+    return {"ok": True, "dry_run": bool(args.dry_run), "thresholds": {
+                "log_quiet_sec": REAP_LOG_QUIET_SEC, "updated_age_sec": REAP_UPDATED_AGE_SEC},
+            "reaped": reaped, "skipped": skipped}
 
 
 # ---- override.env: priority, model, effort ------------------------------------------------
@@ -1465,6 +1664,9 @@ def parser() -> argparse.ArgumentParser:
         b.add_argument("id")
         b.add_argument("value")
         b.set_defaults(fn=cmd_count_budget)
+    rp = sub.add_parser("reap", help="mark tasks whose runner unit is gone; never retry")
+    rp.add_argument("--dry-run", action="store_true", help="report candidates, write and notify nothing")
+    rp.set_defaults(fn=cmd_reap)
     sm = sub.add_parser("summary", help="per-agent totals over frozen task results")
     sm.add_argument("--since", help="tasks created on or after YYYY-MM-DD")
     sm.add_argument("--agent", help="comma list of claude,codex,opencode (default: all)")
@@ -1494,6 +1696,21 @@ def human(action: str, out: dict) -> str:
                 lines.append(f"  {r['position']}. {r['id']}  {tag}  waited {r['waited_sec'] // 60}m")
             for r in g["unqueued"]:
                 lines.append(f"  !  {r['id']}  not ordered: {r['reason']}")
+        return "\n".join(lines)
+    if action == "reap":
+        lines = []
+        for r in out["reaped"]:
+            prefix = "would reap" if out["dry_run"] else "reaped"
+            lines.append(f"{prefix} {r['id']}  {r['state']} -> failed/runner_gone  "
+                         f"(log quiet {r['log_quiet_sec'] // 60}m, updated {r['updated_age_sec'] // 60}m ago)"
+                         + ("" if out["dry_run"] else f"  notify sent={r.get('notified') or '-'} "
+                            f"failed={r.get('notify_failed') or '-'}"))
+        if not lines:
+            lines = ["No dead runners."]
+        if out["skipped"]:
+            lines.append("skipped: " + " ".join(f"{k}={v}" for k, v in sorted(out["skipped"].items())))
+        if out["dry_run"]:
+            lines.append("dry run: nothing written, no notification sent")
         return "\n".join(lines)
     if action == "history":
         lines = [f"{r['created'] or '?'}  {r['id']}  {r['agent']}  {r['state']}/{r['outcome'] or '-'}  "
