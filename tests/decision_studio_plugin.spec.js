@@ -1185,6 +1185,8 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
     "the phone sheet uses the host's drawer breakpoint and 8px side margins");
   assert.match(css, /@media \(width<=767px\)\{[\s\S]*?_pp-row\{min-height:36px\}/,
     "phone rows follow the host drawer's 36px rhythm");
+  assert.match(css, /_pp-row-split[^}]*_tq-chip[^}]*justify-self:start/,
+    "a quota row with both a state chip and resets must split them left/right");
   assert.match(css, /@media \(width<=767px\) and \(height<=640px\)[^{]*\{[\s\S]*?_pp-row\{min-height:32px\}/,
     "short phones keep both lines in 32px so the session list keeps room");
   assert.match(css, /_tq-scroll\{[^}]*padding-bottom:max\(12px,\s*env\(safe-area-inset-bottom\)\)/,

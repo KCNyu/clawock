@@ -3203,6 +3203,10 @@ body[data-ds-dark-theme] .pbc .bp {
   height:16px;
   padding:0 6px
 }
+/* Both a state chip and reset stamps on line 2: chip left, clocks right. */
+.pbc.ppf .pp-row.pp-row-split > .tq-chip[data-tq-chip="status"] {
+  justify-self:start
+}
 .pbc.ppf .pp-row[data-active] { background:var(--tq-fill-hover) }
 .pbc.ppf .pp-row:active { background:var(--tq-fill-press) }
 .pbc.ppf .pp-row:focus-visible,
