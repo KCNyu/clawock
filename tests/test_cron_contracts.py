@@ -36,8 +36,8 @@ def test_tracked_cron_contract_has_all_live_jobs():
     names = {job['name'] for job in jobs}
 
     assert data['schema_version'] == 2
-    assert len(jobs) == 11
-    assert len(names) == 11
+    assert len(jobs) == 12
+    assert len(names) == 12
     assert {
         '盘前深度简报',
         '港股开盘报告',
@@ -50,9 +50,30 @@ def test_tracked_cron_contract_has_all_live_jobs():
         '美股盘中盯盘-overnight',
         '美股收盘报告',
         'Memory Dreaming Promotion',
+        'SQLite 维护',
     } == names
     assert all(job.get('enabled', True) for job in jobs)
     assert sum(bool(job.get('watchdog')) for job in jobs) == 10
+
+
+def test_command_payload_round_trips_and_rejects_drift():
+    data = contract()
+    profile = data['payload_profiles']['sqlite-maintenance']
+    expected = next(job for job in data['jobs'] if job['name'] == 'SQLite 维护')
+    live = {
+        'payload': {
+            'kind': 'command',
+            'argv': ['sh', '-lc', profile['command']],
+            'timeoutSeconds': profile['timeout_seconds'],
+        },
+        'delivery': {'mode': profile['delivery_mode']},
+    }
+    assert cron_contract.payload_errors(data, expected, live) == []
+
+    live['payload']['argv'][2] = 'echo not-the-maintenance-command'
+    assert cron_contract.payload_errors(data, expected, live) == [
+        f"payload.command expected {profile['command']!r}, got 'echo not-the-maintenance-command'"
+    ]
 
 
 def test_us_schedules_follow_new_york_dst_without_moving_dreaming_window():
@@ -907,7 +928,8 @@ def test_every_strategy_profile_pins_a_run_timeout():
     """Without `timeout_seconds` OpenClaw falls back to its 60-minute agentTurn
     safety ceiling (#1784): 美股开盘报告 on 2026-04-07 sat there the full 3600s
     before `cron: job execution timed out`, and a wedged 盘中盯盘 would hold the
-    job through its next slot. Only the off-peak memory job keeps the default.
+    job through its next slot. Only the off-peak memory job keeps the default;
+    the quarterly command job has no model turn and is bounded at 120s.
     """
     profiles = contract()['payload_profiles']
     assert {name: profiles[name].get('timeout_seconds') for name in profiles} == {
@@ -915,6 +937,7 @@ def test_every_strategy_profile_pins_a_run_timeout():
         'intraday': 1740,
         'brief': 2400,
         'memory': None,
+        'sqlite-maintenance': 120,
     }
 
 

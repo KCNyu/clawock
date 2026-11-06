@@ -140,6 +140,12 @@
       "chain": "memory-cron",
       "delivery_mode": "none",
       "exact_message": "__openclaw_memory_core_short_term_promotion_dream__"
+    },
+    "sqlite-maintenance": {
+      "payload_kind": "command",
+      "command": "XDG_RUNTIME_DIR=/run/user/0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus /usr/bin/systemd-run --user --collect --unit=openclaw-sqlite-maint --property=StandardOutput=append:/root/.openclaw/workspace/logs/sqlite-maintenance.log --property=StandardError=append:/root/.openclaw/workspace/logs/sqlite-maintenance.log /usr/bin/python3 /root/.openclaw/workspace/ops/host/sqlite_maintenance.py --apply",
+      "delivery_mode": "none",
+      "timeout_seconds": 120
     }
   },
   "jobs": [
@@ -496,6 +502,18 @@
           }
         },
         "command": "/root/.local/bin/clawock-intraday-watchdog --job-name \"美股盘中盯盘\" --market us >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
+      }
+    },
+    {
+      "name": "SQLite 维护",
+      "enabled": true,
+      "mode": "maintenance",
+      "harness": "sqlite_maintenance.py",
+      "payload_profile": "sqlite-maintenance",
+      "schedule": {
+        "kind": "cron",
+        "expr": "17 4 1 1,4,7,10 *",
+        "tz": "Asia/Hong_Kong"
       }
     }
   ]

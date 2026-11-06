@@ -252,6 +252,17 @@ def test_the_split_names_every_uncovered_job(monkeypatch):
     assert named == {'SkillsOnly', 'Empty', 'Nothing'}
 
 
+def test_a_command_job_is_not_a_context_finding(monkeypatch):
+    """A command payload has no agent turn to record a prompt report."""
+    import ops.system_check as sc
+
+    listing = _listing(monkeypatch, [
+        {'id': 'm', 'name': 'SQLite 维护', 'enabled': True,
+         'payload': {'kind': 'command'}, 'state': {'lastStatus': 'ok'}}])
+
+    assert sc.cron_jobs_by_context_evidence({}, listing) == ([], [], [])
+
+
 def test_a_failed_run_stays_out_of_every_bucket(monkeypatch):
     """#490 unchanged: the scheduler already says the run failed; blaming
     context assembly as well makes the warning cry wolf."""

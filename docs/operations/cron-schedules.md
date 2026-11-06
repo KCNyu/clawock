@@ -51,10 +51,11 @@ The intraday turn plus the 30-second retry backoff still clears the next slot.
 | 港股收盘报告 | `10 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `30 16 * * 1-5` · Asia/Hong_Kong |
 | 美股开盘报告 | EDT `33 21 * * 1-5`<br>EST `33 22 * * 1-5` | Mode 6 | `report --us open` | EDT `53 21 * * 1-5`<br>EST `53 22 * * 1-5` |
 | 美股盘中盯盘 | EDT `3,33 22-23 * * 1-5`<br>EST `3,33 23 * * 1-5` | Mode 7 | `intraday --us` | EDT `23,53 22-23 * * 1-5`<br>EST `23,53 23 * * 1-5` |
+| SQLite 维护 | `17 4 1 1,4,7,10 *` · Asia/Hong_Kong | maintenance | `sqlite_maintenance.py` | — |
 
 ## Operational invariants / 运维不变量
 
-- 11 job identities; exactly 10 enabled in OpenClaw's own scheduler (9 market jobs plus Memory Dreaming Promotion).
+- 12 job identities; exactly 11 enabled in OpenClaw's own scheduler (9 market jobs plus Memory Dreaming Promotion、SQLite 维护).
   The host crontab fires 港股午后快报 (`clawock cron-trigger`), which stays
   disabled in OpenClaw so the slot is not fired twice.
 - 12 watchdog crontab entries are tracked: 6 report, 3 intraday and

@@ -40,6 +40,7 @@ from clawock.scheduling import parse_at
 from clawock.scheduling import (  # noqa: E402
     effective_schedule,
     load_contract,
+    payload_command,
     render_payload_message,
     runtime_enabled,
 )
@@ -157,6 +158,10 @@ def desired_changes(contract: dict, live_jobs: list[dict],
         message = render_payload_message(contract, spec)
         if message is not None:
             _record(patch, diffs, "message", payload.get("message", ""), message)
+
+        if "command" in profile:
+            _record(patch, diffs, "command",
+                    payload_command(payload), profile["command"])
 
         if "delivery_mode" in profile:
             _record(

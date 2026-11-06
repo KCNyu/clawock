@@ -200,6 +200,10 @@ def load_contract(path: str | Path | None = None, *, workspace: str | Path | Non
             raise ValueError(
                 f"{profile_name}: message_template must be a config/cron-payloads/*.md path"
             )
+        if profile.get("payload_kind") == "command":
+            command = profile.get("command")
+            if not isinstance(command, str) or not command.strip():
+                raise ValueError(f"{profile_name}: command payload requires a command")
     for job in jobs:
         if bool(job.get("schedule")) == bool(job.get("seasonal_schedules")):
             raise ValueError(f"{job['name']}: define exactly one schedule source")
@@ -515,6 +519,22 @@ def render_payload_message(contract: dict, expected_job: dict) -> str | None:
     return TEMPLATE_TOKEN.sub(lambda match: str(variables[match.group(1)]), template)
 
 
+def payload_command(payload: dict) -> str | None:
+    """The shell string of a command payload, in either runtime shape.
+
+    `openclaw cron add --command` stores `argv: ["sh", "-lc", <shell>]`; older
+    rows and tests carry `command`. Both are the same declaration.
+    """
+    command = payload.get("command")
+    if isinstance(command, str):
+        return command
+    argv = payload.get("argv")
+    if (isinstance(argv, list) and len(argv) == 3
+            and argv[0] == "sh" and argv[1] == "-lc" and isinstance(argv[2], str)):
+        return argv[2]
+    return None
+
+
 def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[str]:
     profile_name = expected_job.get("payload_profile")
     profiles = contract.get("payload_profiles") or {}
@@ -558,6 +578,13 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
     for field, expected in fields.items():
         if expected is not None and payload.get(field) != expected:
             errors.append(f"payload.{field} expected {expected!r}, got {payload.get(field)!r}")
+    expected_command = profile.get("command")
+    if expected_command is not None:
+        actual_command = payload_command(payload)
+        if actual_command != expected_command:
+            errors.append(
+                f"payload.command expected {expected_command!r}, got {actual_command!r}"
+            )
     # An unbounded agent turn is only stopped by something unrelated restarting the
     # gateway. 盘前深度简报 ran 71, 81 and 86 minutes on 2026-07-15/16/17 that way,
     # each time still holding the agent minutes before the 09:30 report's slot

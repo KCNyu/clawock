@@ -212,7 +212,7 @@ def test_rollback_refuses_to_overwrite_later_edits(tmp_path, installation):
 
 def test_all_adapters_are_tracked_and_cannot_default_to_the_live_package():
     data = kit.load_manifest(kit.DEFAULT_MANIFEST)
-    assert len(data['patches']) == 12
+    assert len(data['patches']) == 13
     for patch in data['patches']:
         source = HOST / patch['script']
         assert source.is_file()

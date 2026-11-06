@@ -27,9 +27,12 @@ def live_from_contract(data):
         profile = data["payload_profiles"][spec["payload_profile"]]
         payload = {
             "kind": profile["payload_kind"],
-            "model": profile["model"],
             "message": cron_contract.render_payload_message(data, spec),
         }
+        if "model" in profile:
+            payload["model"] = profile["model"]
+        if "command" in profile:
+            payload["argv"] = ["sh", "-lc", profile["command"]]
         for contract_field, live_field in (
             ("fallbacks", "fallbacks"),
             ("thinking", "thinking"),
