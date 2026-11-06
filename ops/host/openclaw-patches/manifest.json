@@ -192,7 +192,7 @@
       "script": "openclaw-patches/patch-vector-knn-oversample.sh",
       "targets": [
         {
-          "selector": "const VECTOR_KNN_OVERSAMPLE_FACTOR = 8;",
+          "selector": "const VECTOR_KNN_OVERSAMPLE_FACTOR = ",
           "required": [
             "clawock-vector-knn-oversample-v1",
             "const VECTOR_KNN_OVERSAMPLE_FACTOR = 1;"

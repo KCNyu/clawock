@@ -14,7 +14,7 @@
 # openclaw upgrade -> re-run this after each upgrade (idempotent).
 set -euo pipefail
 OCLAW_REAL="${CLAWOCK_PATCH_STAGE:?Use manage_openclaw_patches.py; adapters only edit a staging tree}"
-TARGET=$(grep -rl "const VECTOR_KNN_OVERSAMPLE_FACTOR = 8;" "$OCLAW_REAL/dist/" 2>/dev/null | head -1)
+TARGET=$(grep -rl "const VECTOR_KNN_OVERSAMPLE_FACTOR = 8;" "$OCLAW_REAL/dist/" 2>/dev/null | head -1 || true)
 if [ -z "${TARGET:-}" ]; then
   if grep -rq "clawock-vector-knn-oversample-v1" "$OCLAW_REAL/dist/" 2>/dev/null; then
     echo "[patch] already applied"
