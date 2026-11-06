@@ -43,6 +43,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -587,16 +588,57 @@ def dispatch_env() -> dict[str, str]:
             "LANG": "C.UTF-8", "TZ": os.environ.get("TZ", "UTC")}
 
 
-def _package_dir(binary: str) -> Path | None:
-    """Install directory of a Node CLI found on PATH (…/node_modules/<package>)."""
+def _launcher_words(path: Path) -> list[list[str]]:
+    """The shell words on each line of a launcher script, continuations joined."""
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    if "\x00" in text[:1024]:
+        return []
+    rows = []
+    for line in re.sub(r"\\\r?\n", " ", text).splitlines():
+        try:
+            words = shlex.split(line, comments=True)
+        except ValueError:
+            continue
+        if words:
+            rows.append(words)
+    return rows
+
+
+def _node_cli(binary: str) -> tuple[Path | None, str]:
+    """(package directory, node executable) for a Node CLI found on PATH.
+
+    A CLI may be a shell wrapper that execs a pinned Node and the package's JS
+    entry (dsh pins Node 24 while the host's default node is older). Follow the
+    wrapper: taking its parent as the package would read an unrelated
+    package.json, such as the user's ~/package.json, and import from the wrong
+    tree.
+    """
     found = shutil.which(binary)
     if not found:
-        return None
+        return None, "node"
     path = Path(found).resolve()
-    for parent in path.parents:
-        if (parent / "package.json").is_file():
-            return parent
-    return None
+    node = shutil.which("node") or "node"
+    targets = [path] if path.suffix == ".js" else []
+    for words in _launcher_words(path):
+        for word in words:
+            name = Path(word).name
+            if name == "node" or re.fullmatch(r"node(?:js)?-?\d+(?:\.\d+)*", name):
+                if os.access(word, os.X_OK) or shutil.which(word):
+                    node = word
+            if word.endswith(".js"):
+                target = Path(word)
+                if not target.is_absolute():
+                    target = path.parent / target
+                if target.is_file():
+                    targets.append(target.resolve())
+    for target in targets:
+        for parent in target.parents:
+            if "node_modules" in parent.parts and (parent / "package.json").is_file():
+                return parent, node
+    return None, node
 
 
 def _dsh_profile_tree(profile: str, env: dict) -> tuple[list[dict], str]:
@@ -637,21 +679,49 @@ def _dsh_mounted(rows: list, plugin: str, path: tuple = ()) -> list[tuple[str, d
 
 def _dsh_discovery(cwd: Path, env: dict) -> tuple[list[str], list[str], str]:
     """dsh's own instruction discovery and default skill roots for `cwd` under `env`."""
-    pkg = _package_dir("dsh")
+    pkg, node = _node_cli("dsh")
     if not pkg:
         return [], [], "dsh not on PATH"
-    mods = pkg / "node_modules" / "@deepseek-ai"
-    js = (f"const i=await import({json.dumps((mods / 'dsh-agent-instructions/lib/index.js').as_uri())});"
-          f"const h=await import({json.dumps((mods / 'dsh-home-paths/lib/index.js').as_uri())});"
+    # Bare specifiers resolve from the CLI's package directory, which also finds
+    # dependencies npm hoisted above it; absolute file URLs would bake in a layout.
+    js = ("const i=await import('@deepseek-ai/dsh-agent-instructions');"
+          "const h=await import('@deepseek-ai/dsh-home-paths');"
           f"const files=(await i.discoverBaselineInstructionFiles({{cwd:{json.dumps(str(cwd))}}})).map(f=>f.absolutePath);"
           "const p=await import('node:path');"
           "console.log(JSON.stringify({files,roots:[p.join(h.resolveDshHome(),'skills'),p.join(h.resolveAgentsHome(),'skills')]}))")
-    rc, out = _run(["node", "--input-type=module", "-e", js], timeout=30, cwd=cwd, env=env)
+    rc, out = _run([node, "--input-type=module", "-e", js], timeout=30, cwd=pkg, env=env)
     try:
         data = json.loads(out.strip().splitlines()[-1])
         return data["files"], data["roots"], ""
     except (ValueError, IndexError, KeyError, TypeError):
         return [], [], out.strip()[-200:]
+
+
+def _skill_list_paths(raw: str) -> list[str] | None:
+    """Registered skill paths from one `opencode api skill.list` JSON response."""
+    try:
+        rows = json.loads(raw).get("data")
+    except (ValueError, AttributeError):
+        return None
+    if not isinstance(rows, list):
+        return None
+    return [row["path"] for row in rows
+            if isinstance(row, dict) and isinstance(row.get("path"), str)]
+
+
+def _opencode_skills(cwd: Path, env: dict | None) -> tuple[list[str], str]:
+    """The skills OpenCode's v2 API registers for `cwd` (v1's `debug skill` is gone)."""
+    # Through a file: OpenCode exits before a pipe drains, cutting the JSON short.
+    tmp = STATE / f"opencode-skill-{os.getpid()}.json"
+    STATE.mkdir(parents=True, exist_ok=True)
+    rc, out = _run(["sh", "-c", f'opencode api skill.list > "{tmp}" 2>/dev/null'],
+                   timeout=90, cwd=cwd, env=env)
+    raw = tmp.read_text(encoding="utf-8", errors="replace") if tmp.is_file() else ""
+    tmp.unlink(missing_ok=True)
+    paths = _skill_list_paths(raw)
+    if paths is None:
+        return [], (out.strip()[-200:] or raw.strip()[-200:] or "empty response")
+    return paths, ""
 
 
 def doctor_checks(deep: bool) -> list[dict]:
@@ -814,15 +884,10 @@ def doctor_checks(deep: bool) -> list[dict]:
                     add(f"{tag}.codex.skill", rc == 0 and "shared-memory" in out,
                         f"Codex prompt in {cwd} lists the shared-memory skill")
                 if "opencode" in agents:
-                    # Through a file: OpenCode exits before a pipe drains, cutting the JSON short.
-                    tmp = STATE / f"opencode-skill-{os.getpid()}.json"
-                    STATE.mkdir(parents=True, exist_ok=True)
-                    rc, _ = _run(["sh", "-c", f'opencode debug skill > "{tmp}" 2>/dev/null'], timeout=90, cwd=cwd, env=env)
-                    out = tmp.read_text(errors="replace") if tmp.is_file() else ""
-                    tmp.unlink(missing_ok=True)
-                    locations = re.findall(r'"location":\s*"([^"]+)"', out)
-                    found = [loc for loc in locations if _same(Path(loc), skill_md)]
-                    add(f"{tag}.opencode.skill", bool(found), f"`opencode debug skill` in {cwd}: {found or 'not listed'}")
+                    paths, err = _opencode_skills(cwd, env)
+                    found = [loc for loc in paths if _same(Path(loc), skill_md)]
+                    add(f"{tag}.opencode.skill", bool(found),
+                        f"`opencode api skill.list` in {cwd}: {found or err or 'not listed'}")
                     rc, out = _run(["opencode", "debug", "paths"], timeout=60, cwd=cwd, env=env)
                     cfg_dir = re.search(r"^config\s+(\S+)", out, re.M)
                     loaded = xp(cfg_dir.group(1)) / "AGENTS.md" if cfg_dir else None
