@@ -36,7 +36,11 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from clawock.providers.openclaw import runtime_paths
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / 'src'))
+
+from clawock.providers.openclaw import runtime_paths  # noqa: E402
 
 _RUNTIME = runtime_paths()
 MAIN_DB = _RUNTIME.memory_index_db
