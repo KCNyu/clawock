@@ -6,6 +6,7 @@
 #   dispatch.sh claude|codex|opencode|dsh --name <slug> [options] < prompt.md
 #   dispatch.sh append <id> [--queue] < more.md   # add instructions to a task, same session
 #   dispatch.sh status [--all] [<id>]  # recent tasks (--all includes patrol-* rounds), or one task
+#   dispatch.sh why <id> [--json]    # one page: dispatch, mandate, runs, appends, waits, notices, result
 #   dispatch.sh result <id> [--run N] # terminal envelope and selected model report
 #   dispatch.sh inbox <id>           # JSON brief + pending/attached/not-delivered appends
 #   dispatch.sh log <id>             # redacted runner log tail
@@ -206,6 +207,9 @@ case "$cmd" in
       exec python3 "$HELPER_DIR/mandate.py" check --file "$d/mandate.json" --action "$2" --task-dir "$d" --source "dispatch.sh mandate"
     fi
     exec python3 "$HELPER_DIR/mandate.py" show --file "$d/mandate.json" ;;
+  why)
+    if [ "${1:-}" = --json ]; then shift; exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json why "$@"; fi
+    exec python3 /root/tools/agent-dispatch/task_queue_ops.py why "$@" ;;
   doctor|reap)
     if [ "${1:-}" = --json ]; then shift; exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json reap "$@"; fi
     exec python3 /root/tools/agent-dispatch/task_queue_ops.py reap "$@" ;;
@@ -326,7 +330,7 @@ case "$cmd" in
     AGENT=claude
     set -- --name "${ADOPT_NAME:-adopt-${SESSION:0:8}}" --resume "$SESSION" --cwd "$CWD" --prompt-file "$ADOPT_TMP" ${rest[@]+"${rest[@]}"} ;;
   claude|codex|opencode|dsh) AGENT=$cmd ;;
-  *) sed -n '2,59p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,60p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2

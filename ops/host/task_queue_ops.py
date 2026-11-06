@@ -81,7 +81,7 @@ BRIEF_MAX_BYTES, APPENDS_MAX_BYTES = 48 * 1024, 16 * 1024  # `brief` answers at 
 PRIORITY_RANGE = (-99, 99)
 VALUE_RE = re.compile(r"^[A-Za-z0-9._/:@-]{1,120}$")
 REDACT = [(re.compile(r"(token|api[_-]?key|secret|password)=[^\s&\"]+", re.I), r"\1=<redacted>"),
-          (re.compile(r"(sk|ghp|gho|github_pat|xox[bp])[-_][A-Za-z0-9_-]{12,}"), "<redacted>")]
+          (re.compile(r"(?<![A-Za-z0-9])(sk|ghp|gho|github_pat|xox[bp])[-_][A-Za-z0-9_-]{12,}"), "<redacted>")]
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,80}$")
 AGENTS = ("claude", "codex", "opencode", "dsh")
 # dsh headless takes reasoningEffort from the patch overlay the runner writes per attempt. The two
@@ -400,6 +400,8 @@ def cmd_history(args) -> dict:
         if args.agent and meta.get("AGENT") != args.agent:
             continue
         if args.state and state != args.state:
+            continue
+        if args.attention and (result.get("ATTENTION") or "unknown") != args.attention:
             continue
         searchable = " ".join((d.name, meta.get("NAME", ""), state, result.get("OUTCOME", ""))).casefold()
         if not all(term in searchable for term in terms):
@@ -1084,6 +1086,256 @@ def task_timeline(d: Path) -> dict:
             "audit_truncated": audit_cut, "log_missing": missing}
 
 
+def _read_json_file(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _one_line(value, limit: int = 240) -> str:
+    return " ".join(redact(str(value or "")).split())[:limit]
+
+
+_UUID = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b")
+
+
+def _safe_text(value, limit: int = 300) -> str:
+    """Redacted log text with session ids shortened (the full id stays in the session file)."""
+    text = _UUID.sub(lambda m: m[0][:8] + "…", str(value or ""))
+    text = re.sub(r"\bsession=([^\s]+)", lambda m: "session=" + m[1][:8] + ("…" if len(m[1]) > 8 else ""), text)
+    return _one_line(text, limit)
+
+
+def _session_hint(value: str) -> str:
+    """A chat/session key without its peer id: the first four colon-separated parts."""
+    parts = (value or "").split(":")
+    if len(parts) > 4:
+        return ":".join(parts[:4]) + ":…"
+    return value or ""
+
+
+def _epoch_text(raw: str) -> str:
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return ""
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
+
+
+def cmd_why(args) -> dict:
+    """One page: who dispatched, what authorized it, every run/append/wait, and the result.
+
+    Read-only and deliberately bounded: no prompt, log body, transcript or secret. Session
+    keys keep a short prefix; the full report is still `result`.
+    """
+    d = task_dir(args.id)
+    meta, result = read_env(d / "meta.env"), read_env(d / "result.env")
+    mandate = _read_json_file(d / "mandate.json")
+    selection = _read_json_file(d / "free-pool-selection.json")
+    timeline = task_timeline(d)
+    models = {}
+    for event in timeline["events"]:
+        if event.get("kind") != "attempt":
+            continue
+        m = re.search(r"attempt (\d+)/\d+ \(([^)]+)\).*?model=([^ ]+)", event.get("text", ""))
+        if m:
+            models.setdefault(int(m[1]), {"kind": m[2], "model": m[3], "stamp": event["stamp"]})
+
+    runs = []
+    attempt_files = []
+    for path in d.glob("attempt*.env"):
+        m = re.fullmatch(r"attempt(\d+)\.env", path.name)
+        if m:
+            attempt_files.append((int(m[1]), path))
+    for run_no, path in sorted(attempt_files):
+        rec = read_env(path)
+        started = rec.get("STARTED_EPOCH", "")
+        ended = rec.get("ENDED_EPOCH", "")
+        try:
+            duration = int(float(ended) - float(started)) if started and ended else None
+        except ValueError:
+            duration = None
+        info = models.get(run_no, {})
+        runs.append({"run_no": run_no, "kind": rec.get("KIND", ""), "started": bool(started),
+                     "started_at": _epoch_text(started), "ended_at": _epoch_text(ended),
+                     "rc": to_int(rec.get("RC"), None), "result": rec.get("AKIND", ""),
+                     "model": info.get("model", ""), "duration_sec": duration})
+
+    appends = []
+    entries = [(f, False) for f in (d / "inbox").glob("*.md")] +               [(f, True) for f in (d / "inbox" / "delivered").glob("*.md")]
+    for path, delivered in sorted(entries, key=lambda item: item[0].name):
+        m = re.match(r"^(\d{8})-(\d{6})", path.name)
+        stamp = f"{m[1][:4]}-{m[1][4:6]}-{m[1][6:]} {m[2][:2]}:{m[2][2:4]}:{m[2][4:]}" if m else ""
+        run_no = None
+        run_started = None
+        if delivered:
+            try:
+                run_no = int(path.with_name(path.name + ".run").read_text().strip())
+            except (OSError, ValueError):
+                run_no = None
+            if run_no is not None:
+                rec = read_env(d / f"attempt{run_no}.env")
+                run_started = bool(rec.get("STARTED_EPOCH"))
+        if not delivered and result.get("STATE") in TERMINAL:
+            disposition = "not_delivered"
+        elif not delivered:
+            disposition = "pending"
+        elif run_no is None:
+            disposition = "taken_legacy"
+        elif run_started:
+            disposition = "attached_to_run"
+        else:
+            disposition = "taken_not_started"
+        appends.append({"stamp": stamp, "file": path.name, "run_no": run_no,
+                        "disposition": disposition})
+
+    wake = {}
+    for event in ("quota", "end"):
+        data = _read_json_file(d / f"wake-{event}.json")
+        if data:
+            wake[event] = {"state": data.get("state", ""), "attempts": to_int(data.get("attempts")),
+                           "last_error": _safe_text(data.get("last_error"), 160)}
+
+    question = _read_json_file(d / "question.json")
+    answer = _read_json_file(d / "answer.json")
+    later = _read_json_file(d / "later.json")
+    later_history = [_read_json_file(p) for p in sorted(d.glob("later-*.json"), reverse=True)[:3]]
+    later_history = [item for item in later_history if item]
+
+    try:
+        audit_lines = (d / "audit.log").read_text(errors="replace").splitlines()[-20:]
+    except OSError:
+        audit_lines = []
+
+    summary = ""
+    try:
+        summary = next((line for line in (d / "runner-summary.txt").read_text(errors="replace").splitlines()
+                        if line.strip()), "")
+    except OSError:
+        pass
+
+    return {
+        "ok": True, "id": d.name,
+        "task": {"id": d.name, "name": meta.get("NAME", ""), "agent": meta.get("AGENT", ""),
+                 "created": meta.get("CREATED", ""), "started": result.get("STARTED", ""),
+                 "finished_epoch": result.get("FINISHED_EPOCH", ""),
+                 "state": result.get("STATE") or "pending", "outcome": result.get("OUTCOME", ""),
+                 "stop_reason": result.get("STOP_REASON", ""), "failure_reason": result.get("FAILURE_REASON", "")},
+        "dispatch": {"origin": _session_hint(meta.get("ORIGIN_SESSION", "")),
+                     "parent": meta.get("PARENT_TASK_ID", ""), "answer_of": meta.get("ANSWER_OF", ""),
+                     "wake_depth": to_int(meta.get("WAKE_DEPTH"))},
+        "mandate": ({"actions": mandate.get("actions", {}), "source_kind": (mandate.get("source") or {}).get("kind", ""),
+                     "source_id": _session_hint((mandate.get("source") or {}).get("id", "")),
+                     "strength": mandate.get("strength", ""), "policy_version": mandate.get("policy_version", ""),
+                     "scope": (mandate.get("scope") or {}).get("cwd", "")} if mandate else None),
+        "models": {"dispatched": meta.get("MODEL", ""), "effort": meta.get("EFFORT", ""),
+                   "used": result.get("MODEL_USED", ""), "effort_used": result.get("EFFORT_USED", ""),
+                   "free_pool": ({"mode": selection.get("mode", ""),
+                                  "models": list(selection.get("models") or [])[:5],
+                                  "reasons": {k: _one_line(v, 200) for k, v in
+                                              (selection.get("reasons") or {}).items()
+                                              if k in (selection.get("models") or [])[:5]}}
+                                 if selection else None)},
+        "runs": runs, "appends": appends, "wake": wake,
+        "notify": {"sent": result.get("NOTIFIED", ""), "failed": result.get("NOTIFY_FAILED", ""),
+                   "at": result.get("NOTIFY_AT", ""), "notice": result.get("NOTICE", "")},
+        "state": {"needs": result.get("NEEDS", ""), "need_summary": result.get("NEED_SUMMARY", ""),
+                  "attention": result.get("ATTENTION") or "unknown", "stage": result.get("STAGE", ""),
+                  "restart": result.get("RESTART", ""), "attempts": to_int(result.get("ATTEMPTS")),
+                  "max_attempts": to_int(result.get("MAX_ATTEMPTS")),
+                  "quota_resumes_used": to_int(result.get("QUOTA_RESUMES_USED")),
+                  "later_used": to_int(result.get("LATER_USED"))},
+        "report_first_line": _one_line(summary, 240),
+        "question": ({"state": "answered" if answer.get("state") == "answered" else
+                               "resolved" if answer.get("state") == "resolved" else "open",
+                      "key": question.get("key", ""), "title": _one_line(question.get("title"), 160),
+                      "options": [str(o)[:80] for o in (question.get("options") or [])],
+                      "recommend": to_int(question.get("recommend"))} if question else None),
+        "answer": ({"choice": answer.get("choice"), "text": _one_line(answer.get("choice_text") or answer.get("text"), 200),
+                    "by": _session_hint(answer.get("answered_by", "")), "at": answer.get("answered_at", ""),
+                    "resume_task_id": answer.get("resume_task_id", ""), "resolved": answer.get("state") == "resolved"}
+                   if answer else None),
+        "later": ({"state": later.get("state", ""), "at": later.get("at", ""), "key": later.get("key", ""),
+                   "about": _one_line(later.get("about"), 200), "attempt": later.get("attempt")} if later else None),
+        "later_history": [{"state": item.get("state", ""), "at": item.get("at", ""),
+                           "key": item.get("key", ""), "attempt": item.get("attempt")}
+                          for item in later_history],
+        "timeline": [{**event, "text": _safe_text(event.get("text"), 300)} for event in timeline["events"][-40:]],
+        "timeline_counts": {"events": len(timeline["events"]), "omitted_events": timeline["omitted_events"],
+                            "log_missing": timeline["log_missing"]},
+        "audit": [_safe_text(line, 300) for line in audit_lines],
+    }
+
+
+def _why_text(out: dict) -> str:
+    t, disp, mand, models, state = out["task"], out["dispatch"], out["mandate"], out["models"], out["state"]
+    lines = [f"task: {t['id']}  ({t['name'] or '-'})",
+             f"agent: {t['agent'] or '-'}  state: {t['state']}/{t['outcome'] or '-'}"
+             f"  attention: {state['attention']}  stage: {state['stage'] or '-'}",
+             f"created: {t['created'] or '-'}  started: {t['started'] or '-'}  finished: {t['finished_epoch'] or '-'}"]
+    if disp["origin"] or disp["parent"] or disp["answer_of"]:
+        lines.append(f"dispatch: origin={disp['origin'] or '-'} parent={disp['parent'] or '-'} "
+                     f"answer_of={disp['answer_of'] or '-'} wake_depth={disp['wake_depth']}")
+    if mand:
+        actions = " ".join(f"{k}={v}" for k, v in sorted(mand["actions"].items()))
+        lines.append(f"mandate: {actions} source={mand['source_kind']}/{mand['strength']} "
+                     f"policy={mand['policy_version'] or '-'} cwd={mand['scope'] or '-'}")
+    else:
+        lines.append("mandate: none (a task from before mandates)")
+    model_line = f"model: dispatched={models['dispatched'] or '-'}/{models['effort'] or '-'}"
+    model_line += f" used={models['used'] or '-'}/{models['effort_used'] or '-'}"
+    lines.append(model_line)
+    pool = models["free_pool"]
+    if pool:
+        lines.append(f"free pool: {pool['mode'] or '-'} selected={','.join(pool['models']) or '-'}")
+        for name, reason in pool["reasons"].items():
+            lines.append(f"  {name}: {reason}")
+    lines.append(f"runs: {len(out['runs'])}")
+    for run in out["runs"]:
+        lines.append(f"  {run['run_no']}. kind={run['kind'] or '-'} model={run['model'] or '-'} "
+                     f"started={run['started_at'] or '-'} ended={run['ended_at'] or '-'} "
+                     f"rc={run['rc'] if run['rc'] is not None else '-'} result={run['result'] or '-'}"
+                     + (f" duration={run['duration_sec']}s" if run["duration_sec"] is not None else ""))
+    if out["appends"]:
+        lines.append(f"appends: {len(out['appends'])}")
+        for append in out["appends"]:
+            run = f" run {append['run_no']}" if append["run_no"] is not None else ""
+            lines.append(f"  {append['stamp'] or '?'} {append['file']} -> {append['disposition']}{run}")
+    if out["wake"]:
+        lines.append("wake: " + " ".join(f"{k}={v['state']}/{v['attempts']}" for k, v in sorted(out["wake"].items())))
+    lines.append(f"notify: sent={out['notify']['sent'] or '-'} failed={out['notify']['failed'] or '-'} "
+                 f"at={out['notify']['at'] or '-'} notice={out['notify']['notice'] or '-'}")
+    lines.append(f"needs: {state['needs'] or 'unknown'}  restart: {state['restart'] or '-'}  "
+                 f"attempts: {state['attempts']}/{state['max_attempts'] or '?'}  "
+                 f"quota waits: {state['quota_resumes_used']}  later: {state['later_used']}")
+    if out["report_first_line"]:
+        lines.append(f"report: {out['report_first_line']}")
+    if out["question"]:
+        q = out["question"]
+        lines.append(f"question: {q['state']} key={q['key']} title={q['title']}")
+        lines.append("  " + "  ".join(f"{i}. {o}" for i, o in enumerate(q["options"], 1)))
+    if out["answer"]:
+        a = out["answer"]
+        lines.append(f"answer: {'resolved' if a['resolved'] else a['text'] or '-'} by={a['by'] or '-'} "
+                     f"at={a['at'] or '-'} resumed_as={a['resume_task_id'] or '-'}")
+    if out["later"]:
+        later = out["later"]
+        lines.append(f"later: {later['state'] or '-'} at={later['at'] or '-'} key={later['key'] or '-'} "
+                     f"about={later['about'] or '-'}")
+    for item in out["later_history"]:
+        lines.append(f"later history: {item['state'] or '-'} at={item['at'] or '-'} key={item['key'] or '-'}")
+    if out["timeline"]:
+        lines.append("timeline (last events):")
+        for event in out["timeline"][-15:]:
+            lines.append(f"  {event['stamp']} {event['kind']}: {event['text'] or ''}".rstrip())
+    if out["audit"]:
+        lines.append("audit:")
+        lines += [f"  {line}" for line in out["audit"][-10:]]
+    return "\n".join(lines)
+
+
 def cmd_log(args) -> dict:
     d = task_dir(args.id)
     n = max(1, min(args.lines, 400))
@@ -1631,6 +1883,8 @@ def parser() -> argparse.ArgumentParser:
     hist.add_argument("query", nargs="?", default="", help="words in id, name, state or outcome (AND)")
     hist.add_argument("--agent", choices=AGENTS)
     hist.add_argument("--state", help="exact runner STATE (ok, blocked, running, ...)")
+    hist.add_argument("--attention", choices=("person", "none", "unknown"),
+                      help="only tasks with this recorded ATTENTION")
     hist.add_argument("--since", help="created on or after YYYY-MM-DD (host time)")
     hist.add_argument("--before", help="exclusive task id cursor returned as next_before")
     hist.add_argument("--limit", type=int, default=10, help="page size, 1–50")
@@ -1673,6 +1927,9 @@ def parser() -> argparse.ArgumentParser:
     rp = sub.add_parser("reap", help="mark tasks whose runner unit is gone; never retry")
     rp.add_argument("--dry-run", action="store_true", help="report candidates, write and notify nothing")
     rp.set_defaults(fn=cmd_reap)
+    wh = sub.add_parser("why", help="one page: who dispatched, runs, appends, waits, result")
+    wh.add_argument("id")
+    wh.set_defaults(fn=cmd_why)
     sm = sub.add_parser("summary", help="per-agent totals over frozen task results")
     sm.add_argument("--since", help="tasks created on or after YYYY-MM-DD")
     sm.add_argument("--agent", help="comma list of claude,codex,opencode (default: all)")
@@ -1718,6 +1975,8 @@ def human(action: str, out: dict) -> str:
         if out["dry_run"]:
             lines.append("dry run: nothing written, no notification sent")
         return "\n".join(lines)
+    if action == "why":
+        return _why_text(out)
     if action == "history":
         lines = [f"{r['created'] or '?'}  {r['id']}  {r['agent']}  {r['state']}/{r['outcome'] or '-'}  "
                  f"attention={r['attention']}  {r['name']}" for r in out["tasks"]]
