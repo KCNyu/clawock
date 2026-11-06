@@ -8,6 +8,11 @@ A final report may end with one fenced block:
              "about": "...", "key": "short-name"}}
     ```
 
+A report may instead carry `{"later": {"at": "ISO-8601 with timezone", "about": "...",
+"key": "..."}}`: the runner sleeps until `at`, releases its agent lock, and resumes the
+same session once. `later` is accepted only from a `DONE` report, at most three times per
+task, and only before the task's deadline.
+
 The runner calls `parse` once, after the model's last attempt and only for a task that
 finished with a report.  A valid ask becomes `<task>/question.json` (immutable), the end
 notice names it, and `dispatch.sh answer <id> <n>` writes `<task>/answer.json` once and
@@ -29,6 +34,7 @@ import shlex
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 SCHEMA = 1
@@ -141,6 +147,84 @@ def parse_block(text: str) -> tuple[str, dict | None, str]:
         return "invalid", None, "recommend must be an option index"
     return "ask", {"title": title, "text": text_value, "options": cleaned,
                    "recommend": recommend, "about": about, "key": key}, ""
+
+
+def parse_later(text: str, deadline: int, min_run: int, used: int, maximum: int) -> tuple[str, dict | None, str]:
+    """Return (state, later, error): state is none|wait|invalid."""
+    blocks = BLOCK_RE.findall(text or "")
+    if not blocks:
+        return "none", None, ""
+    if len(blocks) > 1:
+        return "invalid", None, "more than one agent-dispatch block"
+    try:
+        data = json.loads(blocks[0])
+    except ValueError as exc:
+        return "invalid", None, f"not JSON: {exc}"
+    if not isinstance(data, dict) or "later" not in data:
+        return "none", None, ""
+    later = data["later"]
+    if not isinstance(later, dict):
+        return "invalid", None, "later is not an object"
+    if "ask" in data:
+        return "invalid", None, "ask and later cannot share one report"
+    if used >= maximum:
+        return "invalid", None, f"later budget exhausted ({used}/{maximum})"
+    if not re.search(r"^STATUS:[ \t]*DONE[ \t]*$", text, re.M):
+        return "invalid", None, "later is only accepted from a STATUS: DONE report"
+    key = later.get("key")
+    if not isinstance(key, str) or not KEY_RE.fullmatch(key):
+        return "invalid", None, "key must be 1-64 letters, digits, '.', '_' or '-'"
+    about = plain(later.get("about"), 1000, multiline=True)
+    if not about:
+        return "invalid", None, "about is required"
+    raw_at = later.get("at")
+    if not isinstance(raw_at, str):
+        return "invalid", None, "at must be an ISO-8601 string with a timezone"
+    try:
+        when = datetime.fromisoformat(raw_at.replace("Z", "+00:00"))
+    except ValueError:
+        return "invalid", None, f"at is not ISO-8601: {raw_at!r}"
+    if when.tzinfo is None:
+        return "invalid", None, "at must carry a timezone"
+    at_epoch = int(when.timestamp())
+    now = int(time.time())
+    if at_epoch <= now:
+        return "invalid", None, "at must be in the future"
+    if at_epoch >= deadline:
+        return "invalid", None, "at is after the task deadline"
+    if at_epoch > deadline - min_run:
+        return "invalid", None, f"at leaves less than {min_run}s before the deadline"
+    return "wait", {"state": "waiting", "at": raw_at, "at_epoch": at_epoch, "about": about,
+                    "key": key, "created": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "created_epoch": now}, ""
+
+
+def cmd_later(args) -> int:
+    try:
+        text = Path(args.text_file).read_text(errors="replace")
+    except OSError as exc:
+        fail(f"cannot read {args.text_file}: {exc}", 2)
+    state, later, error = parse_later(text, args.deadline, args.min_run, args.used, args.maximum)
+    if state == "invalid":
+        print("LATER_STATE=invalid")
+        print(f"receipt: ignored later: {error}", file=sys.stderr)
+        return 0
+    if state == "none":
+        print("LATER_STATE=none")
+        return 0
+    directory = Path(args.dir)
+    meta = read_env(directory / "meta.env")
+    later |= {"schema": SCHEMA, "task_id": meta.get("ID") or directory.name, "attempt": args.run}
+    write_json(directory / "later.json", later, mode=0o644)
+    at = datetime.fromtimestamp(later["at_epoch"]).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    prompt = (f"【到点复查】这是你在 {at} 约好的复查（key={later['key']}）。\n"
+              f"要查什么、怎么算过：{later['about']}\n"
+              "先核实当前事实（git/PR/CI/文件/外部状态），只做剩余步骤，不要重做已完成的业务。\n"
+              "结束时照样输出 NEEDS 与 STATUS 行。\n")
+    (directory / "later-prompt.txt").write_text(prompt)
+    print("LATER_STATE=wait")
+    print(f"LATER_AT={later['at_epoch']}")
+    return 0
 
 
 def notice(q: dict) -> str:
@@ -454,6 +538,15 @@ def main(argv: list[str] | None = None) -> int:
     ls.add_argument("--limit", type=int, default=50)
     ls.add_argument("--json", action="store_true")
     ls.set_defaults(fn=cmd_list)
+    lt = sub.add_parser("later")
+    lt.add_argument("--dir", required=True)
+    lt.add_argument("--run", type=int, default=0)
+    lt.add_argument("--deadline", type=int, required=True)
+    lt.add_argument("--min-run", type=int, default=670)
+    lt.add_argument("--used", type=int, default=0)
+    lt.add_argument("--maximum", type=int, default=3)
+    lt.add_argument("--text-file", required=True)
+    lt.set_defaults(fn=cmd_later)
     s = sub.add_parser("show")
     s.add_argument("--dir", required=True)
     s.set_defaults(fn=cmd_show)

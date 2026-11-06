@@ -30,7 +30,7 @@ expect() {  # <description> <actual> <expected>
 expect_grep() {  # <description> <fixed string> <file>
   if grep -qF -- "$2" "$3"; then echo "  ok    $1"; else echo "  FAIL  $1: '$2' not in $(basename "$3")"; fail=1; fi
 }
-field() { ( . "$1/result.env"; printf '%s' "${!2}" ); }
+field() { [ -r "$1/result.env" ] || { printf ''; return 0; }; ( . "$1/result.env"; printf '%s' "${!2}" ); }
 
 mk() {  # <name> <agent> <seconds to deadline> <per-attempt timeout> [notify: none|weixin|weixin,telegram]
   local d=$WORK/tasks/$1
@@ -1017,7 +1017,7 @@ expect "published while still queued: deadline/attempts/resumes/waiting" \
   "$(field "$d41" DEADLINE_EPOCH)/$(field "$d41" MAX_ATTEMPTS)/$(field "$d41" QUOTA_RESUMES)/$(field "$d41" WAITING)" "$new41/1/0/lock"
 touch "$FAKE_DIR/h41.release"
 e41=0; wait "$p41" || e41=$?
-expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/6
+expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/7
 [ "$(field "$d41" STATE)" = ok ] || tail -n 20 "$d41/run.log"
 expect "QUEUED_AT kept (no restart)" "$(field "$d41" QUEUED_AT)" "$q41"
 expect "one runner start in the log" "$(grep -c ' budget-queued start ====' "$d41/run.log")" 1
@@ -1262,6 +1262,64 @@ PYA
   child=$(basename "$(ls -d "$base"/*/ | grep answer-nosession-20260101-000000- | head -1)")
   expect 'a task without a session falls back to a new task' \
     "$e/$( . "$base/$child/meta.env"; printf '%s' "$RESUME" )/$(grep -c '没有可续的会话' "$base/$child/prompt.md")" 0//1
+fi
+
+if [ "${DISPATCH_TEST_CASES:-}" = later ]; then
+  echo; echo "=== [later] wait for an external result without the agent lock (runner api 7) ($(date +%T))"
+  await_field() {  # <dir> <key> <value>: up to ~6s
+    local i
+    for i in $(seq 30); do [ "$(field "$1" "$2")" = "$3" ] && return 0; sleep 0.2; done
+    return 1
+  }
+
+  reset_fake claude later-ok
+  d=$(mk later-task claude 900 300 none)
+  e=0; bash "$R" "$d" & p=$!
+  expect 'a later report puts the task into WAITING=later' "$(await_field "$d" WAITING later && echo yes || echo no)" yes
+  expect 'the wait keeps no run slot' "$(field "$d" SLOT)" ''
+  exec 9>"$AGENT_DISPATCH_LOCKDIR/claude.lock"
+  if flock -n 9; then free=yes; else free=no; fi
+  exec 9>&-
+  expect 'the agent lock is free during the wait' "$free" yes
+  exec 9>"$AGENT_DISPATCH_LOCKDIR/session-$(field "$d" SESSION).lock"
+  if flock -n 9; then held=no; else held=yes; fi
+  exec 9>&-
+  expect 'the session lock is kept during the wait' "$held" yes
+  e=0; wait "$p" || e=$?
+  expect 'the task resumes and finishes after the wait' "$e/$(field "$d" STATE)/$(field "$d" RUN_NO)/$(field "$d" LATER_USED)" 0/ok/2/1
+  expect 'the wait is over and its file is history' "$(field "$d" WAITING)/$(test -e "$d/later.json" && echo yes || echo no)/$(test -e "$d/later-1.json" && echo yes || echo no)" /no/yes
+  expect_grep 'the agent lock release is logged' 'released the claude lock for the later wait' "$d/run.log"
+  expect_grep 'the resumed attempt is kind later' '(later)' "$d/run.log"
+  expect_grep 'the about text reaches the resumed session' '查 CI 是否绿' "$FAKE_DIR/claude.argv"
+
+  reset_fake claude later-append
+  d=$(mk later-append claude 900 300 none)
+  e=0; bash "$R" "$d" & p=$!
+  expect 'the second later task starts waiting' "$(await_field "$d" WAITING later && echo yes || echo no)" yes
+  mkdir -p "$d/inbox"
+  printf '补充要求：先别等 CI\n' >"$d/inbox/$(date +%Y%m%d-%H%M%S)-$$-now.md"
+  e=0; wait "$p" || e=$?
+  expect 'an immediate append wakes the wait without spending a later' \
+    "$e/$(field "$d" STATE)/$(field "$d" RUN_NO)/$(field "$d" LATER_USED)/$(test -e "$d/later-1.json" && echo yes || echo no)" \
+    0/ok/2/0/yes
+  expect_grep 'the append is delivered to the same session' '补充要求：先别等 CI' "$FAKE_DIR/claude.argv"
+
+  reset_fake claude later-invalid
+  d=$(mk later-invalid claude 900 300 none)
+  e=0; bash "$R" "$d" || e=$?
+  expect 'a later in the past is refused without a wait' \
+    "$e/$(field "$d" STATE)/$(field "$d" RUN_NO)/$(field "$d" LATER_USED)/$(test -e "$d/later.json" && echo yes || echo no)" 0/ok/1/0/no
+  expect_grep 'the refused later is logged' 'ignored later' "$d/run.log"
+
+  reset_fake claude later-cancel
+  d=$(mk later-cancel claude 900 300 none)
+  e=0; bash "$R" "$d" & p=$!
+  expect 'the cancelled task starts waiting' "$(await_field "$d" WAITING later && echo yes || echo no)" yes
+  : >"$d/cancel-requested"
+  e=0; wait "$p" || e=$?
+  expect 'a cancel stops the wait and keeps the task cancelled' \
+    "$e/$(field "$d" STATE)/$(field "$d" RUN_NO)/$(test -e "$d/later.json" && echo yes || echo no)" 143/cancelled/1/no
+  expect 'no model call followed the cancelled wait' "$(cat "$FAKE_DIR/claude.calls")" 1
 fi
 
 echo

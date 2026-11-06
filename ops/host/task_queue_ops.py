@@ -450,7 +450,7 @@ def cmd_cancel(args) -> dict:
         waiting = result.get("WAITING", "")
         started = to_int(result.get("ATTEMPTS")) > 0
         was = "queued" if not started and waiting in ("lock", "slot", "memory", "") and not result.get("SLOT") else "running"
-        if waiting in ("quota", "retry"):
+        if waiting in ("quota", "retry", "later"):
             was = "sleeping"
         marker = d / "cancel-requested"
         if marker.exists() and time.time() - marker.stat().st_mtime < 30:
@@ -654,6 +654,12 @@ def cmd_reap(args) -> dict:
                                REAP_CLEAR)
                 audit(d, args.source, "reap", f"runner_gone: unit inactive, log quiet {log_quiet}s, "
                                               f"UPDATED {age}s old")
+                # A runner killed during a later wait leaves a wait file that can never fire.
+                for name in ("later.json", "later-prompt.txt"):
+                    try:
+                        (d / name).unlink()
+                    except OSError:
+                        pass
                 (d / ".reaped").write_text(f"{stamp} source={args.source}\n")
                 ok, bad, at = _notify_legs(meta, reap_notice(meta, d.name, log_quiet, age))
                 _update_result(d, {"NOTIFIED": ok, "NOTIFY_FAILED": bad, "NOTIFY_AT": at,
@@ -1548,7 +1554,7 @@ def budget_task(d: Path, task_id: str, action: str) -> tuple[dict, dict, dict]:
 
 
 def applies(result: dict) -> tuple[str, str]:
-    if result.get("WAITING") in ("quota", "retry"):
+    if result.get("WAITING") in ("quota", "retry", "later"):
         return "on_wake", "the saved change is visible now; the runner applies it when it wakes for the next attempt"
     running = bool(result.get("SLOT")) or (to_int(result.get("ATTEMPTS")) > 0 and result.get("WAITING") in ("", "slot"))
     if running:

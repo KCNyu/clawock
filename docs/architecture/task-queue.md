@@ -430,6 +430,9 @@ without spending an attempt, a quota resume or a notification — the limits are
 account. At the reset the sleeper re-queues with its original `QUEUED_AT`; the first
 attempt that gets through deletes the hint.
 
+The same release is used by a `later` wait (§ Later waits): the agent lock is free while the
+runner sleeps, and the session lock prevents a second task from resuming that conversation.
+
 A task that ends on quota (`reset_after_deadline`, `no_session`, `quota_resume_budget`)
 deliberately writes no hint: nobody would be left to clear it, so one misread reset (a weekly
 one is days away) would hold every later task of the agent without a single attempt, while the
@@ -448,6 +451,32 @@ delivered appends were in the session record, so a resend would run them twice),
 when a cancel or the deadline stops the task, where re-sending contradicts the stop), and not a
 failed notification or wake turn (the 10 tasks whose legs both failed include three within four
 seconds of each other, a shared cause a retry would hit again; a wake turn may have acted).
+
+### Later waits — release the lock while waiting for an external result
+
+A report that ends with `STATUS: DONE` may carry one `later` object in its
+`agent-dispatch` block:
+
+```json
+{"later": {"at": "2026-11-06T18:30:00+08:00", "about": "查 CI 是否绿，绿了就合并",
+           "key": "ci-check"}}
+```
+
+`at` is ISO-8601 with a timezone and must be in the future, before the task's deadline, and
+leave at least `MIN_RUN_SEC + KILL_MARGIN` (670 s) to run. `about` and `key` are required.
+The runner writes `later.json` and `later-prompt.txt`, publishes `WAITING=later` /
+`WAKE_AT`, releases the **agent** lock (the session lock stays, so no second task can resume
+the conversation) and sleeps; it holds no run slot meanwhile. It then re-enters its agent
+queue with the original `QUEUED_AT`, takes the lock and runs one attempt of kind `later` whose
+prompt is the `about` text plus "verify current facts, only the remaining steps". A failure
+after that attempt goes down the ordinary retry path (`MAX_ATTEMPTS`).
+
+The wait ends early when an append with `-now` arrives (the appended text is delivered and the
+later is not counted as used) or when the task is cancelled (`on_signal` removes `later.json`).
+`LATER_USED` caps the wait at `LATER_MAX` (default 3) per task and does **not** spend a retry;
+the wait file is moved to `later-<run>.json` when it ends, so a closed wait is history. There
+is no systemd timer: the runner sleeps, and a runner killed during the sleep is the reaper's
+business (§ Dead runner reap). A later report with no session is not scheduled.
 
 ### Native background sessions (`claude --bg`)
 
@@ -507,7 +536,7 @@ as a service; re-read this section after a Claude Code upgrade that changes `cla
 | Field | Meaning |
 |---|---|
 | `QUEUED_AT` | epoch the task first waited for its agent lock (queue order; kept across quota waits) |
-| `WAKE_AT` | epoch a quota/retry wait ends (empty otherwise) |
+| `WAKE_AT` | epoch a quota/retry/later wait ends (empty otherwise) |
 | `EFFORT_USED` | the effort of the latest attempt (`MODEL_USED` is its model) |
 | `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT` | the legs (`weixin`, `telegram`, or an unknown name) of the latest notification that were delivered / failed, and when |
 | `NEEDS` / `NEED_SUMMARY` | the model's last `NEEDS:` line: `none` or one concrete action for a person (api 5) |
@@ -515,8 +544,9 @@ as a service; re-read this section after a Claude Code upgrade that changes `cla
 | `NOTICE` | whether the runner attempted the end notice: `attempted` or `none` (`--notify none`) |
 | `RESTART` | the model's last `RESTART:` line: what it restarted, when, and the result |
 | `MANDATE_POLICY_VERSION` | the `dispatch.sh`+`run-agent.sh` hash the task's mandate was accepted under (api 5) |
-| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; `5` also publishes the mandate and `NEEDS/STAGE/ATTENTION`; `6` also records the ask receipt (`RECEIPT`/`QUESTION`); absent before |
+| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; `5` also publishes the mandate and `NEEDS/STAGE/ATTENTION`; `6` also records the ask receipt (`RECEIPT`/`QUESTION`); `7` also honours a `later` wait; absent before |
 | `RECEIPT` / `QUESTION` | api 6: `RECEIPT=none|valid|invalid` for the optional block; `QUESTION=open` only when a valid ask wrote `question.json` |
+| `LATER_USED` | api 7: later waits already started (`0..LATER_MAX`, default 3); a later turn does not spend `ATTEMPTS` |
 | `DEADLINE_EPOCH` / `MAX_ATTEMPTS` / `QUOTA_RESUMES` | the budgets the runner is using now (api 3; see *deadline, attempts, resumes*) |
 | `TOKENS_IN` / `TOKENS_CACHE_W` / `TOKENS_CACHE_R` / `TOKENS_OUT` / `TOKENS_TOTAL` / `COST_USD` | the `usage` answer as of the last finished attempt (api 3); `COST_USD` is an API-price estimate, `free`, or empty |
 

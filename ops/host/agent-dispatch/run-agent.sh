@@ -28,8 +28,10 @@ set -uo pipefail
 # Api 5 adds the machine-readable mandate and the NEEDS/STAGE/ATTENTION fields the task chip
 # reads. ATTENTION no longer gates the end notice (docs/architecture/task-queue.md § Mandate
 # and § The end notice). Api 6 records the optional ask question object (RECEIPT/QUESTION;
-# docs/architecture/task-queue.md § Questions).
-RUNNER_API=6
+# docs/architecture/task-queue.md § Questions). Api 7 adds the `later` wait: a DONE report can
+# ask to be woken at a future time; the runner releases the agent lock and keeps the session
+# lock, then resumes the same session (docs/architecture/task-queue.md § Later waits).
+RUNNER_API=7
 
 DIR="$1"
 # shellcheck disable=SC1091
@@ -169,6 +171,7 @@ declare -A COLD_MODELS=()
 POOL_COLD=1
 [ -n "$SESSION" ] && POOL_COLD=0
 SLOT=""   # set by acquire_slot while this attempt holds a run slot; published in result.env
+LATER_USED=0 LATER_MAX="${LATER_MAX:-3}"
 # QUEUED_AT: epoch when this task first waited for its agent lock (the queue's order, not dir
 # mtime). WAKE_AT: epoch a quota/retry wait ends. NOTIFIED / NOTIFY_FAILED: the legs of the
 # latest notification that were delivered / failed, at NOTIFY_AT; readers stop grepping run.log.
@@ -204,7 +207,7 @@ write_result() {
     printf 'FAILURE_REASON=%q\n' "$FAILURE_REASON"
     printf 'EFFORT_USED=%q\nQUEUED_AT=%q\nWAKE_AT=%q\nNOTIFIED=%q\nNOTIFY_FAILED=%q\nNOTIFY_AT=%q\nRUNNER_API=%q\n' \
       "$EFFORT" "$QUEUED_AT" "$WAKE_AT" "$NOTIFIED" "$NOTIFY_FAILED" "$NOTIFY_AT" "$RUNNER_API"
-    printf 'DEADLINE_EPOCH=%q\nMAX_ATTEMPTS=%q\nQUOTA_RESUMES=%q\n' "$DEADLINE_EPOCH" "$MAX_ATTEMPTS" "$QUOTA_RESUMES"
+    printf 'DEADLINE_EPOCH=%q\nMAX_ATTEMPTS=%q\nQUOTA_RESUMES=%q\nLATER_USED=%q\n' "$DEADLINE_EPOCH" "$MAX_ATTEMPTS" "$QUOTA_RESUMES" "$LATER_USED"
     printf 'TOKENS_IN=%q\nTOKENS_CACHE_W=%q\nTOKENS_CACHE_R=%q\nTOKENS_OUT=%q\nTOKENS_TOTAL=%q\nCOST_USD=%q\n' \
       "$TOKENS_IN" "$TOKENS_CACHE_W" "$TOKENS_CACHE_R" "$TOKENS_OUT" "$TOKENS_TOTAL" "$COST_USD"
   } >"$tmp" && mv -f "$tmp" "$DIR/result.env"
@@ -671,6 +674,7 @@ on_signal() {
   # A stopped task waits for nothing. Leaving WAITING=lock/slot/quota behind made a
   # cancelled task read as still queued (2026-09-23 dispatch-default-model-bump).
   WAITING="" WAKE_AT=""
+  rm -f "$DIR/later.json" "$DIR/later-prompt.txt"
   if [ -e "$DIR/cancel-requested" ] || [ "$(remaining)" -gt 15 ]; then
     STATE=cancelled STOP_REASON=cancelled
     : >>"$DIR/cancel-requested"
@@ -1104,6 +1108,7 @@ $block"
   case "$NEXT_KIND" in
     continue) prompt=$CONTINUE_PROMPT ;;
     append) prompt="" ;;
+    later) prompt=$(cat "$DIR/later-prompt.txt") ;;
     *) prompt=$(cat "$DIR/prompt.md") ;;
   esac
   # Nothing to resume (the CLI died before it saved a session): send the whole task again.
@@ -1327,11 +1332,65 @@ PY
   fi
 }
 
+# ---- later: wait for an external result without holding the agent lock ----------------
+# A DONE report may carry {"later": {"at": "...", "about": "...", "key": "..."}}: instead of
+# ending, the task is woken at `at`, re-enters its agent queue and runs one attempt with the
+# about text. The wait releases the agent lock (the session lock stays, so nothing else can
+# resume this session) and keeps no run slot. `-now` appends wake it early; a cancel stops it.
+# No systemd timer: the runner sleeps, and a runner killed during the sleep is the reaper's
+# business. A task whose report never asked waits nowhere.
+wait_later() {  # 0 scheduled and the loop must continue; 1 no later; 2 scheduled but re-lock failed
+  [ "$LATER_USED" -lt "$LATER_MAX" ] || return 1
+  session_exists || return 1
+  printf '%s' "$ATEXT" >"$DIR/.later-receipt.txt"
+  local out
+  if ! out=$(timeout 10 python3 "$HELPER_DIR/receipt.py" later --dir "$DIR" --run "$RUN_NO" \
+        --deadline "$DEADLINE_EPOCH" --min-run "$((MIN_RUN_SEC + KILL_MARGIN))" \
+        --used "$LATER_USED" --maximum "$LATER_MAX" --text-file "$DIR/.later-receipt.txt" 2>>"$DIR/run.log"); then
+    echo "---- $(ts) later: parser failed; ending normally"
+    return 1
+  fi
+  eval "$(printf '%s\n' "$out" | grep -E '^LATER_(STATE|AT)=[A-Za-z0-9]+$')"
+  [ "${LATER_STATE:-}" = wait ] || return 1
+  echo "---- $(ts) later: waiting until $(date -d "@$LATER_AT" '+%F %T') without the $AGENT lock (session lock kept)"
+  WAITING=later WAKE_AT=$LATER_AT
+  write_result
+  release_agent_lock
+  echo "---- $(ts) later: released the $AGENT lock for the later wait (session lock kept)"
+  local at=$LATER_AT woke=""
+  while [ "$(now)" -lt "$at" ] && ! inbox_has_now && [ ! -e "$DIR/cancel-requested" ]; do
+    sleep "$POLL_SEC" & CHILD=$!; wait "$CHILD"; CHILD=""
+  done
+  [ "$(now)" -ge "$at" ] && woke=1
+  WAKE_AT=""
+  [ ! -e "$DIR/later.json" ] || mv -f "$DIR/later.json" "$DIR/later-$RUN_NO.json"
+  cancel_guard
+  write_result
+  if [ -n "$woke" ]; then
+    LATER_USED=$((LATER_USED + 1))
+    NEXT_KIND=later
+    echo "---- $(ts) later: reached the time; re-queuing for the $AGENT lock, session $SESSION"
+  else
+    NEXT_KIND=append
+    echo "---- $(ts) later: woken early by an appended instruction; delivering it now"
+  fi
+  write_result
+  local lock_budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN ))
+  if ! take_lock "$(( lock_budget > 0 ? lock_budget : 0 ))"; then
+    STATE=timeout STOP_REASON=lock_deadline
+    FINAL_TEXT="$ATEXT
+later 到点后重新排队等 $AGENT 锁，截止前没轮到；会话保留。"
+    [ -n "$HINT_UNTIL" ] && STATE=quota STOP_REASON=reset_after_deadline
+    return 2
+  fi
+  return 0
+}
+
 # ---- attempts ---------------------------------------------------------------------
 # ATTEMPTS counts tries at the task (first run, retries after failures). Delivering an appended
 # instruction continues the current attempt in the same session and does not use up a retry.
 STATE=running
-while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
+while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ] || [ "$NEXT_KIND" = later ]; do
   cancel_guard
   slot_budget=$(( $(remaining) - MIN_RUN_SEC - KILL_MARGIN ))
   if ! acquire_slot "$(( slot_budget > 0 ? slot_budget : 0 ))"; then
@@ -1348,7 +1407,9 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
     STATE=timeout; STOP_REASON=deadline; FINAL_TEXT="${FINAL_TEXT:-截止前剩余时间不足，未再尝试。}"; break
   fi
   kind=$NEXT_KIND
-  [ "$kind" = append ] || ATTEMPTS=$((ATTEMPTS + 1))
+  # A later turn is a real model call, but it has its own budget (LATER_MAX); it does not spend
+  # a retry. A failure during/after it goes down the ordinary retry path and does.
+  [ "$kind" = append ] || [ "$kind" = later ] || ATTEMPTS=$((ATTEMPTS + 1))
   apply_override
   # Recheck every attempt, including overrides/resumes: cached task metadata must
   # not resurrect a model the catalog has since removed or started charging for.
@@ -1402,6 +1463,9 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ]; do
       echo "---- $(ts) finished with appended instruction(s) waiting; delivering them"
       NEXT_KIND=append; continue
     fi
+    wait_later; later_rc=$?
+    [ "$later_rc" -eq 0 ] && continue
+    [ "$later_rc" -eq 2 ] && break
     STATE=ok STOP_REASON=completed; break
   fi
   if [ "$NO_RESPONSE" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; else POOL_COLD=0; fi

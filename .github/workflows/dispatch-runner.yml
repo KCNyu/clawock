@@ -65,7 +65,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: ${{ fromJSON(inputs.slow && '["pool","cancel-barrier","unit","names","notify","core","queue","slots","deadline","budget","dsh","ask","stall","quota"]' || '["pool","cancel-barrier","unit","names","notify","core","queue","slots","deadline","budget","dsh","ask"]') }}
+        group: ${{ fromJSON(inputs.slow && '["pool","cancel-barrier","unit","names","notify","core","queue","slots","deadline","budget","dsh","ask","later","stall","quota"]' || '["pool","cancel-barrier","unit","names","notify","core","queue","slots","deadline","budget","dsh","ask","later"]') }}
     steps:
       - uses: actions/checkout@v7
 
