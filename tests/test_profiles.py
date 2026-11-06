@@ -15,7 +15,7 @@ def test_kcnyu_profile_drives_the_schedule_resource():
     assert profile.profile_id == "kcnyu"
     assert profile.markets["us"].timezone == "America/New_York"
     assert contract.workspace == ROOT
-    assert len(contract["jobs"]) == 11
+    assert len(contract["jobs"]) == 12
 
 
 def test_schedule_templates_resolve_in_the_selected_profile_workspace(tmp_path):

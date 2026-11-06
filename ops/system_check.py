@@ -589,6 +589,11 @@ def cron_jobs_by_context_evidence(sessions, listing):
     for job in (getattr(listing, 'entries', None) or []):
         if not job.get('enabled'):
             continue
+        # Command payloads never run an agent turn, so they have no prompt
+        # report or skills snapshot to verify. That is the payload's shape,
+        # not a narrowed-context finding.
+        if (job.get('payload') or {}).get('kind') == 'command':
+            continue
         name = str(job.get('name') or job.get('id'))[:28]
         kind, count = evidence.get(str(job.get('id')), ('none', 0))
         if kind == 'report':

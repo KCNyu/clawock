@@ -69,6 +69,8 @@ belongs here.
 - [`release.md`](operations/release.md) — publishing to PyPI/npm, and running the
   latest code on the host without a release.
 - [`openclaw-patch-kit.md`](operations/openclaw-patch-kit.md) — versioned dist adaptations, isolated rehearsal, transaction receipts and guarded rollback.
+- [`sqlite-maintenance.md`](operations/sqlite-maintenance.md) — offline checkpoint/VACUUM for the OpenClaw memory index and state store, rollback and the quarterly cron job.
+- [`memory-recall-performance.md`](operations/memory-recall-performance.md) — five-segment memory recall profile, the KNN oversample fix, and the measured quality comparison.
 - [`dreaming-review.md`](operations/dreaming-review.md) — private candidates, explicit review receipts, permanent promotion and rollback.
 - [`models.md`](operations/models.md) — `config/models.toml`: every model, its parameters and which scenario uses it; OpenClaw, cron, dsh and the MiniMax client follow it.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of

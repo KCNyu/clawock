@@ -698,6 +698,8 @@ def build_cron_edit_argv(job_id: str, patch: dict, *,
         command.extend(["--timeout-seconds", str(patch["timeoutSeconds"])])
     if "message" in patch:
         command.extend(["--message", patch["message"]])
+    if "command" in patch:
+        command.extend(["--command", patch["command"]])
     if "deliveryMode" in patch:
         mode = patch["deliveryMode"]
         if mode == "none":

@@ -186,6 +186,19 @@
           ]
         }
       ]
+    },
+    {
+      "id": "vector-knn-oversample",
+      "script": "openclaw-patches/patch-vector-knn-oversample.sh",
+      "targets": [
+        {
+          "selector": "const VECTOR_KNN_OVERSAMPLE_FACTOR = 8;",
+          "required": [
+            "clawock-vector-knn-oversample-v1",
+            "const VECTOR_KNN_OVERSAMPLE_FACTOR = 1;"
+          ]
+        }
+      ]
     }
   ]
 }
