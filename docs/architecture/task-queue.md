@@ -71,6 +71,28 @@ Every write appends one line to the task's `audit.log`: time, `source=ui|cli`, a
 what changed, and the `ops_version` that did it. Writes to one task are serialised by a
 non-blocking lock on `<task>/.ops.lock`; a second write while one is in flight answers `6`.
 
+### Idempotency key — `dispatch.sh --key`
+
+Automated callers (a cron retry, a supervisor that restarted, a webhook) can pass
+`--key <stable>`. Before a task directory is created, `dispatch.sh` hashes the key (SHA-256)
+and checks `/root/logs/agent-dispatch/.keys/<hash>.json`. The file stores only the hash, the
+task id, the creation time and its epoch; never the prompt or the key itself.
+
+- An existing task is **live** when its unit is active/activating, when its `result.env`
+  state is `ok` and it is younger than `AGENT_DISPATCH_KEY_TTL_SEC` (default 86400), or when
+  the key was claimed less than 300 s ago and the task directory has not appeared yet. A
+  duplicate call prints `existing task: <id>`, starts nothing and exits `3`.
+- A failed/cancelled/timed-out task, an `ok` task older than the TTL, or a claim whose task
+  never appeared after 300 s does not block; the caller dispatches again and the key file is
+  replaced.
+- `--force` (only with `--key`) skips the check and replaces the key.
+- The check and claim run under `flock` on `.keys/.lock`, so two callers with the same key
+  cannot both start; the loser reads the winner's file. Files older than 30 days are removed
+  on the next keyed dispatch. `KEY_SHA256` is recorded in `meta.env` (a hash, not the key).
+
+The key is opt-in: interactive dispatch does not need it and no idempotency is inferred from
+the task name.
+
 ### cancel
 
 - Only a known task id (`^[a-z0-9][a-z0-9-]*$` with a `meta.env`); anything else is `2`/`4`.
