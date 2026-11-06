@@ -1,0 +1,11 @@
+[Unit]
+Description=Reap agent-dispatch runners that disappeared
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=10min
+RandomizedDelaySec=60
+Persistent=true
+
+[Install]
+WantedBy=timers.target

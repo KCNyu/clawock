@@ -12,6 +12,8 @@
 #   dispatch.sh summary [--since YYYY-MM-DD] [--agent a,b] [--all] [--json]  # per-agent totals (frozen results; cost is an estimate)
 #   dispatch.sh mandate <id> [check <action>]  # machine-readable authorization created at dispatch
 #   dispatch.sh cancel <id>          # stop a running task (records state=cancelled)
+#   dispatch.sh doctor [--dry-run] [--json]
+#                                    # mark tasks whose runner unit disappeared; never retries
 #   dispatch.sh history [--json] [query] [--agent codex] [--since YYYY-MM-DD] [--before id]
 #   dispatch.sh questions [--all] [--json]  # open ask/question objects, with the answer command
 #   dispatch.sh answer <id> <n> [--text "..."] [--resolve] [--by <session>] [--force]
@@ -204,6 +206,9 @@ case "$cmd" in
       exec python3 "$HELPER_DIR/mandate.py" check --file "$d/mandate.json" --action "$2" --task-dir "$d" --source "dispatch.sh mandate"
     fi
     exec python3 "$HELPER_DIR/mandate.py" show --file "$d/mandate.json" ;;
+  doctor|reap)
+    if [ "${1:-}" = --json ]; then shift; exec python3 /root/tools/agent-dispatch/task_queue_ops.py --json reap "$@"; fi
+    exec python3 /root/tools/agent-dispatch/task_queue_ops.py reap "$@" ;;
   cancel)
     [ -n "${1:-}" ] || { echo "usage: dispatch.sh cancel <id>" >&2; exit 2; }
     # CLI and chip share the durable marker, launch barrier and audited stop path.
@@ -321,7 +326,7 @@ case "$cmd" in
     AGENT=claude
     set -- --name "${ADOPT_NAME:-adopt-${SESSION:0:8}}" --resume "$SESSION" --cwd "$CWD" --prompt-file "$ADOPT_TMP" ${rest[@]+"${rest[@]}"} ;;
   claude|codex|opencode|dsh) AGENT=$cmd ;;
-  *) sed -n '2,57p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,59p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
