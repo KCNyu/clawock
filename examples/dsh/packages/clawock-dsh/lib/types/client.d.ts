@@ -187,12 +187,13 @@ export type PopoverAnchor = {
 };
 /**
  * The viewport half of the foot panel's placement, pure so the phone clamps are
- * pinned without a browser. The panel's CSS width is `min(360px, 100vw - 24px)`
- * on a phone and `min(380px, 100vw - 24px)` on a wide screen; a row that sits
- * against the right edge (or inside a drawer offset from x=0) must not push the
- * card past the viewport, which is what mobile Safari turns into a zoomed-out
- * page. The bottom is the row's top plus the 8px gap; room always leaves 12px
- * at the top.
+ * pinned without a browser. On a phone the panel is a near-full-width sheet
+ * (`100vw - 16px`, 8px side margins) that sits between the drawer's top strip
+ * and the footer row: the row that opened it stays visible (so it still closes
+ * it), and the host's brand/collapse control is not covered. On a wide screen
+ * the old 380px card and 12px gap are unchanged. A row that sits against the
+ * right edge (or inside a drawer offset from x=0) must not push the card past
+ * the viewport, which is what mobile Safari turns into a zoomed-out page.
  */
 export declare function _popoverAnchor(rect: {
     left: number;
