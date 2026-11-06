@@ -130,6 +130,12 @@ def report(directory: Path, run: int | None = None) -> str:
                          f"resumed_as={answer.get('resume_task_id') or '-'}")
         else:
             lines.append(f"answer_command: dispatch.sh answer {directory.name} <n>")
+    for path in [directory / "later.json"] + sorted(directory.glob("later-*.json"), reverse=True)[:2]:
+        later = read_json(path)
+        if later:
+            lines.append(f"later: {later.get('state', '?')} key={later.get('key', '-')} "
+                         f"at={later.get('at', '-')} attempt={later.get('attempt', '?')} "
+                         f"about={(later.get('about') or '')[:200]}")
     if run is not None:
         lines.append("Historical model report; fields above describe the task's latest state.")
     model_text = ""

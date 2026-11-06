@@ -93,6 +93,8 @@ def reap(q, *args):
 
 def test_a_gone_runner_is_marked_once_notified_once(q):
     d = task(q, "gone-20260101-000000")
+    (d / "later.json").write_text('{"state": "waiting"}')
+    (d / "later-prompt.txt").write_text("stale")
     r, out = reap(q)
     assert r.returncode == 0, r.stderr
     assert [row["id"] for row in out["reaped"]] == ["gone-20260101-000000"]
@@ -103,6 +105,7 @@ def test_a_gone_runner_is_marked_once_notified_once(q):
     assert state["WAITING"] == state["WAKE_AT"] == state["SLOT"] == ""
     assert "runner_gone: unit inactive" in (d / "audit.log").read_text()
     assert (d / ".reaped").is_file()
+    assert not (d / "later.json").exists() and not (d / "later-prompt.txt").exists()
     assert sends(q) == 1
     assert "retry" in q["messages"].read_text()
     # The second run sees the marker: no second notice, no second audit line.

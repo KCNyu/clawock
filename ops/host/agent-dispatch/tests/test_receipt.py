@@ -1,4 +1,4 @@
-"""The optional receipt block: ask validation, the one answer, and the answer chain (api 6)."""
+"""The optional receipt block: ask validation, the one answer, the answer chain, and later waits."""
 import contextlib
 import importlib.util
 import io
@@ -6,7 +6,9 @@ import json
 import os
 import stat
 import tempfile
+import time
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[1] / "receipt.py"
@@ -82,6 +84,60 @@ class ReceiptTest(unittest.TestCase):
             "```agent-dispatch\n" + json.dumps({"ask": ASK}) + "\n```\n"
             "```agent-dispatch\n" + json.dumps({"ask": ASK}) + "\n```"))
         self.assertIn("RECEIPT=none", self.parse("no block here\nSTATUS: DONE"))
+
+    def later(self, payload, deadline=None, used=0, maximum=3, status="DONE"):
+        text = (f"done\nSTATUS: {status}\n\n```agent-dispatch\n"
+                + json.dumps({"later": payload}, ensure_ascii=False) + "\n```")
+        receipt = self.dir / "later-receipt.txt"
+        receipt.write_text(text)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            code = RECEIPT.main(["later", "--dir", str(self.dir), "--run", "1",
+                                 "--deadline", str(deadline or int(time.time()) + 3600),
+                                 "--min-run", "60", "--used", str(used), "--maximum", str(maximum),
+                                 "--text-file", str(receipt)])
+        return code, out.getvalue()
+
+    def test_a_done_report_can_schedule_one_later_wait(self):
+        at = (datetime.now(timezone.utc) + timedelta(seconds=120)).isoformat()
+        code, out = self.later({"at": at, "about": "查 CI 是否绿", "key": "ci-check"})
+        self.assertEqual(code, 0)
+        self.assertIn("LATER_STATE=wait", out)
+        later = json.loads((self.dir / "later.json").read_text())
+        self.assertEqual(later["state"], "waiting")
+        self.assertEqual(later["key"], "ci-check")
+        self.assertEqual(later["about"], "查 CI 是否绿")
+        self.assertEqual(later["attempt"], 1)
+        self.assertIn("查 CI 是否绿", (self.dir / "later-prompt.txt").read_text())
+
+    def test_later_requires_a_future_zoned_time_and_a_done_report(self):
+        now = datetime.now(timezone.utc)
+        cases = [
+            ({"at": (now - timedelta(seconds=5)).isoformat(), "about": "x", "key": "k"}, {}),
+            ({"at": (now + timedelta(seconds=120)).replace(tzinfo=None).isoformat(), "about": "x", "key": "k"}, {}),
+            ({"at": (now + timedelta(seconds=120)).isoformat(), "key": "k"}, {}),
+            ({"at": (now + timedelta(seconds=120)).isoformat(), "about": "x"}, {}),
+            ({"at": (now + timedelta(seconds=120)).isoformat(), "about": "x", "key": "k"}, {"status": "PARTIAL"}),
+            ({"at": (now + timedelta(seconds=120)).isoformat(), "about": "x", "key": "k"}, {"used": 3}),
+            ({"at": (now + timedelta(seconds=3600)).isoformat(), "about": "x", "key": "k"}, {}),
+        ]
+        for payload, kwargs in cases:
+            code, out = self.later(payload, **kwargs)
+            self.assertEqual(code, 0)
+            self.assertIn("LATER_STATE=invalid", out, (payload, kwargs))
+            self.assertFalse((self.dir / "later.json").exists())
+
+    def test_ask_and_later_cannot_share_a_report(self):
+        at = (datetime.now(timezone.utc) + timedelta(seconds=120)).isoformat()
+        (self.dir / "later-receipt.txt").write_text(
+            "done\nSTATUS: DONE\n\n```agent-dispatch\n" + json.dumps(
+                {"ask": ASK, "later": {"at": at, "about": "x", "key": "k"}}) + "\n```")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            RECEIPT.main(["later", "--dir", str(self.dir), "--deadline", str(int(time.time()) + 3600),
+                          "--min-run", "60", "--used", "0", "--maximum", "3",
+                          "--text-file", str(self.dir / "later-receipt.txt")])
+        self.assertIn("LATER_STATE=invalid", out.getvalue())
 
     def test_first_answer_wins_and_then_links_the_continuation(self):
         self.parse(report(ASK))

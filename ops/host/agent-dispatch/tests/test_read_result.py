@@ -80,6 +80,10 @@ class ResultTests(unittest.TestCase):
             text = module.report(root)
             self.assertIn("answer: choice=2 text=乙", text)
             self.assertIn("resumed_as=task-1-answer", text)
+            (root / "later.json").write_text(json.dumps({
+                "state": "waiting", "key": "ci-check", "at": "2026-01-01T00:00:00+08:00",
+                "attempt": 2, "about": "查 CI"}))
+            self.assertIn("later: waiting key=ci-check", module.report(root))
 
     def test_interrupted_codex_commentary_is_not_a_report(self):
         with tempfile.TemporaryDirectory() as tmp:

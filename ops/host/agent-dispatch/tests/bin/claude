@@ -12,6 +12,8 @@
 #   needs-none-partial: PARTIAL with NEEDS: none (a partial task still needs a person)
 #   ask-ok / ask-invalid: a final report with a valid / malformed ```agent-dispatch ask block
 #   ask-error: the CLI fails, but its error text also carries a valid ask block (never collected)
+#   later-ok / later-append / later-cancel / later-invalid: first call schedules a later wait
+#                   (+3s, +30s, +30s, past); later calls resume the same session
 #   usage-ok      : writes one assistant message with usage to the transcript (twice, like the
 #                   real CLI's per-content-block lines), then succeeds
 #   slow-transcript: every call appends a transcript line every 3s, 8 times, then succeeds (like
@@ -88,6 +90,26 @@ payload = {"type": "result", "subtype": "success", "is_error": mode == "ask-erro
 print(json.dumps(payload, ensure_ascii=False))
 sys.exit(1 if mode == "ask-error" else 0)
 PYASK
+    ;;
+  later-ok|later-append|later-cancel|later-invalid)
+    if [ "$n" != 1 ]; then
+      printf '{"type":"result","subtype":"success","is_error":false,"result":"resumed after the later wait\\nSTATUS: DONE","session_id":"%s"}\n' "$sid"
+      exit 0
+    fi
+    case "$mode" in
+      later-ok) at=$(date -d '+3 sec' --iso-8601=seconds) ;;
+      later-invalid) at=$(date -d '-5 sec' --iso-8601=seconds) ;;
+      *) at=$(date -d '+30 sec' --iso-8601=seconds) ;;
+    esac
+    python3 - "$sid" "$at" <<'PYLATER'
+import json, sys
+sid, at = sys.argv[1], sys.argv[2]
+text = ("结论：等 CI 后再看\nSTATUS: DONE\n\n```agent-dispatch\n"
+        + json.dumps({"later": {"at": at, "about": "查 CI 是否绿，绿了就合并", "key": "ci-check"}},
+                     ensure_ascii=False) + "\n```")
+print(json.dumps({"type": "result", "subtype": "success", "is_error": False,
+                  "result": text, "session_id": sid}, ensure_ascii=False))
+PYLATER
     ;;
   usage-ok)
     for _ in 1 2; do
