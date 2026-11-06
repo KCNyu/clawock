@@ -1017,7 +1017,7 @@ expect "published while still queued: deadline/attempts/resumes/waiting" \
   "$(field "$d41" DEADLINE_EPOCH)/$(field "$d41" MAX_ATTEMPTS)/$(field "$d41" QUOTA_RESUMES)/$(field "$d41" WAITING)" "$new41/1/0/lock"
 touch "$FAKE_DIR/h41.release"
 e41=0; wait "$p41" || e41=$?
-expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/5
+expect "it ran and finished" "$e41/$(field "$d41" STATE)/$(field "$d41" RUNNER_API)" 0/ok/6
 [ "$(field "$d41" STATE)" = ok ] || tail -n 20 "$d41/run.log"
 expect "QUEUED_AT kept (no restart)" "$(field "$d41" QUEUED_AT)" "$q41"
 expect "one runner start in the log" "$(grep -c ' budget-queued start ====' "$d41/run.log")" 1
@@ -1134,6 +1134,133 @@ expect "dsh quota.mjs prints the money balance" "$(quot54)" '额度：余额 ¥9
 expect "quota.mjs resolves the key from the dsh credentials seam" "$(cat "$FAKE_DIR/balance.calls")" 'key:fake-key'
 expect "the second dsh read comes from the cache" "$(quot54)/$(wc -l <"$FAKE_DIR/balance.calls")" '额度：余额 ¥92.88 · 赠金 ¥0.00 · 充值 ¥92.88/1'
 expect "opencode still has no balance line" "$(AGENT_DISPATCH_BALANCE_LIB="$WORK/fake-balance.mjs" AGENT_DISPATCH_QUOTA_CACHE_DIR=$q54 node "$(dirname "$R")/quota.mjs" opencode)" ''
+fi
+
+if [ "${DISPATCH_TEST_CASES:-}" = ask ]; then
+  echo; echo "=== [ask] the optional ask question object (runner api 6) ($(date +%T))"
+  reset_fake claude ask-ok
+  d=$(mk ask-task claude 900 300 weixin)
+  e=0; bash "$R" "$d" || e=$?
+  expect 'a valid ask leaves the task done' "$e/$(field "$d" STATE)/$(field "$d" OUTCOME)" 0/ok/DONE
+  expect 'the receipt is recorded' "$(field "$d" RECEIPT)/$(field "$d" QUESTION)" valid/open
+  expect 'a question is a person decision even with NEEDS: none' \
+    "$(field "$d" NEEDS)/$(field "$d" ATTENTION)/$(field "$d" STAGE)" none/person/person/review
+  expect 'question.json is written once' "$(test -f "$d/question.json" && echo yes || echo no)" yes
+  expect 'the question keeps the validated fields' "$(python3 - "$d" <<'PYQ'
+import json, pathlib, sys
+d = pathlib.Path(sys.argv[1])
+meta = dict(line.split("=", 1) for line in (d / "meta.env").read_text().splitlines() if "=" in line)
+q = json.load(open(d / "question.json"))
+print(f"{q['task_id'] == meta['ID']}/{q['asked_by_run']}/{q['key']}/{q['recommend']}/{len(q['options'])}")
+PYQ
+)" "True/1/pick-plan/1/2"
+  expect_grep 'the end notice names the question and options' '【等你决定】' "$FAKE_DIR/openclaw.messages"
+  expect_grep 'the recommended option is marked' '2. 方案乙（推荐）' "$FAKE_DIR/openclaw.messages"
+  expect_grep 'the notice carries the answer command' "dispatch.sh answer ask-task" "$FAKE_DIR/openclaw.messages"
+  expect 'the model still wrote NEEDS: none (the runner did not rewrite the report)' \
+    "$(grep -c 'NEEDS: none' "$d/runner-summary.txt")" 1
+
+  reset_fake claude ask-invalid
+  d=$(mk ask-invalid claude 900 300 weixin)
+  e=0; bash "$R" "$d" || e=$?
+  expect 'a malformed ask keeps the task result' "$e/$(field "$d" STATE)/$(field "$d" OUTCOME)" 0/ok/DONE
+  expect 'a malformed ask is invalid and writes no question' \
+    "$(field "$d" RECEIPT)/$(field "$d" QUESTION)/$(test -e "$d/question.json" && echo yes || echo no)" invalid//no
+  expect 'the ordinary notice still goes out' "$(send_count)" 1
+  expect 'the notice does not claim a question' "$(grep -c '【等你决定】' "$FAKE_DIR/openclaw.messages" || true)" 0
+
+  reset_fake claude ask-error
+  d=$(mk ask-error claude 900 300 none)
+  echo 'MAX_ATTEMPTS=1' >>"$d/meta.env"
+  e=0; bash "$R" "$d" || e=$?
+  expect 'a runner failure never turns its error text into a question' \
+    "$e/$(field "$d" STATE)/$(field "$d" RECEIPT)/$(test -e "$d/question.json" && echo yes || echo no)" 1/failed/none/no
+
+  # dispatch.sh answer: validation, lineage, mandate inheritance and the no-session fallback.
+  echo; echo "--- answer continuation and refusals"
+  base=$WORK/answer-base; mkdir -p "$base"
+  helper=$(dirname "$R")
+  mk_parent() {  # <name> <session>
+    local d; d=$(mk "$1" dsh 900 300 none)
+    cat >>"$d/meta.env" <<EOF
+MODEL=deepseek-official/deepseek-flash
+FALLBACK_MODELS=''
+ORIGIN_SESSION=agent:main:test:direct:u1
+ANSWER_OF=''
+ANSWER_DEPTH=0
+EOF
+    cat >"$d/result.env" <<EOF
+STATE=ok
+OUTCOME=DONE
+SESSION='$2'
+ATTEMPTS=1
+RUNNER_API=6
+MAX_ATTEMPTS=3
+DEADLINE_EPOCH=$(( $(date +%s) + 86400 ))
+EOF
+    cp "$d/prompt.md" "$base/prompt-source.md"
+    printf '结论\nNEEDS: none\nSTATUS: DONE\n\n```agent-dispatch\n' >"$d/runner-summary.txt"
+    python3 - "$d/runner-summary.txt" <<'PYA'
+import json, sys
+ask = {"title": "选一个方案", "text": "先做哪个？", "options": ["方案甲", "方案乙"],
+       "recommend": 1, "about": "甲快，乙稳", "key": "pick-plan"}
+open(sys.argv[1], "a").write(json.dumps({"ask": ask}, ensure_ascii=False) + "\n```\n")
+PYA
+    python3 "$helper/receipt.py" parse --dir "$d" --run 1 >/dev/null
+    python3 "$helper/mandate.py" create --dir "$d" --task-id "$1" --name "$1" --agent dsh --cwd /root \
+      --policy-version test --source-kind chat --source-id agent:main:test:direct:u1 --notify none --deny-restart >/dev/null
+    mkdir -p "$base"; mv "$d" "$base/"
+    echo "$base/$1"
+  }
+  p=$(mk_parent answer-parent-20260101-000000 ses-parent)
+  rm -rf "$WORK/tasks/answer-parent-20260101-000000"
+  e=0
+  env -u AGENT_DISPATCH_TASK_ID PATH="$T/bin:$PATH" FAKE_DIR=$FAKE_DIR AGENT_DISPATCH_BASE=$base AGENT_DISPATCH_ORIGIN_SESSION=none \
+    OPENCLAW_MCP_SESSION_KEY=agent:main:test:direct:u1 "$helper/dispatch.sh" answer answer-parent-20260101-000000 2 \
+    >"$WORK/answer.out" 2>"$WORK/answer.err" || e=$?
+  expect 'answer 1 dispatches a continuation' "$e/$(ls -d "$base"/*/ | grep -c answer-parent-20260101-000000-)" 0/1
+  child=$(ls -d "$base"/*/ | grep answer-parent-20260101-000000- | head -1)
+  child=$(basename "$child")
+  expect 'the continuation records the lineage and depth' \
+    "$( . "$base/$child/meta.env"; printf '%s/%s/%s/%s' "$PARENT_TASK_ID" "$ANSWER_OF" "$ANSWER_DEPTH" "$RESUME" )" \
+    "answer-parent-20260101-000000/answer-parent-20260101-000000/1/ses-parent"
+  expect 'the continuation keeps the parent mandate actions' \
+    "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["actions"]["gateway.restart"])' "$base/$child/mandate.json")" deny
+  expect_grep 'the prompt carries the chosen option' '回答：方案乙' "$base/$child/prompt.md"
+  expect_grep 'the prompt tells it not to redo the business' '不重做已完成的业务' "$base/$child/prompt.md"
+  expect 'the question is marked answered and linked' \
+    "$(python3 -c 'import json,sys; a=json.load(open(sys.argv[1])); print(a["state"]+"/"+a["resume_task_id"])' "$base/answer-parent-20260101-000000/answer.json")" \
+    "answered/$child"
+  e=0
+  env -u AGENT_DISPATCH_TASK_ID PATH="$T/bin:$PATH" FAKE_DIR=$FAKE_DIR AGENT_DISPATCH_BASE=$base AGENT_DISPATCH_ORIGIN_SESSION=none \
+    OPENCLAW_MCP_SESSION_KEY=agent:main:test:direct:u1 "$helper/dispatch.sh" answer answer-parent-20260101-000000 1 \
+    >/dev/null 2>"$WORK/answer2.err" || e=$?
+  expect 'a second answer is refused and starts nothing' "$e/$(ls -d "$base"/*/ | grep -c answer-parent-20260101-000000-)" 3/1
+
+  p=$(mk_parent answer-wrongsource-20260101-000000 ses-parent)
+  e=0
+  env -u AGENT_DISPATCH_TASK_ID PATH="$T/bin:$PATH" FAKE_DIR=$FAKE_DIR AGENT_DISPATCH_BASE=$base AGENT_DISPATCH_ORIGIN_SESSION=none \
+    OPENCLAW_MCP_SESSION_KEY=agent:main:other:direct:u2 "$helper/dispatch.sh" answer answer-wrongsource-20260101-000000 1 \
+    >/dev/null 2>&1 || e=$?
+  expect 'an answer from another session is refused' "$e/$(test -e "$base/answer-wrongsource-20260101-000000/answer.json" && echo yes || echo no)" 3/no
+
+  p=$(mk_parent answer-resolve-20260101-000000 ses-parent)
+  e=0
+  env -u AGENT_DISPATCH_TASK_ID PATH="$T/bin:$PATH" FAKE_DIR=$FAKE_DIR AGENT_DISPATCH_BASE=$base AGENT_DISPATCH_ORIGIN_SESSION=none \
+    OPENCLAW_MCP_SESSION_KEY=agent:main:test:direct:u1 "$helper/dispatch.sh" answer answer-resolve-20260101-000000 --resolve \
+    >/dev/null 2>&1 || e=$?
+  expect '--resolve closes the question without a task' \
+    "$e/$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["state"])' "$base/answer-resolve-20260101-000000/answer.json")/$(ls -d "$base"/*/ | grep -c answer-resolve-20260101-000000-)" \
+    0/resolved/0
+
+  p=$(mk_parent answer-nosession-20260101-000000 '')
+  e=0
+  env -u AGENT_DISPATCH_TASK_ID PATH="$T/bin:$PATH" FAKE_DIR=$FAKE_DIR AGENT_DISPATCH_BASE=$base AGENT_DISPATCH_ORIGIN_SESSION=none \
+    OPENCLAW_MCP_SESSION_KEY=agent:main:test:direct:u1 "$helper/dispatch.sh" answer answer-nosession-20260101-000000 1 \
+    >/dev/null 2>&1 || e=$?
+  child=$(basename "$(ls -d "$base"/*/ | grep answer-nosession-20260101-000000- | head -1)")
+  expect 'a task without a session falls back to a new task' \
+    "$e/$( . "$base/$child/meta.env"; printf '%s' "$RESUME" )/$(grep -c '没有可续的会话' "$base/$child/prompt.md")" 0//1
 fi
 
 echo

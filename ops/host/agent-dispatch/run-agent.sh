@@ -27,8 +27,9 @@ set -uo pipefail
 # started from a delivered one; dispatch.sh names the runner api when it refuses an append.
 # Api 5 adds the machine-readable mandate and the NEEDS/STAGE/ATTENTION fields the task chip
 # reads. ATTENTION no longer gates the end notice (docs/architecture/task-queue.md § Mandate
-# and § The end notice).
-RUNNER_API=5
+# and § The end notice). Api 6 records the optional ask question object (RECEIPT/QUESTION;
+# docs/architecture/task-queue.md § Questions).
+RUNNER_API=6
 
 DIR="$1"
 # shellcheck disable=SC1091
@@ -86,6 +87,7 @@ if [ -e "$DIR/cancel-requested" ] || [ "$previous_state" = cancelled ]; then
   exit 143
 fi
 OPS="${AGENT_DISPATCH_OPS:-/root/tools/agent-dispatch/task_queue_ops.py}"
+HELPER_DIR=$(dirname "$(readlink -f "$0")")
 QUEUE_POLL_SEC="${AGENT_DISPATCH_QUEUE_POLL_SEC:-3}"
 # More test seams of the same kind: notification config, codex rollouts, claude transcripts.
 NOTIFY_CONF="${AGENT_DISPATCH_NOTIFY_CONF:-/root/tools/agent-dispatch/notify.env}"
@@ -175,6 +177,9 @@ QUEUED_AT="" WAKE_AT="" NOTIFIED="" NOTIFY_FAILED="" NOTIFY_AT=""
 # line; ATTENTION folds it with the runner's state for the chip and the needs_person count.
 # STAGE is the prototype's stage table: working/queued, working, person/*, idle.
 NEEDS="" NEED_SUMMARY="" STAGE="" ATTENTION="" NOTICE="" RESTART=""
+# Api 6: the optional receipt block. RECEIPT is none|valid|invalid; QUESTION is open when a
+# validated ask was written as question.json (the question itself is not duplicated here).
+RECEIPT="" QUESTION=""
 META_EFFORT=$EFFORT
 TOKENS_IN="" TOKENS_CACHE_W="" TOKENS_CACHE_R="" TOKENS_OUT="" TOKENS_TOTAL="" COST_USD=""
 # 1 when the latest update_usage read returned a COST_USD line (even an empty value). Empty
@@ -193,6 +198,7 @@ write_result() {
       "$STATE" "$RC" "$OUTCOME" "$SESSION" "$ATTEMPTS" "$APPENDS" "$WAITING" "$SLOT" "$LAST_MODEL" "$STARTED" "$(ts)"
     printf 'NEEDS=%q\nNEED_SUMMARY=%q\nSTAGE=%q\nATTENTION=%q\nNOTICE=%q\nRESTART=%q\nMANDATE_POLICY_VERSION=%q\n' \
       "$NEEDS" "$NEED_SUMMARY" "$stage" "$attention" "$NOTICE" "$RESTART" "${MANDATE_POLICY_VERSION:-}"
+    printf 'RECEIPT=%q\nQUESTION=%q\n' "$RECEIPT" "$QUESTION"
     printf 'USAGE_START_EPOCH=%q\n' "$USAGE_START_EPOCH"
     printf 'RUN_NO=%q\nSTOP_REASON=%q\nFINISHED_EPOCH=%q\n' "$RUN_NO" "$STOP_REASON" "$FINISHED_EPOCH"
     printf 'FAILURE_REASON=%q\n' "$FAILURE_REASON"
@@ -225,6 +231,34 @@ classify_finish() {
   else
     ATTENTION=person STAGE=person/blocked
   fi
+}
+
+# The optional ```agent-dispatch block is collected only from a task that produced a report
+# and did not end by runner error: a cancelled/failed/quota run has no business asking a
+# person something. A malformed block changes no business state (no model turn to "fix" it):
+# the report is kept, RECEIPT=invalid is recorded, and the ordinary notice still goes out.
+# question.json is written by receipt.py; the notice block is its bounded text.
+parse_receipt() {
+  RECEIPT=none QUESTION="" QUESTION_NOTICE=""
+  case "$STATE" in ok|partial|unverified) ;; *) return 0 ;; esac
+  [ -s "$DIR/runner-summary.txt" ] || return 0
+  local out
+  if ! out=$(timeout 10 python3 "$HELPER_DIR/receipt.py" parse --dir "$DIR" --run "$RUN_NO" 2>>"$DIR/run.log"); then
+    echo "receipt: parser failed; keeping the report, no question recorded"
+    RECEIPT=invalid
+    return 0
+  fi
+  case "$out" in
+    *RECEIPT=valid*) RECEIPT=valid QUESTION=open ;;
+    *RECEIPT=invalid*) RECEIPT=invalid ;;
+    *) RECEIPT=none ;;
+  esac
+  if [ "$QUESTION" = open ]; then
+    # A question is a person decision even when the model also wrote NEEDS: none.
+    ATTENTION=person STAGE=person/review
+    [ ! -r "$DIR/question-notice.txt" ] || QUESTION_NOTICE=$(cat "$DIR/question-notice.txt")
+  fi
+  return 0
 }
 
 # claude gets its session id before it starts (--session-id), but a transcript exists only once
@@ -543,6 +577,10 @@ finish() {
   write_result
   printf '%s\n' "$FINAL_TEXT" | redact >"$DIR/.runner-summary.tmp"
   mv -f "$DIR/.runner-summary.tmp" "$DIR/runner-summary.txt"
+  # The receipt block is read from the same report the model just returned. A question makes
+  # ATTENTION=person even when the model wrote NEEDS: none; publish that before the notice.
+  parse_receipt
+  write_result
   # Out of the queue and off the lock before the notification: the next task need not wait for it.
   rm -f "${QDIR:?}/${ID:?}" 2>/dev/null
   release_agent_lock
@@ -580,8 +618,22 @@ finish() {
 继续会话：在 $CWD 下 dsh --profile headless --session-id $SESSION \"<消息>\""
   fi
   local quota cost; quota=$(quota_line); cost=$(cost_line "$USAGE_READ")
-  local notice="$icon 委派任务 $NAME（$AGENT）：$STATE${OUTCOME:+ / 模型自报 $OUTCOME}
-$(printf '%s' "$FINAL_TEXT" | clip tail 500)
+  # The question block must survive notify()'s 900-character head clip, so a question shortens
+  # the model-report excerpt and sits before the optional hints. The first line carries the
+  # fact into wake_origin (which keeps only that line).
+  local summary_chars=500 question_block="" head_extra=""
+  if [ "$QUESTION" = open ]; then
+    summary_chars=180 head_extra="（有 1 个待你决定的问题）"
+    # Before the report excerpt: the answer command must survive notify()'s 900-character clip.
+    question_block="${QUESTION_NOTICE}
+"
+  fi
+  # The machine block is not prose: keep it out of the phone notice (read-result still prints
+  # the full report). A sed range, so a report that merely mentions the fence is unaffected.
+  local summary_text
+  summary_text=$(printf '%s\n' "$FINAL_TEXT" | sed '/^```agent-dispatch[[:space:]]*$/,/^```[[:space:]]*$/d' | clip tail "$summary_chars")
+  local notice="$icon 委派任务 $NAME（$AGENT）：$STATE${OUTCOME:+ / 模型自报 $OUTCOME}${head_extra}
+${question_block}${summary_text}
 ${resume_hint}${open_hint}${quota}${cost}
 id：$ID
 日志：$DIR/run.log"

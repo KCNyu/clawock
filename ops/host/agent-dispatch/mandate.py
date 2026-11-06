@@ -13,7 +13,8 @@ external prototype documents for its own wrappers.
 Usage:
   mandate.py create --dir DIR --task-id ID --name NAME --agent AGENT --cwd DIR \\
       --policy-version V --source-kind chat|terminal|task|patrol [--source-id ID] \\
-      [--notify weixin,telegram] [--deny-restart] [--root /root]
+      [--notify weixin,telegram] [--deny-restart] [--root /root] \\
+      [--from PARENT/mandate.json]
   mandate.py show --file mandate.json
   mandate.py check --file mandate.json --action gateway.restart [--task-dir DIR] \\
       [--source refresh_live.sh] [--json]
@@ -72,7 +73,10 @@ def load(path: Path) -> dict:
 
 
 def cmd_create(args: argparse.Namespace) -> int:
-    if args.source_kind not in SOURCE_KINDS:
+    # --from derives a continuation of an existing task: the new mandate keeps the parent's
+    # actions, scope, source and strength, so answering a question never widens authorization.
+    parent = load(Path(args.from_file)) if args.from_file else None
+    if parent is None and args.source_kind not in SOURCE_KINDS:
         fail(f"--source-kind takes {', '.join(SOURCE_KINDS)}")
     directory = Path(args.dir)
     if not directory.is_dir():
@@ -80,11 +84,14 @@ def cmd_create(args: argparse.Namespace) -> int:
     path = directory / "mandate.json"
     if path.exists():
         fail(f"{path} already exists; a mandate is immutable (create a new task)")
-    actions = {action: "allow" for action in ACTIONS}
+    actions = dict(parent["actions"]) if parent else {action: "allow" for action in ACTIONS}
     if args.deny_restart:
         actions["gateway.restart"] = "deny"
     notify = [part.strip().lower() for part in args.notify.split(",") if part.strip()]
     notify = [part for part in notify if part != "none"]
+    source = dict(parent["source"]) if parent else {"kind": args.source_kind, "id": args.source_id or ""}
+    scope = dict(parent.get("scope") or {}) if parent else {"cwd": args.cwd, "root": args.root, "repos": []}
+    scope.setdefault("root", args.root)
     payload = {
         "schema": SCHEMA,
         "task_id": args.task_id,
@@ -92,9 +99,9 @@ def cmd_create(args: argparse.Namespace) -> int:
         "agent": args.agent,
         "created": now(),
         "policy_version": args.policy_version,
-        "strength": STRENGTH[args.source_kind],
-        "source": {"kind": args.source_kind, "id": args.source_id or ""},
-        "scope": {"cwd": args.cwd, "root": args.root, "repos": []},
+        "strength": parent.get("strength", STRENGTH[source["kind"]]) if parent else STRENGTH[args.source_kind],
+        "source": source,
+        "scope": scope,
         "actions": actions,
         "notify": {"on": "human-action", "channels": notify},
         "contract": CONTRACT,
@@ -182,8 +189,9 @@ def main(argv: list[str] | None = None) -> int:
     create.add_argument("--agent", required=True)
     create.add_argument("--cwd", required=True)
     create.add_argument("--policy-version", required=True)
-    create.add_argument("--source-kind", required=True)
+    create.add_argument("--source-kind")
     create.add_argument("--source-id", default="")
+    create.add_argument("--from", dest="from_file", help="copy actions/scope/source/strength from this mandate")
     create.add_argument("--notify", default="")
     create.add_argument("--deny-restart", action="store_true")
     create.add_argument("--root", default="/root")

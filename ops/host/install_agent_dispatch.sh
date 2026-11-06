@@ -36,6 +36,7 @@ FILES=(
   wake-session.py
   claude-session.py
   mandate.py
+  receipt.py
   opencode-fallback-models
   templates/review.md
   tests/run-tests.sh
@@ -43,6 +44,7 @@ FILES=(
   tests/test_limits.py
   tests/test_mandate.py
   tests/test_read_result.py
+  tests/test_receipt.py
   tests/test_wake_session.py
   tests/bin/claude
   tests/bin/codex
@@ -50,6 +52,7 @@ FILES=(
   tests/bin/fake-quota
   tests/bin/openclaw
   tests/bin/opencode
+  tests/bin/systemd-run
 )
 # The runner sources limits.env and cannot start without these; the host owns their values.
 LIMIT_KEYS=(MAX_RUNNING_CLAUDE MAX_RUNNING_CODEX MAX_RUNNING_OPENCODE MAX_RUNNING_DSH

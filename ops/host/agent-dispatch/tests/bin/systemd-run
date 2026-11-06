@@ -1,0 +1,4 @@
+#!/bin/sh
+# Fake systemd-run for dispatch.sh option/lineage tests: record the unit and exit like a start.
+printf '%s\n' "$*" >>"${FAKE_DIR:-/tmp}/systemd-run.calls"
+exit 0

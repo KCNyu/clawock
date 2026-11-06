@@ -55,6 +55,14 @@ def read_result(directory: Path, run: int | None = None) -> str:
     raise ValueError("The latest attempt has no report; inspect status for running/error state.")
 
 
+def read_json(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
 def read_env(path: Path) -> dict:
     """Read scalar shell-quoted metadata without executing it."""
     result = {}
@@ -106,6 +114,22 @@ def report(directory: Path, run: int | None = None) -> str:
             lines.append(f"wake_{event}: {json.dumps(wake, ensure_ascii=False)}")
         except (OSError, ValueError):
             pass
+    # The ask question object and its answer (runner api 6). question.json is the question as
+    # asked; answer.json is the one answer, if any.
+    question, answer = read_json(directory / "question.json"), read_json(directory / "answer.json")
+    if question:
+        lines.append(f"question: {question.get('state', 'open')} key={question.get('key', '-')} "
+                     f"asked_by_run={question.get('asked_by_run', '?')}")
+        lines.append(f"question_title: {question.get('title', '')}")
+        for i, option in enumerate(question.get("options") or [], 1):
+            lines.append(f"question_option_{i}: {option}")
+        if answer:
+            lines.append(f"answer: choice={answer.get('choice', '-')} "
+                         f"text={answer.get('choice_text') or answer.get('text') or '-'} "
+                         f"by={answer.get('answered_by', '-')} at={answer.get('answered_at', '-')} "
+                         f"resumed_as={answer.get('resume_task_id') or '-'}")
+        else:
+            lines.append(f"answer_command: dispatch.sh answer {directory.name} <n>")
     if run is not None:
         lines.append("Historical model report; fields above describe the task's latest state.")
     model_text = ""

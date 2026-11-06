@@ -13,6 +13,9 @@
 #   dispatch.sh mandate <id> [check <action>]  # machine-readable authorization created at dispatch
 #   dispatch.sh cancel <id>          # stop a running task (records state=cancelled)
 #   dispatch.sh history [--json] [query] [--agent codex] [--since YYYY-MM-DD] [--before id]
+#   dispatch.sh questions [--all] [--json]  # open ask/question objects, with the answer command
+#   dispatch.sh answer <id> <n> [--text "..."] [--resolve] [--by <session>] [--force]
+#                                    # answer a question and continue that task in its session
 #   dispatch.sh queue [--json]       # each agent's lock holder and queue in real order (task_queue_ops.py)
 #   dispatch.sh adopt <bg-id|session-id> [--dry-run] [options] [< more.md]
 #                                    # resume a claude session dispatch did not start (a `claude --bg`
@@ -55,7 +58,7 @@
 set -euo pipefail
 export TZ=Asia/Shanghai
 
-BASE=/root/logs/agent-dispatch
+BASE=${AGENT_DISPATCH_BASE:-/root/logs/agent-dispatch}
 RUNNER=/root/tools/agent-dispatch/run-agent.sh
 HELPER_DIR=$(dirname "$(readlink -f "$0")")
 mkdir -p "$BASE"
@@ -93,6 +96,7 @@ case "$cmd" in
       d="$BASE/$1"; [ -d "$d" ] || { echo "no task $1" >&2; exit 1; }
       cat "$d/meta.env"; echo "--- result"; cat "$d/result.env" 2>/dev/null || echo "(not started)"
       [ ! -r "$d/inbox-state" ] || echo "inbox_phase: $(cat "$d/inbox-state")"
+      [ ! -r "$d/question.json" ] || { echo "--- question"; python3 "$HELPER_DIR/receipt.py" show --dir "$d"; }
       for wake_file in "$d"/wake-{quota,end}.json; do
         [ ! -r "$wake_file" ] || { printf '%s: ' "$(basename "$wake_file")"; cat "$wake_file"; }
       done
@@ -129,6 +133,68 @@ case "$cmd" in
       done
     fi
     exit 0 ;;
+  questions)
+    exec env AGENT_DISPATCH_TASKS_DIR="$BASE" python3 "$HELPER_DIR/receipt.py" list "$@" ;;
+  answer)
+    if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
+      echo "refused: this is dispatched task $AGENT_DISPATCH_TASK_ID; it does not answer its own or another task's question" >&2; exit 2
+    fi
+    id="${1:-}"; shift || true
+    d="$BASE/$id"
+    if ! [[ "$id" =~ ^[a-z0-9][a-z0-9-]*$ ]] || [ ! -r "$d/question.json" ]; then
+      echo "usage: dispatch.sh answer <id> <n> [--text \"...\"] [--resolve] [--by <session>] [--force] (no question on '$id')" >&2; exit 2
+    fi
+    answer_args=(--dir "$d")
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --text) answer_args+=(--text "$2"); shift 2 ;;
+        --resolve) answer_args+=(--resolve); shift ;;
+        --by) answer_args+=(--by "$2"); shift 2 ;;
+        --force) answer_args+=(--force); shift ;;
+        *) [[ "$1" =~ ^[0-9]+$ ]] && { answer_args+=("$1"); shift; } || { echo "unknown option $1" >&2; exit 2; } ;;
+      esac
+    done
+    answer_out=$(python3 "$HELPER_DIR/receipt.py" answer "${answer_args[@]}") || exit $?
+    eval "$answer_out"
+    if [ "$ANSWER_STATE" = resolved ]; then
+      printf 'receipt: {"requested_task_id":"%s","actual_task_id":null,"message_id":null,"disposition":"resolved"}\n' "$id"
+      echo "question on $id resolved; its task was not resumed"
+      exit 0
+    fi
+    # Export before sourcing meta.env: that file carries the parent's ANSWER_DEPTH=0, which
+    # would overwrite the new depth in this shell.
+    export AGENT_DISPATCH_PARENT_TASK_ID="$id"
+    export AGENT_DISPATCH_ANSWER_OF="$id"
+    export AGENT_DISPATCH_ANSWER_DEPTH="$ANSWER_DEPTH"
+    export AGENT_DISPATCH_MANDATE_FROM="$d/mandate.json"
+    export AGENT_DISPATCH_ORIGIN_FALLBACK="${ORIGIN_SESSION:-}"
+    ( . "$d/meta.env"; SESSION=""; [ -r "$d/result.env" ] && . "$d/result.env"
+      newname="$NAME-answer"; newname=${newname:0:40}
+      if [[ "$NAME" == patrol-* ]] && [ "${AGENT_DISPATCH_PATROL:-}" != 1 ]; then newname="task-$NAME-answer"; newname=${newname:0:40}; fi
+      cargs=("$AGENT" --name "$newname" --prompt-file "$ANSWER_PROMPT_FILE" --notify "$NOTIFY")
+      [ -z "$SESSION" ] || cargs+=(--resume "$SESSION" --cwd "$CWD")
+      [ -z "$MODEL" ] || cargs+=(--model "$MODEL")
+      [ -z "$EFFORT" ] || cargs+=(--effort "$EFFORT")
+      [ -z "$FALLBACK_MODELS" ] || cargs+=(--fallback-models "$FALLBACK_MODELS")
+      # The continuation is the parent's task, not a new authorization: mandate.py --from keeps
+      # the parent actions/scope/source, and the answer chain is capped.
+      rc=0; out=$("$0" "${cargs[@]}") || rc=$?
+      printf '%s\n' "$out"
+      if [ "$rc" -ne 0 ]; then
+        python3 "$HELPER_DIR/receipt.py" abort-answer --dir "$d" || true
+        echo "could not dispatch the answer continuation (rc=$rc); the question is still open" >&2
+        exit "$rc"
+      fi
+      newid=$(printf '%s\n' "$out" | sed -n 's/^dispatched //p' | tail -1)
+      if [ -z "$newid" ]; then
+        python3 "$HELPER_DIR/receipt.py" abort-answer --dir "$d" || true
+        echo "the continuation started but its id could not be read; the answer is recorded as answering" >&2
+        exit 5
+      fi
+      python3 "$HELPER_DIR/receipt.py" finish-answer --dir "$d" --task-id "$newid" || exit 5
+      printf 'receipt: {"requested_task_id":"%s","actual_task_id":"%s","message_id":null,"disposition":"answered"}\n' "$id" "$newid"
+    )
+    exit $? ;;
   mandate)
     id="${1:-}"; [ -n "$id" ] || { echo "usage: dispatch.sh mandate <id> [check <action>]" >&2; exit 2; }
     d="$BASE/$id"; [ -r "$d/mandate.json" ] || { echo "no mandate for $id (a task dispatched before mandates, or an unknown id)" >&2; exit 1; }
@@ -255,7 +321,7 @@ case "$cmd" in
     AGENT=claude
     set -- --name "${ADOPT_NAME:-adopt-${SESSION:0:8}}" --resume "$SESSION" --cwd "$CWD" --prompt-file "$ADOPT_TMP" ${rest[@]+"${rest[@]}"} ;;
   claude|codex|opencode|dsh) AGENT=$cmd ;;
-  *) sed -n '2,53p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,57p' "$0" >&2; exit 2 ;;
 esac
 if [ -n "${AGENT_DISPATCH_TASK_ID:-}" ]; then
   echo "refused: this is already dispatched task $AGENT_DISPATCH_TASK_ID; do the work here instead of dispatching another task" >&2
@@ -406,6 +472,11 @@ eval "$(python3 "$(dirname "$(readlink -f "$0")")/wake-session.py" origin 2>/dev
 # version is the pair of scripts that define the contract, so a mandate states which text it
 # was accepted under. --no-restart denies the one host action that used to ride on brief prose.
 MANDATE_POLICY_VERSION="dispatch-$( { cat "$HELPER_DIR/dispatch.sh" "$HELPER_DIR/run-agent.sh"; } | sha256sum | cut -c1-12 )"
+MANDATE_FROM="${AGENT_DISPATCH_MANDATE_FROM:-}"
+[ -z "$MANDATE_FROM" ] || [ -r "$MANDATE_FROM" ] || MANDATE_FROM=""
+ANSWER_OF="${AGENT_DISPATCH_ANSWER_OF:-}"
+ANSWER_DEPTH="${AGENT_DISPATCH_ANSWER_DEPTH:-0}"
+[[ "$ANSWER_DEPTH" =~ ^[0-9]{1,2}$ ]] || ANSWER_DEPTH=0
 if [ "${AGENT_DISPATCH_PATROL:-}" = 1 ]; then MANDATE_SOURCE_KIND=patrol
 elif [ -n "${AGENT_DISPATCH_PARENT_TASK_ID:-}" ]; then MANDATE_SOURCE_KIND=task
 elif [ -n "$ORIGIN_SESSION" ]; then MANDATE_SOURCE_KIND=chat
@@ -415,6 +486,7 @@ MANDATE_SOURCE_ID="${ORIGIN_SESSION:-${AGENT_DISPATCH_PARENT_TASK_ID:-}}"
 mandate_args=(create --dir "$DIR" --task-id "$ID" --name "$NAME" --agent "$AGENT" --cwd "$CWD"
   --policy-version "$MANDATE_POLICY_VERSION" --source-kind "$MANDATE_SOURCE_KIND"
   --source-id "$MANDATE_SOURCE_ID" --notify "$NOTIFY")
+[ -z "$MANDATE_FROM" ] || mandate_args+=(--from "$MANDATE_FROM")
 [ "$RESTART_ALLOWED" = 1 ] || mandate_args+=(--deny-restart)
 python3 "$HELPER_DIR/mandate.py" "${mandate_args[@]}" >/dev/null \
   || { echo "could not write the task mandate" >&2; rm -rf "$DIR"; exit 2; }
@@ -426,6 +498,8 @@ NAME=$(printf %q "$NAME")
 CWD=$(printf %q "$CWD")
 RESUME=$(printf %q "$RESUME")
 PARENT_TASK_ID=$(printf %q "${AGENT_DISPATCH_PARENT_TASK_ID:-}")
+ANSWER_OF=$(printf %q "$ANSWER_OF")
+ANSWER_DEPTH=$ANSWER_DEPTH
 MODEL=$(printf %q "$MODEL")
 FALLBACK_MODELS=$(printf %q "$FALLBACK_MODELS")
 FREE_POOL_REPORT=$(printf %q "$FREE_POOL_REPORT")
