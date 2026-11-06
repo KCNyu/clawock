@@ -204,7 +204,7 @@ The model writes opinions. The arithmetic and the score run in Python and are un
 
 ## Harness views and background work
 
-**With dsh and the host runner configured, you can hand over a task and come back to the result.** Ask for a repository change in the dsh web GUI; a background agent (Claude Code, Codex or OpenCode) keeps working after you close the tab, and the panel shows how far it got. `clawock-dsh` is one npm package with four parts, each needing a little more of the host:
+**With dsh and the host runner configured, you can hand over a task and come back to the result.** Ask for a repository change in the dsh web GUI; a background agent (Claude Code, Codex or OpenCode) keeps working after you close the tab, and the panel shows how far it got. The queue takes the person stage from DeepSeek Harness's [super-agent prototype](https://github.com/deepseek-ai/dsh-superagent-prototype): a task that cannot continue without you records that stage and can stop with a question and 2–5 options; a blocked task reports the stop instead. `dispatch.sh questions` lists open questions, and `dispatch.sh answer <id> <n>` continues the same session under the same mandate. That stage is a field, not a reading of the prose: `result.env` records `STAGE` (`person/review` when the next step is yours, `person/blocked` when it could not finish), `ATTENTION` and the report's `NEEDS` line. When it waits on CI or a deployment, it can name a time to resume and release its agent lock until then. `clawock-dsh` is one npm package with four parts, each needing a little more of the host:
 
 | Part | What you see | What it needs |
 | :--- | :--- | :--- |
@@ -213,17 +213,18 @@ The model writes opinions. The arithmetic and the score run in Python and are un
 | **Dispatch queue** | Each agent's queue in real order, task details and controls, patrol, a seven-day stats card, the ops version footer | clawock's **agent-dispatch** runner on the host |
 | **Chat commands** | `/dispatch-list` and `/dispatch-stats` in WeChat or Telegram, read-only | the package loaded as an OpenClaw plugin |
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="1016" alt="Your dsh background team: ask in chat to delegate repo work; agent-dispatch starts an independent systemd task for Claude Code, Codex or OpenCode; watch allowances and queue state in the real plugin screenshot, steer waiting work and budgets, then the agent follows the requested PR, required CI, squash-merge and host-refresh contract; the runner returns a final report through best-effort WeChat and Telegram sends, whose receipts stay separate from task outcome"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/harnesses.svg" width="1016" alt="Your dsh background team: ask in chat to delegate repo work; agent-dispatch starts an independent systemd task for Claude Code, Codex or OpenCode; a person-stage inset shows the task asking with numbered options when it cannot continue without you, and your answer resuming the same session; watch allowances and queue state in the real plugin screenshot, steer waiting work and budgets, then the agent follows the requested PR, required CI, squash-merge and host-refresh contract; the runner returns a final report through best-effort WeChat and Telegram sends, whose receipts stay separate from task outcome"></p>
 
 - **See what is happening.** Subscription use and resets, provider balances, each agent's real queue, model, elapsed time and API-price cost estimate share one panel.
 - **Change course while it runs.** Reorder waiting work, change the next attempt's model where allowed, adjust deadlines and retry budgets, cancel or retry.
-- **Keep the result in reach.** A completed task with a failed send stays visible.
+- **Dispatch once, with the material attached.** `--key` returns the live task already started for that key instead of creating a second; `--context-file` copies source files into `context/` with a SHA-256 manifest and a note that they are material, not instructions.
+- **Keep the result in reach.** A completed task with a failed send stays visible; a task whose runner disappeared is marked failed, and you get one notice. `dispatch.sh why <id>` prints the dispatch, runs, waits, notices and result on one page.
 
 **From the queue to a task's history**
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-tour.svg" width="1016" alt="Annotated composite of real dsh captures, with original proportions preserved: the left column shows Claude and Codex allowance windows and the Codex quota queue, then recently ended tasks with separate outcome and notification indicators; the right column shows a completed Codex task's numbered append and delivered status, followed by recorded append submission, continuation, delivery, attempt completion and notification events. The final receipt shows WeChat delivered and Telegram failed even though the task completed. These are excerpts from two different historical captures, not one task's synchronized state or a new desktop screenshot; links below open both complete originals."></p>
 
-**Task completion and message delivery are separate:** this finished task has a failed Telegram receipt. [Full queue capture](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png) · [Full task history](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png).
+**Task completion and message delivery are separate:** this finished task has a failed Telegram receipt. The WeChat leg enters the session's context; Telegram only notifies, and the wake turn that prompts the session is separate. [Full queue capture](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png) · [Full task history](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-task-detail.png).
 
 **The close of the panel: patrol and the week**
 

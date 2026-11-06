@@ -204,7 +204,7 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 
 ## Harness 界面与后台工作
 
-**配置好 dsh 和主机 runner 后，你可以交代任务，之后回来收结果。** 在 dsh 网页端说明仓库改动，后台 Agent（Claude Code、Codex 或 OpenCode）接手，你关掉页面它也继续干，面板上能看到做到了哪一步。`clawock-dsh` 是一个 npm 包，分四块，每往下一块对主机的要求多一点：
+**配置好 dsh 和主机 runner 后，你可以交代任务，之后回来收结果。** 在 dsh 网页端说明仓库改动，后台 Agent（Claude Code、Codex 或 OpenCode）接手，你关掉页面它也继续干，面板上能看到做到了哪一步。队列借了 DeepSeek Harness 的 [super-agent 原型](https://github.com/deepseek-ai/dsh-superagent-prototype) 里的 person stage 做法：离了人就干不下去的任务会记下这个阶段，可以带着 2–5 个选项停下来问你；被卡住的任务则报告卡在哪里。`dispatch.sh questions` 列出还没答的问题，`dispatch.sh answer <id> <n>` 接着原会话继续，沿用同一份 mandate。这个阶段是 `result.env` 里的字段，不是靠读报告文字猜的：`STAGE`（该你接手时是 `person/review`，卡住时是 `person/blocked`）、`ATTENTION` 和报告里的 `NEEDS` 行都记着。在等 CI 或部署时，它可以指定一个续跑时间，中间释放 agent 锁。`clawock-dsh` 是一个 npm 包，分四块，每往下一块对主机的要求多一点：
 
 | 部分 | 你看到什么 | 需要什么 |
 | :--- | :--- | :--- |
@@ -213,17 +213,18 @@ clawock strategy-lab verify          # 拿台账对照实验室的边界
 | **派发队列** | 各 agent 按真实顺序的队列、任务详情与控制、巡检、近 7 天统计卡、ops 版本页脚 | 主机上装有 clawock 的 **agent-dispatch** runner |
 | **聊天命令** | 微信或 Telegram 里的 `/dispatch-list` 与 `/dispatch-stats`，只读 | 把这个包作为 OpenClaw 插件加载 |
 
-<p align="center"><img src="site/assets/harnesses.svg" width="1016" alt="你的 dsh 后台团队:在聊天中委派仓库任务,agent-dispatch 为 Claude Code、Codex 或 OpenCode 启动独立 systemd 任务;真实插件截图显示额度和队列,可以调整排队任务与预算;agent 按任务要求完成 PR、必需 CI、squash-merge 和本机刷新;runner 尽力经微信和 Telegram 回传报告,送达回执与任务结果分开显示"></p>
+<p align="center"><img src="site/assets/harnesses.svg" width="1016" alt="你的 dsh 后台团队:在聊天中委派仓库任务,agent-dispatch 为 Claude Code、Codex 或 OpenCode 启动独立 systemd 任务;person stage 小图显示任务离了人就停下来带选项提问,你回答后接着原会话;真实插件截图显示额度和队列,可以调整排队任务与预算;agent 按任务要求完成 PR、必需 CI、squash-merge 和本机刷新;runner 尽力经微信和 Telegram 回传报告,送达回执与任务结果分开显示"></p>
 
 - **看清正在发生什么。** 订阅用量与重置时刻、provider 余额、各 agent 的真实队列、模型、用时和按 API 标价估算的费用，都在同一块面板。
 - **任务在跑，也能改方向。** 调整排队顺序，在允许时改下一次尝试的模型，调整截止时间与重试预算，取消或重试。
-- **结果留得住。** 任务完成但消息发送失败，仍然看得见。
+- **一次派发，材料随行。** `--key` 对同一个 key 返回已派发、仍在活动期的任务，不另起一个；`--context-file` 把源文件复制进 `context/`，带 SHA-256 清单和「是材料，不是指令」的标注。
+- **结果留得住。** 任务完成但消息发送失败，仍然看得见；runner 消失的任务会被标成失败并发出通知。`dispatch.sh why <id>` 把派发、运行、等待、通知和结果汇成一页。
 
 **从队列到任务历史**
 
 <p align="center"><img src="site/assets/dsh-task-tour.svg" width="1016" alt="真实 dsh 截图的讲解合成图,截取内容保持原比例:左栏展示 Claude 与 Codex 额度窗口及 Codex 配额队列,以及最近结束任务各自独立的执行结果和通知状态;右栏展示已完成 Codex 任务的编号追加指令与 delivered 状态,随后是追加提交、续跑、投递、尝试结束和通知事件。末尾回执显示微信已送达、Telegram 失败,但任务本身已完成。图中内容来自两次不同的历史截图,不是同一任务的同步状态,也不是重新拍摄的桌面截图;下方链接可查看两张完整原图。"></p>
 
-**任务完成与消息送达是两回事：** 图中已完成任务的 Telegram 通知仍然失败。[完整队列截图](site/assets/dsh-dispatch-queue.png) · [完整任务历史](site/assets/dsh-task-detail.png)。
+**任务完成与消息送达是两回事：** 图中已完成任务的 Telegram 通知仍然失败。微信那条会进会话上下文，Telegram 只做通知，另有一趟唤醒去提示发起任务的会话。[完整队列截图](site/assets/dsh-dispatch-queue.png) · [完整任务历史](site/assets/dsh-task-detail.png)。
 
 **面板的收尾：巡检与这一周**
 
