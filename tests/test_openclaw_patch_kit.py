@@ -221,6 +221,19 @@ def test_all_adapters_are_tracked_and_cannot_default_to_the_live_package():
             subprocess.run(['bash', '-n', str(source)], check=True)
 
 
+def test_vector_patch_is_idempotent_after_it_is_applied(tmp_path, installation):
+    (installation / 'dist/vector.js').write_text(
+        'const VECTOR_KNN_OVERSAMPLE_FACTOR = 8;\n')
+    report, old, new = plan(tmp_path, installation, ['vector-knn-oversample'])
+    assert report['changes'] == ['vector.js']
+    kit.commit(installation, report, old, new, tmp_path / 'state')
+
+    stage = tmp_path / 'stage2'
+    stage.mkdir()
+    replay, _, _ = kit.prepare(installation, tmp_path / 'manifest.json', stage)
+    assert replay['changes'] == []
+
+
 def test_invalid_javascript_never_reaches_the_installation(tmp_path, installation):
     path = installation / 'dist/memory.js'
     path.write_text('const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 15000;\nconst = invalid;\n')
