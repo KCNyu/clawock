@@ -86,7 +86,10 @@ task id, the creation time and its epoch; never the prompt or the key itself.
 - A failed/cancelled/timed-out task, an `ok` task older than the TTL, or a claim whose task
   never appeared after 300 s does not block; the caller dispatches again and the key file is
   replaced.
-- `--force` (only with `--key`) skips the check and replaces the key.
+- `--force` (only with `--key`) skips the check and replaces the key. Task directories are
+  reserved with atomic `mkdir`; a same-second name collision gets a numeric suffix, never
+  overwrites the previous task. Failed dispatch cleanup removes a claim only while it still
+  names that dispatch, under the key lock; launch failures also release their claim.
 - The check and claim run under `flock` on `.keys/.lock`, so two callers with the same key
   cannot both start; the loser reads the winner's file. Files older than 30 days are removed
   on the next keyed dispatch. `KEY_SHA256` is recorded in `meta.env` (a hash, not the key).
@@ -502,7 +505,9 @@ later is not counted as used) or when the task is cancelled (`on_signal` removes
 `LATER_USED` caps the wait at `LATER_MAX` (default 3) per task and does **not** spend a retry;
 the wait file is moved to `later-<run>.json` when it ends, so a closed wait is history. There
 is no systemd timer: the runner sleeps, and a runner killed during the sleep is the reaper's
-business (§ Dead runner reap). A later report with no session is not scheduled.
+business (§ Dead runner reap). A later report with no session is not scheduled. During the
+wait, the runner rereads deadline overrides on every poll and ends with `timeout/deadline`
+when the remaining budget cannot fit another run.
 
 ### Native background sessions (`claude --bg`)
 
