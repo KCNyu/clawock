@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-05T20:19:04.366300+00:00",
+  "generated_at": "2026-11-06T01:46:03.986083+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,9 +24,9 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 16,
-    "held_hits": 2,
-    "new_ideas": 8,
+    "total": 17,
+    "held_hits": 3,
+    "new_ideas": 6,
     "sector_hits": 5
   },
   "items": [
@@ -46,22 +46,48 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "商业航天"
+        "航天"
       ],
       "sector_holdings": [
-        "RKLX",
         "SPCH"
       ],
       "stance": "buy",
       "relevance": 92,
-      "summary_cn": "ARK Invest 在三只 ETF 中合计买入 348,406 股 SpaceX（SPCX），单只 ETF 最大占比达 0.51%，且直接命中 kcn 持仓。"
+      "summary_cn": "ARK Invest在ARKK、ARKW和ARKQ合计买入224,483股SpaceX，最大单只ETF权重达0.51%，直接命中kcn持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Investors have dumped Tesla and SpaceX stock since the blue wave election",
+      "url": "",
+      "published": "Thu, 05 Nov 2026 21:32:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [
+        "TSLA",
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，蓝色浪潮胜选后投资者抛售Tesla和SpaceX股票，两项资产遭遇选举后持续抛压。"
     },
     {
       "author": "Musk",
       "text": "SpaceX, Tesla extend losses as midterm results cloud data center, merger outlook",
       "url": "",
-      "published": "Thu, 05 Nov 2026 19:19:43 GMT",
+      "published": "Thu, 05 Nov 2026 19:53:31 GMT",
       "origin": "gnews-rss",
       "source": "Reuters",
       "tickers": [
@@ -75,97 +101,41 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
         "电动车",
-        "AI数据中心",
-        "数据中心并购"
+        "航天",
+        "数据中心"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "RKLX",
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 88,
-      "summary_cn": "据媒体报道，SpaceX 与 Tesla 在美国中期选举结果明朗后延续跌势，数据中心前景及并购预期也令市场承压。"
+      "relevance": 78,
+      "summary_cn": "据媒体报道，中期选举结果令Tesla和SpaceX延续跌势，并令两家公司数据中心建设及合并前景承压。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry Boosts JD.com Options and BYD Stock",
-      "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPa1BtVmdmRVFIZWxVcHIwUFpLMlpLWkJrbWRmRnFOY3FsbDVyd3ZtRXlFR0VYc0dKRXVhcU80WUJ6TVBZbjNpSTJWU2F4d2pxT0hsWFNsMFBMVUhnNV9LQV95WHJERW9CMmNHMkMyUjhScWhJT09fMzVVNGtSMk1zekhlUmljU3phQkZXTVJwc0M?oc=5",
-      "published": "2026-11-05T13:43:01+00:00",
+      "text": "Michael Burry says he sold 25% of SMH puts (SMH:NASDAQ)",
+      "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQdDlCQ3JhSC05OU4tLTFHNEFKSUxibzNIemJJYXhqeHpYZmV1bzZkT2xORHNSNjdfc1pyWEVPUGJ1RGU3ZkdXa20xd0lDakdaOVY4N09YZnZ5cGxDQTk4ZGkwTm16WGlabXhzQ0FNYkVONVY5VTlVRHZUaFdzYUp1bWRXYTV1RHk3QzBaSzNXc3g?oc=5",
+      "published": "2026-11-05T21:46:50+00:00",
       "origin": "gnews-rss",
-      "source": "GuruFocus",
+      "source": "Seeking Alpha",
       "tickers": [
-        "JD",
-        "BYD",
-        "1211"
+        "SMH"
       ],
       "held": [],
       "new_ideas": [
-        "1211",
-        "BYD",
-        "JD"
+        "SMH"
       ],
       "sectors": [
-        "中国电商",
-        "电动车"
+        "半导体",
+        "芯片"
       ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 76,
-      "summary_cn": "据报道，Michael Burry 增持京东（JD）的期权仓位并买入比亚迪（BYD）股票，释放看多中国电商及电动车资产的态度。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Vistra plunges 13.5% as Texas election rattles AI power trade, KeyBanc downgrades",
-      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQXzlDWkVNb3FiMVY0c2EyejhJLXZid1Y2QjVtRV9QTlVyVWhaN2tWMHJwNUYtWUJhM2tNdGtWU1BFblN1WHRuZHk1amEtNG51cFBxV0c1WWptS2hBZ1ZHSXlENnhwbUVKQ3o2OGY1eFduMjVCUUwyeDR1NnlqT1czSXpmS1M3TXBoSEE0OFlyNUFEclFM?oc=5",
-      "published": "2026-11-04T18:01:49+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "VST"
+      "sector_holdings": [
+        "07709"
       ],
-      "held": [],
-      "new_ideas": [
-        "VST"
-      ],
-      "sectors": [
-        "AI电力",
-        "电力公用事业",
-        "数据中心"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "得州选举结果扰动 AI 电力交易预期，Vistra（VST）股价大跌 13.5%，同时遭到 KeyBanc 下调评级。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-04 调仓：Nurix Therapeutics, Inc.(NRIX) 买入 ARKG 350,410 股（最大单只 ETF 占比 0.25%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-04T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.246,
-      "tickers": [
-        "NRIX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NRIX"
-      ],
-      "sectors": [
-        "生物科技",
-        "基因测序"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest 在 ARKG 中买入 350,410 股 Nurix Therapeutics（NRIX），单只 ETF 占比为 0.25%。"
+      "stance": "sell",
+      "relevance": 78,
+      "summary_cn": "据报道，Michael Burry卖出了其25%的SMH看跌期权仓位，表达对半导体板块走弱的防御性观点。"
     },
     {
       "author": "Cathie Wood",
@@ -194,8 +164,8 @@
         "07226"
       ],
       "stance": "sell",
-      "relevance": 71,
-      "summary_cn": "ARK Invest 从 ARKK 和 ARKQ 合计卖出 46,164 股 Alphabet（GOOG），最大单只 ETF 占比为 0.24%，属于机构减仓而非看空表态。"
+      "relevance": 75,
+      "summary_cn": "ARK Invest在ARKK和ARKQ卖出Alphabet股份，最大单只ETF占比0.24%，属于有规模的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -215,7 +185,7 @@
       "sectors": [
         "电商",
         "云计算",
-        "AI基础设施"
+        "AI"
       ],
       "sector_holdings": [
         "00100",
@@ -224,8 +194,8 @@
         "07226"
       ],
       "stance": "sell",
-      "relevance": 71,
-      "summary_cn": "ARK Invest 从 ARKQ 卖出 15,750 股 Amazon（AMZN），单只 ETF 占比为 0.24%，属于机构减仓而非看空表态。"
+      "relevance": 73,
+      "summary_cn": "ARK Invest在ARKQ卖出15,750股Amazon，单只ETF占比0.24%，显示机构降低电商及云计算龙头敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -243,13 +213,37 @@
         "PSNL"
       ],
       "sectors": [
-        "精准医疗",
-        "基因测序"
+        "医疗科技",
+        "基因组学"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest 从 ARKG 卖出 383,022 股 Personalis（PSNL），单只 ETF 占比为 0.28%，属于机构减仓。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG卖出383,022股Personalis，单只ETF占比0.28%，属于有规模的机构减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-04 调仓：Nurix Therapeutics, Inc.(NRIX) 买入 ARKG 350,410 股（最大单只 ETF 占比 0.25%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-04T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.246,
+      "tickers": [
+        "NRIX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NRIX"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因治疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG买入350,410股Nurix Therapeutics，单只ETF占比0.25%，显示机构增持生物科技仓位。"
     },
     {
       "author": "Cathie Wood",
@@ -267,49 +261,53 @@
         "LLY"
       ],
       "sectors": [
-        "医药",
-        "医疗健康"
+        "医疗保健",
+        "制药"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 69,
-      "summary_cn": "ARK Invest 从 ARKK 卖出 8,551 股 Eli Lilly（LLY），单只 ETF 占比为 0.20%，属于机构减仓。"
+      "relevance": 71,
+      "summary_cn": "ARK Invest在ARKK卖出8,551股Eli Lilly，单只ETF占比0.20%，属于有规模的机构减仓。"
     },
     {
-      "author": "Trump",
-      "text": "FoxNews Ratings are way down (27%!) because they’re spending too much time covering the Trump Deranged Dumocrats! All of those people who used to watch Fox, and no longer do, get it. It’s them, not me — My numbers are better than they have ever been. The new CNN Poll stated that “TRUMP” is at 99% among Republicans and, among Republican Presidents, “TRUMP” is at 53%, compared to Ronald Reagan at 18%, and Abraham Lincoln at 8%! Fox knows this, and so does everyone else! Also, why is Fox Corp. spending so much money donating to the Worst of the Worst, including Hakeem Jeffries, Jamie Raskin, Ted ",
-      "url": "https://www.trumpstruth.org/statuses/43438",
-      "published": "2026-11-04T00:00:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "FOX"
-      ],
+      "author": "洪灏",
+      "text": "「國家隊」發力A股港股齊飆",
+      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNNEdMVVgydW94ZDFKU0JXYVV1UHhOZ1Z1b3RsZnN1S1NvcFM1SXh3RFZ1WlJRLTJfU2Iwa3pzMWRhdE5EenNSOHd1bFhSTV9oV3hPV2luRzQwZ2JYSjFHN3N1T2dRaEthemIwTjhHMVNEWmUySjlZQzg5ZkNKZE5yVE15M0l0YjJGdzhsVGg0YkNPS0stNUZXN01GWGdjbVIwVF8tVHlIWV91U3A5aUxTeW91UFVrMTJaSndZMEllc2hmSlVNdzBiS25sRkdsS3FMWnFIMjNNWQ?oc=5",
+      "published": "2026-11-04T19:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "星島頭條",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "FOX"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "媒体",
-        "企业政治支出"
+        "A股",
+        "港股",
+        "政策资金"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump 抨击 Fox Corp（FOX）花大额资金支持其政治对手，并称 Fox 收视下滑源于过度报道民主党。"
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "据报道，洪灏关注到国家队资金发力并带动A股与港股齐涨，对中国权益市场释放偏乐观信号。"
     },
     {
       "author": "Burry",
-      "text": "Anthropic Is ‘Betting Its Entire Existence On Optimism’: Michael Burry Flags Risks After AI Firm’s Updated S-1, Says Won’t Pursue IPO Shares",
-      "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxQTHRaUjBuekpNUk9MRk9EalVmQWhIaU5PT1AybkdxUWo1elJadlowNXM0T0paWFRVRGo2S3M3SmFlbG0xVldHMTk2cFVkSWdlWFlSYWphQzZmZ3VTeVZ1c2lRX01tZzRxR2ozSjlObFRpd3QwcGIxWFB1Q1lCV2I4cUJnZ2w2VzJ6TGs4ZVQxRkdXaHhZeWt5amZaUy1kTGNFRXpXZERaOTFOU3dvWUdybUpfeWJwcXBkdlVSNmoySjdzbkQxU2NlQVFmMDAycmpVeHRqbEJOWV83azBVTGRQV1BDMXZhOVhjc0pzT29HdC1ndVNUNk1fb3Blb21sMmJoQVZnRjBnRF9qZ1FULWZ0Y1ZKbWxoeEs1X0UzRGdiTWw0NmRXRFQ4?oc=5",
-      "published": "2026-11-05T19:40:18+00:00",
+      "text": "Michael Burry says Anthropic is 'betting its entire existence' on optimism, and he has no plans to own the stock",
+      "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNZXp4cWdBWFlyY3VBQ29WWTZhaXZsYklEbGxkOEM2czYzYTRsaVZHX2ZUR1lLYlEtQS1nMjhLTkhwaC12WFBPSW5kWkw4RUtWdS0wZ3ZxSWN0YS13NmxmM3A4QzVyYjFuQzF6OW9QZUZDdS1VZjlpOE04aDFfRlBTd05SY1c5ajNTS182U2F1cURFUlU?oc=5",
+      "published": "2026-11-05T18:26:00+00:00",
       "origin": "gnews-rss",
-      "source": "Stocktwits",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "AI",
-        "生成式AI"
+        "大模型",
+        "企业软件"
       ],
       "sector_holdings": [
         "00100",
@@ -318,8 +316,8 @@
         "07226"
       ],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry 抨击 Anthropic 的估值与商业模式，称其是在押注公司整体存续，并明确表示不会参与其 IPO 股份。"
+      "relevance": 64,
+      "summary_cn": "据报道，Michael Burry批评Anthropic将企业生存押注于乐观预期，并表示无意持有其股票，释放对AI商业模式的悲观看法。"
     },
     {
       "author": "洪灏",
@@ -333,43 +331,19 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "AI基础设施",
         "数据中心",
-        "美国中期选举"
+        "AI基础设施"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
-        "07226"
+        "07226",
+        "07709"
       ],
       "stance": "neutral",
-      "relevance": 66,
-      "summary_cn": "据报道，洪灏认为中期选举后 AI 建设需要重新计算最终由谁买单，提示 AI 基础设施支出的可持续性存在不确定性。"
-    },
-    {
-      "author": "洪灏",
-      "text": "「國家隊」發力A股港股齊飆",
-      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNNEdMVVgydW94ZDFKU0JXYVV1UHhOZ1Z1b3RsZnN1S1NvcFM1SXh3RFZ1WlJRLTJfU2Iwa3pzMWRhdE5EenNSOHd1bFhSTV9oV3hPV2luRzQwZ2JYSjFHN3N1T2dRaEthemIwTjhHMVNEWmUySjlZQzg5ZkNKZE5yVE15M0l0YjJGdzhsVGg0YkNPS0stNUZXN01GWGdjbVIwVF8tVHlIWV91U3A5aUxTeW91UFVrMTJaSndZMEllc2hmSlVNdzBiS25sRkdsS3FMWnFIMjNNWQ?oc=5",
-      "published": "2026-11-04T19:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "星島頭條",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中国股市",
-        "港股",
-        "国家队"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
       "relevance": 64,
-      "summary_cn": "据报道，洪灏称“国家队”发力推动 A 股与港股齐涨，反映政策资金对中国资产的托底态度。"
+      "summary_cn": "据报道，洪灏认为中期选举后AI建设的成本承担者及商业前景需要重新评估，对AI基础设施景气度持审慎态度。"
     },
     {
       "author": "洪灏",
@@ -382,39 +356,59 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中国股市",
+        "A股",
         "港股",
-        "盈利周期"
+        "企业盈利",
+        "市场反弹"
       ],
       "sector_holdings": [
+        "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 61,
-      "summary_cn": "据报道，洪灏在市场反弹后提示仍需观察企业盈利能否兑现，对后续行情维持审慎判断。"
+      "relevance": 58,
+      "summary_cn": "据报道，洪灏认为市场反弹后能否延续仍需观察企业盈利，表现了对A股及港股行情持续性的审慎态度。"
     },
     {
       "author": "Pelosi",
       "text": "Nancy Pelosi Backs Hakeem Jeffries for House Speaker — Crypto Bettors Agree, Giving Him 95% Odds",
-      "url": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxPRjNmS0NsVno4OWREQmRQNzE1VEFfRVN2akxtaDloVFZ1RnhCR21la01mMDAyR3hHekhfZ1VpRjZWakRncEYxbDMxMVlfU1BnNHhqTW54QzlkMGMxMGxKSTduNmVUQzNnTmFrYWVrOWpBVlRyYzA4TlBFamZqMGsteW52YXVVSXg1ZWFfQV9iTzJCc0swazdteTRUaGVkV1J5VjVNZk95MC1tdGxJRm4xT0xrdHI5Ny0ySU9xbDV6bER2RDJZVUVTM1BGQnpIMzhSNzFyU1lmbHRYUDB0c2pRRnJhTkJodw?oc=5",
+      "url": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxNQVNkVi1md2lsRXdMWXZxbHo5Q2J5Z0g4cm5KVDdUZU5GU0UxS0p1QjdyZ19Qd2RZWUNqdFEtcmUwNU5zSFVhemtiQzE3WWZNUk1MYW5uUHJRU01tcVZkUUhoWlNHNzV5bG9HM08tMkpSLVVfaGlxQU8wT24zWDBPRUU1TXNwbUszZTVJQWY0RlY2LWRYbWFyUUNfdDZNVUtURzh2QjdyOWpzZG05WnU4X0d2Y1JPX19JSm1LTVdJQ1hpdDRQM2twcms4SmF5QmJQTTdCcnhQZXBlY3pDWU03NHBfSW9vanJoZk5ldHgzYUU?oc=5",
       "published": "2026-11-04T09:38:01+00:00",
       "origin": "gnews-rss",
-      "source": "TradingView",
+      "source": "Benzinga",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "加密货币",
-        "美国中期选举"
+        "数字资产监管"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "neutral",
-      "relevance": 53,
-      "summary_cn": "据报道，Pelosi 支持 Hakeem Jeffries 出任众议院议长的消息获得加密市场交易者认可，相关博彩市场一度给予其 95% 胜率。"
+      "relevance": 52,
+      "summary_cn": "据报道，Nancy Pelosi支持Hakeem Jeffries竞选众议院议长，加密市场人士据此看好其政策立场，但该报道不构成直接加密交易信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Stock Market suffered one of the Worst Days in History based on the results of the Election. Such a sad thing to watch! It took so much work to get us to a level that no one has ever seen before, and then this. Your 401(k)s have, therefore, dropped. Remember, it wasn’t Republicans, it was Dumocrats. Do not fear, however, we will soon, one way or the other, be BIGGER AND STRONGER THAN EVER BEFORE. MAKE AMERICA GREAT AGAIN! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43491",
+      "published": "2026-11-05T23:18:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "401(k)退休账户"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普称选举结果导致美股出现历史性大跌并拖累401(k)账户，但同时暗示市场未来将更强大。"
     },
     {
       "author": "Trump",
@@ -426,13 +420,32 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国股市",
+        "美股",
         "退休账户"
       ],
       "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普称美股再创历史新高并推动401(k)账户大涨，释放对当前美股牛市的乐观态度。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Congress stock trades in 2026: 10 members ranked by purchase performance",
+      "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE1XcE52dTBxSjNGQzBDZWtxTHBSS0lDRUgtaEV1Q0ZRRmFIdFdJeUhfNlNyUlJxbktyM2tTc3BCRDFwV3VCc2VCcGlDNi1JQm5pSk80bDRmR1FOME5h?oc=5",
+      "published": "2026-11-05T10:25:49+00:00",
+      "origin": "gnews-rss",
+      "source": "qz.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "国会交易"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Trump 称美股再创新高并连续刷新纪录，同时表示投资者 401(k) 账户表现强劲，强化其对股市繁荣的正面叙事。"
+      "relevance": 50,
+      "summary_cn": "最新国会交易披露榜单显示2026年议员股票交易表现存在明显分化，但该条目未提供具体交易标的。"
     }
   ],
   "held_hits": [
@@ -452,22 +465,48 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "商业航天"
+        "航天"
       ],
       "sector_holdings": [
-        "RKLX",
         "SPCH"
       ],
       "stance": "buy",
       "relevance": 92,
-      "summary_cn": "ARK Invest 在三只 ETF 中合计买入 348,406 股 SpaceX（SPCX），单只 ETF 最大占比达 0.51%，且直接命中 kcn 持仓。"
+      "summary_cn": "ARK Invest在ARKK、ARKW和ARKQ合计买入224,483股SpaceX，最大单只ETF权重达0.51%，直接命中kcn持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Investors have dumped Tesla and SpaceX stock since the blue wave election",
+      "url": "",
+      "published": "Thu, 05 Nov 2026 21:32:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [
+        "TSLA",
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，蓝色浪潮胜选后投资者抛售Tesla和SpaceX股票，两项资产遭遇选举后持续抛压。"
     },
     {
       "author": "Musk",
       "text": "SpaceX, Tesla extend losses as midterm results cloud data center, merger outlook",
       "url": "",
-      "published": "Thu, 05 Nov 2026 19:19:43 GMT",
+      "published": "Thu, 05 Nov 2026 19:53:31 GMT",
       "origin": "gnews-rss",
       "source": "Reuters",
       "tickers": [
@@ -481,99 +520,43 @@
         "TSLA"
       ],
       "sectors": [
-        "航天",
         "电动车",
-        "AI数据中心",
-        "数据中心并购"
+        "航天",
+        "数据中心"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "RKLX",
         "SPCH"
       ],
       "stance": "neutral",
-      "relevance": 88,
-      "summary_cn": "据媒体报道，SpaceX 与 Tesla 在美国中期选举结果明朗后延续跌势，数据中心前景及并购预期也令市场承压。"
+      "relevance": 78,
+      "summary_cn": "据媒体报道，中期选举结果令Tesla和SpaceX延续跌势，并令两家公司数据中心建设及合并前景承压。"
     }
   ],
   "new_ideas": [
     {
       "author": "Burry",
-      "text": "Michael Burry Boosts JD.com Options and BYD Stock",
-      "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPa1BtVmdmRVFIZWxVcHIwUFpLMlpLWkJrbWRmRnFOY3FsbDVyd3ZtRXlFR0VYc0dKRXVhcU80WUJ6TVBZbjNpSTJWU2F4d2pxT0hsWFNsMFBMVUhnNV9LQV95WHJERW9CMmNHMkMyUjhScWhJT09fMzVVNGtSMk1zekhlUmljU3phQkZXTVJwc0M?oc=5",
-      "published": "2026-11-05T13:43:01+00:00",
+      "text": "Michael Burry says he sold 25% of SMH puts (SMH:NASDAQ)",
+      "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQdDlCQ3JhSC05OU4tLTFHNEFKSUxibzNIemJJYXhqeHpYZmV1bzZkT2xORHNSNjdfc1pyWEVPUGJ1RGU3ZkdXa20xd0lDakdaOVY4N09YZnZ5cGxDQTk4ZGkwTm16WGlabXhzQ0FNYkVONVY5VTlVRHZUaFdzYUp1bWRXYTV1RHk3QzBaSzNXc3g?oc=5",
+      "published": "2026-11-05T21:46:50+00:00",
       "origin": "gnews-rss",
-      "source": "GuruFocus",
+      "source": "Seeking Alpha",
       "tickers": [
-        "JD",
-        "BYD",
-        "1211"
+        "SMH"
       ],
       "held": [],
       "new_ideas": [
-        "1211",
-        "BYD",
-        "JD"
+        "SMH"
       ],
       "sectors": [
-        "中国电商",
-        "电动车"
+        "半导体",
+        "芯片"
       ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 76,
-      "summary_cn": "据报道，Michael Burry 增持京东（JD）的期权仓位并买入比亚迪（BYD）股票，释放看多中国电商及电动车资产的态度。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Vistra plunges 13.5% as Texas election rattles AI power trade, KeyBanc downgrades",
-      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQXzlDWkVNb3FiMVY0c2EyejhJLXZid1Y2QjVtRV9QTlVyVWhaN2tWMHJwNUYtWUJhM2tNdGtWU1BFblN1WHRuZHk1amEtNG51cFBxV0c1WWptS2hBZ1ZHSXlENnhwbUVKQ3o2OGY1eFduMjVCUUwyeDR1NnlqT1czSXpmS1M3TXBoSEE0OFlyNUFEclFM?oc=5",
-      "published": "2026-11-04T18:01:49+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "VST"
+      "sector_holdings": [
+        "07709"
       ],
-      "held": [],
-      "new_ideas": [
-        "VST"
-      ],
-      "sectors": [
-        "AI电力",
-        "电力公用事业",
-        "数据中心"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "得州选举结果扰动 AI 电力交易预期，Vistra（VST）股价大跌 13.5%，同时遭到 KeyBanc 下调评级。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-04 调仓：Nurix Therapeutics, Inc.(NRIX) 买入 ARKG 350,410 股（最大单只 ETF 占比 0.25%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-04T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.246,
-      "tickers": [
-        "NRIX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NRIX"
-      ],
-      "sectors": [
-        "生物科技",
-        "基因测序"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest 在 ARKG 中买入 350,410 股 Nurix Therapeutics（NRIX），单只 ETF 占比为 0.25%。"
+      "stance": "sell",
+      "relevance": 78,
+      "summary_cn": "据报道，Michael Burry卖出了其25%的SMH看跌期权仓位，表达对半导体板块走弱的防御性观点。"
     },
     {
       "author": "Cathie Wood",
@@ -602,8 +585,8 @@
         "07226"
       ],
       "stance": "sell",
-      "relevance": 71,
-      "summary_cn": "ARK Invest 从 ARKK 和 ARKQ 合计卖出 46,164 股 Alphabet（GOOG），最大单只 ETF 占比为 0.24%，属于机构减仓而非看空表态。"
+      "relevance": 75,
+      "summary_cn": "ARK Invest在ARKK和ARKQ卖出Alphabet股份，最大单只ETF占比0.24%，属于有规模的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -623,7 +606,7 @@
       "sectors": [
         "电商",
         "云计算",
-        "AI基础设施"
+        "AI"
       ],
       "sector_holdings": [
         "00100",
@@ -632,8 +615,8 @@
         "07226"
       ],
       "stance": "sell",
-      "relevance": 71,
-      "summary_cn": "ARK Invest 从 ARKQ 卖出 15,750 股 Amazon（AMZN），单只 ETF 占比为 0.24%，属于机构减仓而非看空表态。"
+      "relevance": 73,
+      "summary_cn": "ARK Invest在ARKQ卖出15,750股Amazon，单只ETF占比0.24%，显示机构降低电商及云计算龙头敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -651,13 +634,37 @@
         "PSNL"
       ],
       "sectors": [
-        "精准医疗",
-        "基因测序"
+        "医疗科技",
+        "基因组学"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest 从 ARKG 卖出 383,022 股 Personalis（PSNL），单只 ETF 占比为 0.28%，属于机构减仓。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG卖出383,022股Personalis，单只ETF占比0.28%，属于有规模的机构减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-04 调仓：Nurix Therapeutics, Inc.(NRIX) 买入 ARKG 350,410 股（最大单只 ETF 占比 0.25%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-04T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.246,
+      "tickers": [
+        "NRIX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NRIX"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因治疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKG买入350,410股Nurix Therapeutics，单只ETF占比0.25%，显示机构增持生物科技仓位。"
     },
     {
       "author": "Cathie Wood",
@@ -675,51 +682,55 @@
         "LLY"
       ],
       "sectors": [
-        "医药",
-        "医疗健康"
+        "医疗保健",
+        "制药"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 69,
-      "summary_cn": "ARK Invest 从 ARKK 卖出 8,551 股 Eli Lilly（LLY），单只 ETF 占比为 0.20%，属于机构减仓。"
-    },
-    {
-      "author": "Trump",
-      "text": "FoxNews Ratings are way down (27%!) because they’re spending too much time covering the Trump Deranged Dumocrats! All of those people who used to watch Fox, and no longer do, get it. It’s them, not me — My numbers are better than they have ever been. The new CNN Poll stated that “TRUMP” is at 99% among Republicans and, among Republican Presidents, “TRUMP” is at 53%, compared to Ronald Reagan at 18%, and Abraham Lincoln at 8%! Fox knows this, and so does everyone else! Also, why is Fox Corp. spending so much money donating to the Worst of the Worst, including Hakeem Jeffries, Jamie Raskin, Ted ",
-      "url": "https://www.trumpstruth.org/statuses/43438",
-      "published": "2026-11-04T00:00:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "FOX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "FOX"
-      ],
-      "sectors": [
-        "媒体",
-        "企业政治支出"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump 抨击 Fox Corp（FOX）花大额资金支持其政治对手，并称 Fox 收视下滑源于过度报道民主党。"
+      "relevance": 71,
+      "summary_cn": "ARK Invest在ARKK卖出8,551股Eli Lilly，单只ETF占比0.20%，属于有规模的机构减仓。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Burry",
-      "text": "Anthropic Is ‘Betting Its Entire Existence On Optimism’: Michael Burry Flags Risks After AI Firm’s Updated S-1, Says Won’t Pursue IPO Shares",
-      "url": "https://news.google.com/rss/articles/CBMipwJBVV95cUxQTHRaUjBuekpNUk9MRk9EalVmQWhIaU5PT1AybkdxUWo1elJadlowNXM0T0paWFRVRGo2S3M3SmFlbG0xVldHMTk2cFVkSWdlWFlSYWphQzZmZ3VTeVZ1c2lRX01tZzRxR2ozSjlObFRpd3QwcGIxWFB1Q1lCV2I4cUJnZ2w2VzJ6TGs4ZVQxRkdXaHhZeWt5amZaUy1kTGNFRXpXZERaOTFOU3dvWUdybUpfeWJwcXBkdlVSNmoySjdzbkQxU2NlQVFmMDAycmpVeHRqbEJOWV83azBVTGRQV1BDMXZhOVhjc0pzT29HdC1ndVNUNk1fb3Blb21sMmJoQVZnRjBnRF9qZ1FULWZ0Y1ZKbWxoeEs1X0UzRGdiTWw0NmRXRFQ4?oc=5",
-      "published": "2026-11-05T19:40:18+00:00",
+      "author": "洪灏",
+      "text": "「國家隊」發力A股港股齊飆",
+      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNNEdMVVgydW94ZDFKU0JXYVV1UHhOZ1Z1b3RsZnN1S1NvcFM1SXh3RFZ1WlJRLTJfU2Iwa3pzMWRhdE5EenNSOHd1bFhSTV9oV3hPV2luRzQwZ2JYSjFHN3N1T2dRaEthemIwTjhHMVNEWmUySjlZQzg5ZkNKZE5yVE15M0l0YjJGdzhsVGg0YkNPS0stNUZXN01GWGdjbVIwVF8tVHlIWV91U3A5aUxTeW91UFVrMTJaSndZMEllc2hmSlVNdzBiS25sRkdsS3FMWnFIMjNNWQ?oc=5",
+      "published": "2026-11-04T19:00:00+00:00",
       "origin": "gnews-rss",
-      "source": "Stocktwits",
+      "source": "星島頭條",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "A股",
+        "港股",
+        "政策资金"
+      ],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "据报道，洪灏关注到国家队资金发力并带动A股与港股齐涨，对中国权益市场释放偏乐观信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry says Anthropic is 'betting its entire existence' on optimism, and he has no plans to own the stock",
+      "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNZXp4cWdBWFlyY3VBQ29WWTZhaXZsYklEbGxkOEM2czYzYTRsaVZHX2ZUR1lLYlEtQS1nMjhLTkhwaC12WFBPSW5kWkw4RUtWdS0wZ3ZxSWN0YS13NmxmM3A4QzVyYjFuQzF6OW9QZUZDdS1VZjlpOE04aDFfRlBTd05SY1c5ajNTS182U2F1cURFUlU?oc=5",
+      "published": "2026-11-05T18:26:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "AI",
-        "生成式AI"
+        "大模型",
+        "企业软件"
       ],
       "sector_holdings": [
         "00100",
@@ -728,8 +739,8 @@
         "07226"
       ],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry 抨击 Anthropic 的估值与商业模式，称其是在押注公司整体存续，并明确表示不会参与其 IPO 股份。"
+      "relevance": 64,
+      "summary_cn": "据报道，Michael Burry批评Anthropic将企业生存押注于乐观预期，并表示无意持有其股票，释放对AI商业模式的悲观看法。"
     },
     {
       "author": "洪灏",
@@ -743,43 +754,19 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "AI基础设施",
         "数据中心",
-        "美国中期选举"
+        "AI基础设施"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
-        "07226"
+        "07226",
+        "07709"
       ],
       "stance": "neutral",
-      "relevance": 66,
-      "summary_cn": "据报道，洪灏认为中期选举后 AI 建设需要重新计算最终由谁买单，提示 AI 基础设施支出的可持续性存在不确定性。"
-    },
-    {
-      "author": "洪灏",
-      "text": "「國家隊」發力A股港股齊飆",
-      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNNEdMVVgydW94ZDFKU0JXYVV1UHhOZ1Z1b3RsZnN1S1NvcFM1SXh3RFZ1WlJRLTJfU2Iwa3pzMWRhdE5EenNSOHd1bFhSTV9oV3hPV2luRzQwZ2JYSjFHN3N1T2dRaEthemIwTjhHMVNEWmUySjlZQzg5ZkNKZE5yVE15M0l0YjJGdzhsVGg0YkNPS0stNUZXN01GWGdjbVIwVF8tVHlIWV91U3A5aUxTeW91UFVrMTJaSndZMEllc2hmSlVNdzBiS25sRkdsS3FMWnFIMjNNWQ?oc=5",
-      "published": "2026-11-04T19:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "星島頭條",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中国股市",
-        "港股",
-        "国家队"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
       "relevance": 64,
-      "summary_cn": "据报道，洪灏称“国家队”发力推动 A 股与港股齐涨，反映政策资金对中国资产的托底态度。"
+      "summary_cn": "据报道，洪灏认为中期选举后AI建设的成本承担者及商业前景需要重新评估，对AI基础设施景气度持审慎态度。"
     },
     {
       "author": "洪灏",
@@ -792,39 +779,41 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中国股市",
+        "A股",
         "港股",
-        "盈利周期"
+        "企业盈利",
+        "市场反弹"
       ],
       "sector_holdings": [
+        "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 61,
-      "summary_cn": "据报道，洪灏在市场反弹后提示仍需观察企业盈利能否兑现，对后续行情维持审慎判断。"
+      "relevance": 58,
+      "summary_cn": "据报道，洪灏认为市场反弹后能否延续仍需观察企业盈利，表现了对A股及港股行情持续性的审慎态度。"
     },
     {
       "author": "Pelosi",
       "text": "Nancy Pelosi Backs Hakeem Jeffries for House Speaker — Crypto Bettors Agree, Giving Him 95% Odds",
-      "url": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxPRjNmS0NsVno4OWREQmRQNzE1VEFfRVN2akxtaDloVFZ1RnhCR21la01mMDAyR3hHekhfZ1VpRjZWakRncEYxbDMxMVlfU1BnNHhqTW54QzlkMGMxMGxKSTduNmVUQzNnTmFrYWVrOWpBVlRyYzA4TlBFamZqMGsteW52YXVVSXg1ZWFfQV9iTzJCc0swazdteTRUaGVkV1J5VjVNZk95MC1tdGxJRm4xT0xrdHI5Ny0ySU9xbDV6bER2RDJZVUVTM1BGQnpIMzhSNzFyU1lmbHRYUDB0c2pRRnJhTkJodw?oc=5",
+      "url": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxNQVNkVi1md2lsRXdMWXZxbHo5Q2J5Z0g4cm5KVDdUZU5GU0UxS0p1QjdyZ19Qd2RZWUNqdFEtcmUwNU5zSFVhemtiQzE3WWZNUk1MYW5uUHJRU01tcVZkUUhoWlNHNzV5bG9HM08tMkpSLVVfaGlxQU8wT24zWDBPRUU1TXNwbUszZTVJQWY0RlY2LWRYbWFyUUNfdDZNVUtURzh2QjdyOWpzZG05WnU4X0d2Y1JPX19JSm1LTVdJQ1hpdDRQM2twcms4SmF5QmJQTTdCcnhQZXBlY3pDWU03NHBfSW9vanJoZk5ldHgzYUU?oc=5",
       "published": "2026-11-04T09:38:01+00:00",
       "origin": "gnews-rss",
-      "source": "TradingView",
+      "source": "Benzinga",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "加密货币",
-        "美国中期选举"
+        "数字资产监管"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "neutral",
-      "relevance": 53,
-      "summary_cn": "据报道，Pelosi 支持 Hakeem Jeffries 出任众议院议长的消息获得加密市场交易者认可，相关博彩市场一度给予其 95% 胜率。"
+      "relevance": 52,
+      "summary_cn": "据报道，Nancy Pelosi支持Hakeem Jeffries竞选众议院议长，加密市场人士据此看好其政策立场，但该报道不构成直接加密交易信号。"
     }
   ]
 }
