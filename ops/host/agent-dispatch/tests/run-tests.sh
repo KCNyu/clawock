@@ -56,6 +56,16 @@ send_count() {  # lines the fake openclaw recorded; 0 when it recorded nothing
   if [ -e "$FAKE_DIR/openclaw.sends" ]; then wc -l <"$FAKE_DIR/openclaw.sends" | tr -d ' '; else echo 0; fi
 }
 
+if [[ ${DISPATCH_TEST_CASES:-} = pool || ${DISPATCH_TEST_CASES:-} = pool-mixed ]]; then
+  reset_fake opencode mixed-limit
+  d=$(mk patrol-mixed-limit opencode 900 300)
+  echo 'FALLBACK_MODELS=other' >>"$d/meta.env"
+  e=0
+  FALLBACK_WAIT=0 RETRY_WAIT=0 bash "$R" "$d" || e=$?
+  expect 'mixed silence and free-limit stop after one lap' "$e/$(field "$d" STATE)/$(field "$d" ATTEMPTS)/$(field "$d" FAILURE_REASON)" 1/failed/2/pool_no_response
+  expect 'mixed pool publishes the provider reset' "$([[ $(field "$d" POOL_RESET_AT) =~ ^[0-9]+$ ]] && echo yes)" yes
+fi
+
 if [ "${DISPATCH_TEST_CASES:-}" = pool ]; then
   echo '=== patrol pool outage, recovery, and empty CLI exits'
   # A missing/expired price snapshot is not permission to use the seed list.

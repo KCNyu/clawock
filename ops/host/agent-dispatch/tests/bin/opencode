@@ -45,6 +45,12 @@ case "$mode" in
   error-only)
     ev error ',"error":{"name":"APIError","data":{"message":"Upstream request failed: Invalid credential","statusCode":401}}'
     exit 1 ;;
+  mixed-limit)
+    # First model exits without events; the fallback emits the v2 quota refusal.
+    [ "$base" != fake ] || exit 0
+    ev step_start ',"part":{"type":"step-start","messageID":"msg_1"}'
+    ev error ',"error":{"type":"provider.free-limit","status":429,"retryAfterMs":600000}'
+    exit 1 ;;
   free-limit)
     # OpenCode v2 emits step_start and then a provider.free-limit error when the free window
     # is spent; it exits non-zero. The runner must treat this as a model handover, not progress.
