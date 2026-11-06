@@ -93,7 +93,10 @@ def test_the_tracked_free_pool_passes_its_own_dispatch_check_and_dropped_models_
     checker = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(checker)
     pool = checker.check(src / "opencode-fallback-models")
-    assert pool and pool[0] == "opencode/space-bunny-free" and not set(pool) & checker.RETIRED
+    assert pool and pool[0] == "opencode/mimo-v2.6-flash-free" and not set(pool) & checker.RETIRED
+    # 2026-11-06: these seeds left the v2 catalog; the pool keeps only models the audit can verify.
+    assert not {"opencode/space-bunny-free", "opencode/cat-jam-free", "opencode/step-5-preview-free",
+                "opencode/longcat-2.5-preview-free", "opencode/muse-spark-1.3-contributor-free"} & set(pool)
     for bad in ("opencode/nemotron-3.5-lightning-free", "opencode/exo-free", "opencode-go/some-paid-model"):
         stale = tmp_path / "pool"
         stale.write_text("\n".join(pool + [bad]) + "\n")

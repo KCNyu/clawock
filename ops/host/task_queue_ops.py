@@ -861,8 +861,10 @@ def task_choices(meta: dict, result: dict) -> dict:
         flag = "reasoningEffort"
     else:
         models = list(dict.fromkeys([*own, *pool_models()]))
-        efforts = {m: [] for m in models if m}   # the free pool has no variants; --variant stays unset
-        flag = "--variant"
+        # v2 carries a variant inside the model reference (`provider/model#variant`); the pool
+        # checks do not select one, so no effort is offered unless a model is changed explicitly.
+        efforts = {m: [] for m in models if m}
+        flag = "#variant"
     return {"agent": agent, "models": [m for m in models if m], "efforts": efforts, "effort_flag": flag}
 
 
@@ -1472,14 +1474,31 @@ def codex_usage(session: str, since: float, model: str, until: float | None = No
 
 
 def opencode_usage(session: str, since: float) -> tuple[dict[str, dict[str, int]], float] | None:
+    """Assistant tokens/cost for one session, from whichever storage schema the DB has.
+
+    v2 moved assistant messages to session_message(type='assistant') with a nested
+    data.model={id,providerID} and data.tokens; v1 used message(data.role='assistant'). The live
+    DB keeps both tables across the migration, so select by whether this session has v2 assistant
+    rows, and fall back to the v1 table for sessions written before the upgrade.
+    """
     import sqlite3
     if not OPENCODE_DB.exists():
         return None
     try:
         con = sqlite3.connect(f"file:{OPENCODE_DB}?mode=ro", uri=True, timeout=5)
         try:
-            rows = con.execute("SELECT data FROM message WHERE session_id = ? AND time_created >= ?",
-                               (session, int(since * 1000))).fetchall()
+            tables = {row[0] for row in con.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'")}
+            rows, v2 = [], False
+            if "session_message" in tables:
+                rows = con.execute(
+                    "SELECT data FROM session_message WHERE session_id = ? AND type = 'assistant' "
+                    "AND time_created >= ?", (session, int(since * 1000))).fetchall()
+                v2 = bool(rows)
+            if not rows and "message" in tables:
+                rows = con.execute(
+                    "SELECT data FROM message WHERE session_id = ? AND time_created >= ?",
+                    (session, int(since * 1000))).fetchall()
         finally:
             con.close()
     except sqlite3.Error:
@@ -1491,10 +1510,17 @@ def opencode_usage(session: str, since: float) -> tuple[dict[str, dict[str, int]
             m = json.loads(raw)
         except ValueError:
             continue
-        if m.get("role") != "assistant" or not isinstance(m.get("tokens"), dict):
+        if v2:
+            model_info = m.get("model") if isinstance(m.get("model"), dict) else {}
+            provider, name = model_info.get("providerID") or "", model_info.get("id") or ""
+        else:
+            if m.get("role") != "assistant":
+                continue
+            provider, name = m.get("providerID") or "", m.get("modelID") or ""
+        if not isinstance(m.get("tokens"), dict):
             continue
         t = m["tokens"]
-        model = (m.get("providerID") + "/" if m.get("providerID") else "") + (m.get("modelID") or "")
+        model = (provider + "/" if provider else "") + name
         b = out.setdefault(model, _bucket())
         cache = t.get("cache") or {}
         b["in"] += int(t.get("input") or 0)

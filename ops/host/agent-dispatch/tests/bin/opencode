@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Fake `opencode run --format json` for run-agent.sh tests, emitting the event shapes of opencode
-# 1.18 (step_start, text, step_finish, error; every event carries sessionID). Like the real CLI it
-# exits 0 even when the model call failed. Behaviour is chosen by $FAKE_DIR/opencode.mode:
+# Fake `opencode run --format json` for run-agent.sh tests, emitting the v2 event shapes
+# (step_start, text, tool_use, step_finish, error; every event carries sessionID).
+# error-then-ok keeps v1's exit 0 (the runner must still trust the error event); free-limit models
+# v2's provider.free-limit error followed by exit 1. Behaviour is chosen by $FAKE_DIR/opencode.mode:
 #   error-then-ok : 1st call -> a rate-limit error event, exit 0; later calls -> success
+#   free-limit    : every call -> step_start + provider.free-limit (429, retryAfterMs), exit 1
 #   queue         : every call sleeps 6s, then succeeds (for appends queued behind a running attempt)
 #   bad-model     : calls with -m equal to $FAKE_DIR/opencode.badmodel fail, others succeed
 #   silent-then-ok: 1st call prints nothing for $FAKE_SILENT seconds (default 120), then succeeds;
@@ -28,6 +30,7 @@ sid=ses_fake0001
 model=""; prev=""
 for a in "$@"; do [ "$prev" = -m ] && model=$a; prev=$a; done
 echo "call $n model: $model" >>"$FAKE_DIR/opencode.argv"
+base=${model%%#*}   # v2 appends the variant to the model reference; the provider model is the base
 prev=""
 for a in "$@"; do [ "$prev" = -s ] && sid=$a; prev=$a; done
 # With --print-logs the real CLI writes its log to stderr instead of opencode.log, starting
@@ -41,6 +44,12 @@ case "$mode" in
   empty) exit 0 ;;
   error-only)
     ev error ',"error":{"name":"APIError","data":{"message":"Upstream request failed: Invalid credential","statusCode":401}}'
+    exit 1 ;;
+  free-limit)
+    # OpenCode v2 emits step_start and then a provider.free-limit error when the free window
+    # is spent; it exits non-zero. The runner must treat this as a model handover, not progress.
+    ev step_start ',"part":{"type":"step-start","messageID":"msg_1"}'
+    ev error ',"error":{"type":"provider.free-limit","message":"Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.","status":429,"retryAfterMs":600000}'
     exit 1 ;;
   silent) sleep 3600; exit 0 ;;
   event-then-empty) [ "$n" != 1 ] && exit 0 ;;
@@ -92,7 +101,7 @@ case "$mode" in
     fi ;;
   queue) sleep "${FAKE_SLEEP:-6}" ;;
   bad-model)   # the model named in opencode.badmodel always fails
-    if [ "$model" = "$(cat "$FAKE_DIR/opencode.badmodel")" ]; then
+    if [ "$base" = "$(cat "$FAKE_DIR/opencode.badmodel")" ]; then
       ev error ',"error":{"name":"APIError","data":{"message":"Rate limit exceeded. Please try again later."}}'
       exit 0
     fi ;;

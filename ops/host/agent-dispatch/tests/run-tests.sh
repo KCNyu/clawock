@@ -75,7 +75,7 @@ rows = [{"model": "opencode/space-bunny-free", "catalog_cost": "nonzero"},
         {"model": "opencode/cat-jam-free", "catalog_cost": "zero"}]
 for row in rows:
     row.update(in_catalog=True, in_zen=True, metadata_cost="zero")
-pathlib.Path(sys.argv[2]).write_text(json.dumps({"policy_version": 2, "checked_at": time.time(),
+pathlib.Path(sys.argv[2]).write_text(json.dumps({"policy_version": 3, "checked_at": time.time(),
     "selection_ready": True, "source_errors": {}, "pool_hashes": [sha, sha], "models": rows}))
 PYPRICE
   printf 'MODEL=opencode/space-bunny-free\nFALLBACK_MODELS=opencode/cat-jam-free\nFREE_POOL_REPORT=%s\n' "$WORK/prices.json" >>"$d/meta.env"
@@ -97,6 +97,17 @@ PYPRICE
     fi
     expect "$mode leaves no running CLI" "$(for p in $(cat "$FAKE_DIR/opencode.pids"); do kill -0 "$p" 2>/dev/null && echo x; done | wc -l)" 0
   done
+  # v2 reports a spent free window as an error event next to step_start, not as silence. Every
+  # model in one lap refused means no second lap and a cooldown until the window's reset.
+  reset_fake opencode free-limit
+  d=$(mk patrol-free-limit opencode 900 300)
+  echo 'FALLBACK_MODELS=other' >>"$d/meta.env"
+  now=$(date +%s); e=0
+  FALLBACK_WAIT=60 RETRY_WAIT=60 bash "$R" "$d" || e=$?
+  expect 'v2 free-limit stops the patrol after one lap' "$e/$(field "$d" STATE)/$(field "$d" ATTEMPTS)/$(field "$d" FAILURE_REASON)" 1/failed/2/pool_no_response
+  reset_at=$(field "$d" POOL_RESET_AT)
+  expect 'the refused window carries its reset to the supervisor' "$([[ $reset_at =~ ^[0-9]+$ ]] && [ "$reset_at" -ge "$((now + 540))" ] && [ "$reset_at" -le "$((now + 700))" ] && echo yes)" yes
+  expect 'the free-limit attempt is a rate limit, not a stall' "$( . "$d/attempt1.env"; echo "$AKIND")/$(field "$d" STALLS)" rate_limited/0
   # A rate-limited model call is given up at once: no STALL_FIRST (210s), no FALLBACK_WAIT.
   reset_fake opencode ratelimit-then-ok
   d=$(mk patrol-rate-limited opencode 900 300)
@@ -107,7 +118,7 @@ PYPRICE
   expect_grep 'the rate-limited attempt is marked as such' "kind=rate_limited session=-" "$d/run.log"
   expect 'the rate-limited attempt ends within 10s' "$( . "$d/attempt1.env"; echo $(( ${ENDED_EPOCH%.*} - ${STARTED_EPOCH%.*} < 10 )) )/$( . "$d/attempt1.env"; echo "$AKIND")" 1/rate_limited
   expect 'the whole task did not wait out a stall or fallback limit' "$(( $(date +%s) - t0 < 30 ))" 1
-  expect 'opencode logs to the attempt stderr' "$(grep -c 'call 1 argv:.*\[--print-logs\] \[--log-level\] \[WARN\]' "$FAKE_DIR/opencode.argv")" 1
+  expect 'opencode logs to the attempt stderr' "$(grep -c 'call 1 argv:.*\[--print-logs\] \[--log-level\] \[warn\]' "$FAKE_DIR/opencode.argv")" 1
   expect 'the rate-limited CLI is not left running' "$(for p in $(cat "$FAKE_DIR/opencode.pids"); do kill -0 "$p" 2>/dev/null && echo x; done | wc -l)" 0
   reset_fake opencode silent-then-ok
   d=$(mk patrol-recovers opencode 900 300)
@@ -333,7 +344,7 @@ expect "queued append resumes the opencode session" "$(grep -c 'call 2 argv:.*\[
 expect "queued append sends only the appended text" "$(grep 'call 2 argv:' "$FAKE_DIR/opencode.argv" | grep -c 'fake task prompt')" 0
 expect_grep "opencode final text is the last message" "opencode call 2 done" "$d13/run.log"
 
-echo; echo "=== [14] opencode exits 0 on a model error -> retried in the same session ($(date +%T))"
+echo; echo "=== [14] a model error is retried in the same session; exit 0 alone is not success ($(date +%T))"
 reset_fake opencode error-then-ok
 d14=$(mk opencode-error opencode 900 300)
 e14=0; RETRY_WAIT=2 bash "$R" "$d14" || e14=$?
@@ -342,7 +353,7 @@ expect "opencode error state" "$(field "$d14" STATE)/$(field "$d14" OUTCOME)/$(f
 expect "opencode has no subscription quota to read" "$(grep -c '^quota |' "$d14/run.log")" 0
 expect_grep "opencode error recorded" "Rate limit exceeded" "$d14/run.log"
 expect "opencode retry continues the session" "$(grep -c 'call 2 argv:.*\[-s\] \[ses_fake0001\] \[--\] \[继续' "$FAKE_DIR/opencode.argv")" 1
-expect_grep "opencode effort becomes --variant" "[--variant] [low]" "$FAKE_DIR/opencode.argv"
+expect_grep "opencode effort joins the v2 model reference" "[fake#low]" "$FAKE_DIR/opencode.argv"
 
 echo; echo "=== [16] opencode fallback: a failing model hands the same session to the next one ($(date +%T))"
 reset_fake opencode bad-model; echo fake >"$FAKE_DIR/opencode.badmodel"

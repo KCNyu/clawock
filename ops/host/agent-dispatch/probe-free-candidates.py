@@ -41,9 +41,10 @@ def verdict(events, rc, log=""):
     errors = [r for r in events if r.get("type") == "error"]
     if errors:
         text = json.dumps(errors).lower()
-        return "rate_limited" if any(t in text for t in ("429", "rate limit", "freeusagelimit")) else "error"
+        return "rate_limited" if any(t in text for t in ("429", "rate limit", "freeusagelimit",
+                                                         "free usage limit", "free-limit")) else "error"
     tools = [r.get("part", {}) for r in events if r.get("type") == "tool_use"]
-    bash = [r for r in tools if r.get("tool") == "bash" and r.get("state", {}).get("status") == "completed"
+    bash = [r for r in tools if r.get("tool") in ("bash", "shell") and r.get("state", {}).get("status") == "completed"
             and r["state"].get("input", {}).get("command", "").strip() == "echo TOOL-PROBE-OK"
             and r["state"].get("output", "").strip() == "TOOL-PROBE-OK"]
     # Some providers leave the reasoning terminator on the final text event.

@@ -22,7 +22,7 @@ PRICES = "https://models.dev/api.json"
 INTERVAL = 3600
 RETRY = 900
 STALE = 2 * 3600
-POLICY_VERSION = 2
+POLICY_VERSION = 3
 
 
 def load_checker():
@@ -35,6 +35,11 @@ def load_checker():
 
 def cost_state(cost):
     """Require explicit numeric input/output prices; check every supplied cost leaf."""
+    if isinstance(cost, list):   # v2 quotes one entry per tier
+        states = [cost_state(item) for item in cost]
+        if "nonzero" in states:
+            return "nonzero"
+        return "zero" if states and all(state == "zero" for state in states) else "unknown"
     if not isinstance(cost, dict):
         return "unknown"
     leaves = []
@@ -57,17 +62,35 @@ def cost_state(cost):
 
 
 def parse_catalog(text):
-    decoder = json.JSONDecoder()
-    rows = {}
-    while text.strip():
-        name, text = text.lstrip().split("\n", 1)
-        value, end = decoder.raw_decode(text)
-        if not name.startswith("opencode/") or name in rows or not isinstance(value, dict):
-            raise ValueError("invalid/duplicate catalog entry")
-        rows[name] = value
-        text = text[end:]
-    if not rows:
+    """v2 `opencode --standalone api GET /api/model`: one JSON object for every provider.
+
+    v1's `opencode models <provider> --refresh --verbose` printed "name\\n{json}" pairs; v2
+    dropped the provider argument and the verbose form, so the catalog comes from the local
+    server API. Keep the opencode provider only; a disabled/deprecated model is not catalog
+    evidence that the free pool may dispatch it.
+    """
+    try:
+        value = json.loads(text)
+    except ValueError as exc:
+        raise ValueError("invalid catalog JSON") from exc
+    data = value.get("data") if isinstance(value, dict) else None
+    if not isinstance(data, list) or not data:
         raise ValueError("empty catalog")
+    rows = {}
+    for entry in data:
+        if not isinstance(entry, dict) or entry.get("providerID") != "opencode":
+            continue
+        if entry.get("enabled") is False or entry.get("status") in ("deprecated", "disabled"):
+            continue
+        model = entry.get("modelID")
+        if not isinstance(model, str) or not model:
+            raise ValueError("invalid catalog entry")
+        name = "opencode/" + model
+        if name in rows:
+            raise ValueError("duplicate catalog entry")
+        rows[name] = {"cost": entry.get("cost")}
+    if not rows:
+        raise ValueError("empty opencode catalog")
     return rows
 
 
@@ -82,8 +105,8 @@ def collect():
     sources, errors = {}, {}
     readers = {
         "catalog": lambda: parse_catalog(subprocess.run(
-            ["opencode", "models", "opencode", "--refresh", "--verbose"], check=True,
-            capture_output=True, text=True, timeout=20).stdout),
+            ["opencode", "--standalone", "api", "GET", "/api/model"], check=True,
+            capture_output=True, text=True, timeout=30).stdout),
         "zen": lambda: fetch_json(ZEN),
         "prices": lambda: fetch_json(PRICES)["opencode"]["models"],
     }
@@ -231,7 +254,7 @@ def main():
         report.update({"checked_at": now, "policy_version": POLICY_VERSION, "source_errors": source_errors, "pool_hashes": hashes,
                        "baseline": not bool(previous),
                        "last_catalog_names": report["catalog_names"] if report["catalog_names"] is not None else previous,
-                       "sources": {"zen": ZEN, "prices": PRICES, "catalog": "opencode models opencode --refresh --verbose"}})
+                       "sources": {"zen": ZEN, "prices": PRICES, "catalog": "opencode --standalone api GET /api/model"}})
         report["selection_ready"] = not errors and not source_errors and report["sources_ready"]
         report["last_eligible_names"] = ([row["model"] for row in report["models"]
                                          if row["free_verified"] and not row["retired"]

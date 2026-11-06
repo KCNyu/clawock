@@ -55,9 +55,10 @@ run_one() {  # <model> ; writes $OUT/<slug>.jsonl + .meta
     prompt='reply with exactly: PROBE-OK'
   fi
   start=$(date +%s)
-  # --print-logs: a rate limit shows only in opencode's log (the run itself retries silently
-  # until the timeout), so keep the log next to the events.
-  timeout "$TIMEOUT" opencode run --format json --print-logs --log-level WARN -m "$m" "$prompt" \
+  # --standalone: one private v2 server, so a probe neither depends on nor leaves a background
+  # service. --print-logs: v1 wrote a rate limit only to the log (the run retried silently);
+  # v2 also emits a provider.free-limit error event, which the summary reads below.
+  timeout "$TIMEOUT" opencode --standalone run --format json --print-logs --log-level warn -m "$m" "$prompt" \
     > "$OUT/$slug.jsonl" 2>"$OUT/$slug.err"
   rc=$?
   last=$(date +%s)
@@ -85,7 +86,7 @@ for m in "${MODELS[@]}"; do
   detail=$(grep -o '"message":"[^"]*"' "$f" 2>/dev/null | head -1 | cut -c12- | cut -c1-110)
   if grep -q '"type":"error"' "$f" 2>/dev/null; then
     case "$detail" in
-      *"Rate limit"*|*"rate_limit"*|*"overloaded"*|*"temporarily"*) verdict=RATE_LIMIT ;;
+      *"Rate limit"*|*"rate_limit"*|*"Free usage limit"*|*"free-limit"*|*"FreeUsageLimit"*|*"overloaded"*|*"temporarily"*) verdict=RATE_LIMIT ;;
       *) verdict=ERROR ;;
     esac
   elif grep -Eq 'message="stream error" .*small=false .*Rate limit exceeded' "$OUT/$slug.err" 2>/dev/null; then

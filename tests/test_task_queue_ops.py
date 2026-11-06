@@ -642,6 +642,23 @@ def test_usage_of_the_free_opencode_pool_says_free(q, tmp_path):
     assert (out["cost_usd"], out["cost_kind"]) == ("free", "free")
 
 
+def test_usage_reads_the_v2_session_message_schema(q, tmp_path):
+    import sqlite3
+    q.task("u-oc-v2", agent="opencode", session="ses_v2", result="STATE=ok\n")
+    db = tmp_path / "opencode-v2.db"
+    con = sqlite3.connect(db)
+    con.execute("CREATE TABLE session_message (id text, session_id text, type text, seq integer, "
+                "time_created integer, time_updated integer, data text)")
+    msg = {"model": {"id": "free-b", "providerID": "opencode"}, "cost": 0,
+           "tokens": {"input": 11, "output": 4, "reasoning": 1, "cache": {"read": 50, "write": 2}}}
+    con.execute("INSERT INTO session_message VALUES ('m', 'ses_v2', 'assistant', 1, 1, 1, ?)",
+                (json.dumps(msg),))
+    con.commit(); con.close()
+    code, out = q.run("usage", "u-oc-v2", extra_env={"AGENT_DISPATCH_OPENCODE_DB": str(db)})
+    assert out["tokens"] == {"in": 11, "cache_w": 2, "cache_r": 50, "out": 5, "total": 68}
+    assert (out["cost_usd"], out["cost_kind"]) == ("free", "free")
+
+
 def test_usage_without_a_session_record_is_empty_not_invented(q, tmp_path):
     q.task("u-none", result="STATE=queued\n")
     code, out = q.run("usage", "u-none")

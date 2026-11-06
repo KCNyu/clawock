@@ -144,7 +144,7 @@ Legal values come from each agent's own source, never a list kept here:
 |---|---|---|
 | claude | the task's own, dispatch.sh's default, those this host has dispatched, the aliases in `claude --help` | `--effort`, the list printed by `claude --help` |
 | codex | the task's own, dispatch.sh's default, the visible models in `~/.codex/models_cache.json` | `model_reasoning_effort`, that model's `supported_reasoning_levels` |
-| opencode | the task's own, the pool file `opencode-fallback-models` | `--variant`: none (the free pool has no variants) |
+| opencode | the task's own, the pool file `opencode-fallback-models` | `#variant` in the model reference: none unless chosen explicitly; the free-pool selector does not pick one |
 | dsh | the task's own, dispatch.sh's default, those this host has dispatched, the two routes DeepSeek's API serves (`DSH_ROUTES`) | `reasoningEffort` in the runner's overlay: `off`, `low`, `high`, `max` |
 
 Changing the model of a session on resume was checked for claude (`--resume` with another
@@ -299,7 +299,7 @@ patrol supervisor: a patrol round that dies must be reaped like any other task.
 |---|---|---|
 | claude | `~/.claude/projects/*/<session>.jsonl`, each assistant line's `message.usage` | deduplicated by message id (claude repeats one API message's usage on every content-block line); cache writes split into 5-minute / 1-hour by `usage.cache_creation` |
 | codex | `$CODEX_HOME/sessions/**/rollout-*-<session>.jsonl`, `token_count` events | `total_token_usage` is cumulative per process: repeats add nothing, a resumed process restarts from zero; `cached_input_tokens` is part of `input_tokens` |
-| opencode | `~/.local/share/opencode/opencode.db`, table `message` | `tokens.input/output/reasoning/cache.read/cache.write` and opencode's own `cost` |
+| opencode | `~/.local/share/opencode/opencode.db`, table `session_message` (v2; v1 sessions still use `message`) | `tokens.input/output/reasoning/cache.read/cache.write` and opencode's own `cost` |
 | dsh | the task's own `attempt<N>.jsonl` (`dsh --json`), each `step_end` event's `usage`; the model is that attempt's overlay `attempt<N>.yml` | `inputTokens` (excludes cache reads), `outputTokens`, `cacheReadTokens`, `cacheWriteTokens`; the files are the task's own, so no time window is needed |
 
 The session is `SESSION` in `result.env` (older tasks: `session_id` in `attempt*.json`). New paid tasks use `USAGE_START_EPOCH` (first run, after queueing) through

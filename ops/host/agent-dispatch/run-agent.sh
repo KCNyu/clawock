@@ -164,12 +164,13 @@ BASE_POOL=("${MODEL_POOL[@]}")
 FALLBACK_WAIT="${FALLBACK_WAIT:-60}"
 [ "${#MODEL_POOL[@]}" -gt 1 ] && MAX_ATTEMPTS=$(( MAX_ATTEMPTS > 2 * ${#MODEL_POOL[@]} ? MAX_ATTEMPTS : 2 * ${#MODEL_POOL[@]} ))
 STATE=queued RC="" SESSION="${RESUME:-}" ATTEMPTS=0 OUTCOME="" STARTED=$(ts) FINAL_TEXT="" WAITING="" APPENDS=0
-FAILURE_REASON="" STOP_REASON="" FINISHED_EPOCH="" USAGE_START_EPOCH="" RUN_NO=0 LAST_MODEL=$CUR_MODEL
+FAILURE_REASON="" STOP_REASON="" POOL_RESET_AT="" FINISHED_EPOCH="" USAGE_START_EPOCH="" RUN_NO=0 LAST_MODEL=$CUR_MODEL
 # Only a fresh patrol whose entire pool has produced no non-error events can skip the second lap.
 # Never abandon a resumable task or infer availability from another task's probe.
 declare -A COLD_MODELS=()
-POOL_COLD=1
-[ -n "$SESSION" ] && POOL_COLD=0
+declare -A LIMITED_MODELS=()
+POOL_COLD=1 POOL_LIMITED=1 FREE_RESET_AT=""
+[ -n "$SESSION" ] && POOL_COLD=0 POOL_LIMITED=0
 SLOT=""   # set by acquire_slot while this attempt holds a run slot; published in result.env
 LATER_USED=0 LATER_MAX="${LATER_MAX:-3}"
 # QUEUED_AT: epoch when this task first waited for its agent lock (the queue's order, not dir
@@ -205,6 +206,7 @@ write_result() {
     printf 'USAGE_START_EPOCH=%q\n' "$USAGE_START_EPOCH"
     printf 'RUN_NO=%q\nSTOP_REASON=%q\nFINISHED_EPOCH=%q\n' "$RUN_NO" "$STOP_REASON" "$FINISHED_EPOCH"
     printf 'FAILURE_REASON=%q\n' "$FAILURE_REASON"
+    printf 'POOL_RESET_AT=%q\n' "$POOL_RESET_AT"
     printf 'EFFORT_USED=%q\nQUEUED_AT=%q\nWAKE_AT=%q\nNOTIFIED=%q\nNOTIFY_FAILED=%q\nNOTIFY_AT=%q\nRUNNER_API=%q\n' \
       "$EFFORT" "$QUEUED_AT" "$WAKE_AT" "$NOTIFIED" "$NOTIFY_FAILED" "$NOTIFY_AT" "$RUNNER_API"
     printf 'DEADLINE_EPOCH=%q\nMAX_ATTEMPTS=%q\nQUOTA_RESUMES=%q\nLATER_USED=%q\n' "$DEADLINE_EPOCH" "$MAX_ATTEMPTS" "$QUOTA_RESUMES" "$LATER_USED"
@@ -1159,20 +1161,28 @@ PY
     [ -z "$ATEXT" ] && ATEXT=$(tail -n 5 "$alog.err" 2>/dev/null)
     session_exists && show_in_resume_list "$SESSION"
   elif [ "$AGENT" = opencode ]; then
-    # Permissions come from ~/.config/opencode/opencode.json ("permission": "allow").
-    # --print-logs: the log goes to attempt<N>.err (not opencode.log), where wait_attempt sees a
-    # rate limit the moment it happens; WARN keeps it to warnings and errors.
-    local args=(run --format json -m "$CUR_MODEL" --print-logs --log-level WARN)
-    [ -n "$EFFORT" ] && args+=(--variant "$EFFORT")
+    # OpenCode v2. Permissions come from ~/.config/opencode/opencode.json ("permission":
+    # "allow"; v2 normalizes it to its permissions array).
+    # --standalone: one private server per attempt, like v1's one process per attempt. It also
+    # keeps an audit or another task from sharing a background service that a later upgrade can
+    # leave stale. --print-logs: the log goes to attempt<N>.err (not opencode.log); v2 also writes
+    # server info lines there, so it is diagnostic, not the progress signal.
+    # A variant is part of the v2 model reference (`provider/model#variant`), not a flag.
+    local model=$CUR_MODEL
+    [ -n "$EFFORT" ] && model="$model#$EFFORT"
+    local args=(--standalone run --format json -m "$model" --print-logs --log-level warn)
     [ -n "$resumable" ] && args+=(-s "$SESSION")
     ( cd "$CWD" && exec timeout -k 60 "$cap" opencode "${args[@]}" -- "$prompt" </dev/null ) \
       >"$alog.jsonl" 2>"$alog.err" 6>&- 5>&- &
     CHILD=$!; flock -u 5; exec 5>&-; wait_attempt "$alog.jsonl"
-    # opencode 1.18 exits 0 even when the model call failed; the run's `error` events decide.
+    # A v2 run exits non-zero on a provider error, unlike v1's exit 0; the `error` events still
+    # decide, so a run that wrote text but exited non-zero is not counted as a success.
     eval "$(python3 - "$alog.jsonl" <<'PY'
 import json, shlex, sys
 session, texts, order, errors = '', {}, [], []
 responded = False
+free_limit = False
+retry_after = ''
 for line in open(sys.argv[1], errors='replace'):
     line = line.strip()
     if not line.startswith('{'):
@@ -1194,20 +1204,41 @@ for line in open(sys.argv[1], errors='replace'):
         texts[mid].append(part.get('text') or '')
     elif e.get('type') == 'error':
         err = e.get('error') or {}
-        errors.append((err.get('data') or {}).get('message') or err.get('name') or 'error')
+        data = err.get('data') or {}
+        errors.append(data.get('message') or err.get('message') or err.get('name') or 'error')
+        # v2 names a spent free window provider.free-limit and carries the reset as milliseconds.
+        # v1 wrote the same refusal to its log and retried silently inside the run.
+        blob = json.dumps(err, ensure_ascii=False).lower()
+        if (err.get('status') == 429 or err.get('type') == 'provider.free-limit'
+                or 'freeusagelimit' in blob or 'free usage limit' in blob):
+            free_limit = True
+            if isinstance(err.get('retryAfterMs'), (int, float)) and err['retryAfterMs'] > 0:
+                retry_after = str(int(err['retryAfterMs']))
 print('ASESSION=' + shlex.quote(session))
 print('ATEXT=' + shlex.quote('\n'.join(texts[order[-1]]) if order else ''))
 print('AERR=' + shlex.quote(errors[-1] if errors else ''))
 print('NO_RESPONSE=' + ('0' if responded else '1'))
+print('AFREE_LIMIT=' + ('1' if free_limit else ''))
+print('ARETRY_AFTER_MS=' + shlex.quote(retry_after))
 PY
 )"
     [ -n "$ASESSION" ] && SESSION=$ASESSION
-    # Free-tier rate limits carry no reset time the runner can use (opencode alone knows it), so
-    # they are not quota waits: the next pool model is tried at once.
+    # A free-limit error in the JSON stream is the v2 form of v1's silent rate limit: hand the
+    # same session to the next pool model at once. Keep its reset so an all-pool outage can tell
+    # the supervisor when the window opens instead of probing every hour.
+    if [ -n "$AFREE_LIMIT" ]; then
+      RATE_LIMITED=1
+      if [[ $ARETRY_AFTER_MS =~ ^[0-9]+$ ]]; then
+        candidate=$(( $(now) + (ARETRY_AFTER_MS + 999) / 1000 ))
+        if [ -z "$FREE_RESET_AT" ] || [ "$candidate" -gt "$FREE_RESET_AT" ]; then FREE_RESET_AT=$candidate; fi
+      fi
+    fi
     if [ -n "$RATE_LIMITED" ]; then
       AKIND=rate_limited
+      why="Rate limit exceeded"
+      [ -n "$AFREE_LIMIT" ] && why="免费额度用尽（v2 free-limit）"
       ATEXT="${ATEXT:+$ATEXT
-}$CUR_MODEL: Rate limit exceeded（免费档限流，runner 立即换下一个模型）"
+}$CUR_MODEL: $why（runner 立即换下一个模型）"
     elif [ "$ARC" -eq 0 ] && [ -z "$AERR" ] && [[ $ATEXT =~ [^[:space:]] ]]; then
       AKIND=ok
     else
@@ -1479,18 +1510,27 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ] || [ "$NE
     STATE=ok STOP_REASON=completed; break
   fi
   if [ "$NO_RESPONSE" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; else POOL_COLD=0; fi
-  if [ "$AGENT" = opencode ] && [[ $NAME == patrol-* ]] && [ "$POOL_COLD" = 1 ] \
+  if [ "$AGENT" = opencode ]; then
+    if [ -n "$AFREE_LIMIT" ]; then LIMITED_MODELS["$CUR_MODEL"]=1; else POOL_LIMITED=0; fi
+  fi
+  # A patrol whose every pool model was silent or refused by the free window has nothing to gain
+  # from the second lap. v2 reports the refusal as an error event next to a step_start, so the
+  # old "no non-error event" test no longer catches it; track the refusal explicitly.
+  if [ "$AGENT" = opencode ] && [[ $NAME == patrol-* ]] \
+     && { [ "$POOL_COLD" = 1 ] || [ "$POOL_LIMITED" = 1 ]; } \
      && [ "${#MODEL_POOL[@]}" -gt 1 ]; then
     pool_unavailable=1
     for pool_model in "${MODEL_POOL[@]}"; do
       # Price/membership exclusions are not unanswered inference attempts.
       if [ -n "${FREE_POOL_REPORT:-}" ] && ! grep -Fxq "$pool_model" <<<"$allowed_pool"; then continue; fi
-      [ "${COLD_MODELS[$pool_model]:-0}" = 1 ] || pool_unavailable=0
+      if [ "${COLD_MODELS[$pool_model]:-0}" = 1 ] || [ "${LIMITED_MODELS[$pool_model]:-0}" = 1 ]; then continue; fi
+      pool_unavailable=0
     done
     if [ "$pool_unavailable" = 1 ]; then
       FAILURE_REASON=pool_no_response STATE=failed
-      FINAL_TEXT="No response from any patrol pool model (only errors or silence); deferring to supervisor cooldown. $ATEXT"
-      echo "---- $(ts) $FAILURE_REASON: skipping the second pool lap"
+      [ -n "$FREE_RESET_AT" ] && POOL_RESET_AT=$FREE_RESET_AT
+      FINAL_TEXT="No response from any patrol pool model (only errors, free-limit refusals or silence); deferring to supervisor cooldown. $ATEXT"
+      echo "---- $(ts) $FAILURE_REASON: skipping the second pool lap${POOL_RESET_AT:+ (free window resets at $(date -d "@$POOL_RESET_AT" '+%F %T'))}"
       break
     fi
   fi
