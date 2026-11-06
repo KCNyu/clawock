@@ -90,7 +90,7 @@ backups, timers and audit flags.
 
 `--deep` adds discovery through each agent's real entry point, without calling a model, from
 every shared context and in two environments — the interactive one and the bare `HOME` + `PATH`
-a dispatched task starts with: `codex debug prompt-input`, `opencode debug skill` /
+a dispatched task starts with: `codex debug prompt-input`, `opencode api skill.list` /
 `debug paths`, dsh's own `discoverBaselineInstructionFiles` and default skill roots, and for
 each configured dsh profile (`headless`, `web`) that `dsh --profile P --dump-config` mounts
 instruction loading and filesystem skills without moving their roots.

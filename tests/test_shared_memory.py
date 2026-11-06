@@ -196,6 +196,36 @@ def test_attribution_names_the_nearest_agent_process():
     assert memctl.agent_of("bash -c python3 memory.py add x") is None
 
 
+def test_node_cli_follows_a_wrapper_to_its_package_and_pinned_node(tmp_path, monkeypatch):
+    memctl = load_memctl()
+    # The user's home can hold its own package.json above the launcher; it is not dsh's package.
+    (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"claude": "^0.1.1"}}))
+    pkg = tmp_path / "node_modules/@deepseek-ai/dsh"
+    (pkg / "lib").mkdir(parents=True)
+    (pkg / "package.json").write_text(json.dumps({"name": "@deepseek-ai/dsh", "bin": {"dsh": "lib/bin.js"}}))
+    (pkg / "lib/bin.js").write_text("#!/usr/bin/env node\n")
+    node = tmp_path / "node24/bin/node"
+    node.parent.mkdir(parents=True)
+    node.write_text("#!/bin/sh\n")
+    node.chmod(0o755)
+    wrapper = tmp_path / "bin/dsh"
+    wrapper.parent.mkdir()
+    wrapper.write_text(f'#!/bin/sh\nexec {node} \\\n  {pkg}/lib/bin.js "$@"\n')
+    wrapper.chmod(0o755)
+    monkeypatch.setattr(memctl.shutil, "which", lambda name: str(wrapper) if name == "dsh" else None)
+    assert memctl._node_cli("dsh") == (pkg, str(node))
+
+
+def test_skill_list_paths_reads_the_opencode_v2_response():
+    memctl = load_memctl()
+    raw = json.dumps({"location": {"directory": "/root"}, "data": [
+        {"id": "shared-memory", "path": "/root/.agents/skills/shared-memory/SKILL.md"},
+        {"id": "no-path"}, "not a row"]})
+    assert memctl._skill_list_paths(raw) == ["/root/.agents/skills/shared-memory/SKILL.md"]
+    assert memctl._skill_list_paths("not json") is None
+    assert memctl._skill_list_paths(json.dumps({"data": {}})) is None
+
+
 # --- working-directory contexts ------------------------------------------------
 
 def hook_start(kit, cwd, **extra):
