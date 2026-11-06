@@ -165,12 +165,12 @@ FALLBACK_WAIT="${FALLBACK_WAIT:-60}"
 [ "${#MODEL_POOL[@]}" -gt 1 ] && MAX_ATTEMPTS=$(( MAX_ATTEMPTS > 2 * ${#MODEL_POOL[@]} ? MAX_ATTEMPTS : 2 * ${#MODEL_POOL[@]} ))
 STATE=queued RC="" SESSION="${RESUME:-}" ATTEMPTS=0 OUTCOME="" STARTED=$(ts) FINAL_TEXT="" WAITING="" APPENDS=0
 FAILURE_REASON="" STOP_REASON="" POOL_RESET_AT="" FINISHED_EPOCH="" USAGE_START_EPOCH="" RUN_NO=0 LAST_MODEL=$CUR_MODEL
-# Only a fresh patrol whose entire pool has produced no non-error events can skip the second lap.
+# Only a fresh patrol whose entire pool is silent or quota-refused can skip the second lap.
 # Never abandon a resumable task or infer availability from another task's probe.
 declare -A COLD_MODELS=()
 declare -A LIMITED_MODELS=()
-POOL_COLD=1 POOL_LIMITED=1 FREE_RESET_AT=""
-[ -n "$SESSION" ] && POOL_COLD=0 POOL_LIMITED=0
+POOL_UNAVAILABLE=1 FREE_RESET_AT=""
+[ -n "$SESSION" ] && POOL_UNAVAILABLE=0
 SLOT=""   # set by acquire_slot while this attempt holds a run slot; published in result.env
 LATER_USED=0 LATER_MAX="${LATER_MAX:-3}"
 # QUEUED_AT: epoch when this task first waited for its agent lock (the queue's order, not dir
@@ -1509,15 +1509,17 @@ while [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ] || [ "$NEXT_KIND" = append ] || [ "$NE
     [ "$later_rc" -eq 2 ] && break
     STATE=ok STOP_REASON=completed; break
   fi
-  if [ "$NO_RESPONSE" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; else POOL_COLD=0; fi
+  if [ "$NO_RESPONSE" = 1 ]; then COLD_MODELS["$CUR_MODEL"]=1; fi
   if [ "$AGENT" = opencode ]; then
-    if [ -n "$AFREE_LIMIT" ]; then LIMITED_MODELS["$CUR_MODEL"]=1; else POOL_LIMITED=0; fi
+    if [ -n "$AFREE_LIMIT" ]; then LIMITED_MODELS["$CUR_MODEL"]=1; fi
+    # Each attempt may be silent OR quota-refused; a mixed pool is unavailable too.
+    if [ "$NO_RESPONSE" != 1 ] && [ -z "$AFREE_LIMIT" ]; then POOL_UNAVAILABLE=0; fi
   fi
   # A patrol whose every pool model was silent or refused by the free window has nothing to gain
   # from the second lap. v2 reports the refusal as an error event next to a step_start, so the
   # old "no non-error event" test no longer catches it; track the refusal explicitly.
   if [ "$AGENT" = opencode ] && [[ $NAME == patrol-* ]] \
-     && { [ "$POOL_COLD" = 1 ] || [ "$POOL_LIMITED" = 1 ]; } \
+     && [ "$POOL_UNAVAILABLE" = 1 ] \
      && [ "${#MODEL_POOL[@]}" -gt 1 ]; then
     pool_unavailable=1
     for pool_model in "${MODEL_POOL[@]}"; do
