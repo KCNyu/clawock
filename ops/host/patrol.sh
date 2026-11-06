@@ -20,7 +20,7 @@ set -uo pipefail
 export TZ=Asia/Shanghai HOME=/root
 # Keep a PATH the caller already set (the service unit and tests provide one) and append the
 # host's tool directories, so a caller-provided stub still wins.
-export PATH="${PATH:+$PATH:}/root/.local/bin:/root/.local/share/pnpm:/root/.nvm/versions/node/v22.23.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export PATH="${PATH:+$PATH:}/root/.local/bin:/root/.local/share/pnpm:/root/.nvm/versions/node/v24.22.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 TOOL=${PATROL_TOOL_DIR:-/root/tools/clawock-patrol}
 STATE=${PATROL_STATE_DIR:-/root/logs/clawock-patrol}
