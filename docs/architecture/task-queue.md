@@ -41,6 +41,10 @@ task_queue_ops.py [--json] [--source ui|cli|runner] <action> ...
   retry <id>         continue an ended (failed/cancelled/timed-out) task's session as a new task
   append <id> [--queue] [--text T]
                      add an instruction (stdin) to a live task, same session (dispatch.sh append)
+  questions [--all] [--json]
+                     open ask objects and their answer command (dispatch.sh questions)
+  answer <id> <n>|--text T|--resolve [--by S] [--force]
+                     answer one question and continue that task (dispatch.sh answer)
   log <id> [--lines N]   the end of run.log, redacted
   result <id>        the latest final report (read-result.py)
   usage <id>         tokens used and their API-price estimate (text: the result.env lines)
@@ -167,6 +171,61 @@ message_id: null, disposition: "continued_as_new_task"}`. `dispatch.sh status <i
 `attempt<N>.env` (prompt kind, started yes/no, rc, result).
 `dispatch.sh log <id>` aliases ops log. `status --all` lists all retained tasks including
 patrol rounds; the default list stays at ten and includes notification/stop fields.
+
+### Questions — `ask` / `answer` (runner api 6)
+
+A final report may end with one fenced block:
+
+````text
+```agent-dispatch
+{"ask": {"title": "要决定什么", "text": "三行以内", "options": ["选项一", "选项二"],
+         "recommend": 0, "about": "留给接着干的自己：背景、每个选项具体怎么做",
+         "key": "这件事的固定名字"}}
+```
+````
+
+`key` is required; `title` is 1–80 characters, `text` at most 500, 2–5 options of 80
+characters, `recommend` an option index, `about` at most 1000. The runner reads the block
+only when the task produced a report and did not end `cancelled`/`failed`/`timeout`/
+`quota`/`blocked`: a runner failure has no report to turn into a question. A valid block
+writes `<task>/question.json` (immutable: `state=open`, task id, created, `asked_by_run`,
+the dispatch's `ORIGIN_SESSION`), sets `ATTENTION=person` even when the model also wrote
+`NEEDS: none`, and adds a bounded `【等你决定】` block to the end notice (the wake turn
+keeps the notice's first line, which carries `（有 1 个待你决定的问题）`). The raw block is
+stripped from the phone notice; `dispatch.sh result` still prints the full report. A
+malformed block changes no business state: the report is kept, `RECEIPT=invalid` is
+recorded, and the runner does **not** call the model again to rewrite its receipt.
+
+`dispatch.sh questions` lists open questions (task, age in hours, title, options, answer
+command); `--all` includes answered/resolved/expired. A question older than seven days is
+listed as `expired` and needs `--force` to answer.
+
+`dispatch.sh answer <id> <n>` (or `--text`, or `--resolve`) runs only outside a dispatched
+task (the same refusal as `append`/`adopt`). It:
+- requires `question.json`, no existing `answer.json`, a choice in range, and a live task
+  that has ended; `question.lock` plus `O_EXCL` makes the first answer win (a second
+  answers exit 3). A crash after the claim leaves `state=answering`; after five minutes
+  that claim is retired and the answer may be retried;
+- records `answered_by`: `--by`, else `OPENCLAW_MCP_SESSION_KEY`, else `terminal`. When
+  the question carries `ORIGIN_SESSION`, the answer must name that same session; another
+  chat, group or terminal is refused. `--by` is an audit field, not authentication;
+- `--resolve` records `state=resolved` and starts no task;
+- otherwise writes `state=answering`, then dispatches a continuation like
+  `append`-after-end: same `AGENT`/`MODEL`/`EFFORT`/`NOTIFY`, `--resume <SESSION>` and
+  `--cwd` when a session exists, `PARENT_TASK_ID`/`ANSWER_OF` = the parent,
+  `ANSWER_DEPTH` = parent + 1 (cap 3), and a mandate regenerated with
+  `mandate.py create --from <parent>/mandate.json` so its actions/scope/source do not
+  widen. The prompt says which option was chosen, that the answer is not new
+  authorization, and to verify current state and do only the remaining steps. If the
+  parent recorded no session (command-style work), it starts a new task with the parent
+  brief and last report as material instead of pretending to resume;
+- a cancelled parent needs `--force`, recorded in `answer.json`;
+- on success links `resume_task_id` in `answer.json`; if dispatch fails it removes the
+  claim and leaves the question open.
+
+`dispatch.sh status <id>` and `dispatch.sh result <id>` print the question and answer.
+`dispatch.sh questions --json` is the machine-readable form. There is no inline keyboard,
+no public HTTP answering surface and no cross-task `key` de-duplication yet (phase 2).
 
 ### usage — tokens and an estimate, not a bill
 
@@ -421,7 +480,8 @@ as a service; re-read this section after a Claude Code upgrade that changes `cla
 | `NOTICE` | whether the runner attempted the end notice: `attempted` or `none` (`--notify none`) |
 | `RESTART` | the model's last `RESTART:` line: what it restarted, when, and the result |
 | `MANDATE_POLICY_VERSION` | the `dispatch.sh`+`run-agent.sh` hash the task's mandate was accepted under (api 5) |
-| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; `5` also publishes the mandate and `NEEDS/STAGE/ATTENTION`; absent before |
+| `RUNNER_API` | `2` for a runner that honours the queue and `override.env`; `3` also rereads the budgets; `4` also writes `attempt<N>.env` run records; `5` also publishes the mandate and `NEEDS/STAGE/ATTENTION`; `6` also records the ask receipt (`RECEIPT`/`QUESTION`); absent before |
+| `RECEIPT` / `QUESTION` | api 6: `RECEIPT=none|valid|invalid` for the optional block; `QUESTION=open` only when a valid ask wrote `question.json` |
 | `DEADLINE_EPOCH` / `MAX_ATTEMPTS` / `QUOTA_RESUMES` | the budgets the runner is using now (api 3; see *deadline, attempts, resumes*) |
 | `TOKENS_IN` / `TOKENS_CACHE_W` / `TOKENS_CACHE_R` / `TOKENS_OUT` / `TOKENS_TOTAL` / `COST_USD` | the `usage` answer as of the last finished attempt (api 3); `COST_USD` is an API-price estimate, `free`, or empty |
 
@@ -558,7 +618,10 @@ quota-wait notice, 30 s on the cancel path (bounded by the unit's stop budget).
 cancelled or `--notify none`. The agent's last `NEEDS:` line is still a structured fact: `ATTENTION` folds it
 with the runner's state for the chip and `needs_person`, but it no longer decides whether
 the notice is sent. A clean `DONE` with `NEEDS: none` is `ATTENTION=none`/`STAGE=idle` and
-still gets the notice; a missing `NEEDS` line is `unknown` and changes nothing. The WeChat
+still gets the notice; a missing `NEEDS` line is `unknown` and changes nothing. A valid
+`ask` question is the exception to the `NEEDS` reading: it sets `ATTENTION=person`, adds
+`（有 1 个待你决定的问题）` to the first line and a `【等你决定】` block to the notice
+(§ Questions). The WeChat
 leg is mirrored into this chat's transcript, so the notice is in the session's context;
 the Telegram leg goes to its own target and is only a notification. The separate wake turn
 below is what gives the session a turn. A `cancelled` task still sends its notice (30 s

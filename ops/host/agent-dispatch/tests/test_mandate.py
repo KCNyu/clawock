@@ -68,6 +68,28 @@ class MandateTest(unittest.TestCase):
         self.assertEqual(rows[0]["task_id"], "task-1")
         self.assertEqual(rows[0]["source"], "test")
 
+    def test_a_continuation_copies_actions_scope_and_source(self):
+        parent = self.dir / "parent"
+        parent.mkdir()
+        self.assertEqual(MANDATE.main([
+            "create", "--dir", str(parent), "--task-id", "task-1", "--name", "task-1",
+            "--agent", "dsh", "--cwd", "/root", "--policy-version", "dispatch-test",
+            "--source-kind", "chat", "--source-id", "session-1", "--notify", "weixin",
+            "--deny-restart"]), 0)
+        child = self.dir / "child"
+        child.mkdir()
+        self.assertEqual(MANDATE.main([
+            "create", "--dir", str(child), "--task-id", "task-2", "--name", "task-2",
+            "--agent", "dsh", "--cwd", "/root", "--policy-version", "dispatch-test",
+            "--from", str(parent / "mandate.json"), "--notify", "telegram"]), 0)
+        data = json.loads((child / "mandate.json").read_text())
+        self.assertEqual(data["actions"], {"gateway.restart": "deny", "live.refresh": "allow"})
+        self.assertEqual(data["source"], {"kind": "chat", "id": "session-1"})
+        self.assertEqual(data["scope"], {"cwd": "/root", "root": "/root", "repos": []})
+        self.assertEqual(data["strength"], "explicit")
+        self.assertEqual(data["task_id"], "task-2")
+        self.assertEqual(data["notify"]["channels"], ["telegram"])
+
     def test_an_action_not_granted_is_denied_not_ignored(self):
         self.assertEqual(create(self.dir), 0)
         self.assertEqual(self.check("git.force-push"), 3)

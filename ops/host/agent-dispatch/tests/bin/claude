@@ -10,6 +10,8 @@
 #   needs-none    : succeeds with NEEDS: none (still sends the end notice and wakes)
 #   needs-action  : succeeds with a concrete NEEDS action (the end notice must go out)
 #   needs-none-partial: PARTIAL with NEEDS: none (a partial task still needs a person)
+#   ask-ok / ask-invalid: a final report with a valid / malformed ```agent-dispatch ask block
+#   ask-error: the CLI fails, but its error text also carries a valid ask block (never collected)
 #   usage-ok      : writes one assistant message with usage to the transcript (twice, like the
 #                   real CLI's per-content-block lines), then succeeds
 #   slow-transcript: every call appends a transcript line every 3s, 8 times, then succeeds (like
@@ -71,6 +73,21 @@ case "$mode" in
     ;;
   needs-none-partial)
     printf '{"type":"result","subtype":"success","is_error":false,"result":"work left\\nNEEDS: none\\nSTATUS: PARTIAL","session_id":"%s"}\n' "$sid"
+    ;;
+  ask-ok|ask-invalid|ask-error)
+    python3 - "$sid" "$mode" <<'PYASK'
+import json, sys
+sid, mode = sys.argv[1], sys.argv[2]
+ask = {"title": "选一个方案", "text": "两处都需要改，先做哪个？", "options": ["方案甲", "方案乙"],
+       "recommend": 1, "about": "甲快，乙稳", "key": "pick-plan"}
+if mode == "ask-invalid":
+    ask.pop("key")
+text = "结论：需要你选一个方案\nNEEDS: none\nSTATUS: DONE\n\n```agent-dispatch\n" + json.dumps({"ask": ask}, ensure_ascii=False) + "\n```"
+payload = {"type": "result", "subtype": "success", "is_error": mode == "ask-error",
+           "result": text, "session_id": sid}
+print(json.dumps(payload, ensure_ascii=False))
+sys.exit(1 if mode == "ask-error" else 0)
+PYASK
     ;;
   usage-ok)
     for _ in 1 2; do

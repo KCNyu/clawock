@@ -59,6 +59,28 @@ class ResultTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 module.read_result(root)
 
+    def test_report_prints_the_question_and_one_answer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "task-1"
+            root.mkdir()
+            (root / "attempt1.json").write_text(json.dumps({"result": "done\nSTATUS: DONE"}))
+            (root / "meta.env").write_text("ID=task-1\nNOTIFY=none\n")
+            (root / "result.env").write_text("STATE=ok\nOUTCOME=DONE\n")
+            (root / "question.json").write_text(json.dumps({
+                "state": "open", "key": "pick", "asked_by_run": 1, "title": "选一个",
+                "options": ["甲", "乙"]}))
+            text = module.report(root)
+            self.assertIn("question: open key=pick asked_by_run=1", text)
+            self.assertIn("question_option_2: 乙", text)
+            self.assertIn("answer_command: dispatch.sh answer task-1 <n>", text)
+            (root / "answer.json").write_text(json.dumps({
+                "state": "answered", "choice": 2, "choice_text": "乙",
+                "answered_by": "agent:main:x:direct:y", "answered_at": "2026-01-01 00:00:00",
+                "resume_task_id": "task-1-answer"}))
+            text = module.report(root)
+            self.assertIn("answer: choice=2 text=乙", text)
+            self.assertIn("resumed_as=task-1-answer", text)
+
     def test_interrupted_codex_commentary_is_not_a_report(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
