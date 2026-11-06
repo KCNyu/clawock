@@ -110,6 +110,8 @@ const dictionaries = {
 		"balance.unconfiguredKey": "未配置 API Key",
 		"balance.fetchFailed": "余额获取失败",
 		"balance.windowsUsed": "配额窗口已使用",
+		"balance.used": "已用",
+		"balance.usedValue": "已用 {percent}",
 		"balance.apiBalance": "API 余额",
 		"balance.granted": "赠金 ",
 		"balance.toppedUp": "充值 ",
@@ -651,6 +653,8 @@ const dictionaries = {
 		"balance.unconfiguredKey": "No API key configured",
 		"balance.fetchFailed": "Balance unavailable",
 		"balance.windowsUsed": "Quota windows in use",
+		"balance.used": "used",
+		"balance.usedValue": "{percent} used",
 		"balance.apiBalance": "API balance",
 		"balance.granted": "Granted ",
 		"balance.toppedUp": "Topped up ",
@@ -2219,7 +2223,8 @@ function sourceView(source, row, result, t) {
 		value: {
 			text: reading.value,
 			tone: reading.tone,
-			level: reading.level
+			level: reading.level,
+			unit: row?.result.snapshot?.unit === "pct" ? t("balance.used") : void 0
 		},
 		state: queue?.chip ?? null,
 		facts: {},
@@ -2849,7 +2854,7 @@ function factText(fact, t) {
 */
 function rowText(view, t, opts = {}) {
 	const kind = ROW_KINDS[view.kind];
-	const value = kind.value && view.value != null ? (view.value.tone === "low" && opts.warn !== false ? "⚠" : "") + view.value.text : null;
+	const value = kind.value && view.value != null ? (view.value.tone === "low" && opts.warn !== false ? "⚠" : "") + (view.value.unit === void 0 ? "" : view.value.unit + " ") + view.value.text : null;
 	const state = view.state === null ? null : ROLE_MARK[view.state.role] + view.state.text;
 	const facts = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null).map((slot) => factText(view.facts[slot], t)).filter((text) => text !== "");
 	const listed = view.kind === "task" || view.kind === "ended" || view.kind === "round";
@@ -2889,7 +2894,7 @@ function panelText(model, t) {
 		out.push(["**" + literal(name) + "**" + literal(head.slice(name.length).replace(/^ +/, " ")), ...prose(caption)].join(" · "));
 		if (group.balanceNote !== null) out.push("- ⚠ " + literal(group.balanceNote));
 		for (const w of windows) {
-			const pct = w.percent === null ? "—" : Math.round(w.percent) + "%";
+			const pct = w.percent === null ? "—" : t("balance.usedValue", { percent: Math.round(w.percent) + "%" });
 			out.push(`- **${literal(w.label)}** ${bar(w.fill)} ${pct}` + (w.state === "low" ? " ⚠" : "") + (w.reset === "" ? "" : " ↻" + literal(w.reset)));
 		}
 		if (group.detail?.kind === "text") out.push("- " + literal(group.detail.text));

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// node quota.mjs claude|codex|dsh — one line of the agent's remaining allowance for the finish /
-// quota-wait notifications: subscription quota for claude/codex, the DeepSeek money balance for
+// node quota.mjs claude|codex|dsh — one line of the agent's allowance for the finish / quota-wait
+// notifications. Quota windows print the USED share, the same direction as the panel and the
+// CLI's own `已用尽` line: subscription quota for claude/codex, the DeepSeek money balance for
 // dsh. Reuses the clawock-dsh balance chip's readers (Claude OAuth usage endpoint, `codex
 // app-server` account/rateLimits/read, DeepSeek /user/balance) and its window vocabulary (label
 // from window length, one reset-stamp format), so WeChat and the chip read the same.
@@ -127,8 +128,9 @@ async function probe() {
   if (result.status !== 'fresh' || windows.length === 0) {
     return { line: `额度：读取失败（${result.message ?? '没有额度窗口'}）`, ok: false }
   }
-  // The chip speaks in used percent; the notification answers "how much is left".
-  const parts = windows.map((w) => `${w.label} 剩 ${100 - w.percent}%` + (w.resetAt ? `（${w.resetAt} 重置）` : ''))
+  // One direction everywhere: the chip, this line and the panel all print the used share, so
+  // 'week 88%' cannot read as remaining 88% while the other surface says 12%.
+  const parts = windows.map((w) => `${w.label} 已用 ${w.percent}%` + (w.resetAt ? `（${w.resetAt} 重置）` : ''))
   return { line: '额度：' + parts.join(' · ') + (result.snapshot.isAvailable ? '' : ' · ' + unavailable(windows)), ok: true }
 }
 

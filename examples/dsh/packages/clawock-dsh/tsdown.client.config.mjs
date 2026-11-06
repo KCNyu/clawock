@@ -85,7 +85,7 @@ export default defineConfig({
   // The loader module table answers `react` and the runtime store engine; the
   // generated Remote contribution and every plain library inline.
   deps: {
-    neverBundle: ['react', 'react/jsx-runtime', 'react/jsx-dev-runtime', /^@deepseek-ai\//],
+    neverBundle: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', /^@deepseek-ai\//],
     alwaysBundle: ['zod'],
   },
   plugins: [cssModules],

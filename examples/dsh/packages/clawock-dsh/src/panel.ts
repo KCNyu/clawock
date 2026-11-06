@@ -558,7 +558,7 @@ export type RowView = {
   key: string
   lead?: RowLead | null
   name: string
-  value?: { text: string; tone: BalanceTone; level: UsedLevel | null } | null
+  value?: { text: string; tone: BalanceTone; level: UsedLevel | null; unit?: string } | null
   state: SlotChip | null
   facts: Partial<Record<FactSlot, Fact | null>>
   /** A head's line 2: what the source is (plan · slots · pool) or what a section is doing. Words, never chips. */
@@ -933,7 +933,10 @@ export function sourceView(source: PanelSource, row: BalanceRow | undefined, res
     key: source.key,
     lead: { source },
     name: source.label,
-    value: { text: reading.value, tone: reading.tone, level: reading.level },
+    // A bare '88%' does not say which direction it runs; kcn read the panel's
+    // used share against the CLI's remaining share (2026-11-06). The unit word
+    // rides on the value in every surface, from the same percent as the bar.
+    value: { text: reading.value, tone: reading.tone, level: reading.level, unit: row?.result.snapshot?.unit === 'pct' ? t('balance.used') : undefined },
     state: queue?.chip ?? null,
     facts: {},
     caption: [

@@ -380,7 +380,16 @@ async function loadClient() {
   globalThis.window = { __ModuleLoader__: { load(entry) { loaded = entry; } } };
   await import(clientUrl());
   assert.ok(loaded, "client.js must register through the module loader");
-  return loaded;
+  // The client portals its foot panel to <body> through react-dom. The test
+  // tree is not a DOM, so transparently answer that module for every caller's
+  // require function; createPortal returns its children unchanged.
+  const factory = loaded.factory;
+  return {
+    ...loaded,
+    factory(requireFn) {
+      return factory((id) => (id === "react-dom" ? { createPortal: (children) => children } : requireFn(id)));
+    },
+  };
 }
 
 test("client: registers the Decision Mind tab and mounts the remote face", async () => {
@@ -2572,8 +2581,8 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   let foot = render();
   assert.deepEqual(lines(foot).map((l) => l.props["data-pp-row"]), ["deepseek", "minimax"]);
   assert.equal(texts(lines(foot)[0]), "DeepSeek ¥110");
-  assert.equal(texts(lines(foot)[1]), "MiniMax 24%", "resident: name and reading, nothing that needs a legend");
-  assert.match(lines(foot)[1].props["aria-label"], /^MiniMax · 24% · ↻ 21:00 · /, "the headline window's reset is still read out");
+  assert.equal(texts(lines(foot)[1]), "MiniMax 已用 24%", "resident: name, reading and its used/remaining direction");
+  assert.match(lines(foot)[1].props["aria-label"], /^MiniMax · 已用 24% · ↻ 21:00 · /, "the direction and the headline window's reset are still read out");
   assert.equal(lines(foot)[0].props["data-balance-state"], "ok");
   assert.equal(lines(foot)[0].props["aria-expanded"], false);
   assert.equal(popover(foot).props["data-open"], "false");
@@ -2582,7 +2591,7 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.equal(popover(foot).props.inert, "", "a closed popover must be inert, not just transparent");
   const railTrigger = rail(render(false));
   assert.match(railTrigger.props.title, /DeepSeek ¥110/, "the rail keeps every reading in its title");
-  assert.match(railTrigger.props["aria-label"], /MiniMax 24%/, "and reads it out");
+  assert.match(railTrigger.props["aria-label"], /MiniMax 已用 24%/, "and reads it out, with the direction");
   const railClasses = find(railTrigger, (p) => typeof p.className === "string").flatMap((node) => node.props.className.split(" "));
   assert.ok(railClasses.some((token) => token.endsWith("_bal-lead")), "the rail renders the glyph wrapper class");
   assert.ok(railClasses.some((token) => token.endsWith("_bal-glyph")), "the rail renders the gauge class");
@@ -2604,7 +2613,7 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.match(texts(ds), /DeepSeek ¥110 本机 API 账户 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount on the head, its split under it, no bar (⑤)");
   assert.equal(find(ds, (p) => p["data-pp-provider"] === "deepseek").length, 1, "the source uses its whale glyph");
   assert.equal(find(ds, (p) => typeof p.className === "string" && p.className.endsWith("_bp-win-bar")).length, 0);
-  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax 24% Token Plan · 源：OpenClaw 配置 .*5h 24% ↻ 21:00/);
+  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax 已用 24% Token Plan · 源：OpenClaw 配置 .*5h 已用 24% ↻ 21:00/);
 
   // One refresh forces both halves once, keeps the panel open and paints the low reading.
   find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
@@ -2860,9 +2869,9 @@ test("quota line: an exhausted window says quota, names when it is back, and rul
   const fresh = (windows, isAvailable) => ({ status: "fresh", message: null, snapshot: { isAvailable, windows } });
   try {
     assert.equal(line(fresh([win("5h", 17, "今天 22:19", 2000), win("周", 1, "10/18 周日 20:00", 9000)], true)),
-      "额度：5h 剩 83%（今天 22:19 重置） · 周 剩 99%（10/18 周日 20:00 重置）", "a usable account gains no words");
+      "额度：5h 已用 17%（今天 22:19 重置） · 周 已用 1%（10/18 周日 20:00 重置）", "a usable account gains no words");
     const weekOut = line(fresh([win("5h", 17, "今天 22:19", 2000), win("周", 100, "今天 19:59", 1000)], false));
-    assert.match(weekOut, /周 剩 0%（今天 19:59 重置） · 周额度已用尽，今天 19:59 恢复（登录正常，不用重新登录）$/);
+    assert.match(weekOut, /周 已用 100%（今天 19:59 重置） · 周额度已用尽，今天 19:59 恢复（登录正常，不用重新登录）$/);
     assert.doesNotMatch(weekOut, /当前不可用/);
     const bothOut = line(fresh([win("5h", 100, "今天 21:58", 1000), win("周", 100, "10/18 周日 11:57", 9000)], false), "codex");
     assert.match(bothOut, /5h、周额度已用尽，10\/18 周日 11:57 恢复/, "back when the LAST exhausted window resets");
@@ -3140,7 +3149,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   assert.deepEqual(redFills.map((p) => p.style.width), ["88%", "95%"], "the bars keep their full lengths at the watermark");
   assert.equal(winLines.length, 2, "per-window lines survive the red tier (#908)");
   assert.ok(redTexts.includes("5h") && redTexts.includes("周"), "window labels stay rendered");
-  assert.ok(redTexts.includes("88%") && redTexts.includes("95%"), "window percentages stay rendered");
+  assert.ok(redTexts.some((t) => t.includes("88%")) && redTexts.some((t) => t.includes("95%")), "window percentages stay rendered");
   assert.ok(redTexts.includes("↻ 21:00") && redTexts.includes("↻ 周四 21:00"), "reset stamps stay rendered");
   assert.ok(
     // The window lines above already name the window that crossed the line
@@ -3156,7 +3165,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
     return null;
   })(tree3);
   assert.equal(redChip["data-used-level"], "low", "the headline tints red inside the watermark");
-  assert.ok(redTexts.includes("88%"), "the headline number itself stays");
+  assert.ok(redTexts.some((t) => t.includes("88%")), "the headline number itself stays");
   assert.ok(redTexts.some((t) => t.includes("周 95%")), "the weekly sub-reading stays on the pill");
   assert.ok(redTexts.includes("↻ 21:00"), "the headline reset stamp stays on the pill");
   disposeReactEffects();
@@ -4528,7 +4537,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   let tree = render();
   const claude = find(tree, (p) => p["data-pp-group"] === "claude")[0];
   assert.match(texts(claude), /刷新失败（429 Too Many Requests），显示 .* 的读数/, "① the failure and the time of the reading still shown");
-  assert.match(texts(claude), /会话 36%/, "① the last good windows are kept, not dropped");
+  assert.match(texts(claude), /会话 已用 36%/, "① the last good windows are kept, not dropped");
   assert.match(texts(claude), /new-run .*\$0\.04/, "the row carries its cost");
   assert.match(texts(find(tree, (p) => p["data-pp-group"] === "opencode")[0]), /池 A → 下一个 B（表序）/, "④ pool position, labelled as file order");
   assert.equal(find(tree, (p) => p["data-pp-group"] === "opencode" && /\d+%/.test(texts(find(tree, (q) => q["data-pp-group"] === "opencode")[0]))).length, 0,
@@ -4543,7 +4552,7 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assertDetailOrder(api, layer, "live");
   // The list moved these here (#2129): the plan that pays, the windows with their resets.
   assert.match(texts(find(layer, (p) => p["data-tq-section"] === "allowance")[0]),
-    /额度 Agent Claude Code 槽 1 \/ 1 额度来源 Anthropic 订阅 刷新失败.*窗口 会话 36% ↻ 10:00 本周 69% ↻ 周四 10:00/);
+    /额度 Agent Claude Code 槽 1 \/ 1 额度来源 Anthropic 订阅 刷新失败.*窗口 会话 已用 36% ↻ 10:00 本周 已用 69% ↻ 周四 10:00/);
   // Writes sit beside the fact they change; reads are one quiet row; the ending writes come last.
   const homes = actionHomes(layer);
   assert.deepEqual(Object.keys(homes), ["brief", "log", "timeline", "model", "deadline", "attempts", "resumes", "wrapup", "cancel", "raw-log"]);
@@ -4997,8 +5006,9 @@ test("openclaw /dispatch-list: the reply says every panel row, in order, in the 
       const name = cell(row, "name");
       const line = reply.findIndex((l, i) => i >= at && l.includes(name));
       assert.ok(line >= 0, `${row.props["data-tq-row"]} "${name}" is in the reply after line ${at}:\n${reply.join("\n")}`);
+      const squash = (text) => text.replace(/\s+/g, "");
       for (const said of [cell(row, "value"), texts(find(row, (p) => p["data-tq-chip"] === "status"))]) {
-        if (said !== "") assert.ok(reply[line].includes(said), `"${said}" is on ${name}'s line: ${reply[line]}`);
+        if (said !== "") assert.ok(squash(reply[line]).includes(squash(said)), `"${said}" is on ${name}'s line: ${reply[line]}`);
       }
       for (const fact of find(row, (p) => p["data-tq-fact"] !== undefined && p["data-tq-fact"] !== "receipt")) {
         assert.ok(reply[line].includes(texts(fact)), `${name}'s ${fact.props["data-tq-fact"]} "${texts(fact)}" is on its line: ${reply[line]}`);
@@ -5301,4 +5311,32 @@ test("patrol issue failures preserve the last good queue, disclose stale and ret
     cp.default.execFile = original; syncBuiltinESMExports();
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("client: the phone foot panel is clamped to the viewport", async () => {
+  // 0.2.2's phone sidebar is a transformed drawer; the panel is portaled to
+  // <body> so it is not clipped, and this clamp keeps a row that is not at
+  // x=0 from pushing the 360px card past the right edge (which mobile Safari
+  // answers with a zoomed-out page). Pure inputs, no browser needed.
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-store") return {};
+    if (s === "react") return makeReactStub();
+    if (s === "react-dom") return { createPortal: (children) => children };
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const phone = api._popoverAnchor({ left: 8, top: 568 }, 390, 844);
+  assert.deepEqual(phone, { left: 8, bottom: 284, room: 548 });
+  // A row inside a drawer that starts at 42: deck the card 22px right so its
+  // 360px width still ends 8px inside the 390px viewport.
+  assert.equal(api._popoverAnchor({ left: 42, top: 568 }, 390, 844).left, 22);
+  const narrow = api._popoverAnchor({ left: 8, top: 540 }, 360, 800);
+  assert.equal(narrow.left, 8);
+  assert.equal(narrow.left + 336, 344, "336px panel fits 360px minus two 8px margins");
+  const tiny = api._popoverAnchor({ left: 0, top: 400 }, 320, 568);
+  assert.ok(tiny.left >= 8 && tiny.left + 296 <= 312, "296px panel fits 320px");
+  assert.equal(tiny.room, 380, "room is the space above the row, not the viewport");
+  assert.equal(api._popoverAnchor({ left: 700, top: 900 }, 390, 844).bottom, 8, "a row below the fold keeps the card above the bottom edge");
+  assert.equal(api._popoverAnchor({ left: 8, top: 200 }, 1280, 900).room, 240, "the top gap never squeezes the panel below its floor");
 });

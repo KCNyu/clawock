@@ -229,8 +229,8 @@ expect_grep "codex uses --json" "[--json]" "$FAKE_DIR/codex.argv"
 expect_grep "codex 2nd call is exec resume <session> <prompt>" "call 2 argv: [exec] [resume]" "$FAKE_DIR/codex.argv"
 expect_grep "codex resume passes session before the prompt" "[99999999-8888-7777-6666-555555555555] [继续" "$FAKE_DIR/codex.argv"
 expect_grep "codex reset read from the rollout, not the message days away" "(from rollout)" "$d2/run.log"
-expect "quota-wait and finish notices carry the remaining quota" "$(grep -c '额度：5h 剩 80%' "$FAKE_DIR/openclaw.messages")" 4
-expect "quota line follows the do-not-cancel sentence" "$(grep -A1 '不用取消' "$FAKE_DIR/openclaw.messages" | grep -c '^额度：5h 剩 80%')" 2
+expect "quota-wait and finish notices carry the used share" "$(grep -c '额度：5h 已用 20%' "$FAKE_DIR/openclaw.messages")" 4
+expect "quota line follows the do-not-cancel sentence" "$(grep -A1 '不用取消' "$FAKE_DIR/openclaw.messages" | grep -c '^额度：5h 已用 20%')" 2
 expect "each quota wait sends a do-not-cancel notice" "$(grep -c '不用取消' "$FAKE_DIR/openclaw.messages")" 2
 cf=$CLAUDE_CONFIG_DIR/projects/-root/$sid1.jsonl
 expect "claude transcript relabeled for /resume" "$(grep -c '"entrypoint":"sdk-cli"' "$cf")/$(grep -c '"entrypoint":"cli"' "$cf")" 0/2
@@ -759,7 +759,7 @@ cost_case priced claude slow-ok 0.26
 expect "a priced run freezes COST_USD and finishes" "$COST_RC/$(field "$COST_DIR" STATE)/$(field "$COST_DIR" COST_USD)" "0/ok/0.26"
 expect "the notice shows the amount with the estimate marker" "$(grep -cF '花费：$0.26（按 API 价估算）' "$FAKE_DIR/openclaw.messages")" 1
 expect "cost and quota are separate lines" "$(grep -c '额度：.*花费：' "$FAKE_DIR/openclaw.messages")" 0
-expect "the quota line still goes out" "$(grep -c '^额度：5h 剩 80%' "$FAKE_DIR/openclaw.messages")" 1
+expect "the quota line still goes out" "$(grep -c '^额度：5h 已用 20%' "$FAKE_DIR/openclaw.messages")" 1
 
 cost_case zero claude slow-ok 0.00
 expect "a priced zero is shown, not hidden" "$(grep -cF '花费：$0.00（按 API 价估算）' "$FAKE_DIR/openclaw.messages")" 1

@@ -44,7 +44,10 @@ function factText(fact: Fact, t: Translate): string {
  */
 export function rowText(view: RowView, t: Translate, opts: { warn?: boolean } = {}): string[] {
   const kind = ROW_KINDS[view.kind]
-  const value = kind.value && view.value != null ? (view.value.tone === 'low' && opts.warn !== false ? '⚠' : '') + view.value.text : null
+  const value = kind.value && view.value != null
+    ? (view.value.tone === 'low' && opts.warn !== false ? '⚠' : '')
+      + (view.value.unit === undefined ? '' : view.value.unit + ' ') + view.value.text
+    : null
   const state = view.state === null ? null : ROLE_MARK[view.state.role] + view.state.text
   const facts = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null)
     .map((slot) => factText(view.facts[slot]!, t))
@@ -88,7 +91,7 @@ export function panelText(model: PanelModel, t: Translate): string {
     out.push(['**' + literal(name) + '**' + literal(head!.slice(name.length).replace(/^ +/, ' ')), ...prose(caption)].join(' · '))
     if (group.balanceNote !== null) out.push('- ⚠ ' + literal(group.balanceNote))
     for (const w of windows) {
-      const pct = w.percent === null ? '—' : Math.round(w.percent) + '%'
+      const pct = w.percent === null ? '—' : t('balance.usedValue', { percent: Math.round(w.percent) + '%' })
       out.push(`- **${literal(w.label)}** ${bar(w.fill)} ${pct}` + (w.state === 'low' ? ' ⚠' : '') + (w.reset === '' ? '' : ' ↻' + literal(w.reset)))
     }
     if (group.detail?.kind === 'text') out.push('- ' + literal(group.detail.text))
