@@ -1138,6 +1138,7 @@ fi
 
 if [ "${DISPATCH_TEST_CASES:-}" = ask ]; then
   echo; echo "=== [ask] the optional ask question object (runner api 6) ($(date +%T))"
+  ask_msgs=$FAKE_DIR/openclaw.messages
   reset_fake claude ask-ok
   d=$(mk ask-task claude 900 300 weixin)
   e=0; bash "$R" "$d" || e=$?
@@ -1154,9 +1155,9 @@ q = json.load(open(d / "question.json"))
 print(f"{q['task_id'] == meta['ID']}/{q['asked_by_run']}/{q['key']}/{q['recommend']}/{len(q['options'])}")
 PYQ
 )" "True/1/pick-plan/1/2"
-  expect_grep 'the end notice names the question and options' '【等你决定】' "$FAKE_DIR/openclaw.messages"
-  expect_grep 'the recommended option is marked' '2. 方案乙（推荐）' "$FAKE_DIR/openclaw.messages"
-  expect_grep 'the notice carries the answer command' "dispatch.sh answer ask-task" "$FAKE_DIR/openclaw.messages"
+  expect_grep 'the end notice names the question and options' '【等你决定】' "$ask_msgs"
+  expect_grep 'the recommended option is marked' '2. 方案乙（推荐）' "$ask_msgs"
+  expect_grep 'the notice carries the answer command' "dispatch.sh answer ask-task" "$ask_msgs"
   expect 'the model still wrote NEEDS: none (the runner did not rewrite the report)' \
     "$(grep -c 'NEEDS: none' "$d/runner-summary.txt")" 1
 
@@ -1167,7 +1168,7 @@ PYQ
   expect 'a malformed ask is invalid and writes no question' \
     "$(field "$d" RECEIPT)/$(field "$d" QUESTION)/$(test -e "$d/question.json" && echo yes || echo no)" invalid//no
   expect 'the ordinary notice still goes out' "$(send_count)" 1
-  expect 'the notice does not claim a question' "$(grep -c '【等你决定】' "$FAKE_DIR/openclaw.messages" || true)" 0
+  expect 'the notice does not claim a question' "$(grep -c '【等你决定】' "$ask_msgs" || true)" 0
 
   reset_fake claude ask-error
   d=$(mk ask-error claude 900 300 none)
