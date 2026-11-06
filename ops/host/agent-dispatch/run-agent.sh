@@ -456,7 +456,7 @@ sys.stdout.write(s[:n] if mode == "head" else s[-n:])' "$1" "$2"
 
 redact() {
   sed -E 's/(token|api[_-]?key|secret|password)=[^[:space:]&"]+/\1=<redacted>/Ig;
-          s/(sk|ghp|gho|github_pat|xox[bp])[-_][A-Za-z0-9_-]{12,}/<redacted>/g'
+          s/(^|[^A-Za-z0-9])(sk|ghp|gho|github_pat|xox[bp])[-_][A-Za-z0-9_-]{12,}/\1<redacted>/g'
 }
 
 # One channel, one try. The label lands in the log, so a run that only reached half its

@@ -51,6 +51,9 @@ task_queue_ops.py [--json] [--source ui|cli|runner] <action> ...
   brief <id>         prompt.md and the appends (inbox/, inbox/delivered/), capped at 64 KB
   summary [--since YYYY-MM-DD] [--agent a,b] [--all]
                      per-agent frozen task/token totals (read-only; see below)
+  why <id>           one page: dispatch, mandate, models, runs, appends, waits, notices, result
+  history ... [--attention person|none|unknown]
+                     filter the metadata index by the recorded ATTENTION
   deadline <id> <+Nh|+Nm|YYYY-MM-DD HH:MM|reset>
   attempts <id> <n|reset>
   resumes <id> <n|reset>
@@ -791,6 +794,18 @@ RPC, so the new client can read the updated installed ops entry without a host r
 It reads stamped supervisor events, append submission filenames, audit writes and the latest
 notification receipt, sorted by the recorded local timestamp. Append submission and delivery
 are distinct events. A `result.env` UPDATED write is not a completion event.
+
+`dispatch.sh why <id>` (ops `why`) answers "why did this run, wait or notify like that"
+in one page without reading the prompt or a log body: the dispatch origin/parent, the
+mandate's actions/source/policy, the free-pool selection and its reasons (when present),
+each `attempt<N>.env` (kind, start/end, rc, result, duration, model from the timeline),
+append submission/delivery/`taken_not_started`, wake `quota`/`end` state, notification
+legs, `STATE`/`OUTCOME`/`NEEDS`/`RESTART`, the first report line, question/answer, current
+and recent `later` waits, and the audit changes. `--json` returns the same object; the text
+answer is a bounded rendering. Secret-shaped strings are redacted and session ids/UUIDs
+are shortened to a prefix; the full report stays `result` and the full prompt/`brief` and
+`log` are separate commands. `history --attention person` lists only tasks whose recorded
+ATTENTION is `person` (the "what is waiting for me" query).
 
 This is a view of existing evidence, not a new runner state machine. Old logs can have gaps;
 missing logs are labelled. A large run log is bounded to a 2 MiB head and 2 MiB tail, the audit
