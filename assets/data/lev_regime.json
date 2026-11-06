@@ -1,31 +1,31 @@
 {
-  "generated_at": "2026-11-05T00:04:08.269262+00:00",
-  "as_of": "2026-11-04",
+  "generated_at": "2026-11-06T00:04:04.299140+00:00",
+  "as_of": "2026-11-05",
   "index": "HSTECH",
   "source": "tencent",
-  "bars": 1436,
-  "close": 3936.02,
+  "bars": 1437,
+  "close": 4154.29,
   "ma_window": 200,
-  "ma": 4787.04,
-  "dist_ma_pct": -17.8,
+  "ma": 4778.47,
+  "dist_ma_pct": -13.1,
   "vol_window": 20,
-  "vol_annualized": 0.3281,
+  "vol_annualized": 0.3882,
   "vol_cap": 0.5,
   "trend_on": false,
   "vol_ok": true,
   "tier": "amber",
   "lev_cap_mult": 0.5,
   "label": "趋势OFF：杠杆敞口上限砍半",
-  "rationale": "HSTECH 3936 低于 200日线 4787 (-17.8%)；20日波动 33% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
+  "rationale": "HSTECH 4154 低于 200日线 4778 (-13.1%)；20日波动 39% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
   "hk": {
-    "as_of": "2026-11-04",
+    "as_of": "2026-11-05",
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "close": 3936.02,
-    "ma": 4787.04,
-    "dist_ma_pct": -17.8,
-    "vol_annualized": 0.3281,
+    "close": 4154.29,
+    "ma": 4778.47,
+    "dist_ma_pct": -13.1,
+    "vol_annualized": 0.3882,
     "trend_on": false,
     "vol_ok": true
   },
@@ -34,12 +34,12 @@
       {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "as_of": "2026-11-04",
-        "close": 52.37,
-        "ma": 79.25,
+        "as_of": "2026-11-05",
+        "close": 45.99,
+        "ma": 79.04,
         "ma_window": 200,
-        "dist_ma_pct": -33.9,
-        "vol_annualized": 0.7442,
+        "dist_ma_pct": -41.8,
+        "vol_annualized": 0.8288,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": false,
@@ -50,21 +50,21 @@
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "as_of": "2026-11-04",
-        "close": 135.92,
-        "ma": 138.44,
+        "as_of": "2026-11-05",
+        "close": 123.62,
+        "ma": 134.39,
         "ma_window": 5,
-        "dist_ma_pct": -1.8,
-        "vol_annualized": 0.5886,
+        "dist_ma_pct": -8.0,
+        "vol_annualized": 0.6462,
         "vol_n_returns": 20,
         "vol_unavailable_reason": null,
         "trend_on": false,
         "state": "cut",
         "regime_basis": "short_ma_5",
-        "note": "SPCX 新上市仅 101 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上"
+        "note": "SPCX 新上市仅 102 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上"
       }
     ],
-    "as_of": "2026-11-04",
+    "as_of": "2026-11-05",
     "tier": "red",
     "label": "2 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）",
     "vol_hot_cap": 0.7,
@@ -73,12 +73,6 @@
   },
   "regime_history": {
     "hk": {
-      "2026-03-27": {
-        "trend_on": false,
-        "dist_ma_pct": -14.7,
-        "mom_pct": -4.0,
-        "regime3": "bear"
-      },
       "2026-03-30": {
         "trend_on": false,
         "dist_ma_pct": -16.2,
@@ -972,15 +966,15 @@
         "dist_ma_pct": -17.8,
         "mom_pct": -1.5,
         "regime3": "chop"
+      },
+      "2026-11-05": {
+        "trend_on": false,
+        "dist_ma_pct": -13.1,
+        "mom_pct": 9.5,
+        "regime3": "bull"
       }
     },
     "us": {
-      "2026-04-02": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": -1.4,
-        "regime3": "chop"
-      },
       "2026-04-06": {
         "trend_on": null,
         "dist_ma_pct": null,
@@ -1874,16 +1868,22 @@
         "dist_ma_pct": 1.7,
         "mom_pct": -4.6,
         "regime3": "bear"
+      },
+      "2026-11-05": {
+        "trend_on": false,
+        "dist_ma_pct": -4.9,
+        "mom_pct": -8.2,
+        "regime3": "bear"
       }
     },
     "meta": {
       "hk_index": "HSTECH",
       "us_index": "QQQ",
-      "us_bars": 234,
+      "us_bars": 235,
       "ma_window": 200,
       "mom_window": 10,
       "mom_band_pct": 3.0,
-      "note": "regime3=近10日动量分 牛(>+3%)/熊(<-3%)/震荡；trend_on=200日线；US 用 QQQ，共 234 根（≥200，已可判趋势）"
+      "note": "regime3=近10日动量分 牛(>+3%)/熊(<-3%)/震荡；trend_on=200日线；US 用 QQQ，共 235 根（≥200，已可判趋势）"
     }
   }
 }

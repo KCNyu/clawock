@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-11-05T05:35:46+08:00",
+  "generated_at": "2026-11-06T05:06:47+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -50,7 +50,7 @@
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "51 / 需要 24 · ✅"
+          "value": "52 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -70,7 +70,7 @@
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.03048, 0.01913] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.02826, 0.02225] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
@@ -134,7 +134,7 @@
       "verdict": "🟢 通过",
       "verdict_key": "passed",
       "tone": "good",
-      "sample": "留痕 107 天",
+      "sample": "留痕 108 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 2/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -144,15 +144,15 @@
         },
         {
           "label": "`rsi_oversold_bounce`",
-          "value": "命中率 56.7% · CI95 [31.4%, 92.1%] · n=60（33 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 59.4% · CI95 [34.7%, 92.6%] · n=64（34 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 62.2% · CI95 [51.9%, 71.1%] · n=473（88 日 × 12 标的）· ✅ 可入决策"
+          "value": "命中率 61.7% · CI95 [52.1%, 70.2%] · n=481（89 日 × 12 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 60.7% · CI95 [50.3%, 70.1%] · n=603（99 日 × 10 标的）· ✅ 可入决策"
+          "value": "命中率 60.4% · CI95 [51.1%, 69.4%] · n=609（100 日 × 10 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_on_follow`",
@@ -165,5 +165,5 @@
       ]
     }
   ],
-  "built_at": "2026-11-05T00:04:54.012516+00:00"
+  "built_at": "2026-11-06T00:04:44.251858+00:00"
 }

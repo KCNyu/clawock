@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-05T08:05:04.260731+08:00",
-  "as_of": "2026-11-05",
-  "context_generation_id": "52f6f45dcb523904",
+  "generated_at": "2026-11-06T08:04:53.259230+08:00",
+  "as_of": "2026-11-06",
+  "context_generation_id": "cff27b41fd23f26a",
   "judgment_status": "valid",
   "judgment_issues": [],
   "portfolio_judgment": {
-    "assessment": "今天三笔主动动作全是纪律性的：RKLX 整仓换成 1 股 RKLB 现货，因为制度降杠杆那条账只开了 8 天，规则今天不允许观望；00100 反弹到 167 港元减 60 股，把港股腿单名 46.94% 的超限做掉；07709 反弹到 20.5 港元清掉 2x 存储仓，因为正股隔夜跌逾 5%，昨天设的升级线破了。07226 那条 critical 硬止损维持不执行，但维持额度到 11 月 19 日，今天要么执行换 1x，要么留痕确认它继续开着，这条账已经站了 84 天、执行 0 次。恒科四连阳却仍在 200 日线下方 17.8%，昨夜美股指数上涨而航天股逆势下跌，book 港股腿浮亏 -64789 港元、美股腿浮亏 -1752.34 美元，汇率 7.8458（Frankfurter，11-05 08:03 HKT）。",
-    "counterargument": "最强的一句反话是：这本账上真正拖后腿的不是选股，是执行率。RKLX 的制度降杠杆账开了 8 天、硬止损账站了 113 天，07226 的硬止损账站了 84 天，三条都零执行、零确认、零例外；昨天计划的 11 条全部触发，账本里没有一条被确认成交。所以今天真正需要改的不是仓位，是纪律动作必须留下痕迹这件事本身。第二个反话是杠杆纪律可能切错了顺序：美股腿 beta 现在 5.24 已经在上限之内，最该减的那条账反而是敞口最小、浮亏最浅的 RKLX，而账面最大的 SPCH 仍占 85.95%。第三个反话是 00100 的减仓可能卖在板块刚起步的位置，它的 attention 排名 0.30 并不高但沽空在降、南向在买，这些都指向修复而不是继续下跌。"
+    "assessment": "今天是纪律日：RKLX 整仓换成 1 股 RKLB 现货，制度降杠杆那条账开 9 天、规则不允许观望，卖出腿和买腿必须同组成交；00100 反弹到 177 港元减 60 股，把港股腿 45.66% 的单名做掉，留 80 股 AI 敞口。07226 那条 critical 硬止损今天维持但必须留痕，站了 85 天、执行 0 次，强制日只剩 13 天。昨夜纳指 -5.52%、VIX 跳到 28.18，选举后 AI 基建叙事被重估；港股恒科涨 5.55% 创 20 个月最大单日涨幅，但南向净卖出 213 亿港元。港股腿浮亏 -62508.6 港元、美股腿 -2216.62 美元，汇率 7.8452（Frankfurter，11-06 08:03 HKT）。",
+    "counterargument": "拖后腿的不是选股，是执行率：RKLX 的卖单和 00100 的减仓昨天都发了、都触发了，两条都没成交。第二句反话是这把刀切错顺序：美股腿 beta 4.4686 还在上限内，最该减的反而是浮亏最浅的 RKLX，账面最大的 SPCH 占美股腿 85.14% 却今天不动。第三句是 00100 可能减在消息第一天。"
   },
   "tickers": [
     {
@@ -15,19 +15,19 @@
       "name": "Defiance Daily Target 2X Long R",
       "leg": "US",
       "facts": {
-        "today_change_pct": -8.26,
-        "pnl_pct": -82.11
+        "today_change_pct": -24.41,
+        "pnl_pct": -86.48
       },
       "technical": {
         "source_ticker": "RKLB",
         "is_proxy": true,
-        "as_of": "2026-11-04",
+        "as_of": "2026-11-05",
         "tag": "趋势OFF · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 38.6,
+        "rsi14": 31.6,
         "rsi_state": "weak",
-        "dist_ma200_pct": -33.9,
-        "pct_52w_range": 11.6,
+        "dist_ma200_pct": -41.8,
+        "pct_52w_range": 5.9,
         "stop_state": "breached",
         "usable": true
       },
@@ -61,17 +61,17 @@
       "judgment": {
         "ticker": "RKLX",
         "verdict": "bearish",
-        "confidence": 0.66,
+        "confidence": 0.9,
         "disposition": "reject",
-        "assessment": "2x RKLB 腿，浮亏 82.1%，制度降杠杆账刚开 8 天、硬止损账站了 113 天，今天必须动。",
-        "counterargument": "最强反方是 RKLB 的信息面不冷、11 月 9 日有财报，2x 在直线上涨里回本比 1x 快，把 2x 换成 1x 等于把最贵的那段凸性卖掉。",
-        "rationale": "它在本账本上 17 个 episode 胜率 53%，其中清仓 8 次赢 6 次，是这本账上唯一有正向记录的主动动作；反方不成立的地方是今天由制度决定，不由赔率决定。",
-        "falsifier": "RKLB 收复 200 日线 79.25 且 20 日波动回到 70% 以下，杠杆制度转绿，这条义务失效。",
-        "next_evidence": "RKLB 11 月 9 日财报前的隐含波动与卖方预期，以及今天的换仓成交确认。",
-        "fundamentals": "标的 Rocket Lab 是航天发射与卫星业务的纯正标的，11 月 9 日盘后出 Q3 财报；产品这一层是每日重置的 2x，制度上已经越线。",
-        "cross_market": "美股航天板块昨晚逆指数下跌，是选举后的政治折价，跟它的基本面无关，但它决定的是这条 2x 腿今天要不要继续付衰减。",
-        "sentiment_read": "软情绪偏冷：注意力排名 0.91 不低，但最新消息是内部人减持与中期选举后的政治反噬；没有硬催化能支持继续持有 2x。",
-        "peer_read": "港股那一格没有人工同行行，美股一侧它对比的是同标的的 1x：它跌 8.26% 对 RKLB 的 3.78%，差额就是 2x 的日内重置。"
+        "assessment": "制度红：标的破 200 日线 41.8%、波动 80.8% 越红线，2x 把 -12.18% 放大成 -24.41%。",
+        "counterargument": "RKLB 在 52 周区间 5.9% 分位、RSI 31.6，11 月 9 日还有财报。",
+        "rationale": "本账它 17 个 episode 胜率 59%、清仓 8 次赢 7 次，是唯一有正向记录的主动动作。",
+        "falsifier": "RKLB 收复 200 日线 79.04 且波动回到 70% 以下。",
+        "next_evidence": "财报前的隐含波动与卖方预期，以及两条腿的成交确认。",
+        "fundamentals": "2x 杠杆 ETF，基本面是标的 RKLB，11 月 9 日盘后出财报。",
+        "cross_market": "跟美股航天与 AI 资本开支同向，板块整体被减，没有个股坏消息。",
+        "sentiment_read": "软情绪，Reddit 提及 2 条且是期权链页面；5 日已跌 41.8%，跌本身已定价。",
+        "peer_read": "题材弱、自己更弱，差距正是杠杆放大，不构成独立信息。"
       },
       "candidate_disposition": {
         "deterministic_candidate": false,
@@ -85,19 +85,19 @@
       "name": "XL二南方恒科",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 3.41,
-        "pnl_pct": -44.04
+        "today_change_pct": 11.28,
+        "pnl_pct": -37.73
       },
       "technical": {
         "source_ticker": "HSTECH",
         "is_proxy": true,
-        "as_of": "2026-11-04",
+        "as_of": "2026-11-05",
         "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 44.2,
-        "rsi_state": "weak",
-        "dist_ma200_pct": -17.8,
-        "pct_52w_range": 7.9,
+        "rsi14": 56.4,
+        "rsi_state": "neutral",
+        "dist_ma200_pct": -13.1,
+        "pct_52w_range": 17.5,
         "stop_state": "intact",
         "usable": true
       },
@@ -129,18 +129,18 @@
       },
       "judgment": {
         "ticker": "07226",
-        "verdict": "neutral",
-        "confidence": 0.55,
+        "verdict": "mixed",
+        "confidence": 0.62,
         "disposition": "wait",
-        "assessment": "港股腿唯一还在正动量的杠杆仓，浮亏深但横盘衰减小、标的波动远在制度红线之下；这笔账今天维持，但必须留下痕迹。",
-        "counterargument": "最强反方是账本本身：84 天零执行、零确认、零例外，这套打法的实际状态是没人执行，继续挂着的边际价值在下降。",
-        "rationale": "它在本账本上 18 个 episode 胜率 61%，清仓 5 次全赢、持有 10 次只赢 3 次；反方不成立的地方是清仓这条路并不是清空，换仓对象 03033 已经在场内，换过去等于把同一个篮子的 beta 从 2x 降成 1x。",
-        "falsifier": "恒科跌破 3706.3，或者这条账的浮亏到 -51.7%，维持就自动失效。",
-        "next_evidence": "恒科 200 日线的距离与南向净买入方向，以及这条账在 11 月 19 日之前的执行或留痕。",
-        "fundamentals": "被动指数杠杆工具，没有公司基本面；口径是恒生科技指数本身、产品的每日重置机制，以及制度上的杠杆上限。",
-        "cross_market": "与美股中概 beta 相连，昨夜纳指上涨对它是顺风，但它的价格由恒科指数决定，跨市场只提供方向参考。",
-        "sentiment_read": "港股四连阳、南向大额净买入、沽空压力降温，都是软情绪与资金面；[confirming] 但它同时出现在港股软件服务行业的沽空金额榜上，情绪面并不干净。",
-        "peer_read": "题材强、自己更强：2x 的 3.41% 对应指数 1.77%，放大是设计内的；权重股里京东还在跌，指数的强是结构性的而不是普涨。"
+        "assessment": "港股腿唯一还在正动量的杠杆敞口：跟涨 11.28%、5 日 +22.4%，衰减每月只有 1.26%。",
+        "counterargument": "账本本身：85 天零执行零确认零例外，强制日只剩 13 天。",
+        "rationale": "本账它 18 个 episode 胜率 67%、清仓 5 次全赢；清仓不是清空，03033 已在场内。",
+        "falsifier": "恒科跌破 3706.3 或浮亏到 -51.7%。",
+        "next_evidence": "恒科 200 日线距离、南向方向，以及那条账是执行、留痕还是例外。",
+        "fundamentals": "港股杠杆 ETF，基本面就是恒生科技指数，没有公司级披露。",
+        "cross_market": "与美股同源不同向，它跟的是港股互联网权重重估。",
+        "sentiment_read": "软情绪，Reddit 提及 0；5 日已涨 22.4%，不构成新加仓理由。",
+        "peer_read": "题材强、自己更强，但涨幅是指数两倍多，是 2x 放大不是 alpha。"
       },
       "candidate_disposition": {
         "deterministic_candidate": false,
@@ -154,19 +154,19 @@
       "name": "MINIMAX-W",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 7.45,
-        "pnl_pct": -67.1
+        "today_change_pct": 1.73,
+        "pnl_pct": -66.53
       },
       "technical": {
         "source_ticker": "00100",
         "is_proxy": false,
-        "as_of": "2026-11-04",
+        "as_of": "2026-11-05",
         "tag": "趋势OFF · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 38.6,
+        "rsi14": 39.8,
         "rsi_state": "weak",
-        "dist_ma200_pct": -67.8,
-        "pct_52w_range": 1.1,
+        "dist_ma200_pct": -67.2,
+        "pct_52w_range": 1.3,
         "stop_state": "breached",
         "usable": true
       },
@@ -196,15 +196,15 @@
         "verdict": "mixed",
         "confidence": 0.58,
         "disposition": "wait",
-        "assessment": "港股 AI 大模型里涨得靠后的一只：这一轮的硬催化落在智谱和迅策身上，它手里是开源调用量回升这类软叙事；自己被卖方下调目标价并被点名解禁与同业上市压稀缺溢价，同一天沽空金额排在行业前三。仓位是港股腿最重的一只，浮亏深、离长期均线远，所以今天在反弹里减掉一部分，不在板块强的时候加。",
-        "counterargument": "最强反方是板块 beta：南向单日大额净买入、恒科连涨四天、中期选举靴子落地后大模型概念午后转升，情绪面在修复；如果明天它拿到自己的一手商业化数据，补仓会比减仓更早。",
-        "rationale": "本账本上它 22 个 episode 胜率 41%，减仓 9 次赢 6 次、持有 12 次只赢 2 次，所以这次按减仓动作走而不是按持有走；反方不成立的地方是它没有自己的硬催化，涨的多头逻辑建立在别人家的数据上。",
-        "falsifier": "出现它自己的一手商业化或调用量披露并且股价站上 20 日线，这笔减仓判断作废。",
-        "next_evidence": "港交所公告与卖方更新的目标价变动，以及南向对它的连续净买入是否延续。",
-        "fundamentals": "港股标的，没有 EDGAR 口径；可用的一手是港交所公告、卖方目标价与南向资金，这几天没有抓到新的公司级披露。",
-        "cross_market": "美股昨夜在选举落地后上涨，AI 与软件股跟涨，这条链路对它是间接的；它自己的定价权在港股南向与 AI 板块情绪上。",
-        "sentiment_read": "消息面以软情绪为主：开源模型授权、国产视频模型、乌镇对话这类叙事型报道，另有沽空金额排在行业前三这条资金行为；没有一条是硬催化，不足以推翻趋势判断。[disconfirming] 卖方下调目标价并点名解禁与同业上市压稀缺溢价，这一条对估值判断是负面的。",
-        "peer_read": "题材强、自己也涨，但排在智谱和迅策后面：这一格是 beta 参与而不是 alpha，所以今天的结论是减仓而不是换仓。"
+        "assessment": "AI 大模型这格里它掉队：恒科涨 5.55% 而它只涨 1.73%、5 日 1.2%，排在商汤 +4.5% 之后、智谱 -1.69% 之前。",
+        "counterargument": "它掉队本身就是补涨空间，H3 若带来调用量数据，缺口很快补上。",
+        "rationale": "本账它 23 个 episode 胜率 39%，减仓 10 胜 6、持有 12 胜 2；反方不成立是因为港股这轮领涨的不是 AI 模型。",
+        "falsifier": "一手商业化披露加站回 20 日线 181.09。",
+        "next_evidence": "权重开放与调用量口径、目标价是否上修。",
+        "fundamentals": "港股标的没有 EDGAR 口径；一手是港交所公告，最新目标价下调到 760。",
+        "cross_market": "跟港股科技与南向这条线，不跟美股 AI 资本开支。",
+        "sentiment_read": "软叙事为主，Reddit 提及 0；利好加 5 日只涨 1.2%，还没被定价。",
+        "peer_read": "题材强自己也涨但排在商汤后面，是 beta 不是 alpha。"
       },
       "candidate_disposition": {
         "deterministic_candidate": true,
@@ -214,24 +214,88 @@
       }
     },
     {
+      "ticker": "SPCH",
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "leg": "US",
+      "facts": {
+        "today_change_pct": -18.08,
+        "pnl_pct": -47.76
+      },
+      "technical": {
+        "source_ticker": "SPCX",
+        "is_proxy": true,
+        "as_of": "2026-11-05",
+        "tag": "趋势未知 · z-2.5σ极端 · 已破吊灯止损",
+        "trend": "unknown",
+        "rsi14": 32.9,
+        "rsi_state": "weak",
+        "dist_ma200_pct": null,
+        "pct_52w_range": 16.4,
+        "stop_state": "breached",
+        "usable": true
+      },
+      "quant": {
+        "factor_usable": false,
+        "peer_usable": false
+      },
+      "sentiment": {
+        "source_ticker": "SPCX",
+        "reddit_mentions_7d": 6,
+        "headline_count": 3,
+        "coverage": "available"
+      },
+      "risk": {
+        "count": 0,
+        "severity": "none",
+        "action": null,
+        "breach_ids": []
+      },
+      "status": {
+        "label": "趋势未知·短历史",
+        "rank": 3,
+        "state": "neutral"
+      },
+      "judgment": {
+        "ticker": "SPCH",
+        "verdict": "bearish",
+        "confidence": 0.6,
+        "disposition": "reject",
+        "assessment": "美股腿 85.14% 压在一只 2x 上：昨天 -18.08%、5 日 -27.7%，衰减每月 3.48% 全账最贵。",
+        "counterargument": "标的层面有真消息，而今天要在 -47.76% 上减掉复核线要求的大部分。",
+        "rationale": "本账它 16 个 episode 胜率 31%，清仓 4 胜 2、持有 9 胜 1；赢面在结构不在消息。",
+        "falsifier": "SPCX 跌破 120.39 或 SPCH 跌破 5.93 且三日收不回。",
+        "next_evidence": "公司级合同与机构持仓变化。",
+        "fundamentals": "2x 杠杆 ETF，标的是未上市合成敞口，一手看公司公告与合同消息。",
+        "cross_market": "这一夜跌得最狠的一类，2x 放大到 -18.08%，没有 SpaceX 自己的坏消息。",
+        "sentiment_read": "几乎全是宏观情绪，不是 SpaceX 的经营信息；5 日已跌 27.7%。",
+        "peer_read": "题材弱、自己更弱，差的一半是杠杆放大；同组只有 BKSY 逆势。"
+      },
+      "candidate_disposition": {
+        "deterministic_candidate": false,
+        "effective": "reject",
+        "departs_from_policy": false,
+        "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
+      }
+    },
+    {
       "ticker": "02208",
       "name": "金风科技",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 6.96,
-        "pnl_pct": -45.47
+        "today_change_pct": 3.58,
+        "pnl_pct": -43.52
       },
       "technical": {
         "source_ticker": "02208",
         "is_proxy": false,
-        "as_of": "2026-11-04",
-        "tag": "趋势OFF · 已破吊灯止损",
+        "as_of": "2026-11-05",
+        "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 48.7,
+        "rsi14": 54.1,
         "rsi_state": "neutral",
-        "dist_ma200_pct": -35.9,
-        "pct_52w_range": 8.1,
-        "stop_state": "breached",
+        "dist_ma200_pct": -33.4,
+        "pct_52w_range": 10.5,
+        "stop_state": "intact",
         "usable": true
       },
       "quant": {
@@ -260,82 +324,18 @@
         "verdict": "neutral",
         "confidence": 0.5,
         "disposition": "wait",
-        "assessment": "风电板块里唯一拉开差距的一只，公司层面的回购与担保公告是硬的，板块本身是平的；仓位小、浮亏深，不动。",
-        "counterargument": "最强反方是它的相对残差在风电五只里排末位，板块轮动一旦转向运营和设备，这一格的相对强度会最快消失。",
-        "rationale": "本账本上它 15 个 episode 胜率 20%，持有多次赢少，所以不在相对残差排末位的时候做动作；反方不成立的地方是今天的强弱是它自己的，不是板块给的。",
-        "falsifier": "龙源电力与大唐新能源连续两天跑赢它，或者回购节奏停下来，这只格的相对强度就不成立。",
-        "next_evidence": "港交所公告里的回购进度，以及 10 月 9 日董事会公告后的业绩披露日，那天日期一旦进结构化来源就补上。",
-        "fundamentals": "港股标的，用公司公告与回购数据代替财报口径：10 月累计回购 1471 万股、耗资 3.25 亿元，11 月 2 日再回购 168.91 万股，并公告无逾期担保。",
-        "cross_market": "与美股那条 AI 资本开支的链路基本无关，它跟的是国内风电装机与政策节奏。",
-        "sentiment_read": "消息面偏软：回购与担保这类公司公告之外没有新的硬催化，板块热度低；[confirming] 主力资金单日净流入一千二百六十一万港元是资金行为的确认，不是基本面确认。",
-        "peer_read": "题材弱、自己强：风电同行里只有它拉开，这是稀有的一只，值得珍惜，所以不换手。"
+        "assessment": "风电这一格它唯一拉开：+3.58% 跑赢龙源 +1.16%、东方电气 +0.92%，行业风机价格回暖。",
+        "counterargument": "趋势规避规则有 609 个事件、100 个日期、10 只票的样本，命中率 60.4%，而它趋势关着。",
+        "rationale": "本账它 15 个 episode 胜率 20%、持有 11 次只赢 2 次，少做动作本身是对的。",
+        "falsifier": "龙源与大唐连续两天跑赢它。",
+        "next_evidence": "回购与业绩披露、行业招标价最新一轮。",
+        "fundamentals": "港股标的，用公司公告与行业招标价代替财报口径。",
+        "cross_market": "与美股 AI 资本开支无关，它跟国内装机与招标价节奏。",
+        "sentiment_read": "偏软，主力净流入是资金行为不是基本面；5 日已涨 13.2%。",
+        "peer_read": "题材与同业差不多、自己更强，风电里唯一拉开差距的一只。"
       },
       "candidate_disposition": {
         "deterministic_candidate": true,
-        "effective": "wait",
-        "departs_from_policy": false,
-        "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
-      }
-    },
-    {
-      "ticker": "SPCH",
-      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
-      "leg": "US",
-      "facts": {
-        "today_change_pct": -7.57,
-        "pnl_pct": -36.24
-      },
-      "technical": {
-        "source_ticker": "SPCX",
-        "is_proxy": true,
-        "as_of": "2026-11-04",
-        "tag": "趋势未知 · 已破吊灯止损",
-        "trend": "unknown",
-        "rsi14": 40.1,
-        "rsi_state": "weak",
-        "dist_ma200_pct": null,
-        "pct_52w_range": 29.6,
-        "stop_state": "breached",
-        "usable": true
-      },
-      "quant": {
-        "factor_usable": false,
-        "peer_usable": false
-      },
-      "sentiment": {
-        "source_ticker": "SPCX",
-        "reddit_mentions_7d": 6,
-        "headline_count": 3,
-        "coverage": "available"
-      },
-      "risk": {
-        "count": 0,
-        "severity": "none",
-        "action": null,
-        "breach_ids": []
-      },
-      "status": {
-        "label": "趋势未知·短历史",
-        "rank": 3,
-        "state": "neutral"
-      },
-      "judgment": {
-        "ticker": "SPCH",
-        "verdict": "mixed",
-        "confidence": 0.55,
-        "disposition": "wait",
-        "assessment": "美股腿最大的单一仓位，浮亏 36.24%，也是唯一还有正信息面的敞口；单名集中度要回应，但回应方式是升级线而不是随手一刀。",
-        "counterargument": "最强反方是它的注意力排名 0.97 与 own surprise z 值 2.30 在整份账里最高，这些是事实性的正面信息，而 86% 的集中度本身就是最大的风险。",
-        "rationale": "它在本账本上 15 个 episode 胜率 33%，最近一次减仓赢、持有赢、隔一次就输；反方不成立的地方是这些正面信息属于 SpaceX 而不属于这个 2x 产品，产品的定价权在衰减与正股波动上。",
-        "falsifier": "正股 SPCX 跌破 134.5，或者 SPCH 单日跌幅超过 15%，这笔维持就自动升级为减仓。",
-        "next_evidence": "SPCX 与 SpaceX 的并购与政治进展、11 月 9 日的航天链定价，以及美股腿 beta 的实时读数。",
-        "fundamentals": "标的是 SpaceX，一手覆盖在美股 EDGAR 范围内；产品这一层是每日重置的 2x，衰减是持有成本的主体。",
-        "cross_market": "与美股风险偏好直接相连：昨夜道指涨 1569 点而航天股逆势下跌，说明它此刻的定价权在政治折价，不在指数 beta。",
-        "sentiment_read": "软情绪为主：中期选举结果让 Musk 的政治敞口成为折价因子，媒体一边倒讨论 SpaceX 的 AI 业务估值；注意力很高，但那是关注度不是方向。",
-        "peer_read": "题材弱、自己更弱：它跌 7.57%，比同组的 Rocket Lab 跌 3.78% 和 AST SpaceMobile 跌 4.12% 更差，差额是 2x 的日内重置，不是航天需求的变化。"
-      },
-      "candidate_disposition": {
-        "deterministic_candidate": false,
         "effective": "wait",
         "departs_from_policy": false,
         "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
@@ -346,20 +346,20 @@
       "name": "恒生科技ETF",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 1.66,
-        "pnl_pct": -27.4
+        "today_change_pct": 5.91,
+        "pnl_pct": -23.11
       },
       "technical": {
         "source_ticker": "03032",
         "is_proxy": false,
-        "as_of": "2026-11-04",
-        "tag": "趋势OFF · 已破吊灯止损",
+        "as_of": "2026-11-05",
+        "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 43.4,
-        "rsi_state": "weak",
-        "dist_ma200_pct": -17.8,
-        "pct_52w_range": 7.3,
-        "stop_state": "breached",
+        "rsi14": 56.7,
+        "rsi_state": "neutral",
+        "dist_ma200_pct": -12.8,
+        "pct_52w_range": 17.5,
+        "stop_state": "intact",
         "usable": true
       },
       "quant": {
@@ -386,20 +386,20 @@
       "judgment": {
         "ticker": "03032",
         "verdict": "neutral",
-        "confidence": 0.48,
+        "confidence": 0.55,
         "disposition": "wait",
-        "assessment": "恒科 1x 的第三重仓位，跟踪的是同一个指数，跟另外两只的差距在跟踪误差以内；仓位小，没有独立故事。",
-        "counterargument": "最强反方是如果恒科这波反弹继续，三只同指数工具里规模与流动性最好的那只可能吸走更多买盘，03032 是规模最小的一个。",
-        "rationale": "本账本上它 11 个 episode 胜率 27%，持有多次赢少；同指数的 1x 敞口在 03033 身上已经有了，不需要第三份。",
-        "falsifier": "同赛道三只里它连续三天明显落后，或者它的跟踪误差突然放大。",
-        "next_evidence": "恒科指数的南向净买入方向，以及三只同标的 ETF 的日度规模变化。",
-        "fundamentals": "被动指数工具，没有公司基本面可看，口径就是恒生科技指数本身与这只产品的跟踪质量。",
-        "cross_market": "跟美股科技 beta 直接相连，昨夜纳指上涨对它是顺风，但它只是指数的复制品。",
-        "sentiment_read": "没有个股消息面，跟踪的是资金面叙事：港股连续三日上涨、资金关注恒科修复；属于软情绪，不构成加仓理由。",
-        "peer_read": "题材强、自己也涨，跟同类 ETF 的差距在跟踪误差以内：没有相对强弱可言，不动。"
+        "assessment": "恒科 1x 里跟得最稳的一只，止损还差 6.3% 没破，仓位最轻。",
+        "counterargument": "南向当天净卖出 213 亿港元创近 7 个月新高，这波是空头回补。",
+        "rationale": "它的动作历史全是持有、12 次赢 4 次，这类位置最好就是不动。",
+        "falsifier": "恒科跌破 3706.3 或它跌破 3.706。",
+        "next_evidence": "恒科 200 日线距离，南向是否重新净买。",
+        "fundamentals": "港股 ETF，用指数估值代替财报口径。",
+        "cross_market": "港股 beta 的直接表达，与美股是风险偏好关系。",
+        "sentiment_read": "软情绪，Reddit 提及 0；5 日已涨 10.8%，不是新理由。",
+        "peer_read": "题材强、自己也强，跟得住指数，正常 beta 参与。"
       },
       "candidate_disposition": {
-        "deterministic_candidate": true,
+        "deterministic_candidate": false,
         "effective": "wait",
         "departs_from_policy": false,
         "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
@@ -410,20 +410,20 @@
       "name": "南方恒生科技",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 1.47,
-        "pnl_pct": -25.02
+        "today_change_pct": 5.66,
+        "pnl_pct": -20.78
       },
       "technical": {
         "source_ticker": "03033",
         "is_proxy": false,
-        "as_of": "2026-11-04",
-        "tag": "趋势OFF · 已破吊灯止损",
+        "as_of": "2026-11-05",
+        "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 44.1,
-        "rsi_state": "weak",
-        "dist_ma200_pct": -17.8,
-        "pct_52w_range": 7.8,
-        "stop_state": "breached",
+        "rsi14": 56.3,
+        "rsi_state": "neutral",
+        "dist_ma200_pct": -13.0,
+        "pct_52w_range": 17.6,
+        "stop_state": "intact",
         "usable": true
       },
       "quant": {
@@ -450,20 +450,20 @@
       "judgment": {
         "ticker": "03033",
         "verdict": "neutral",
-        "confidence": 0.52,
+        "confidence": 0.55,
         "disposition": "wait",
-        "assessment": "南向买得最凶的一只恒科 1x，也是 07226 换仓之后的落点，注意力与资金面是港股持仓里唯一双确认的。",
-        "counterargument": "最强反方是它同时是 2x 换仓的候选落点，如果那条账一直挂着不执行，买入它就等于用 1x 替代 2x 的方向判断，而不是一次独立的加仓。",
-        "rationale": "本账本上它 19 个 episode 胜率 26%，加过 3 次只赢 1 次；恒科的 1x 敞口它已经占着，今天再加就是同一个因子买第二次。",
-        "falsifier": "南向连续两日净卖出它，或者它的注意力排名掉出前二。",
-        "next_evidence": "港股通每日净买入榜上它的席位，以及恒科指数 20 日线的收复情况。",
-        "fundamentals": "被动指数工具；口径是恒生科技指数，以及南方恒科这只产品本身的规模与跟踪质量。",
-        "cross_market": "与美股科技 beta 直接相连，它承担的是港股科技 beta 的 1x 版本。",
-        "sentiment_read": "资金面强、个股消息面弱：南向单日净买入 234 亿里它吸进最多，港股沽空压力同时降温；软情绪为主，不构成加仓理由。",
-        "peer_read": "题材强、自己也涨，但比同标的的 03032 略少涨一点，属于跟踪误差，不构成换手理由。"
+        "assessment": "和 03032 跟同一指数差 0.25 个点；已在场内 1000 股，是 07226 硬止损的换仓落点。",
+        "counterargument": "那条账还没落地：07226 硬止损站了 85 天、执行 0 次。",
+        "rationale": "本账它 19 个 episode 胜率 32%、持有 15 次只赢 4 次，不动比动作好。",
+        "falsifier": "跌破 3.628 或恒科跌破 3706.3。",
+        "next_evidence": "07226 那条账会不会落地。",
+        "fundamentals": "港股 ETF，它的基本面就是恒生科技指数本身。",
+        "cross_market": "与美股只经风险偏好传导，昨夜美股重估是今天外部变量。",
+        "sentiment_read": "南向净卖出 213 亿是流出，沽空占 24.5%、压力降温是正向事实。",
+        "peer_read": "题材强、自己跟得住；因为是换仓落点所以留它。"
       },
       "candidate_disposition": {
-        "deterministic_candidate": true,
+        "deterministic_candidate": false,
         "effective": "wait",
         "departs_from_policy": false,
         "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
@@ -474,20 +474,20 @@
       "name": "Circle Internet Group Inc-A",
       "leg": "US",
       "facts": {
-        "today_change_pct": 1.2,
-        "pnl_pct": -12.51
+        "today_change_pct": -8.72,
+        "pnl_pct": -20.14
       },
       "technical": {
         "source_ticker": "CRCL",
         "is_proxy": false,
-        "as_of": "2026-11-04",
-        "tag": "趋势OFF",
+        "as_of": "2026-11-05",
+        "tag": "趋势OFF · z-2.1σ极端 · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 42.7,
+        "rsi14": 36.1,
         "rsi_state": "weak",
-        "dist_ma200_pct": -11.5,
-        "pct_52w_range": 31.3,
-        "stop_state": "intact",
+        "dist_ma200_pct": -19.2,
+        "pct_52w_range": 23.3,
+        "stop_state": "breached",
         "usable": true
       },
       "quant": {
@@ -513,22 +513,22 @@
       },
       "judgment": {
         "ticker": "CRCL",
-        "verdict": "mixed",
-        "confidence": 0.55,
-        "disposition": "wait",
-        "assessment": "刚出的 Q3 超预期是这份账里唯一的一手硬催化，10-Q 与 8-K 昨天都提交了；股价只涨 1.2%、一个月还跌 9.5%，超预期没有被定价，但一手复核还没做。",
-        "counterargument": "最强反方是同一天裁掉约 5% 员工透出的成本结构信号，以及加密板块在黑客风波后的资金分化，Circle 的避风港属性可能只值 1.2% 的涨幅。",
-        "rationale": "本账本上它 11 个 episode 胜率 45%，唯一一次加仓是亏的；加上那一族价格残差规则样本未达标，所以今天不写加仓单，把一手复核排在前面。",
-        "falsifier": "10-Q 复核后确认收入与储备规模符合预期，或者股价站上 82.04，加仓判断就成立。",
-        "next_evidence": "10-Q 里的储备与流通量数据、8-K 里的裁员成本，以及公告后卖方更新的目标价。",
-        "fundamentals": "唯一有 EDGAR 一手覆盖的一格：10-Q 与 8-K 昨天提交，Q3 每股收益 0.84 美元对预期 0.37 美元，收入高于预期，同时裁掉约 5% 的员工。",
-        "cross_market": "它连着美股风险偏好与稳定币监管两条线，昨夜纳指上涨与监管明朗化对它顺风，但加密板块自身的黑客风波是逆风。",
-        "sentiment_read": "消息面偏硬：财报超预期与裁员同时出现，机构一侧 ARK 在买入 Coinbase 与 Circle，稳定币合规叙事在加强；ARK 的交易是别人的交易，不能当成公司事件。",
-        "peer_read": "题材弱、自己也弱：它涨 1.2%，落后 Coinbase 的 4.16% 与 PayPal 的 3.42%，稳定币这一格它没有领涨。"
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "reject",
+        "assessment": "加密板块里跌得较少的一只：它 -8.72%，Coinbase -9.69%、Robinhood -10.32% 都更差。",
+        "counterargument": "它还有裁员约 5%、机构下调预测、目标价从 92 降到 86 这些负向事实。",
+        "rationale": "本账它 11 个 episode 胜率 45%、持有 9 次赢 4 次，样本只够说明别乱动。",
+        "falsifier": "跌破 64.81 或板块修复后继续跑输 Coinbase。",
+        "next_evidence": "11 月 4 日财报的一手文件与承诺账。",
+        "fundamentals": "10-Q 已在 11 月 4 日提交，但还没归到一次有覆盖的复核上。",
+        "cross_market": "跟美股加密 beta 同向，不是港股那条线。",
+        "sentiment_read": "以公司事件为主，偏负但 5 日已跌 13.1%，跌进去一部分。",
+        "peer_read": "题材弱、自己也弱但输得少，属这一格相对抗跌的一只。"
       },
       "candidate_disposition": {
         "deterministic_candidate": true,
-        "effective": "wait",
+        "effective": "reject",
         "departs_from_policy": false,
         "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
       }
@@ -538,19 +538,19 @@
       "name": "SpaceX",
       "leg": "US",
       "facts": {
-        "today_change_pct": -3.81,
-        "pnl_pct": -7.85
+        "today_change_pct": -9.05,
+        "pnl_pct": -16.19
       },
       "technical": {
         "source_ticker": "SPCX",
         "is_proxy": false,
-        "as_of": "2026-11-04",
-        "tag": "趋势未知 · 已破吊灯止损",
+        "as_of": "2026-11-05",
+        "tag": "趋势未知 · z-2.5σ极端 · 已破吊灯止损",
         "trend": "unknown",
-        "rsi14": 40.1,
+        "rsi14": 32.9,
         "rsi_state": "weak",
         "dist_ma200_pct": null,
-        "pct_52w_range": 29.6,
+        "pct_52w_range": 16.4,
         "stop_state": "breached",
         "usable": true
       },
@@ -578,21 +578,21 @@
       "judgment": {
         "ticker": "SPCX",
         "verdict": "bearish",
-        "confidence": 0.42,
-        "disposition": "wait",
-        "assessment": "唯一没有杠杆的航天仓，浮亏小但 1 股体量不值得动作；11 月 9 日的航天链定价是这一格最大的变量。",
-        "counterargument": "最强反方是它是账本里唯一有三个月正动量的航天敞口，在选举冲击只是一次性的假设下，它是这个板块里最干净的表达方式。",
-        "rationale": "它在本账本上 9 个 episode 胜率 11%，加仓两次全输；反方不成立的地方是它自己过去 20 日 z 值 -1.52、一个月跌 20.9%，那个正动量在最近一个月已经被打掉了。",
-        "falsifier": "SPCX 站回 20 日线 148.5 并保持强势，这时它是航天 beta 里质量最好的一只。",
-        "next_evidence": "SpaceX 的一手披露与 11 月 9 日的航天链定价，以及 RKLB 财报后的板块反应。",
-        "fundamentals": "正股 SpaceX 的一手覆盖在美股 EDGAR；本代没有新的 10-Q 覆盖，所以基本面判断只停在事件层面。",
-        "cross_market": "与美股科技 beta 相连，但它自己被 Musk 的政治折价直接定价，昨夜指数涨它跌就是背离。",
-        "sentiment_read": "消息面是软情绪但方向明确：中期选举让民主党拿到国会，媒体在讨论 Tesla 与 SpaceX 的合并溢价风险与 AI 业务估值；没有公司硬事件。",
-        "peer_read": "题材弱、自己也弱：铱星跌 0.14% 几乎没跌，它跌 3.81%、Rocket Lab 跌 3.78%、BlackSky 跌 3.84%，它是这一格里的中间位置。"
+        "confidence": 0.5,
+        "disposition": "reject",
+        "assessment": "这条线上唯一没有杠杆损耗的一块：1 股、123.62 美元，昨天 -9.05%、5 日 -14.1%。",
+        "counterargument": "ARK 11 月 4 日买入 224,483 股 SPCX，还有 Qualcomm 的 5G 合作。",
+        "rationale": "本账它 9 个 episode 胜率 11%、加仓 2 次 0 胜，所以左侧那一档今天不给。",
+        "falsifier": "跌破 120.39 且三个交易日收不回。",
+        "next_evidence": "Qualcomm 合作的落地口径，以及 ARK 后续是买是卖。",
+        "fundamentals": "未上市的合成敞口，没有财报口径，一手是公司公告与合同消息。",
+        "cross_market": "这一夜最直接的受害者：纳指 -5.52%、标普创一年多最大单日跌幅。",
+        "sentiment_read": "以软情绪为主，内容是选举与 AI 反噬；5 日已跌 14.1%，利空已定价。",
+        "peer_read": "题材弱、自己也弱，同组唯一逆势的是 BKSY +14.01%。"
       },
       "candidate_disposition": {
         "deterministic_candidate": true,
-        "effective": "wait",
+        "effective": "reject",
         "departs_from_policy": false,
         "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
       }
@@ -602,19 +602,19 @@
       "name": "XL二南方海力士",
       "leg": "HK",
       "facts": {
-        "today_change_pct": -0.82,
-        "pnl_pct": 8.78
+        "today_change_pct": -17.06,
+        "pnl_pct": -9.78
       },
       "technical": {
         "source_ticker": "SKHY",
         "is_proxy": true,
-        "as_of": "2026-11-04",
-        "tag": "趋势未知 · 已破吊灯止损",
+        "as_of": "2026-11-05",
+        "tag": "趋势未知 · z-2.1σ极端 · 已破吊灯止损",
         "trend": "unknown",
-        "rsi14": 42.1,
+        "rsi14": 34.1,
         "rsi_state": "weak",
         "dist_ma200_pct": null,
-        "pct_52w_range": 22.7,
+        "pct_52w_range": 0.0,
         "stop_state": "breached",
         "usable": true
       },
@@ -641,22 +641,22 @@
       },
       "judgment": {
         "ticker": "07709",
-        "verdict": "bearish",
+        "verdict": "mixed",
         "confidence": 0.55,
-        "disposition": "wait",
-        "assessment": "港股腿唯一浮盈的一只，但它同时是 2x 存储仓，隔夜亚太盘的杀跌打碎了它的价格结构；浮盈该在反弹里兑现，不是该在跳空里砍。",
-        "counterargument": "最强反方是它只有 4.37% 的仓位、还在浮盈，砍掉的机会成本几乎为零，而继续持有 2x 每个月都在付衰减。",
-        "rationale": "本账本上它只有 1 个 episode、胜率 100%，样本太薄，不足以支持任何主动动作；所以今天把动作改成有价格、有失效条件的反弹减仓，而不是一次性清仓。",
-        "falsifier": "SK 海力士收复 5 日线并且存储板块止跌，这笔反弹减仓就不该做。",
-        "next_evidence": "KOSPI 与 SK 海力士的收盘价，以及 7709 的开盘竞价和成交量。",
-        "fundamentals": "标的 SK 海力士是 AI 存储的核心供应商，长协与 HBM 需求没有坏消息；产品这一层是每日重置的 2x，代价是横盘衰减。",
-        "cross_market": "直接连着亚洲半导体周期，隔夜 KOSPI 与铠侠的走势比美股纳指更能决定它今天的价格。",
-        "sentiment_read": "消息面偏负面但性质是板块杀跌：铠侠指引不及预期带来的存储族群抛售，另有 SK 海力士纽约建厂受出口限制受阻的旧闻；没有针对标的的硬事件。",
-        "peer_read": "这一格没有人工配置的同行扫描行，参考的是存储板块：美光、闪迪、希捷、铠侠 ADR 昨天全线下跌，SK 海力士 ADR 的跌幅反而小于美股同业，它是这一格里被 2x 放大的那一格。"
+        "disposition": "reject",
+        "assessment": "全账最矛盾的一只：产业面记录级（DRAM 营收 +369%、DDR5 涨 480%），价格面这几天最惨。",
+        "counterargument": "它离回本最近：2x 半年要标的涨 9.3% 就能打平，衰减每月只有 1.26%。",
+        "rationale": "价格触发类加仓 7 个 episode 平均 -3.82%、区间整段在 0 以下；利好是二手转述。",
+        "falsifier": "标的跌破 130.79 或这条腿跌破 17.25。",
+        "next_evidence": "SK 海力士的一手披露，以及今天 09:30 的实际开盘价。",
+        "fundamentals": "港股 2x 杠杆产品，标的是 SK 海力士；抓到的是二手转述不是一手文件。",
+        "cross_market": "跟美股存储链同向，是资本开支被重估时的整组抛售。",
+        "sentiment_read": "偏正面但都是软情绪，Reddit 提及 0；5 日已跌 29.4%，利空跌进去一部分。",
+        "peer_read": "题材弱、自己也弱，掉队的是 beta 放大不是个股逻辑。"
       },
       "candidate_disposition": {
         "deterministic_candidate": true,
-        "effective": "wait",
+        "effective": "reject",
         "departs_from_policy": false,
         "discipline": "the judgment's disposition is shown as written; `deterministic_candidate` is the add policy's own nomination, and neither is an order"
       }
@@ -664,8 +664,8 @@
   ],
   "add_campaign": {
     "status": "current",
-    "packet_generated_at": "2026-11-05T08:05:04.260731+08:00",
-    "context_generation_id": "52f6f45dcb523904",
+    "packet_generated_at": "2026-11-06T08:04:53.259230+08:00",
+    "context_generation_id": "cff27b41fd23f26a",
     "policy": {
       "schema_version": 2,
       "registered_at": "2026-08-13",
@@ -681,23 +681,24 @@
       "held_names": 10,
       "tier_counts": {
         "exploration": 0,
-        "exploration_cold_start": 0,
-        "none": 3,
-        "user_experiment": 7,
+        "none": 5,
+        "user_experiment": 5,
         "validated": 0
       },
       "candidate_count": 10,
       "authority_candidate_count": 0,
-      "allowed_candidate_count": 7,
-      "observed_candidate_count": 7,
-      "observed_candidate_rate": 0.7,
-      "observed_idea_count": 7,
+      "allowed_candidate_count": 6,
+      "observed_candidate_count": 5,
+      "observed_candidate_rate": 0.5,
+      "observed_idea_count": 5,
       "early_exploration_ready_count": 0,
       "early_exploration_ready_idea_count": 0,
       "candidate_rate": 0.0,
       "blocker_counts": {
-        "independent_evidence_families": 6,
-        "leveraged_requires_validated_evidence": 4
+        "independent_evidence_families": 10,
+        "leveraged_requires_validated_evidence": 4,
+        "negative_information": 1,
+        "peer_laggard_avoidance": 1
       },
       "zero_output_visible": true
     },
@@ -720,8 +721,8 @@
           "independent_evidence_families"
         ],
         "execution_blockers": [],
-        "entry_price": 167.3,
-        "invalidation_price": 108.3268,
+        "entry_price": 170.2,
+        "invalidation_price": 111.8384,
         "max_add_shares": 20,
         "allowed": true,
         "early_trend": {
@@ -737,14 +738,14 @@
           "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 0.3146,
-            "attention_rank": 0.3,
-            "close": 167.3,
-            "peer_dispersion_5d": 0.0485,
-            "prior_20d_high": 256.4,
-            "residual_5d": 0.0113,
-            "residual_dispersion_multiple": 0.233,
-            "zscore20": -0.78
+            "attention_acceleration": 0.3176,
+            "attention_rank": 0.25,
+            "close": 170.2,
+            "peer_dispersion_5d": 0.0462,
+            "prior_20d_high": 249.2,
+            "residual_5d": 0.0503,
+            "residual_dispersion_multiple": 1.0887,
+            "zscore20": -0.6
           },
           "observed": false,
           "price_modes": [],
@@ -771,16 +772,15 @@
           "independent_evidence_families"
         ],
         "execution_blockers": [],
-        "entry_price": 7.68,
-        "invalidation_price": 6.687,
+        "entry_price": 7.955,
+        "invalidation_price": 6.9407,
         "max_add_shares": 200,
         "allowed": true,
         "early_trend": {
           "blockers": [
             "needs_information_confirmation",
             "needs_primary_evidence",
-            "no_20d_breakout",
-            "no_short_peer_leadership"
+            "no_20d_breakout"
           ],
           "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
           "evidence_families": [],
@@ -788,17 +788,19 @@
           "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 0.4587,
-            "attention_rank": 0.3,
-            "close": 7.68,
-            "peer_dispersion_5d": 0.0399,
-            "prior_20d_high": 8.925,
-            "residual_5d": 0.0311,
-            "residual_dispersion_multiple": 0.7794,
-            "zscore20": 0.37
+            "attention_acceleration": 0.4621,
+            "attention_rank": 0.25,
+            "close": 7.955,
+            "peer_dispersion_5d": 0.0326,
+            "prior_20d_high": 8.82,
+            "residual_5d": 0.0654,
+            "residual_dispersion_multiple": 2.0061,
+            "zscore20": 1.1
           },
           "observed": false,
-          "price_modes": [],
+          "price_modes": [
+            "short_peer_residual"
+          ],
           "primary_event_ids": [],
           "schema_version": 1,
           "state": "not_candidate"
@@ -809,23 +811,21 @@
         "leg": "HK",
         "source_ticker": "03032",
         "is_proxy": false,
-        "state": "eligible",
-        "tier": "user_experiment",
-        "target_tranche_level": 0.25,
-        "sources": [
-          "explicit_user_authorization"
-        ],
-        "evidence_families": [
-          "technical_weakness"
-        ],
+        "state": "insufficient_evidence",
+        "tier": "none",
+        "target_tranche_level": 0.0,
+        "sources": [],
+        "evidence_families": [],
         "authority_blockers": [
           "independent_evidence_families"
         ],
-        "execution_blockers": [],
-        "entry_price": 3.924,
-        "invalidation_price": 3.6109,
+        "execution_blockers": [
+          "no_approved_setup"
+        ],
+        "entry_price": null,
+        "invalidation_price": null,
         "max_add_shares": 200,
-        "allowed": true,
+        "allowed": false,
         "early_trend": {
           "blockers": [
             "needs_information_confirmation",
@@ -839,14 +839,14 @@
           "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 0.4839,
-            "attention_rank": 0.7,
-            "close": 3.924,
-            "peer_dispersion_5d": 0.0022,
-            "prior_20d_high": 4.252,
-            "residual_5d": -0.003,
-            "residual_dispersion_multiple": -1.3636,
-            "zscore20": -0.3
+            "attention_acceleration": 1.0904,
+            "attention_rank": 0.9167,
+            "close": 4.156,
+            "peer_dispersion_5d": 0.0014,
+            "prior_20d_high": 4.242,
+            "residual_5d": -0.0029,
+            "residual_dispersion_multiple": -2.0714,
+            "zscore20": 1.26
           },
           "observed": false,
           "price_modes": [],
@@ -860,47 +860,42 @@
         "leg": "HK",
         "source_ticker": "03033",
         "is_proxy": false,
-        "state": "eligible",
-        "tier": "user_experiment",
-        "target_tranche_level": 0.25,
-        "sources": [
-          "explicit_user_authorization",
-          "information"
+        "state": "insufficient_evidence",
+        "tier": "none",
+        "target_tranche_level": 0.0,
+        "sources": [],
+        "evidence_families": [],
+        "authority_blockers": [
+          "independent_evidence_families"
         ],
-        "evidence_families": [
-          "point_in_time_information",
-          "technical_weakness"
+        "execution_blockers": [
+          "no_approved_setup"
         ],
-        "authority_blockers": [],
-        "execution_blockers": [],
-        "entry_price": 3.854,
-        "invalidation_price": 3.5395,
+        "entry_price": null,
+        "invalidation_price": null,
         "max_add_shares": 200,
         "allowed": true,
         "early_trend": {
           "blockers": [
+            "needs_information_confirmation",
             "needs_primary_evidence",
             "no_20d_breakout",
             "no_short_peer_leadership"
           ],
           "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
-          "evidence_families": [
-            "point_in_time_information"
-          ],
+          "evidence_families": [],
           "exploration_ready": false,
-          "information_modes": [
-            "attention_acceleration"
-          ],
+          "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 2.1806,
-            "attention_rank": 0.9,
-            "close": 3.854,
+            "attention_acceleration": 0.6979,
+            "attention_rank": 0.5833,
+            "close": 4.072,
             "peer_dispersion_5d": null,
-            "prior_20d_high": 4.172,
-            "residual_5d": 0.0014,
+            "prior_20d_high": 4.164,
+            "residual_5d": 0.0019,
             "residual_dispersion_multiple": null,
-            "zscore20": -0.27
+            "zscore20": 1.21
           },
           "observed": false,
           "price_modes": [],
@@ -921,7 +916,8 @@
         "evidence_families": [],
         "authority_blockers": [
           "independent_evidence_families",
-          "leveraged_requires_validated_evidence"
+          "leveraged_requires_validated_evidence",
+          "peer_laggard_avoidance"
         ],
         "execution_blockers": [
           "leveraged_requires_validated_evidence",
@@ -947,12 +943,12 @@
           "metrics": {
             "attention_acceleration": null,
             "attention_rank": null,
-            "close": 3936.02,
-            "peer_dispersion_5d": 0.0183,
-            "prior_20d_high": 4251.54,
-            "residual_5d": -0.0185,
-            "residual_dispersion_multiple": -1.0109,
-            "zscore20": -0.24
+            "close": 4154.29,
+            "peer_dispersion_5d": 0.0114,
+            "prior_20d_high": 4243.65,
+            "residual_5d": -0.036,
+            "residual_dispersion_multiple": -3.1579,
+            "zscore20": 1.2
           },
           "observed": false,
           "price_modes": [],
@@ -980,7 +976,7 @@
           "leveraged_requires_validated_evidence"
         ],
         "execution_blockers": [],
-        "entry_price": 21.8,
+        "entry_price": 18.08,
         "invalidation_price": 16.4328,
         "max_add_shares": 100,
         "allowed": true,
@@ -998,14 +994,14 @@
           "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 0.8364,
-            "attention_rank": 0.3,
-            "close": 143.07,
-            "peer_dispersion_5d": 0.0611,
-            "prior_20d_high": 181.14,
-            "residual_5d": 0.0213,
-            "residual_dispersion_multiple": 0.3486,
-            "zscore20": -0.59
+            "attention_acceleration": 0.8382,
+            "attention_rank": 0.25,
+            "close": 123.9,
+            "peer_dispersion_5d": 0.0855,
+            "prior_20d_high": 177.18,
+            "residual_5d": 0.0249,
+            "residual_dispersion_multiple": 0.2912,
+            "zscore20": -2.09
           },
           "observed": false,
           "price_modes": [],
@@ -1023,20 +1019,18 @@
         "tier": "user_experiment",
         "target_tranche_level": 0.25,
         "sources": [
-          "explicit_user_authorization",
-          "information",
-          "peer_residual"
+          "explicit_user_authorization"
         ],
         "evidence_families": [
           "information_surprise",
-          "point_in_time_information",
-          "price_relative",
           "technical_weakness"
         ],
-        "authority_blockers": [],
+        "authority_blockers": [
+          "independent_evidence_families"
+        ],
         "execution_blockers": [],
-        "entry_price": 76.12,
-        "invalidation_price": 60.0663,
+        "entry_price": 69.48,
+        "invalidation_price": 52.1586,
         "max_add_shares": 1,
         "allowed": true,
         "early_trend": {
@@ -1052,14 +1046,14 @@
           "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 1.0348,
-            "attention_rank": 0.8529,
-            "close": 76.12,
-            "peer_dispersion_5d": 0.0678,
+            "attention_acceleration": 0.3556,
+            "attention_rank": 0.7308,
+            "close": 69.48,
+            "peer_dispersion_5d": 0.0975,
             "prior_20d_high": 92.17,
-            "residual_5d": -0.0359,
-            "residual_dispersion_multiple": -0.5295,
-            "zscore20": -1.17
+            "residual_5d": -0.0218,
+            "residual_dispersion_multiple": -0.2236,
+            "zscore20": -2.15
           },
           "observed": false,
           "price_modes": [],
@@ -1076,15 +1070,12 @@
         "state": "insufficient_evidence",
         "tier": "none",
         "target_tranche_level": 0.0,
-        "sources": [
-          "information"
-        ],
-        "evidence_families": [
-          "point_in_time_information"
-        ],
+        "sources": [],
+        "evidence_families": [],
         "authority_blockers": [
           "independent_evidence_families",
-          "leveraged_requires_validated_evidence"
+          "leveraged_requires_validated_evidence",
+          "negative_information"
         ],
         "execution_blockers": [
           "leveraged_requires_validated_evidence",
@@ -1097,28 +1088,25 @@
         "early_trend": {
           "blockers": [
             "leveraged_requires_validated_evidence",
+            "needs_information_confirmation",
             "needs_primary_evidence",
             "no_20d_breakout",
             "no_short_peer_leadership"
           ],
           "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
-          "evidence_families": [
-            "point_in_time_information"
-          ],
+          "evidence_families": [],
           "exploration_ready": false,
-          "information_modes": [
-            "attention_acceleration"
-          ],
+          "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 2.0063,
-            "attention_rank": 0.9118,
-            "close": 52.37,
-            "peer_dispersion_5d": 0.043,
-            "prior_20d_high": 73.16,
-            "residual_5d": 0.0058,
-            "residual_dispersion_multiple": 0.1349,
-            "zscore20": -0.78
+            "attention_acceleration": 1.081,
+            "attention_rank": 0.8846,
+            "close": 45.99,
+            "peer_dispersion_5d": 0.1267,
+            "prior_20d_high": 71.65,
+            "residual_5d": -0.0627,
+            "residual_dispersion_multiple": -0.4949,
+            "zscore20": -1.77
           },
           "observed": false,
           "price_modes": [],
@@ -1135,15 +1123,10 @@
         "state": "insufficient_evidence",
         "tier": "none",
         "target_tranche_level": 0.0,
-        "sources": [
-          "factor",
-          "information"
-        ],
-        "evidence_families": [
-          "point_in_time_information",
-          "price_relative"
-        ],
+        "sources": [],
+        "evidence_families": [],
         "authority_blockers": [
+          "independent_evidence_families",
           "leveraged_requires_validated_evidence"
         ],
         "execution_blockers": [
@@ -1152,33 +1135,30 @@
         ],
         "entry_price": null,
         "invalidation_price": null,
-        "max_add_shares": 18,
+        "max_add_shares": 15,
         "allowed": false,
         "early_trend": {
           "blockers": [
             "leveraged_requires_validated_evidence",
+            "needs_information_confirmation",
             "needs_primary_evidence",
             "no_20d_breakout",
             "no_short_peer_leadership"
           ],
           "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
-          "evidence_families": [
-            "point_in_time_information"
-          ],
+          "evidence_families": [],
           "exploration_ready": false,
-          "information_modes": [
-            "attention_acceleration"
-          ],
+          "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 1.2684,
-            "attention_rank": 0.9706,
-            "close": 135.92,
-            "peer_dispersion_5d": 0.0466,
-            "prior_20d_high": 171.31,
-            "residual_5d": 0.0499,
-            "residual_dispersion_multiple": 1.0708,
-            "zscore20": -1.52
+            "attention_acceleration": 0.9305,
+            "attention_rank": 0.9615,
+            "close": 123.62,
+            "peer_dispersion_5d": 0.1322,
+            "prior_20d_high": 167.6,
+            "residual_5d": 0.0459,
+            "residual_dispersion_multiple": 0.3472,
+            "zscore20": -2.45
           },
           "observed": false,
           "price_modes": [],
@@ -1196,46 +1176,40 @@
         "tier": "user_experiment",
         "target_tranche_level": 0.25,
         "sources": [
-          "explicit_user_authorization",
-          "factor",
-          "information"
+          "explicit_user_authorization"
         ],
         "evidence_families": [
-          "information_surprise",
-          "point_in_time_information",
-          "price_relative",
           "technical_weakness"
         ],
-        "authority_blockers": [],
+        "authority_blockers": [
+          "independent_evidence_families"
+        ],
         "execution_blockers": [],
-        "entry_price": 135.92,
-        "invalidation_price": 113.4932,
+        "entry_price": 123.62,
+        "invalidation_price": 99.477,
         "max_add_shares": 1,
         "allowed": true,
         "early_trend": {
           "blockers": [
+            "needs_information_confirmation",
             "needs_primary_evidence",
             "no_20d_breakout",
             "no_short_peer_leadership"
           ],
           "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
-          "evidence_families": [
-            "point_in_time_information"
-          ],
+          "evidence_families": [],
           "exploration_ready": false,
-          "information_modes": [
-            "attention_acceleration"
-          ],
+          "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 1.2684,
-            "attention_rank": 0.9706,
-            "close": 135.92,
-            "peer_dispersion_5d": 0.0466,
-            "prior_20d_high": 171.31,
-            "residual_5d": 0.0499,
-            "residual_dispersion_multiple": 1.0708,
-            "zscore20": -1.52
+            "attention_acceleration": 0.9305,
+            "attention_rank": 0.9615,
+            "close": 123.62,
+            "peer_dispersion_5d": 0.1322,
+            "prior_20d_high": 167.6,
+            "residual_5d": 0.0459,
+            "residual_dispersion_multiple": 0.3472,
+            "zscore20": -2.45
           },
           "observed": false,
           "price_modes": [],
