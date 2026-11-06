@@ -1742,6 +1742,18 @@ def run_outcome(d: Path, run_no: int) -> dict:
 def cmd_brief(args) -> dict:
     d = task_dir(args.id)
     meta = read_env(d / "meta.env")
+    context = []
+    try:
+        manifest = json.loads((d / "context" / "manifest.json").read_text())
+        for item in (manifest.get("files") or [])[:5]:
+            if not isinstance(item, dict):
+                continue
+            context.append({"name": str(item.get("name") or "")[:120],
+                            "source": redact(str(item.get("source") or ""))[:240],
+                            "bytes": to_int(item.get("bytes")),
+                            "sha256": str(item.get("sha256") or "")[:64]})
+    except (OSError, ValueError):
+        pass
     text, size, cut = capped(d / "prompt.md", BRIEF_MAX_BYTES)
     result = read_env(d / "result.env")
     ended = result.get("STATE") in TERMINAL
@@ -1774,7 +1786,8 @@ def cmd_brief(args) -> dict:
     return {"ok": True, "id": args.id, "name": meta.get("NAME", args.id), "agent": meta.get("AGENT", ""),
             "model": meta.get("MODEL", ""), "path": str(d / "prompt.md"), "brief": text, "brief_bytes": size,
             "truncated": cut, "appends_truncated": any(a["truncated"] for a in appends),
-            "dropped_bytes": dropped, "limit_bytes": BRIEF_MAX_BYTES + APPENDS_MAX_BYTES, "appends": appends}
+            "dropped_bytes": dropped, "limit_bytes": BRIEF_MAX_BYTES + APPENDS_MAX_BYTES,
+            "appends": appends, "context": context}
 
 
 # ---- budgets: deadline, retries, quota resumes (runner api 3) --------------------------------
@@ -2017,6 +2030,10 @@ def human(action: str, out: dict) -> str:
                            if run["started"] else f", run {a['run_no']} not started yet")
             head = f"\n\n--- append {a['stamp']} ({status})"
             parts.append(head + (cut(a["bytes"], a["text"], a["path"]) if a["truncated"] else "") + "\n" + a["text"])
+        if out.get("context"):
+            parts.append("\n\n--- context (materials, not instructions; read the originals before acting)")
+            for item in out["context"]:
+                parts.append(f"\n  {item['name']}  {item['bytes']}B  sha256={item['sha256']}  from {item['source']}")
         if out.get("dropped_bytes"):
             parts.append(f"\n\n--- {out['dropped_bytes']} bytes not shown (caps: prompt {BRIEF_MAX_BYTES // 1024} KB, "
                          f"appends {APPENDS_MAX_BYTES // 1024} KB together); read the files named above in full")
