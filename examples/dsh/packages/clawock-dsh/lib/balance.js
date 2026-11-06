@@ -1,45 +1,9 @@
+import { _usedLevel } from "./levels.js";
 import { homedir } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 // src/balance.ts
-/**
-* Provider account balances for the session header chip — official endpoints
-* answered with the SAME keys the harness's adapters use (credentials seam
-* references, falling back to ambient environment variables):
-*
-*   - deepseek: `GET https://api.deepseek.com/user/balance` (money, CNY row)
-*   - minimax:  `GET {base}/v1/token_plan/remains` (Token Plan quota windows;
-*     `base_resp.status_code` is the business verdict — 0 ok, 1004 auth —
-*     and a HTTP-200 body can still be an auth failure)
-*   - claude:   `GET /api/oauth/usage` (subscription windows)
-*   - codex:    official `codex app-server` JSON-RPC
-*     `account/rateLimits/read` (ChatGPT subscription quota windows)
-*
-* Every quota provider is reduced to the same shape before it leaves this
-* file: a list of windows built by `quotaWindow` (label derived from the
-* window's length, one reset-stamp format) and a snapshot built by
-* `quotaSnapshot` (one note wording, one availability rule, one low rule).
-* The parsers below only translate each vendor's field names — they used to
-* each spell labels, notes and reset clocks their own way, which is how the
-* same 5-hour window read '5h' on one row and '会话' on the next.
-*
-* One cache per provider, one source of truth: the gateway instance owns
-* them, so a stale read, a failed refresh and a rotated key all resolve
-* against the same object. Upstream is hit at most once per TTL window
-* unless the client forces a refresh; a failed refresh keeps the last good
-* snapshot and reports 'stale' instead of dropping a real number for a
-* transient 429. Keys are never logged, shipped, or stored anywhere here.
-*
-* A host may also give a service a `lastGoodPath`: the last good snapshot is
-* then kept in that file as well, so a process that has not read anything yet
-* (a restarted gateway, the OpenClaw command's own process) still has a
-* reading to fall back on when its first read fails.
-*
-* All error reporting is in-band: `get()` never throws — statuses
-* 'no-key' / 'failed' / 'stale' carry a Chinese `message` the view renders
-* verbatim.
-*/
 const DEFAULT_BALANCE_BASE_URL = "https://api.deepseek.com";
 const DEFAULT_BALANCE_THRESHOLD = 20;
 const DEFAULT_BALANCE_REFRESH_MS = 6e4;
@@ -728,4 +692,4 @@ function createClaudeService(deps, config = {}) {
 		isLow: (snapshot) => quotaIsLow(snapshot, lowPct)
 	});
 }
-export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createCodexService, createMinimaxService, expandHome, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, quotaIsLow, quotaSnapshot, quotaWindow, readClaudeCredentials, readCodexRateLimits, readJsonFile, readLastGood, toEpochMs, windowLabel, windowUsedPercent };
+export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, _usedLevel, createBalanceService, createClaudeService, createCodexService, createMinimaxService, expandHome, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, quotaIsLow, quotaSnapshot, quotaWindow, readClaudeCredentials, readCodexRateLimits, readJsonFile, readLastGood, toEpochMs, windowLabel, windowUsedPercent };

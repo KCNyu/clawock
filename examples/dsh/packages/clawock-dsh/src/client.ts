@@ -853,7 +853,13 @@ function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>, t
           row.provider === (primary !== undefined ? primary.provider : '')
             ? h('span', { className: cx('bp-pin') })
             : null),
-        h('span', { className: cx('bp-v', row.view.tone === 'low' ? 'bad' : ''), 'data-balance-state': row.view.tone }, row.view.value),
+        h('span', {
+          className: cx('bp-v', row.view.tone === 'low' ? 'bad' : ''),
+          'data-balance-state': row.view.tone,
+          // 旧版页头 popover 的面板行也走同一套已使用档位;金额行 level=null,
+          // 仍由 tone 的 low 决定红色。
+          'data-used-level': row.view.level === null ? undefined : row.view.level,
+        }, row.view.value),
         // note 与明细并存,不再二选一(#908 根因:互斥三元让水位/stale
         // 警示句把每窗读数、进度条、重置时间整个顶掉)。无窗的异常行由
         // renderRowDetail 自己返回 null,仍是「只讲一句」。
@@ -1227,12 +1233,22 @@ function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; s
   const slots = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null)
   const value = kind.value && view.value != null ? view.value : null
   const caption = (view.caption ?? []).filter((part) => part.text !== '')
+  // The sidebar's folded line prints EVERY readable window (5h AND week), not
+  // just the headline the old chip showed. The panel's head keeps the headline
+  // + its per-window bars, so the same reading is not written twice there.
+  const text = value === null ? ''
+    : view.folded === true && value.windowsText !== undefined && value.windowsText !== ''
+      ? value.windowsText
+      : value.text
+  const resets = value?.resets ?? []
+  const stale = value?.stale === true && view.folded === true
+  const unit = value === null ? undefined : view.folded === true ? value.foldedUnit : value.unit
   const cells = [
     h('span', { className: cx('tq-lead'), key: 'lead', 'aria-hidden': 'true' }, kind.lead && view.lead != null ? renderLead(view.lead) : null),
     h('span', { className: cx('tq-name'), key: 'name' }, view.name),
     value === null ? null : h('span', {
       className: cx('tq-value'), key: 'value', 'data-balance-state': value.tone, 'data-used-level': value.level ?? undefined,
-    }, value.unit === undefined ? null : h('span', { className: cx('tq-unit') }, value.unit), value.text),
+    }, unit === undefined ? null : h('span', { className: cx('tq-unit') }, unit), text),
     view.state === null ? null : renderChip(view.state, { slot: 'status' }),
     ...slots.map((slot) => {
       const fact = view.facts[slot]!
@@ -1241,10 +1257,17 @@ function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; s
       }, fact.receipts != null ? renderReceipts(fact.receipts, t) : fact.parts == null ? fact.text : renderFiledParts(fact.parts, t),
         fact.mark == null ? null : h('span', { className: cx('tq-mark'), 'data-role': fact.mark.role, title: fact.mark.title }, renderRoleGlyph(fact.mark.role), fact.mark.text))
     }),
+    view.folded === true && (resets.length > 0 || stale)
+      ? h('span', { className: cx('tq-reset-line'), key: 'resets' },
+        stale ? h('span', { className: cx('tq-stale'), title: t('balance.stale') }, t('balance.staleShort')) : null,
+        resets.length > 0 ? '↻ ' + resets.join(' · ') : null)
+      : null,
     caption.length === 0 ? null : h('span', { className: cx('tq-caption-line'), key: 'caption' },
       ...caption.map((part, i) => h('span', { key: i, 'data-voice': part.voice, title: part.title }, (i > 0 ? ' · ' : '') + part.text))),
   ].filter((cell): cell is React.ReactElement => cell !== null)
-  const said = [view.name, value === null ? null : (value.unit === undefined ? '' : value.unit + ' ') + value.text,
+  const said = [view.name, value === null ? null : (unit === undefined ? '' : unit + ' ') + text,
+    stale ? t('balance.staleShort') : null,
+    ...resets.map((reset) => '↻ ' + reset),
     view.state?.title ?? view.state?.text, ...slots.map((slot) => view.facts[slot]!.said ?? view.facts[slot]!.text),
     ...caption.map((part) => part.text)]
     .filter((part) => part != null && part !== '').join(' · ')
@@ -2739,8 +2762,13 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const failed = (queueState.data.error !== null && result === null) || (balanceState.data.error !== null && balanceState.rows.length === 0)
     || lines.some((line) => line.reading.tone === 'stale')
   const railTone: BalanceTone = warn ? 'low' : failed ? 'stale' : 'none'
-  const summary = lines.map((line) => [line.source.label, [line.view.value?.unit, line.reading.value].filter((part) => part != null && part !== '').join(' '), line.reading.reset ?? '', line.text]
-    .filter((part) => part !== '').join(' ')).join(' · ')
+  const summary = lines.map((line) => [
+    line.source.label,
+    [line.view.value?.unit, line.reading.windowsText || line.reading.value].filter((part) => part != null && part !== '').join(' '),
+    ...line.reading.resets.map((reset) => '↻ ' + reset),
+    line.reading.tone === 'stale' ? t('balance.staleShort') : '',
+    line.text,
+  ].filter((part) => part !== '').join(' ')).join(' · ')
   const toggle = (key: string | null, opener: HTMLElement | null): void => {
     openerRef.current = opener
     setFocusKey(key)
@@ -2768,11 +2796,17 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
             'data-active': open && focusKey === source.key ? '' : undefined,
             'aria-expanded': open,
             'aria-haspopup': 'dialog',
-            'aria-label': [source.label, [view.value?.unit, reading.value].filter((part) => part != null && part !== '').join(' '), reading.reset ?? '', text, t('panel.openGroup', { name: source.label })]
-              .filter((part) => part !== '').join(' · '),
+            'aria-label': [
+              source.label,
+              [view.value?.unit, reading.windowsText || reading.value].filter((part) => part != null && part !== '').join(' '),
+              ...reading.resets.map((reset) => '↻ ' + reset),
+              reading.tone === 'stale' ? t('balance.staleShort') : '',
+              text,
+              t('panel.openGroup', { name: source.label }),
+            ].filter((part) => part !== '').join(' · '),
             title: reading.title,
             onClick: (event: { currentTarget: HTMLElement }) => { toggle(source.key, event.currentTarget) },
-          }, ...rowCells({ ...view, caption: [] }, t).cells)))
+          }, ...rowCells({ ...view, caption: [], folded: true }, t).cells)))
       : h('button', {
         type: 'button',
         className: cx('bchip', 'pp-rail'),

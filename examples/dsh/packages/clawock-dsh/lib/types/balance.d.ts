@@ -35,6 +35,7 @@
  * 'no-key' / 'failed' / 'stale' carry a Chinese `message` the view renders
  * verbatim.
  */
+export { _usedLevel } from './levels.ts';
 import type { BalanceResult, BalanceSnapshot, BalanceWindow } from './types.ts';
 export declare const DEFAULT_BALANCE_BASE_URL = "https://api.deepseek.com";
 export declare const DEFAULT_BALANCE_THRESHOLD = 20;
@@ -283,4 +284,3 @@ export declare function readClaudeCredentials(path: string): {
 export declare function createClaudeService(deps: {
     credentials: BalanceCredentials;
 }, config?: ClaudeConfig): BalanceService;
-export {};

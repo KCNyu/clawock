@@ -1,4 +1,5 @@
 import { n as taskQueueConfig, t as createBalanceReader } from "./desk.js";
+import { _usedLevel } from "./levels.js";
 import { createTaskQueueService } from "./taskqueue.js";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -113,6 +114,8 @@ const dictionaries = {
 		"balance.used": "已用",
 		"balance.usedValue": "已用 {percent}",
 		"balance.apiBalance": "API 余额",
+		"balance.balanceShort": "余额",
+		"balance.staleShort": "旧读数",
 		"balance.granted": "赠金 ",
 		"balance.toppedUp": "充值 ",
 		"balance.insufficient": "官方接口判定余额不足",
@@ -656,6 +659,8 @@ const dictionaries = {
 		"balance.used": "used",
 		"balance.usedValue": "{percent} used",
 		"balance.apiBalance": "API balance",
+		"balance.balanceShort": "balance",
+		"balance.staleShort": "stale",
 		"balance.granted": "Granted ",
 		"balance.toppedUp": "Topped up ",
 		"balance.insufficient": "The provider reports insufficient balance",
@@ -1216,31 +1221,6 @@ function byAgentRank(items) {
 		rank: sourceRank({ agent: item.agent })
 	})).sort((a, b) => a.rank - b.rank || a.at - b.at).map(({ item }) => item);
 }
-// src/panel.ts
-/**
-* The task chip's provider panel as data: every row it shows (a provider's
-* allowance, a live task, an ended one, a patrol round), its words, its state
-* role and its place — without React or the DOM. client.ts draws these rows in
-* dsh's sidebar; text.ts prints the same rows for a chat (OpenClaw's
-* `/dispatch-list`). One view model, two renderers: the chat reply cannot say
-* something the chip does not, or say it in other words.
-*
-* The parts a renderer draws for itself are named, not built here: a row's lead
-* glyph (`RowLead`), the fallback mark and the delivery receipts (`Fact`).
-*/
-/**
-* Colour tier for one used-percent reading against the REMAINING-watermark
-* threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
-* 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
-* warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
-* 档位只决定颜色,绝不增删信息(kcn 反馈 #908:变红不许吃掉任何字段)。
-*/
-function _usedLevel(percent, threshold) {
-	if (percent === null) return "ok";
-	if (percent >= 100 - threshold) return "low";
-	if (percent >= 100 - 2 * threshold) return "mid";
-	return "ok";
-}
 /**
 * Display projection of ONE provider's answer (test seam, like _displayEntry):
 * the chip and panel render only these fields, so the view never keeps
@@ -1260,6 +1240,9 @@ function _rowDisplay(result, t, now = Date.now()) {
 		sub: null,
 		reset: null,
 		level: null,
+		windows: [],
+		windowsText: "",
+		resets: [],
 		title: t("balance.loading")
 	};
 	if (!result.configured) return {
@@ -1268,6 +1251,9 @@ function _rowDisplay(result, t, now = Date.now()) {
 		sub: null,
 		reset: null,
 		level: null,
+		windows: [],
+		windowsText: "",
+		resets: [],
 		title: result.message ?? t("balance.unconfiguredKey")
 	};
 	if (result.snapshot === null) return {
@@ -1276,6 +1262,9 @@ function _rowDisplay(result, t, now = Date.now()) {
 		sub: null,
 		reset: null,
 		level: null,
+		windows: [],
+		windowsText: "",
+		resets: [],
 		title: result.message ?? t("balance.fetchFailed")
 	};
 	const snapshot = result.snapshot;
@@ -1307,13 +1296,22 @@ function _rowDisplay(result, t, now = Date.now()) {
 		snapshot.isAvailable || isPct ? null : t("balance.insufficient"),
 		result.status === "stale" ? staleNote(result, t, now) : null
 	].filter((part) => part !== null);
-	const shownPct = isPct ? isFinite(parsed) ? parsed : pctWins.length > 0 ? pctWins[0].percent : null : null;
+	const winViews = wins.filter((w) => w.percent !== null).map((w) => ({
+		label: w.label,
+		percent: Math.round(w.percent),
+		reset: w.reset
+	}));
+	const tightest = winViews.reduce((max, w) => max === null || w.percent > max.percent ? w : max, null);
+	const tightestPct = tightest === null ? isFinite(parsed) ? Math.round(parsed) : null : tightest.percent;
 	return {
 		tone,
 		value,
 		sub,
 		reset,
-		level: shownPct === null ? null : _usedLevel(Math.round(shownPct), result.threshold),
+		level: isPct ? _usedLevel(tightestPct, result.threshold) : null,
+		windows: winViews,
+		windowsText: winViews.map((w) => `${w.label} ${w.percent}%`).join(" · "),
+		resets: [...new Set(winViews.map((w) => w.reset).filter((r) => r !== ""))],
 		title: parts.join(" · ")
 	};
 }
@@ -2079,6 +2077,9 @@ function sourceReading(source, row, queue, t) {
 		reset: row.view.reset === null ? null : "↻ " + row.view.reset,
 		tone: row.view.tone,
 		level: row.view.level,
+		windows: row.view.windows,
+		windowsText: row.view.windowsText,
+		resets: row.view.resets,
 		title: row.view.title
 	};
 	if (source.join?.kind === "pool") {
@@ -2089,6 +2090,9 @@ function sourceReading(source, row, queue, t) {
 			reset: null,
 			tone: "none",
 			level: null,
+			windows: [],
+			windowsText: "",
+			resets: [],
 			title: (pos === null ? t("panel.poolUnread") : t("panel.pool", {
 				current: pos.current,
 				next: pos.next || "—"
@@ -2100,6 +2104,9 @@ function sourceReading(source, row, queue, t) {
 		reset: null,
 		tone: "none",
 		level: null,
+		windows: [],
+		windowsText: "",
+		resets: [],
 		title: ""
 	};
 }
@@ -2215,6 +2222,7 @@ function sourceView(source, row, result, t) {
 	const lane = source.agent === null || result === null || !result.available ? void 0 : _slotLanes(result).find((l) => l.agent === source.agent);
 	const pool = source.join?.kind === "pool" ? _poolPosition(result) : null;
 	const poolSize = result?.opencodePool?.length ?? 0;
+	const snapshot = row?.result.snapshot;
 	return {
 		kind: "source",
 		key: source.key,
@@ -2224,7 +2232,12 @@ function sourceView(source, row, result, t) {
 			text: reading.value,
 			tone: reading.tone,
 			level: reading.level,
-			unit: row?.result.snapshot?.unit === "pct" ? t("balance.used") : void 0
+			unit: snapshot === null || snapshot === void 0 ? void 0 : snapshot.unit === "pct" ? t("balance.used") : t("balance.balanceShort"),
+			foldedUnit: snapshot?.unit === "money" ? t("balance.balanceShort") : void 0,
+			windows: reading.windows,
+			windowsText: reading.windowsText,
+			resets: reading.resets,
+			stale: reading.tone === "stale"
 		},
 		state: queue?.chip ?? null,
 		facts: {},
@@ -2854,7 +2867,8 @@ function factText(fact, t) {
 */
 function rowText(view, t, opts = {}) {
 	const kind = ROW_KINDS[view.kind];
-	const value = kind.value && view.value != null ? (view.value.tone === "low" && opts.warn !== false ? "⚠" : "") + (view.value.unit === void 0 ? "" : view.value.unit + " ") + view.value.text : null;
+	const low = view.value != null && (view.value.level !== null ? view.value.level === "low" : view.value.tone === "low");
+	const value = kind.value && view.value != null ? (low && opts.warn !== false ? "⚠" : "") + (view.value.unit === void 0 ? "" : view.value.unit + " ") + view.value.text : null;
 	const state = view.state === null ? null : ROLE_MARK[view.state.role] + view.state.text;
 	const facts = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null).map((slot) => factText(view.facts[slot], t)).filter((text) => text !== "");
 	const listed = view.kind === "task" || view.kind === "ended" || view.kind === "round";

@@ -1331,6 +1331,12 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .bp-v.bad {
   color:var(--bad)
 }
+/* 旧版页头 popover 的面板行与侧栏/新面板同一套已使用档位。stale 必须排在
+   档位之后,否则一张过期读数会被 ok/mid/low 盖掉「不可信」的黄色。 */
+.pbc .bp-v[data-used-level="ok"] { color:var(--ok) }
+.pbc .bp-v[data-used-level="mid"] { color:var(--warn) }
+.pbc .bp-v[data-used-level="low"] { color:var(--bad) }
+.pbc .bp-v[data-balance-state="stale"] { color:var(--warn) }
 /* Per-window grid: one line per quota window — label / remaining / reset —
    plus a hairline remaining-bar under it. The bar is a translucent ink track
    ON the frosted panel (no second glass layer — glass inside glass reads as
@@ -1961,6 +1967,7 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:nowrap;
   color:var(--tq-ink)
 }
+.pbc .tq-value[data-used-level="ok"] { color:var(--tq-text-ok) }
 .pbc .tq-value[data-used-level="mid"] { color:var(--tq-text-warn) }
 .pbc .tq-value[data-used-level="low"] { color:var(--tq-text-bad) }
 .pbc .tq-value[data-balance-state="low"] { color:var(--tq-text-bad) }
@@ -1974,6 +1981,34 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
+}
+/* 侧栏折叠行第二行:每个窗口的重置时刻。与第一行同宽、右对齐、10px/12px;
+   两行 16px+12px 正好落在桌面 28px 行高里,不改变行的几何。 */
+.pbc .tq-reset-line {
+  grid-area:2 / 2 / 3 / 4;
+  justify-self:end;
+  align-self:center;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  text-align:right;
+  font:400 var(--fs-micro, 10px)/12px var(--font);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.01em;
+  color:var(--tq-ink-3)
+}
+/* 过期读数不能说成「旧数字还好」:在读数后给一个词,颜色仍由 stale 黄统一。 */
+.pbc .tq-stale {
+  flex:none;
+  margin-right:4px;
+  padding:0 3px;
+  border:.5px solid currentColor;
+  border-radius:4px;
+  font:500 var(--fs-micro, 10px)/12px var(--font);
+  white-space:nowrap;
+  color:var(--tq-text-warn)
 }
 /* The panel's cells (FACT_CELL). The folded sidebar lines keep their own four-track subgrid below. */
 .pbc .tq-row > .tq-name { grid-column:2 / 5 }
@@ -3092,9 +3127,13 @@ body[data-ds-dark-theme] .pbc .bp {
 }
 .pbc.ppf .pp-rows {
   display:grid;
-  /* --tq-grid, except that a subgrid's own padding lands on its edge tracks as margin: the
-     lead track carries the line's 8px inset too (the trailing auto track sizes it in). */
-  grid-template-columns:calc(var(--tq-lead) + 8px) minmax(0, 1fr) auto auto;
+  /* Two lines per source, the host drawer's own rhythm: glyph · name · reading on
+     line 1, the state chip or the reset stamps on line 2. The old four-track
+     subgrid reserved a chip column in every row; once every window and its
+     reset had to be printed, that column plus the reading's max-content pushed
+     the name to 0 width. The reading now owns the flexible track and the second
+     line carries what does not fit beside it. */
+  grid-template-columns:calc(var(--tq-lead) + 8px) minmax(64px, 1fr) minmax(0, auto);
   column-gap:var(--tq-gap);
   margin:0 -2px
 }
@@ -3105,6 +3144,7 @@ body[data-ds-dark-theme] .pbc .bp {
   box-sizing:border-box;
   width:100%;
   min-height:28px;
+  align-items:center;
   padding:0 8px;
   border:0;
   border-radius:var(--tq-radius);
@@ -3116,8 +3156,34 @@ body[data-ds-dark-theme] .pbc .bp {
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
 }
-.pbc.ppf .pp-row > .tq-name { max-width:96px; overflow:hidden; white-space:nowrap }
-.pbc.ppf .pp-row > .tq-chip[data-tq-chip="status"] { grid-column:4; justify-self:stretch }
+.pbc.ppf .pp-row > :is(.tq-name, .tq-value) {
+  line-height:16px
+}
+.pbc.ppf .pp-row > .tq-lead { height:16px }
+.pbc.ppf .pp-row > .tq-name {
+  grid-column:2;
+  max-width:96px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.pbc.ppf .pp-row > .tq-value {
+  grid-column:3;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+/* Line 2: the one state chip or the resets. Never both today; if a provider
+   ever has both, the chip is on the left and the clocks on the right. */
+.pbc.ppf .pp-row > .tq-chip[data-tq-chip="status"] {
+  grid-area:2 / 2 / 3 / 4;
+  justify-self:end;
+  align-self:center;
+  box-sizing:border-box;
+  height:16px;
+  padding:0 6px
+}
 .pbc.ppf .pp-row[data-active] { background:var(--tq-fill-hover) }
 .pbc.ppf .pp-row:active { background:var(--tq-fill-press) }
 .pbc.ppf .pp-row:focus-visible,
