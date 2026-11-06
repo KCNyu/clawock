@@ -47,7 +47,7 @@ export AGENT_DISPATCH_MANDATE
 export TZ=Asia/Shanghai HOME=/root
 # AGENT_DISPATCH_PATH_PREFIX: test seam for fake CLIs. systemd-run does not pass the
 # caller's environment, so dispatched tasks never see it.
-export PATH="${AGENT_DISPATCH_PATH_PREFIX:+$AGENT_DISPATCH_PATH_PREFIX:}/root/.local/bin:/root/.local/share/pnpm:/root/.nvm/versions/node/v22.23.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export PATH="${AGENT_DISPATCH_PATH_PREFIX:+$AGENT_DISPATCH_PATH_PREFIX:}/root/.local/bin:/root/.local/share/pnpm:/root/.nvm/versions/node/v24.22.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 # Trust boundary: there is NO sandbox. Tasks run as root in an unconfined systemd unit,
 # claude with --dangerously-skip-permissions and codex with
 # --dangerously-bypass-approvals-and-sandbox — the same yolo setup kcn uses interactively
