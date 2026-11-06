@@ -129,8 +129,18 @@ async function probe() {
     return { line: `额度：读取失败（${result.message ?? '没有额度窗口'}）`, ok: false }
   }
   // One direction everywhere: the chip, this line and the panel all print the used share, so
-  // 'week 88%' cannot read as remaining 88% while the other surface says 12%.
-  const parts = windows.map((w) => `${w.label} 已用 ${w.percent}%` + (w.resetAt ? `（${w.resetAt} 重置）` : ''))
+  // 'week 88%' cannot read as remaining 88% while the other surface says 12%. The warning mark
+  // comes from the same `_usedLevel` the chip and the panel use (exported through lib/balance.js),
+  // so a window that the UI paints red is not a calm number in the notification.
+  const threshold = Number.isFinite(result.threshold) ? result.threshold : 20
+  const usedLevel = typeof balance._usedLevel === 'function'
+    ? balance._usedLevel
+    : (percent) => (percent >= 100 - threshold ? 'low' : percent >= 100 - 2 * threshold ? 'mid' : 'ok')
+  const parts = windows.map((w) => {
+    const percent = Math.round(w.percent)
+    return `${w.label} 已用 ${percent}%${usedLevel(percent, threshold) === 'low' ? ' ⚠' : ''}`
+      + (w.resetAt ? `（${w.resetAt} 重置）` : '')
+  })
   return { line: '额度：' + parts.join(' · ') + (result.snapshot.isAvailable ? '' : ' · ' + unavailable(windows)), ok: true }
 }
 

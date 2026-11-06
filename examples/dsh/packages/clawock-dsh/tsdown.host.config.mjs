@@ -15,6 +15,7 @@ export default defineConfig({
     ledger: 'src/ledger.ts',
     freshness: 'src/freshness.ts',
     balance: 'src/balance.ts',
+    levels: 'src/levels.ts',
     taskqueue: 'src/taskqueue.ts',
     chat: 'src/chat.ts',
   },

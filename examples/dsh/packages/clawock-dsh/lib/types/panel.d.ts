@@ -10,20 +10,18 @@
  * glyph (`RowLead`), the fallback mark and the delivery receipts (`Fact`).
  */
 import { type ProviderJoin } from './providers.ts';
+import { type UsedLevel } from './levels.ts';
 import { type Translate } from './copy.ts';
 import type { AgentQueue, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts';
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
-/** Usage-direction colour tier of a used-percent reading. */
-export type UsedLevel = 'ok' | 'mid' | 'low';
-/**
- * Colour tier for one used-percent reading against the REMAINING-watermark
- * threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
- * 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
- * warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
- * 档位只决定颜色,绝不增删信息(kcn 反馈 #908:变红不许吃掉任何字段)。
- */
-export declare function _usedLevel(percent: number | null, threshold: number): UsedLevel;
+export { _usedLevel, type UsedLevel } from './levels.ts';
+/** One quota window as a surface prints it: label, used percent, reset stamp. */
+export type QuotaWindowView = {
+    label: string;
+    percent: number;
+    reset: string;
+};
 /**
  * The sign of a printed number: U+2212, outside the currency symbol. The
  * dashboard's `fmtMoney` set the rule (#2672); the chip printed `$-12.34` and
@@ -48,6 +46,9 @@ export declare function _rowDisplay(result: BalanceResult | null, t: Translate, 
     sub: string | null;
     reset: string | null;
     level: UsedLevel | null;
+    windows: QuotaWindowView[];
+    windowsText: string;
+    resets: string[];
     title: string;
 };
 /**
@@ -288,7 +289,19 @@ export type RowView = {
         tone: BalanceTone;
         level: UsedLevel | null;
         unit?: string;
+        /** The folded line's shorter measure word: money says balance; quota relies on the window label. */
+        foldedUnit?: string;
+        /** Every readable window, in the snapshot's order; the folded line prints them all. */
+        windows?: QuotaWindowView[];
+        /** The same windows on one line (`5h 48% · 周 96%`), localized. */
+        windowsText?: string;
+        /** Each window's reset stamp, in the same order (only the folded line prints them). */
+        resets?: string[];
+        /** The refresh failed; the folded line says so next to the reading. */
+        stale?: boolean;
     } | null;
+    /** True for the sidebar's folded line (not the panel's head); it prints all windows and their resets. */
+    folded?: boolean;
     state: SlotChip | null;
     facts: Partial<Record<FactSlot, Fact | null>>;
     /** A head's line 2: what the source is (plan · slots · pool) or what a section is doing. Words, never chips. */
@@ -386,6 +399,9 @@ export declare function sourceReading(source: PanelSource, row: BalanceRow | und
     reset: string | null;
     tone: BalanceTone;
     level: UsedLevel | null;
+    windows: QuotaWindowView[];
+    windowsText: string;
+    resets: string[];
     title: string;
 };
 /** The patrol phase's role: running blue, giving way amber (a wait), between rounds off, stopped red. */

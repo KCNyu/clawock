@@ -36,6 +36,7 @@
  * verbatim.
  */
 
+export { _usedLevel } from './levels.ts'
 import { delimiter, dirname, join, resolve } from 'node:path'
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'

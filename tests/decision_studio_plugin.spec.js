@@ -1204,6 +1204,16 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   const valueLow = idxOf(/_tq-value\[data-used-level=low\]/);
   assert.ok(valueStale > -1 && valueLow > -1 && valueStale > valueLow,
     "stale yellow must out-rank the reading cell's usage tiers in source order");
+  assert.match(css, /_tq-value\[data-used-level=ok\]/, "reading green tier selector required");
+  assert.match(css, hashed("tq-reset-line"), "the folded line's reset row required");
+  assert.match(css, hashed("tq-stale"), "the folded line's stale word required");
+  // The legacy header popover's rows are the third surface of the same reading.
+  assert.match(css, /_bp-v\[data-used-level=mid\]/, "legacy panel row yellow tier selector required");
+  assert.match(css, /_bp-v\[data-used-level=low\]/, "legacy panel row red tier selector required");
+  const bpStale = idxOf(/_bp-v\[data-balance-state=stale\]/);
+  const bpLow = idxOf(/_bp-v\[data-used-level=low\]/);
+  assert.ok(bpStale > -1 && bpLow > -1 && bpStale > bpLow,
+    "legacy panel stale yellow must out-rank its usage tiers in source order");
   assert.match(css, hashed("skel"), "cold-start skeleton block required");
   // The host publishes a font stack but no font-size tokens. The plugin's
   // seven whole-pixel roles are shared by the board and both sidebar chips;
@@ -2580,9 +2590,9 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   await tick(); await tick(); await tick();
   let foot = render();
   assert.deepEqual(lines(foot).map((l) => l.props["data-pp-row"]), ["deepseek", "minimax"]);
-  assert.equal(texts(lines(foot)[0]), "DeepSeek ¥110");
-  assert.equal(texts(lines(foot)[1]), "MiniMax 已用 24%", "resident: name, reading and its used/remaining direction");
-  assert.match(lines(foot)[1].props["aria-label"], /^MiniMax · 已用 24% · ↻ 21:00 · /, "the direction and the headline window's reset are still read out");
+  assert.equal(texts(lines(foot)[0]), "DeepSeek 余额 ¥110");
+  assert.match(texts(lines(foot)[1]), /^MiniMax 5h 24% · 周 10% ↻ 21:00 · 周四 21:00$/, "resident: name, every readable window and their resets");
+  assert.match(lines(foot)[1].props["aria-label"], /^MiniMax · 已用 5h 24% · 周 10% · ↻ 21:00 · ↻ 周四 21:00 · /, "the direction, every window and every reset are read out");
   assert.equal(lines(foot)[0].props["data-balance-state"], "ok");
   assert.equal(lines(foot)[0].props["aria-expanded"], false);
   assert.equal(popover(foot).props["data-open"], "false");
@@ -2590,8 +2600,8 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   // Closed means out of interaction, not merely transparent (React 18: `inert=""`, never `true`).
   assert.equal(popover(foot).props.inert, "", "a closed popover must be inert, not just transparent");
   const railTrigger = rail(render(false));
-  assert.match(railTrigger.props.title, /DeepSeek ¥110/, "the rail keeps every reading in its title");
-  assert.match(railTrigger.props["aria-label"], /MiniMax 已用 24%/, "and reads it out, with the direction");
+  assert.match(railTrigger.props.title, /DeepSeek 余额 ¥110/, "the rail keeps every reading in its title");
+  assert.match(railTrigger.props["aria-label"], /MiniMax 已用 5h 24% · 周 10%/, "and reads it out, with every window and the direction");
   const railClasses = find(railTrigger, (p) => typeof p.className === "string").flatMap((node) => node.props.className.split(" "));
   assert.ok(railClasses.some((token) => token.endsWith("_bal-lead")), "the rail renders the glyph wrapper class");
   assert.ok(railClasses.some((token) => token.endsWith("_bal-glyph")), "the rail renders the gauge class");
@@ -2610,7 +2620,7 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   assert.deepEqual(find(popover(foot), (p) => p["data-pp-group"] !== undefined).map((g) => g.props["data-pp-group"]), ["deepseek", "minimax"]);
   assert.deepEqual(find(popover(foot), (p) => p["data-pb-role"] === "panel").map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
   const ds = find(popover(foot), (p) => p["data-pp-group"] === "deepseek")[0];
-  assert.match(texts(ds), /DeepSeek ¥110 本机 API 账户 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount on the head, its split under it, no bar (⑤)");
+  assert.match(texts(ds), /DeepSeek 余额 ¥110 本机 API 账户 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount on the head, its split under it, no bar (⑤)");
   assert.equal(find(ds, (p) => p["data-pp-provider"] === "deepseek").length, 1, "the source uses its whale glyph");
   assert.equal(find(ds, (p) => typeof p.className === "string" && p.className.endsWith("_bp-win-bar")).length, 0);
   assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax 已用 24% Token Plan · 源：OpenClaw 配置 .*5h 已用 24% ↻ 21:00/);
@@ -2858,6 +2868,7 @@ test("quota line: an exhausted window says quota, names when it is back, and rul
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-quota-"));
   const lib = path.join(tmp, "balance.mjs");
   fs.writeFileSync(lib, "const answer = JSON.parse(process.env.FAKE_QUOTA_RESULT)\n"
+    + "export const _usedLevel = (percent, threshold) => percent >= 100 - threshold ? 'low' : percent >= 100 - 2 * threshold ? 'mid' : 'ok'\n"
     + "export const createClaudeService = () => ({ get: async () => answer })\n"
     + "export const createCodexService = createClaudeService\n");
   let n = 0;
@@ -2870,8 +2881,10 @@ test("quota line: an exhausted window says quota, names when it is back, and rul
   try {
     assert.equal(line(fresh([win("5h", 17, "今天 22:19", 2000), win("周", 1, "10/18 周日 20:00", 9000)], true)),
       "额度：5h 已用 17%（今天 22:19 重置） · 周 已用 1%（10/18 周日 20:00 重置）", "a usable account gains no words");
+    assert.match(line({ ...fresh([win("5h", 48, "今天 04:44", 2000), win("周", 96, "明天 19:45", 9000)], true), threshold: 20 }),
+      /周 已用 96% ⚠/, "the window the chip paints red is marked in the notification too");
     const weekOut = line(fresh([win("5h", 17, "今天 22:19", 2000), win("周", 100, "今天 19:59", 1000)], false));
-    assert.match(weekOut, /周 已用 100%（今天 19:59 重置） · 周额度已用尽，今天 19:59 恢复（登录正常，不用重新登录）$/);
+    assert.match(weekOut, /周 已用 100% ⚠（今天 19:59 重置） · 周额度已用尽，今天 19:59 恢复（登录正常，不用重新登录）$/);
     assert.doesNotMatch(weekOut, /当前不可用/);
     const bothOut = line(fresh([win("5h", 100, "今天 21:58", 1000), win("周", 100, "10/18 周日 11:57", 9000)], false), "codex");
     assert.match(bothOut, /5h、周额度已用尽，10\/18 周日 11:57 恢复/, "back when the LAST exhausted window resets");
@@ -3100,7 +3113,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
     for (const child of node.children || []) { const hit = findChipValue3(child); if (hit) return hit; }
     return null;
   })(tree2);
-  assert.equal(chipValueMid["data-used-level"], "mid", "the pill headline tints yellow in the approach band");
+  assert.equal(chipValueMid["data-used-level"], "low", "the pill tints by the tightest window: 65% headline, 88% week means red");
   disposeReactEffects();
 
   // #908 regression pin: at the red watermark the row used to collapse to one
@@ -3185,7 +3198,7 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   // surface the second window (周限额) as a muted pill suffix. Colour tiers
   // (level) follow the usage direction: green low, yellow near, red inside —
   // colour only, never at the cost of a field (#908).
-  assert.deepEqual(api._rowDisplay(null, translatorFor(api)), { tone: "none", value: "—", sub: null, reset: null, level: null, title: "余额加载中" });
+  assert.deepEqual(api._rowDisplay(null, translatorFor(api)), { tone: "none", value: "—", sub: null, reset: null, level: null, windows: [], windowsText: "", resets: [], title: "余额加载中" });
   const okRow = api._rowDisplay(answer(), translatorFor(api));
   assert.equal(okRow.tone, "ok");
   assert.equal(okRow.level, null, "money rows have no usage tier — colour stays tonal");
@@ -3211,6 +3224,19 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   }), translatorFor(api));
   assert.equal(dualReset.reset, "21:00", "the headline window's reset rides along for the chip");
   assert.equal(dualReset.sub, "· 周 90% ↻周四 21:00", "the weekly suffix carries its own reset");
+  assert.equal(dualReset.level, "low", "the tier follows the tightest window (90%), not the headline (76%)");
+  assert.equal(dualReset.windowsText, "5h 76% · 周 90%", "every readable window is one line for the folded row");
+  assert.deepEqual(dualReset.resets, ["21:00", "周四 21:00"], "their resets come in the same order");
+  // The three visible bands, each read off the tightest window. The watermark
+  // stays the long-standing 60% yellow / 80% red; 60 and 75 are both the
+  // warning band, which is the rule kcn asked to keep.
+  const band = (a, b) => api._rowDisplay(answer({
+    snapshot: snap(String(a), { unit: "pct", currency: "", windows: [
+      { label: "5h", percent: a, resetAt: "" }, { label: "周", percent: b, resetAt: "" },
+    ] }),
+  }), translatorFor(api)).level;
+  assert.deepEqual([band(40, 59), band(60, 75), band(75, 96)], ["ok", "mid", "low"],
+    "green / yellow / red all derive from the same _usedLevel over the tightest window");
   const limited = api._rowDisplay(answer({ snapshot: snap("87", {
     unit: "pct", currency: "",
     note: "5h 已用 87%,今天 21:00 重置 · 当前额度受限",

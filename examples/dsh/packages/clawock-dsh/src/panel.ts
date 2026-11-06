@@ -10,28 +10,17 @@
  * glyph (`RowLead`), the fallback mark and the delivery receipts (`Fact`).
  */
 import { PROVIDER_JOIN, byAgentRank, sourceRank, type ProviderJoin } from './providers.ts'
+import { _usedLevel, type UsedLevel } from './levels.ts'
 import { resetStampOf, windowsOf, type Translate } from './copy.ts'
 import type { AgentQueue, AgentStats, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts'
 
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
 
-/** Usage-direction colour tier of a used-percent reading. */
-export type UsedLevel = 'ok' | 'mid' | 'low'
+export { _usedLevel, type UsedLevel } from './levels.ts'
 
-/**
- * Colour tier for one used-percent reading against the REMAINING-watermark
- * threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
- * 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
- * warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
- * 档位只决定颜色,绝不增删信息(kcn 反馈 #908:变红不许吃掉任何字段)。
- */
-export function _usedLevel(percent: number | null, threshold: number): UsedLevel {
-  if (percent === null) return 'ok'
-  if (percent >= 100 - threshold) return 'low'
-  if (percent >= 100 - 2 * threshold) return 'mid'
-  return 'ok'
-}
+/** One quota window as a surface prints it: label, used percent, reset stamp. */
+export type QuotaWindowView = { label: string; percent: number; reset: string }
 
 /**
  * The sign of a printed number: U+2212, outside the currency symbol. The
@@ -52,10 +41,10 @@ export const MINUS = '−'
  * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
  * the reading itself says 100% and `reset` carries when it frees up.
  */
-export function _rowDisplay(result: BalanceResult | null, t: Translate, now: number = Date.now()): { tone: BalanceTone; value: string; sub: string | null; reset: string | null; level: UsedLevel | null; title: string } {
-  if (result === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: t('balance.loading') }
-  if (!result.configured) return { tone: 'none', value: t('balance.unconfigured'), sub: null, reset: null, level: null, title: result.message ?? t('balance.unconfiguredKey') }
-  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: result.message ?? t('balance.fetchFailed') }
+export function _rowDisplay(result: BalanceResult | null, t: Translate, now: number = Date.now()): { tone: BalanceTone; value: string; sub: string | null; reset: string | null; level: UsedLevel | null; windows: QuotaWindowView[]; windowsText: string; resets: string[]; title: string } {
+  if (result === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, windows: [], windowsText: '', resets: [], title: t('balance.loading') }
+  if (!result.configured) return { tone: 'none', value: t('balance.unconfigured'), sub: null, reset: null, level: null, windows: [], windowsText: '', resets: [], title: result.message ?? t('balance.unconfiguredKey') }
+  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, windows: [], windowsText: '', resets: [], title: result.message ?? t('balance.fetchFailed') }
   const snapshot = result.snapshot
   const isPct = snapshot.unit === 'pct'
   const symbol = isPct ? '' : snapshot.currency === 'USD' ? '$' : snapshot.currency === 'CNY' ? '¥' : ''
@@ -115,11 +104,26 @@ export function _rowDisplay(result: BalanceResult | null, t: Translate, now: num
     snapshot.isAvailable || isPct ? null : t('balance.insufficient'),
     result.status === 'stale' ? staleNote(result, t, now) : null,
   ].filter((part): part is string => part !== null)
-  // 头条数字的用量档位(染色用):配额行按实际显示的那个数取档;金额行
-  // 没有用量语义,level 为 null,颜色仍走 tone(money low = 红)。
-  const shownPct = isPct ? (isFinite(parsed) ? parsed : (pctWins.length > 0 ? pctWins[0].percent as number : null)) : null
-  const level: UsedLevel | null = shownPct === null ? null : _usedLevel(Math.round(shownPct), result.threshold)
-  return { tone, value, sub, reset, level, title: parts.join(' · ') }
+  // 用量档位取「最紧的那个窗口」:头条只读第一个窗口时,Codex 的 5h 48%
+  // 会绿着,而同一行的周 96% 已经红了。头条数字和面板里的每窗读数可以不同,
+  // 但一个 provider 的整体颜色必须回答「现在最紧的那条线有多紧」。金额行没有
+  // 用量语义,level 为 null,颜色仍走 tone(money low = 红)。
+  const winViews: QuotaWindowView[] = wins
+    .filter((w) => w.percent !== null)
+    .map((w) => ({ label: w.label, percent: Math.round(w.percent as number), reset: w.reset }))
+  const tightest = winViews.reduce<QuotaWindowView | null>(
+    (max, w) => (max === null || w.percent > max.percent ? w : max), null)
+  const tightestPct = tightest === null
+    ? (isFinite(parsed) ? Math.round(parsed) : null)
+    : tightest.percent
+  const level: UsedLevel | null = isPct ? _usedLevel(tightestPct, result.threshold) : null
+  return {
+    tone, value, sub, reset, level,
+    windows: winViews,
+    windowsText: winViews.map((w) => `${w.label} ${w.percent}%`).join(' · '),
+    resets: [...new Set(winViews.map((w) => w.reset).filter((r) => r !== ''))],
+    title: parts.join(' · '),
+  }
 }
 
 /**
@@ -558,7 +562,21 @@ export type RowView = {
   key: string
   lead?: RowLead | null
   name: string
-  value?: { text: string; tone: BalanceTone; level: UsedLevel | null; unit?: string } | null
+  value?: {
+    text: string; tone: BalanceTone; level: UsedLevel | null; unit?: string
+    /** The folded line's shorter measure word: money says balance; quota relies on the window label. */
+    foldedUnit?: string
+    /** Every readable window, in the snapshot's order; the folded line prints them all. */
+    windows?: QuotaWindowView[]
+    /** The same windows on one line (`5h 48% · 周 96%`), localized. */
+    windowsText?: string
+    /** Each window's reset stamp, in the same order (only the folded line prints them). */
+    resets?: string[]
+    /** The refresh failed; the folded line says so next to the reading. */
+    stale?: boolean
+  } | null
+  /** True for the sidebar's folded line (not the panel's head); it prints all windows and their resets. */
+  folded?: boolean
   state: SlotChip | null
   facts: Partial<Record<FactSlot, Fact | null>>
   /** A head's line 2: what the source is (plan · slots · pool) or what a section is doing. Words, never chips. */
@@ -829,17 +847,27 @@ export function _queueState(t: Translate, tasks: DispatchTask[]): { text: string
  * drawn once, on the group's window bars.
  */
 export function sourceReading(source: PanelSource, row: BalanceRow | undefined, queue: TaskQueueResult | null, t: Translate): {
-  value: string; reset: string | null; tone: BalanceTone; level: UsedLevel | null; title: string
+  value: string; reset: string | null; tone: BalanceTone; level: UsedLevel | null
+  windows: QuotaWindowView[]; windowsText: string; resets: string[]; title: string
 } {
-  if (row !== undefined) return { value: row.view.value, reset: row.view.reset === null ? null : '↻ ' + row.view.reset, tone: row.view.tone, level: row.view.level, title: row.view.title }
+  if (row !== undefined) return {
+    value: row.view.value,
+    reset: row.view.reset === null ? null : '↻ ' + row.view.reset,
+    tone: row.view.tone,
+    level: row.view.level,
+    windows: row.view.windows,
+    windowsText: row.view.windowsText,
+    resets: row.view.resets,
+    title: row.view.title,
+  }
   if (source.join?.kind === 'pool') {
     const pos = _poolPosition(queue)
     const size = queue?.opencodePool?.length ?? 0
-    return { value: t('panel.free'), reset: null, tone: 'none', level: null,
+    return { value: t('panel.free'), reset: null, tone: 'none', level: null, windows: [], windowsText: '', resets: [],
       title: (pos === null ? t('panel.poolUnread') : t('panel.pool', { current: pos.current, next: pos.next || '—' }) + (pos.fromOrder ? t('panel.poolOrder') : ''))
         + (size > 1 ? ' · ' + t('panel.poolSwap', { n: size }) : '') }
   }
-  return { value: '—', reset: null, tone: 'none', level: null, title: '' }
+  return { value: '—', reset: null, tone: 'none', level: null, windows: [], windowsText: '', resets: [], title: '' }
 }
 
 /** The patrol phase's role: running blue, giving way amber (a wait), between rounds off, stopped red. */
@@ -928,6 +956,7 @@ export function sourceView(source: PanelSource, row: BalanceRow | undefined, res
   const lane = source.agent === null || result === null || !result.available ? undefined : _slotLanes(result).find((l) => l.agent === source.agent)
   const pool = source.join?.kind === 'pool' ? _poolPosition(result) : null
   const poolSize = result?.opencodePool?.length ?? 0
+  const snapshot = row?.result.snapshot
   return {
     kind: 'source',
     key: source.key,
@@ -936,7 +965,25 @@ export function sourceView(source: PanelSource, row: BalanceRow | undefined, res
     // A bare '88%' does not say which direction it runs; kcn read the panel's
     // used share against the CLI's remaining share (2026-11-06). The unit word
     // rides on the value in every surface, from the same percent as the bar.
-    value: { text: reading.value, tone: reading.tone, level: reading.level, unit: row?.result.snapshot?.unit === 'pct' ? t('balance.used') : undefined },
+    value: {
+      text: reading.value,
+      tone: reading.tone,
+      level: reading.level,
+      // The unit states the measure before the number: quota rows are used
+      // percent, money rows are the account's remaining balance. A bare
+      // ¥145.71 next to used percentages read as one more usage figure.
+      unit: snapshot === null || snapshot === undefined ? undefined
+        : snapshot.unit === 'pct' ? t('balance.used') : t('balance.balanceShort'),
+      // The folded line has one row per provider; a quota row's window label already
+      // states what the number is, and `used 5h 48% · 周 96%` does not fit the
+      // 264px sidebar next to the name. Money keeps its word because ¥ alone could
+      // be a remaining balance or a spend.
+      foldedUnit: snapshot?.unit === 'money' ? t('balance.balanceShort') : undefined,
+      windows: reading.windows,
+      windowsText: reading.windowsText,
+      resets: reading.resets,
+      stale: reading.tone === 'stale',
+    },
     state: queue?.chip ?? null,
     facts: {},
     caption: [

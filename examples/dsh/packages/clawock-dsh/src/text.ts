@@ -44,8 +44,12 @@ function factText(fact: Fact, t: Translate): string {
  */
 export function rowText(view: RowView, t: Translate, opts: { warn?: boolean } = {}): string[] {
   const kind = ROW_KINDS[view.kind]
+  // The same used tier as the chip: a quota reading is low when its TIGHTEST
+  // window is low, not when the headline window happens to be. Money has no
+  // tier and keeps its own low reading.
+  const low = view.value != null && (view.value.level !== null ? view.value.level === 'low' : view.value.tone === 'low')
   const value = kind.value && view.value != null
-    ? (view.value.tone === 'low' && opts.warn !== false ? '⚠' : '')
+    ? (low && opts.warn !== false ? '⚠' : '')
       + (view.value.unit === undefined ? '' : view.value.unit + ' ') + view.value.text
     : null
   const state = view.state === null ? null : ROLE_MARK[view.state.role] + view.state.text
