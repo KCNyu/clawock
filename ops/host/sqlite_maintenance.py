@@ -36,11 +36,14 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-MAIN_DB = Path('/root/.openclaw/agents/main/agent/openclaw-agent.sqlite')
-STATE_DB = Path('/root/.openclaw/state/openclaw.sqlite')
+from clawock.providers.openclaw import runtime_paths
+
+_RUNTIME = runtime_paths()
+MAIN_DB = _RUNTIME.memory_index_db
+STATE_DB = _RUNTIME.state_db
 BACKUP_ROOT = Path('/root/backups/openclaw-sqlite')
 REPORT_DIR = Path('/root/logs/sqlite-maintenance')
-LOCK_PATH = Path('/root/.openclaw/state/sqlite-maintenance.lock')
+LOCK_PATH = _RUNTIME.home / 'state' / 'sqlite-maintenance.lock'
 GATEWAY_UNIT = 'openclaw-gateway.service'
 HEALTH_URL = 'http://127.0.0.1:18789/health'
 DB_SUFFIXES = ('-wal', '-shm', '-journal')
