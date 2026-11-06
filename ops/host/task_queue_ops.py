@@ -511,7 +511,7 @@ def _unit_gone(task_id: str) -> bool:
                            capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.TimeoutExpired):
         return False
-    return r.stdout.strip() not in ("active", "activating", "deactivating", "reloading")
+    return r.returncode in (0, 3, 4) and r.stdout.strip() in ("inactive", "failed", "unknown")
 
 
 def _stamp(path: Path) -> float:
@@ -573,7 +573,7 @@ def _notify_legs(meta: dict, text: str) -> tuple[str, str, str]:
         try:
             r = subprocess.run([binary, "message", "send", "--channel", channel, "--target", target, "-m", text],
                                capture_output=True, text=True, timeout=60)
-            return leg, r.returncode == 0, (r.stderr or "").strip().splitlines()[-1][:200] if r.returncode else ""
+            return leg, r.returncode == 0, (r.stderr or "").strip()[-200:] if r.returncode else ""
         except (OSError, subprocess.TimeoutExpired) as exc:
             return leg, False, str(exc)[:200]
 

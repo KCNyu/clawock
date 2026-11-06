@@ -177,3 +177,39 @@ def test_a_busy_task_is_skipped_not_marked(q):
     finally:
         holder.kill()
         holder.wait()
+
+
+@pytest.mark.parametrize("reply,code", [("", 1), ("", 3), ("inactive", 1), ("unexpected", 0)])
+def test_systemctl_error_is_unknown_and_never_marks_a_task(q, reply, code):
+    d = task(q, "query-error-20260101-000000")
+    before = (d / "result.env").read_bytes()
+    (q["root"] / "systemctl").write_text(
+        f"#!/bin/sh\nprintf '%s\\n' '{reply}'\necho 'Failed to connect to bus' >&2\nexit {code}\n")
+    r, out = reap(q)
+    assert r.returncode == 0
+    assert out["reaped"] == []
+    assert (d / "result.env").read_bytes() == before
+    assert not (d / ".reaped").exists()
+    assert sends(q) == 0
+
+
+@pytest.mark.parametrize("reply,code", [("inactive", 3), ("failed", 3), ("unknown", 4)])
+def test_explicit_systemctl_dead_states_are_reaped(q, reply, code):
+    task(q, "dead-state-20260101-000000", notify="none")
+    (q["root"] / "systemctl").write_text(f"#!/bin/sh\necho {reply}\nexit {code}\n")
+    r, out = reap(q)
+    assert r.returncode == 0
+    assert len(out["reaped"]) == 1
+
+
+def test_notification_failure_without_stderr_does_not_abort_the_reap(q):
+    first = task(q, "first-dead-20260101-000000")
+    second = task(q, "second-dead-20260101-000000")
+    (q["root"] / "openclaw").write_text("#!/bin/sh\nexit 1\n")
+    r, out = reap(q)
+    assert r.returncode == 0
+    assert len(out["reaped"]) == 2
+    for d in (first, second):
+        assert fields(d)["STATE"] == "failed"
+        assert fields(d)["NOTIFY_FAILED"] == "weixin"
+        assert fields(d)["NOTICE"] == "attempted"

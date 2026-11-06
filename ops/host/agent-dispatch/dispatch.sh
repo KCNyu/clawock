@@ -479,7 +479,36 @@ fi
 DEADLINE=$(date -d "@$DEADLINE_EPOCH" '+%F %T')
 
 ID="$NAME-$(date +%Y%m%d-%H%M%S)"
-KEY_HASH=""
+DIR="" KEY_HASH="" KEEP_KEY=""
+reserve_task_dir() {
+  local stem=$ID suffix=0
+  while ! mkdir "$BASE/$ID" 2>/dev/null; do
+    [ -d "$BASE/$ID" ] || { echo "cannot create task directory $BASE/$ID" >&2; return 1; }
+    suffix=$((suffix + 1)); ID="$stem-$suffix"
+  done
+  DIR="$BASE/$ID"
+}
+# A forced dispatch can replace this claim while its predecessor is still preparing.
+# Only the owner may undo a failed claim, under the same lock as check+claim.
+cleanup_dispatch() {
+  if [ -n "$KEY_FILE" ] && [ -z "$KEEP_KEY" ]; then
+    (
+      flock -x 9
+      python3 - "$KEY_FILE" "$ID" <<'PYCLEAN'
+import json, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+try:
+    if json.loads(path.read_text()).get("task_id") == sys.argv[2]:
+        path.unlink()
+except (OSError, ValueError):
+    pass
+PYCLEAN
+    ) 9>"$BASE/.keys/.lock"
+  fi
+  [ -z "${ADOPT_TMP:-}" ] || rm -f "$ADOPT_TMP"
+  return 0
+}
+trap cleanup_dispatch EXIT
 # Idempotency key for automated callers (docs § Idempotency key). The claim file holds only the
 # hash, the task id and the time; never the prompt. The flock covers check + claim, so two
 # callers with the same key cannot both start a task.
@@ -524,6 +553,7 @@ if [ -n "$KEY" ]; then
       exit 3
     fi
   fi
+  reserve_task_dir
   printf '{"hash":"%s","task_id":"%s","created":"%s","created_epoch":%s}\n' \
     "$KEY_HASH" "$ID" "$(date '+%F %T')" "$(date +%s)" >"$key_file.tmp"
   chmod 600 "$key_file.tmp"
@@ -531,15 +561,14 @@ if [ -n "$KEY" ]; then
   KEY_FILE=$key_file
   flock -u 9; exec 9>&-
 fi
-DIR="$BASE/$ID"
-mkdir -p "$DIR"
+[ -n "$DIR" ] || reserve_task_dir
 [ -z "$POOL_SELECTION" ] || printf '%s\n' "$POOL_SELECTION" >"$DIR/free-pool-selection.json"
 if [ "${#CONTEXT_SOURCES[@]}" -gt 0 ]; then
   mkdir -p "$DIR/context"
   for context_src in "${CONTEXT_SOURCES[@]}"; do
-    cp -- "$context_src" "$DIR/context/" || { rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"; echo "could not copy context file $context_src" >&2; exit 2; }
+    cp -- "$context_src" "$DIR/context/" || { rm -rf "$DIR"; echo "could not copy context file $context_src" >&2; exit 2; }
   done
-  python3 - "$DIR" "$ID" "${CONTEXT_SOURCES[@]}" <<'PYCONTEXT' || { rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"; exit 2; }
+  python3 - "$DIR" "$ID" "${CONTEXT_SOURCES[@]}" <<'PYCONTEXT' || { rm -rf "$DIR"; exit 2; }
 import hashlib, json, os, sys, time
 directory, task_id, *sources = sys.argv[1:]
 files = []
@@ -559,7 +588,7 @@ os.replace(tmp, path)
 PYCONTEXT
 fi
 if [ -n "$PROMPT_FILE" ]; then cp "$PROMPT_FILE" "$DIR/prompt.md"; else cat >"$DIR/prompt.md"; fi
-[ -s "$DIR/prompt.md" ] || { echo "empty prompt" >&2; rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"; exit 2; }
+[ -s "$DIR/prompt.md" ] || { echo "empty prompt" >&2; rm -rf "$DIR"; exit 2; }
 for t in "${TEMPLATES[@]}"; do cat "$TEMPLATE_DIR/$t.md" >>"$DIR/prompt.md"; done
 if [ "${#CONTEXT_SOURCES[@]}" -gt 0 ]; then
   cat >>"$DIR/prompt.md" <<'EOF'
@@ -621,7 +650,7 @@ mandate_args=(create --dir "$DIR" --task-id "$ID" --name "$NAME" --agent "$AGENT
 [ -z "$MANDATE_FROM" ] || mandate_args+=(--from "$MANDATE_FROM")
 [ "$RESTART_ALLOWED" = 1 ] || mandate_args+=(--deny-restart)
 python3 "$HELPER_DIR/mandate.py" "${mandate_args[@]}" >/dev/null \
-  || { echo "could not write the task mandate" >&2; rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"; exit 2; }
+  || { echo "could not write the task mandate" >&2; rm -rf "$DIR"; exit 2; }
 
 cat >"$DIR/meta.env" <<EOF
 ID=$(printf %q "$ID")
@@ -670,7 +699,7 @@ print("unknown" if not isinstance(agents, list) else
     done
   fi
   if [ -z "$stopped" ]; then
-    rm -rf "$DIR"; [ -z "$KEY_FILE" ] || rm -f "$KEY_FILE"
+    rm -rf "$DIR"
     echo "adopt: could not stop background session $ADOPT_STOP (claude stop failed, or it is still listed as running); nothing dispatched" >&2
     exit 1
   fi
@@ -682,6 +711,7 @@ systemd-run --unit "agent-dispatch-$ID" --collect --quiet \
   --description "agent-dispatch $AGENT: $NAME" \
   -p TimeoutStartSec=infinity -p TimeoutStopSec=90s -p KillMode=control-group \
   "$RUNNER" "$DIR"
+KEEP_KEY=1
 
 echo "dispatched $ID"
 # Continued from an ended task by `append`: the same receipt shape as an accepted append, naming

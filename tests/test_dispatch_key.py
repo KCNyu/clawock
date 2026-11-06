@@ -131,3 +131,57 @@ def test_keys_older_than_30_days_are_cleaned_up(q):
     assert r.returncode == 0, r.stderr
     assert not old.exists()
     assert key_file(q, "fresh-key").exists()
+
+
+def freeze_id_clock(q):
+    date = q["root"] / "bin" / "date"
+    date.write_text('#!/bin/sh\nif [ "$1" = +%Y%m%d-%H%M%S ]; then echo 20261106-120000; '
+                    'else exec /usr/bin/date "$@"; fi\n')
+    date.chmod(0o755)
+
+
+def test_force_in_same_second_preserves_the_previous_task(q):
+    freeze_id_clock(q)
+    first = dispatched(lay(q, "--key", "same-second"))
+    before = (q["base"] / first / "prompt.md").read_bytes()
+    q["prompt"].write_text("a different task\n")
+    r = lay(q, "--key", "same-second", "--force")
+    assert r.returncode == 0, r.stderr
+    assert dispatched(r) != first
+    assert (q["base"] / first / "prompt.md").read_bytes() == before
+    assert len(task_dirs(q)) == 2
+
+
+def test_failed_old_claim_cannot_remove_forced_replacement(q):
+    freeze_id_clock(q)
+    # Hold the first caller at stdin, after its claim but before prompt validation.
+    first = subprocess.Popen(["bash", str(DISPATCH), "dsh", "--name", "key-task", "--key", "race"],
+                             env=q["env"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, text=True)
+    try:
+        end = time.monotonic() + 5
+        while not key_file(q, "race").exists() and time.monotonic() < end:
+            time.sleep(0.01)
+        assert key_file(q, "race").exists()
+        r = lay(q, "--key", "race", "--force")
+        assert r.returncode == 0, r.stderr
+        second = dispatched(r)
+        first.communicate("", timeout=5)
+        assert first.returncode == 2
+        assert json.loads(key_file(q, "race").read_text())["task_id"] == second
+        assert lay(q, "--key", "race").returncode == 3
+        assert (q["base"] / second / "meta.env").exists()
+    finally:
+        if first.poll() is None:
+            first.kill()
+            first.wait()
+
+
+def test_launch_failure_releases_key_immediately(q):
+    launch = q["root"] / "bin" / "systemd-run"
+    launch.write_text("#!/bin/sh\nexit 1\n")
+    r = lay(q, "--key", "launch-failure")
+    assert r.returncode == 1
+    assert not key_file(q, "launch-failure").exists()
+    launch.write_text("#!/bin/sh\nexit 0\n")
+    assert lay(q, "--key", "launch-failure").returncode == 0

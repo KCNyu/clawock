@@ -1311,6 +1311,17 @@ if [ "${DISPATCH_TEST_CASES:-}" = later ]; then
     "$e/$(field "$d" STATE)/$(field "$d" RUN_NO)/$(field "$d" LATER_USED)/$(test -e "$d/later.json" && echo yes || echo no)" 0/ok/1/0/no
   expect_grep 'the refused later is logged' 'ignored later' "$d/run.log"
 
+  reset_fake claude later-append
+  d=$(mk later-shortened-deadline claude 900 300 none)
+  e=0; bash "$R" "$d" & p=$!
+  expect 'the deadline test starts waiting' "$(await_field "$d" WAITING later && echo yes || echo no)" yes
+  printf 'DEADLINE_EPOCH=%s\n' "$(( $(date +%s) + MIN_RUN_SEC + 70 ))" >"$d/override.env"
+  expect 'a shortened deadline ends the wait promptly' "$(await_field "$d" STATE timeout && echo yes || echo no)" yes
+  # Keep a failed regression bounded too: without the fix this wait lasts minutes.
+  [ "$(field "$d" STATE)" = timeout ] || : >"$d/cancel-requested"
+  e=0; wait "$p" || e=$?
+  expect 'no later call starts beyond the new budget' "$e/$(field "$d" STATE)/$(field "$d" RUN_NO)" 1/timeout/1
+
   reset_fake claude later-cancel
   d=$(mk later-cancel claude 900 300 none)
   e=0; bash "$R" "$d" & p=$!

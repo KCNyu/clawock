@@ -1359,6 +1359,16 @@ wait_later() {  # 0 scheduled and the loop must continue; 1 no later; 2 schedule
   echo "---- $(ts) later: released the $AGENT lock for the later wait (session lock kept)"
   local at=$LATER_AT woke=""
   while [ "$(now)" -lt "$at" ] && ! inbox_has_now && [ ! -e "$DIR/cancel-requested" ]; do
+    apply_budget
+    if [ "$(remaining)" -le $((MIN_RUN_SEC + KILL_MARGIN)) ]; then
+      WAITING="" WAKE_AT=""
+      mv -f "$DIR/later.json" "$DIR/later-$RUN_NO.json"
+      rm -f "$DIR/later-prompt.txt"
+      STATE=timeout STOP_REASON=deadline
+      FINAL_TEXT="$ATEXT
+later 等待期间截止时间已到；会话保留。"
+      return 2
+    fi
     sleep "$POLL_SEC" & CHILD=$!; wait "$CHILD"; CHILD=""
   done
   [ "$(now)" -ge "$at" ] && woke=1
