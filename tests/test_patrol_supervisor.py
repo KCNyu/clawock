@@ -337,6 +337,20 @@ def test_pool_outage_preserves_area_retries_and_cooldown_survives_restart(patrol
     assert sum("\tfailed\t" in row for row in rows) == 5
 
 
+def test_a_v2_free_window_reset_sets_the_pool_cooldown(patrol, tmp_path):
+    # The runner passes the v2 free-limit retryAfter as an absolute epoch. Sleep to it instead of
+    # probing every hour, but cap it so a bad value cannot park the supervisor for a day.
+    result = _end_round(patrol, tmp_path, "patrol-recent-20261106-120000", 1,
+                        "STATE=failed\nFAILURE_REASON=pool_no_response\nPOOL_RESET_AT=7200\n")
+    assert result.returncode == 1
+    assert (tmp_path / "pool-cooldown-until").read_text().strip() == "7200"
+
+    result = _end_round(patrol, tmp_path, "patrol-recent-20261106-120001", 2,
+                        "STATE=failed\nFAILURE_REASON=pool_no_response\nPOOL_RESET_AT=999999999999\n")
+    assert result.returncode == 1
+    assert (tmp_path / "pool-cooldown-until").read_text().strip() == "43200"
+
+
 @pytest.mark.parametrize("adopt", [False, True])
 def test_cooldown_blocks_new_dispatch_but_not_adoption(patrol, tmp_path, adopt):
     (tmp_path / "pool-cooldown-until").write_text("200\n")

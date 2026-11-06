@@ -80,20 +80,21 @@
 # big-pickle | added 2026-10-16 | 无探针证据，待验 (not probed this run; historical 45s silence)
 #   | catalog+models.dev 双源 zero (fresh recheck) | 无 patrol 战绩，待验
 #
-# Current seed priorities and why: space-bunny retains the strongest large-sample record;
-# cat-jam gets an early trial from three real tool successes, not a claim of superior yield;
-# step/mimo/longcat retain their relative quality-based priorities; then deepseek and super-vl
-# get unverified trials, followed by the previously excluded muse and big-pickle. All five
-# additions were explicitly requested; none of the five hard-retired names is restored.
-# New automatic discoveries rotate one exploration slot at position 2, without editing this
-# immutable seed. Explicit nonzero/missing catalog/Zen entries are excluded on every audit;
-# failed/stale evidence stops new attempts, never falls back to a paid/static unverified pool.
-opencode/space-bunny-free
-opencode/cat-jam-free
-opencode/step-5-preview-free
+# 2026-11-06 (OpenCode v2 migration): the v2 catalog (`opencode --standalone api GET /api/model`)
+# no longer lists space-bunny, cat-jam, step-5, longcat or muse-spark; keeping them as seeds only
+# produced a permanent "missing from catalog" audit (selection already filtered them, so they
+# never reached a dispatch). They are removed. The five eligible free models that are not seeds
+# (beam, crouton, flint, glm, pulse) are automatic discoveries: one rotates into position 2 each
+# round, so they get tried without a quality claim. nemotron-3.5-lightning-free stays RETIRED.
+#
+# Current seed priorities and why: mimo-v2.6-flash keeps the best record among the live seeds
+# (9 finished rounds, 3 P0+P1, though only 1 of 53 attempts answered — a small sample, and the
+# only live seed with patrol history); deepseek and super-vl get unverified trials in their
+# previous order, followed by big-pickle, which kcn admitted by name. None of the five hard-retired
+# names is restored. New automatic discoveries rotate one exploration slot at position 2 without
+# editing this immutable seed. Explicit nonzero/missing catalog/Zen entries are excluded on every
+# audit; failed/stale evidence stops new attempts, never falls back to a paid/static unverified pool.
 opencode/mimo-v2.6-flash-free
-opencode/longcat-2.5-preview-free
 opencode/deepseek-v4.1-flash-free
 opencode/nemotron-3.5-super-vl-free
-opencode/muse-spark-1.3-contributor-free
 opencode/big-pickle

@@ -28,6 +28,9 @@ def sources(cost=None):
     ({'input': -1, 'output': 0}, 'unknown'),
     ({'input': 0, 'output': 0, 'cache': {'read': 1}}, 'nonzero'),
     ({'input': 0, 'output': 0, 'cache': {'read': 0, 'write': 0}}, 'zero'),
+    ([{'input': 0, 'output': 0}], 'zero'),
+    ([{'input': 0, 'output': 0}, {'input': 1, 'output': 0}], 'nonzero'),
+    ([], 'unknown'),
 ])
 def test_price_evidence_is_explicit(cost, expected):
     assert audit.cost_state(cost) == expected
@@ -73,11 +76,21 @@ def test_dynamic_candidate_removal_alerts_even_without_a_seed_entry():
     assert not row['in_pool'] and not row['free_verified']
 
 
-def test_cli_catalog_is_parsed_as_objects_not_brace_regex():
-    value = {MODEL: {'cost': {'input': 0, 'output': 0}, 'name': 'brace } inside'}}
-    assert audit.parse_catalog(MODEL + '\n' + json.dumps(value[MODEL]) + '\n') == value
+def test_server_catalog_is_parsed_from_the_v2_api():
+    text = json.dumps({'data': [
+        {'providerID': 'opencode', 'modelID': 'candidate-free',
+         'cost': [{'input': 0, 'output': 0}], 'enabled': True, 'status': 'active'},
+        {'providerID': 'opencode-go', 'modelID': 'paid', 'cost': [{'input': 1, 'output': 1}]},
+        {'providerID': 'opencode', 'modelID': 'hidden-free',
+         'cost': [{'input': 0, 'output': 0}], 'enabled': False},
+        {'providerID': 'opencode', 'modelID': 'old-free',
+         'cost': [{'input': 0, 'output': 0}], 'status': 'deprecated'},
+    ]})
+    assert audit.parse_catalog(text) == {MODEL: {'cost': [{'input': 0, 'output': 0}]}}
     with pytest.raises(ValueError):
         audit.parse_catalog('')
+    with pytest.raises(ValueError):
+        audit.parse_catalog('{"data": []}')
 
 
 def test_collect_keeps_independent_sources_when_opencode_hangs(monkeypatch):

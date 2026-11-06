@@ -45,6 +45,8 @@ ATTEMPT_TIMEOUT="${PATROL_ATTEMPT_TIMEOUT:-5400}"
 AXIS_RETRIES="${PATROL_AXIS_RETRIES:-2}"      # times an unfinished area is dispatched again before the rotation moves on
 [[ $AXIS_RETRIES =~ ^[0-9]+$ ]] || AXIS_RETRIES=2
 POOL_COOLDOWN=3600  # elapsed time, never a guessed provider reset hour
+POOL_MAX_COOLDOWN="${PATROL_POOL_MAX_COOLDOWN:-43200}"  # v2 reports its own reset; bound the sleep
+[[ $POOL_MAX_COOLDOWN =~ ^[0-9]+$ ]] || POOL_MAX_COOLDOWN=43200
 PREEMPT_GRACE="${PATROL_PREEMPT_GRACE:-300}"  # wrap-up time a preempted round gets; 0 = cancel at once
 [[ $PREEMPT_GRACE =~ ^[0-9]+$ ]] || PREEMPT_GRACE=300
 mkdir -p "$STATE/drafts" "$STATE/filed"
@@ -391,8 +393,19 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
   local failure
   failure=$( FAILURE_REASON=""; . "$TASKS/$rid/result.env" 2>/dev/null; printf '%s' "$FAILURE_REASON" )
   if [ "$state" = failed ] && [ "$failure" = pool_no_response ]; then
-    echo "$(( $(now) + POOL_COOLDOWN ))" >"$STATE/pool-cooldown-until"
-    log "pool_no_response: cooling down for ${POOL_COOLDOWN}s before retrying $axis"
+    local reset_at until
+    reset_at=$( POOL_RESET_AT=""; . "$TASKS/$rid/result.env" 2>/dev/null; printf '%s' "${POOL_RESET_AT:-}" )
+    until=$(( $(now) + POOL_COOLDOWN ))
+    # v2 reports the free window's own reset with the refusal. Sleeping to it avoids probing a
+    # 10-hour quota every hour; a missing/damaged value keeps the one-hour circuit. Bound it so a
+    # bad clock or claim cannot park patrol indefinitely.
+    if [[ $reset_at =~ ^[0-9]{1,12}$ ]] && [ "$reset_at" -gt "$until" ]; then
+      [ "$reset_at" -gt "$(( $(now) + POOL_MAX_COOLDOWN ))" ] \
+        && reset_at=$(( $(now) + POOL_MAX_COOLDOWN ))
+      until=$reset_at
+    fi
+    echo "$until" >"$STATE/pool-cooldown-until"
+    log "pool_no_response: cooling down for $(( until - $(now) ))s before retrying $axis"
     settle_slot "$axis" unavailable
     return 1
   fi

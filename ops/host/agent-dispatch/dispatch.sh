@@ -46,8 +46,9 @@
 #   --fallback-models a,b  opencode only: after a failed attempt continue the same session on the next
 #                          model (wraps around). Default: opencode-fallback-models, which also supplies
 #                          the primary; set explicitly to override the whole pool.
-#   --effort <e>           default: high for claude, medium for codex, none for opencode (its --variant),
-#                          max for dsh (off|low|high|max, the headless profile's own default)
+#   --effort <e>           default: high for claude, medium for codex, none for opencode (it becomes
+#                          the v2 model reference's #variant), max for dsh (off|low|high|max, the
+#                          headless profile's own default)
 #   --timeout <sec>        per attempt (default 21600 = 6h)
 #   --deadline <datetime>  absolute end for the whole task, Asia/Shanghai (default: now + 24h, max 72h)
 #   --notify <channels>    comma list of weixin|telegram for the completion message
@@ -436,9 +437,10 @@ if [ "$NOTIFY" != none ]; then
 fi
 # Codex defaults to sol/medium: astra/high spent 42 of 100 five-hour points in 8.5 minutes on a
 # docs/version check (codex token audit, 2026-09-15). Pass --model/--effort for harder work.
-# opencode: automatically selected free Zen models only, no variants. The immutable pool
-# supplies reviewed seed priorities; fresh evidence controls admission. 2026-09-19: the old
-# hardcoded default opencode/union-alpha was retired upstream and failed every attempt.
+# opencode: automatically selected free Zen models only, with no effort unless one is passed
+# explicitly (v2 appends it to the model as #variant). The immutable pool supplies reviewed seed
+# priorities; fresh evidence controls admission. 2026-09-19: the old hardcoded default
+# opencode/union-alpha was retired upstream and failed every attempt.
 if [ -n "$FALLBACK_MODELS" ] && [ "$AGENT" != opencode ]; then echo "--fallback-models is for opencode" >&2; exit 2; fi
 case "$AGENT" in
   claude) MODEL=${MODEL:-claude-opus-5-5} EFFORT=${EFFORT:-high} ;;
