@@ -2794,7 +2794,11 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
           : lines.map(({ source, view, reading, text }) => h('button', {
             type: 'button',
             key: source.key,
-            className: cx('pp-row'),
+            // A quota provider can have both a queue state chip and reset
+            // stamps. They share line 2; the split class puts the chip on the
+            // left and the clocks on the right instead of stacking both at the
+            // right edge (the overlap is visible when a Claude/Codex task runs).
+            className: cx('pp-row', (reading.resets.length > 0 || reading.tone === 'stale') && 'pp-row-split'),
             'data-tq-row': 'source',
             'data-pp-row': source.key,
             'data-pb-provider': source.provider?.provider,
