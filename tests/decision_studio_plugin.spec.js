@@ -1181,6 +1181,14 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   // contract is the data attribute itself, not its quoting.
   assert.match(css, /_bchip-v\[data-balance-state=low\]/, "chip low value selector required");
   assert.match(css, /_bp\[data-open=false\]/, "closed-panel state selector required");
+  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*width:calc\(100vw - 16px\)/,
+    "the phone sheet uses the host's drawer breakpoint and 8px side margins");
+  assert.match(css, /@media \(width<=767px\)\{[\s\S]*?_pp-row\{min-height:36px\}/,
+    "phone rows follow the host drawer's 36px rhythm");
+  assert.match(css, /@media \(width<=767px\) and \(height<=640px\)[^{]*\{[\s\S]*?_pp-row\{min-height:32px\}/,
+    "short phones keep both lines in 32px so the session list keeps room");
+  assert.match(css, /_tq-scroll\{[^}]*padding-bottom:max\(12px,\s*env\(safe-area-inset-bottom\)\)/,
+    "the sheet's scroll body reserves the bottom safe area");
   assert.match(css, /_bp\[data-open=true\]\{opacity:1;pointer-events:auto\}/,
     "an opened glass popover must become visible and interactive on its first tap");
   // Tier colours must NOT paint over a stale reading (数字不可信优先于用量档,
@@ -5353,16 +5361,20 @@ test("client: the phone foot panel is clamped to the viewport", async () => {
     throw new Error(`unexpected require: ${s}`);
   });
   const phone = api._popoverAnchor({ left: 8, top: 568 }, 390, 844);
-  assert.deepEqual(phone, { left: 8, bottom: 284, room: 548 });
-  // A row inside a drawer that starts at 42: deck the card 22px right so its
-  // 360px width still ends 8px inside the 390px viewport.
-  assert.equal(api._popoverAnchor({ left: 42, top: 568 }, 390, 844).left, 22);
+  assert.deepEqual(phone, { left: 8, bottom: 284, room: 500 },
+    "374px sheet, 8px side margins, 60px host top strip above it");
+  assert.equal(844 - phone.bottom - phone.room, 60, "the sheet starts below the drawer's top strip");
+  // A row inside a drawer that starts at 42: a near-full-width sheet has no
+  // room to deck right, so it stays at the 8px viewport margin.
+  assert.equal(api._popoverAnchor({ left: 42, top: 568 }, 390, 844).left, 8);
   const narrow = api._popoverAnchor({ left: 8, top: 540 }, 360, 800);
   assert.equal(narrow.left, 8);
-  assert.equal(narrow.left + 336, 344, "336px panel fits 360px minus two 8px margins");
+  assert.equal(narrow.left + 344, 352, "344px sheet fits 360px minus two 8px margins");
+  assert.equal(800 - narrow.bottom - narrow.room, 60);
   const tiny = api._popoverAnchor({ left: 0, top: 400 }, 320, 568);
-  assert.ok(tiny.left >= 8 && tiny.left + 296 <= 312, "296px panel fits 320px");
-  assert.equal(tiny.room, 380, "room is the space above the row, not the viewport");
+  assert.ok(tiny.left >= 8 && tiny.left + 304 <= 312, "304px sheet fits 320px");
+  assert.equal(tiny.room, 332, "room is the space above the row, not the viewport");
   assert.equal(api._popoverAnchor({ left: 700, top: 900 }, 390, 844).bottom, 8, "a row below the fold keeps the card above the bottom edge");
   assert.equal(api._popoverAnchor({ left: 8, top: 200 }, 1280, 900).room, 240, "the top gap never squeezes the panel below its floor");
+  assert.equal(api._popoverAnchor({ left: 8, top: 800 }, 1280, 900).room, 780, "desktop keeps its 12px top gap");
 });

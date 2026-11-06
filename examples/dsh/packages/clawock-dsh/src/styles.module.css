@@ -3089,12 +3089,31 @@ body[data-ds-dark-theme] .pbc .bp {
     height:36px
   }
 }
-/* Phone: the panel takes the balance panel's width cap and a tighter inset,
-   so it reads as the same family and leaves the conversation visible beside
-   it. Nothing is dropped: every row keeps both lines. */
-@media (max-width: 520px) {
+/* Phone (dsh 0.2.2's drawer breakpoint, 767px): the foot panel becomes the
+   near-full-width sheet between the host's top strip and the footer rows. The
+   geometry is computed in _popoverAnchor; this is the matching width and the
+   rhythm of the drawer's own rows. Desktop never enters this block. */
+@media (max-width: 767px) {
   .pbc.pbf.tqf .bp {
-    width:min(360px, calc(100vw - 24px))
+    width:calc(100vw - 16px);
+    border-radius:16px
+  }
+  /* The host drawer's rows are 36px; the foot follows that rhythm and keeps
+     both compact lines (reading + reset/state) inside it. */
+  .pbc.ppf .pp-rows .pp-row {
+    min-height:36px
+  }
+  /* The sheet ends above the row, so it never reaches the home indicator; the
+     scroll body still reserves the safe area when the viewport is short. */
+  .pbc.pbf.tqf .tq-scroll {
+    padding-bottom:max(12px, env(safe-area-inset-bottom))
+  }
+}
+/* A short phone (320x568 class): 32px rows leave the session list some room
+   without dropping either line. */
+@media (max-width: 767px) and (max-height: 640px) {
+  .pbc.ppf .pp-rows .pp-row {
+    min-height:32px
   }
 }
 /* A narrow phone keeps the chip's full width; only the time and duration tracks shrink. */

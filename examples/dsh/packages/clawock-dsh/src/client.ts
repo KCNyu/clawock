@@ -962,22 +962,29 @@ export type PopoverAnchor = { left: number; bottom: number; room: number }
 /** Gap the popover keeps from the viewport top, and the least room it is ever given. */
 const POPOVER_TOP_GAP = 12
 const POPOVER_MIN_ROOM = 240
+/** dsh 0.2.2's own mobile/drawer breakpoint (layout: `width<=767px`). */
+const PHONE_MAX_WIDTH = 767
+/** On a phone the host drawer's 52px top strip stays visible above the sheet. */
+const PHONE_TOP_GAP = 60
 
 /**
  * The viewport half of the foot panel's placement, pure so the phone clamps are
- * pinned without a browser. The panel's CSS width is `min(360px, 100vw - 24px)`
- * on a phone and `min(380px, 100vw - 24px)` on a wide screen; a row that sits
- * against the right edge (or inside a drawer offset from x=0) must not push the
- * card past the viewport, which is what mobile Safari turns into a zoomed-out
- * page. The bottom is the row's top plus the 8px gap; room always leaves 12px
- * at the top.
+ * pinned without a browser. On a phone the panel is a near-full-width sheet
+ * (`100vw - 16px`, 8px side margins) that sits between the drawer's top strip
+ * and the footer row: the row that opened it stays visible (so it still closes
+ * it), and the host's brand/collapse control is not covered. On a wide screen
+ * the old 380px card and 12px gap are unchanged. A row that sits against the
+ * right edge (or inside a drawer offset from x=0) must not push the card past
+ * the viewport, which is what mobile Safari turns into a zoomed-out page.
  */
 export function _popoverAnchor(rect: { left: number; top: number }, vw: number, vh: number): PopoverAnchor {
-  const width = Math.min(vw <= 520 ? 360 : 380, vw - 24)
+  const phone = vw <= PHONE_MAX_WIDTH
+  const width = phone ? vw - 16 : Math.min(380, vw - 24)
+  const topGap = phone ? PHONE_TOP_GAP : POPOVER_TOP_GAP
   return {
     left: Math.max(8, Math.min(rect.left, vw - width - 8)),
     bottom: Math.max(8, vh - rect.top + 8),
-    room: Math.max(POPOVER_MIN_ROOM, Math.min(rect.top - 8 - POPOVER_TOP_GAP, vh - 24)),
+    room: Math.max(POPOVER_MIN_ROOM, Math.min(rect.top - 8 - topGap, vh - topGap - 8)),
   }
 }
 
