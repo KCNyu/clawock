@@ -739,17 +739,19 @@ def sweep(d, x, y, w, rows, lh=22, period=None):
 # ---------------------------------------------------------------------------
 def harnesses():
     """site/assets/harnesses.svg — dsh user story, from delegation to a delivered result."""
-    d = D('The clawock-dsh plugin — delegate, watch, steer, ship, hear back',
+    d = D('The clawock-dsh plugin — delegate, watch, steer, answer, ship, hear back',
           'On a host configured with agent-dispatch, a user can ask in dsh chat to delegate '
           'repository work to Claude Code, Codex or OpenCode. The runner starts a background '
           'systemd task that outlives the conversation. The plugin shows provider allowances, '
           'each agent queue, running tasks, recent results and notification receipts. Its '
           'controls reorder waiting work, change the next attempt model where allowed, adjust '
           'budgets, retry an ended unfinished session or cancel a task through the audited ops '
-          'entry. The repository task pictured requests an isolated branch, a PR, required CI, '
-          'squash merge and host refresh; these are its delivery instructions, not automatic '
-          'plugin actions. The runner records the report and sends best-effort WeChat and '
-          'Telegram notifications, with delivery receipts visible in the panel. The queue '
+          'entry. A person stage inside the runner card shows the task stopping when it cannot '
+          'continue without the person: it asks with options, the person answers, and the same '
+          'session resumes. The repository task pictured requests an isolated branch, a PR, '
+          'required CI, squash merge and host refresh; these are its delivery instructions, not '
+          'automatic plugin actions. The runner records the report and sends best-effort WeChat '
+          'and Telegram notifications, with delivery receipts visible in the panel. The queue '
           'image is an existing full-frame capture from a live host, not an example result.')
     d.logo('deepseek-harness', d.pw - M - 34, 26)
     y = d.header('CLAWOCK-DSH · YOUR BACKGROUND TEAM',
@@ -776,14 +778,26 @@ def harnesses():
     y = top + 76
     d.section(y - 14, '02 · THE RUNNER TAKES IT FROM HERE')
     d.down(W / 2, top, y - 38, pulses=(0, 1.1), kind='task')
-    h = 94
-    runner = y + h / 2
+    h = 216
+    runner = y + 40
     d.card(M, y, CW, h, 'blue')
     d.icon('terminal', M + 20, y + 16, size=28)
     d.text(M + 62, y + 36, 'agent-dispatch', 'h')
     d.tag(W - M - 16, y + 34, 'HOST REQUIRED', 'blue', anchor='end')
     d.lines(M + 20, y + 61, CW - 40,
             ['One systemd task per request; independent of chat.'], cls='m', where='runner')
+    # A person stage, drawn inside the runner because the runner records it.
+    stage_y = y + 76
+    d.add(f'<rect x="{M + 12:g}" y="{stage_y:g}" width="{CW - 24:g}" height="126" rx="10" '
+          f'fill="{CHIP}" fill-opacity=".55" stroke="{CARD_STROKE}"/>')
+    d.text(M + 28, stage_y + 20, 'A person stage', 'b')
+    d.tag(W - M - 28, stage_y + 18, 'PERSON STAGE', 'warm', anchor='end')
+    d.text(M + 28, stage_y + 42, 'It stops when it cannot continue without you.', 'm', fill=MUT)
+    d.chip(M + 26, stage_y + 56, 190, 'Question + options', icon='chat', role='blue', h=28, bg='#ffffff')
+    d.chip(M + 232, stage_y + 56, 212, 'Answer → same session', icon='followed', role='warm', h=28, bg='#ffffff')
+    d.wire(f'M{M + 216:g} {stage_y + 70:g}H{M + 230:g}', pulses=(0,), arrow=True, kind='task', packet=False)
+    d.wire(f'M{M + 338:g} {stage_y + 84:g}V{stage_y + 108:g}H{M + 121:g}V{stage_y + 86:g}',
+           pulses=(0,), arrow=True, kind='task', packet=False)
     top = y + h
     y = top + 56
     xs, cw = columns(3)
