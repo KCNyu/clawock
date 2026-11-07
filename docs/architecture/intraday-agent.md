@@ -352,21 +352,13 @@ as live.
 | one shared Mode 7 body + thin market entry; the market SKILL is no longer loaded by the slot (`test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency`, `test_one_mode7_body_carries_the_add_side_rules_for_both_markets`) | live (#2807 step 1) |
 | intraday `required_substrings`: 32 kept, each an interface token or an instruction nothing else checks before delivery; three wording locks dropped (an explanatory clause and two field names whose presence in the packet is declared in `intraday_layers.py`). Rules stated in both the cron payload and the shared body stay in the payload, where the live cron message is compared verbatim | closed (#2807 step 2) |
 
-First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
-previous US night, same classifier): judgments with field names 7/9 → 1/10
-delivered (3/10 first drafts; two were sent back once and passed on rewrite);
-block-contract breaks 9/9 → 1/10 (22:03, the `⚠️` banner before #1874 went
-live); every slot delivered on Telegram. The HK leg is first measured on the
-next HK session.
-
-
 Numeric sources include compute receipts created during the current run, through
 `validation.with_compute_receipts`. The cron payload and shared Mode 7 body allow
 those values; the model chooses the formula and quotes the result with its meaning.
 This does not waive the existing source, generation or next-trigger price checks.
 
 
-Research extension: [intraday strategy research](../design/intraday-strategy-research.md)
+Research extension: [intraday strategy research](intraday-research-workflow.md#the-reversion-kernel-packet-and-configuration)
 is a separate research-only replay service and design for broader LLM judgment.
 It has no preflight/postflight reader and changes no live status in the table
 above. Choosing formulas through existing compute receipts stays within the

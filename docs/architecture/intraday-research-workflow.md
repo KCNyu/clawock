@@ -37,6 +37,93 @@ target at the execution open; a gap invalidating either condition cancels entry.
 Same-bar ambiguity is stop-first; adverse gaps pay the opening price. A completed
 session ending at 16:00 is required; early closes and gaps remain refusals.
 
+## The reversion kernel: packet and configuration
+
+`intraday-reversion` is mounted in `plugins`, not `live`. It provides a replay of
+one complete five-minute session with no orders, positions, live plan, delivery
+or strategy-registration side effect. The implementation is
+`strategies/plugins/intraday_reversion.py` (`inject=('costs',)`, `apply` exposes
+`intraday_reversion.replay(packet)`); `decision/intraday_reversion.py` is a
+forwarding facade, and the caller passes the research kernel explicitly. Do not
+call `facade.install` here: the module facade binds the live kernel. Replacing
+the row makes the facade follow the mounted service; unloading the row makes the
+call fail instead of falling back to a hard-coded implementation.
+
+```bash
+clawock strategy-lab list
+clawock strategy-lab intraday-replay /path/to/session.json
+```
+
+The packet requires `market` (`hk`/`us`), `ticker`, `session` (local
+`YYYY-MM-DD`), `research_allowed: true`, `forbid_reduce_advice: false`, `shares`,
+`base_shares`, `lot_size` (positive integers) and `bars` from the session's first
+to last completed five-minute bar. Each bar has a timezone-aware `end` and
+unadjusted OHLC; the caller supplies a real trading day and its source, and the
+replay does not authenticate a market-data vendor. A US session needs 78 bars,
+an HK session 66; the first bar ends 09:35 and the last 16:00, with the HK
+12:00→13:05 lunch break the only non-five-minute gap. Duplicate, out-of-order,
+missing or cross-session bars, non-finite or boolean prices and bad OHLC are
+refused. Early closes and halts are refused rather than passed off as a complete
+session.
+
+| Config key | Default | Meaning |
+|---|---:|---|
+| `window` | 20 | prior completed closes, excluding the signal bar |
+| `deviations` | 2.0 | standard deviations above the mean before a sell is studied |
+| `cost_multiple` | 2.0 | expected reversion spread must exceed both legs' cost by this factor; at least 1 |
+| `min_net_bps` | 10.0 | net bps over the sell notional after both legs' costs |
+| `max_base_fraction` | 0.1 | roundtrip shares as a fraction of the base position; a research safety default |
+
+At most one roundtrip per ticker per session. A completed signal bar only
+proposes: the next bar's open must still be above the frozen mean and clear the
+net-cost threshold before a sell is simulated, so the replay does not pretend to
+fill at the prior close. Stop = sell price + (sell price − frozen mean). An
+adverse opening gap buys back at the open; if one bar touches both stop and
+target, the stop wins; a target gap gets the frozen target, not a better price.
+The same share count is bought back; an untouched last bar buys back at the
+close. Both fills include half-spread and fees, so they are simulated, not
+guaranteed executable. `execution` now covers cash, buying power and volume;
+circuit breakers and book queue position remain unproven by OHLC. This is not a
+risk-free way to lower a position's cost.
+
+Output `status` is `refused`, `no_trade` or `replayed`, always with
+`live_permission: false`, the parameters, input SHA256, full cost model and
+`evidence_grade: conditional_replay_not_walk_forward`. A trade carries the signal
+time, fill bar, target/stop, exit reason, both legs' costs, `net_pnl` and expected
+net bps at activation. `net_pnl` is the cash increment from the roundtrip versus
+keeping the same base, not the account's or base's return; its currency follows
+the market and is never added across markets. No trade is not evidence of zero
+risk, and every refused or empty attempt stays in the denominator. The JSON goes
+to stdout and writes no daily strategy ledger.
+
+Costs go through the one `costs.trade_cost` owner with direction, ticker and
+shares: minimum commission, taxes, exemptions and spread settle per leg. The rank
+portfolio has no size, so it uses the config's explicit reference principal and
+reference price on the larger side; that is a coarse threshold, not evidence of
+day-trading. `method_evaluation` charges every call and averages by episode;
+`shadow` maps the instance's market/currency to the tariff and passes the actual
+simulated direction and shares, leaving uncovered currencies unavailable rather
+than free. `method_trials` freezes the whole dataclass, so an old trial keeps the
+old fee model and does not inherit today's waiver or tax table.
+
+## SPCH conflict and open decisions
+
+`infinite_ammo_dca.forbid_reduce_advice` is unchanged. A missing policy value or
+`true` makes this replay refuse too; an LLM explanation cannot replace the
+authorization. The packet's `research_allowed` only scopes offline research and
+does not establish account permission from arbitrary JSON. There is no live
+action consumer today, only the historical research card.
+
+A workable future would require kcn to whitelist individual tickers, exclude
+every `forbid_reduce_advice` strategy by default, and then bound an authorized
+ticker by roundtrip fraction, daily count, cash and lot size. A 10% base and one
+roundtrip per day are a research starting point; a daily net-loss stop and the
+final thresholds need out-of-sample evidence. SPCH is not an exception unless
+kcn separately changes its policy. Four decisions remain open: the real ticker
+whitelist, five-minute versus shorter bars, US-first versus HK/US together, and
+the LLM's role in live. The research implementation and cost corrections can
+proceed without them; every action needing approval is unimplemented.
+
 ## Frozen model proposal and walk-forward
 
 `config/intraday-research-manifest.json` is the bounded Astra-authored research
@@ -169,8 +256,7 @@ model rerun does not substitute for a frozen future observation period.
   仍须按实际账户理解，本次不公开原始行情。
 - 当前状态文件保存完整净 walk-forward、四个压力臂、四折模型回执与净结果，
   费用仍为原冻结情景。主臂和模型臂净值为负，历史候选判据未通过，状态仍为
-  `insufficient_or_failed`，但指标不再为空。详见
-  [当前研究状态](../design/intraday-strategy-research.md#已落地的后续工作)。
+  `insufficient_or_failed`，但指标不再为空。
   账户实际月度额度、发票和额外费率尚缺证据；前瞻观察未开始。
   不购买数据、不新增付费订阅、不改变 live/SPCH。
 

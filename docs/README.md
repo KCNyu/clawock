@@ -55,12 +55,9 @@ belongs here.
 - [`design-system.md`](design/design-system.md) — the dashboard's colour layers
   (semantic vs. everything else), motion scale, component recipes and the list of
   what a new component may not do, each with the gate that checks it.
-- [`task-chip-patrol.md`](design/task-chip-patrol.md) — the patrol block as one entry with a 4px
-  outcome strip, and a dashboard page (KPI bento, outcome strip, rounds, coverage tables); the
-  motion and the captures.
-- [`task-chip-stats.md`](design/task-chip-stats.md) — the `/dispatch-stats` command, the stats card at the bottom of
-  the task chip and its 7-day stacked provider token chart: brand hues muted into one category band, the
-  state-colour collision rules, zero/unknown days, and no total line or visible unknown caption.
+- [`task-chip.md`](design/task-chip.md) — the task chip's queue panel, patrol page
+  (KPI grid, outcome strip, rounds and coverage) and 7-day stacked provider chart,
+  plus the frozen numbers behind `/dispatch-stats`.
 
 ## Operations
 
@@ -68,7 +65,6 @@ belongs here.
   latest code on the host without a release.
 - [`openclaw-patch-kit.md`](operations/openclaw-patch-kit.md) — versioned dist adaptations, isolated rehearsal, transaction receipts and guarded rollback.
 - [`sqlite-maintenance.md`](operations/sqlite-maintenance.md) — offline checkpoint/VACUUM for the OpenClaw memory index and state store, rollback and the quarterly cron job.
-- [`memory-recall-performance.md`](operations/memory-recall-performance.md) — five-segment memory recall profile, the KNN oversample fix, and the measured quality comparison.
 - [`dreaming-review.md`](operations/dreaming-review.md) — private candidates, explicit review receipts, permanent promotion and rollback.
 - [`models.md`](operations/models.md) — `config/models.toml`: every model, its parameters and which scenario uses it; OpenClaw, cron, dsh and the MiniMax client follow it.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of
@@ -131,7 +127,6 @@ have no such constraint and therefore live under `site/`.
 ## Intraday research
 
 - [Open-source strategy research](research/intraday-strategies.md): sources, failure conditions, verified fees and market selection.
-- [Intraday research contract](design/intraday-strategy-research.md): mounted replay service, LLM boundaries and presentation design.
 
 - [Intraday research / 盘中研究验证与卡片](architecture/intraday-research-workflow.md)：
-  三种 research 插件、模型回执、净 walk-forward、数据许可、历史研究展示及独立人工条件推荐 / independent manual conditional recommendations。
+  三种 research 插件及其 packet/config 契约、模型回执、净 walk-forward、数据许可、历史研究展示及独立人工条件推荐 / independent manual conditional recommendations。

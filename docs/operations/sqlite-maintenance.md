@@ -1,30 +1,26 @@
 # SQLite 维护：OpenClaw 记忆索引与共享状态库
 
-本文是 `ops/host/sqlite_maintenance.py` 的运行说明，并记录 2026-11-07
-在本机的第一次实测。脚本只处理 OpenClaw 的两个 SQLite 库，不碰
-`portfolio.json`、`memory/` 或任何投资语义。
+本文是 `ops/host/sqlite_maintenance.py` 的运行说明。脚本只处理 OpenClaw 的
+两个 SQLite 库，不碰 `portfolio.json`、`memory/` 或任何投资语义。
 
 ## 结论：本机该做什么、按什么顺序
 
-| 顺序 | 项目 | 本机是否做 | 实测收益（2026-11-07） | 风险 / 边界 |
+| 顺序 | 项目 | 本机是否做 | 收益 | 风险 / 边界 |
 |---|---|---|---|---|
-| 1 | 主索引离线 `wal_checkpoint(TRUNCATE)` + `auto_vacuum=INCREMENTAL` + `VACUUM` | 做，一次 | 主库 415,707,136 → 385,810,432 B（396.4 → 367.9 MiB，−28.5 MiB）；freelist 7,256 → 0 页；页数 101,491 → 94,192；WAL 归零 | gateway 停 1–2 分钟；VACUUM 需要约 2× 库大小的临时空间；失败自动回滚到备份 |
-| 2 | 共享状态库 `wal_checkpoint(TRUNCATE)` | 做，每次 | WAL 4,136,512 → 0 B；freelist 12 页（48 KiB）不动；库大小 73.7 MiB 不变 | 只 checkpoint，不 VACUUM；12 个空闲页不值得重写 73.7 MiB。若将来 freelist 变大再单独评估 |
-| 3 | KNN oversample 8 → 1 的 dist 补丁 | 做，一次（升级后由 patch kit 重放） | 热召回 139.9 → 119.5 ms；其中 sqlite-vec KNN 39.1 → 24.9 ms | 一行常量；多模型索引仍由现有 underfill widening 兜底；质量不变（见性能文档） |
+| 1 | 主索引离线 `wal_checkpoint(TRUNCATE)` + `auto_vacuum=INCREMENTAL` + `VACUUM` | 做，首次后按季度 | 回收 freelist 与页跳读；本机首次约 −28.5 MiB、freelist 7,256 → 0 页 | gateway 停 1–2 分钟；VACUUM 需要约 2× 库大小的临时空间；失败自动回滚到备份 |
+| 2 | 共享状态库 `wal_checkpoint(TRUNCATE)` | 做，每次 | 截掉 WAL，库大小不变 | 只 checkpoint，不 VACUUM；12 个空闲页不值得重写 73.7 MiB。若将来 freelist 变大再单独评估 |
+| 3 | KNN oversample 8 → 1 的 dist 补丁 | 做，首次后由 patch kit 在升级后重放 | 热召回约 140 → 120 ms；其中 sqlite-vec KNN 约 39 → 25 ms | 一行常量；多模型索引仍由现有 underfill widening 兜底；质量不变（理由在补丁脚本头部） |
 | 4 | 季度/按需执行 | 做 | 04:17 HKT，1/4/7/10 月 1 日；用 `openclaw cron` 的 command job | command job 用 `systemd-run` 脱离 gateway cgroup，否则“停 gateway”会把任务自己杀掉 |
+
+先 compaction 再谈查询侧优化：维护前热召回中位数 347.7 ms，其中 sqlite-vec
+KNN 占 242.6 ms；同一份代码、同一个查询集在 VACUUM 后降到 139.9 ms / 39.1 ms。
+大头是 freelist 造成的向量表页跳读，不是算力不够。
 
 **不要做**：不升级 OpenClaw（2026.7.1-2 没有 `--session-sqlite` /
 `state-sqlite compact`）；不把 `journal_size_limit` 当成持久设置（它是连接级的，
 重连读回 -1）；不改 embedding 模型或 768 维；不引入 Elasticsearch 或任何常驻大内存
 组件；不把 embedding 线程从 1 调大（node-llama-cpp 在本机多线程路径有已知死锁，
 补丁注释记录了 2026-07-08 的根因）。
-
-### 为什么先做 1，而不是先改代码
-
-维护前热召回的中位数是 **347.7 ms**，其中 sqlite-vec KNN 占 **242.6 ms**；
-`VACUUM` 后同一份代码、同一个查询集降到 **139.9 ms / 39.1 ms**。这说明大头不是
-“算力不够”，而是 101,491 页、7,256 页 freelist 的库让 26 MB 向量表在页间跳读。
-先 compaction 再谈查询侧优化，顺序不能反。
 
 ## 脚本
 
@@ -80,41 +76,17 @@ curl -sS http://127.0.0.1:18789/health
 状态库同理（备份文件名 `openclaw.sqlite`）。补丁回滚用
 `python3 ops/host/manage_openclaw_patches.py rollback --receipt <receipt.json>`。
 
-## 2026-11-07 第一次执行记录
+## 召回性能边界
 
-执行时间 02:33 HKT（UTC 2026-11-06T18:33Z），`--apply --no-restart`，
-随后装 dist 补丁、起 gateway。
+维护和补丁之后，热召回在百毫秒级（本机五个查询的中位数约 120 ms），
+不是 7–9 秒；后者是 gateway 重启或长时间空闲后的**第一次**召回：provider 初始化
+加首次 embedding 就要 3–5 秒，再加上模型加载和冷页缓存。1.9 GB 内存、无 GPU、
+`threads: 1` 是当前下限，这个冷启成本不是回归。
 
-| 指标 | 维护前 | 维护后 |
-|---|---|---|
-| 主库文件 | 415,707,136 B（396.4 MiB） | 385,810,432 B（367.9 MiB） |
-| 主库页数 / freelist | 101,491 / 7,256 | 94,192 / 0 |
-| 主库 WAL | 0 B | 0 B |
-| `auto_vacuum` | 0（OFF） | 2（INCREMENTAL） |
-| `quick_check` / `integrity_check` | ok | ok / ok |
-| 状态库文件 | 77,266,944 B | 77,266,944 B |
-| 状态库 WAL | 4,136,512 B | 0 B |
-| 状态库 freelist | 12 页 | 12 页 |
-| 可用磁盘 | 10,631,983,104 B | 10,173,095,936 B（备份占 493 MB，主库缩 29.9 MB） |
-
-报告：`/root/logs/sqlite-maintenance/20261106T183233Z.json`
-备份：`/root/backups/openclaw-sqlite/20261106T183233Z/`（两个库 + `manifest.json`）
-
-第一次尝试（02:30Z）在“停 gateway 后检查句柄”这一步主动中止：状态库仍被
-`clawock-intraday-watchdog` 持有，脚本没有做任何 checkpoint、没有产生备份，
-直接重启 gateway 并写失败报告。这是预期行为：宁可让 watchdog 跑完，也不在
-有读事务时硬 truncate。随后 watchdog 退出，第二次顺利通过。
-
-### 起回来后的验证
-
-- `/health`：`{"ok":true,"status":"live"}`；`systemctl --user is-active` = active。
-- `openclaw memory status --agent main --json`：493 文件 / 8,697 切片 / 768 维，
-  `dirty=false`，`indexIdentity.status=valid`，vector 与 FTS 都 available。
-- 真实 `memory_search`（走 gateway，不是 CLI 的临时 manager）：
-  中文查询「记忆索引 SQLite 压缩」命中 5 条，第一条
-  `memory/2026-07-27-pre-open.md:160`；第一次 `managerMs=1658`、`searchMs=6595`，
-  第二次同一 gateway `managerMs=1`、`searchMs=499`。第一次是冷启（模型加载 +
-  首次 embedding），第二次是热路径。
+KNN 补丁只改 `VECTOR_KNN_OVERSAMPLE_FACTOR` 8 → 1；`searchVector` 在模型过滤后
+不足 `limit` 时本来就会扩到 `MAX_VECTOR_KNN_K`，多取的行永远不会被 `LIMIT`
+用到。单模型索引上 k=40 与 k=320 的 top-10 完全相同，因此这一行不改召回质量。
+补丁在 OpenClaw 升级时会被覆盖，必须由 patch kit 重放。
 
 ## 定时执行
 
@@ -135,15 +107,10 @@ curl -sS http://127.0.0.1:18789/health
 - 按需触发：`python3 ops/host/sqlite_maintenance.py --check` 显示
   `maintenance recommended` 时手动跑一次。主库的判据是 freelist > 8 MiB、
   WAL > 32 MiB 或 `auto_vacuum=0`；状态库只看 freelist/WAL（它故意保持
-  `auto_vacuum=0`，12 个空闲页不值得重写 73.7 MiB）。WAL 超过 100 MiB
-  优先查长读事务，不要只调 `journal_size_limit`。
+  `auto_vacuum=0`）。WAL 超过 100 MiB 优先查长读事务，不要只调
+  `journal_size_limit`。
 
-## 与 WAL 事实的关系
-
-派发时的线索是主库 WAL 370 MB。实际执行时主库 WAL 已经是 0：00:49 的 gateway
-重启触发了 OpenClaw 自己的 close checkpoint（`configureSqliteWalMaintenance`
-默认 `TRUNCATE`），把旧 WAL 截掉了；但 7,256 页 freelist 和 101,491 页的文件
-还在。也就是说：
+## WAL 与库大小的边界
 
 - **WAL 大**的根因是长读事务让 autocheckpoint/PASSIVE checkpoint 无法前进；
   停掉所有读者后 `TRUNCATE` 才能归零。`journal_size_limit` 是连接级设置，
@@ -151,8 +118,5 @@ curl -sS http://127.0.0.1:18789/health
 - **库大**的根因是 freelist；只有 `VACUUM`（或 `auto_vacuum=INCREMENTAL` +
   `incremental_vacuum`）能真正把页还给文件系统。`auto_vacuum` 是唯一能持久化的
   那一个，但改了模式仍要一次 `VACUUM` 才生效。
-- 本次主库 WAL 的即时收益是 0 B，不是 370 MB；季度脚本保证每次跑完都是 0，
-  并且能在下一次 WAL 再长起来时用同一套流程处理。
-
-召回性能的完整测量、优化表和质量对比见
-[`memory-recall-performance.md`](memory-recall-performance.md)。
+- 季度脚本保证每次跑完 WAL 都是 0，并且能在下一次 WAL 再长起来时用同一套流程处理；
+  不要在 gateway 运行时手工 VACUUM。
