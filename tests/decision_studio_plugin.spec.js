@@ -4179,14 +4179,13 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
   await new Promise((resolve) => setImmediate(resolve));
   const overview = render();
   assert.ok(find(overview, (p) => p["data-wb-overview"] !== undefined)[0], "Overview mounted");
-  assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0].props["aria-expanded"], false,
-    "patrol is folded by default so Overview opens short");
+  const patrolEntry = find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0];
+  assert.equal(patrolEntry.props["aria-expanded"], undefined,
+    "patrol is an entry to its own layer, not a fold");
+  assert.equal(find(overview, (p) => p["data-wb-patrol-layer"] !== undefined).length, 0,
+    "the patrol layer is not mounted in Overview");
   assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props["aria-expanded"], false,
     "stats is folded by default");
-  assert.match(textOf(overview), /Last round/);
-  assert.match(textOf(overview), /area ×2/);
-  assert.match(textOf(overview), /lens ×2/);
-  assert.match(textOf(overview), /3/);
   const statsHead = find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0];
   assert.match(textOf(statsHead), /5 tasks/, "folded header keeps the totals summary");
   statsHead.props.onClick();
@@ -4280,10 +4279,14 @@ test("workbench client: Overview copy is pinned in Chinese", async () => {
   const overview = render();
   assert.match(textOf(overview), /巡检/);
   assert.match(textOf(overview), /统计/);
-  assert.match(textOf(overview), /最近轮次/);
-  assert.match(textOf(overview), /未决/);
-  assert.match(textOf(overview), /节奏/);
-  find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props.onClick();
+  find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0].props.onClick();
+  const patrolLayer = render();
+  assert.match(textOf(patrolLayer), /最近轮次/);
+  assert.match(textOf(patrolLayer), /未决/);
+  assert.match(textOf(patrolLayer), /节奏/);
+  find(patrolLayer, (p) => p["data-wb-patrol-back"] !== undefined)[0].props.onClick();
+  const backToOverview = render();
+  find(backToOverview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props.onClick();
   const expanded = render();
   assert.match(textOf(expanded), /完成 2/);
   assert.match(textOf(expanded), /Token \/ API 估价/);
@@ -4565,6 +4568,230 @@ test("workbench client: the old task-detail capabilities are all reachable in pl
   assert.match(text(tree), /shipped half/, "the frozen result is printed");
   assert.equal(calls.length, 0, "opening a detail writes nothing");
   } finally {
+    disposeReactEffects();
+  }
+});
+
+test("workbench client: patrol and task are exclusive detail layers", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const task = {
+    id: "live-1", name: "图层任务", agent: "dsh", model: "", state: "running", waiting: "", slot: "dsh-1", attempts: 1,
+    outcome: "", startedAtMs: now - 60_000, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "",
+    lastEvent: "", lastEventAtMs: now, finishedAtMs: null, needs: "检查图层", stage: "machine/running",
+    attention: "person",
+  };
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 1,
+    running: 1, active: [task], recent: [], pending: [task], pendingTotal: 1,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 3600_000,
+      rounds: [{ endedAt: "2026-11-07 08:00:00", round: "R1", axis: "harness", result: "ok/DONE", seconds: 60 }],
+      progress: { records: 1, lensInventory: true, areaInventory: true, firstAt: "", rejected: 0, issuesAt: "", lenses: [], areas: [] } },
+  };
+  const stub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = () => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+      t: translatorFor(api),
+    });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  try {
+    const page = render();
+    find(page, (p) => p.role === "tab")[2].props.onClick();
+    const overview = render();
+    find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0].props.onClick();
+    const patrol = render();
+    assert.equal(find(patrol, (p) => p["data-wb-view"] === "patrol").length, 1, "patrol is its own view");
+    assert.equal(find(patrol, (p) => p["data-wb-patrol-layer"] !== undefined).length, 1);
+    assert.equal(find(patrol, (p) => p["data-wb-overview"] !== undefined).length, 0,
+      "opening patrol unmounts Overview");
+    assert.equal(find(patrol, (p) => p["data-wb-detail"] !== undefined).length, 0,
+      "opening patrol unmounts any task detail");
+    find(patrol, (p) => p["data-wb-patrol-back"] !== undefined)[0].props.onClick();
+    const back = render();
+    assert.equal(find(back, (p) => p["data-wb-overview"] !== undefined).length, 1, "back returns to Overview");
+    assert.equal(find(back, (p) => p["data-wb-patrol-layer"] !== undefined).length, 0);
+    find(back, (p) => p.role === "tab")[0].props.onClick();
+    const tasks = render();
+    find(tasks, (p) => p["data-wb-task"] === "live-1")[0].props.onClick();
+    const detail = render();
+    assert.equal(find(detail, (p) => p["data-wb-detail"] === "live-1").length, 1, "task detail mounted");
+    assert.equal(find(detail, (p) => p["data-wb-patrol-layer"] !== undefined).length, 0,
+      "the task layer never mounts the patrol layer");
+    assert.equal(find(detail, (p) => p["data-coverage"] !== undefined).length, 0,
+      "patrol coverage is not a block under the task detail");
+    assert.equal(find(detail, (p) => p["data-wb-fold"] === "coverage").length, 0,
+      "the old detail coverage fold is gone");
+    find(detail, (p) => p["data-wb-back"] !== undefined)[0].props.onClick();
+    const list = render();
+    assert.equal(find(list, (p) => p["data-wb-detail"] !== undefined).length, 0, "back unmounts the task detail");
+  } finally {
+    disposeReactEffects();
+  }
+});
+
+test("workbench client: a failed stats read offers a retry", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 3600_000, rounds: [] },
+  };
+  const stats = {
+    available: true, error: "", since: "2026-11-01", days: 1, patrolIncluded: false, asOf: "",
+    agents: [{ agent: "dsh", tasks: 1, live: 0, states: [], outcomes: [{ name: "DONE", count: 1 }],
+      tokensTotal: 10, tokensUnknown: 0, costUsdEstimate: 0.1, costUnpriced: 0, costFree: 0 }],
+    daily: { "2026-11-01": { dsh: { tasks: 1, tokens: 10, unknown: 0 } } },
+  };
+  let reads = 0;
+  const fetchTaskStats = async () => {
+    reads += 1;
+    if (reads === 1) throw new Error("stats backend down");
+    return stats;
+  };
+  const stub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = () => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+      fetchTaskStats,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+      t: translatorFor(api, "en"),
+    });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  try {
+    const page = render();
+    find(page, (p) => p.role === "tab")[2].props.onClick();
+    render();
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+    const failed = render();
+    find(failed, (p) => p["data-wb-group-button"] === "overview-stats")[0].props.onClick();
+    const open = render();
+    const retry = find(open, (p) => p["data-tq-stats-retry"] !== undefined)[0];
+    assert.ok(retry, "the unavailable branch renders the retry control");
+    assert.equal(reads, 1);
+    retry.props.onClick();
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+    const recovered = render();
+    assert.equal(reads, 2, "Retry asks the host again");
+    assert.equal(find(recovered, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,
+      "the recovered read paints the stats detail");
+    assert.equal(find(recovered, (p) => p["data-tq-stats-retry"] !== undefined).length, 0);
+  } finally {
+    disposeReactEffects();
+  }
+});
+
+test("workbench client: a provider row can be pinned to the top", async () => {
+  const loaded = await loadClient();
+  const storage = new Map();
+  globalThis.window = {
+    localStorage: {
+      getItem: (key) => storage.has(key) ? storage.get(key) : null,
+      setItem: (key, value) => { storage.set(key, value); },
+      removeItem: (key) => { storage.delete(key); },
+    },
+    matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
+  };
+  const now = Date.now();
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+  };
+  const makeApi = (stub) => loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = (api, stub) => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => BALANCES_OK, fetchBalances: async () => BALANCES_OK,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+      t: translatorFor(api, "en"),
+    });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  try {
+    const stub = makeReactStub();
+    const api = makeApi(stub);
+    const page = render(api, stub);
+    find(page, (p) => p.role === "tab")[1].props.onClick();
+    const providers = render(api, stub);
+    const order = (tree) => find(tree, (p) => p["data-wb-provider"] !== undefined).map((row) => row.props["data-wb-provider"]);
+    assert.deepEqual(order(providers).slice(0, 2), ["claude", "codex"]);
+    find(providers, (p) => p["data-wb-provider-pin"] === "deepseek")[0].props.onClick();
+    const pinned = render(api, stub);
+    assert.deepEqual(order(pinned).slice(0, 2), ["deepseek", "claude"], "pinned row moves first");
+    assert.equal(find(pinned, (p) => p["data-wb-provider-pin"] === "deepseek")[0].props["aria-pressed"], true);
+    assert.equal(storage.get("workbench.provider.pin.v1"), "deepseek");
+
+    const stub2 = makeReactStub();
+    const api2 = makeApi(stub2);
+    const remount = render(api2, stub2);
+    find(remount, (p) => p.role === "tab")[1].props.onClick();
+    const remembered = render(api2, stub2);
+    assert.deepEqual(order(remembered).slice(0, 2), ["deepseek", "claude"], "a fresh mount remembers the pin");
+    find(remembered, (p) => p["data-wb-provider-pin"] === "deepseek")[0].props.onClick();
+    const unpinned = render(api2, stub2);
+    assert.deepEqual(order(unpinned).slice(0, 2), ["claude", "codex"], "a second tap unpins");
+    assert.equal(storage.has("workbench.provider.pin.v1"), false);
+  } finally {
+    delete globalThis.window;
     disposeReactEffects();
   }
 });
