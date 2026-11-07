@@ -71,6 +71,13 @@ defaults:
       path: "briefs.md"
     values:
       locale: zh_CN
+  # The product docs are written in English even when a section carries a
+  # Chinese translation; the site layout would otherwise declare them zh-CN.
+  - scope:
+      path: "docs"
+    values:
+      lang: en
+      locale: en_US
 
 # Author
 author:
