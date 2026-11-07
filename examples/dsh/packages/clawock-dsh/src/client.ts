@@ -2091,6 +2091,8 @@ const DETAIL_CONFIRM_MS = 5000
 const WORKBENCH_UPDATED_MS = 1600
 /** Per-device group fold memory (the design review fixed this key). */
 const WORKBENCH_GROUPS_KEY = 'workbench.groups.v2'
+/** Per-device provider pin: the reader's chosen first row in Providers. */
+const WORKBENCH_PIN_KEY = 'workbench.provider.pin.v1'
 type WorkbenchGroup = 'stuck' | 'pending' | 'live'
 type WorkbenchTab = 'tasks' | 'providers' | 'overview'
 type WorkbenchGroups = Record<WorkbenchGroup, boolean>
@@ -2122,6 +2124,26 @@ function saveWorkbenchGroups(groups: WorkbenchGroups): void {
     window.localStorage.setItem(WORKBENCH_GROUPS_KEY, JSON.stringify(groups))
   } catch {
     // A blocked storage (private mode) keeps the in-memory fold for this visit.
+  }
+}
+
+function readWorkbenchPin(): string | null {
+  try {
+    if (typeof window === 'undefined' || window.localStorage === undefined) return null
+    const raw = window.localStorage.getItem(WORKBENCH_PIN_KEY)
+    return raw === null || raw === '' ? null : raw
+  } catch {
+    return null
+  }
+}
+
+function saveWorkbenchPin(provider: string | null): void {
+  try {
+    if (typeof window === 'undefined' || window.localStorage === undefined) return
+    if (provider === null) window.localStorage.removeItem(WORKBENCH_PIN_KEY)
+    else window.localStorage.setItem(WORKBENCH_PIN_KEY, provider)
+  } catch {
+    // A blocked storage (private mode) keeps the pin for this visit.
   }
 }
 
@@ -2221,6 +2243,28 @@ function WorkbenchGroupHeader(props: {
     h('span', { className: cx('wb-group-title') }, props.label),
     props.summary === undefined || props.summary === '' ? null : h('span', { className: cx('wb-group-summary') }, props.summary),
     h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron()))
+}
+
+/**
+ * A full-width entry that opens a detail layer. It looks like the fold headers
+ * but is navigation, not disclosure: no aria-expanded and no aria-controls,
+ * because the page it opens is a sibling view, not a body under this button.
+ */
+function WorkbenchEntryHeader(props: {
+  id: string
+  label: string
+  summary?: string
+  buttonRef: (element: HTMLButtonElement | null) => void
+  onOpen: () => void
+}): React.ReactElement {
+  return h('button', {
+    type: 'button', className: cx('wb-group'), 'data-wb-group-button': props.id, 'data-wb-tone': 'neutral',
+    ref: props.buttonRef,
+    onClick: props.onOpen,
+  },
+    h('span', { className: cx('wb-group-title') }, props.label),
+    props.summary === undefined || props.summary === '' ? null : h('span', { className: cx('wb-group-summary') }, props.summary),
+    h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, '›'))
 }
 
 /** The panellist icon: a permanent entry; the badge exists only with pending tasks. */
@@ -2369,8 +2413,10 @@ function WorkbenchProviderRow(props: {
   t: Translate
   now: number
   detailRow: BalanceRow | undefined
+  pinned: boolean
+  onPin: () => void
 }): React.ReactElement {
-  const { row, t, detailRow } = props
+  const { row, t, detailRow, pinned } = props
   const snapshot = detailRow?.result.snapshot ?? null
   const money = snapshot?.unit === 'money'
   const free = row.state === 'free'
@@ -2400,7 +2446,17 @@ function WorkbenchProviderRow(props: {
       h('span', { className: cx('wb-prov-name') }, row.label),
       h('span', { className: cx('wb-prov-metrics') },
         row.primary === '' ? null : h('span', { className: cx('wb-prov-primary'), 'data-wb-tone': row.primaryTone }, row.primary),
-        row.secondary === null ? null : h('span', { className: cx('wb-prov-secondary'), 'data-wb-tone': row.secondaryTone }, row.secondary))),
+        row.secondary === null ? null : h('span', { className: cx('wb-prov-secondary'), 'data-wb-tone': row.secondaryTone }, row.secondary)),
+      // The old sidebar headline let the reader pin one provider. The footer
+      // surface is gone (#3278), so the same choice lives on the row it orders:
+      // a pinned row moves to the top of this list and keeps a marker there.
+      h('button', {
+        type: 'button', className: cx('wb-prov-pin', pinned && 'wb-prov-pin-on'),
+        'data-wb-provider-pin': row.key, 'aria-pressed': pinned,
+        'aria-label': t(pinned ? 'workbench.provider.unpin' : 'workbench.provider.pin', { name: row.label }),
+        title: t(pinned ? 'workbench.provider.unpin' : 'workbench.provider.pin', { name: row.label }),
+        onClick: () => { props.onPin() },
+      }, h('span', { 'aria-hidden': 'true' }, pinned ? '★' : '☆'))),
     h('div', { className: cx('wb-prov-meta') },
       h('span', { className: cx('wb-prov-left') },
         state === 'stale' && row.chip !== null ? h('span', { className: cx('wb-prov-stale') }, row.chip.text) : null,
@@ -2411,15 +2467,6 @@ function WorkbenchProviderRow(props: {
         className: cx('wb-prov-fill'), 'data-wb-provider-fill': String(row.bar.pct), 'data-role': row.bar.state,
         style: { width: row.bar.pct + '%' },
       })))
-}
-
-/** A native details fold; the summary carries the whole row, the body the existing tables. */
-function WorkbenchFold(props: { id: string; label: string; open?: boolean; children: React.ReactNode }): React.ReactElement {
-  return h('details', { className: cx('wb-fold'), 'data-wb-fold': props.id, open: props.open },
-    h('summary', { className: cx('wb-fold-summary') },
-      h('span', null, props.label),
-      h('span', { className: cx('wb-fold-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron())),
-    h('div', { className: cx('wb-fold-body') }, props.children))
 }
 
 /** The focus view's body, shared by the phone page and the desktop right column. */
@@ -2433,7 +2480,6 @@ function WorkbenchDetail(props: {
   ui: DetailUi
   notice: { ok: boolean; text: string } | null
   top?: React.ReactNode
-  bottom?: React.ReactNode
 }): React.ReactElement {
   return h('div', {
     className: cx('wb-detail', props.desktop && 'wb-detail-desktop'),
@@ -2442,14 +2488,14 @@ function WorkbenchDetail(props: {
     h('div', { className: cx('wb-detail-tq', 'pbc', 'tqf') },
       renderTaskDetail(
         { task: props.task, live: props.live }, props.t, props.now, props.ui, props.notice,
-        { top: props.top, bottom: props.bottom, titleRef: props.titleRef })))
+        { top: props.top, titleRef: props.titleRef })))
 }
 
 export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const { t } = props
   const queue = useTaskQueue(props)
   const [tab, setTab] = useState<WorkbenchTab>('tasks')
-  const [view, setView] = useState<'queue' | 'focus'>('queue')
+  const [view, setView] = useState<'queue' | 'focus' | 'patrol'>('queue')
   const [selected, setSelected] = useState<string | null>(null)
   const [snapshot, setSnapshot] = useState<DispatchTask | null>(null)
   const [groups, setGroups] = useState<WorkbenchGroups>(readWorkbenchGroups)
@@ -2459,9 +2505,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   // toggle away instead of being a second permanent list.
   const [groupBy, setGroupBy] = useState<'status' | 'source'>('status')
   const [sourceOpen, setSourceOpen] = useState<Record<string, boolean>>({})
-  const [overviewPatrolOpen, setOverviewPatrolOpen] = useState(false)
   const [overviewStatsOpen, setOverviewStatsOpen] = useState(false)
   const [overviewHistoryOpen, setOverviewHistoryOpen] = useState(false)
+  const [pinnedProvider, setPinnedProvider] = useState<string | null>(readWorkbenchPin)
   const [updated, setUpdated] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
@@ -2480,6 +2526,8 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const balances = useProviderReadings(props, 'workbench-page', tab === 'providers')
   const stats = useTaskStats(props, tab === 'overview')
   const titleRef = useRef<HTMLElement | null>(null)
+  const patrolBackRef = useRef<HTMLButtonElement | null>(null)
+  const patrolOpenerRef = useRef<HTMLButtonElement | null>(null)
   const rowRefs = useRef(new Map<string, HTMLButtonElement>())
   const groupRefs = useRef(new Map<WorkbenchGroup, HTMLButtonElement>())
   const openedInitial = useRef(false)
@@ -2507,11 +2555,25 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const live = (result?.active ?? []).filter((task) => !task.patrol)
   const sources = _panelSources(balances.data.result?.providers ?? [], result)
   const rowMap = new Map(balances.rows.map((row) => [row.provider, row] as const))
-  const providers = providerRowsView(sources, rowMap, result, t, now)
+  const providerRows = providerRowsView(sources, rowMap, result, t, now)
+  // A pinned row is first; the rest keep the provider order the service gave.
+  const providers = pinnedProvider === null
+    ? providerRows
+    : [...providerRows.filter((row) => row.key === pinnedProvider), ...providerRows.filter((row) => row.key !== pinnedProvider)]
   const alerts = providerAlerts(balances.rows)
   const alertNames = alerts.map((row) => row.label).join(', ')
   const statsData = stats.data === null ? null : statsView(stats.data, t)
   const patrol = result === null ? null : patrolSection(result, t, now)
+  // The patrol summary is the same line in Overview and in the patrol layer;
+  // the layer must not grow a second copy of what the entry already says.
+  const lastPatrolRound = result?.patrol.rounds?.[0] ?? null
+  const lastPatrolView = patrol?.rounds?.[0] ?? null
+  const lastPatrolTime = hhmmOf(lastPatrolAt(result))
+  const lastPatrolTook = lastPatrolRound?.seconds == null ? '' : waitShort(lastPatrolRound.seconds * 1000)
+  const patrolSummary = lastPatrolRound === null
+    ? t('workbench.overview.noPatrol', { time: hhmmOf(result?.patrol.untilMs ?? null) })
+    : lastPatrolTime + (lastPatrolTook === '' ? '' : ' · ' + lastPatrolTook)
+      + (lastPatrolView?.state == null ? '' : ' · ' + lastPatrolView.state.text)
   const panelId = groupId + '-panel'
   const tabId = (id: WorkbenchTab): string => groupId + '-tab-' + id
   const capRows = narrow ? 4 : 6
@@ -2582,8 +2644,14 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     setSelected(rendered[0]!.id)
     setSnapshot(rendered[0]!)
   }, [desktop, selected, firstRendered])
-  // A focus view's title takes focus; the browser's focus ring is the host's.
+  // Each detail layer owns its own first focus. The task layer focuses its
+  // title (phone only; desktop keeps the column), the patrol layer focuses its
+  // back control because it replaces the Overview page.
   useEffect(() => {
+    if (view === 'patrol') {
+      const timer = setTimeout(() => { patrolBackRef.current?.focus({ preventScroll: true }) }, 0)
+      return () => clearTimeout(timer)
+    }
     if (desktop || view !== 'focus') return
     const timer = setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
     return () => clearTimeout(timer)
@@ -2687,6 +2755,25 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     if (!desktop) setView('focus')
     else setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
   }
+  // Patrol is its own detail layer, not a fold inside Overview and not the
+  // coverage block of a task: one `view` value means entering either layer
+  // unmounts the other, and Overview is the shared layer underneath both.
+  const openPatrol = (): void => {
+    setView('patrol')
+    setNotice(null)
+    setConfirmStop(false)
+  }
+  const closePatrol = (): void => {
+    setView('queue')
+    setNotice(null)
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => {
+        const opener = patrolOpenerRef.current
+          ?? document.querySelector<HTMLButtonElement>('[data-wb-group-button="overview-patrol"]')
+        opener?.focus({ preventScroll: false })
+      })
+    }
+  }
   const back = (): void => {
     const id = selected
     const task = shown
@@ -2734,6 +2821,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       if (root === null || root.getClientRects().length === 0) return
       if (event.key === 'Escape') {
         if (confirmStop) { event.preventDefault(); setConfirmStop(false); return }
+        if (view === 'patrol') { event.preventDefault(); closePatrol(); return }
         if (!desktop && view === 'focus') { event.preventDefault(); back(); return }
         const target = event.target instanceof HTMLElement ? event.target.closest('[data-wb-group]') : null
         const focused = target?.getAttribute('data-wb-group')
@@ -3072,21 +3160,6 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live, 'neutral', renderLive)))
   }
   const renderOverview = (): React.ReactElement => {
-    const lastRound = result?.patrol.rounds?.[0] ?? null
-    const lastView = patrol?.rounds?.[0] ?? null
-    const lastTime = hhmmOf(lastPatrolAt(result))
-    const lastTook = lastRound?.seconds == null ? '' : waitShort(lastRound.seconds * 1000)
-    const progress = patrol?.progress ?? null
-    const areaCount = result?.patrol.progress?.areas.length ?? progress?.areas.length ?? 0
-    const lensCount = result?.patrol.progress?.lenses.length ?? progress?.lenses.length ?? 0
-    const openValues = (result?.patrol.progress?.areas ?? progress?.areas ?? []).map((area) => {
-      const value = (area as { open?: unknown }).open
-      return value === null || value === undefined || value === '' || !Number.isFinite(Number(value))
-        ? null : Number(value)
-    })
-    const openKnown = openValues.length > 0 && openValues.every((value) => value !== null)
-    const openCount = openKnown ? openValues.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null
-    const nextTime = hhmmOf(result?.patrol.untilMs ?? null)
     const overviewGroup = (id: string, label: string, open: boolean, onToggle: () => void, summary: string | undefined, body: React.ReactNode): React.ReactElement =>
       h('section', {
         className: cx('wb-group-section', 'wb-ov-group'), 'data-wb-overview-group': id,
@@ -3101,34 +3174,6 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           className: cx('wb-group-body'), id: groupId + '-ov-' + id, 'aria-hidden': open ? undefined : 'true',
           inert: open ? undefined : '',
         }, h('div', { className: cx('wb-group-body-inner') }, body)))
-    const patrolSummary = lastRound === null
-      ? h('div', { className: cx('wb-ov-row') },
-        h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
-        h('span', { className: cx('wb-ov-value', 'wb-ov-muted') }, t('workbench.overview.noPatrol', { time: nextTime })))
-      : h('div', null,
-        h('div', { className: cx('wb-ov-row') },
-          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
-          h('span', { className: cx('wb-ov-value') },
-            lastTime + (lastTook === '' ? '' : ' · ' + lastTook),
-            lastView?.state == null ? null : h('span', {
-              className: cx('wb-ov-chip'), 'data-role': lastView.state.role,
-            }, lastView.state.text))),
-        h('div', { className: cx('wb-ov-row') },
-          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.coverage')),
-          h('span', { className: cx('wb-ov-value') },
-            progress === null ? '—' : [
-              h('span', { className: cx('wb-ov-chip'), key: 'a' }, t('workbench.overview.areaCount', { n: areaCount })),
-              h('span', { className: cx('wb-ov-chip'), key: 'l' }, t('workbench.overview.lensCount', { n: lensCount })),
-            ])),
-        h('div', { className: cx('wb-ov-row') },
-          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.unresolved')),
-          h('span', {
-            className: cx('wb-ov-value', openCount === null ? 'wb-ov-muted' : openCount > 0 ? 'wb-ov-alert' : 'wb-ov-quiet'),
-            'data-wb-overview-open': openCount === null ? 'unknown' : String(openCount),
-          }, openCount === null ? '—' : openCount > 0 ? String(openCount) : h('span', null, '0 ', h('span', { className: cx('wb-ov-check'), 'aria-hidden': 'true' }, '✓')))),
-        h('div', { className: cx('wb-ov-row') },
-          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.cadence')),
-          h('span', { className: cx('wb-ov-value', 'wb-ov-muted') }, t('workbench.overview.every', { every: '6h', time: nextTime }))))
     const statsFailed = stats.data !== null && !stats.data.available
     const totals = statsFailed ? null : statsData?.totals ?? null
     const metrics: Array<[string, string]> = [
@@ -3155,9 +3200,19 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         h('div', { className: cx('wb-ov-done-labels') },
           h('span', null, t('workbench.overview.done', { n: doneN })),
           h('span', null, t('workbench.overview.open', { n: unfinishedN })))))
-    const statsBody = statsMessage !== null
-      ? h('div', { className: cx('wb-ov-body', 'pbc') }, h('p', { className: cx('wb-ov-note') }, statsMessage))
-      : h('div', null, statsTop, statsData === null ? null : renderStatsBody(statsData, t))
+    const statsError = statsFailed || (statsData === null && stats.error !== null)
+    const statsBody = statsError
+      ? h('div', { className: cx('wb-ov-body', 'pbc') },
+        h('div', { className: cx('tq-stats-error'), 'data-tq-stats-error': 'true', role: 'status' },
+          h('span', { className: cx('tq-stats-error-text') }, statsMessage ?? ''),
+          h('button', {
+            type: 'button', className: cx('tq-pill', 'tq-stats-retry'), 'data-tq-stats-retry': 'true',
+            disabled: stats.loading,
+            onClick: () => { stats.refresh() },
+          }, t('stats.retry'))))
+      : statsMessage !== null
+        ? h('div', { className: cx('wb-ov-body', 'pbc') }, h('p', { className: cx('wb-ov-note') }, statsMessage))
+        : h('div', null, statsTop, statsData === null ? null : renderStatsBody(statsData, t))
     const statsSummary = statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' })
       : statsData?.summaryLine ?? (stats.loading ? t('workbench.overview.loading') : '—')
     const historyRows = historyRowsView(result, t, now)
@@ -3171,12 +3226,15 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       else setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
     }
     return h('div', { className: cx('wb-ov'), 'data-wb-overview': 'true' },
-      overviewGroup('patrol', t('workbench.overview.patrol'), overviewPatrolOpen,
-        () => { setOverviewPatrolOpen((open) => !open) },
-        lastRound === null ? t('workbench.overview.noPatrol', { time: nextTime })
-          : lastTime + (lastView?.state == null ? '' : ' · ' + lastView.state.text),
-        patrol === null ? h('p', { className: cx('wb-ov-note') }, t('workbench.overview.noPatrol', { time: nextTime }))
-          : renderPatrolBody(patrolSummary, patrol, t)),
+      h('section', {
+        className: cx('wb-group-section', 'wb-ov-group'), 'data-wb-overview-group': 'patrol',
+        'data-wb-open': 'false',
+      },
+        h(WorkbenchEntryHeader, {
+          id: 'overview-patrol', label: t('workbench.overview.patrol'), summary: patrolSummary,
+          buttonRef: (element: HTMLButtonElement | null) => { patrolOpenerRef.current = element },
+          onOpen: openPatrol,
+        })),
       overviewGroup('stats', t('workbench.overview.stats'), overviewStatsOpen,
         () => { setOverviewStatsOpen((open) => !open) }, statsSummary, statsBody),
       overviewGroup('history', t('workbench.overview.history'), overviewHistoryOpen,
@@ -3207,15 +3265,16 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       ...providers.map((row) => h(WorkbenchProviderRow, {
         key: row.key, row, t, now,
         detailRow: row.provider === null ? undefined : rowMap.get(row.provider),
+        pinned: row.key === pinnedProvider,
+        onPin: () => {
+          const next = pinnedProvider === row.key ? null : row.key
+          setPinnedProvider(next)
+          saveWorkbenchPin(next)
+        },
       })))
   }
   const shownLive = shown !== null && (result?.active ?? []).some((task) => task.id === shown.id)
   const showPresets = shown !== null && (!shownLive || shown.question === true)
-  const coverage = patrol?.progress ?? null
-  const areasOpen = rawProgress === null ? null : rawProgress.areas.filter((area) => (area.open ?? 0) > 0).length
-  const coverageLabel = areasOpen === null
-    ? t('workbench.fold.coverageUnknown')
-    : t('workbench.fold.coverage', { n: areasOpen })
   const needsBlock = shown === null ? null : h('div', { className: cx('wb-needs-block') },
     h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
     shown.needs === undefined || shown.needs.trim() === ''
@@ -3252,11 +3311,67 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     : h(WorkbenchDetail, {
       task: shown, now, t, desktop, live: shownLive, titleRef, ui: detailUi(), notice,
       top: needsBlock,
-      bottom: h(WorkbenchFold, { id: 'coverage', label: coverageLabel },
-        coverage === null
-          ? h('div', { className: cx('wb-fold-empty') }, t('workbench.info.none'))
-          : h('div', { className: cx('wb-cov', 'pbc', 'tqf') }, ...renderCoverageTables(coverage, t))),
     })
+  // The patrol layer replaces Overview on both widths. Task and patrol are
+  // mutually exclusive states of `view`; entering one unmounts the other and
+  // the base page, so no container can hold two detail layers.
+  const renderPatrolLayer = (): React.ReactElement => {
+    const nextTime = hhmmOf(result?.patrol.untilMs ?? null)
+    const progress = patrol?.progress ?? null
+    const areaCount = result?.patrol.progress?.areas.length ?? progress?.areas.length ?? 0
+    const lensCount = result?.patrol.progress?.lenses.length ?? progress?.lenses.length ?? 0
+    const openValues = (result?.patrol.progress?.areas ?? progress?.areas ?? []).map((area) => {
+      const value = (area as { open?: unknown }).open
+      return value === null || value === undefined || value === '' || !Number.isFinite(Number(value))
+        ? null : Number(value)
+    })
+    const openKnown = openValues.length > 0 && openValues.every((value) => value !== null)
+    const openCount = openKnown ? openValues.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null
+    const summary = lastPatrolRound === null
+      ? h('div', { className: cx('wb-ov-row') },
+        h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
+        h('span', { className: cx('wb-ov-value', 'wb-ov-muted') }, t('workbench.overview.noPatrol', { time: nextTime })))
+      : h('div', null,
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
+          h('span', { className: cx('wb-ov-value') },
+            lastPatrolTime + (lastPatrolTook === '' ? '' : ' · ' + lastPatrolTook),
+            lastPatrolView?.state == null ? null : h('span', {
+              className: cx('wb-ov-chip'), 'data-role': lastPatrolView.state.role,
+            }, lastPatrolView.state.text))),
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.coverage')),
+          h('span', { className: cx('wb-ov-value') },
+            progress === null ? '—' : [
+              h('span', { className: cx('wb-ov-chip'), key: 'a' }, t('workbench.overview.areaCount', { n: areaCount })),
+              h('span', { className: cx('wb-ov-chip'), key: 'l' }, t('workbench.overview.lensCount', { n: lensCount })),
+            ])),
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.unresolved')),
+          h('span', {
+            className: cx('wb-ov-value', openCount === null ? 'wb-ov-muted' : openCount > 0 ? 'wb-ov-alert' : 'wb-ov-quiet'),
+            'data-wb-overview-open': openCount === null ? 'unknown' : String(openCount),
+          }, openCount === null ? '—' : openCount > 0 ? String(openCount) : h('span', null, '0 ', h('span', { className: cx('wb-ov-check'), 'aria-hidden': 'true' }, '✓')))),
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.cadence')),
+          h('span', { className: cx('wb-ov-value', 'wb-ov-muted') }, t('workbench.overview.every', { every: '6h', time: nextTime }))))
+    return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'patrol' },
+      h('div', { className: cx('wb-returnbar') },
+        h('button', {
+          type: 'button', className: cx('wb-back'), 'data-wb-patrol-back': 'true',
+          'aria-label': t('workbench.back.overview'), title: t('workbench.back.overview'),
+          ref: patrolBackRef, onClick: closePatrol,
+        }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.back.overview'))),
+      h('div', {
+        className: cx('wb-view', 'pbc'), 'data-wb-scroll': 'true', 'data-wb-patrol-layer': 'true',
+      },
+        patrol === null
+          ? h('div', { className: cx('wb-ov') },
+            h('p', { className: cx('wb-ov-note') }, t('workbench.overview.noPatrol', { time: nextTime })))
+          : h('div', { className: cx('wb-ov') }, renderPatrolBody(summary, patrol, t))))
+  }
+
+  if (view === 'patrol') return renderPatrolLayer()
 
   if (!desktop && view === 'focus') {
     return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'focus' },
