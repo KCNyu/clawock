@@ -58,7 +58,7 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 ### Mode 2 — Technical Read
 **When:** "Is X oversold?" / "Where's resistance on Y?"
 1. Run `clawock analyze-us {TICKER} --no-news`
-2. Load `references/technical-analysis.md` for indicator interpretation
+2. Apply the shared output contract below; interpret only indicators actually returned
 3. Output: trend (up/down/sideways), MA20/50 stance, RSI-14 reading (oversold <30, overbought >70), recent support/resistance from price action, one-line risk note
 
 ### Mode 3 — Fundamental Read
@@ -68,7 +68,7 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 3. (Optional) `clawock filings {TICKER} --form4` if insider activity is material to thesis
 4. (Optional 中文速查) `clawock fundamentals {TICKER} --indicators` — 东财 GMAININDICATOR 一次给齐 ROE/毛利率/净利率/资产负债率（比从 XBRL 自算比率快）；数字与 SEC 冲突时以 SEC 为准
 5. Web search only for what SEC EDGAR can't give: peer multiples, analyst consensus, qualitative thesis, sector context
-6. Load `references/fundamental-analysis.md` for framework, `references/financial-metrics.md` for ratio definitions
+6. Apply the shared output contract below; verify reporting periods, units and valuation assumptions
 7. Output: business overview, financial trends from XBRL, valuation vs peers/history, insider signal, key risks, fair value range
 
 ### Mode 4 — Full Report
@@ -78,7 +78,7 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 3. Do technicals (Mode 2)
 4. Do sentiment (Mode 5)
 5. Web search for catalysts (next earnings date, upcoming product/regulatory events)
-6. Load `references/report-template.md` for structure
+6. Use the shared output contract below; scale the report to the question
 7. Output: executive summary + bull case + bear case + valuation + technical setup + sentiment read + risk + catalyst calendar + concrete entry/exit levels
 
 ### Mode 7 — 盘中盯盘（cron，每 30 分钟）
@@ -243,16 +243,12 @@ When the ticker is a leveraged ETF (SOXL, TQQQ, RKLX, MSFU, ROBN — anything wi
 **Approach:** Comparison mode — script both, side-by-side table, paragraph verdict.
 
 **User:** "Give me a deep report on PLTU"
-**Approach:** Mode 4 — full pipeline with references/report-template.md structure.
+**Approach:** Mode 4 — full pipeline with the shared output contract.
 
-## Reference files (lazy-load)
+## Shared output contract
 
-- `references/technical-analysis.md` — indicator definitions, chart patterns, support/resistance methodology
-- `references/fundamental-analysis.md` — business quality, financial health, valuation frameworks, red flags
-- `references/financial-metrics.md` — every ratio formula needed for valuation work
-- `references/report-template.md` — full-report skeleton for Mode 4
-
-These are market-agnostic; `hk-stock-analysis` also references them.
+For interactive technical, fundamental or full reports, use
+`../_shared/stock-analysis-output.md` for evidence, units, uncertainty and output scope.
 
 ## Companion tools
 

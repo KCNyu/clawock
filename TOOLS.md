@@ -34,7 +34,7 @@ no investment data, provider catalog, cron map or repository investigation is ne
 | "哪些风险需要复查 / 豁免什么时候到期" | `clawock risk followups --leg HK` 或 `--leg US`（可加 `--json`） | 只读现有风险账本；列到期、待核验和后续复查，不创建订单、不自动确认风险消失 |
 | "深度复盘 / 持仓全面诊断 / 大幅调仓前" | `portfolio-swarm-review` | 3 tier（analyst→bull/bear→risk debate）+ confidence 评分，重，慢 |
 | "用 Serenity 的方式看 X" / 产业链卡点深挖 / AI半导体瓶颈选股 / thesis 压力测试 | `serenity-skill` | 供应链 chokepoint 框架（8 因子评分卡 `skills/serenity-skill/scripts/serenity_scorecard.py`）；**重、手动深挖、不进 cron**；证据阶梯把 KOL/社媒判弱证据 → 对冲追微盘 pump |
-| 教育性问题（"什么是 MACD"、"position sizing 怎么算"） | `trading` | guardrails 重、不给具体买卖判断；具体判断走上面 4 个 |
+| 教育性问题（"什么是 MACD"、"position sizing 怎么算"） | 直接回答 | 概念和示例无需 skill；涉及真实标的、价格或仓位时转上述分析入口，不把教学参数当成组合授权 |
 | 抓需 JS 渲染 / 反爬的页面（雪球评论 / Futu 社区 / Reddit 深页） | 当前会话的浏览器工具；`scrapling` 仅在 catalog 可用时 | 仓库有 `skills/scrapling/` 不代表本会话已加载；不可用时明说抓取缺口 |
 | Web 搜索（新闻 / X / 中文社区 / 政策） | `clawock web-search "…" --bucket <brief/report/intraday/research>`：DeepSeek 与 Tavily **并发**、各自标注；`--fetch URL` 抓正文；也可用当前会话内置搜索 | 两源并列不是主备，限额各算：DeepSeek 无 credits、账号级 5 QPS（`--providers deepseek` 随时可用，含盘中）；Tavily（`tavily-search` 目录，skill 名 `tavily`）免费档 1000 credits/月按 bucket，盘中模型不调（harness 的 `anomaly_search` 已检索）。某源 unavailable 只说那个源没取到 |
 | openclaw 升级后健康检查 / 磁盘膨胀 | `openclaw-tune` | 不动股票 |
@@ -45,13 +45,13 @@ no investment data, provider catalog, cron map or repository investigation is ne
 | 找回以前派发的 coding 任务、核对做过什么 | `/root/tools/agent-dispatch/dispatch.sh history [--json] [关键词]` | 先查名称/ID/结果索引，再按 ID 读 `inbox` / `log` / `result`；分页与筛选见 `docs/architecture/task-queue.md` § Find earlier work；仅私聊返回结论，不抄原文进公开记忆/简报/群聊，不读取或续跑旧会话 |
 | 明确让 Claude Code / Codex / OpenCode / dsh 做任务，或追加已有任务 | `agent-dispatch`（host skill） | 入口见 AGENTS.md § Delegation；已派发 worker 自己完成，不再派发 |
 | 问到之前的 coding 改动、主机/接线约定、某次故障怎么修的（coding agent 记的事） | `memory_search` 带 `corpus=all`；命中 `shared-memory/<topic>.md` 再 `memory_get` | 只读、只在私聊返回；是 coding agent 的私有记忆：回答只给结论、不整段引用原文（私聊转录会进 dreaming，原文可能被写进公开的 `MEMORY.md`/`DREAMS.md`），也不抄进简报或群聊 |
-| issue / PR / CI run / gh api | `github` | 走 `gh` CLI;仓库改动仍遵守 AGENTS.md 的 worktree→PR 规矩,别直接推 master |
+| issue / PR / CI run / gh api | `gh` CLI（参数查 `gh <command> --help`） | 仓库改动遵守 AGENTS.md 的 worktree→PR 规矩；目录外显式带 `--repo owner/repo` |
 
 `skills/_shared/` 不是 skill，是 hk/us 共用的片段（盘中 Mode 7 正文 `intraday-mode7.md`、status sidecar 规范）——盘中 cron 直接读这两份，改盘中规则或横幅只改那一份。
 
 研究生命周期各环节跑多勤（每天 / 按事件 / 每次 push）见 `docs/operations/research-cadence.md`。
 
 ⚠️ **不要做的 routing 错误**：
-- `trading` skill 默认禁止"直接买卖建议" → 用户问"应该买不买" 时不走它，走 `us/hk-stock-analysis`（偏好见 `USER.md`）
+- 用户问具体标的"应该买不买"时走 `us/hk-stock-analysis`，不要把概念教学当成完成分析（偏好见 `USER.md`）
 - 持仓问题不要走 `us-stock-analysis` 的 Full Report → 走 `portfolio-risk-review`（持仓视角）
 - 单只股的分析也不要走 `portfolio-swarm-review`（杀鸡用牛刀）→ 走 `us/hk-stock-analysis` Mode 4

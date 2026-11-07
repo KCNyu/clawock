@@ -43,7 +43,7 @@ The historical scripts under `/root/tools/openclaw/current/` are not upgrade inp
 Do not edit or invoke them to update the managed kit.
 
 Run `bash ops/host/reapply_openclaw_patches.sh --plan` first to rehearse against
-isolated copies. It resolves each bundle unambiguously, runs all twelve adapters and
+isolated copies. It resolves each bundle unambiguously, runs every manifest adapter and
 checks postconditions and JavaScript syntax before any installed bundle is written.
 `apply` retains a transaction receipt and recovery copies; on write failure it
 restores the pre-run bytes. A process kill can leave a prepared receipt: use the
@@ -88,17 +88,15 @@ bash ops/host/reapply_openclaw_patches.sh --check-only
 | **cron contract** | `openclaw cron list --json`; `clawock system check`; `bash ops/host/check_crons.sh --timeline` | names, schedules, enabled state, payloads and host triggers match `config/cron-schedules.json`; inspect the cron runtime/watchdog contract results, not only the total count |
 | embedding | `openclaw memory search "<q>" --max-results 2 --json` | returns results, no `Unknown memory embedding provider` (6.8 has no `--limit`) |
 | local patches | `bash ops/host/reapply_openclaw_patches.sh --check-only` | all local patches' markers and JS/Python syntax pass |
-| MiniMax transport | transport log + fallback smoke | Anthropic protocol; `priority` present; a no-header timeout is retryable; the 300s generation timeout remains |
+| MiniMax transport | transport log + fallback smoke | Anthropic protocol; retired `service_tier: "priority"` absent; transport/timeouts match `config/models.toml` and the manifest postconditions |
 | weixin delivery | tail `/tmp/openclaw/openclaw-*.log` | `weixin monitor started` + `gateway ready`, no crash loop |
 | model chain | the cron run log / a throwaway `openclaw agent` call | a model answers (⚠️ see note) |
 | clean startup | gateway log + structured cron listing | scheduler starts the contract's enabled OpenClaw jobs; no plugin load errors |
 
-The contract currently declares 11 job identities, with 10 enabled in OpenClaw.
-`港股午后快报` remains stored but disabled there: since #1443 its host crontab
-trigger (`33 13 * * 1-5 clawock cron-trigger --job-name "港股午后快报"`)
-queues it instead. A listing of 10 enabled jobs is not a lost job; verify the
-disabled identity and the host trigger together. Do not import legacy jobs or
-enable it merely to make a count pass. Derive future expectations from the contract.
+Derive expected job identities, enabled states and host triggers from
+`config/cron-schedules.json`, not a fixed count in this skill. Some jobs intentionally
+remain disabled in OpenClaw and are queued by a host trigger; verify both sides.
+Do not import legacy jobs or enable a job merely to make a count pass.
 
 Run one complete isolated cron after the cheap checks. Inspect its actual
 session and `systemPromptReport`, not only the final summary. Pass means:
@@ -122,4 +120,4 @@ not a constraint for this deployment.
 - `plugins.allow is empty` audit WARN — long-standing, harmless.
 
 ## ⚠️ Model fallback chain (verify, escalate to kcn)
-The model chain breaks silently from billing/auth, not upgrades. If cron runs show `FallbackSummaryError: All models failed`, check each provider (MiniMax overload, glm/deepseek balance, openai/anthropic auth expiry, openai-proxy quota) and tell kcn which to top up / re-login — you can't fix billing/auth yourself. See `openclaw-xiaomi-fallback`.
+The model chain breaks silently from billing/auth, not upgrades. If cron runs show `FallbackSummaryError: All models failed`, check each provider (MiniMax overload, glm/deepseek balance, openai/anthropic auth expiry, openai-proxy quota) and tell kcn which to top up / re-login — you can't fix billing/auth yourself. Compare `config/models.toml` and `docs/operations/models.md`; report the failing hop without changing the configured chain.

@@ -182,7 +182,9 @@ Useful questions:
 
 Keep each turn focused. Ask one main question when the user wants guidance.
 
-Read `references/serenity-dialogue-protocol.md` when the user wants ongoing discussion or method training.
+In conversation mode, state the current judgment and missing evidence, ask one focused
+question, then use the answer to test the next link. In learning mode, walk from demand
+to system change, scarce layer, company mapping, evidence and failure conditions.
 
 ## Cross-market adaptation
 
@@ -221,14 +223,11 @@ Load only what is needed:
 - `references/deep-research-workflow.md` — detailed workflow for source-backed theme scans.
 - `references/evidence-ladder.md` — source grading and evidence standards.
 - `references/market-source-playbook.md` — source paths by market.
-- `references/serenity-dialogue-protocol.md` — research partner and learning-mode behavior.
-- `references/output-style-and-language.md` — plain-language output contract.
 - `references/public-profile-and-evaluation.md` — public profile, outside evaluation, and reliability notes.
 - `references/research-sources.md` — source map used by the project.
 - `references/risk-and-compliance.md` — investment research boundaries.
 - `assets/thesis-template.md` — reusable thesis memo template.
 - `assets/bottleneck-scorecard.json` — JSON input template for the scorecard.
-- `assets/research-prompt-pack.md` — prompts for users who want explicit task starters.
 - `scripts/serenity_scorecard.py` — local scoring script.
 - `scripts/validate_skill.py` — local Agent Skill structure validator.
 - `examples/a-share-ai-semiconductor-demo.md` — A-share AI semiconductor example shape.

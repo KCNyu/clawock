@@ -34,7 +34,8 @@ belongs here.
 
 - [`dsh-superagent-adoption.md`](research/dsh-superagent-adoption.md) — what the external
   dsh-superagent prototype's Mandate, stage and notification ideas mean for dispatch, what
-  was adopted where, and what explicitly does not transfer.
+  was adopted where, and what explicitly does not transfer. Runtime fields and
+  notification rules are owned by `architecture/task-queue.md`.
 
 ## Product surfaces
 
@@ -101,6 +102,21 @@ A document here describes how the project works now. The record of one task — 
 before/after captures, command output, proposed patches, what was and was not verified —
 belongs in that task's pull request, where it stays attached to the change it explains.
 Write the conclusion into the document that owns the subject; do not add a dated folder.
+
+## Maintaining docs and skills
+
+Keep project-specific contracts, execution boundaries and incident-prevention rules
+with their owner; link to them from entrypoints. A skill should contribute a workflow,
+a tool adapter or a constraint the model cannot infer from general knowledge.
+Concept definitions, generic CLI examples and duplicate report templates do not need
+separate skills or mandatory reference reads. Shared HK/US rules belong in
+`skills/_shared/`; job-specific schemas stay with their payload/skill and gates.
+
+Before retiring a file, check the last three months of git changes, `TOOLS.md`,
+cron payloads/contract and code/test references. A route establishes reachability,
+not execution frequency; an unchanged file may still be a live dependency. Record
+the keep/merge/delete evidence and consequences in the PR. Preserve published URL
+compatibility and verify references, skill schemas and generated command/cron docs.
 
 ## Why OpenClaw files stay at the root
 
