@@ -1,6 +1,7 @@
 ---
 layout: default
 title: clawock · command reference
+description: "The complete clawock command reference: 88 installed commands, generated from the distribution's registries, plus flags, API keys, rate limits and cron wiring."
 ---
 
 # Command reference / 命令参考

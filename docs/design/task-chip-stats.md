@@ -1,6 +1,8 @@
 ---
+sitemap: false
+robots: noindex, follow
 layout: default
-title: clawock · moved to the task chip
+title: clawock · moved to the task chip stats
 ---
 
 # Moved / 已迁移
