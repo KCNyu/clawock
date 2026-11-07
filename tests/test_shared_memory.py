@@ -181,6 +181,55 @@ def test_store_without_a_routing_table_routes_from_the_main_index(kit):
     assert "feedback-gamma.md" in (kit.store / "MEMORY.md").read_text()
 
 
+def test_add_captures_write_time_salience_status_and_tags(kit):
+    kit.ok("add", "feedback-tagged", "--summary", "tagged rule", "--body-file", kit.body("tagged body"),
+           "--salience", "high", "--status", "verified", "--tag", "dispatch", "--tag", "review",
+           script=MEMORY_PY)
+    text = (kit.store / "feedback-tagged.md").read_text()
+    assert "  salience: high" in text and "  status: verified" in text
+    assert '  tags: "dispatch, review"' in text
+    hits = kit.ok("search", "tagged", "--tag", "dispatch", "--lines", "0", script=MEMORY_PY).stdout
+    assert "feedback-tagged.md" in hits
+    assert kit.run("search", "tagged", "--tag", "absent", "--lines", "0", script=MEMORY_PY).returncode == 1
+
+
+def test_tag_filter_is_conjunctive_and_can_browse_without_a_query(kit):
+    kit.ok("add", "feedback-tag-one", "--summary", "one", "--body-file", kit.body("one"),
+           "--tag", "dispatch", script=MEMORY_PY)
+    kit.ok("add", "feedback-tag-two", "--summary", "two", "--body-file", kit.body("two"),
+           "--tag", "dispatch", "--tag", "review", script=MEMORY_PY)
+    assert "feedback-tag-one.md" in kit.ok("search", "--tag", "dispatch", script=MEMORY_PY).stdout
+    assert "feedback-tag-two.md" in kit.ok("search", "--tag", "dispatch", script=MEMORY_PY).stdout
+    both = kit.ok("search", "--tag", "dispatch", "--tag", "review", script=MEMORY_PY).stdout
+    assert "feedback-tag-two.md" in both and "feedback-tag-one.md" not in both
+    assert "feedback-tag-two.md" in kit.ok(
+        "search", "two", "--tag", "dispatch", "--tag", "review", "--lines", "0", script=MEMORY_PY).stdout
+
+
+def test_update_preserves_tags_and_can_change_salience(kit):
+    kit.ok("add", "feedback-tagged", "--summary", "tagged", "--body-file", kit.body("body"),
+           "--salience", "high", "--status", "verified", "--tag", "dispatch", script=MEMORY_PY)
+    kit.ok("update", "feedback-tagged", "--salience", "low", "--summary", "tagged again", script=MEMORY_PY)
+    text = (kit.store / "feedback-tagged.md").read_text()
+    assert "  salience: low" in text and "  status: verified" in text and "  tags: dispatch" in text
+    assert "tagged again" in text
+
+
+def test_add_defaults_salience_to_normal(kit):
+    kit.ok("add", "feedback-plain", "--summary", "plain", "--body-file", kit.body("plain"), script=MEMORY_PY)
+    assert "  salience: normal" in (kit.store / "feedback-plain.md").read_text()
+
+
+def test_doctor_flags_invalid_memory_metadata(kit):
+    (kit.store / "feedback-bad-meta.md").write_text(
+        "---\nname: feedback-bad-meta\ndescription: \"bad\"\nmetadata:\n  type: feedback\n"
+        "  salience: urgent\n  status: maybe\n  tags: \"Not A Tag\"\n---\n\nbody\n")
+    proc = kit.run("doctor", "--strict", script=MEMORY_PY)
+    assert proc.returncode == 1
+    for token in ("salience must be one of", "status must be one of", "invalid tag"):
+        assert token in proc.stderr
+
+
 def test_writes_work_without_history(kit):
     env = {**kit.env, "SHARED_MEMORY_STATE": str(kit.tmp / "no-history")}
     kit.ok("add", "feedback-delta", "--summary", "d", "--body-file", kit.body("d"), script=MEMORY_PY, env=env)

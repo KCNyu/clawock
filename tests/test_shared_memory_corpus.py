@@ -75,6 +75,20 @@ def test_direct_chat_finds_topics_and_archive_ranks_lower(store):
     assert hits[0]["startLine"] == 9                         # the matching body line, frontmatter counted
 
 
+def test_write_time_tags_are_searchable_in_both_engines(tmp_path):
+    root = tmp_path / "store"
+    root.mkdir()
+    (root / "feedback-tagged.md").write_text(
+        "---\nname: feedback-tagged\ndescription: \"a tagged note\"\nmetadata:\n  type: feedback\n"
+        "  tags: \"zqx-tag, deploy\"\n---\n\nbody text only\n")
+    proc = subprocess.run([sys.executable, str(MEMORY_PY), "search", "zqx-tag", "--lines", "0"],
+                          env={**os.environ, "SHARED_MEMORY_DIR": str(root)},
+                          capture_output=True, text=True, timeout=60)
+    assert proc.returncode == 0 and "feedback-tagged.md" in proc.stdout
+    hits = node(corpus(root, f"await c.search({{query: 'zqx-tag', agentSessionKey: '{DIRECT}'}})"))
+    assert [h["path"] for h in hits] == ["shared-memory/feedback-tagged.md"]
+
+
 @pytest.mark.parametrize("key", [None, "", "agent:main:openclaw-weixin:group:g-1", "agent:main:telegram:channel:c",
                                  "agent:main:cron:brief", "agent:main:explicit:abc", "agent:main:subagent:x"])
 def test_groups_channels_cron_and_keyless_sessions_get_nothing(store, key):

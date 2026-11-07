@@ -1,0 +1,12 @@
+# Benefit evaluation: does a retrieved note carry the answer the injected index lacks?
+# id	question	topic	fact	kind
+b01	How should the deploy key be handled after an exposure?	feedback-deploy-key.md	rotate the deploy key after exposure	positive
+b02	Do I need a separate release step after merging?	decision-merge-deploys.md	a merge to master is the deployment	positive
+b03	When should scheduled jobs run to avoid the top of the hour?	lessons-cron-offset.md	run scheduled jobs at five past the hour	positive
+b04	Why did nested f-strings fail in CI?	incident-python-fstring.md	nested f-strings need Python 3.12	positive
+b05	Can I change a search rule until an evaluation row passes?	reference-memory-eval.md	do not tune search to pass a row	positive
+b06	How many quota resumes does a dispatched task get?	project-dispatch-quota.md	three quota resumes per task	positive
+b07	Where should the full test suite run?	feedback-host-heavy-work.md	full test suites belong to CI	positive
+b08	Does the OpenClaw workspace store its memory in the coding store?	decision-openclaw-boundary.md	the OpenClaw workspace never shares the coding store	positive
+b09	Zeppelin airship	-	-	negative
+b10	Kumquat orchard	-	-	negative

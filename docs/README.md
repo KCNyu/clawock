@@ -29,6 +29,9 @@ belongs here.
   the frozen task/token summary shown by the chip and `/dispatch-stats`.
 - [`strategy-plugins.md`](architecture/strategy-plugins.md) — strategies, bars and
   the optimiser as plugins composed by config rows; what a parameter search may conclude.
+- [`memory-components.md`](architecture/memory-components.md) — the two memory stores,
+  their transcript/note/index/dreaming layers, the write-time salience and status fields,
+  the learning loop and the evaluations that keep them honest.
 
 ## Research notes
 

@@ -9,6 +9,9 @@ Topic format (compatible with Claude Code auto-memory):
     metadata:
       type: user | feedback | project | reference
       updated: YYYY-MM-DD
+      salience: high | normal | low
+      status: verified | hypothesis | stale
+      tags: "dispatch, review"
     ---
 
     <body>
@@ -34,6 +37,10 @@ DEFAULT_ROOT = Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).exp
 NEW_SLUG_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 ROUTE_RE = r"(?:(?:archive|indexes)/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\.md"
 TYPES = ("user", "feedback", "project", "reference")
+SALIENCE = ("high", "normal", "low")
+STATUSES = ("verified", "hypothesis", "stale")
+TAG_RE = re.compile(r"[a-z0-9\u3400-\u4dbf\u4e00-\u9fff][a-z0-9._+\-\u3400-\u4dbf\u4e00-\u9fff]{0,31}")
+MAX_TAGS = 16
 MAIN_INDEX = "MEMORY.md"
 REDIRECTS = "indexes/redirects.tsv"
 # Topic names say what kind of memory they hold; the prefix also picks the index a new topic lands in.
@@ -180,6 +187,44 @@ def infer_type(slug: str) -> str:
 def one_line(text: str) -> str:
     text = " ".join(text.replace("**", "").split())
     return text if len(text) <= DESCRIPTION_LIMIT else text[: DESCRIPTION_LIMIT - 1] + "…"
+
+
+def parse_tags(value: str | list[str] | None) -> list[str]:
+    """Normalize a comma-separated tag list (or repeated `--tag` values).
+
+    Tags are written with the note, not inferred later. Lowercase, unique, at most
+    32 characters each, and at most MAX_TAGS per topic.
+    """
+    if value is None:
+        return []
+    raw = value if isinstance(value, (list, tuple)) else str(value).split(",")
+    tags: list[str] = []
+    for item in raw:
+        for token in str(item).split(","):
+            tag = token.strip().lstrip("#").lower()
+            if not tag:
+                continue
+            if not TAG_RE.fullmatch(tag):
+                raise ValueError(f"invalid tag {tag!r}: use letters, digits, dot, underscore, plus or hyphen (≤32)")
+            if tag not in tags:
+                tags.append(tag)
+    if len(tags) > MAX_TAGS:
+        raise ValueError(f"too many tags ({len(tags)} > {MAX_TAGS})")
+    return tags
+
+
+def metadata_problems(fields: dict[str, str], meta: dict[str, str]) -> list[str]:
+    """Problems with the write-time memory metadata, as doctor/report text."""
+    problems: list[str] = []
+    for key, allowed in (("salience", SALIENCE), ("status", STATUSES)):
+        value = meta.get(key) or fields.get(key)
+        if value and value not in allowed:
+            problems.append(f"{key} must be one of {', '.join(allowed)} (got {value!r})")
+    try:
+        parse_tags(meta.get("tags") or fields.get("tags"))
+    except ValueError as exc:
+        problems.append(str(exc))
+    return problems
 
 
 # --- indexes ---------------------------------------------------------------
@@ -339,7 +384,46 @@ def cmd_search(args: argparse.Namespace) -> int:
         except ValueError:
             parsed = None
         description = parsed[0].get("description", "") if parsed else ""
-        docs.append((rel, text, description, f"{text.lower()}\0{rel.lower()}"))
+        meta = parsed[1] if parsed else {}
+        docs.append((rel, text, description, f"{text.lower()}\0{rel.lower()}", meta))
+
+    try:
+        tag_filter = parse_tags(args.tag) if args.tag else []
+    except ValueError as exc:
+        raise SystemExit(str(exc))
+    filtered = bool(tag_filter or args.salience or args.status)
+
+    def tags_of(meta: dict[str, str]) -> set[str]:
+        try:
+            return set(parse_tags(meta.get("tags")))
+        except ValueError:
+            return set()
+
+    def keep(meta: dict[str, str]) -> bool:
+        return (all(tag in tags_of(meta) for tag in tag_filter)
+                and (not args.salience or meta.get("salience") == args.salience)
+                and (not args.status or meta.get("status") == args.status))
+
+    if filtered:
+        docs = [doc for doc in docs if keep(doc[4])]
+        shown = " ".join(part for part in (
+            f"tag={'+'.join(tag_filter)}" if tag_filter else "",
+            f"salience={args.salience}" if args.salience else "",
+            f"status={args.status}" if args.status else "") if part)
+        print(f"# filters: {shown}", file=sys.stderr)
+        if not docs:
+            print("# no topic matches the filters", file=sys.stderr)
+            return 1
+
+    if not args.query:
+        if not filtered:
+            raise SystemExit("query or a metadata filter is required")
+        order = {"high": 0, "normal": 1, "low": 2}
+        for rel, _, description, _, meta in sorted(
+                docs, key=lambda doc: (order.get(doc[4].get("salience", "normal"), 1), doc[0])):
+            print(f"{rel} — {one_line(description)[:160]}")
+        return 0
+
     frequencies: dict[str, int] = {}
 
     def frequency(piece: str) -> int:
@@ -380,7 +464,7 @@ def cmd_search(args: argparse.Namespace) -> int:
     # words inside it, but only once it contains some other word as written.
     fallbacks = {word: fallback_pieces(word, frequency) for word in weights}
     results = []
-    for rel, text, description, haystack in docs:
+    for rel, text, description, haystack, _meta in docs:
         present = [word for word in weights if has(haystack, word)]
         if not present:
             continue
@@ -422,7 +506,7 @@ def cmd_search(args: argparse.Namespace) -> int:
     # An archived full text whose name redirects to an active digest ranks just below that
     # digest, so the reader lands on the current conclusions first.
     by_rel = {result[1]: list(result) for result in results}
-    descriptions = {rel: description for rel, _, description, _ in docs}
+    descriptions = {rel: description for rel, _, description, _, _ in docs}
     for score, rel, description, lines, coverage, marker in results:
         target = moved.get(Path(rel).stem) if rel.startswith("archive/") else None
         if target and f"{target}.md" in descriptions:
@@ -469,6 +553,15 @@ def path_slug(topic: str) -> str:
     return Path(topic.removesuffix(".md")).name
 
 
+def cli_tags(value: list[str] | None) -> list[str] | None:
+    if not value:
+        return None
+    try:
+        return parse_tags(value)
+    except ValueError as exc:
+        raise SystemExit(str(exc))
+
+
 def cmd_add(args: argparse.Namespace) -> int:
     root = memory_root()
     if not NEW_SLUG_RE.fullmatch(args.slug):
@@ -479,21 +572,28 @@ def cmd_add(args: argparse.Namespace) -> int:
         raise SystemExit(f"new topic names start with one of: {', '.join(PREFIXES)}")
     return write_topic(root, topic_path(root, args.slug), args.summary, _read_body(args.body_file),
                        args.type, MAIN_INDEX if args.pin else (args.index or default_index(args.slug, root)),
-                       create=True, replace=args.replace)
+                       create=True, replace=args.replace, salience=getattr(args, "salience", None),
+                       status=getattr(args, "status", None), tags=cli_tags(getattr(args, "tag", None)))
 
 
 def cmd_update(args: argparse.Namespace) -> int:
     root = memory_root()
-    if args.summary is None and args.body_file is None and args.type is None:
-        raise SystemExit("nothing to update: pass --summary, --body-file and/or --type")
+    if (args.summary is None and args.body_file is None and args.type is None
+            and getattr(args, "salience", None) is None and getattr(args, "status", None) is None
+            and not getattr(args, "tag", None)):
+        raise SystemExit("nothing to update: pass --summary, --body-file, --type, --salience, --status and/or --tag")
     if args.summary is not None and not one_line(args.summary):
         raise SystemExit("summary cannot be empty")
     return write_topic(root, topic_path(root, args.slug), args.summary, _read_body(args.body_file),
-                       args.type, default_index(path_slug(args.slug), root), create=False, replace=True)
+                       args.type, default_index(path_slug(args.slug), root), create=False, replace=True,
+                       salience=getattr(args, "salience", None), status=getattr(args, "status", None),
+                       tags=cli_tags(getattr(args, "tag", None)))
 
 
 def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str | None,
-                target: str, *, create: bool, replace: bool) -> int:
+                target: str, *, create: bool, replace: bool,
+                salience: str | None = None, status: str | None = None,
+                tags: list[str] | None = None) -> int:
     if target not in index_files(root):
         raise SystemExit(f"unknown index: {target}")
     body_fields, body_meta, body = new_body or ({}, {}, None)
@@ -517,12 +617,34 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
         body = body if body is not None else old_body
         if not summary or not body or not body.strip():
             raise SystemExit("topic needs a non-empty summary and body")
+        body_meta = dict(body_meta)
+        for key in ("salience", "status", "tags"):
+            if key in body_fields and key not in body_meta:
+                body_meta[key] = body_fields[key]
         meta = {**old_meta, **body_meta}
         kind = kind or body_meta.get("type") or body_fields.get("type") or old_meta.get("type") or infer_type(path.stem)
         if kind not in TYPES:
             raise SystemExit(f"type must be one of {', '.join(TYPES)}")
         meta.update(type=kind, updated=dt.date.today().isoformat())
-        topic = render_topic(path.stem, summary, meta, body)
+        if salience is not None:
+            meta["salience"] = salience
+        if status is not None:
+            meta["status"] = status
+        if tags is not None:
+            meta["tags"] = ", ".join(tags)
+        if create and not meta.get("salience"):
+            meta["salience"] = "normal"  # a write-time judgement, not a later inference
+        if "tags" in meta:
+            try:
+                meta["tags"] = ", ".join(parse_tags(meta["tags"]))
+            except ValueError as exc:
+                raise SystemExit(str(exc))
+        problems = metadata_problems({}, meta)
+        if problems:
+            raise SystemExit("; ".join(problems))
+        ordered = {key: meta[key] for key in ("type", "updated", "salience", "status", "tags") if meta.get(key)}
+        ordered.update((key, value) for key, value in meta.items() if key not in ordered)
+        topic = render_topic(path.stem, summary, ordered, body)
 
         # Update an existing single-route hook in place; grouped hooks keep their other routes.
         entry = _format_entry(str(path.relative_to(root)), summary)
@@ -742,6 +864,8 @@ def cmd_doctor(args: argparse.Namespace) -> int:
                 warn("missing description", name)
             if meta.get("type") not in TYPES:
                 warn("missing or invalid metadata.type", name)
+            for problem in metadata_problems(fields, meta):
+                warn("invalid memory metadata", f"{name}: {problem}")
         size = len(text.encode("utf-8"))
         if size > TOPIC_BUDGET and not name.startswith("archive/"):
             warn("topic over size budget", f"{name} {size // 1000}KB")
@@ -803,8 +927,11 @@ def build_parser() -> argparse.ArgumentParser:
     read.set_defaults(func=cmd_read)
 
     search = sub.add_parser("search", help="rank topics by the query words they contain, rarer words weighing more (archives included, ranked lower)")
-    search.add_argument("query")
+    search.add_argument("query", nargs="?", help="query; omit it to list topics selected by --tag/--salience/--status")
     search.add_argument("--exact", action="store_true", help="match the query as one literal phrase")
+    search.add_argument("--tag", action="append", metavar="TAG", help="only topics carrying every tag (repeatable)")
+    search.add_argument("--salience", choices=SALIENCE, help="only topics written with this salience")
+    search.add_argument("--status", choices=STATUSES, help="only topics written with this review status")
     search.add_argument("--limit", type=int, default=10, help="topics to show")
     search.add_argument("--lines", type=int, default=3, help="matching lines per topic")
     search.set_defaults(func=cmd_search)
@@ -814,6 +941,9 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--summary", required=True, help="one-line hook; becomes description and index text")
     add.add_argument("--body-file", required=True, help="Markdown file or - for stdin")
     add.add_argument("--type", choices=TYPES)
+    add.add_argument("--salience", choices=SALIENCE, help="write-time replay priority (default: normal)")
+    add.add_argument("--status", choices=STATUSES, help="epistemic state of the note")
+    add.add_argument("--tag", action="append", metavar="TAG", help="facet to write with the note (repeatable)")
     add.add_argument("--index", help="index for new routes (default: the area index for the slug's prefix)")
     add.add_argument("--pin", action="store_true", help=f"route a new topic from {MAIN_INDEX} (durable conventions only)")
     add.add_argument("--replace", action="store_true")
@@ -824,6 +954,9 @@ def build_parser() -> argparse.ArgumentParser:
     update.add_argument("--summary")
     update.add_argument("--body-file", help="Markdown file or - for stdin")
     update.add_argument("--type", choices=TYPES)
+    update.add_argument("--salience", choices=SALIENCE)
+    update.add_argument("--status", choices=STATUSES)
+    update.add_argument("--tag", action="append", metavar="TAG", help="replace the topic's tags (repeatable)")
     update.set_defaults(func=cmd_update)
 
     archive = sub.add_parser("archive", help="move topics into archive/ (no deletion) and repoint index routes")
