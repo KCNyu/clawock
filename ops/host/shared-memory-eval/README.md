@@ -33,3 +33,7 @@ python3 ops/host/shared-memory-eval/run_eval.py --hits ranked.json       # score
 
 A row passes when an expected topic is in the first three results, or, for `-`, when the search
 lists nothing. `baseline.tsv` is the score of `memory.py` before this directory existed.
+
+[`benefit/`](benefit/README.md) is the complementary, layer-level check: no memory, the
+injected index only, and the note layer. It asks whether a retrieved topic actually carries
+the expected fact, which the topic-list score above does not.

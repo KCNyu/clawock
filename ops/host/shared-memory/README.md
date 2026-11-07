@@ -29,7 +29,9 @@ an empty store and grows the user's own.
 
 Each topic is one file with Claude Code's auto-memory frontmatter (`name`, `description`,
 `metadata.type`), so Claude keeps loading and writing it natively; the other agents read it
-through the skill. Nothing is injected beyond the index, and there is no vector store:
+through the skill. A note may also carry the write-time judgement `metadata.salience`
+(`high|normal|low`), `metadata.status` (`verified|hypothesis|stale`) and `metadata.tags`
+(comma-separated facets). Nothing is injected beyond the index, and there is no vector store:
 recall is "open the one relevant topic".
 
 ## Where the store applies: working directory, not agent name
@@ -147,8 +149,16 @@ judge a change on the repository's held-out queries (`ops/host/shared-memory-eva
 5. **Kept topics.** Coverage is a topic's credited weight over the query's total; a topic is kept
    when its coverage is at least 0.6 × the best topic's.
 
+Tags and status are written with the note, not inferred later. `memory.py search --tag TAG`
+(repeatable, all must match), `--salience` and `--status` filter the candidate set before
+matching; with no query they list the selected topics instead. Both engines also match tags as
+ordinary text (Python over the whole file, the plugin next to the description), so tags add an
+exact facet to literal/semantic recall rather than replacing it. The plugin does not implement
+the CLI filters.
+
 What each tool adds on top: `memory.py` searches every `.md` under the root (indexes included),
-lists topics containing every word first, scores filename, description and line hits, and lifts
-an active digest above its archived full text. The plugin searches top-level and `archive/`
-topics, reads at most 256 query characters and 16 words, and reports a score in 0–1.
+lists topics containing every word first, scores filename, description and line hits, lifts an
+active digest above its archived full text, and can filter by tag/salience/status. The plugin
+searches top-level and `archive/` topics, reads at most 256 query characters and 16 words, and
+reports a score in 0–1.
 

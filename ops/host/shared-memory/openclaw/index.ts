@@ -49,7 +49,7 @@ export function sessionAllowed(sessionKey: string | undefined): boolean {
   return tokens.length === 3 && tokens[0] === "agent" && tokens[2] === "main";
 }
 
-type Topic = { rel: string; name: string; description: string; kind?: string; updated?: string; body: string; bodyLine: number; archived: boolean };
+type Topic = { rel: string; name: string; description: string; tags: string; kind?: string; updated?: string; body: string; bodyLine: number; archived: boolean };
 
 function expandHome(path: string): string {
   return path === "~" ? homedir() : path.startsWith("~/") ? join(homedir(), path.slice(2)) : path;
@@ -63,7 +63,8 @@ function parse(rel: string, text: string): Topic {
   const field = (key: string) => new RegExp(`^\\s*${key}:\\s*(.+)$`, "m").exec(head)?.[1]?.trim().replace(/^["']|["']$/g, "");
   return {
     rel, archived, name: field("name") || fallback, description: field("description") ?? "",
-    kind: field("type"), updated: field("updated"), body: match ? text.slice(match[0].length) : text,
+    tags: field("tags") ?? "", kind: field("type"), updated: field("updated"),
+    body: match ? text.slice(match[0].length) : text,
     bodyLine: match ? match[0].split("\n").length - 1 : 0,
   };
 }
@@ -189,7 +190,10 @@ export function createSharedMemoryCorpus(options: { root?: string; includeArchiv
         for (const rel of await listing()) {
           const topic = await load(rel).catch(() => null);
           if (topic) {
-            const [name, desc, body] = [topic.name, topic.description, topic.body].map((t) => t.toLowerCase());
+            // Tags are write-time metadata; search them next to the description, but keep
+            // snippets on the description/body readers expect.
+            const [name, desc, body] = [topic.name, `${topic.description} ${topic.tags}`, topic.body]
+              .map((t) => t.toLowerCase());
             topics.push({ topic, name, desc, body, hay: `${name}\0${desc}\0${body}\0${rel.toLowerCase()}` });
           }
         }

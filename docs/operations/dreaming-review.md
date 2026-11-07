@@ -1,6 +1,8 @@
 # Dreaming promotion review
 
-Automatic scores nominate candidates; they do not verify durable facts. The host
+Automatic scores nominate candidates; they do not verify durable facts. This gate governs the
+OpenClaw workspace's `MEMORY.md`; the coding agents' shared store is a separate memory and is
+not a candidate source ([memory components](../architecture/memory-components.md)). The host
 uses two boundaries:
 
 - `ops/host/patch_dreaming_review.py` redirects only the promotion writer into
