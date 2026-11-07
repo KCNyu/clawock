@@ -304,8 +304,6 @@ export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & T
     /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
     wide: boolean;
     t: Translate;
-    /** Open the workbench page; the event line passes itself so close() can restore focus. */
-    openWorkbench: (trigger: HTMLElement) => void;
     /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
     openFile?: OpenFile;
 };

@@ -1665,19 +1665,27 @@ export function waitLong(ms: number): string {
   return hours === 0 ? days + 'd' : days + 'd ' + hours + 'h'
 }
 
-/** The accessible wait: 45 分钟 / 6 小时 / 2 天 3 小时. */
-export function waitSpoken(ms: number): string {
+/**
+ * The accessible wait: 45 分钟 / 6 小时 / 2 天 3 小时, through the copy table
+ * so the English surface never borrows the Chinese units.
+ */
+export function waitSpoken(ms: number, t: Translate): string {
   const safe = Number.isFinite(ms) && ms > 0 ? ms : 0
   const minutes = Math.floor(safe / MINUTE_MS)
-  if (safe < HOUR_MS) return Math.max(1, minutes) + ' 分钟'
+  if (safe < HOUR_MS) {
+    const n = Math.max(1, minutes)
+    return t(n === 1 ? 'time.minuteOne' : 'time.minuteMany', { n: String(n) })
+  }
   if (safe < DAY_MS) {
     const hours = Math.floor(safe / HOUR_MS)
     const rest = minutes - hours * 60
-    return rest === 0 ? hours + ' 小时' : hours + ' 小时 ' + rest + ' 分钟'
+    if (rest === 0) return t(hours === 1 ? 'time.hourOne' : 'time.hourMany', { n: String(hours) })
+    return t('time.hoursMinutes', { h: String(hours), m: String(rest) })
   }
   const days = Math.floor(safe / DAY_MS)
   const hours = Math.floor((safe - days * DAY_MS) / HOUR_MS)
-  return hours === 0 ? days + ' 天' : days + ' 天 ' + hours + ' 小时'
+  if (hours === 0) return t(days === 1 ? 'time.dayOne' : 'time.dayMany', { n: String(days) })
+  return t('time.daysHours', { d: String(days), h: String(hours) })
 }
 
 /** Stuck is the red state: the runner's blocked stage or an abnormal end. */
@@ -1692,40 +1700,59 @@ export function waitedOf(task: DispatchTask, now: number): number {
   return Math.max(0, now - since)
 }
 
-export type SignalView = {
+/** One count for the panellist badge and the queue page header (never two). */
+export type WorkbenchCounts = {
   total: number
   stuck: number
+  /** Not stuck: the `待你处理` group. */
+  pending: number
   oldestMs: number
-  text: string
+  /** The oldest wait among `待你处理` only; it prints on that group's header. */
+  oldestPendingMs: number
+}
+
+export function workbenchCounts(tasks: DispatchTask[], now: number): WorkbenchCounts {
+  let stuck = 0
+  let pending = 0
+  let oldestMs = 0
+  let oldestPendingMs = 0
+  for (const task of tasks) {
+    const waited = waitedOf(task, now)
+    if (waited > oldestMs) oldestMs = waited
+    if (isStuckTask(task)) {
+      stuck += 1
+    } else {
+      pending += 1
+      if (waited > oldestPendingMs) oldestPendingMs = waited
+    }
+  }
+  return { total: tasks.length, stuck, pending, oldestMs, oldestPendingMs }
+}
+
+export type SignalView = WorkbenchCounts & {
+  /** The host row's aria-label and title: 工作台，7 件待处理，最旧 5 天. */
   aria: string
-  /** At least one stuck task: the dot and the badge take the error colour. */
+  /** At least one stuck task: the badge takes the error colour. */
   red: boolean
-  /** 1..9 or '9+' — the icon badge; the footer row does not print it again. */
+  /** danger with a stuck task, neutral otherwise; zero never renders a badge. */
+  tone: 'danger' | 'neutral'
+  /** The badge is the count itself, so both surfaces agree without a second format. */
   badge: string
 }
 
 /**
- * The sidebar's event line and the panel icon badge from one list.
- * Copy is fixed by the design review:
- *   1 件待处理 · 12m / 3 件待处理 · 最旧 6h / 1 件卡住 · 最旧 2d /
- *   3 件全卡住 · 最旧 2d / 9+ 件待处理 · 最旧 3d
+ * The panellist badge and host-row label from one list. The badge is the
+ * permanent count; the footer signal row was removed (2026-11-07).
  */
 export function signalView(tasks: DispatchTask[], t: Translate, now: number): SignalView {
-  const total = tasks.length
-  const stuck = tasks.filter(isStuckTask).length
-  const oldestMs = tasks.reduce((max, task) => Math.max(max, waitedOf(task, now)), 0)
-  const age = waitShort(oldestMs)
-  const spoken = waitSpoken(oldestMs)
-  const overflow = total > 9
-  const n = overflow ? '9+' : String(total)
-  const params = { n: String(total), age }
-  const label = stuck === total && total > 0
-    ? (total === 1 ? t('signal.stuckOne', params) : t('signal.allStuck', params))
-    : (total === 1 ? t('signal.pendingOne', params) : t('signal.pendingMany', params))
-  const aria = stuck === total && total > 0
-    ? (total === 1 ? t('signal.ariaStuckOne', { time: spoken }) : t('signal.ariaAllStuck', { n, time: spoken }))
-    : (total === 1 ? t('signal.ariaPendingOne', { time: spoken }) : t('signal.ariaPendingMany', { n, time: spoken }))
-  return { total, stuck, oldestMs, text: overflow ? t('signal.overflow', { age }) : label, aria, red: stuck > 0, badge: n }
+  const counts = workbenchCounts(tasks, now)
+  return {
+    ...counts,
+    aria: t('signal.rowLabel', { n: String(counts.total), time: waitSpoken(counts.oldestMs, t) }),
+    red: counts.stuck > 0,
+    tone: counts.stuck > 0 ? 'danger' : 'neutral',
+    badge: String(counts.total),
+  }
 }
 
 /** Queue sections keep the host's oldest-first order inside each group. */
