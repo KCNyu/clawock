@@ -88,6 +88,8 @@ body[data-ds-dark-theme]{--dsw-alias-bg-layer-1:#171a1f;--dsw-alias-bg-base:#0f1
  --dsw-focus-ring-color:#f2f4f7}
 #root{height:100%;position:relative}
 .wb-stage{height:100%;display:flex}
+.wb-stage > *{flex:1 1 auto;min-width:0}
+.wb-stage > *{flex:1 1 auto;min-width:0}
 .rail-stage{width:56px;height:100%;border-right:1px solid #ddd;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;box-sizing:border-box}
 .rail-button{width:56px;height:48px;border:0;background:transparent;position:relative;padding:0}
 `;
