@@ -78,6 +78,12 @@ defaults:
     values:
       lang: en
       locale: en_US
+  # README.md becomes /docs/ through jekyll-readme-index and would otherwise
+  # inherit the site description shared by the historical briefs.
+  - scope:
+      path: "docs/README.md"
+    values:
+      description: "Index of clawock's public documentation: architecture, operations, research, reference and legal."
 
 # Author
 author:

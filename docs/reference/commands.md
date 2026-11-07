@@ -11,7 +11,7 @@ description: "The complete clawock command reference: 88 installed commands, gen
 > command registries (`clawock.cli.PACKAGED_UTILITIES` and the root
 > `[project.scripts]`) and
 > the classification in
-> [`config/information-layers.json`](../../config/information-layers.json), so a
+> [`config/information-layers.json`](https://github.com/KCNyu/clawock/blob/master/config/information-layers.json), so a
 > command that is added, renamed or removed changes it without anyone editing
 > this page. Everything after it is **hand-written**, and covers what a registry
 > cannot hold: flag tables, SEC's rate limit, which key each provider needs, and
