@@ -20,7 +20,7 @@ SECTION = re.compile(r'^## Promoted From Short-Term Memory \(\d{4}-\d{2}-\d{2}\)
 MARKER = re.compile(r'<!-- openclaw-memory-promotion:(memory:([^\n<>]+?):(\d+):(\d+)) -->')
 HEADING = '## Reviewed Dreaming Memory'
 REJECTED_RECEIPT = re.compile(
-    r'^' + MARKER.pattern + r'\n- Rejected candidate; see private review ledger\.\n?', re.M)
+    r'^' + MARKER.pattern + r'\n- Rejected candidate; see private review ledger\.$\n?', re.M)
 
 
 def clean_rejected_receipts(text):
@@ -138,7 +138,8 @@ def review(memory, candidates='', approvals=None):
     if additions:
         block = '\n'.join(additions)
         if re.search(r'^' + HEADING + r'$', base, re.M):
-            base = base.replace(HEADING + '\n', HEADING + '\n\n' + block, 1)
+            base = re.sub(r'^' + HEADING + r'$',
+                          lambda _: HEADING + '\n\n' + block.rstrip('\n'), base, count=1, flags=re.M)
         else:
             base = base + '\n\n' + HEADING + '\n\n' + block
     return base, report

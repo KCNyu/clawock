@@ -246,3 +246,10 @@ def test_receipt_only_migration_keeps_a_private_before_image(tmp_path):
     assert json.loads(archives[0].read_text())['memory_before'] == original
     subprocess.run(command, check=True, capture_output=True)
     assert len(list((tmp_path / 'memory/.dreams').glob('review-*.json'))) == 1
+
+
+def test_near_match_is_human_prose_not_a_generated_receipt():
+    entry = gate.extract(candidate('今天买入 40 股'))[1][0]
+    text = gate.HEADING + '\n\n' + entry['marker'] + (
+        '\n- Rejected candidate; see private review ledger. Human annotation.\n')
+    assert gate.clean_rejected_receipts(text) == text
