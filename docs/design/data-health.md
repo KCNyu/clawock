@@ -1,12 +1,9 @@
-# Data Health card (2026-09-25 rewrite)
+# Data Health card
 
 The card answers three questions, in this order: **is anything wrong, where, and
-what exactly happened?** The 2026-09-24 iterations (#1834, #1836, #1838) stacked a
-verdict, a metric tile row, an overview strip, a to-do list, a lane board, a
-per-job board, a grey summary band and a bottom detail panel at nearly equal
-weight. The owner rejected them: the layout was chaotic and the text/card edges
-were wrong. This version was rebuilt from an empty section, reusing only the
-payload and the dashboard's own tokens and components.
+what exactly happened?** One verdict leads; detail follows only for the items
+that need it. It reuses the payload and the dashboard's own tokens and
+components rather than a second visual language.
 
 ## Structure
 

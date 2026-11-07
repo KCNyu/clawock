@@ -11,7 +11,7 @@ two existing host-extension installers. Gateway restart remains a separate step.
 selectors and required postconditions. The eleven shell adapters live beside it;
 `patch_dreaming_fallbacks.py` and `patch_dreaming_review.py` are the two existing
 Python adapters. `patch-vector-knn-oversample.sh` is the memory-recall KNN fix;
-its measurements are in [`memory-recall-performance.md`](memory-recall-performance.md). A target selector must resolve to exactly one bundle. Shared
+its measured rationale and the 8 → 1 argument are in the adapter's header. A target selector must resolve to exactly one bundle. Shared
 bundles are copied once, and adapters see earlier staged edits in manifest order.
 Required markers are checked on each named target, including all three dreaming
 race forwarding hops; a marker in an unrelated bundle is insufficient.

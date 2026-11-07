@@ -3,7 +3,7 @@
 这里记录 research 插件的选型依据，不授予交易权限。研究对象是港股／美股的
 已有底仓日内回转；无底仓卖空、融资、期权和跨币种套利不在实现范围。
 `intraday-reversion` 是首个可独立卸载的研究服务，设计与运行方式见
-[盘中研究契约](../design/intraday-strategy-research.md)。没有真实分钟数据的
+[盘中研究工作流](../architecture/intraday-research-workflow.md)。没有真实分钟数据的
 walk-forward 成绩，不能据此声称策略赚钱或进入 live。
 
 ## 读过的开源实现

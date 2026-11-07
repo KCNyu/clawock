@@ -114,17 +114,10 @@ Their `inject` declarations stop those readers when a dependency is withdrawn.
 `preposition` also declares and reads `factors`. Replacing a policy row therefore
 changes its internal readers as well as the compatibility import path.
 
-The code each module held before the move stayed in its old package as
-`legacy_<module>.py`, and every call the test suite made into a plugin was also
-made into the legacy function: the two had to agree on the value (floats
-exact), the error and the state of their arguments. The legacy modules and that
-comparison were removed on 2026-10-12, before `add_alpha`, `preposition` and
-`bar_signals` had run in a production brief; the last comparison was a replay
-of the stored 2026-10-12 brief context and the 28 stored bar series. The
-plugins are the only implementation.
-
-Removing the second implementation removed the comparison with it. What
-checks these modules now:
+The legacy modules and the second-implementation comparison were removed on
+2026-10-12; the plugins are the only implementation. Removing that comparison
+also removed the check that caught a change the unit tests did not exercise.
+What checks these modules now:
 
 - the four signal sources have recorded outputs (see *Recorded outputs*
   below), compared exactly on every run of the suite;
@@ -440,7 +433,7 @@ sourced regulatory tariff snapshot. Ranks use the config's explicit reference
 notionals/share price and the more expensive side, including tax unless a ticker
 has a verified exemption; they remain a proxy rather than an execution backtest.
 Commission is the account's conditional monthly-allowance scenario. See
-[the research cost contract](../design/intraday-strategy-research.md).
+[the research cost contract](intraday-research-workflow.md#the-reversion-kernel-packet-and-configuration).
 
 The registered gate does not read `net_of_cost`. The check
 `oos_net_excess_ci95_lower_gt` exists for alternates only.
@@ -646,5 +639,5 @@ The research-only `intraday-reversion` row provides `intraday_reversion.replay`.
 session through the explicit research facade. It returns sized net-of-cost
 round-trip evidence, never live permission or a daily optimiser registration.
 Its bar contract, limits and LLM/presentation roadmap are in
-[the design](../design/intraday-strategy-research.md); source research is in
+[the workflow](intraday-research-workflow.md#the-reversion-kernel-packet-and-configuration); source research is in
 [the report](../research/intraday-strategies.md).

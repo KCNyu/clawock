@@ -215,7 +215,6 @@ These are installed commands too. They are listed here so the catalog is the who
 确定性活强制脚本化执行；LLM 只做合成；postflight 自验证 + commit。
 生产入口是安装后的 `clawock` CLI；生命周期实现由根 wheel 直接持有，
 `CLAWOCK_PROFILE` 只选择声明式配置和资源，不加载第二个 Python distribution。
-旧的 `scripts/harness/` 回滚别名已在 installed-command 切换验证后删除。
 
 **Daily deep brief**（08:03 HKT cron）
 - **`clawock brief preflight`**：刷 US/HK 价 + FX + portfolio snapshot + HHI 算法 + SEC EDGAR (仅 `is_leveraged_etf=false`) + retrospective vs 上次 plan.json。输出 `memory/.tmp/brief-context-{date}.json`
@@ -780,11 +779,6 @@ bash ops/host/check_crons.sh --json          # JSON 输出（喂给后续 pipeli
 
 运行历史同样优先经 OpenClaw CLI 读取；旧 `cron/runs/*.jsonl` 只作为迁移前 fallback。
 脚本本体 `ops/host/cron_runs.py`。
-
-### 已废弃
-> 旧脚本源码已删除，不作为参考依赖；provider、header、fallback 与解析逻辑只认 installed package 当前实现。
-- **完全删掉** (2026-05-16 大扫除)：`monday_signal.py` (含硬编码 key)、`api_retry_wrapper.py`、`baidu_search_wrapper.py`、`deep_analysis.py`、`final_analysis.py`、`find_opportunities.py`、`hk_ai_monitor.py`、`multi_agent_stock_analysis.py`、`price_alert_monitor.py`、`TradingAgents/` 整目录
-- **完全删掉**：`scripts/legacy/` 与 `scripts/data/`；dated memory 中的旧文件名只属历史记录。
 
 ---
 

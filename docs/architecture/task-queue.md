@@ -441,17 +441,13 @@ Only a task whose `result.env` says `RUNNER_API=2` registers in `.queue/`, write
 refuse it (`3`). A held lock without a live holder file is reported as
 `held: true, id: null` with a note, never as free.
 
-Until 2026-09-27 the entry also parsed such tasks' `run.log` (`waiting for <agent> lock`,
-`lock held`) to place them first in their queue, flagged `legacy`. That branch was removed
-once no older runner was left (`list` showed no legacy row and every live `result.env`
-had `QUEUED_AT` and `RUNNER_API`); the `legacy`/`holderLegacy` fields are gone from the
-chip's wire too.
+The entry reads `QUEUED_AT` from `result.env`, never an older task's `run.log`;
+the `legacy`/`holderLegacy` fields are not on the chip's wire.
 
 ### Quota waits release the lock
 
-A task that hits a quota limit sleeps until the reset **without** its agent lock (before
-2026-09-26 it kept it: a claude task asleep on its 5-hour reset held `claude.lock` for four
-hours while three tasks queued). It keeps its session lock (`session-<id>.lock`, taken as
+A task that hits a quota limit sleeps until the reset **without** its agent lock. It keeps
+its session lock (`session-<id>.lock`, taken as
 soon as the session is known), so no second task can resume the same session meanwhile,
 and it writes `.queue/<agent>.quota` (`UNTIL=`, `BY=`). A task that takes the lock while
 that hint is in the future releases it again and waits for the same reset (plus two polls)
@@ -768,19 +764,12 @@ labels disabled, unknown, send succeeded, partial failure and failure separately
 Wake events snapshot these actual fields, and never claim that kcn has already read
 the notice. No automatic notification resend is added.
 
-What the legs did from 2026-09-26 to 2026-09-28 (every `notify:` line in `run.log`):
-
-- **WeChat** failed on every send from at least 09-26 03:25 to 09-27 20:52, and has
-  delivered every send since 09-27 22:23. This is the known WeChat token problem: the
-  per-conversation token behind the `openclaw-weixin` channel lapses, and every send fails
-  until it is renewed. It is not fixed here and can come back.
-- **Telegram** delivered every end-of-task notice. It failed four times, all on 30-second
-  notices (three quota-wait notices, one cancel), each after exactly the 30 s limit. The CLI
-  is slow to start on this host: a `--dry-run` of the same command, which sends nothing, took
-  13 s alone and 25 s with both legs starting together. So a real send can take longer than
-  30 s. Neither the configuration nor the network was the cause. The quota-wait notice has
-  had 60 s since #2057; a cancel notice keeps 30 s, the most the unit's stop budget
-  (`on_signal`) leaves, so on a busy host a cancel can still go unannounced on Telegram.
+Delivery is per leg. The WeChat channel's per-conversation token can lapse, and
+every send fails until it is renewed. The Telegram CLI is slow to start on this
+host (a `--dry-run` that sends nothing can take 13 s alone and 25 s with both
+legs starting together), so a real send can exceed 30 s. Quota-wait notices have
+60 s; a cancel notice keeps 30 s, the most the unit's stop budget (`on_signal`)
+leaves, so on a busy host a cancel can still go unannounced on Telegram.
 
 ### A turn in the session that dispatched
 
