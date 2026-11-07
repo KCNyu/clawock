@@ -111,20 +111,25 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 ### 工作台里的 provider 额度（2026-11-07）
 
 左侧栏只剩一个**工作台**入口：provider 额度不再常驻 footer（Settings 仍是宿主的，留在原位）。
-工作台页标题下是 44px 分段控件 `任务 | 服务`：
+工作台页标题下是 44px 三段控件 `任务 | 提供方 | 概况`：
 
 - **任务**：卡住 / 待你处理 / 进行中三个折叠组。组头整行可点，chevron 只作指示；
   默认最多展开 6 条（<360px 4 条），<360px 同时只开 1 组、以上 2 组，超出给「还有 N 条 ›」。
-- **服务**：五个来源一行一个。名称 15/600（最长 84px 省略），主指标 13/700
-  tabular-nums 紧贴名称右侧 8px，次指标 13/500 灰色右对齐；第二行是 stale/queued
-  芯片 + 窗口时间。余额制（DeepSeek/OpenCode）主指标是余额/免费，百分比制主指标
-  是 5h、次指标是周。异常（5h 或周耗尽、认证失败、不可达）排最前，红字 + `⚠`；
-  stale 只把数字降灰、永不点红。
+- **提供方**：每个来源两行常显，行高 72px：第一行 6px 状态点 + 名称 14/600 +
+  右侧已用%（周% 灰色）；第二行重置时间，余额制显示 `余额 · 赠金`。底部 3px
+  用量条按同一状态着色。不做行内展开，也没有第二层详情页。余额制（DeepSeek）和
+  百分比制（MiniMax/Claude/Codex）共用这一行；OpenCode 显示 `免费`，不可读显示
+  `数据不可用` 和灰点。异常（任一窗口 ≥90% 或余额+赠金 ≤0）用红点/红条；70–90%
+  琥珀；stale 只降灰、永不点红。
+- **概况**：巡检和统计两个折叠组，复用任务组的 44px 组头。巡检默认展开四行：
+  最近轮次 + 状态、area/lens 覆盖、未决数、节奏；统计默认折叠，组头右侧是
+  `任务 · token · API 估价` 摘要，展开后是三列指标、完成/未完成条和 7 天柱图。
 
-抽屉里**不显示任何额度数值**。工作台行末只在 provider alert 时出现一个 8px 红点
-（`#E5484D`，绝对定位、0 行高；stale 永不点亮），待办数徽章保持中性。打开工作台后，
-顶栏唯一的刷新按钮随分段切换：任务段刷新巡检，服务段拉额度。更早、没有 keyed `main`
-面板的宿主仍退回会话标题行的余额芯片。
+抽屉里**不显示任何额度数值**。56px 窄轨上待办数是 16×≤22px 数字徽章（1–99，
+99+ 封顶），provider 告警是独立的 8px 红点：徽章在右上、红点在下方，右缘对齐
+`x=52`，垂直间隔 4px，互不重叠；stale 永不点亮。更宽侧栏仍是标签右侧中性徽章 +
+provider 红点。打开工作台后，顶栏唯一的刷新按钮随分段切换：任务/概况刷新巡检，
+提供方拉额度。更早、没有 keyed `main` 面板的宿主仍退回会话标题行的余额芯片。
 
 配额读数一律是**已使用 %**(kcn:「剩余」不直观;头条数字
 与进度条同用这套档位配色):
@@ -305,8 +310,10 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 
 `needs_person` 的任务不再只出现在派发队列的详情层里。侧栏的 `工作台` 图标是常驻入口
 （`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）；底部不再有信号行。页面标题下是
-44px 分段控件 `任务 | 服务`：任务段显示 `卡住`、`待你处理`、`进行中` 三个折叠组，服务段
-显示五个 provider 行（余额 / 5h / 周 / stale / queued / 异常）。窄屏点任务进焦点视图；
+44px 分段控件 `任务 | 提供方 | 概况`。任务段显示 `卡住`、`待你处理`、`进行中` 三个折叠组；
+提供方段是两行常显的 72px provider 行（状态点 + 名称 + 已用% / 周%、第二行重置时间 /
+余额·赠金、底部 3px 用量条），不做行内展开或二级页；概况段把巡检和统计收进同一套折叠组
+（巡检默认展开 4 行，统计默认折叠，展开后是指标、完成条和 7 天柱图）。窄屏点任务进焦点视图；
 桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。焦点视图只给三个预设动作：
 继续 / 需要修改 / 终止；终止是就地两段确认，不开弹窗。提交后就地变成 `已记录 · 下一件 ›`，
 不自动跳页。三个动作分别调用现有的 `dispatch.sh answer` /
@@ -327,11 +334,16 @@ steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispat
 ### English
 
 **Where it lives (2026-11-07).** The permanent sidebar-footer provider block is gone. The
-sidebar keeps one **Workbench** entry: a neutral pending count and, only while a provider is
-actually broken, one 8px red dot. Allowance numbers, the five provider rows and their
-windows live in the Workbench page's **Providers** segment, next to **Tasks** in a 44px
-segmented control; stale readings never light the dot. Task actions live in the Workbench
-focus view. The queue description below still owns the data model and the host-side reads.
+sidebar keeps one **Workbench** entry: a neutral pending count (capped at `99+`) and, only
+while a provider is actually broken, one 8px red dot. On the 56px rail the count badge and
+the provider dot stay separate: the badge sits top-right, the dot below it at the rail's
+right edge. The page has one 44px segmented control, **Tasks | Providers | Overview**.
+Providers are two-line, always-visible 72px rows (state dot, name, used % / muted week,
+reset line, balance/credit split, 3px usage bar) — no row expansion and no second page.
+Overview reuses the Tasks fold groups: Patrol is open by default with four summary rows;
+Stats is folded, and expands to its metrics, completion bar and seven-day chart. Stale
+readings never light the dot. Task actions live in the Workbench focus view. The queue
+description below still owns the data model and the host-side reads.
 
 **What it is.** agent-dispatch runs headless Claude Code, Codex and OpenCode tasks, each in
 its own transient systemd unit, so a task outlives the chat, terminal or dsh session that
