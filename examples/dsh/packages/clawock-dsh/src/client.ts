@@ -3169,7 +3169,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
             type: 'button', className: cx('wb-sheet-close'), 'data-wb-sheet-back': 'true',
             'aria-label': t('queue.a.close'), title: t('queue.a.close'), onClick: closeSheet,
           }, '×')),
-        h('div', { className: cx('wb-sheet-body') }, ...body)))
+        h('div', { className: cx('wb-sheet-body', 'pbc', 'tqf') }, ...body)))
   }
   const sheetNode = renderSheet()
 
