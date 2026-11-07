@@ -1189,6 +1189,23 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
     "a quota row with both a state chip and resets must split them left/right");
   assert.match(css, /@media \(width<=767px\) and \(height<=640px\)[^{]*\{[\s\S]*?_pp-row\{min-height:32px\}/,
     "short phones keep both lines in 32px so the session list keeps room");
+  // kcn 2026-11-07: the folded block is a guest of the host drawer. From 767px
+  // down it takes the host's geometry (x=8/w=264, a 16px glyph, a 14px label at
+  // x=42) and reserves the same two 16px lines in every row, so a one-line row
+  // no longer centres while its neighbours start at the top and a reset/stale
+  // line no longer floats at its own right edge.
+  assert.match(css, /_pp-rows\{grid-template-columns:26px minmax\(64px,1fr\) minmax\(0,auto\);margin:0\}/,
+    "phone provider lines take the host drawer's full row width");
+  assert.match(css, /_pp-row\{grid-template-rows:16px 16px;align-content:center;padding:0 9px 0 12px\}/,
+    "every folded line reserves the same two lines at the host's inset");
+  assert.match(css, /_pp-row>\.?[A-Za-z0-9_-]*_tq-name\{max-width:96px;font:500 var\(--fs-lg\)\/16px var\(--font\)\}/,
+    "the folded provider name uses the host drawer's 14px label");
+  assert.match(css, /_tq-reset-line\{text-align:left;font:400 var\(--fs-xs\)\/16px var\(--font\);font-variant-numeric:tabular-nums;place-self:center stretch\}/,
+    "the reset/stale line starts under the name instead of floating right");
+  assert.match(css, /_bp:before\{background:var\(--dsw-alias-bg-layer-1,#fff\);backdrop-filter:none\}/,
+    "the phone sheet is opaque so the page behind it cannot bleed through");
+  assert.match(css, /@media \(width<=340px\)\{[^}]*_tq-reset-line\{font:400 var\(--fs-micro\)\/16px/,
+    "a 320px phone drops only the reset line to micro so the last reset is not cut");
   assert.match(css, /_tq-scroll\{[^}]*padding-bottom:max\(12px,\s*env\(safe-area-inset-bottom\)\)/,
     "the sheet's scroll body reserves the bottom safe area");
   assert.match(css, /_bp\[data-open=true\]\{opacity:1;pointer-events:auto\}/,
@@ -1759,6 +1776,11 @@ test("locale: both dictionaries carry the same keys, and no copy is hardcoded", 
   assert.ok(zh.length > 90, `expected the whole surface, found ${zh.length} keys`);
   assert.deepEqual(Object.keys(api.dictionaries).sort(), ["en", "zh"],
     "the browser client ships exactly these two locales (dsh-client-locale LOCALE_IDS)");
+  // kcn 2026-11-07 saw "Patrol idle" while the supervisor was in a 12h free-pool
+  // cooldown and read it as not running. The Chinese label already said
+  // 等下一轮; English now says waiting too, so the phase does not imply stopped.
+  assert.equal(api.dictionaries.en["queue.patrolState.waiting"], "waiting",
+    "English must say waiting, not idle, between patrol rounds");
   for (const [locale, dict] of Object.entries(api.dictionaries)) {
     for (const [key, value] of Object.entries(dict)) {
       assert.equal(typeof value, "string", `${locale}.${key} must be a string`);

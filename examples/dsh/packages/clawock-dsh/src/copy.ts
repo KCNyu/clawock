@@ -409,7 +409,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.running': 'patrol running', 'queue.patrol.yielding': 'patrol giving way',
     'queue.patrol.waiting': 'patrol between rounds', 'queue.patrol.waitingUntil': 'patrol next round {time}',
     'queue.patrol.stopped': 'patrol stopped', 'queue.patrol.unknown': 'patrol state unknown',
-    'queue.patrolState.running': 'running', 'queue.patrolState.yielding': 'giving way', 'queue.patrolState.waiting': 'idle',
+    'queue.patrolState.running': 'running', 'queue.patrolState.yielding': 'giving way', 'queue.patrolState.waiting': 'waiting',
     'queue.patrolState.waitingUntil': 'next round {time}', 'queue.patrolState.stopped': 'stopped', 'queue.patrolState.unknown': 'state unknown',
     'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
     'queue.ago.now': 'just now', 'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
