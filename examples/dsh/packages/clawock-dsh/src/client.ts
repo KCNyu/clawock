@@ -35,8 +35,11 @@ import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, compactCount, MINUS, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, patrolSection, compactCount, MINUS, signalView, waitShort, waitLong, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type SignalView } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
+// Pure projections, re-exported so the spec can pin the fixed signal copy and
+// the wait formatters without a browser.
+export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts'
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView } from './panel.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
@@ -917,6 +920,8 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
 
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export const BALANCE_PANEL = 'clawock-provider-balance'
+/** The main panel key and the panellist id are the same id (the host contract). */
+export const WORKBENCH_PANEL = 'clawock-workbench'
 
 /** The prop contract both balance surfaces' popover panel renders (see `panelAttrs`). */
 type PanelAttrs = {
@@ -2485,10 +2490,533 @@ export function _describeAction(result: QueueActionResult, t: Translate): string
 /** How long an in-place confirmation waits for its second tap. */
 const CONFIRM_MS = 5000
 
+
+// ---------------------------------------------------------------------------
+// The workbench page and its two sidebar entries (2026-11-07).
+//
+// One main panel, two views: the queue (default) and one task's focus view.
+// Below 768px only one view is mounted at a time; at 768px and up the queue is
+// a fixed 340px column and the detail sits beside it. The signal row is the
+// only footer presence, and it exists only while a task needs a person; the
+// panellist icon is the permanent entry.
+// ---------------------------------------------------------------------------
+
+/** dsh's own breakpoint for the drawer main column (ui-layout: width<=767px). */
+const WORKBENCH_WIDE = '(min-width: 768px)'
+/** The initial queue cap; the rest expands in place (no pager, no infinite scroll). */
+const WORKBENCH_FIRST = 20
+/** Two-tap destructive confirmation, in place, then it reverts. */
+const WORKBENCH_CONFIRM_MS = 3000
+/** How long "刚刚更新" stays after a silent refresh. */
+const WORKBENCH_UPDATED_MS = 1600
+
+function useMedia(query: string): boolean {
+  const read = (): boolean => typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(query).matches
+    : false
+  const [match, setMatch] = useState<boolean>(read)
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
+    const mq = window.matchMedia(query)
+    const onChange = (): void => { setMatch(mq.matches) }
+    setMatch(mq.matches)
+    if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
+    else if (typeof mq.addListener === 'function') mq.addListener(onChange)
+    return () => {
+      if (typeof mq.removeEventListener === 'function') mq.removeEventListener('change', onChange)
+      else if (typeof mq.removeListener === 'function') mq.removeListener(onChange)
+    }
+  }, [query])
+  return match
+}
+
+/** Local HH:MM for the header's patrol stamp and the recorded-at line. */
+function clockOf(ms: number | null): string {
+  if (ms === null || !Number.isFinite(ms)) return '—'
+  const d = new Date(ms)
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+}
+
+/** The patrol's latest round end, else its progress stamp; null when neither is known. */
+function lastPatrolAt(result: TaskQueueResult | null): number | null {
+  const stamp = result?.patrol?.rounds?.[0]?.endedAt ?? ''
+  if (stamp !== '') {
+    const parsed = new Date(stamp.replace(' ', 'T')).getTime()
+    if (Number.isFinite(parsed)) return parsed
+  }
+  const fallback = result?.patrol?.progress?.issuesAt ?? ''
+  const parsed = fallback === '' ? NaN : new Date(fallback).getTime()
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function renderWorkbenchGlyph(size = 16): React.ReactElement {
+  return h('svg', {
+    width: size, height: size, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true',
+    stroke: 'currentColor', strokeWidth: 1.35, strokeLinecap: 'round', strokeLinejoin: 'round',
+  },
+    h('path', { d: 'M2.2 9.2h3l1 1.6h3.6l1-1.6h3' }),
+    h('path', { d: 'M3.1 3.4h9.8l1.2 5.8v2.9a1 1 0 0 1-1 1H2.9a1 1 0 0 1-1-1V9.2z' }))
+}
+
+function renderWorkbenchChevron(size = 12): React.ReactElement {
+  return h('svg', { width: size, height: size, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
+    h('path', {
+      d: 'M4.5 2.5L8 6l-3.5 3.5', stroke: 'currentColor', strokeWidth: 1.4,
+      fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round',
+    }))
+}
+
+/** The panellist icon: a permanent entry; the badge exists only with pending tasks. */
+export type WorkbenchIconInjected = TaskQueueInjected & {
+  rememberTrigger: (element: HTMLElement | null) => void
+}
+
+export type WorkbenchIconProps = WorkbenchIconInjected & {
+  size: number
+  active: boolean
+  t: Translate
+}
+
+export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
+  const queue = useTaskQueue(props)
+  const tasks = queue.data.result?.pending ?? []
+  const view = signalView(tasks, props.t, Date.now())
+  return h('span', {
+    className: cx('wb-icon', props.active && 'wb-icon-on'),
+    'data-wb-icon': 'true',
+    onClick: (event: { currentTarget: HTMLElement }) => {
+      const button = event.currentTarget.closest('button')
+      props.rememberTrigger(button instanceof HTMLElement ? button : null)
+    },
+  },
+    renderWorkbenchGlyph(props.size),
+    view.total > 0
+      ? h('span', {
+        className: cx('wb-badge'),
+        'data-red': view.red ? 'true' : undefined,
+        'aria-hidden': 'true',
+      }, view.badge)
+      : null)
+}
+
+export type WorkbenchInjected = TaskQueueInjected & {
+  /** Return to the conversation and put focus back on the control that opened the page. */
+  closeWorkbench: () => void
+  /** One preset through the host's dispatcher entry; absent on an older host half. */
+  runWorkbenchAction?: (action: string, id: string) => Promise<QueueActionResult>
+}
+
+export type WorkbenchProps = WorkbenchInjected & { t: Translate }
+
+/** One queue row: title, NEEDS first sentence, wait. No icon, no dot, no pill. */
+function WorkbenchRow(props: {
+  task: DispatchTask
+  now: number
+  selected: boolean
+  t: Translate
+  buttonRef: (element: HTMLButtonElement | null) => void
+  onOpen: () => void
+  onMove: (delta: number) => void
+}): React.ReactElement {
+  const { task, t } = props
+  const sub = firstSentence(task.needs ?? '') || t('workbench.needs.empty')
+  return h('button', {
+    type: 'button',
+    ref: props.buttonRef,
+    className: cx('wb-row', props.selected && 'wb-row-on'),
+    'data-wb-task': task.id,
+    'aria-label': taskTitle(task) + '，' + t('workbench.waited', { time: waitSpokenSafe(waitedOf(task, props.now)) }),
+    onClick: props.onOpen,
+    onKeyDown: (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault(); event.stopPropagation(); props.onOpen(); return
+      }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault(); event.stopPropagation(); props.onMove(event.key === 'ArrowDown' ? 1 : -1)
+      }
+    },
+  },
+    h('span', { className: cx('wb-row-main') },
+      h('span', { className: cx('wb-row-title') }, taskTitle(task)),
+      sub === '' ? null : h('span', { className: cx('wb-row-sub') }, sub)),
+    h('span', { className: cx('wb-row-age') }, waitShort(waitedOf(task, props.now))))
+}
+
+/** The wait in the aria-label: spelled out, but without a second copy of the formatter. */
+function waitSpokenSafe(ms: number): string {
+  const safe = Math.max(0, ms)
+  const minutes = Math.floor(safe / 60000)
+  if (safe < 3600000) return Math.max(1, minutes) + ' 分钟'
+  if (safe < 86400000) {
+    const hours = Math.floor(safe / 3600000)
+    const rest = minutes - hours * 60
+    return rest === 0 ? hours + ' 小时' : hours + ' 小时 ' + rest + ' 分钟'
+  }
+  const days = Math.floor(safe / 86400000)
+  const hours = Math.floor((safe - days * 86400000) / 3600000)
+  return hours === 0 ? days + ' 天' : days + ' 天 ' + hours + ' 小时'
+}
+
+/** A native details fold; the summary carries the whole row, the body the existing tables. */
+function WorkbenchFold(props: { id: string; label: string; open?: boolean; children: React.ReactNode }): React.ReactElement {
+  return h('details', { className: cx('wb-fold'), 'data-wb-fold': props.id, open: props.open },
+    h('summary', { className: cx('wb-fold-summary') },
+      h('span', null, props.label),
+      h('span', { className: cx('wb-fold-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron())),
+    h('div', { className: cx('wb-fold-body') }, props.children))
+}
+
+/** The focus view's body, shared by the phone page and the desktop right column. */
+function WorkbenchDetail(props: {
+  task: DispatchTask
+  now: number
+  t: Translate
+  desktop: boolean
+  titleRef: React.Ref<HTMLHeadingElement>
+  submittedAt: string | null
+  busy: string | null
+  notice: { ok: boolean; text: string } | null
+  confirmStop: boolean
+  coverage: CoverageView | null
+  /** Areas with open items, from the raw progress (the view's `open` is already a label). */
+  areasOpen: number | null
+  onAction: (action: 'continue' | 'modify' | 'stop') => void
+  onNext: () => void
+  onStopFirst: () => void
+}): React.ReactElement {
+  const { task, t } = props
+  const stuck = isStuckTask(task)
+  const meta = [
+    stuck ? t('workbench.stuck') : t('workbench.pending'),
+    t('workbench.waited', { time: waitLong(waitedOf(task, props.now)) }),
+    task.agent === '' ? null : task.agent,
+  ].filter((part): part is string => part !== null).join(' · ')
+  const coverageLabel = props.areasOpen === null
+    ? t('workbench.fold.coverageUnknown')
+    : t('workbench.fold.coverage', { n: props.areasOpen })
+  const stage = task.stage ?? ''
+  const info: Array<[string, string]> = [
+    [t('workbench.info.id'), task.id],
+    [t('workbench.info.agent'), task.agent === '' ? t('workbench.info.none') : task.agent],
+    [t('workbench.info.state'), [task.state, task.outcome].filter((part) => part !== '').join(' / ') || t('workbench.info.none')],
+    [t('workbench.info.stage'), stage === '' ? t('workbench.info.none') : stage],
+    [t('workbench.info.ended'), task.finishedAtMs === null || task.finishedAtMs === undefined ? t('workbench.info.none') : new Date(task.finishedAtMs).toLocaleString()],
+    [t('workbench.info.waited'), waitLong(waitedOf(task, props.now))],
+  ]
+  return h('div', { className: cx('wb-detail', props.desktop && 'wb-detail-desktop'), 'data-wb-detail': task.id },
+    h('div', { className: cx('wb-detail-scroll') },
+      h('h2', { className: cx('wb-detail-title'), tabIndex: -1, ref: props.titleRef }, taskTitle(task)),
+      h('div', { className: cx('wb-detail-meta') }, meta),
+      h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
+      task.needs === undefined || task.needs.trim() === ''
+        ? h('div', { className: cx('wb-needs-empty') }, t('workbench.needs.empty'))
+        : h('p', { className: cx('wb-needs') }, task.needs),
+      props.submittedAt === null
+        ? h('div', { className: cx('wb-actions') },
+          h('button', {
+            type: 'button', className: cx('wb-act', 'wb-act-primary'),
+            disabled: props.busy !== null,
+            onClick: () => { props.onAction('continue') },
+          }, props.busy === 'continue' ? t('workbench.busy') : t('workbench.act.continue')),
+          h('button', {
+            type: 'button', className: cx('wb-act', 'wb-act-secondary'),
+            disabled: props.busy !== null,
+            onClick: () => { props.onAction('modify') },
+          }, props.busy === 'modify' ? t('workbench.busy') : t('workbench.act.modify')),
+          h('div', { className: cx('wb-danger') },
+            h('button', {
+              type: 'button', className: cx('wb-act', 'wb-act-danger'),
+              disabled: props.busy !== null,
+              'data-wb-confirm': props.confirmStop ? 'true' : undefined,
+              'aria-live': 'polite',
+              onClick: () => { props.onStopFirst() },
+            }, props.busy === 'stop' ? t('workbench.busy')
+              : props.confirmStop ? t('workbench.act.confirm') : t('workbench.act.stop'))))
+        : h('div', { className: cx('wb-recorded'), role: 'status', 'data-wb-recorded': 'true' },
+          h('span', { className: cx('wb-recorded-line') },
+            t('workbench.recorded'), ' · ',
+            h('button', { type: 'button', className: cx('wb-next'), onClick: props.onNext }, t('workbench.next'))),
+          h('span', { className: cx('wb-recorded-time') }, props.submittedAt)),
+      props.notice === null ? null : h('div', {
+        className: cx('wb-notice', props.notice.ok ? 'wb-ok' : 'wb-bad'), role: 'status',
+      }, props.notice.text),
+      h('div', { className: cx('wb-folds') },
+        h(WorkbenchFold, { id: 'coverage', label: coverageLabel },
+          props.coverage === null
+            ? h('div', { className: cx('wb-fold-empty') }, t('workbench.info.none'))
+            : h('div', { className: cx('wb-cov') }, ...renderCoverageTables(props.coverage, t))),
+        h(WorkbenchFold, { id: 'result', label: t('workbench.fold.result') },
+          task.summary.trim() === ''
+            ? h('div', { className: cx('wb-fold-empty') }, t('workbench.result.empty'))
+            : h('pre', { className: cx('wb-result') }, task.summary)),
+        h(WorkbenchFold, { id: 'info', label: t('workbench.fold.info') },
+          h('dl', { className: cx('wb-info') },
+            ...info.flatMap(([label, value]) => [
+              h('dt', { key: 'd-' + label }, label),
+              h('dd', { key: 'v-' + label }, value),
+            ]))))))
+}
+
+export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
+  const { t } = props
+  const queue = useTaskQueue(props)
+  const [view, setView] = useState<'queue' | 'focus'>('queue')
+  const [selected, setSelected] = useState<string | null>(null)
+  const [snapshot, setSnapshot] = useState<DispatchTask | null>(null)
+  const [expanded, setExpanded] = useState(false)
+  const [liveOpen, setLiveOpen] = useState(false)
+  const [updated, setUpdated] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
+  const [confirmStop, setConfirmStop] = useState(false)
+  const [submittedAt, setSubmittedAt] = useState<string | null>(null)
+  const desktop = useMedia(WORKBENCH_WIDE)
+  const titleRef = useRef<HTMLHeadingElement | null>(null)
+  const rowRefs = useRef(new Map<string, HTMLButtonElement>())
+  const updatedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const now = Date.now()
+  const result = queue.data.result
+  const pending = result?.pending ?? []
+  const total = result?.pendingTotal ?? pending.length
+  const visibleTasks = pending
+  const shown = selected === null ? null : visibleTasks.find((task) => task.id === selected) ?? snapshot
+  const counted = total > 0 ? total : pending.length
+  const patrolAt = lastPatrolAt(result)
+  const stamp = clockOf(patrolAt)
+  const live = (result?.active ?? []).filter((task) => !task.patrol)
+  const rawProgress = result?.patrol?.progress ?? null
+
+  // The desktop column needs a selection; pick the oldest once, never steal a
+  // selection the reader made while data was arriving.
+  useEffect(() => {
+    if (!desktop || selected !== null || pending.length === 0) return
+    setSelected(pending[0]!.id)
+    setSnapshot(pending[0]!)
+  }, [desktop, selected, pending.length])
+  // A focus view's title takes focus; the browser's focus ring is the host's.
+  useEffect(() => {
+    if (desktop || view !== 'focus') return
+    const timer = setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
+    return () => clearTimeout(timer)
+  }, [desktop, view, selected])
+  useEffect(() => {
+    if (confirmStop) {
+      if (confirmTimer.current !== null) clearTimeout(confirmTimer.current)
+      confirmTimer.current = setTimeout(() => { setConfirmStop(false) }, WORKBENCH_CONFIRM_MS)
+    }
+    return () => { if (confirmTimer.current !== null) clearTimeout(confirmTimer.current) }
+  }, [confirmStop])
+  useEffect(() => () => {
+    if (updatedTimer.current !== null) clearTimeout(updatedTimer.current)
+    if (confirmTimer.current !== null) clearTimeout(confirmTimer.current)
+  }, [])
+
+  const choose = (task: DispatchTask): void => {
+    setSelected(task.id)
+    setSnapshot(task)
+    setSubmittedAt(null)
+    setNotice(null)
+    setConfirmStop(false)
+  }
+  const open = (task: DispatchTask): void => {
+    choose(task)
+    if (!desktop) setView('focus')
+    else setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
+  }
+  const back = (): void => {
+    const id = selected
+    setView('queue')
+    setNotice(null)
+    setConfirmStop(false)
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => {
+        if (id !== null) rowRefs.current.get(id)?.focus({ preventScroll: false })
+      })
+    }
+  }
+  const move = (from: DispatchTask, delta: number): void => {
+    const index = visibleTasks.findIndex((task) => task.id === from.id)
+    if (index < 0) return
+    const next = visibleTasks[Math.max(0, Math.min(visibleTasks.length - 1, index + delta))]
+    if (next === undefined) return
+    choose(next)
+    const element = rowRefs.current.get(next.id)
+    if (element !== undefined) element.focus()
+  }
+  // Esc returns from the focus view, then closes the page; the destructive
+  // confirmation is the one thing it cancels before leaving the task. On
+  // desktop the same listener owns the list's arrow/Enter keys while the page
+  // is up, so a click that did not move DOM focus (WebKit) still navigates.
+  useEffect(() => {
+    const typing = (target: EventTarget | null): boolean => target instanceof HTMLElement
+      && target.closest('input, textarea, select, [contenteditable=""], [contenteditable=true]') !== null
+    const onKey = (event: KeyboardEvent): void => {
+      const root = document.querySelector('[data-wb]')
+      if (root === null || root.getClientRects().length === 0) return
+      if (event.key === 'Escape') {
+        if (confirmStop) { event.preventDefault(); setConfirmStop(false); return }
+        if (!desktop && view === 'focus') { event.preventDefault(); back(); return }
+        if (!desktop) { event.preventDefault(); props.closeWorkbench() }
+        return
+      }
+      if (!desktop || typing(event.target)) return
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        const index = visibleTasks.findIndex((task) => task.id === selected)
+        const delta = event.key === 'ArrowDown' ? 1 : -1
+        const next = index < 0
+          ? (delta > 0 ? visibleTasks[0] : visibleTasks[visibleTasks.length - 1])
+          : visibleTasks[Math.max(0, Math.min(visibleTasks.length - 1, index + delta))]
+        if (next === undefined) return
+        event.preventDefault()
+        choose(next)
+        rowRefs.current.get(next.id)?.focus()
+        return
+      }
+      if (event.key === 'Enter' && shown !== null) {
+        const target = event.target
+        if (target instanceof HTMLElement && target.closest('button, a')) return
+        event.preventDefault()
+        titleRef.current?.focus({ preventScroll: true })
+      }
+    }
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return undefined
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('keydown', onKey) }
+  }, [confirmStop, desktop, view, selected, visibleTasks, shown])
+
+  const refresh = (): void => {
+    setUpdated(false)
+    const done = (): void => {
+      setUpdated(true)
+      if (updatedTimer.current !== null) clearTimeout(updatedTimer.current)
+      updatedTimer.current = setTimeout(() => { setUpdated(false) }, WORKBENCH_UPDATED_MS)
+    }
+    queue.refresh()
+    setTimeout(done, 350)
+  }
+  const advance = (): void => {
+    const index = visibleTasks.findIndex((task) => task.id === selected)
+    const next = visibleTasks.find((task, at) => task.id !== selected && at >= index + 1) ?? visibleTasks.find((task) => task.id !== selected)
+    if (next === undefined) { setView('queue'); return }
+    choose(next)
+    if (!desktop) setView('focus')
+  }
+  const act = (action: 'continue' | 'modify' | 'stop'): void => {
+    if (shown === null || props.runWorkbenchAction === undefined || busy !== null) return
+    if (action === 'stop' && !confirmStop) { setConfirmStop(true); return }
+    setBusy(action)
+    setNotice(null)
+    props.runWorkbenchAction(action, shown.id).then((answer) => {
+      setBusy(null)
+      if (!answer.ok) {
+        setNotice({ ok: false, text: t('workbench.actionFailed', { message: answer.message || String(answer.code) }) })
+        return
+      }
+      setConfirmStop(false)
+      setSubmittedAt(clockOf(Date.now()))
+      queue.refresh()
+    }, (error: unknown) => {
+      setBusy(null)
+      setNotice({ ok: false, text: t('workbench.actionFailed', { message: error instanceof Error ? error.message : String(error) }) })
+    })
+  }
+  const renderQueue = (): React.ReactElement => {
+    if (pending.length === 0 && live.length === 0) {
+      return h('div', { className: cx('wb-empty'), 'data-wb-empty': 'true' },
+        h('div', { className: cx('wb-empty-title') }, t('workbench.empty.title')),
+        h('div', { className: cx('wb-empty-body') }, t('workbench.empty.body')),
+        h('div', { className: cx('wb-empty-meta') }, t('workbench.empty.meta', { time: stamp })))
+    }
+    const ordered = [...splitPending(pending).stuck, ...splitPending(pending).review]
+    const visible = expanded ? ordered : ordered.slice(0, WORKBENCH_FIRST)
+    const more = counted - visible.length
+    const stuck = visible.filter(isStuckTask)
+    const review = visible.filter((task) => !isStuckTask(task))
+    const section = (id: string, label: string, rows: DispatchTask[], red = false): React.ReactElement | null => rows.length === 0 ? null : h('section', {
+      className: cx('wb-section'), 'data-wb-section': id,
+    },
+      h('h3', { className: cx('wb-section-title', red && 'wb-red') }, label, h('span', { className: cx('wb-section-count') }, rows.length)),
+      ...rows.map((task) => h(WorkbenchRow, {
+        key: task.id, task, now, t, selected: selected === task.id,
+        buttonRef: (element: HTMLButtonElement | null) => {
+          if (element === null) rowRefs.current.delete(task.id)
+          else rowRefs.current.set(task.id, element)
+        },
+        onOpen: () => { open(task) },
+        onMove: (delta: number) => { move(task, delta) },
+      })))
+    const body = h('div', { className: cx('wb-queue-body') },
+      section('stuck', t('workbench.section.stuck'), stuck, true),
+      section('pending', t('workbench.section.pending'), review),
+      more > 0 ? h('button', {
+        type: 'button', className: cx('wb-more'), 'data-wb-more': String(more),
+        onClick: () => { setExpanded(true) },
+      }, t('workbench.more', { n: more }), h('span', { 'aria-hidden': 'true' }, renderWorkbenchChevron())) : null,
+      h('button', {
+        type: 'button', className: cx('wb-live-toggle'), 'data-wb-live': String(live.length),
+        'aria-expanded': liveOpen,
+        onClick: () => { setLiveOpen(!liveOpen) },
+      }, t('workbench.liveCount', { n: live.length })),
+      liveOpen ? h('div', { className: cx('wb-live-list') }, ...live.map((task) => h('div', {
+        key: task.id, className: cx('wb-live-row'), 'data-wb-live-task': task.id,
+      },
+        h('span', { className: cx('wb-live-name') }, taskTitle(task)),
+        h('span', { className: cx('wb-live-age') }, t('workbench.live.elapsed', {
+          time: waitShort(Math.max(0, now - (task.startedAtMs ?? task.updatedAtMs ?? now))),
+        }))))) : null)
+    return body
+  }
+  const detail = shown === null
+    ? h('div', { className: cx('wb-detail-empty') }, t('workbench.select'))
+    : h(WorkbenchDetail, {
+      task: shown, now, t, desktop, titleRef, submittedAt, busy, notice, confirmStop,
+      coverage: result === null ? null : patrolSection(result, t, now)?.progress ?? null,
+      areasOpen: rawProgress === null ? null : rawProgress.areas.filter((area) => (area.open ?? 0) > 0).length,
+      onAction: act, onNext: advance, onStopFirst: () => { act('stop') },
+    })
+
+  if (!desktop && view === 'focus') {
+    return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'focus' },
+      h('div', { className: cx('wb-returnbar') },
+        h('button', {
+          type: 'button', className: cx('wb-back'), 'data-wb-back': 'true', onClick: back,
+        }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.queue'))),
+      h('div', { className: cx('wb-view'), key: 'focus' }, detail))
+  }
+  return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'queue' },
+    h('header', { className: cx('wb-head') },
+      h('div', { className: cx('wb-head-row') },
+        h('button', {
+          type: 'button', className: cx('wb-back'), 'data-wb-close': 'true',
+          'aria-label': t('workbench.back'), title: t('workbench.back'),
+          onClick: () => { props.closeWorkbench() },
+        }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹')),
+        h('h1', { className: cx('wb-title') }, t('workbench.title')),
+        h('span', { className: cx('wb-updated'), 'aria-live': 'polite' }, updated ? t('workbench.updated') : ''),
+        h('button', {
+          type: 'button', className: cx('wb-refresh'), 'data-wb-refresh': 'true',
+          'aria-label': t('workbench.refresh'), title: t('workbench.refresh'),
+          onClick: refresh,
+        }, h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true' },
+          h('path', {
+            d: 'M13 8a5 5 0 1 1-1.6-3.7M13 2.6V5h-2.4', stroke: 'currentColor', strokeWidth: 1.35,
+            strokeLinecap: 'round', strokeLinejoin: 'round',
+          })))),
+      h('div', { className: cx('wb-sub') }, t('workbench.meta', { n: counted, time: stamp }))),
+    h('div', { className: cx('wb-main') },
+      desktop
+        ? h('div', { className: cx('wb-grid') },
+          h('aside', { className: cx('wb-queue'), 'data-wb-queue': 'true' }, h('div', { className: cx('wb-view'), key: 'queue' }, renderQueue())),
+          h('div', { className: cx('wb-pane'), 'data-wb-pane': 'true' }, detail))
+        : h('div', { className: cx('wb-view'), key: 'queue' }, renderQueue())))
+}
 export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {
   /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
   wide: boolean
   t: Translate
+  /** Open the workbench page; the event line passes itself so close() can restore focus. */
+  openWorkbench: (trigger: HTMLElement) => void
   /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
   openFile?: OpenFile
 }
@@ -2727,6 +3255,8 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const now = Date.now()
   const result = queueState.data.result
   const dispatcher = result !== null && result.available
+  const pending = result?.pending ?? []
+  const signal = pending.length === 0 ? null : signalView(pending, t, now)
   const rows = new Map(balanceState.rows.map((row) => [row.provider, row] as const))
   const sources = _panelSources(balanceState.data.result?.providers ?? [], result)
   const windowsOf = (agent: string): ReadonlyArray<{ resetAtMs?: number | null }> | undefined => agentWindows(rows, agent)
@@ -2793,6 +3323,17 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   return h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', !props.wide && 'rail'), ref: rootRef, 'data-pp-warn': warn ? 'true' : undefined },
     props.wide
       ? h('div', { className: cx('pp-rows'), role: 'group', 'aria-label': t('panel.aria'), 'data-clawock-action': BALANCE_PANEL },
+        signal === null ? null : h('span', {
+          className: cx('wb-sr'), 'aria-live': 'polite', 'data-wb-live-count': 'true',
+        }, signal.badge),
+        signal === null ? null : h('button', {
+          type: 'button', className: cx('wb-signal'), 'data-wb-signal': 'true',
+          'aria-label': signal.aria, title: signal.aria,
+          onClick: (event: { currentTarget: HTMLElement }) => { props.openWorkbench(event.currentTarget) },
+        },
+          h('span', { className: cx('wb-signal-dot'), 'data-red': signal.red ? 'true' : undefined, 'aria-hidden': 'true' }),
+          h('span', { className: cx('wb-signal-text') }, signal.text),
+          h('span', { className: cx('wb-signal-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron())),
         lines.length === 0
           ? h('button', {
             type: 'button', className: cx('pp-row', 'pp-empty'), 'data-pp-row': '', 'aria-expanded': open, 'aria-haspopup': 'dialog',
@@ -3106,6 +3647,8 @@ interface ClientContributionContext {
   /** Locale registry: this bundle owns one dictionary namespace (see LOCALE_NS). */
   locale: {
     register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void
+    /** Optional only for the test harness and a host older than this service face. */
+    bind?: (ns: string) => Translate
   }
   /** Injected host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
   layout?: LayoutProbe
@@ -3117,7 +3660,11 @@ interface ClientContributionContext {
 type StudioRemoteFace = Record<string, (...args: unknown[]) => Promise<unknown>>
 
 /** `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
-type LayoutProbe = { selectPanel?: (panelId: string | null) => void }
+type LayoutProbe = {
+  selectPanel?: (panelId: string | null) => void
+  /** Open/close the left column; below 768px that is the drawer. */
+  toggleSidebar?: () => void
+}
 
 /** Remote answer shape: the gateway's ok/error envelope. */
 type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; message: string } }
@@ -3205,6 +3752,21 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     // One foot cell, `provider-balance` (2026-09-27): the balance and the dispatch queue it pays for.
     // `dispatch-queue` is retired; both reads keep their own cadence inside the cell.
     let cachedTaskQueue: TaskQueueResult | null = null
+    const queueInjected = (): TaskQueueInjected => ({
+      cachedTaskQueue: () => cachedTaskQueue,
+      fetchTaskQueue: async (force) => {
+        cachedTaskQueue = await call<TaskQueueResult>('taskQueue', [force])
+        return cachedTaskQueue
+      },
+      // A host installed before taskStats existed has no stats card; the queue is unaffected.
+      fetchTaskStats: typeof studioRemote.taskStats === 'function'
+        ? (query) => call<TaskStats>('taskStats', [query.days, query.since, query.patrol])
+        : undefined,
+      // A host installed before queueAction existed has no such method: stay read-only.
+      runQueueAction: typeof studioRemote.queueAction === 'function'
+        ? (action, id, arg) => call<QueueActionResult>('queueAction', [action, id, arg])
+        : undefined,
+    })
     // dsh's own file preview (the right sidebar). Looked up at click time — long after apply, so the
     // service exists when there is one — and never injected: a host without it keeps the panel.
     const openFile: OpenFile = (path) => {
@@ -3220,27 +3782,56 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
         return { ok: false, reason: 'error', message: err instanceof Error ? err.message : String(err) }
       }
     }
+    // The two entries and the page share one remembered trigger: whichever
+    // control opened the workbench gets focus back when it closes.
+    let workbenchTrigger: HTMLElement | null = null
+    const rememberTrigger = (element: HTMLElement | null): void => { workbenchTrigger = element }
+    const openWorkbench = (trigger: HTMLElement): void => {
+      rememberTrigger(trigger)
+      layout.selectPanel!(WORKBENCH_PANEL)
+    }
+    const closeWorkbench = (): void => {
+      layout.selectPanel!(null)
+      if (typeof window === 'undefined') return
+      // On a phone the drawer closes when a main panel is selected, taking
+      // the trigger out of the focus order. Reopening it is what makes
+      // "focus returns to the row/icon that opened the page" true there as
+      // well; on desktop the column never left.
+      const narrow = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 767px)').matches
+      if (narrow) layout.toggleSidebar?.()
+      const focus = (): void => { workbenchTrigger?.focus({ preventScroll: true }) }
+      if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(focus)
+      if (narrow) setTimeout(focus, 260)
+    }
+    const workbenchInjected = (): WorkbenchInjected => ({
+      ...queueInjected(),
+      closeWorkbench,
+      // A host half older than this method gives the page a read-only focus view.
+      runWorkbenchAction: typeof studioRemote.workbenchAction === 'function'
+        ? (action, id) => call<QueueActionResult>('workbenchAction', [action, id])
+        : undefined,
+    })
+    const label = (): string =>
+      typeof ctx.locale.bind === 'function' ? ctx.locale.bind(LOCALE_NS)('signal.icon') : '工作台'
+    // The permanent entry: the icon is a main-panel launcher, never a second
+    // block in the sidebar; the host owns its button and selected state.
+    ctx.slots.inject('main', () => ctx.slots.register({
+      name: 'main', key: WORKBENCH_PANEL, locale: LOCALE_NS, inject: workbenchInjected,
+    }, WorkbenchPage))
+    ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
+      name: 'sidebar.panellist', id: WORKBENCH_PANEL, order: 10, label, locale: LOCALE_NS,
+      inject: (): WorkbenchIconInjected => ({ ...queueInjected(), rememberTrigger }),
+    }, WorkbenchIcon))
     ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
       name: 'sidebar.footer.action',
       id: 'provider-balance',
       store: balancesStore,
       locale: LOCALE_NS,
-      inject: (): BalancesInjected & TaskQueueInjected & { openFile: OpenFile } => ({
+      inject: (): BalancesInjected & TaskQueueInjected & { openFile: OpenFile; openWorkbench: (trigger: HTMLElement) => void } => ({
         ...balancesInjected(),
-        cachedTaskQueue: () => cachedTaskQueue,
-        fetchTaskQueue: async (force) => {
-          cachedTaskQueue = await call<TaskQueueResult>('taskQueue', [force])
-          return cachedTaskQueue
-        },
-        // A host installed before taskStats existed has no stats card; the queue is unaffected.
-        fetchTaskStats: typeof studioRemote.taskStats === 'function'
-          ? (query) => call<TaskStats>('taskStats', [query.days, query.since, query.patrol])
-          : undefined,
-        // A host installed before queueAction existed has no such method: stay read-only.
-        runQueueAction: typeof studioRemote.queueAction === 'function'
-          ? (action, id, arg) => call<QueueActionResult>('queueAction', [action, id, arg])
-          : undefined,
+        ...queueInjected(),
         openFile,
+        openWorkbench,
       }),
     }, ProviderPanelSidebarAction))
   } else {

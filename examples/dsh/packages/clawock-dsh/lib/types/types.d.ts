@@ -286,6 +286,18 @@ export interface DispatchTask {
     /** A live task's latest run-log event, timestamp stripped; '' once ended. */
     lastEvent: string;
     lastEventAtMs: number | null;
+    /** The agent's own NEEDS line from its final report (≤300 chars); '' when it did not report one. */
+    needs?: string;
+    /** working/queued, working, person/review, person/blocked, idle or ended. */
+    stage?: string;
+    /** person, none or unknown: the runner's recorded attention fact. */
+    attention?: string;
+    /** When the task ended (FINISHED_EPOCH); null while live or when an older runner did not record it. */
+    finishedAtMs?: number | null;
+    /** A validated open ask block is waiting on a person (question.json without answer.json). */
+    question?: boolean;
+    /** The question's recommended option index (0-based), when it carries one. */
+    questionRecommend?: number;
     /** When the runner first waited for its agent lock (result.env QUEUED_AT); the queue's order. */
     queuedAtMs?: number | null;
     /** Ended task: first run-slot acquisition minus QUEUED_AT, when both were recorded; null if unknown. Older hosts omit it. */
@@ -509,6 +521,15 @@ export interface TaskQueueResult {
     active: DispatchTask[];
     /** Most recently ended non-patrol tasks, newest first. */
     recent: DispatchTask[];
+    /**
+     * Ended non-patrol tasks whose runner recorded `ATTENTION=person` and that
+     * no continuation has picked up (no `answer.json`, no child task naming
+     * this one in PARENT_TASK_ID/ANSWER_OF). Oldest wait first, at most 100.
+     * Optional on the wire: an older host sends no list.
+     */
+    pending?: DispatchTask[];
+    /** How many tasks match `pending` before the 100-row cap. */
+    pendingTotal?: number;
     patrol: PatrolStatus;
     /** Per agent: lock holder, queue order, quota wait (optional on the wire, see DispatchTask). */
     queues?: AgentQueue[];

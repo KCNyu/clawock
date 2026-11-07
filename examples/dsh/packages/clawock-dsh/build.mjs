@@ -92,6 +92,7 @@ await patchTypertSide()
 await patchTypertBalance()
 await patchTypertTaskQueue()
 await patchTypertQueueAction()
+await patchTypertWorkbenchAction()
 await patchTypertTaskStats()
 await patchTypertVerdictKind()
 await patchTypertCodecFactories()
@@ -241,6 +242,12 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'summary': z.string(),
   'lastEvent': z.string(),
   'lastEventAtMs': z.union([z.number(), z.literal(null)]),
+  'needs': z.string().optional(),
+  'stage': z.string().optional(),
+  'attention': z.string().optional(),
+  'finishedAtMs': z.union([z.number(), z.literal(null)]).optional(),
+  'question': z.boolean().optional(),
+  'questionRecommend': z.number().optional(),
   'queuedAtMs': z.union([z.number(), z.literal(null)]).optional(),
   'waitMs': z.union([z.number(), z.literal(null)]).optional(),
   'position': z.union([z.number(), z.literal(null)]).optional(),
@@ -283,6 +290,8 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'running': z.number(),
   'active': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
   'recent': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
+  'pending': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema).optional(),
+  'pendingTotal': z.number().optional(),
   'patrol': z.object({
   'service': z.string(),
   'phase': z.union([z.literal("running"), z.literal("yielding"), z.literal("waiting"), z.literal("stopped"), z.literal("unknown")]),
@@ -541,6 +550,70 @@ ${param(0, 'action')}${param(1, 'id')}${param(2, 'arg')}      ],
     source = source.replace(invocationAnchor, `${invocation}${invocationAnchor}`)
     await writeFile(file, source)
     console.log(`patched ${rel}: +clawockStudio.queueAction`)
+  }
+}
+
+
+/**
+ * The workbench presets' write door: two string parameters (action, task id)
+ * and the same flat result as queueAction. Hand-carried for the same reason;
+ * it calls the dispatcher entry, not the ops entry, so it is its own method.
+ */
+async function patchTypertWorkbenchAction() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const invocationMarker = `id: 'clawock-dsh#clawockStudio/workbenchAction',`
+  const schemaAnchor = 'const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()'
+  const invocationAnchor = `    {
+      id: 'clawock-dsh#clawockStudio/get',`
+  const schemas = `const clawock_dsh_clawockStudio_workbenchAction_parameter_0$schema = z.string()
+const clawock_dsh_clawockStudio_workbenchAction_parameter_1$schema = z.string()
+const clawock_dsh_clawockStudio_workbenchAction_result$schema = z.object({
+  'ok': z.boolean(),
+  'code': z.number(),
+  'action': z.string(),
+  'id': z.string(),
+  'message': z.string(),
+  'detail': z.string(),
+})
+`
+  const param = (i, name) => `        {
+          name: '${name}',
+          wire: '${name}',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/workbenchAction:${name}',
+            schema: clawock_dsh_clawockStudio_workbenchAction_parameter_${i}$schema,
+          },
+        },
+`
+  const invocation = `    {
+      id: 'clawock-dsh#clawockStudio/workbenchAction',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'workbenchAction',
+      invocation: { kind: 'direct' },
+      parameters: [
+${param(0, 'action')}${param(1, 'id')}      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#QueueActionResult',
+        schema: clawock_dsh_clawockStudio_workbenchAction_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":281,"column":3},
+    },
+`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(invocationMarker)) continue
+    if (!source.includes(schemaAnchor) || !source.includes(invocationAnchor)) {
+      throw new Error(`patchTypertWorkbenchAction: anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(schemaAnchor, `${schemas}${schemaAnchor}`)
+    source = source.replace(invocationAnchor, `${invocation}${invocationAnchor}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +clawockStudio.workbenchAction`)
   }
 }
 

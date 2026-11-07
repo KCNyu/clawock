@@ -1631,3 +1631,118 @@ export function panelModel(input: PanelInput,
     footer: opsFooter(input.queue, t),
   }
 }
+
+// ---------------------------------------------------------------------------
+// The workbench's signal and queue projections (2026-11-07). Pure functions so
+// the sidebar row, the panel icon and the page cannot disagree, and so the
+// exact copy the design review fixed can be asserted without a browser.
+// ---------------------------------------------------------------------------
+
+const MINUTE_MS = 60_000
+const HOUR_MS = 60 * MINUTE_MS
+const DAY_MS = 24 * HOUR_MS
+
+/** The signal's compact wait: 45m / 6h / 2d, floored at one minute. */
+export function waitShort(ms: number): string {
+  const safe = Number.isFinite(ms) && ms > 0 ? ms : 0
+  if (safe < HOUR_MS) return Math.max(1, Math.floor(safe / MINUTE_MS)) + 'm'
+  if (safe < DAY_MS) return Math.floor(safe / HOUR_MS) + 'h'
+  return Math.floor(safe / DAY_MS) + 'd'
+}
+
+/** The focus view's precise wait: 45m / 2h 14m / 2d 3h. */
+export function waitLong(ms: number): string {
+  const safe = Number.isFinite(ms) && ms > 0 ? ms : 0
+  const minutes = Math.floor(safe / MINUTE_MS)
+  if (safe < HOUR_MS) return Math.max(1, minutes) + 'm'
+  if (safe < DAY_MS) {
+    const hours = Math.floor(safe / HOUR_MS)
+    const rest = minutes - hours * 60
+    return rest === 0 ? hours + 'h' : hours + 'h ' + rest + 'm'
+  }
+  const days = Math.floor(safe / DAY_MS)
+  const hours = Math.floor((safe - days * DAY_MS) / HOUR_MS)
+  return hours === 0 ? days + 'd' : days + 'd ' + hours + 'h'
+}
+
+/** The accessible wait: 45 分钟 / 6 小时 / 2 天 3 小时. */
+export function waitSpoken(ms: number): string {
+  const safe = Number.isFinite(ms) && ms > 0 ? ms : 0
+  const minutes = Math.floor(safe / MINUTE_MS)
+  if (safe < HOUR_MS) return Math.max(1, minutes) + ' 分钟'
+  if (safe < DAY_MS) {
+    const hours = Math.floor(safe / HOUR_MS)
+    const rest = minutes - hours * 60
+    return rest === 0 ? hours + ' 小时' : hours + ' 小时 ' + rest + ' 分钟'
+  }
+  const days = Math.floor(safe / DAY_MS)
+  const hours = Math.floor((safe - days * DAY_MS) / HOUR_MS)
+  return hours === 0 ? days + ' 天' : days + ' 天 ' + hours + ' 小时'
+}
+
+/** Stuck is the red state: the runner's blocked stage or an abnormal end. */
+export function isStuckTask(task: DispatchTask): boolean {
+  const stage = task.stage ?? ''
+  return stage === 'person/blocked' || ['blocked', 'failed', 'timeout', 'quota'].includes(task.state)
+}
+
+/** How long a pending task has waited: since it ended, else since its last write. */
+export function waitedOf(task: DispatchTask, now: number): number {
+  const since = task.finishedAtMs ?? task.updatedAtMs ?? now
+  return Math.max(0, now - since)
+}
+
+export type SignalView = {
+  total: number
+  stuck: number
+  oldestMs: number
+  text: string
+  aria: string
+  /** At least one stuck task: the dot and the badge take the error colour. */
+  red: boolean
+  /** 1..9 or '9+' — the icon badge; the footer row does not print it again. */
+  badge: string
+}
+
+/**
+ * The sidebar's event line and the panel icon badge from one list.
+ * Copy is fixed by the design review:
+ *   1 件待处理 · 12m / 3 件待处理 · 最旧 6h / 1 件卡住 · 最旧 2d /
+ *   3 件全卡住 · 最旧 2d / 9+ 件待处理 · 最旧 3d
+ */
+export function signalView(tasks: DispatchTask[], t: Translate, now: number): SignalView {
+  const total = tasks.length
+  const stuck = tasks.filter(isStuckTask).length
+  const oldestMs = tasks.reduce((max, task) => Math.max(max, waitedOf(task, now)), 0)
+  const age = waitShort(oldestMs)
+  const spoken = waitSpoken(oldestMs)
+  const overflow = total > 9
+  const n = overflow ? '9+' : String(total)
+  const params = { n: String(total), age }
+  const label = stuck === total && total > 0
+    ? (total === 1 ? t('signal.stuckOne', params) : t('signal.allStuck', params))
+    : (total === 1 ? t('signal.pendingOne', params) : t('signal.pendingMany', params))
+  const aria = stuck === total && total > 0
+    ? (total === 1 ? t('signal.ariaStuckOne', { time: spoken }) : t('signal.ariaAllStuck', { n, time: spoken }))
+    : (total === 1 ? t('signal.ariaPendingOne', { time: spoken }) : t('signal.ariaPendingMany', { n, time: spoken }))
+  return { total, stuck, oldestMs, text: overflow ? t('signal.overflow', { age }) : label, aria, red: stuck > 0, badge: n }
+}
+
+/** Queue sections keep the host's oldest-first order inside each group. */
+export function splitPending(tasks: DispatchTask[]): { stuck: DispatchTask[]; review: DispatchTask[] } {
+  return { stuck: tasks.filter(isStuckTask), review: tasks.filter((task) => !isStuckTask(task)) }
+}
+
+/** A row's second line: the first sentence of NEEDS, one line, bounded. */
+export function firstSentence(text: string, max = 120): string {
+  const flat = text.replace(/\s+/g, ' ').trim()
+  if (flat === '') return ''
+  const match = /[。！？!?]|\.(?=\s|$)/.exec(flat)
+  const sentence = match === null ? flat : flat.slice(0, match.index + (match[0] === '.' ? 0 : 1))
+  return sentence.length <= max ? sentence : sentence.slice(0, max).trimEnd() + '…'
+}
+
+/** A task's display title: the meta name, else its id. */
+export function taskTitle(task: DispatchTask): string {
+  return task.name.trim() === '' ? task.id : task.name
+}

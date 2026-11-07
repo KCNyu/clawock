@@ -38,6 +38,8 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
     private taskQueueService;
     /** The task chip's write door (the ops entry), built with the reader. */
     private queueActionRunner;
+    /** The workbench presets' door (`dispatch.sh` answer/append/cancel), built lazily. */
+    private workbenchRunner;
     /**
      * The row config, owned by the instance. cordis constructs a class plugin as
      * `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
@@ -108,6 +110,13 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      *   deadline: +Nh | +Nm | "YYYY-MM-DD HH:MM" | reset; attempts/resumes: n | reset; else ''.
      */
     queueAction(action: string, id: string, arg: string): Promise<QueueActionResult>;
+    /**
+     * One workbench preset, through the dispatcher entry that already owns it.
+     * In-band like queueAction(): never throws; a refusal is `{ ok: false, … }`.
+     * @param action - continue | modify | stop.
+     * @param id - the task id; anything that is not one is refused before any process runs.
+     */
+    workbenchAction(action: string, id: string): Promise<QueueActionResult>;
     private queueServices;
 }
 /**

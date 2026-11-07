@@ -31,7 +31,7 @@
  * snapshot as 'stale'.
  */
 
-import { execFile } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, readdirSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -46,6 +46,8 @@ export const DEFAULT_DISPATCH_LOG_DIR = join(homedir(), 'logs', 'agent-dispatch'
 export const DEFAULT_DISPATCH_LIMITS_PATH = join(homedir(), 'tools', 'agent-dispatch', 'limits.env')
 export const DEFAULT_PATROL_STATE_DIR = join(homedir(), 'logs', 'clawock-patrol')
 export const DEFAULT_TASK_QUEUE_OPS_PATH = join(homedir(), 'tools', 'agent-dispatch', 'task_queue_ops.py')
+/** The dispatcher's public entry: the one existing door for answer/append/cancel. */
+export const DEFAULT_DISPATCH_SCRIPT_PATH = join(homedir(), 'tools', 'agent-dispatch', 'dispatch.sh')
 export const DEFAULT_TASK_QUEUE_REFRESH_MS = 15000
 export const DEFAULT_TASK_QUEUE_RECENT = 5
 /** Host-side cache: every open tab polls, the files are read once per window. */
@@ -69,6 +71,8 @@ export interface TaskQueueConfig {
   opsPath?: string
   /** The repository's copy of it, hashed to show a merged-but-not-installed entry ('' = skip). */
   repoOpsPath?: string
+  /** The dispatcher entry (`dispatch.sh`); the workbench's continue/modify/stop calls it. */
+  dispatchScriptPath?: string
 }
 
 /** The host commands, injectable so tests run without systemd. */
@@ -269,6 +273,20 @@ const countOf = (raw: string | undefined): number | null => {
   return Number.isFinite(value) && value >= 0 ? value : null
 }
 
+/** An open ask block on an ended task: question.json exists and answer.json does not. */
+function openQuestion(dir: string): { open: boolean; recommend: number } {
+  if (!existsSync(join(dir, 'question.json')) || existsSync(join(dir, 'answer.json'))) return { open: false, recommend: 0 }
+  try {
+    const raw = JSON.parse(readFileSync(join(dir, 'question.json'), 'utf8')) as { recommend?: unknown; options?: unknown }
+    const options = Array.isArray(raw.options) ? raw.options.length : 0
+    const recommend = typeof raw.recommend === 'number' && Number.isInteger(raw.recommend) && raw.recommend >= 0 && raw.recommend < options
+      ? raw.recommend : 0
+    return { open: true, recommend }
+  } catch {
+    return { open: true, recommend: 0 }
+  }
+}
+
 function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
   const dir = join(logDir, id)
   const meta = readEnvFile(join(dir, 'meta.env'))
@@ -278,6 +296,7 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
   const log = logTail(dir)
   const queuedAtMs = epochMs(result.QUEUED_AT)
   const firstSlotMs = alive ? null : firstRunSlotMs(dir)
+  const question = alive ? { open: false, recommend: 0 } : openQuestion(dir)
   // A live task shows where it is now; an ended one shows how it closed.
   const event = alive ? lastLogEvent(log) : { text: '', atMs: null }
   let cancelling = false
@@ -303,6 +322,12 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
     summary: alive ? '' : finalSummary(log),
     lastEvent: event.text,
     lastEventAtMs: event.atMs,
+    needs: result.NEEDS ?? '',
+    stage: result.STAGE ?? '',
+    attention: result.ATTENTION ?? '',
+    finishedAtMs: alive ? null : epochMs(result.FINISHED_EPOCH),
+    question: question.open,
+    questionRecommend: question.recommend,
     queuedAtMs,
     waitMs: !alive && queuedAtMs !== null && firstSlotMs !== null && firstSlotMs >= queuedAtMs
       ? firstSlotMs - queuedAtMs : null,
@@ -609,7 +634,7 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   const asOf = new Date().toISOString()
   const empty: PatrolStatus = { service: 'unknown', phase: 'unknown', round: '', detail: '', untilMs: null, rounds: [] }
   if (!existsSync(config.logDir)) {
-    return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], patrol: empty }
+    return { available: false, asOf, maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [], pending: [], pendingTotal: 0, patrol: empty }
   }
   const [activeIds, service, log, opsRead, issues] = await Promise.all([
     deps.activeTaskIds(), deps.patrolService(), deps.patrolLog(), readOps(config, deps),
@@ -638,17 +663,53 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
   // Read every result stamp before capping. mtime can change on takeover or restoration;
   // preselecting by it can discard the most recently ended task (#2417).
   // Only read the heavy task/log details for the selected rows.
-  const ended = readdirSync(config.logDir, { withFileTypes: true })
+  const terminal = readdirSync(config.logDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !alive.has(entry.name) && !entry.name.startsWith('patrol-'))
     .map((entry) => {
       const result = readEnvFile(join(config.logDir, entry.name, 'result.env'))
-      if (!['ok', 'partial', 'unverified', 'failed', 'blocked', 'timeout', 'quota', 'cancelled'].includes(result.STATE ?? '')) return null
-      return { id: entry.name, at: localStampMs(result.UPDATED) ?? 0 }
+      const state = result.STATE ?? ''
+      if (!['ok', 'partial', 'unverified', 'failed', 'blocked', 'timeout', 'quota', 'cancelled'].includes(state)) return null
+      return {
+        id: entry.name,
+        at: localStampMs(result.UPDATED) ?? 0,
+        finishedAtMs: epochMs(result.FINISHED_EPOCH),
+        state,
+        attention: result.ATTENTION ?? '',
+        stage: result.STAGE ?? '',
+      }
     })
-    .filter((row): row is { id: string; at: number } => row !== null)
+    .filter((row): row is { id: string; at: number; finishedAtMs: number | null; state: string; attention: string; stage: string } => row !== null)
+  const ended = terminal
+    .slice()
     .sort((a, b) => b.at - a.at || a.id.localeCompare(b.id))
     .slice(0, config.recent)
     .map((row) => readTask(config.logDir, row.id, false))
+  // The workbench's queue: the runner's own ATTENTION=person fact (or the same
+  // legacy terminal states task_queue_ops.py summary folds into needs_person),
+  // minus any task a continuation has already picked up. The child set is what
+  // append/answer create (PARENT_TASK_ID / ANSWER_OF); answer.json covers a
+  // resolved ask that started no continuation. This reads only meta.env files,
+  // never prompts or sessions, and adds no storage.
+  const childIds = new Set<string>()
+  for (const entry of readdirSync(config.logDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const meta = readEnvFile(join(config.logDir, entry.name, 'meta.env'))
+    for (const key of ['PARENT_TASK_ID', 'ANSWER_OF']) {
+      const parent = meta[key]
+      if (parent !== undefined && parent !== '') childIds.add(parent)
+    }
+  }
+  // Only a runner that wrote the structured end state can answer this. An
+  // older task's empty ATTENTION plus a bare `partial` is history, not a
+  // request: without the STAGE marker the legacy fallback would pour every
+  // pre-api-5 task into the queue (62 on this host when it was first tried).
+  const needsPerson = (row: { state: string; attention: string; stage: string }): boolean =>
+    row.attention === 'person'
+    || (row.attention === '' && row.stage !== '' && ['blocked', 'failed', 'timeout', 'quota', 'partial', 'unverified'].includes(row.state))
+  const pendingRows = terminal
+    .filter((row) => needsPerson(row) && !childIds.has(row.id) && !existsSync(join(config.logDir, row.id, 'answer.json')))
+    .sort((a, b) => (a.finishedAtMs ?? a.at) - (b.finishedAtMs ?? b.at) || a.id.localeCompare(b.id))
+  const pending = pendingRows.slice(0, 100).map((row) => readTask(config.logDir, row.id, false))
   let round = ''
   try { round = readFileSync(join(config.patrolDir, 'current-round'), 'utf8').trim() } catch { /* no round */ }
   return {
@@ -659,11 +720,106 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     running: active.filter((task) => task.slot !== '').length,
     active,
     recent: ended,
+    pending,
+    pendingTotal: pendingRows.length,
     patrol: { ...patrolPhase(service, round, alive.has(round), log), ...readPatrolProgress(config.patrolDir, join(config.limitsPath, '..', '..', 'clawock-patrol', 'axes.tsv'), issues) },
     queues,
     ops: opsRead.ops,
     logDir: config.logDir,
     statsApi: true,
+  }
+}
+
+
+/** The three presets the workbench offers. They are not a second approval channel:
+ * each one calls the dispatcher entry that already owns that step. */
+export type WorkbenchAction = 'continue' | 'modify' | 'stop'
+
+/** What `continue` says when the task left no ask block: resume its session and do the rest. */
+export const WORKBENCH_CONTINUE_TEXT = '继续：按 NEEDS 里写的事项继续完成剩余工作；先核对当前真实状态（git/PR/CI/文件），复用已有产物，不要重复已完成的步骤。'
+/** What `modify` says when the task left no ask block: talk before touching anything. */
+export const WORKBENCH_MODIFY_TEXT = '需要修改：先说明你打算改什么、为什么，不要直接动手；等我确认后再继续。'
+
+const WORKBENCH_ID = /^[a-z0-9][a-z0-9-]{0,80}$/
+
+/** The exact argv (and stdin, when any) each preset runs. Exported so a test can pin the mapping. */
+export function workbenchCommand(
+  action: WorkbenchAction, id: string, question: { open: boolean; recommend: number },
+): { args: string[]; stdin: string } | string {
+  if (!WORKBENCH_ID.test(id)) return `not a task id: ${JSON.stringify(id)}`
+  if (action === 'continue') {
+    return question.open
+      ? { args: ['answer', id, String(question.recommend + 1)], stdin: '' }
+      : { args: ['append', id], stdin: WORKBENCH_CONTINUE_TEXT + '\n' }
+  }
+  if (action === 'modify') {
+    return question.open
+      ? { args: ['answer', id, '--text', WORKBENCH_MODIFY_TEXT], stdin: '' }
+      : { args: ['append', id], stdin: WORKBENCH_MODIFY_TEXT + '\n' }
+  }
+  // Terminating a question resolves it without resuming; anything else is the
+  // dispatcher's own stop. An ended task that cancel refuses is already in the
+  // requested state, so the runner reports that as recorded (below).
+  return question.open
+    ? { args: ['answer', id, '--resolve'], stdin: '' }
+    : { args: ['cancel', id], stdin: '' }
+}
+
+export type WorkbenchActionRunner = (action: WorkbenchAction, id: string) => Promise<QueueActionResult>
+
+/**
+ * Run one preset through `dispatch.sh` (never through a new store or service).
+ * Never throws: a missing entry, timeout or refusal is an in-band failure. The
+ * 120 s bound covers `append` after an ended task, which dispatches the new
+ * task synchronously before returning.
+ */
+export function createWorkbenchActionRunner(
+  config: Pick<TaskQueueConfig, 'dispatchScriptPath' | 'logDir'> = {},
+  deps: { spawn?: typeof spawn } = {},
+): WorkbenchActionRunner {
+  const script = expandHome(config.dispatchScriptPath ?? DEFAULT_DISPATCH_SCRIPT_PATH)
+  const logDir = expandHome(config.logDir ?? DEFAULT_DISPATCH_LOG_DIR)
+  const run = deps.spawn ?? spawn
+  return async (action, id) => {
+    const fail = (code: number, message: string): QueueActionResult => ({ ok: false, code, action, id, message, detail: '' })
+    if (!['continue', 'modify', 'stop'].includes(action)) return fail(2, `unknown workbench action ${JSON.stringify(action)}`)
+    const question = openQuestion(join(logDir, id))
+    const command = workbenchCommand(action, id, question)
+    if (typeof command === 'string') return fail(2, command)
+    if (!existsSync(script)) return fail(-1, `dispatch entry not installed at ${script}`)
+    return await new Promise<QueueActionResult>((resolve) => {
+      let stdout = ''
+      let stderr = ''
+      let settled = false
+      const finish = (code: number): void => {
+        if (settled) return
+        settled = true
+        const lines = (stdout + '\n' + stderr).split('\n').map((line) => line.trim()).filter((line) => line !== '')
+        const text = lines[lines.length - 1] ?? ''
+        const already = action === 'stop' && /already ended|already cancelled/i.test(stdout + ' ' + stderr)
+        resolve({
+          ok: code === 0 || already,
+          code: already && code !== 0 ? 0 : code,
+          action, id,
+          message: already ? 'already ended' : text,
+          detail: stdout.trim(),
+        })
+      }
+      const child = run(script, command.args, { cwd: homedir(), env: process.env })
+      const timer = setTimeout(() => {
+        try { child.kill('SIGTERM') } catch { /* already gone */ }
+        finish(-1)
+      }, 120000)
+      child.stdout?.on('data', (chunk: Buffer) => { stdout += chunk.toString('utf8') })
+      child.stderr?.on('data', (chunk: Buffer) => { stderr += chunk.toString('utf8') })
+      child.on('error', () => { clearTimeout(timer); finish(-1) })
+      child.on('close', (code: number | null) => { clearTimeout(timer); finish(code ?? -1) })
+      if (command.stdin !== '' && child.stdin !== null) {
+        child.stdin.end(command.stdin)
+      } else {
+        child.stdin?.end()
+      }
+    })
   }
 }
 
@@ -685,6 +841,7 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
     recent: config.recent ?? DEFAULT_TASK_QUEUE_RECENT,
     opsPath: expandHome(config.opsPath ?? DEFAULT_TASK_QUEUE_OPS_PATH),
     repoOpsPath: config.repoOpsPath ?? '',
+    dispatchScriptPath: expandHome(config.dispatchScriptPath ?? DEFAULT_DISPATCH_SCRIPT_PATH),
   }
   let last: QueueRead | null = null
   let fetchedAt = 0

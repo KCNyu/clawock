@@ -58,6 +58,12 @@ export interface ClawockStudioConfig {
      * workspace's ops/host/task_queue_ops.py so skew shows on the chip.
      */
     taskQueueOpsPath?: string;
+    /**
+     * The dispatcher entry the workbench's continue/modify/stop presets run
+     * (default ~/tools/agent-dispatch/dispatch.sh). Those three call `answer`,
+     * `append` and `cancel` — the existing paths — rather than a new channel.
+     */
+    dispatchScriptPath?: string;
 }
 /**
  * The providers the balance chip lists, in display order. Adding one is one

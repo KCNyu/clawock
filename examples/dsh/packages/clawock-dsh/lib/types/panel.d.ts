@@ -749,3 +749,40 @@ export type PanelInput = {
     stats?: TaskStats | null;
 };
 export declare function panelModel(input: PanelInput, t: Translate, now: number, open?: (id: string) => void): PanelModel;
+/** The signal's compact wait: 45m / 6h / 2d, floored at one minute. */
+export declare function waitShort(ms: number): string;
+/** The focus view's precise wait: 45m / 2h 14m / 2d 3h. */
+export declare function waitLong(ms: number): string;
+/** The accessible wait: 45 分钟 / 6 小时 / 2 天 3 小时. */
+export declare function waitSpoken(ms: number): string;
+/** Stuck is the red state: the runner's blocked stage or an abnormal end. */
+export declare function isStuckTask(task: DispatchTask): boolean;
+/** How long a pending task has waited: since it ended, else since its last write. */
+export declare function waitedOf(task: DispatchTask, now: number): number;
+export type SignalView = {
+    total: number;
+    stuck: number;
+    oldestMs: number;
+    text: string;
+    aria: string;
+    /** At least one stuck task: the dot and the badge take the error colour. */
+    red: boolean;
+    /** 1..9 or '9+' — the icon badge; the footer row does not print it again. */
+    badge: string;
+};
+/**
+ * The sidebar's event line and the panel icon badge from one list.
+ * Copy is fixed by the design review:
+ *   1 件待处理 · 12m / 3 件待处理 · 最旧 6h / 1 件卡住 · 最旧 2d /
+ *   3 件全卡住 · 最旧 2d / 9+ 件待处理 · 最旧 3d
+ */
+export declare function signalView(tasks: DispatchTask[], t: Translate, now: number): SignalView;
+/** Queue sections keep the host's oldest-first order inside each group. */
+export declare function splitPending(tasks: DispatchTask[]): {
+    stuck: DispatchTask[];
+    review: DispatchTask[];
+};
+/** A row's second line: the first sentence of NEEDS, one line, bounded. */
+export declare function firstSentence(text: string, max?: number): string;
+/** A task's display title: the meta name, else its id. */
+export declare function taskTitle(task: DispatchTask): string;

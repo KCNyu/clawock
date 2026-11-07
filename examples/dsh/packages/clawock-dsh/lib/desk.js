@@ -89,6 +89,7 @@ function taskQueueConfig(config, workspace) {
 		refreshMs: config.taskQueueRefreshMs,
 		recent: config.taskQueueRecent,
 		opsPath: config.taskQueueOpsPath,
+		dispatchScriptPath: config.dispatchScriptPath,
 		repoOpsPath: join(workspace, "ops", "host", "task_queue_ops.py")
 	};
 }
