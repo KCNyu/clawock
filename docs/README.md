@@ -86,6 +86,15 @@ belongs here.
 - [`product-profile-operations.md`](reference/product-profile-operations.md) —
   what belongs to the product, profiles, operations and runtime state.
 
+## Moved pages
+
+Old paths stay reachable; each stub points at the document that owns the subject now.
+
+- [`design/task-chip-patrol.md`](design/task-chip-patrol.md) → [`design/task-chip.md`](design/task-chip.md)
+- [`design/task-chip-stats.md`](design/task-chip-stats.md) → [`design/task-chip.md`](design/task-chip.md)
+- [`design/intraday-strategy-research.md`](design/intraday-strategy-research.md) → [`architecture/intraday-research-workflow.md`](architecture/intraday-research-workflow.md)
+- [`operations/memory-recall-performance.md`](operations/memory-recall-performance.md) → [`operations/sqlite-maintenance.md`](operations/sqlite-maintenance.md)
+
 ## Legal
 
 - [`third-party-data.md`](legal/third-party-data.md) — data-provider terms,
