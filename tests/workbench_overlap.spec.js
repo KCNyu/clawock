@@ -294,7 +294,7 @@ function collectInPage(options) {
     if (el.matches("script,style,link,meta")) return false;
     if (el.closest("[data-wb-scrim]")) return false;
     if (el.matches("button,a,summary,[role=tab],p,h1,h2,h3,h4,li,dt,dd,pre,time,strong")) return true;
-    if (el.matches("[data-wb-task],[data-wb-provider],[data-wb-group],[data-wb-overview-group],[data-wb-history],[data-wb-fold],[data-wb-detail],[data-wb-sheet],[data-wb-toast],[data-wb-badge],[data-wb-tab-alert],[data-wb-rail-alert],[data-wb-tab-count],[data-wb-provider-pin],[data-wb-stats-layer],[data-wb-history-layer],[data-wb-patrol-layer]")) return true;
+    if (el.matches("[data-wb-task],[data-wb-provider],[data-wb-group],[data-wb-overview-group],[data-wb-history],[data-wb-fold],[data-wb-detail],[data-wb-sheet],[data-wb-toast],[data-wb-badge],[data-wb-tab-alert],[data-wb-rail-alert],[data-wb-tab-count],[data-wb-provider-pin],[data-wb-tabs],[data-wb-stats-layer],[data-wb-history-layer],[data-wb-patrol-layer]")) return true;
     if (el.className && typeof el.className === "string" && /_wb-|_tq-/.test(el.className)) return el.children.length === 0 || directText(el) !== "";
     return false;
   };
@@ -566,6 +566,23 @@ async function main() {
         await page.waitForTimeout(120);
         const scrollTop = await scrollTopOf(page);
         const geometry = await page.evaluate(collectInPage, { scrollTop });
+        const safeArea = await page.evaluate(() => {
+          const nodes = [
+            ...document.querySelectorAll("[data-wb-panel='tasks'] [class*='_wb-queue-body']"),
+            ...document.querySelectorAll("[data-wb-providers]"),
+            ...document.querySelectorAll("[data-wb-overview]"),
+          ];
+          const reserves = nodes.map((node) => ({
+            className: typeof node.className === "string" ? node.className : "",
+            paddingBottom: Number.parseFloat(getComputedStyle(node).paddingBottom) || 0,
+          }));
+          return { reserves, max: reserves.reduce((max, row) => Math.max(max, row.paddingBottom), 0) };
+        });
+        if (state.width < 768 && safeArea.reserves.length > 0) {
+          assert.ok(safeArea.max >= 72,
+            state.name + ": the phone scroll body must reserve the 72px host/safe-area bottom (got "
+            + JSON.stringify(safeArea.reserves) + ")");
+        }
         let rail = null;
         if (state.name === "rail") {
           rail = await page.evaluate(() => {
@@ -592,7 +609,7 @@ async function main() {
           name: state.name, engine: engineName, width: state.width, height: state.height,
           scenario: state.scenario, theme: state.theme || "light", scrollTop,
           blocks: geometry.blocks.length, failures, allowed: geometry.allowed,
-          rail, errors, screenshot: shot,
+          safeArea, rail, errors, screenshot: shot,
         };
         results.push(record);
         browserFailures += failures.length;
