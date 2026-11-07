@@ -54,14 +54,11 @@ belongs here.
 - [`design-system.md`](design/design-system.md) — the dashboard's colour layers
   (semantic vs. everything else), motion scale, component recipes and the list of
   what a new component may not do, each with the gate that checks it.
-- [`dispatch-stats.md`](design/dispatch-stats.md) — the chip's stats tile and chart layer, and the
-  `/dispatch-stats` command: the windows, what the frozen numbers mean and do not
-  mean, and the effect captures.
 - [`task-chip-patrol.md`](design/task-chip-patrol.md) — the patrol block as one entry with a 4px
   outcome strip, and a dashboard page (KPI bento, outcome strip, rounds, coverage tables); the
   motion and the captures.
-- [`task-chip-stats.md`](design/task-chip-stats.md) — the stats card at the bottom of the task
-  chip and its 7-day stacked provider token chart: brand hues muted into one category band, the
+- [`task-chip-stats.md`](design/task-chip-stats.md) — the `/dispatch-stats` command, the stats card at the bottom of
+  the task chip and its 7-day stacked provider token chart: brand hues muted into one category band, the
   state-colour collision rules, zero/unknown days, and no total line or visible unknown caption.
 
 ## Operations

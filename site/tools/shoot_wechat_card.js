@@ -10,7 +10,7 @@
 // the filter but the client does not render them: `## title` shows as literal
 // `## ` in plain weight (kcn 2026-10-20), and is drawn that way here. Whether a
 // real client renders each other construct is still a phone check. Generalised
-// from the one-off table shot behind #3060's docs/design/dispatch-stats-wechat.png.
+// from the one-off table mock used in #3060 (retained in Git history).
 const fs = require('fs');
 const { webkit } = require(process.env.PLAYWRIGHT_CORE || 'playwright-core');
 

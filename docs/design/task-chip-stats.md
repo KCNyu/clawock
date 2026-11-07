@@ -161,3 +161,18 @@ task detail. The only nearby motion is the patrol strip on its own page, documen
   and page's open-count variants, labelled in the patrol note.
 - The v4 chart (four low-chroma pastels, before the brand pass) is kept at
   `task-chip-patrol-v4-stats.png` for the PR's history.
+
+## Command and measurement contract
+
+`/dispatch-stats` prints a five-column Agent / 完成/已结束 / 部分 / 未完成 /
+token · API 估价 table. `plain` selects text for clients that display table pipes.
+Arguments are `7d`, `30d`, `all`, `YYYY-MM-DD`, and `patrol`; invalid arguments return
+usage before calling the ops entry. The UI reads lazily on panel open or manual
+refresh, independently of the queue's 15s polling.
+
+`task_queue_ops.py summary` uses frozen `result.env` tokens and costs, never session
+replays. Live tasks count in task totals but not token/cost totals. Unknown tokens
+and unpriced models display `—`; free models are counted separately. Cost is an
+API list-price estimate, not subscription quota. Patrol is excluded by default.
+DONE / PARTIAL / other terminal outcomes partition ended tasks; live tasks remain
+separate. These semantics also apply to the chart and table.

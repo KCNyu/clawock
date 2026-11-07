@@ -54,7 +54,8 @@ def test_contamination_is_rejected_even_with_approval(text, reason):
     assert rows[0]['decision'] == 'rejected'
     assert reason in rows[0]['reasons']
     assert text not in cleaned
-    assert entry['marker'] in cleaned
+    assert entry['marker'] not in cleaned
+    assert gate.review(cleaned, raw)[0] == cleaned
     gate.validate_batch(cleaned)
 
 
@@ -185,3 +186,63 @@ def test_real_upstream_budget_compaction_preserves_reviewed_conclusion():
     assert receipt(entry)['conclusion'] in compacted['compacted']
     assert entry['marker'] in compacted['compacted']
     assert 'Old unreviewed content.' not in compacted['compacted']
+
+
+def test_old_rejected_receipts_migrate_privately_and_never_return(tmp_path):
+    raw = candidate('今天买入 40 股')
+    entry = gate.extract(raw)[1][0]
+    manual = '# Memory\n\n## Preferences\nKeep my wording.\n'
+    old = manual + '\n' + gate.HEADING + '\n\n' + entry['marker'] + (
+        '\n- Rejected candidate; see private review ledger.\n')
+    path = tmp_path / 'MEMORY.md'
+    path.write_text(old)
+    private = tmp_path / 'memory/.dreams'
+    private.mkdir(parents=True)
+    (private / 'promotion-candidates.md').write_text(raw)
+    command = [sys.executable, str(ROOT / 'ops/host/review_dreaming.py'), '--workspace', str(tmp_path)]
+    subprocess.run(command, check=True, capture_output=True)
+    assert path.read_text() == manual
+    archives = list(private.glob('review-*.json'))
+    ledger = json.loads(archives[0].read_text())
+    assert ledger['memory_before'] == old
+    assert ledger['results'][0]['decision'] == 'rejected'
+    assert archives[0].stat().st_mode & 0o777 == 0o600
+    for _ in range(3):
+        subprocess.run(command, check=True, capture_output=True)
+        assert path.read_text() == manual
+    assert len(list(private.glob('review-*.json'))) == 2
+    subprocess.run(command + ['--check'], check=True, capture_output=True)
+
+
+def test_migration_preserves_approved_and_human_sections():
+    raw = candidate('Verify source identity.')
+    entry = gate.extract(raw)[1][0]
+    approved, _ = gate.review('# Memory\n', raw, {entry['key']: receipt(entry)})
+    rejected = gate.extract(candidate('今天买入 40 股', 2))[1][0]
+    old = approved + rejected['marker'] + '\n- Rejected candidate; see private review ledger.\n'
+    clean = gate.clean_rejected_receipts(old)
+    assert clean == approved
+    human = '\n## Human notes\n- Rejected candidate; see private review ledger.\n'
+    assert gate.clean_rejected_receipts(approved + human) == approved + human
+    newer = candidate('Check primary evidence.', 3, 'memory/other.md')
+    other = gate.extract(newer)[1][0]
+    result, _ = gate.review(clean, newer, {other['key']: receipt(other)})
+    assert result.count(gate.HEADING) == 1
+    assert result.count('- Source:') == 2
+
+
+def test_receipt_only_migration_keeps_a_private_before_image(tmp_path):
+    entry = gate.extract(candidate('今天买入 40 股'))[1][0]
+    original = '# Memory\n\n' + gate.HEADING + '\n\n' + entry['marker'] + (
+        '\n- Rejected candidate; see private review ledger.\n')
+    path = tmp_path / 'MEMORY.md'
+    path.write_text(original)
+    command = [sys.executable, str(ROOT / 'ops/host/review_dreaming.py'), '--workspace', str(tmp_path)]
+    assert subprocess.run(command + ['--check'], capture_output=True).returncode != 0
+    subprocess.run(command, check=True, capture_output=True)
+    assert path.read_text() == '# Memory\n'
+    archives = list((tmp_path / 'memory/.dreams').glob('review-*.json'))
+    assert len(archives) == 1
+    assert json.loads(archives[0].read_text())['memory_before'] == original
+    subprocess.run(command, check=True, capture_output=True)
+    assert len(list((tmp_path / 'memory/.dreams').glob('review-*.json'))) == 1
