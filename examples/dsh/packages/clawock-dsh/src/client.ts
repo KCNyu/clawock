@@ -35,7 +35,7 @@ import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, patrolSection, compactCount, MINUS, signalView, waitShort, waitLong, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type SignalView } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 // Pure projections, re-exported so the spec can pin the fixed signal copy and
 // the wait formatters without a browser.
@@ -2503,12 +2503,44 @@ const CONFIRM_MS = 5000
 
 /** dsh's own breakpoint for the drawer main column (ui-layout: width<=767px). */
 const WORKBENCH_WIDE = '(min-width: 768px)'
-/** The initial queue cap; the rest expands in place (no pager, no infinite scroll). */
-const WORKBENCH_FIRST = 20
 /** Two-tap destructive confirmation, in place, then it reverts. */
 const WORKBENCH_CONFIRM_MS = 3000
 /** How long "刚刚更新" stays after a silent refresh. */
 const WORKBENCH_UPDATED_MS = 1600
+/** Per-device group fold memory (the design review fixed this key). */
+const WORKBENCH_GROUPS_KEY = 'workbench.groups'
+type WorkbenchGroup = 'stuck' | 'pending' | 'live'
+type WorkbenchGroups = Record<WorkbenchGroup, boolean>
+/** The alarm group is open until the reader folds it; the other two start closed. */
+const WORKBENCH_GROUPS_DEFAULT: WorkbenchGroups = { stuck: true, pending: false, live: false }
+
+function readWorkbenchGroups(): WorkbenchGroups {
+  const fallback = { ...WORKBENCH_GROUPS_DEFAULT }
+  try {
+    if (typeof window === 'undefined' || window.localStorage === undefined) return fallback
+    const raw = window.localStorage.getItem(WORKBENCH_GROUPS_KEY)
+    if (raw === null || raw === '') return fallback
+    const parsed: unknown = JSON.parse(raw)
+    if (parsed === null || typeof parsed !== 'object') return fallback
+    const value = parsed as Partial<Record<WorkbenchGroup, unknown>>
+    return {
+      stuck: typeof value.stuck === 'boolean' ? value.stuck : WORKBENCH_GROUPS_DEFAULT.stuck,
+      pending: typeof value.pending === 'boolean' ? value.pending : WORKBENCH_GROUPS_DEFAULT.pending,
+      live: typeof value.live === 'boolean' ? value.live : WORKBENCH_GROUPS_DEFAULT.live,
+    }
+  } catch {
+    return fallback
+  }
+}
+
+function saveWorkbenchGroups(groups: WorkbenchGroups): void {
+  try {
+    if (typeof window === 'undefined' || window.localStorage === undefined) return
+    window.localStorage.setItem(WORKBENCH_GROUPS_KEY, JSON.stringify(groups))
+  } catch {
+    // A blocked storage (private mode) keeps the in-memory fold for this visit.
+  }
+}
 
 function useMedia(query: string): boolean {
   const read = (): boolean => typeof window !== 'undefined' && typeof window.matchMedia === 'function'
@@ -2566,6 +2598,40 @@ function renderWorkbenchChevron(size = 12): React.ReactElement {
     }))
 }
 
+/** The stuck group's warning glyph: the red text alone should not carry the alarm. */
+function renderWorkbenchAlert(size = 12): React.ReactElement {
+  return h('svg', { width: size, height: size, viewBox: '0 0 12 12', 'aria-hidden': 'true', className: cx('wb-group-alert') },
+    h('path', {
+      d: 'M6 1.5 11 10.5H1z', fill: 'none', stroke: 'currentColor', strokeWidth: 1.2, strokeLinejoin: 'round',
+    }),
+    h('path', {
+      d: 'M6 4.4v2.8M6 8.9v.1', stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round',
+    }))
+}
+
+/** The one group header the queue's three sections share: label, count, chevron. */
+function WorkbenchGroupHeader(props: {
+  id: WorkbenchGroup
+  label: string
+  open: boolean
+  tone: 'danger' | 'neutral'
+  bodyId: string
+  buttonRef: (element: HTMLButtonElement | null) => void
+  onToggle: () => void
+}): React.ReactElement {
+  return h('button', {
+    type: 'button', className: cx('wb-group'), 'data-wb-group-button': props.id, 'data-wb-tone': props.tone,
+    'aria-expanded': props.open,
+    // A closed group has no body node, so it must not point at one.
+    'aria-controls': props.open ? props.bodyId : undefined,
+    ref: props.buttonRef,
+    onClick: props.onToggle,
+  },
+    props.tone === 'danger' ? renderWorkbenchAlert() : null,
+    h('span', { className: cx('wb-group-title') }, props.label),
+    h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron()))
+}
+
 /** The panellist icon: a permanent entry; the badge exists only with pending tasks. */
 export type WorkbenchIconInjected = TaskQueueInjected & {
   rememberTrigger: (element: HTMLElement | null) => void
@@ -2580,23 +2646,42 @@ export type WorkbenchIconProps = WorkbenchIconInjected & {
 export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
   const queue = useTaskQueue(props)
   const tasks = queue.data.result?.pending ?? []
-  const view = signalView(tasks, props.t, Date.now())
+  const view = tasks.length === 0 ? null : signalView(tasks, props.t, Date.now())
+  const iconRef = useRef<HTMLSpanElement | null>(null)
+  // The host owns the row's button and its visible label; only the accessible
+  // name and tooltip can carry the count (the glyph slot is aria-hidden).
+  const label = view?.aria ?? props.t('signal.icon')
+  useEffect(() => {
+    const button = iconRef.current?.closest('button')
+    if (typeof HTMLElement === 'undefined' || !(button instanceof HTMLElement)) return undefined
+    const previous = button.getAttribute('aria-label')
+    button.setAttribute('aria-label', label)
+    button.setAttribute('title', label)
+    return () => {
+      if (previous === null) button.removeAttribute('aria-label')
+      else button.setAttribute('aria-label', previous)
+      button.removeAttribute('title')
+    }
+  }, [label])
   return h('span', {
     className: cx('wb-icon', props.active && 'wb-icon-on'),
     'data-wb-icon': 'true',
+    ref: iconRef,
     onClick: (event: { currentTarget: HTMLElement }) => {
       const button = event.currentTarget.closest('button')
       props.rememberTrigger(button instanceof HTMLElement ? button : null)
     },
   },
     renderWorkbenchGlyph(props.size),
-    view.total > 0
-      ? h('span', {
+    view === null
+      ? null
+      : h('span', {
         className: cx('wb-badge'),
-        'data-red': view.red ? 'true' : undefined,
+        'data-wb-badge': 'true',
+        'data-wb-tone': view.tone,
         'aria-hidden': 'true',
-      }, view.badge)
-      : null)
+        'aria-live': 'polite',
+      }, view.badge))
 }
 
 export type WorkbenchInjected = TaskQueueInjected & {
@@ -2625,7 +2710,7 @@ function WorkbenchRow(props: {
     ref: props.buttonRef,
     className: cx('wb-row', props.selected && 'wb-row-on'),
     'data-wb-task': task.id,
-    'aria-label': taskTitle(task) + '，' + t('workbench.waited', { time: waitSpokenSafe(waitedOf(task, props.now)) }),
+    'aria-label': t('workbench.rowAria', { title: taskTitle(task), time: waitSpoken(waitedOf(task, props.now), t) }),
     onClick: props.onOpen,
     onKeyDown: (event: React.KeyboardEvent) => {
       if (event.key === 'Enter' || event.key === ' ') {
@@ -2640,21 +2725,6 @@ function WorkbenchRow(props: {
       h('span', { className: cx('wb-row-title') }, taskTitle(task)),
       sub === '' ? null : h('span', { className: cx('wb-row-sub') }, sub)),
     h('span', { className: cx('wb-row-age') }, waitShort(waitedOf(task, props.now))))
-}
-
-/** The wait in the aria-label: spelled out, but without a second copy of the formatter. */
-function waitSpokenSafe(ms: number): string {
-  const safe = Math.max(0, ms)
-  const minutes = Math.floor(safe / 60000)
-  if (safe < 3600000) return Math.max(1, minutes) + ' 分钟'
-  if (safe < 86400000) {
-    const hours = Math.floor(safe / 3600000)
-    const rest = minutes - hours * 60
-    return rest === 0 ? hours + ' 小时' : hours + ' 小时 ' + rest + ' 分钟'
-  }
-  const days = Math.floor(safe / 86400000)
-  const hours = Math.floor((safe - days * 86400000) / 3600000)
-  return hours === 0 ? days + ' 天' : days + ' 天 ' + hours + ' 小时'
 }
 
 /** A native details fold; the summary carries the whole row, the body the existing tables. */
@@ -2763,8 +2833,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const [view, setView] = useState<'queue' | 'focus'>('queue')
   const [selected, setSelected] = useState<string | null>(null)
   const [snapshot, setSnapshot] = useState<DispatchTask | null>(null)
-  const [expanded, setExpanded] = useState(false)
-  const [liveOpen, setLiveOpen] = useState(false)
+  const [groups, setGroups] = useState<WorkbenchGroups>(readWorkbenchGroups)
   const [updated, setUpdated] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
@@ -2773,27 +2842,35 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const desktop = useMedia(WORKBENCH_WIDE)
   const titleRef = useRef<HTMLHeadingElement | null>(null)
   const rowRefs = useRef(new Map<string, HTMLButtonElement>())
+  const groupRefs = useRef(new Map<WorkbenchGroup, HTMLButtonElement>())
   const updatedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const groupId = useId()
   const now = Date.now()
   const result = queue.data.result
   const pending = result?.pending ?? []
-  const total = result?.pendingTotal ?? pending.length
-  const visibleTasks = pending
-  const shown = selected === null ? null : visibleTasks.find((task) => task.id === selected) ?? snapshot
-  const counted = total > 0 ? total : pending.length
+  const counts = workbenchCounts(pending, now)
+  const split = splitPending(pending)
+  const live = (result?.active ?? []).filter((task) => !task.patrol)
+  // Only the groups that are open contribute rows to the DOM (and to the
+  // desktop arrow order). A closed group has no list node at all.
+  const rendered = [
+    ...(groups.stuck ? split.stuck : []),
+    ...(groups.pending ? split.review : []),
+  ]
+  const shown = selected === null ? null : pending.find((task) => task.id === selected) ?? snapshot
   const patrolAt = lastPatrolAt(result)
   const stamp = clockOf(patrolAt)
-  const live = (result?.active ?? []).filter((task) => !task.patrol)
   const rawProgress = result?.patrol?.progress ?? null
+  const firstRendered = rendered[0]?.id ?? null
 
-  // The desktop column needs a selection; pick the oldest once, never steal a
-  // selection the reader made while data was arriving.
+  // The desktop column needs a selection; pick the oldest rendered task once,
+  // never steal a selection the reader made while data was arriving.
   useEffect(() => {
-    if (!desktop || selected !== null || pending.length === 0) return
-    setSelected(pending[0]!.id)
-    setSnapshot(pending[0]!)
-  }, [desktop, selected, pending.length])
+    if (!desktop || selected !== null || rendered.length === 0) return
+    setSelected(rendered[0]!.id)
+    setSnapshot(rendered[0]!)
+  }, [desktop, selected, firstRendered])
   // A focus view's title takes focus; the browser's focus ring is the host's.
   useEffect(() => {
     if (desktop || view !== 'focus') return
@@ -2812,6 +2889,18 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     if (confirmTimer.current !== null) clearTimeout(confirmTimer.current)
   }, [])
 
+  const toggleGroup = (id: WorkbenchGroup): void => {
+    const next = { ...groups, [id]: !groups[id] }
+    setGroups(next)
+    saveWorkbenchGroups(next)
+  }
+  const focusGroup = (id: WorkbenchGroup): void => {
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => { groupRefs.current.get(id)?.focus({ preventScroll: true }) })
+      return
+    }
+    groupRefs.current.get(id)?.focus({ preventScroll: true })
+  }
   const choose = (task: DispatchTask): void => {
     setSelected(task.id)
     setSnapshot(task)
@@ -2826,28 +2915,34 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   }
   const back = (): void => {
     const id = selected
+    const task = shown
     setView('queue')
     setNotice(null)
     setConfirmStop(false)
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => {
-        if (id !== null) rowRefs.current.get(id)?.focus({ preventScroll: false })
+        const row = id === null ? undefined : rowRefs.current.get(id)
+        if (row !== undefined) {
+          row.focus({ preventScroll: false })
+          return
+        }
+        if (task !== null) groupRefs.current.get(isStuckTask(task) ? 'stuck' : 'pending')?.focus({ preventScroll: false })
       })
     }
   }
   const move = (from: DispatchTask, delta: number): void => {
-    const index = visibleTasks.findIndex((task) => task.id === from.id)
+    const index = rendered.findIndex((task) => task.id === from.id)
     if (index < 0) return
-    const next = visibleTasks[Math.max(0, Math.min(visibleTasks.length - 1, index + delta))]
+    const next = rendered[Math.max(0, Math.min(rendered.length - 1, index + delta))]
     if (next === undefined) return
     choose(next)
     const element = rowRefs.current.get(next.id)
     if (element !== undefined) element.focus()
   }
-  // Esc returns from the focus view, then closes the page; the destructive
-  // confirmation is the one thing it cancels before leaving the task. On
-  // desktop the same listener owns the list's arrow/Enter keys while the page
-  // is up, so a click that did not move DOM focus (WebKit) still navigates.
+  // Esc closes a focus view, then folds the group it is in. It never leaves the
+  // workbench from the queue: that would read as "the page ate my session".
+  // Arrow/Enter own the desktop list while the page is up, so a click that did
+  // not move DOM focus (WebKit) still navigates.
   useEffect(() => {
     const typing = (target: EventTarget | null): boolean => target instanceof HTMLElement
       && target.closest('input, textarea, select, [contenteditable=""], [contenteditable=true]') !== null
@@ -2857,16 +2952,24 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       if (event.key === 'Escape') {
         if (confirmStop) { event.preventDefault(); setConfirmStop(false); return }
         if (!desktop && view === 'focus') { event.preventDefault(); back(); return }
-        if (!desktop) { event.preventDefault(); props.closeWorkbench() }
+        const target = event.target instanceof HTMLElement ? event.target.closest('[data-wb-group]') : null
+        const focused = target?.getAttribute('data-wb-group')
+        if (focused !== 'stuck' && focused !== 'pending' && focused !== 'live') return
+        if (!groups[focused]) return
+        event.preventDefault()
+        const next = { ...groups, [focused]: false }
+        setGroups(next)
+        saveWorkbenchGroups(next)
+        focusGroup(focused)
         return
       }
       if (!desktop || typing(event.target)) return
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        const index = visibleTasks.findIndex((task) => task.id === selected)
+        const index = rendered.findIndex((task) => task.id === selected)
         const delta = event.key === 'ArrowDown' ? 1 : -1
         const next = index < 0
-          ? (delta > 0 ? visibleTasks[0] : visibleTasks[visibleTasks.length - 1])
-          : visibleTasks[Math.max(0, Math.min(visibleTasks.length - 1, index + delta))]
+          ? (delta > 0 ? rendered[0] : rendered[rendered.length - 1])
+          : rendered[Math.max(0, Math.min(rendered.length - 1, index + delta))]
         if (next === undefined) return
         event.preventDefault()
         choose(next)
@@ -2883,7 +2986,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return undefined
     window.addEventListener('keydown', onKey)
     return () => { window.removeEventListener('keydown', onKey) }
-  }, [confirmStop, desktop, view, selected, visibleTasks, shown])
+  }, [confirmStop, desktop, view, selected, rendered, shown, groups])
 
   const refresh = (): void => {
     setUpdated(false)
@@ -2896,8 +2999,8 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     setTimeout(done, 350)
   }
   const advance = (): void => {
-    const index = visibleTasks.findIndex((task) => task.id === selected)
-    const next = visibleTasks.find((task, at) => task.id !== selected && at >= index + 1) ?? visibleTasks.find((task) => task.id !== selected)
+    const index = rendered.findIndex((task) => task.id === selected)
+    const next = rendered.find((task, at) => task.id !== selected && at >= index + 1) ?? rendered.find((task) => task.id !== selected)
     if (next === undefined) { setView('queue'); return }
     choose(next)
     if (!desktop) setView('focus')
@@ -2928,44 +3031,46 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         h('div', { className: cx('wb-empty-body') }, t('workbench.empty.body')),
         h('div', { className: cx('wb-empty-meta') }, t('workbench.empty.meta', { time: stamp })))
     }
-    const ordered = [...splitPending(pending).stuck, ...splitPending(pending).review]
-    const visible = expanded ? ordered : ordered.slice(0, WORKBENCH_FIRST)
-    const more = counted - visible.length
-    const stuck = visible.filter(isStuckTask)
-    const review = visible.filter((task) => !isStuckTask(task))
-    const section = (id: string, label: string, rows: DispatchTask[], red = false): React.ReactElement | null => rows.length === 0 ? null : h('section', {
-      className: cx('wb-section'), 'data-wb-section': id,
-    },
-      h('h3', { className: cx('wb-section-title', red && 'wb-red') }, label, h('span', { className: cx('wb-section-count') }, rows.length)),
-      ...rows.map((task) => h(WorkbenchRow, {
-        key: task.id, task, now, t, selected: selected === task.id,
-        buttonRef: (element: HTMLButtonElement | null) => {
-          if (element === null) rowRefs.current.delete(task.id)
-          else rowRefs.current.set(task.id, element)
-        },
-        onOpen: () => { open(task) },
-        onMove: (delta: number) => { move(task, delta) },
-      })))
-    const body = h('div', { className: cx('wb-queue-body') },
-      section('stuck', t('workbench.section.stuck'), stuck, true),
-      section('pending', t('workbench.section.pending'), review),
-      more > 0 ? h('button', {
-        type: 'button', className: cx('wb-more'), 'data-wb-more': String(more),
-        onClick: () => { setExpanded(true) },
-      }, t('workbench.more', { n: more }), h('span', { 'aria-hidden': 'true' }, renderWorkbenchChevron())) : null,
-      h('button', {
-        type: 'button', className: cx('wb-live-toggle'), 'data-wb-live': String(live.length),
-        'aria-expanded': liveOpen,
-        onClick: () => { setLiveOpen(!liveOpen) },
-      }, t('workbench.liveCount', { n: live.length })),
-      liveOpen ? h('div', { className: cx('wb-live-list') }, ...live.map((task) => h('div', {
-        key: task.id, className: cx('wb-live-row'), 'data-wb-live-task': task.id,
+    const bodyId = (id: WorkbenchGroup): string => groupId + '-' + id
+    const renderRow = (task: DispatchTask): React.ReactElement => h(WorkbenchRow, {
+      key: task.id, task, now, t, selected: selected === task.id,
+      buttonRef: (element: HTMLButtonElement | null) => {
+        if (element === null) rowRefs.current.delete(task.id)
+        else rowRefs.current.set(task.id, element)
       },
-        h('span', { className: cx('wb-live-name') }, taskTitle(task)),
-        h('span', { className: cx('wb-live-age') }, t('workbench.live.elapsed', {
-          time: waitShort(Math.max(0, now - (task.startedAtMs ?? task.updatedAtMs ?? now))),
-        }))))) : null)
-    return body
+      onOpen: () => { open(task) },
+      onMove: (delta: number) => { move(task, delta) },
+    })
+    const group = (id: WorkbenchGroup, label: string, rows: React.ReactNode[], tone: 'danger' | 'neutral'): React.ReactElement => {
+      const isOpen = groups[id]
+      return h('section', {
+        className: cx('wb-group-section'), 'data-wb-group': id, 'data-wb-open': isOpen ? 'true' : 'false',
+      },
+        h(WorkbenchGroupHeader, {
+          id, label, tone, open: isOpen, bodyId: bodyId(id),
+          buttonRef: (element: HTMLButtonElement | null) => {
+            if (element === null) groupRefs.current.delete(id)
+            else groupRefs.current.set(id, element)
+          },
+          onToggle: () => { toggleGroup(id) },
+        }),
+        isOpen
+          ? h('div', { className: cx('wb-group-body'), id: bodyId(id), 'data-wb-group-body': id }, ...rows)
+          : null)
+    }
+    const renderLive = (task: DispatchTask): React.ReactElement => h('div', {
+      key: task.id, className: cx('wb-live-row'), 'data-wb-live-task': task.id,
+    },
+      h('span', { className: cx('wb-live-name') }, taskTitle(task)),
+      h('span', { className: cx('wb-live-age') }, t('workbench.live.elapsed', {
+        time: waitShort(Math.max(0, now - (task.startedAtMs ?? task.updatedAtMs ?? now))),
+      })))
+    return h('div', { className: cx('wb-queue-body') },
+      split.stuck.length === 0 ? null : group('stuck', t('workbench.group.stuck', { n: split.stuck.length }), split.stuck.map(renderRow), 'danger'),
+      split.review.length === 0 ? null : group('pending', t('workbench.group.pendingOldest', {
+        n: split.review.length, age: waitShort(counts.oldestPendingMs),
+      }), split.review.map(renderRow), 'neutral'),
+      live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live.map(renderLive), 'neutral'))
   }
   const detail = shown === null
     ? h('div', { className: cx('wb-detail-empty') }, t('workbench.select'))
@@ -2980,8 +3085,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'focus' },
       h('div', { className: cx('wb-returnbar') },
         h('button', {
-          type: 'button', className: cx('wb-back'), 'data-wb-back': 'true', onClick: back,
-        }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.queue'))),
+          type: 'button', className: cx('wb-back'), 'data-wb-back': 'true',
+          'aria-label': t('workbench.back'), title: t('workbench.back'), onClick: back,
+        }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.back'))),
       h('div', { className: cx('wb-view'), key: 'focus' }, detail))
   }
   return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'queue' },
@@ -2989,7 +3095,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       h('div', { className: cx('wb-head-row') },
         h('button', {
           type: 'button', className: cx('wb-back'), 'data-wb-close': 'true',
-          'aria-label': t('workbench.back'), title: t('workbench.back'),
+          'aria-label': t('workbench.close'), title: t('workbench.close'),
           onClick: () => { props.closeWorkbench() },
         }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹')),
         h('h1', { className: cx('wb-title') }, t('workbench.title')),
@@ -3003,7 +3109,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
             d: 'M13 8a5 5 0 1 1-1.6-3.7M13 2.6V5h-2.4', stroke: 'currentColor', strokeWidth: 1.35,
             strokeLinecap: 'round', strokeLinejoin: 'round',
           })))),
-      h('div', { className: cx('wb-sub') }, t('workbench.meta', { n: counted, time: stamp }))),
+      h('div', { className: cx('wb-sub') }, t('workbench.meta', { n: counts.total, time: stamp }))),
     h('div', { className: cx('wb-main') },
       desktop
         ? h('div', { className: cx('wb-grid') },
@@ -3015,8 +3121,6 @@ export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & T
   /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
   wide: boolean
   t: Translate
-  /** Open the workbench page; the event line passes itself so close() can restore focus. */
-  openWorkbench: (trigger: HTMLElement) => void
   /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
   openFile?: OpenFile
 }
@@ -3256,7 +3360,6 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const result = queueState.data.result
   const dispatcher = result !== null && result.available
   const pending = result?.pending ?? []
-  const signal = pending.length === 0 ? null : signalView(pending, t, now)
   const rows = new Map(balanceState.rows.map((row) => [row.provider, row] as const))
   const sources = _panelSources(balanceState.data.result?.providers ?? [], result)
   const windowsOf = (agent: string): ReadonlyArray<{ resetAtMs?: number | null }> | undefined => agentWindows(rows, agent)
@@ -3323,17 +3426,6 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   return h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', !props.wide && 'rail'), ref: rootRef, 'data-pp-warn': warn ? 'true' : undefined },
     props.wide
       ? h('div', { className: cx('pp-rows'), role: 'group', 'aria-label': t('panel.aria'), 'data-clawock-action': BALANCE_PANEL },
-        signal === null ? null : h('span', {
-          className: cx('wb-sr'), 'aria-live': 'polite', 'data-wb-live-count': 'true',
-        }, signal.badge),
-        signal === null ? null : h('button', {
-          type: 'button', className: cx('wb-signal'), 'data-wb-signal': 'true',
-          'aria-label': signal.aria, title: signal.aria,
-          onClick: (event: { currentTarget: HTMLElement }) => { props.openWorkbench(event.currentTarget) },
-        },
-          h('span', { className: cx('wb-signal-dot'), 'data-red': signal.red ? 'true' : undefined, 'aria-hidden': 'true' }),
-          h('span', { className: cx('wb-signal-text') }, signal.text),
-          h('span', { className: cx('wb-signal-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron())),
         lines.length === 0
           ? h('button', {
             type: 'button', className: cx('pp-row', 'pp-empty'), 'data-pp-row': '', 'aria-expanded': open, 'aria-haspopup': 'dialog',
@@ -3786,10 +3878,6 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     // control opened the workbench gets focus back when it closes.
     let workbenchTrigger: HTMLElement | null = null
     const rememberTrigger = (element: HTMLElement | null): void => { workbenchTrigger = element }
-    const openWorkbench = (trigger: HTMLElement): void => {
-      rememberTrigger(trigger)
-      layout.selectPanel!(WORKBENCH_PANEL)
-    }
     const closeWorkbench = (): void => {
       layout.selectPanel!(null)
       if (typeof window === 'undefined') return
@@ -3827,11 +3915,10 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
       id: 'provider-balance',
       store: balancesStore,
       locale: LOCALE_NS,
-      inject: (): BalancesInjected & TaskQueueInjected & { openFile: OpenFile; openWorkbench: (trigger: HTMLElement) => void } => ({
+      inject: (): BalancesInjected & TaskQueueInjected & { openFile: OpenFile } => ({
         ...balancesInjected(),
         ...queueInjected(),
         openFile,
-        openWorkbench,
       }),
     }, ProviderPanelSidebarAction))
   } else {

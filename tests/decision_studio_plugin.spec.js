@@ -5438,25 +5438,52 @@ test("workbench: the signal copy, waits and first sentence are fixed", async () 
   assert.equal(api.waitShort(2 * 86400_000), "2d");
   assert.equal(api.waitLong(2 * 3600_000 + 14 * 60_000), "2h 14m");
   assert.equal(api.waitLong(2 * 86400_000 + 3 * 3600_000), "2d 3h");
-  assert.equal(api.waitSpoken(6 * 3600_000), "6 小时");
+  assert.equal(api.waitSpoken(6 * 3600_000, t), "6 小时");
 
-  assert.equal(api.signalView([task("a", now - 12 * 60_000)], t, now).text, "1 件待处理 · 12m");
-  assert.deepEqual(api.signalView([task("a", now - 12 * 60_000)], t, now).aria,
-    "工作台：1 件待处理，12 分钟，打开");
-  assert.equal(api.signalView([
+  const one = api.signalView([task("a", now - 12 * 60_000)], t, now);
+  assert.equal(one.aria, "工作台，1 件待处理，最旧 12 分钟",
+    "the host row carries the count and the oldest wait");
+  assert.equal(one.badge, "1");
+  assert.equal(one.tone, "neutral", "review work keeps the neutral badge");
+  assert.equal(one.pending, 1);
+  const many = api.signalView([
     task("a", now - 6 * 3600_000), task("b", now - 2 * 3600_000), task("c", now - 60_000),
-  ], t, now).text, "3 件待处理 · 最旧 6h");
-  assert.equal(api.signalView([task("a", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" })], t, now).text,
-    "1 件卡住 · 最旧 2d");
-  assert.equal(api.signalView([
+  ], t, now);
+  assert.equal(many.total, 3);
+  assert.equal(many.oldestPendingMs, 6 * 3600_000);
+  const stuck = api.signalView([task("a", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" })], t, now);
+  assert.equal(stuck.tone, "danger", "a stuck task takes the danger badge");
+  assert.equal(stuck.badge, "1", "the badge is stuck + pending, not the pending group alone");
+  assert.equal(stuck.pending, 0);
+  const allStuck = api.signalView([
     task("a", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" }),
     task("b", now - 86400_000, { stage: "person/blocked", state: "quota" }),
     task("c", now - 3600_000, { stage: "person/blocked", state: "quota" }),
-  ], t, now).text, "3 件全卡住 · 最旧 2d");
+  ], t, now);
+  assert.equal(allStuck.stuck, 3);
+  assert.equal(allStuck.pending, 0);
+  assert.equal(allStuck.badge, "3");
   const overflow = api.signalView(Array.from({ length: 10 }, (_, i) => task("x" + i, now - 3 * 86400_000 + i)), t, now);
-  assert.equal(overflow.text, "9+ 件待处理 · 最旧 3d");
-  assert.equal(overflow.badge, "9+");
-  assert.equal(overflow.red, false, "review work never paints the dot red");
+  assert.equal(overflow.badge, "10", "the badge prints the real count");
+  assert.equal(overflow.tone, "neutral");
+
+  // Both dictionaries carry every workbench key; the new copy is not zh-only.
+  const en = api.createTranslator(api.dictionaries.en);
+  assert.equal(en("signal.rowLabel", { n: "7", time: "5 days" }), "Workbench, 7 pending, oldest 5 days");
+  assert.equal(en("workbench.close"), "Close workbench and return to the conversation");
+  assert.equal(en("workbench.group.stuck", { n: "1" }), "Stuck 1");
+  assert.equal(en("workbench.group.pendingOldest", { n: "6", age: "5d" }), "Pending 6 · oldest 5d");
+  assert.equal(en("workbench.group.live", { n: "4" }), "Running 4");
+  assert.equal(t("workbench.group.pendingOldest", { n: "6", age: "5d" }), "待你处理 6 · 最旧 5d");
+  assert.equal(t("workbench.close"), "关闭工作台，返回会话");
+  assert.equal(en("workbench.rowAria", { title: "T", time: "5 days" }), "T, waited 5 days");
+  assert.equal(en("time.minuteOne", { n: "1" }), "1 minute");
+  assert.equal(en("time.minuteMany", { n: "12" }), "12 minutes");
+  assert.equal(api.waitSpoken(6 * 3600_000, en), "6 hours");
+  assert.equal(api.waitSpoken(12 * 60_000, en), "12 minutes");
+  assert.equal(api.waitSpoken(2 * 86400_000 + 3 * 3600_000, en), "2d 3h");
+  assert.equal(api.signalView([task("a", now - 12 * 60_000)], en, now).aria,
+    "Workbench, 1 pending, oldest 12 minutes");
 
   assert.equal(api.firstSentence("第一句。第二句。"), "第一句。");
   assert.equal(api.firstSentence("one. two."), "one");
@@ -5525,11 +5552,12 @@ test("workbench host: the three presets run the existing dispatcher commands", a
   assert.match(tq.workbenchCommand("stop", "../bad", plain), /not a task id/);
 });
 
-test("workbench client: the foot event line appears only with pending work", async () => {
+test("workbench client: the foot has no signal row; the panellist badge carries counts", async () => {
   const loaded = await loadClient();
+  const reactStub = makeReactStub();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return makeReactStub();
+    if (s === "react") return reactStub;
     throw new Error(`unexpected require: ${s}`);
   });
   const task = (id, state, stage, finished, needs) => ({
@@ -5542,8 +5570,18 @@ test("workbench client: the foot event line appears only with pending work", asy
     running: 0, active: [], recent: [], pending, pendingTotal: pending.length,
     patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
   });
-  const mount = async (pending) => {
-    const reactStub = makeReactStub();
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const mountFoot = async (pending) => {
     const remoteFace = {
       balance: async () => ({ ok: true, value: BALANCES_OK }),
       taskQueue: async () => ({ ok: true, value: queue(pending) }),
@@ -5564,7 +5602,220 @@ test("workbench client: the foot event line appears only with pending work", asy
       reactStub._resetCursor();
       return action.Component({ wide: true, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
     };
-    const find = (tree, pred) => {
+    render();
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+    return { tree: render(), find };
+  };
+  const now = Date.now();
+  const foot = await mountFoot([
+    task("a", "ok", "person/review", now - 6 * 3600_000, "x"),
+    task("b", "partial", "person/review", now - 3600_000, "y"),
+    task("c", "ok", "person/review", now - 60_000, "z"),
+  ]);
+  assert.equal(foot.find(foot.tree, (p) => p["data-wb-signal"] !== undefined).length, 0,
+    "the independent footer signal row is gone");
+  assert.equal(foot.find(foot.tree, (p) => p["data-wb-live-count"] !== undefined).length, 0,
+    "its live region went with it");
+
+  const renderIcon = (pending) => {
+    const stub = makeReactStub();
+    const iconApi = loaded.factory((s) => {
+      if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+      if (s === "react") return stub;
+      throw new Error(`unexpected require: ${s}`);
+    });
+    return iconApi.WorkbenchIcon({
+      size: 16, active: false, t: translatorFor(iconApi),
+      cachedTaskQueue: () => queue(pending),
+      fetchTaskQueue: async () => queue(pending),
+      rememberTrigger: () => {},
+    });
+  };
+  const badgeOf = (tree) => find(tree, (p) => p["data-wb-badge"] === "true")[0];
+  const stuck = task("s", "quota", "person/blocked", now - 2 * 86400_000, "s");
+  const review = task("r", "ok", "person/review", now - 5 * 86400_000, "r");
+  const danger = renderIcon([stuck, review]);
+  const dangerBadge = badgeOf(danger);
+  assert.ok(dangerBadge, "a pending task renders the badge");
+  assert.equal(dangerBadge.props["data-wb-tone"], "danger");
+  assert.equal(dangerBadge.children.join(""), "2", "stuck + pending, one count");
+  assert.equal(dangerBadge.props["aria-hidden"], "true");
+  assert.equal(dangerBadge.props["aria-live"], "polite", "only the count span is live");
+  assert.equal(badgeOf(renderIcon([review])).props["data-wb-tone"], "neutral",
+    "no stuck task: neutral, not a warning yellow");
+  assert.equal(badgeOf(renderIcon([review])).children.join(""), "1");
+  assert.equal(badgeOf(renderIcon([])), undefined, "zero pending renders no badge");
+  disposeReactEffects();
+});
+
+test("workbench client: the queue is three foldable group headers", async () => {
+  const loaded = await loadClient();
+  const base = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+  };
+  const now = Date.now();
+  const task = (i, extra = {}) => ({
+    id: "t" + i, name: "任务" + i, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: null, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "", lastEvent: "", lastEventAtMs: null,
+    finishedAtMs: now - i * 60000, needs: "需要人处理", stage: "person/review", attention: "person", ...extra,
+  });
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const textOf = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join("").replace(/\s+/g, " ").trim();
+  };
+  const makePage = (queue) => {
+    const stub = makeReactStub();
+    const api = loaded.factory((s) => {
+      if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+      if (s === "react") return stub;
+      throw new Error(`unexpected require: ${s}`);
+    });
+    const render = () => {
+      stub._resetCursor();
+      return api.WorkbenchPage({
+        cachedTaskQueue: () => queue,
+        fetchTaskQueue: async () => queue,
+        closeWorkbench: () => {},
+        runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+        t: translatorFor(api),
+      });
+    };
+    return { tree: render(), render };
+  };
+  const headers = (tree) => find(tree, (p) => p["data-wb-group-button"] !== undefined);
+  const bodies = (tree) => find(tree, (p) => p["data-wb-group-body"] !== undefined);
+  const rows = (tree) => find(tree, (p) => p["data-wb-task"] !== undefined);
+
+  const empty = makePage(base).tree;
+  assert.match(textOf(empty), /暂无待办/);
+  assert.ok(find(empty, (p) => p["data-wb-empty"] === "true")[0], "the empty state is the page's own box");
+
+  const queue = {
+    ...base,
+    pending: [
+      task(0, { state: "quota", stage: "person/blocked", finishedAtMs: now - 2 * 86400_000 }),
+      task(1, { finishedAtMs: now - 5 * 86400_000 }),
+      task(2, { finishedAtMs: now - 60_000 }),
+    ],
+    pendingTotal: 3,
+    active: [{
+      id: "live-1", name: "运行中的任务", agent: "dsh", model: "", state: "running", waiting: "", slot: "dsh-1",
+      attempts: 1, outcome: "", startedAtMs: now - 90_000, updatedAtMs: now - 90_000, wakeAtMs: null,
+      patrol: false, summary: "", lastEvent: "", lastEventAtMs: null, finishedAtMs: null, needs: "",
+      stage: "working", attention: "person",
+    }],
+  };
+  const page = makePage(queue);
+  assert.deepEqual(headers(page.tree).map((h) => h.props["data-wb-group-button"]), ["stuck", "pending", "live"]);
+  assert.equal(headers(page.tree)[0].props["aria-expanded"], true, "the alarm group starts open");
+  assert.equal(headers(page.tree)[1].props["aria-expanded"], false);
+  assert.equal(headers(page.tree)[2].props["aria-expanded"], false);
+  assert.match(textOf(headers(page.tree)[0]), /卡住 1/);
+  assert.match(textOf(headers(page.tree)[1]), /待你处理 2 · 最旧 5d/);
+  assert.match(textOf(headers(page.tree)[2]), /进行中 1/);
+  assert.equal(headers(page.tree)[1].props["aria-controls"], undefined, "a closed group has no aria reference");
+  assert.equal(find(page.tree, (p) => p["data-wb-close"] !== undefined)[0].props["aria-label"],
+    "关闭工作台，返回会话", "the top-level back closes the workbench, it does not return to the queue");
+  assert.deepEqual(bodies(page.tree).map((b) => b.props["data-wb-group-body"]), ["stuck"],
+    "only the open group mounts a list");
+  assert.equal(rows(page.tree).length, 1, "the two review tasks are not in the DOM");
+  assert.equal(find(page.tree, (p) => p["data-wb-live-task"] !== undefined).length, 0);
+
+  headers(page.tree)[1].props.onClick();
+  const expanded = page.render();
+  assert.equal(headers(expanded)[1].props["aria-expanded"], true);
+  assert.ok(headers(expanded)[1].props["aria-controls"], "an open group points at its list");
+  assert.deepEqual(bodies(expanded).map((b) => b.props["data-wb-group-body"]), ["stuck", "pending"]);
+  assert.equal(rows(expanded).length, 3);
+
+  headers(expanded)[1].props.onClick();
+  const collapsed = page.render();
+  assert.equal(headers(collapsed)[1].props["aria-expanded"], false);
+  assert.equal(rows(collapsed).length, 1);
+
+  headers(collapsed)[2].props.onClick();
+  const withLive = page.render();
+  assert.equal(find(withLive, (p) => p["data-wb-live-task"] !== undefined).length, 1);
+  assert.match(textOf(headers(withLive)[2]), /进行中 1/);
+
+  headers(withLive)[0].props.onClick();
+  const stuckClosed = page.render();
+  headers(stuckClosed)[2].props.onClick();
+  const allClosed = page.render();
+  assert.equal(rows(allClosed).length, 0, "a closed group keeps no rows in the DOM");
+  assert.equal(bodies(allClosed).length, 0);
+
+  // Only the secondary detail calls itself "返回队列"; the page-level back closes the page.
+  const focusPage = makePage(queue);
+  headers(focusPage.tree)[1].props.onClick();
+  const expandedFocus = focusPage.render();
+  rows(expandedFocus)[1].props.onClick();
+  const focus = focusPage.render();
+  assert.equal(focus.props["data-wb-view"], "focus");
+  const focusBack = find(focus, (p) => p["data-wb-back"] !== undefined)[0];
+  assert.equal(focusBack.props["aria-label"], "返回队列");
+  focusBack.props.onClick();
+  const returned = focusPage.render();
+  assert.equal(returned.props["data-wb-view"], "queue");
+  disposeReactEffects();
+});
+
+test("workbench client: the fold choice is remembered in workbench.groups", async () => {
+  const loaded = await loadClient();
+  const storage = new Map();
+  globalThis.window = {
+    localStorage: {
+      getItem: (key) => storage.has(key) ? storage.get(key) : null,
+      setItem: (key, value) => { storage.set(key, value); },
+    },
+  };
+  const makeApi = (stub) => loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  try {
+    const now = Date.now();
+    const task = {
+      id: "t1", name: "任务 1", agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1,
+      outcome: "DONE", startedAtMs: null, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "",
+      lastEvent: "", lastEventAtMs: null, finishedAtMs: now - 3600_000, needs: "x", stage: "person/review",
+      attention: "person",
+    };
+    const queue = {
+      available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+      running: 0, active: [], recent: [], pending: [task], pendingTotal: 1,
+      patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+    };
+    const render = (api, stub) => {
+      stub._resetCursor();
+      return api.WorkbenchPage({
+        cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue, closeWorkbench: () => {},
+        runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+        t: translatorFor(api),
+      });
+    };
+    const findBy = (tree, pred) => {
       const out = [];
       (function walk(node) {
         if (node == null) return;
@@ -5575,96 +5826,20 @@ test("workbench client: the foot event line appears only with pending work", asy
       })(tree);
       return out;
     };
-    render();
-    await new Promise((resolve) => setImmediate(resolve));
-    await new Promise((resolve) => setImmediate(resolve));
-    return { tree: render(), find };
-  };
-  const now = Date.now();
-  const review = await mount([
-    task("a", "ok", "person/review", now - 6 * 3600_000, "x"),
-    task("b", "partial", "person/review", now - 3600_000, "y"),
-    task("c", "ok", "person/review", now - 60_000, "z"),
-  ]);
-  const line = review.find(review.tree, (p) => p["data-wb-signal"] === "true")[0];
-  assert.ok(line, "pending work renders the event line");
-  assert.equal(line.props["aria-label"], "工作台：3 件待处理，最旧 6 小时，打开");
-  assert.match(review.find(review.tree, (p) => p["data-wb-live-count"] === "true")[0].children.join(""), /3/,
-    "the live region carries the count only");
+    const stub1 = makeReactStub();
+    const api1 = makeApi(stub1);
+    const first = render(api1, stub1);
+    findBy(first, (p) => p["data-wb-group-button"] === "pending")[0].props.onClick();
+    assert.deepEqual(JSON.parse(storage.get("workbench.groups")), { stuck: true, pending: true, live: false });
 
-  const stuck = await mount([
-    task("a", "quota", "person/blocked", now - 2 * 86400_000, ""),
-    task("b", "blocked", "person/blocked", now - 3600_000, ""),
-  ]);
-  const stuckLine = stuck.find(stuck.tree, (p) => p["data-wb-signal"] === "true")[0];
-  assert.equal(stuckLine.props["aria-label"], "工作台：2 件全卡住，最旧 2 天，打开");
-  disposeReactEffects();
-});
-
-test("workbench client: the empty state and the 20-row cap are the page's own copy", async () => {
-  const loaded = await loadClient();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return makeReactStub();
-    throw new Error(`unexpected require: ${s}`);
-  });
-  const reactStub = makeReactStub();
-  const t = translatorFor(api);
-  const base = {
-    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
-    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
-    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
-  };
-  const task = (i) => ({
-    id: "t" + i, name: "任务" + i, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1, outcome: "DONE",
-    startedAtMs: null, updatedAtMs: Date.now(), wakeAtMs: null, patrol: false, summary: "", lastEvent: "", lastEventAtMs: null,
-    finishedAtMs: Date.now() - i * 60000, needs: "需要人处理", stage: "person/review", attention: "person",
-  });
-  const renderPage = (queue) => {
-    reactStub._resetCursor();
-    const tree = api.WorkbenchPage({
-      cachedTaskQueue: () => queue,
-      fetchTaskQueue: async () => queue,
-      closeWorkbench: () => {},
-      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
-      t,
-    });
-    const texts = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node === "string") { texts.push(node); return; }
-      (node.children || []).forEach(walk);
-    })(tree);
-    return { tree, text: texts.join(" ") };
-  };
-  const empty = renderPage(base);
-  assert.match(empty.text, /暂无待办/);
-  assert.match(empty.text, /任务需要你时会出现在这里。/);
-  assert.match(empty.text, /上次巡检 — · 无未决/);
-  let emptyBox = null;
-  (function walk(node) {
-    if (node == null || emptyBox !== null) return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    if (typeof node !== "object") return;
-    if ((node.props || {})["data-wb-empty"] === "true") emptyBox = node;
-    (node.children || []).forEach(walk);
-  })(empty.tree);
-  assert.ok(emptyBox, "the empty state is the page's own box");
-
-  const many = { ...base, pending: Array.from({ length: 25 }, (_, i) => task(i)), pendingTotal: 25 };
-  const capped = renderPage(many);
-  let more = null;
-  (function walk(node) {
-    if (node == null || more !== null) return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    if (typeof node !== "object") return;
-    if ((node.props || {})["data-wb-more"] !== undefined) more = node;
-    (node.children || []).forEach(walk);
-  })(capped.tree);
-  assert.ok(more, "more than 20 pending tasks renders the in-place expansion");
-  assert.equal(more.props["data-wb-more"], "5");
-  assert.match((more.children || []).join(""), /还有 5 件/);
-  assert.equal(capped.text.split("任务").length - 1 >= 20, true);
-  disposeReactEffects();
+    const stub2 = makeReactStub();
+    const api2 = makeApi(stub2);
+    const next = render(api2, stub2);
+    assert.equal(findBy(next, (p) => p["data-wb-group-button"] === "pending")[0].props["aria-expanded"], true,
+      "a fresh mount reads the device's fold choice");
+    assert.equal(findBy(next, (p) => p["data-wb-task"] !== undefined).length, 1);
+  } finally {
+    delete globalThis.window;
+    disposeReactEffects();
+  }
 });

@@ -753,28 +753,39 @@ export declare function panelModel(input: PanelInput, t: Translate, now: number,
 export declare function waitShort(ms: number): string;
 /** The focus view's precise wait: 45m / 2h 14m / 2d 3h. */
 export declare function waitLong(ms: number): string;
-/** The accessible wait: 45 分钟 / 6 小时 / 2 天 3 小时. */
-export declare function waitSpoken(ms: number): string;
+/**
+ * The accessible wait: 45 分钟 / 6 小时 / 2 天 3 小时, through the copy table
+ * so the English surface never borrows the Chinese units.
+ */
+export declare function waitSpoken(ms: number, t: Translate): string;
 /** Stuck is the red state: the runner's blocked stage or an abnormal end. */
 export declare function isStuckTask(task: DispatchTask): boolean;
 /** How long a pending task has waited: since it ended, else since its last write. */
 export declare function waitedOf(task: DispatchTask, now: number): number;
-export type SignalView = {
+/** One count for the panellist badge and the queue page header (never two). */
+export type WorkbenchCounts = {
     total: number;
     stuck: number;
+    /** Not stuck: the `待你处理` group. */
+    pending: number;
     oldestMs: number;
-    text: string;
+    /** The oldest wait among `待你处理` only; it prints on that group's header. */
+    oldestPendingMs: number;
+};
+export declare function workbenchCounts(tasks: DispatchTask[], now: number): WorkbenchCounts;
+export type SignalView = WorkbenchCounts & {
+    /** The host row's aria-label and title: 工作台，7 件待处理，最旧 5 天. */
     aria: string;
-    /** At least one stuck task: the dot and the badge take the error colour. */
+    /** At least one stuck task: the badge takes the error colour. */
     red: boolean;
-    /** 1..9 or '9+' — the icon badge; the footer row does not print it again. */
+    /** danger with a stuck task, neutral otherwise; zero never renders a badge. */
+    tone: 'danger' | 'neutral';
+    /** The badge is the count itself, so both surfaces agree without a second format. */
     badge: string;
 };
 /**
- * The sidebar's event line and the panel icon badge from one list.
- * Copy is fixed by the design review:
- *   1 件待处理 · 12m / 3 件待处理 · 最旧 6h / 1 件卡住 · 最旧 2d /
- *   3 件全卡住 · 最旧 2d / 9+ 件待处理 · 最旧 3d
+ * The panellist badge and host-row label from one list. The badge is the
+ * permanent count; the footer signal row was removed (2026-11-07).
  */
 export declare function signalView(tasks: DispatchTask[], t: Translate, now: number): SignalView;
 /** Queue sections keep the host's oldest-first order inside each group. */
