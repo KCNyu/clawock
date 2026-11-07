@@ -1022,30 +1022,25 @@ export type ProviderRowView = {
 }
 
 /**
- * The one-bit alarm rule (kcn's review, 2026-11-07): red only when a provider
- * is actually broken — a quota window is exhausted, or the read itself failed.
- * Stale is the normal overnight state and must never turn the dot red.
+ * The one-bit alarm rule (the 2026-11-07 design): a window at or above 90%
+ * used, or money balance plus credit at or below zero, is an alert. 70–90 is a
+ * warning. Stale is the normal overnight state and must never turn the dot red.
  */
 export function providerSignal(row: BalanceRow): ProviderSignal {
   const result = row.result
   if (!result.configured) return 'none'
-  if (result.status === 'failed') return 'alert'
+  if (result.status === 'stale') return 'stale'
   const snapshot = result.snapshot
   if (snapshot === null) return 'none'
   if (snapshot.unit !== 'pct') {
-    if (!snapshot.isAvailable) return 'alert'
-    if (result.status === 'stale') return 'stale'
-    return result.low ? 'warn' : 'ok'
+    const money = (Number(snapshot.totalBalance) || 0) + (Number(snapshot.grantedBalance) || 0)
+    if (money <= 0) return 'alert'
+    return result.low || (Number(snapshot.totalBalance) || 0) < 10 ? 'warn' : 'ok'
   }
   const windows = (snapshot.windows ?? []).filter((window) => window.percent !== null)
-  if (windows.some((window) => (window.percent as number) >= 100)) return 'alert'
-  if (result.status === 'stale') return 'stale'
-  // The two quota windows have different lengths; the near-limit line is 80%
-  // used for a 5h window and 90% for the week, as the review specified.
-  const near = windows.some((window) => (window.durationMins ?? 0) >= 7 * 24 * 60
-    ? (window.percent as number) >= 90
-    : (window.percent as number) >= 80)
-  return near ? 'warn' : 'ok'
+  // The design's one predicate: >=90% used is an alert, 70–90 is a warning.
+  if (windows.some((window) => (window.percent as number) >= 90)) return 'alert'
+  return windows.some((window) => (window.percent as number) >= 70) ? 'warn' : 'ok'
 }
 
 /** The provider rows the panellist dot / tab dot watches: only real providers, never the free pool. */
@@ -1106,10 +1101,9 @@ export function providerRowView(source: PanelSource, row: BalanceRow | undefined
   // on the right, while a healthy 5h headline stays green. An alert still paints
   // the headline red (the review's row rule), so the eye lands on the row first.
   const near = (window: { percent: number | null; durationMins?: number | null }): boolean =>
-    window.percent !== null && (window.percent >= 100 ? false : (window.durationMins ?? 0) >= 7 * 24 * 60
-      ? window.percent >= 90 : window.percent >= 80)
+    window.percent !== null && window.percent >= 70 && window.percent < 90
   const windowTone = (window: { percent: number | null; durationMins?: number | null }): 'ok' | 'warn' | 'alert' =>
-    window.percent !== null && window.percent >= 100 ? 'alert' : near(window) ? 'warn' : 'ok'
+    window.percent !== null && window.percent >= 90 ? 'alert' : near(window) ? 'warn' : 'ok'
   const primaryTone: ProviderRowView['primaryTone'] = signal === 'alert' ? 'alert'
     : signal === 'stale' ? 'stale'
       : signal === 'none' ? 'none'
@@ -1905,7 +1899,7 @@ export function signalView(tasks: DispatchTask[], t: Translate, now: number): Si
     // provider only, so the badge stays neutral even when a task is stuck.
     red: false,
     tone: 'neutral',
-    badge: String(counts.total),
+    badge: counts.total > 99 ? '99+' : String(counts.total),
   }
 }
 

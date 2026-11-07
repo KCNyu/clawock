@@ -471,9 +471,9 @@ export type ProviderRowView = {
     aria: string;
 };
 /**
- * The one-bit alarm rule (kcn's review, 2026-11-07): red only when a provider
- * is actually broken — a quota window is exhausted, or the read itself failed.
- * Stale is the normal overnight state and must never turn the dot red.
+ * The one-bit alarm rule (the 2026-11-07 design): a window at or above 90%
+ * used, or money balance plus credit at or below zero, is an alert. 70–90 is a
+ * warning. Stale is the normal overnight state and must never turn the dot red.
  */
 export declare function providerSignal(row: BalanceRow): ProviderSignal;
 /** The provider rows the panellist dot / tab dot watches: only real providers, never the free pool. */

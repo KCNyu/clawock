@@ -3838,8 +3838,13 @@ test("workbench client: one sidebar entry, a neutral count and the provider dot"
     "only the alert provider lights the dot");
   assert.equal(find(danger, (p) => p["data-wb-provider-alert"] !== undefined)[0].props["aria-label"], undefined,
     "the dot is not a second text node");
+  assert.equal(find(danger, (p) => p["data-wb-rail-dot"] !== undefined).length, 1,
+    "the rail dot is a separate node from the count badge");
   assert.equal(find(renderIcon(stale), (p) => p["data-wb-provider-alert"] !== undefined).length, 0,
     "stale never lights the dot");
+  const hundred = Array.from({ length: 100 }, (_, i) => task("m" + i, now - i * 1000));
+  assert.equal(badgeOf(renderIcon(alert, hundred)).children.join(""), "99+",
+    "the rail badge caps at 99+");
   assert.equal(badgeOf(renderIcon(BALANCES_OK, [task("r", now - 60_000)])).children.join(""), "1",
     "the count is still stuck + pending");
   assert.equal(badgeOf(renderIcon(BALANCES_OK, [])), undefined, "zero pending renders no badge");
@@ -3916,7 +3921,7 @@ test("workbench client: Tasks | Providers tabs, rows and status", async () => {
   const page = make(queue, alert);
   const tabs = (tree) => find(tree, (p) => p.role === "tab");
   assert.equal(find(page.tree, (p) => p.role === "tablist").length, 1, "one segmented control");
-  assert.equal(tabs(page.tree).length, 2);
+  assert.equal(tabs(page.tree).length, 3, "Tasks | Providers | Overview");
   assert.equal(tabs(page.tree)[0].props["aria-selected"], true, "Tasks is the default segment");
   assert.equal(tabs(page.tree)[1].props["aria-selected"], false);
   assert.equal(tabs(page.tree)[0].props.tabIndex, 0, "roving tabindex starts on Tasks");
@@ -3924,7 +3929,7 @@ test("workbench client: Tasks | Providers tabs, rows and status", async () => {
   assert.equal(page.tree.props["data-wb-tab"], "tasks");
   assert.equal(find(page.tree, (p) => p["data-wb-tab-dot"] !== undefined).length, 1,
     "the Providers tab carries the alert dot");
-  assert.equal(tabs(page.tree)[1].props["aria-label"], "服务，1 个异常");
+  assert.equal(tabs(page.tree)[1].props["aria-label"], "提供方，1 个异常");
 
   tabs(page.tree)[1].props.onClick();
   const providers = page.render();
@@ -3938,14 +3943,16 @@ test("workbench client: Tasks | Providers tabs, rows and status", async () => {
     "alert first, then stale, then the healthy rows by label");
   assert.deepEqual(rows.map((row) => row.props["data-wb-provider-signal"]), ["alert", "stale", "ok", "ok", "none"]);
   assert.equal(rows[0].props["data-wb-tone"], "alert");
-  assert.match(textOf(rows[0]), /Codex 5h 18% ⚠ 周 100%/, "primary, warning glyph and secondary sit on the first line");
+  assert.match(textOf(rows[0]), /Codex 已用尽 周 100%/, "exhausted wins over the used % headline");
+  assert.match(textOf(rows[0]), /至 /, "the reset is always on the second line");
   assert.match(textOf(rows[1]), /旧读数/, "stale keeps its chip");
   assert.match(textOf(rows[2]), /¥110/, "a money row leads with its balance");
+  assert.match(textOf(rows[2]), /余额 ¥110/, "money detail is always visible");
   assert.match(textOf(rows[4]), /免费/, "the free pool has no number");
-  assert.equal(find(rows[0], (p) => p["data-wb-provider-alert"] !== undefined).length, 0,
-    "the provider row uses its own warning glyph, not the sidebar dot");
-  assert.match(textOf(rows[0]), /⚠/, "the alert is not carried by colour alone");
-  assert.ok(rows[0].props["aria-label"].includes("异常"));
+  assert.equal(rows[0].props["data-wb-provider-state"], "exhausted");
+  assert.equal(find(rows[0], (p) => p["data-wb-provider-detail"] !== undefined).length, 0,
+    "provider detail is not a second layer");
+  assert.ok(rows[0].props["aria-label"].includes("已用尽"));
   assert.equal(find(providers, (p) => p["data-wb-empty-providers"] !== undefined).length, 0);
 
   // A stale-only page has no dot on either surface.
@@ -3961,6 +3968,8 @@ test("workbench client: Tasks | Providers tabs, rows and status", async () => {
   const quiet = make({ ...queue, available: false }, QUIET_BALANCES);
   tabs(quiet.tree)[1].props.onClick();
   assert.match(textOf(quiet.render()), /还没有配置 provider/);
+  assert.ok(find(quiet.render(), (p) => p["data-wb-add-provider"] !== undefined)[0],
+    "the empty state keeps the add-provider action");
   disposeReactEffects();
 });
 
@@ -4037,20 +4046,25 @@ test("workbench client: task groups are capped and fold with aria", async () => 
     .flatMap((section) => find(section, (p) => p["data-wb-task"] !== undefined));
   assert.deepEqual(bodies(page.tree).map((b) => b.props["data-wb-group-body"]), ["stuck", "pending"],
     "both bodies are mounted for the height transition");
-  assert.ok(headers(page.tree)[1].props["aria-controls"], "a closed group still points at its body");
-  assert.equal(openTaskRows(page.tree).length, 1, "only the open group's rows count");
+  assert.ok(headers(page.tree)[1].props["aria-controls"], "a group always points at its mounted body");
+  assert.equal(openTaskRows(page.tree).length, 7, "both default-open groups show 6 pending + the stuck row");
+  assert.equal(find(page.tree, (p) => p["data-wb-more"] !== undefined).length, 1);
+  assert.match(textOf(find(page.tree, (p) => p["data-wb-more"] !== undefined)[0]), /还有 2 条 ›/);
   headers(page.tree)[1].props.onClick();
+  const closed = page.render();
+  assert.equal(openTaskRows(closed).length, 1, "closing pending leaves only the stuck row");
+  assert.equal(find(closed, (p) => p["data-wb-group-button"] === "pending")[0].props["aria-expanded"], false);
+  headers(closed)[1].props.onClick();
   const open = page.render();
-  assert.equal(openTaskRows(open).length, 7, "the default cap is 6 pending + the stuck row");
-  assert.equal(find(open, (p) => p["data-wb-more"] !== undefined).length, 1);
-  assert.match(textOf(find(open, (p) => p["data-wb-more"] !== undefined)[0]), /还有 2 条 ›/);
+  assert.equal(openTaskRows(open).length, 7, "reopening restores the capped pending list");
   find(open, (p) => p["data-wb-more"] !== undefined)[0].props.onClick();
   const all = page.render();
   assert.equal(openTaskRows(all).length, 9);
   assert.equal(find(all, (p) => p["data-wb-more"] !== undefined).length, 0, "the escape hatch disappears at the end");
 
   const narrow = make(queue, true);
-  headers(narrow.tree)[1].props.onClick();
+  const narrowReady = narrow.render();
+  headers(narrowReady)[1].props.onClick();
   const narrowOpen = narrow.render();
   assert.equal(openTaskRows(narrowOpen).length, 4, "under 360px the cap is 4 pending; the stuck group closed behind it");
   assert.match(textOf(find(narrowOpen, (p) => p["data-wb-more"] !== undefined)[0]), /还有 4 条 ›/);
@@ -4060,6 +4074,204 @@ test("workbench client: task groups are capped and fold with aria", async () => 
     "under 360px opening another group closes the first");
   assert.equal(find(narrowStuck, (p) => p["data-wb-group-button"] === "stuck")[0].props["aria-expanded"], true);
   delete globalThis.window;
+  disposeReactEffects();
+});
+
+test("workbench client: Overview restores patrol/stats; Providers shows detail", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const task = (i, extra = {}) => ({
+    id: "t" + i, name: "任务" + i, agent: "dsh", model: "deepseek-flash", state: "running", waiting: "", slot: "dsh-1",
+    attempts: 1, outcome: "", startedAtMs: now - 6 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false,
+    summary: "", lastEvent: "", lastEventAtMs: null, finishedAtMs: null, needs: "需要人确认", stage: "person/review",
+    attention: "person", ...extra,
+  });
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 1,
+    running: 1, active: [task(0)], recent: [], pending: [], pendingTotal: 0,
+    slotLimits: [{ agent: "dsh", max: 1 }],
+    patrol: {
+      service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 2 * 3600_000,
+      rounds: [{ endedAt: "2026-11-07 08:00:00", round: "R1", axis: "harness", result: "ok/DONE", seconds: 720 }],
+      progress: { records: 1, lensInventory: true, areaInventory: true, firstAt: "2026-11-07 08:00:00", rejected: 0, issuesAt: "",
+        lenses: [{ name: "harness", rounds: 1, last: null, open: 0 }, { name: "recent", rounds: 1, last: null, open: 0 }],
+        areas: [{ name: "dsh", open: 3 }, { name: "data", open: 0 }] },
+    },
+  };
+  const stats = {
+    available: true, error: "", since: "2026-11-01", days: 7, patrolIncluded: false, asOf: "",
+    agents: [{
+      agent: "dsh", tasks: 5, live: 2, states: [],
+      outcomes: [{ name: "DONE", count: 2 }, { name: "PARTIAL", count: 1 }],
+      tokensTotal: 1200000, tokensUnknown: 0, costUsdEstimate: 3.4, costUnpriced: 0, costFree: 0,
+    }],
+    daily: {
+      "2026-11-01": { dsh: { tasks: 1, tokens: 200000, unknown: 0 } },
+      "2026-11-02": { dsh: { tasks: 1, tokens: 400000, unknown: 0 } },
+      "2026-11-03": { dsh: { tasks: 1, tokens: 100000, unknown: 0 } },
+      "2026-11-04": { dsh: { tasks: 1, tokens: 300000, unknown: 0 } },
+      "2026-11-05": { dsh: { tasks: 1, tokens: 200000, unknown: 0 } },
+    },
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const textOf = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  };
+  const stub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = () => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => BALANCES_OK, fetchBalances: async () => BALANCES_OK,
+      fetchTaskStats: async () => stats,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+      t: translatorFor(api, "en"),
+    });
+  };
+  const tabs = (tree) => find(tree, (p) => p.role === "tab");
+  const page = render();
+  assert.equal(tabs(page).length, 3, "Tasks | Providers | Overview");
+  assert.equal(tabs(page)[2].props["aria-label"], "Overview");
+  // Live-only queue: Running opens by default and its row keeps the detail path.
+  const live = render();
+  assert.equal(find(live, (p) => p["data-wb-group-button"] === "live")[0].props["aria-expanded"], true);
+  find(live, (p) => p["data-wb-task"] !== undefined)[0].props.onClick();
+  const focus = render();
+  assert.ok(find(focus, (p) => p["data-wb-detail"] === "t0")[0], "task row -> detail");
+  find(focus, (p) => p["data-wb-back"] !== undefined)[0].props.onClick();
+  render();
+
+  // Overview: patrol open, stats folded, then stats expanded with its reused data.
+  tabs(page)[2].props.onClick();
+  render();
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  const overview = render();
+  assert.ok(find(overview, (p) => p["data-wb-overview"] !== undefined)[0], "Overview mounted");
+  assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0].props["aria-expanded"], true,
+    "patrol is open by default");
+  assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props["aria-expanded"], false,
+    "stats is folded by default");
+  assert.match(textOf(overview), /Last round/);
+  assert.match(textOf(overview), /area ×2/);
+  assert.match(textOf(overview), /lens ×2/);
+  assert.match(textOf(overview), /3/);
+  const statsHead = find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0];
+  assert.match(textOf(statsHead), /5 tasks/, "folded header keeps the totals summary");
+  statsHead.props.onClick();
+  const expanded = render();
+  assert.equal(find(expanded, (p) => p["data-wb-group-button"] === "overview-stats")[0].props["aria-expanded"], true);
+  assert.equal(find(expanded, (p) => p["data-wb-overview-done"] !== undefined)[0].props["data-wb-overview-done"], "2");
+  assert.match(textOf(expanded), /1.2M/, "token metric");
+  assert.match(textOf(expanded), /\$3.40/, "cost metric");
+  assert.equal(find(expanded, (p) => p["data-wb-overview"] !== undefined).length, 1);
+  assert.equal(find(expanded, (p) => p["data-wb-ov-bar"] !== undefined).length, 7,
+    "seven daily bars are present");
+
+  // Providers: both detail lines are always visible, no click/second layer.
+  tabs(expanded)[1].props.onClick();
+  const providers = render();
+  const mini = find(providers, (p) => p["data-wb-provider"] === "minimax")[0];
+  assert.match(textOf(mini), /24%/, "used percentage");
+  assert.match(textOf(mini), /to /, "window end on line 2");
+  assert.match(textOf(mini), /10%/, "week share");
+  const deep = find(providers, (p) => p["data-wb-provider"] === "deepseek")[0];
+  assert.match(textOf(deep), /balance ¥110/, "money balance on line 2");
+  assert.equal(find(deep, (p) => p["data-wb-provider-detail"] !== undefined).length, 0);
+  disposeReactEffects();
+});
+
+test("workbench client: Overview copy is pinned in Chinese", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 3600_000,
+      rounds: [{ endedAt: "2026-11-07 08:00:00", round: "R1", axis: "harness", result: "ok/DONE", seconds: 60 }],
+      progress: { records: 1, lensInventory: true, areaInventory: true, firstAt: "", rejected: 0, issuesAt: "", lenses: [], areas: [] } },
+  };
+  const stats = { available: true, error: "", since: null, days: 7, patrolIncluded: false, asOf: "",
+    agents: [{ agent: "dsh", tasks: 2, live: 0, states: [], outcomes: [{ name: "DONE", count: 2 }], tokensTotal: 10, tokensUnknown: 0, costUsdEstimate: 0.1, costUnpriced: 0, costFree: 0 }] };
+  const stub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = () => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+      fetchTaskStats: async () => stats,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+      t: translatorFor(api),
+    });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const textOf = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join(" ");
+  };
+  const page = render();
+  const tabs = find(page, (p) => p.role === "tab");
+  assert.equal(tabs[1].props["aria-label"], "提供方，无异常");
+  assert.equal(tabs[2].props["aria-label"], "概况");
+  tabs[2].props.onClick();
+  render();
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  const overview = render();
+  assert.match(textOf(overview), /巡检/);
+  assert.match(textOf(overview), /统计/);
+  assert.match(textOf(overview), /最近轮次/);
+  assert.match(textOf(overview), /未决/);
+  assert.match(textOf(overview), /节奏/);
+  find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props.onClick();
+  const expanded = render();
+  assert.match(textOf(expanded), /完成 2/);
+  assert.match(textOf(expanded), /近 7 天 Token/);
   disposeReactEffects();
 });
 
@@ -4094,7 +4306,7 @@ test("workbench client: English copy, a zero balance and a failed read", async (
   const zero = {
     ...BALANCES_OK,
     providers: BALANCES_OK.providers.map((row) => row.provider !== "deepseek" ? row : {
-      ...row, result: { ...row.result, snapshot: { ...row.result.snapshot, isAvailable: false, totalBalance: "0" } },
+      ...row, result: { ...row.result, snapshot: { ...row.result.snapshot, isAvailable: false, totalBalance: "0", grantedBalance: "0" } },
     }),
   };
   const make = (balances, locale = "en", fail = false) => {
@@ -4126,7 +4338,7 @@ test("workbench client: English copy, a zero balance and a failed read", async (
   assert.equal(rows[0].props["data-wb-provider-signal"], "alert", "a zero balance is an alert");
   assert.match(textOf(rows[0]), /¥0/, "zero prints, not an empty cell");
   assert.equal(rows[1].props["data-wb-provider-signal"], "ok");
-  assert.match(textOf(rows[4]), /free/);
+  assert.match(textOf(rows[4]), /Free|free/);
   assert.equal(tabs(page.tree)[0].props["aria-label"], "Tasks, 0 pending");
 
   // A near-limit window is amber on the reading that caused it, not on the healthy headline.
@@ -4134,7 +4346,7 @@ test("workbench client: English copy, a zero balance and a failed read", async (
     ...BALANCES_OK,
     providers: BALANCES_OK.providers.map((row) => row.provider !== "minimax" ? row : {
       ...row, result: { ...row.result, snapshot: { ...row.result.snapshot,
-        windows: row.result.snapshot.windows.map((window, i) => i === 1 ? { ...window, percent: 95 } : window) } },
+        windows: row.result.snapshot.windows.map((window, i) => i === 1 ? { ...window, percent: 80 } : window) } },
     }),
   };
   const warnPage = make(warn);
@@ -4144,6 +4356,19 @@ test("workbench client: English copy, a zero balance and a failed read", async (
     "only the week reading turns amber");
   assert.equal(find(mini, (p) => p["data-wb-tone"] === "ok" && /wb-prov-primary/.test(p.className || "")).length, 1,
     "the healthy 5h headline stays green");
+  // A transport failure is stated in the segment, not hidden behind the empty copy.
+  const unknown = {
+    ...BALANCES_OK,
+    providers: [...BALANCES_OK.providers, {
+      provider: "mystery", label: "Unknown",
+      result: { configured: false, snapshot: null, status: "no-key", low: false, message: null, threshold: 20, refreshMs: 60000 },
+    }],
+  };
+  const unknownPage = make(unknown, "en");
+  tabs(unknownPage.tree)[1].props.onClick();
+  const mystery = find(unknownPage.render(), (p) => p["data-wb-provider"] === "mystery")[0];
+  assert.equal(mystery.props["data-wb-provider-state"], "unknown");
+  assert.match(textOf(mystery), /Unavailable/);
   // A transport failure is stated in the segment, not hidden behind the empty copy.
   const failed = make(null, "en", true);
   tabs(failed.tree)[1].props.onClick();
@@ -4207,14 +4432,16 @@ test("workbench client: the fold choice is remembered in workbench.groups", asyn
     const api1 = makeApi(stub1);
     const first = render(api1, stub1);
     findBy(first, (p) => p["data-wb-group-button"] === "pending")[0].props.onClick();
-    assert.deepEqual(JSON.parse(storage.get("workbench.groups")), { stuck: true, pending: true, live: false });
+    assert.deepEqual(JSON.parse(storage.get("workbench.groups.v2")), { stuck: true, pending: false, live: false });
 
     const stub2 = makeReactStub();
     const api2 = makeApi(stub2);
     const next = render(api2, stub2);
-    assert.equal(findBy(next, (p) => p["data-wb-group-button"] === "pending")[0].props["aria-expanded"], true,
-      "a fresh mount reads the device's fold choice");
-    assert.equal(findBy(next, (p) => p["data-wb-task"] !== undefined).length, 1);
+    assert.equal(findBy(next, (p) => p["data-wb-group-button"] === "pending")[0].props["aria-expanded"], false,
+      "a fresh mount reads the device's folded choice");
+    const openRows = findBy(next, (p) => p["data-wb-open"] === "true" && p["data-wb-group"] !== undefined)
+      .flatMap((section) => findBy(section, (p) => p["data-wb-task"] !== undefined));
+    assert.equal(openRows.length, 0);
   } finally {
     delete globalThis.window;
     disposeReactEffects();

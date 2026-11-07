@@ -2393,11 +2393,12 @@ const WORKBENCH_CONFIRM_MS = 3000
 /** How long "刚刚更新" stays after a silent refresh. */
 const WORKBENCH_UPDATED_MS = 1600
 /** Per-device group fold memory (the design review fixed this key). */
-const WORKBENCH_GROUPS_KEY = 'workbench.groups'
+const WORKBENCH_GROUPS_KEY = 'workbench.groups.v2'
 type WorkbenchGroup = 'stuck' | 'pending' | 'live'
+type WorkbenchTab = 'tasks' | 'providers' | 'overview'
 type WorkbenchGroups = Record<WorkbenchGroup, boolean>
 /** The alarm group is open until the reader folds it; the other two start closed. */
-const WORKBENCH_GROUPS_DEFAULT: WorkbenchGroups = { stuck: true, pending: false, live: false }
+const WORKBENCH_GROUPS_DEFAULT: WorkbenchGroups = { stuck: true, pending: true, live: false }
 
 function readWorkbenchGroups(): WorkbenchGroups {
   const fallback = { ...WORKBENCH_GROUPS_DEFAULT }
@@ -2496,11 +2497,12 @@ function renderWorkbenchAlert(size = 12): React.ReactElement {
 
 /** The one group header the queue's three sections share: label, count, chevron. */
 function WorkbenchGroupHeader(props: {
-  id: WorkbenchGroup
+  id: string
   label: string
   open: boolean
   tone: 'danger' | 'neutral'
   bodyId: string
+  summary?: string
   buttonRef: (element: HTMLButtonElement | null) => void
   onToggle: () => void
 }): React.ReactElement {
@@ -2515,6 +2517,7 @@ function WorkbenchGroupHeader(props: {
   },
     props.tone === 'danger' ? renderWorkbenchAlert() : null,
     h('span', { className: cx('wb-group-title') }, props.label),
+    props.summary === undefined || props.summary === '' ? null : h('span', { className: cx('wb-group-summary') }, props.summary),
     h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron()))
 }
 
@@ -2546,7 +2549,20 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
     const button = iconRef.current?.closest('button')
     if (typeof HTMLElement === 'undefined' || !(button instanceof HTMLElement)) return undefined
     const previous = button.getAttribute('aria-label')
+    const previousPosition = button.style.position
     const title = button.querySelector<HTMLElement>('[class*="panelTitle"]')
+    button.style.position = 'relative'
+    const updateRail = (): void => {
+      const width = button.getBoundingClientRect().width
+      if (width > 0 && width < 60) button.setAttribute('data-wb-rail', 'true')
+      else button.removeAttribute('data-wb-rail')
+    }
+    updateRail()
+    const railFrame = typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+      ? window.requestAnimationFrame(updateRail) : null
+    if (typeof window !== 'undefined') window.addEventListener('resize', updateRail)
+    const railObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateRail)
+    railObserver?.observe(button)
     button.setAttribute('aria-label', spoken)
     button.setAttribute('title', spoken)
     // The dot rides the host's label pseudo-element: it costs no line height
@@ -2562,7 +2578,12 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
       else button.setAttribute('aria-label', previous)
       button.removeAttribute('title')
       button.removeAttribute('data-wb-provider-alert')
+      button.removeAttribute('data-wb-rail')
+      button.style.position = previousPosition
       title?.removeAttribute('data-wb-provider-alert')
+      if (typeof window !== 'undefined') window.removeEventListener('resize', updateRail)
+      railObserver?.disconnect()
+      if (railFrame !== null && typeof window !== 'undefined') window.cancelAnimationFrame(railFrame)
     }
   }, [spoken, alertNames])
   return h('span', {
@@ -2584,7 +2605,10 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
         'data-wb-tone': view.tone,
         'aria-hidden': 'true',
         'aria-live': 'polite',
-      }, view.badge))
+      }, view.badge),
+    alertNames === '' ? null : h('span', {
+      className: cx('wb-rail-dot'), 'data-wb-rail-dot': 'true', 'aria-hidden': 'true',
+    }))
 }
 
 export type WorkbenchInjected = TaskQueueInjected & BalancesInjected & {
@@ -2631,36 +2655,80 @@ function WorkbenchRow(props: {
 }
 
 /**
- * One provider in the Providers segment: a data row, never a button. The
- * primary reading sits 8px after the name (never right-floating), the
- * secondary one is right-aligned; the second line carries the state chip and
- * the window, whose weekday/time detail is hidden under 360px without
- * changing the DOM.
+ * One provider in the Providers segment: a two-line, always-visible data row
+ * (72px, the task row's rhythm). Line 1 is the state dot, name and used %, with
+ * the week share muted on the right; line 2 is the window end and, for money
+ * providers, the balance/credit split. A 3px bar at the bottom uses the same
+ * state predicate as the drawer dot.
  */
-function WorkbenchProviderRow(props: { row: ProviderRowView; source: PanelSource; t: Translate }): React.ReactElement {
-  const { row } = props
+function WorkbenchProviderRow(props: {
+  row: ProviderRowView
+  t: Translate
+  now: number
+  detailRow: BalanceRow | undefined
+}): React.ReactElement {
+  const { row, t, detailRow } = props
+  const snapshot = detailRow?.result.snapshot ?? null
+  const windows = snapshot?.windows ?? []
+  const first = windows[0]
+  const second = windows[1]
+  const used = first?.percent ?? null
+  const week = second?.percent ?? null
+  const maxUsed = Math.max(0, ...windows.map((window) => window.percent ?? 0))
+  const money = snapshot?.unit === 'money'
+  const free = detailRow === undefined
+  const unknown = !free && (snapshot === null || detailRow?.result.configured === false || detailRow?.result.status === 'failed')
+  const stale = detailRow?.result.status === 'stale'
+  const moneyTotal = money ? (Number(snapshot?.totalBalance) || 0) + (Number(snapshot?.grantedBalance) || 0) : 0
+  const moneyLow = money && (Number(snapshot?.totalBalance) || 0) < 10
+  const state: 'ok' | 'warn' | 'alert' | 'exhausted' | 'free' | 'unknown' | 'stale' = free ? 'free'
+    : unknown ? 'unknown'
+      : stale ? 'stale'
+        : maxUsed >= 100 ? 'exhausted'
+          : maxUsed >= 90 || (money && moneyTotal <= 0) || row.signal === 'alert' ? 'alert'
+            : maxUsed >= 70 || moneyLow ? 'warn' : 'ok'
+  const stateLabel = state === 'stale' ? t('balance.staleShort') : t('workbench.provider.state.' + state)
+  const primary = free ? t('workbench.provider.state.free')
+    : unknown ? '—'
+      : state === 'exhausted' ? t('workbench.provider.state.exhausted')
+        : money ? ''
+          : used === null ? '—' : Math.round(used) + '%'
+  const secondary = money || free || unknown || week === null
+    ? null : t('balance.window.week') + ' ' + Math.round(week) + '%'
+  const resetWindow = second !== undefined && (second.percent ?? 0) >= 90 ? second : first
+  const reset = resetWindow === undefined ? '' : resetStampOf(t, { resetAt: resetWindow.resetAt, resetAtMs: resetWindow.resetAtMs }, props.now)
+  const left = free ? t('workbench.provider.noWindow')
+    : unknown ? t('workbench.provider.state.unknown')
+      : money ? '' : reset === '' ? '—' : t('workbench.provider.to', { time: reset })
+  const credit = money && Number(snapshot?.grantedBalance) > 0
+    ? t('workbench.provider.credit', { amount: (snapshot?.currency === 'CNY' ? '¥' : '$') + snapshot?.grantedBalance })
+    : null
+  const right = money && !free && !unknown
+    ? [t('workbench.provider.balance', { amount: row.primary }), credit].filter((part): part is string => part !== null).join(' · ')
+    : null
+  const barPct = free || unknown ? null : money ? (moneyTotal <= 0 ? 100 : 0) : Math.min(100, maxUsed)
+  const aria = [row.label, stateLabel, primary, secondary, left, right].filter((part): part is string => part !== null && part !== '').join(' · ')
   return h('div', {
-    className: cx('wb-prov'), role: 'listitem', 'data-wb-provider': row.key, 'data-wb-provider-signal': row.signal,
-    'data-wb-tone': row.tone, 'aria-label': row.aria, title: row.title === '' ? undefined : row.title,
+    className: cx('wb-prov', 'wb-prov-' + state), role: 'listitem',
+    'data-wb-provider': row.key, 'data-wb-provider-signal': row.signal, 'data-wb-provider-state': state,
+    'data-wb-tone': row.tone, 'aria-label': aria, title: row.title === '' ? undefined : row.title,
   },
-    h('span', { className: cx('wb-prov-glyph'), 'aria-hidden': 'true' }, renderSourceGlyph(props.source)),
-    h('span', { className: cx('wb-prov-main') },
-      h('span', { className: cx('wb-prov-line') },
-        h('span', { className: cx('wb-prov-name') }, row.label),
-        h('span', { className: cx('wb-prov-primary'), 'data-wb-tone': row.primaryTone }, row.primary),
-        row.signal === 'alert' ? h('span', { className: cx('wb-prov-alert'), 'aria-hidden': 'true' }, '⚠') : null,
-        row.secondary === null ? null : h('span', { className: cx('wb-prov-secondary'), 'data-wb-tone': row.secondaryTone }, row.secondary)),
-      h('span', { className: cx('wb-prov-sub') },
-        row.chip === null ? null : h('span', {
-          className: cx('wb-prov-chip'), 'data-wb-chip': row.chip.role,
-        }, row.chip.text),
-        row.window === null ? null : h('span', { className: cx('wb-prov-window') },
-          h('span', null, row.window.startDate),
-          h('span', { className: cx('t-detail') }, ' ' + row.window.startDetail),
-          h('span', { className: cx('wb-prov-arrow'), 'aria-hidden': 'true' }, ' → '),
-          h('span', null, row.window.endDate),
-          h('span', { className: cx('t-detail') }, ' ' + row.window.endDetail)))),
-    )
+    h('div', { className: cx('wb-prov-line') },
+      h('span', {
+        className: cx('wb-prov-dot'), 'data-role': state, 'aria-hidden': 'true',
+        'data-wb-dot-hidden': state === 'ok' || state === 'free' ? 'true' : undefined,
+      }),
+      h('span', { className: cx('wb-prov-name') }, row.label),
+      h('span', { className: cx('wb-prov-metrics') },
+        primary === '' ? null : h('span', { className: cx('wb-prov-primary'), 'data-wb-tone': row.primaryTone }, primary),
+        secondary === null ? null : h('span', { className: cx('wb-prov-secondary'), 'data-wb-tone': row.secondaryTone }, secondary))),
+    h('div', { className: cx('wb-prov-meta') },
+      h('span', { className: cx('wb-prov-left') },
+        state === 'stale' && row.chip !== null ? h('span', { className: cx('wb-prov-stale') }, row.chip.text) : null,
+        left),
+      right === null ? null : h('span', { className: cx('wb-prov-right') }, right)),
+    barPct === null ? null : h('div', { className: cx('wb-prov-track'), 'aria-hidden': 'true' },
+      h('span', { className: cx('wb-prov-fill'), 'data-role': state, style: { width: barPct + '%' } })))
 }
 
 /** A native details fold; the summary carries the whole row, the body the existing tables. */
@@ -2692,8 +2760,9 @@ function WorkbenchDetail(props: {
 }): React.ReactElement {
   const { task, t } = props
   const stuck = isStuckTask(task)
+  const live = task.finishedAtMs === null || task.finishedAtMs === undefined
   const meta = [
-    stuck ? t('workbench.stuck') : t('workbench.pending'),
+    live ? t('workbench.running') : stuck ? t('workbench.stuck') : t('workbench.pending'),
     t('workbench.waited', { time: waitLong(waitedOf(task, props.now)) }),
     task.agent === '' ? null : task.agent,
   ].filter((part): part is string => part !== null).join(' · ')
@@ -2766,12 +2835,14 @@ function WorkbenchDetail(props: {
 export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const { t } = props
   const queue = useTaskQueue(props)
-  const [tab, setTab] = useState<'tasks' | 'providers'>('tasks')
+  const [tab, setTab] = useState<WorkbenchTab>('tasks')
   const [view, setView] = useState<'queue' | 'focus'>('queue')
   const [selected, setSelected] = useState<string | null>(null)
   const [snapshot, setSnapshot] = useState<DispatchTask | null>(null)
   const [groups, setGroups] = useState<WorkbenchGroups>(readWorkbenchGroups)
   const [showAll, setShowAll] = useState<Partial<Record<WorkbenchGroup, boolean>>>({})
+  const [overviewPatrolOpen, setOverviewPatrolOpen] = useState(true)
+  const [overviewStatsOpen, setOverviewStatsOpen] = useState(false)
   const [updated, setUpdated] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
@@ -2780,10 +2851,21 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const desktop = useMedia(WORKBENCH_WIDE)
   const narrow = useMedia('(max-width: 359px)')
   const balances = useProviderReadings(props, 'workbench-page', tab === 'providers')
+  const stats = useTaskStats(props, tab === 'overview')
   const titleRef = useRef<HTMLHeadingElement | null>(null)
   const rowRefs = useRef(new Map<string, HTMLButtonElement>())
   const groupRefs = useRef(new Map<WorkbenchGroup, HTMLButtonElement>())
-  const tabRefs = useRef(new Map<'tasks' | 'providers', HTMLButtonElement>())
+  const openedInitial = useRef(false)
+  const hasStoredFold = useRef<boolean>((() => {
+    try {
+      return typeof window !== 'undefined' && window.localStorage !== undefined
+        && window.localStorage.getItem(WORKBENCH_GROUPS_KEY) !== null
+    } catch {
+      return false
+    }
+  })())
+  const narrowSettled = useRef(false)
+  const tabRefs = useRef(new Map<WorkbenchTab, HTMLButtonElement>())
   const updatedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const groupId = useId()
@@ -2796,11 +2878,12 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const sources = _panelSources(balances.data.result?.providers ?? [], result)
   const rowMap = new Map(balances.rows.map((row) => [row.provider, row] as const))
   const providers = providerRowsView(sources, rowMap, result, t, now)
-  const sourceByKey = new Map(sources.map((source) => [source.key, source] as const))
   const alerts = providerAlerts(balances.rows)
   const alertNames = alerts.map((row) => row.label).join(', ')
+  const statsData = stats.data === null ? null : statsView(stats.data, t)
+  const patrol = result === null ? null : patrolSection(result, t, now)
   const panelId = groupId + '-panel'
-  const tabId = (id: 'tasks' | 'providers'): string => groupId + '-tab-' + id
+  const tabId = (id: WorkbenchTab): string => groupId + '-tab-' + id
   const capRows = narrow ? 4 : 6
   const maxOpen = narrow ? 1 : 2
   const rowsOf = (id: WorkbenchGroup): DispatchTask[] => id === 'stuck' ? split.stuck : id === 'pending' ? split.review : live
@@ -2813,12 +2896,54 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const rendered = [
     ...(groups.stuck ? visibleRows('stuck') : []),
     ...(groups.pending ? visibleRows('pending') : []),
+    ...(groups.live ? visibleRows('live') : []),
   ]
   const shown = selected === null ? null : pending.find((task) => task.id === selected) ?? snapshot
   const patrolAt = lastPatrolAt(result)
   const stamp = clockOf(patrolAt)
   const rawProgress = result?.patrol?.progress ?? null
+  const overviewOpenValues = (rawProgress?.areas ?? []).map((area) => {
+    const value = (area as { open?: unknown }).open
+    return value === null || value === undefined || value === '' || !Number.isFinite(Number(value))
+      ? null : Number(value)
+  })
+  const overviewOpen = overviewOpenValues.length > 0 && overviewOpenValues.every((value) => value !== null)
+    ? overviewOpenValues.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null
   const firstRendered = rendered[0]?.id ?? null
+
+  // Opening the page must show task rows: if the stored fold choice leaves
+  // every non-empty group closed (e.g. only a running task), open the first
+  // group that has something to show. This runs once per mount.
+  useEffect(() => {
+    if (openedInitial.current) return
+    if (hasStoredFold.current) { openedInitial.current = true; return }
+    if (pending.length === 0 && live.length === 0) return
+    const visible = (groups.stuck && split.stuck.length > 0)
+      || (groups.pending && split.review.length > 0)
+      || (groups.live && live.length > 0)
+    if (visible) { openedInitial.current = true; return }
+    openedInitial.current = true
+    const first: WorkbenchGroup = split.stuck.length > 0 ? 'stuck'
+      : split.review.length > 0 ? 'pending' : 'live'
+    const next = { stuck: first === 'stuck', pending: first === 'pending', live: first === 'live' }
+    setGroups(next)
+    saveWorkbenchGroups(next)
+  }, [pending.length, live.length, groups.stuck, groups.pending, groups.live])
+
+  // Under 360px only one group may stay open. The v2 default opens both alarm
+  // and review; keep the first one with rows and close the other.
+  useEffect(() => {
+    if (!narrow || narrowSettled.current) return
+    if (pending.length === 0 && live.length === 0) return
+    narrowSettled.current = true
+    const open = (['stuck', 'pending', 'live'] as const).filter((group) => groups[group])
+    if (open.length <= 1) return
+    const keep: WorkbenchGroup = split.stuck.length > 0 ? 'stuck'
+      : split.review.length > 0 ? 'pending' : 'live'
+    const next = { stuck: keep === 'stuck', pending: keep === 'pending', live: keep === 'live' }
+    setGroups(next)
+    saveWorkbenchGroups(next)
+  }, [narrow, pending.length, live.length, groups.stuck, groups.pending, groups.live])
 
   // The desktop column needs a selection; pick the oldest rendered task once,
   // never steal a selection the reader made while data was arriving.
@@ -2893,17 +3018,17 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       })
     }
   }
-  const selectTab = (id: 'tasks' | 'providers'): void => {
+  const selectTab = (id: WorkbenchTab): void => {
     if (id === tab) return
     setTab(id)
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => { tabRefs.current.get(id)?.focus({ preventScroll: true }) })
     }
   }
-  const onTabKey = (event: React.KeyboardEvent, id: 'tasks' | 'providers'): void => {
-    const order: Array<'tasks' | 'providers'> = ['tasks', 'providers']
+  const onTabKey = (event: React.KeyboardEvent, id: WorkbenchTab): void => {
+    const order: WorkbenchTab[] = ['tasks', 'providers', 'overview']
     const at = order.indexOf(id)
-    let next: 'tasks' | 'providers' | null = null
+    let next: WorkbenchTab | null = null
     if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = order[(at + order.length - 1) % order.length]!
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = order[(at + 1) % order.length]!
     if (event.key === 'Home') next = order[0]!
@@ -3054,13 +3179,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       onOpen: () => { open(task) },
       onMove: (delta: number) => { move(task, delta) },
     })
-    const renderLive = (task: DispatchTask): React.ReactElement => h('div', {
-      key: task.id, className: cx('wb-live-row'), 'data-wb-live-task': task.id,
-    },
-      h('span', { className: cx('wb-live-name') }, taskTitle(task)),
-      h('span', { className: cx('wb-live-age') }, t('workbench.live.elapsed', {
-        time: waitShort(Math.max(0, now - (task.startedAtMs ?? task.updatedAtMs ?? now))),
-      })))
+    const renderLive = (task: DispatchTask): React.ReactElement => renderRow(task)
     const group = (id: WorkbenchGroup, label: string, rows: DispatchTask[], tone: 'danger' | 'neutral', render: (task: DispatchTask) => React.ReactElement): React.ReactElement => {
       const isOpen = groups[id]
       const shownRows = showAll[id] === true ? rows : rows.slice(0, capRows)
@@ -3096,22 +3215,155 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       }), split.review, 'neutral', renderRow),
       live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live, 'neutral', renderLive))
   }
+  const openProviderSettings = (): void => {
+    if (typeof document === 'undefined') return
+    const host = document.querySelector<HTMLButtonElement>('button[aria-label="Settings"], button[aria-label="设置"]')
+    if (host !== null) host.click()
+    else props.closeWorkbench()
+  }
+  const renderOverview = (): React.ReactElement => {
+    const lastRound = result?.patrol.rounds?.[0] ?? null
+    const lastView = patrol?.rounds?.[0] ?? null
+    const lastTime = clockOf(lastPatrolAt(result))
+    const lastTook = lastRound?.seconds == null ? '' : waitShort(lastRound.seconds * 1000)
+    const progress = patrol?.progress ?? null
+    const areaCount = result?.patrol.progress?.areas.length ?? progress?.areas.length ?? 0
+    const lensCount = result?.patrol.progress?.lenses.length ?? progress?.lenses.length ?? 0
+    const openValues = (result?.patrol.progress?.areas ?? progress?.areas ?? []).map((area) => {
+      const value = (area as { open?: unknown }).open
+      return value === null || value === undefined || value === '' || !Number.isFinite(Number(value))
+        ? null : Number(value)
+    })
+    const openKnown = openValues.length > 0 && openValues.every((value) => value !== null)
+    const openCount = openKnown ? openValues.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null
+    const nextTime = clockOf(result?.patrol.untilMs ?? null)
+    const overviewGroup = (id: string, label: string, open: boolean, onToggle: () => void, summary: string | undefined, body: React.ReactNode): React.ReactElement =>
+      h('section', {
+        className: cx('wb-group-section', 'wb-ov-group'), 'data-wb-overview-group': id,
+        'data-wb-open': open ? 'true' : 'false',
+      },
+        h(WorkbenchGroupHeader, {
+          id: 'overview-' + id, label, open, tone: 'neutral', bodyId: groupId + '-ov-' + id, summary,
+          buttonRef: () => {},
+          onToggle,
+        }),
+        h('div', {
+          className: cx('wb-group-body'), id: groupId + '-ov-' + id, 'aria-hidden': open ? undefined : 'true',
+          inert: open ? undefined : '',
+        }, h('div', { className: cx('wb-group-body-inner') }, body)))
+    const patrolRows = lastRound === null
+      ? h('div', { className: cx('wb-ov-row') },
+        h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
+        h('span', { className: cx('wb-ov-value', 'wb-ov-muted') }, t('workbench.overview.noPatrol', { time: nextTime })))
+      : h('div', null,
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
+          h('span', { className: cx('wb-ov-value') },
+            lastTime + (lastTook === '' ? '' : ' · ' + lastTook),
+            lastView?.state == null ? null : h('span', {
+              className: cx('wb-ov-chip'), 'data-role': lastView.state.role,
+            }, lastView.state.text))),
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.coverage')),
+          h('span', { className: cx('wb-ov-value') },
+            progress === null ? '—' : [
+              h('span', { className: cx('wb-ov-chip'), key: 'a' }, t('workbench.overview.areaCount', { n: areaCount })),
+              h('span', { className: cx('wb-ov-chip'), key: 'l' }, t('workbench.overview.lensCount', { n: lensCount })),
+            ])),
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.unresolved')),
+          h('span', {
+            className: cx('wb-ov-value', openCount === null ? 'wb-ov-muted' : openCount > 0 ? 'wb-ov-alert' : 'wb-ov-quiet'),
+            'data-wb-overview-open': openCount === null ? 'unknown' : String(openCount),
+          }, openCount === null ? '—' : openCount > 0 ? String(openCount) : h('span', null, '0 ', h('span', { className: cx('wb-ov-check'), 'aria-hidden': 'true' }, '✓')))),
+        h('div', { className: cx('wb-ov-row') },
+          h('span', { className: cx('wb-ov-label') }, t('workbench.overview.cadence')),
+          h('span', { className: cx('wb-ov-value', 'wb-ov-muted') }, t('workbench.overview.every', { every: '6h', time: nextTime }))))
+    const statsFailed = stats.data !== null && !stats.data.available
+    const totals = statsFailed ? null : statsData?.totals ?? null
+    const metrics: Array<[string, string]> = [
+      [t('stats.metric.tasks'), totals === null ? '—' : String(totals.tasks)],
+      [t('stats.metric.tokens'), totals === null ? '—' : totals.tokensText],
+      [t('stats.metric.cost'), totals === null ? '—' : totals.costText],
+    ]
+    const doneN = totals?.done ?? 0
+    const unfinishedN = totals === null ? 0 : Math.max(0, totals.settled - totals.done)
+    const settledN = doneN + unfinishedN
+    const series = statsData?.series ?? null
+    const days = series?.days ?? []
+    const maxTotal = series?.maxTotal ?? 0
+    const chartDays = days.length === 7 ? days : Array.from({ length: 7 }, (_, i) => ({
+      date: '', label: '—', total: 0, tasks: 0, tokens: {},
+    }))
+    const chart = h('div', {
+      className: cx('wb-ov-chart'), role: 'img',
+      'aria-label': series === null ? t('workbench.overview.noData') : t('workbench.overview.chartAria', { total: totals?.tokensText ?? '—' }),
+    },
+      h('div', { className: cx('wb-ov-chart-cap') }, t('workbench.overview.chart')),
+      h('div', { className: cx('wb-ov-bars') },
+        ...chartDays.map((day, at) => {
+          const height = maxTotal > 0 ? Math.round(day.total / maxTotal * 72) : 0
+          const today = day.date !== '' && day.date === todayIso()
+          return h('div', { className: cx('wb-ov-slot'), key: 'd' + at, 'data-today': today ? 'true' : undefined },
+            h('div', { className: cx('wb-ov-track') },
+              h('div', {
+                className: cx('wb-ov-bar'), 'data-empty': height === 0 ? 'true' : undefined, 'data-wb-ov-bar': 'true',
+                style: { height: (height > 0 ? height : 4) + 'px' },
+              })),
+            h('span', { className: cx('wb-ov-day') }, day.date === '' ? '—' : day.label))
+        })),
+      series === null ? h('div', { className: cx('wb-ov-empty') }, t('workbench.overview.noData')) : null)
+    const statsMessage = statsData === null
+      ? stats.error !== null ? t('workbench.overview.unavailable', { message: stats.error })
+        : props.fetchTaskStats === undefined ? t('workbench.overview.noHost') : t('workbench.overview.loading')
+      : statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' }) : null
+    const statsBody = h('div', { className: cx('wb-ov-stats') },
+      h('div', { className: cx('wb-ov-metrics') },
+        ...metrics.map(([label, value], at) => h('div', { className: cx('wb-ov-metric'), key: 'm' + at },
+          h('span', { className: cx('wb-ov-metric-label') }, label),
+          h('span', { className: cx('wb-ov-metric-value') }, value)))),
+      h('div', { className: cx('wb-ov-done'), 'data-wb-overview-done': String(doneN) },
+        h('div', { className: cx('wb-ov-done-bar') },
+          h('span', { className: cx('wb-ov-done-fill'), style: { width: (settledN > 0 ? doneN / settledN * 100 : 0) + '%' } }),
+          h('span', { className: cx('wb-ov-open-fill'), style: { width: (settledN > 0 ? unfinishedN / settledN * 100 : 0) + '%' } })),
+        h('div', { className: cx('wb-ov-done-labels') },
+          h('span', null, t('workbench.overview.done', { n: doneN })),
+          h('span', null, t('workbench.overview.open', { n: unfinishedN })))),
+      statsMessage === null ? chart : h('div', { className: cx('wb-ov-stats-msg') }, statsMessage))
+    const statsSummary = statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' })
+      : statsData?.summaryLine ?? (stats.loading ? t('workbench.overview.loading') : '—')
+    return h('div', { className: cx('wb-ov'), 'data-wb-overview': 'true' },
+      overviewGroup('patrol', t('workbench.overview.patrol'), overviewPatrolOpen,
+        () => { setOverviewPatrolOpen((open) => !open) }, undefined, patrolRows),
+      overviewGroup('stats', t('workbench.overview.stats'), overviewStatsOpen,
+        () => { setOverviewStatsOpen((open) => !open) }, statsSummary, statsBody))
+  }
   const renderProviders = (): React.ReactElement => {
     if (providers.length === 0) {
       const failed = balances.data.error !== null && !balances.data.loading
       return h('div', { className: cx('wb-providers-empty'), 'data-wb-providers-empty': 'true' },
+        h('span', { className: cx('wb-empty-glyph'), 'aria-hidden': 'true' }, renderWorkbenchGlyph(24)),
         h('div', { className: cx('wb-empty-title') }, failed ? t('workbench.provider.readFailed', { message: balances.data.error }) : t('workbench.provider.empty')),
-        failed ? null : h('div', { className: cx('wb-empty-body') }, t('workbench.provider.emptyHint')))
+        failed ? null : h('div', { className: cx('wb-empty-body') }, t('workbench.provider.emptyHint')),
+        h('button', {
+          type: 'button', className: cx('wb-empty-add'), 'data-wb-add-provider': 'true',
+          onClick: openProviderSettings,
+        }, t('workbench.provider.add')))
     }
     return h('div', { className: cx('wb-providers'), role: 'list', 'aria-label': t('workbench.tab.providers'), 'data-wb-providers': 'true' },
       balances.data.error !== null && !balances.data.loading
         ? h('div', { className: cx('wb-providers-error'), role: 'status', 'data-wb-providers-error': 'true' },
           t('workbench.provider.readFailed', { message: balances.data.error }))
         : null,
-      ...providers.map((row) => {
-        const source = sourceByKey.get(row.key)
-        return source === undefined ? null : h(WorkbenchProviderRow, { key: row.key, row, source, t })
-      }))
+      ...providers.map((row) => h(WorkbenchProviderRow, {
+        key: row.key, row, t, now,
+        detailRow: row.provider === null ? undefined : rowMap.get(row.provider),
+      })),
+      h('div', { className: cx('wb-prov-add-row'), role: 'listitem' },
+        h('button', {
+          type: 'button', className: cx('wb-prov-add'), 'data-wb-add-provider': 'true',
+          onClick: openProviderSettings,
+        }, '+ ' + t('workbench.provider.add'))))
   }
   const detail = shown === null
     ? h('div', { className: cx('wb-detail-empty') }, t('workbench.select'))
@@ -3159,12 +3411,24 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       h('span', { className: cx('wb-tab-label') }, t('workbench.tab.providers')),
       alerts.length === 0 ? null : h('span', {
         className: cx('wb-tab-dot'), 'data-wb-tab-dot': 'true', 'aria-hidden': 'true', title: alertNames,
-      })))
-  const panel = tab === 'tasks' ? renderQueue() : renderProviders()
+      })),
+    h('button', {
+      type: 'button', role: 'tab', id: tabId('overview'), className: cx('wb-tab', tab === 'overview' && 'wb-tab-on'),
+      'aria-selected': tab === 'overview', 'aria-controls': panelId, tabIndex: tab === 'overview' ? 0 : -1,
+      'aria-label': t('workbench.tab.overview'),
+      ref: (element: HTMLButtonElement | null) => {
+        if (element === null) tabRefs.current.delete('overview')
+        else tabRefs.current.set('overview', element)
+      },
+      onClick: () => { selectTab('overview') },
+      onKeyDown: (event: React.KeyboardEvent) => { onTabKey(event, 'overview') },
+    }, h('span', { className: cx('wb-tab-label') }, t('workbench.tab.overview'))))
+  const panel = tab === 'tasks' ? renderQueue() : tab === 'providers' ? renderProviders() : renderOverview()
   const mainPanel = h('div', {
-    className: cx('wb-view'), key: tab, role: 'tabpanel', id: panelId, 'aria-labelledby': tabId(tab),
-    'data-wb-scroll': 'true', 'data-wb-panel': tab,
-  }, panel)
+    className: cx('wb-view'), key: tab, 'data-wb-scroll': 'true', 'data-wb-panel': tab,
+  },
+    tabs,
+    h('div', { role: 'tabpanel', id: panelId, 'aria-labelledby': tabId(tab), className: cx('wb-tabpanel'), 'data-wb-panel': tab }, panel))
   return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'queue', 'data-wb-tab': tab },
     h('header', { className: cx('wb-head') },
       h('div', { className: cx('wb-head-row') },
@@ -3185,8 +3449,13 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
             d: 'M13 8a5 5 0 1 1-1.6-3.7M13 2.6V5h-2.4', stroke: 'currentColor', strokeWidth: 1.35,
             strokeLinecap: 'round', strokeLinejoin: 'round',
           })))),
-      h('div', { className: cx('wb-sub') }, t('workbench.meta', { n: counts.total, time: stamp })),
-      tabs),
+      h('div', { className: cx('wb-sub') }, tab === 'tasks'
+        ? t('workbench.sub.tasks', { n: counts.total, age: counts.total === 0 ? '—' : waitShort(counts.oldestPendingMs) })
+        : tab === 'providers'
+          ? alerts.length === 1
+            ? t('workbench.sub.providersOne', { n: providers.length })
+            : t('workbench.sub.providers', { n: providers.length, alerts: alerts.length })
+          : t('workbench.sub.overview', { time: stamp, n: overviewOpen ?? '—' }))),
     h('div', { className: cx('wb-main') },
       desktop
         ? h('div', { className: cx('wb-grid') },
