@@ -609,7 +609,9 @@ jobs:
   workbench-overlap:
     needs: scope
     if: needs.scope.outputs.dsplugin == 'true'
-    runs-on: ubuntu-latest
+    # Playwright 1.60 has no chromium build for the ubuntu-26.04 image behind
+    # `ubuntu-latest`; pin the LTS image this browser matrix is tested on.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
