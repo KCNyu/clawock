@@ -29,7 +29,7 @@ import type { BalancesResult, EnrichedTrade, QueueActionResult, T1VerdictKind, T
 import { type Translate } from './copy.ts';
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts';
 export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts';
-export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView } from './panel.ts';
+export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView, providerSignal, providerAlerts, providerRowsView } from './panel.ts';
 /**
  * The T+1 verdict in the active locale. `verdictKind` is the stable code; a
  * host that predates it sends only the rendered text, which is passed through
@@ -178,27 +178,8 @@ export declare const BALANCE_BADGE_MS: number;
 /** The poll interval for a surface: the host's cadence while its numbers are read, the badge's otherwise. */
 export declare function _balanceCadence(reading: boolean, refreshMs: number | undefined): number;
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
-/** Foot-action id of the balance surface (a stable DOM contract for probes). */
-export declare const BALANCE_PANEL = "clawock-provider-balance";
 /** The main panel key and the panellist id are the same id (the host contract). */
 export declare const WORKBENCH_PANEL = "clawock-workbench";
-/** Fixed-position anchor for the popover: left edge of the row, just above it, and the room up to the viewport top. */
-export type PopoverAnchor = {
-    left: number;
-    bottom: number;
-    room: number;
-};
-/**
- * The viewport half of the foot panel's placement, pure so the desktop clamps
- * are pinned without a browser. On a phone the panel is no longer a floating
- * card: it is a page inside the drawer (width 100%, top 52px), so there is
- * nothing to clamp and this returns null. On a wide screen the old 380px card
- * and 12px gap are unchanged.
- */
-export declare function _popoverAnchor(rect: {
-    left: number;
-    top: number;
-}, vw: number, vh: number): PopoverAnchor | null;
 /** What the task chip's `inject` factory hands the component. */
 export interface TaskQueueInjected {
     /** The last answer this registration fetched, or null cold. */
@@ -220,23 +201,8 @@ export interface TaskQueueInjected {
      */
     runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>;
 }
-/** The one door to dsh's own file preview (right sidebar), or why it cannot open (see apply). */
-export type OpenFile = (path: string) => {
-    ok: true;
-} | {
-    ok: false;
-    reason: 'no-service' | 'no-session' | 'error';
-    message?: string;
-};
 /** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
 export declare function _fmtTokens(n: number): string;
-/**
- * The file-preview address of a path read through one session — dsh-util-workspace-path's
- * `sessionFileAddress` grammar (an absolute path keeps its leading `/`, hence `…/<id>//root/…`).
- * The preview claims only this scope: `file/absolute/…` answered "no registered tab type claims"
- * on the live host (2026-09-27), so the brief opens in the conversation's own sidebar.
- */
-export declare function _sessionFileAddress(sessionId: string, path: string): string;
 /**
  * The detail layer's order (2026-09-28, kcn: 「问题在详情页……信息没有秩序」). The layer
  * holds what the row cannot: the whole status sentence, the allowance the task
@@ -281,7 +247,7 @@ export declare const DETAIL_ACTIONS: Record<string, {
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
 export declare function _describeAction(result: QueueActionResult, t: Translate): string;
 /** The panellist icon: a permanent entry; the badge exists only with pending tasks. */
-export type WorkbenchIconInjected = TaskQueueInjected & {
+export type WorkbenchIconInjected = TaskQueueInjected & BalancesInjected & {
     rememberTrigger: (element: HTMLElement | null) => void;
 };
 export type WorkbenchIconProps = WorkbenchIconInjected & {
@@ -290,7 +256,7 @@ export type WorkbenchIconProps = WorkbenchIconInjected & {
     t: Translate;
 };
 export declare function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement;
-export type WorkbenchInjected = TaskQueueInjected & {
+export type WorkbenchInjected = TaskQueueInjected & BalancesInjected & {
     /** Return to the conversation and put focus back on the control that opened the page. */
     closeWorkbench: () => void;
     /** One preset through the host's dispatcher entry; absent on an older host half. */
@@ -300,24 +266,6 @@ export type WorkbenchProps = WorkbenchInjected & {
     t: Translate;
 };
 export declare function WorkbenchPage(props: WorkbenchProps): React.ReactElement;
-export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {
-    /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
-    wide: boolean;
-    t: Translate;
-    /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
-    openFile?: OpenFile;
-};
-/**
- * The sidebar-foot provider panel (2026-09-27): the balance chip and the
- * dispatch queue as ONE cell, `provider-balance`. Folded, it is one line per
- * source — provider or agent name first, its reading and reset, then who
- * burns that allowance (the agent's queue) or where its key comes from. Any
- * line opens the panel on that source's group: the allowance (windows with
- * their resets, or money), then the queue that allowance feeds. The rail
- * keeps one glyph whose badge warns when a window is at its threshold or a
- * task sleeps on quota. Both halves keep their own read and cadence.
- */
-export declare function ProviderPanelSidebarAction(props: ProviderPanelProps): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
 /**
  * `layout` is listed even though the plugin only *probes* it, and that is not

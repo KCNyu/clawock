@@ -91,6 +91,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.window.minutes': '{n}m',
     'balance.reset.today': '今天 {time}', 'balance.reset.tomorrow': '明天 {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
+    'balance.reset.todayOnly': '今天', 'balance.reset.tomorrowOnly': '明天', 'balance.reset.dateOnly': '{date}',
     'queue.name': '任务', 'queue.panelTitle': '派发任务队列', 'queue.panelHeading': '派发队列',
     'queue.refresh': '刷新任务队列', 'queue.running': '在跑 {n}', 'queue.slotsHeading': '运行槽 · 按 agent',
     'queue.lane': '{agent} {used}/{max}', 'queue.laneNoMax': '{agent} {used}',
@@ -136,6 +137,12 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'time.dayOne': '{n} 天', 'time.dayMany': '{n} 天',
     'time.daysHours': '{d} 天 {h} 小时',
     'workbench.title': '工作台', 'workbench.queue': '队列', 'workbench.refresh': '刷新',
+    'workbench.tab.aria': '工作台视图', 'workbench.tab.tasks': '任务', 'workbench.tab.providers': '服务',
+    'workbench.tab.tasksAria': '任务，{n} 件待办', 'workbench.tab.providersAria': '服务，{n} 个异常', 'workbench.tab.providersClear': '服务，无异常', 'workbench.tab.providersOne': '服务，1 个异常',
+    'workbench.refresh.tasks': '刷新巡检', 'workbench.refresh.providers': '刷新额度',
+    'workbench.provider.alert': '异常', 'workbench.provider.alertAria': '服务异常：{names}',
+    'workbench.provider.empty': '还没有配置 provider', 'workbench.provider.emptyHint': '在 Settings 里添加 API Key',
+    'workbench.provider.readFailed': '额度读取失败：{message}', 'workbench.group.more': '还有 {n} 条 ›',
     'workbench.updated': '刚刚更新', 'workbench.meta': '{n} 件待处理 · 上次巡检 {time}',
     'workbench.group.stuck': '卡住 {n}', 'workbench.group.live': '进行中 {n}',
     'workbench.group.pendingOldest': '待你处理 {n} · 最旧 {age}',
@@ -373,6 +380,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.window.minutes': '{n}m',
     'balance.reset.today': 'today {time}', 'balance.reset.tomorrow': 'tomorrow {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
+    'balance.reset.todayOnly': 'today', 'balance.reset.tomorrowOnly': 'tomorrow', 'balance.reset.dateOnly': '{date}',
     'queue.name': 'Tasks', 'queue.panelTitle': 'Dispatch task queue', 'queue.panelHeading': 'Dispatch queue',
     'queue.refresh': 'Refresh the task queue', 'queue.running': '{n} running', 'queue.slotsHeading': 'Run slots · per agent',
     'queue.lane': '{agent} {used}/{max}', 'queue.laneNoMax': '{agent} {used}',
@@ -418,6 +426,12 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'time.dayOne': '{n} day', 'time.dayMany': '{n} days',
     'time.daysHours': '{d}d {h}h',
     'workbench.title': 'Workbench', 'workbench.queue': 'Queue', 'workbench.refresh': 'Refresh',
+    'workbench.tab.aria': 'Workbench views', 'workbench.tab.tasks': 'Tasks', 'workbench.tab.providers': 'Providers',
+    'workbench.tab.tasksAria': 'Tasks, {n} pending', 'workbench.tab.providersAria': 'Providers, {n} alerts', 'workbench.tab.providersClear': 'Providers, no alerts', 'workbench.tab.providersOne': 'Providers, 1 alert',
+    'workbench.refresh.tasks': 'Refresh patrol', 'workbench.refresh.providers': 'Refresh allowances',
+    'workbench.provider.alert': 'Alert', 'workbench.provider.alertAria': 'Provider alert: {names}',
+    'workbench.provider.empty': 'No providers configured yet', 'workbench.provider.emptyHint': 'Add an API key in Settings',
+    'workbench.provider.readFailed': 'Could not read allowances: {message}', 'workbench.group.more': '{n} more ›',
     'workbench.updated': 'Updated just now', 'workbench.meta': '{n} pending · last patrol {time}',
     'workbench.group.stuck': 'Stuck {n}', 'workbench.group.live': 'Running {n}',
     'workbench.group.pendingOldest': 'Pending {n} · oldest {age}',
@@ -630,23 +644,32 @@ export function windowLabelOf(t: Translate, window: { label: string; durationMin
   return t('balance.window.minutes', { n: Math.round(mins) })
 }
 
-/** The reset instant → the stamp in the active locale, host string as fallback. */
-export function resetStampOf(t: Translate, window: { resetAt: string; resetAtMs?: number | null }, now: number): string {
+/**
+ * The reset instant split into the part that always stays (date) and the
+ * weekday/time detail the narrow provider row hides. One formatter serves
+ * both {@link resetStampOf} and the row, so the two cannot drift.
+ */
+export function resetStampPartsOf(t: Translate, window: { resetAt: string; resetAtMs?: number | null }, now: number): { date: string; detail: string } {
   const ms = window.resetAtMs
-  if (ms == null) return window.resetAt
+  if (ms == null) return { date: window.resetAt, detail: '' }
   const at = new Date(ms)
   const time = String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0')
   // Calendar days apart, local midnight to local midnight — the same rule the
   // host's `formatReset` used, so the client and the fallback agree.
   const startOfDay = (d: Date): number => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
   const days = Math.round((startOfDay(at) - startOfDay(new Date(now))) / 86400000)
-  if (days === 0) return t('balance.reset.today', { time })
-  if (days === 1) return t('balance.reset.tomorrow', { time })
-  return t('balance.reset.dated', {
-    date: (at.getMonth() + 1) + '/' + at.getDate(),
-    weekday: t('time.weekday.' + at.getDay()),
-    time,
-  })
+  if (days === 0) return { date: t('balance.reset.todayOnly'), detail: time }
+  if (days === 1) return { date: t('balance.reset.tomorrowOnly'), detail: time }
+  return {
+    date: t('balance.reset.dateOnly', { date: (at.getMonth() + 1) + '/' + at.getDate() }),
+    detail: t('time.weekday.' + at.getDay()) + ' ' + time,
+  }
+}
+
+/** The reset instant → the stamp in the active locale, host string as fallback. */
+export function resetStampOf(t: Translate, window: { resetAt: string; resetAtMs?: number | null }, now: number): string {
+  const parts = resetStampPartsOf(t, window, now)
+  return parts.detail === '' ? parts.date : parts.date + ' ' + parts.detail
 }
 
 /** Every window of a snapshot, named and stamped for the active locale. */

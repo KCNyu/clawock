@@ -45,10 +45,8 @@
  * and a wide row is one line — dot · date · ticker · action · size · verdict
  * · P&L. Under 520px `.main` becomes a two-row grid and `.sub` carries the
  * verdict below, preserving ticker and fill price at narrow widths.
- */
-/* The type ladder (rule 5). Both roots need it: the sidebar chips render
-   outside `.dmt`. Adjacent roles are a full pixel apart. */
-.dmt, .pbc {
+ *//* The type ladder (rule 5). Both roots need it: the sidebar chips render
+   outside `.dmt`. Adjacent roles are a full pixel apart. */.dmt, .pbc, .wb{
   --fs-micro:10px; /* decorative glyphs and compact timestamps */
   --fs-xs:11px;    /* supporting labels and compact status chips */
   --fs-sm:12px;    /* filters, tags and sidebar rows */
@@ -72,8 +70,7 @@
   --glass-border:var(--dsw-alias-border-l2, rgba(17,24,39,.10));
   --glass-shadow:0 1px 2px -1px rgba(16,24,40,.10), 0 18px 44px -20px rgba(16,24,40,.28);
   --glass-float-shadow:0 2px 8px -2px rgba(16,24,40,.13), 0 20px 48px -18px rgba(16,24,40,.32)
-}
-body[data-ds-dark-theme] :is(.dmt, .pbc) {
+}body[data-ds-dark-theme] :is(.dmt, .pbc){
   --glass-fill-card:color-mix(in srgb, var(--surface) 70%, transparent);
   --glass-fill-header:color-mix(in srgb, var(--surface) 78%, transparent);
   --glass-fill-chip:color-mix(in srgb, var(--surface) 58%, transparent);
@@ -83,8 +80,7 @@ body[data-ds-dark-theme] :is(.dmt, .pbc) {
   --glass-under-edge:rgba(0,0,0,.30);
   --glass-shadow:0 1px 2px -1px rgba(0,0,0,.50), 0 20px 48px -22px rgba(0,0,0,.72);
   --glass-float-shadow:0 2px 8px -2px rgba(0,0,0,.50), 0 22px 52px -18px rgba(0,0,0,.75)
-}
-.dmt {
+}.dmt{
   --col:var(--dsh-chat-content-width, 748px);
   --page:var(--dsw-alias-bg-base, #F7F8FA);
   --text:var(--dsw-alias-label-primary, #15171B);
@@ -134,13 +130,11 @@ body[data-ds-dark-theme] :is(.dmt, .pbc) {
   min-height:100%;
   background-color:var(--canvas);
   background-image:none
-}
-/* Dark theme: only what the host tokens do not carry — the semantic P&L
+}/* Dark theme: only what the host tokens do not carry — the semantic P&L
    colours, the alpha tints layered on a dark surface and the glass material
    (dark glass runs more opaque than light glass to keep text contrast, with a
    fainter sheen/edge — the specular line is what sells depth on near-black).
-   Everything else flips through `--dsw-*` with the app. */
-body[data-ds-dark-theme] .dmt {
+   Everything else flips through `--dsw-*` with the app. */body[data-ds-dark-theme] .dmt{
   --ok:#3FCB74;
   --ok-soft:#153824;
   /* These dark semantic colours remain distinct on the host neutral glass;
@@ -157,8 +151,7 @@ body[data-ds-dark-theme] .dmt {
   --tray-fill:color-mix(in srgb, var(--dsw-static-neutral-bluish-950, #151517) 55%, transparent);
   --tray-shadow:inset 0 1px 3px -1px rgba(0,0,0,.45);
   --card-solid:var(--dsw-static-neutral-bluish-875, #232324)
-}
-/* The header is not a bar across the view, and it does not hold the viewport
+}/* The header is not a bar across the view, and it does not hold the viewport
    hostage while you scroll. Two pieces:
      - `.top` (the stat card) is in normal flow and scrolls away — it is read
        once, and 100px of permanently-parked chrome is 2.5 fills' worth of the
@@ -167,12 +160,10 @@ body[data-ds-dark-theme] .dmt {
        band so rows pass under it instead of peeking around it.
    Splitting them this way also avoids the shrink-on-scroll feedback loop: a
    sticky header that condenses at a scroll threshold changes the content
-   height above the threshold it just crossed. */
-.dmt .top {
+   height above the threshold it just crossed. */.dmt .top{
   box-sizing:border-box;
   padding:10px 0 0
-}
-.dmt .tin {
+}.dmt .tin{
   /* The column minus the list's own 14px side padding: the header card is
      exactly as wide as a day group, not as wide as the view. Both boxes are
      border-box on purpose — under the default content-box the list's padding
@@ -191,16 +182,14 @@ body[data-ds-dark-theme] .dmt {
   border:1px solid var(--border2);
   border-radius:var(--radius-card);
   box-shadow:var(--glass-shadow), inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-under-edge)
-}
-.dmt .tt {
+}.dmt .tt{
   display:flex;
   align-items:baseline;
   flex-wrap:wrap;
   gap:3px 8px;
   font:650 var(--fs-xl)/1.3 var(--font);
   letter-spacing:-.01em
-}
-.dmt .tt::before {
+}.dmt .tt::before{
   content:"";
   flex:none;
   align-self:center;
@@ -208,15 +197,13 @@ body[data-ds-dark-theme] .dmt {
   height:8px;
   border-radius:3px;
   background:var(--ink-accent)
-}
-.dmt .tt .rate {
+}.dmt .tt .rate{
   margin-left:auto;
   font:400 var(--fs-xs)/1.3 var(--font);
   color:var(--cap);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
-}
-.dmt .ts {
+}.dmt .ts{
   flex:0 1 auto;
   min-width:0;
   font:400 var(--fs-sm)/1.4 var(--font);
@@ -224,43 +211,34 @@ body[data-ds-dark-theme] .dmt {
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap
-}
-/* One strip of label/value pairs instead of three full-height columns with
-   rules between them: same numbers, ~40px less chrome above every scan. */
-.dmt .stats {
+}/* One strip of label/value pairs instead of three full-height columns with
+   rules between them: same numbers, ~40px less chrome above every scan. */.dmt .stats{
   display:flex;
   align-items:baseline;
   gap:6px 18px;
   margin-top:8px;
   flex-wrap:wrap
-}
-.dmt .sg {
+}.dmt .sg{
   display:flex;
   align-items:baseline;
   gap:6px;
   min-width:0
-}
-.dmt .sl {
+}.dmt .sl{
   font:500 var(--fs-xs)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.03em
-}
-.dmt .sv {
+}.dmt .sv{
   font:650 var(--fs-lg)/1.3 var(--font);
   color:var(--text);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
-}
-.dmt .sv.focus {
+}.dmt .sv.focus{
   font:700 var(--fs-2xl)/1.2 var(--font)
-}
-.dmt .sv.up {
+}.dmt .sv.up{
   color:var(--ok)
-}
-.dmt .sv.down {
+}.dmt .sv.down{
   color:var(--bad)
-}
-.dmt .bar {
+}.dmt .bar{
   box-sizing:border-box;
   position:sticky;
   top:0;
@@ -276,11 +254,9 @@ body[data-ds-dark-theme] .dmt {
   -webkit-backdrop-filter:blur(var(--glass-card-blur)) saturate(var(--glass-saturate));
   backdrop-filter:blur(var(--glass-card-blur)) saturate(var(--glass-saturate));
   padding:8px 0 6px
-}
-/* The composer-seat trick from ConversationRoot: a short fade band under the
+}/* The composer-seat trick from ConversationRoot: a short fade band under the
    sticky band so rows melt into it instead of hard-cutting at its edge —
-   "content passes underneath" reads as one continuous surface. */
-.dmt .bar::after {
+   "content passes underneath" reads as one continuous surface. */.dmt .bar::after{
   content:"";
   position:absolute;
   left:0;
@@ -289,23 +265,19 @@ body[data-ds-dark-theme] .dmt {
   height:9px;
   pointer-events:none;
   background:linear-gradient(180deg, color-mix(in srgb, var(--canvas) 45%, transparent), transparent)
-}
-.dmt .bin {
+}.dmt .bin{
   box-sizing:border-box;
   max-width:calc(var(--col) - 28px);
   margin:0 auto
-}
-/* +2px, not -10px: the pill's own 10px padding then puts the filter label on
+}/* +2px, not -10px: the pill's own 10px padding then puts the filter label on
    the same left edge as the card's title and the rows' dot (column + 12px),
    while the pill's tinted box stops just inside the card's border instead of
-   hanging 10px out past it. */
-.dmt .filters {
+   hanging 10px out past it. */.dmt .filters{
   display:flex;
   gap:2px;
   margin-left:2px;
   flex-wrap:wrap
-}
-.dmt .ft {
+}.dmt .ft{
   border:0;
   background:transparent;
   color:var(--text3);
@@ -314,80 +286,61 @@ body[data-ds-dark-theme] .dmt {
   border-radius:7px;
   cursor:pointer;
   transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
-}
-.dmt .ft:active {
+}.dmt .ft:active{
   transform:scale(.97)
-}
-@media (hover: hover) and (pointer: fine) {
-  .dmt .ft:hover {
+}@media (hover: hover) and (pointer: fine){.dmt .ft:hover{
     background:var(--hover)
-  }
-}
-.dmt .ft.on {
+  }}.dmt .ft.on{
   color:var(--text);
   background:var(--hover)
-}
-.dmt .ft:focus-visible {
+}.dmt .ft:focus-visible{
   outline:1px solid var(--ink-accent);
   outline-offset:1px
-}
-.dmt .list {
+}.dmt .list{
   box-sizing:border-box;
   max-width:var(--col);
   margin:0 auto;
   /* The composer is a floating card over this scroller; the host publishes its
      live height so views can clear it (ui-trajectory does the same). */
   padding:0 14px calc(var(--dsh-composer-height, 152px) + 24px)
-}
-.dmt .day {
+}.dmt .day{
   margin:18px 0 6px;
   display:flex;
   align-items:center;
   gap:8px;
   font:650 var(--fs-sm)/1.3 var(--font);
   color:var(--text2)
-}
-.dmt .day .n {
+}.dmt .day .n{
   color:var(--cap);
   font:400 var(--fs-xs)/1.3 var(--mono);
   margin-left:auto
-}
-.dmt .day::after {
+}.dmt .day::after{
   content:"";
   flex:1;
   height:1px;
   background:var(--border);
   margin-left:6px
-}
-.dmt .day.fold {
+}.dmt .day.fold{
   cursor:pointer;
   border-radius:8px;
   padding:3px 6px;
   margin-left:-6px
-}
-.dmt .day.fold:active {
+}.dmt .day.fold:active{
   background:var(--tint-mid)
-}
-@media (hover: hover) and (pointer: fine) {
-  .dmt .day.fold:hover {
+}@media (hover: hover) and (pointer: fine){.dmt .day.fold:hover{
     background:var(--hover)
-  }
-}
-.dmt .day.fold:focus-visible {
+  }}.dmt .day.fold:focus-visible{
   outline:1px solid var(--ink-accent);
   outline-offset:1px
-}
-.dmt .day.fold .chev {
+}.dmt .day.fold .chev{
   margin-left:0;
   flex:none;
   width:12px;
   text-align:center;
   font-size:var(--fs-micro);
   color:var(--cap)
-}
-/* A day is one container, not a stack of floating cards: hairlines between
-   rows read as a ledger and drop ~9px of gap per fill. */
-.dmt .group {
+}/* A day is one container, not a stack of floating cards: hairlines between
+   rows read as a ledger and drop ~9px of gap per fill. */.dmt .group{
   display:grid;
   grid-template-columns:2px 8px auto minmax(64px,auto) auto minmax(0,1fr) auto auto 104px 12px 2px;
   /* A subgrid takes its gutters from the parent, not from its own `gap`, so
@@ -411,13 +364,11 @@ body[data-ds-dark-theme] .dmt {
   backdrop-filter:blur(var(--glass-card-blur)) saturate(var(--glass-saturate));
   box-shadow:var(--glass-shadow), inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-under-edge);
   overflow:hidden
-}
-/* Every row draws on the day's tracks (`subgrid`), so ticker, action and size
+}/* Every row draws on the day's tracks (`subgrid`), so ticker, action and size
    line up down the whole group however long each one is — the reason this
    reads as a ledger instead of nine independently-sized rows. The explicit
    template above it is the fallback for engines without subgrid: same columns,
-   sized per row. */
-.dmt .cell {
+   sized per row. */.dmt .cell{
   display:grid;
   position:relative;
   grid-template-columns:2px 8px auto minmax(64px,auto) auto minmax(0,1fr) auto auto 104px 12px 2px;
@@ -427,34 +378,24 @@ body[data-ds-dark-theme] .dmt {
   gap:0 10px;
   padding:9px 0;
   cursor:pointer
-}
-.dmt .cell+.cell {
+}.dmt .cell+.cell{
   border-top:1px solid var(--border)
-}
-.dmt .cell:active {
+}.dmt .cell:active{
   background:var(--row-press)
-}
-@media (hover: hover) and (pointer: fine) {
-  .dmt .cell:hover {
+}@media (hover: hover) and (pointer: fine){.dmt .cell:hover{
     background:var(--row-hover)
-  }
-  /* Micro-affordance that the row expands; suppressed while open so it can
-     never fight the chevron's own rotation. */
-  .dmt .cell:not(.open):hover .chev {
+  }/* Micro-affordance that the row expands; suppressed while open so it can
+     never fight the chevron's own rotation. */.dmt .cell:not(.open):hover .chev{
     transform:translateY(1px);
     color:var(--text2)
-  }
-}
-.dmt .cell:focus-visible {
+  }}.dmt .cell:focus-visible{
   outline:1px solid var(--ink-accent);
   outline-offset:-2px
-}
-/* Open row: no full-width wash any more — "open" is carried by the inset
+}/* Open row: no full-width wash any more — "open" is carried by the inset
    glass tray below (one clear signal, not two competing ones) plus the leading
    rail, a rounded capsule that fades out downwards. The old 3px solid inset
    stroke ran the full height of the expanded row and read as a broken blue
-   line over a 600px timeline. */
-.dmt .cell.open::before {
+   line over a 600px timeline. */.dmt .cell.open::before{
   content:"";
   position:absolute;
   left:0;
@@ -463,31 +404,25 @@ body[data-ds-dark-theme] .dmt {
   width:3px;
   border-radius:2px;
   background:linear-gradient(180deg, var(--ink-accent), color-mix(in srgb, var(--ink-accent) 14%, transparent))
-}
-/* On the wide layout the two wrappers vanish and their children place
-   themselves on the row's grid; under 520px they become their own lines. */
-.dmt .main,
-.dmt .sub {
+}/* On the wide layout the two wrappers vanish and their children place
+   themselves on the row's grid; under 520px they become their own lines. */.dmt .main,
+.dmt .sub{
   display:contents
-}
-.dmt .dotm {
+}.dmt .dotm{
   grid-area:1/2;
   width:6px;
   height:6px;
   border-radius:50%;
   background:var(--cap)
-}
-.dmt .cell.hasdec .dotm {
+}.dmt .cell.hasdec .dotm{
   background:var(--ink-accent)
-}
-.dmt .sub .date {
+}.dmt .sub .date{
   grid-area:1/3;
   font:400 var(--fs-xs)/1.4 var(--mono);
   color:var(--cap);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
-}
-.dmt .tk {
+}.dmt .tk{
   grid-area:1/4;
   min-width:0;
   font:650 var(--fs-lg)/1.4 var(--font);
@@ -495,17 +430,14 @@ body[data-ds-dark-theme] .dmt {
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap
-}
-.dmt .mkt {
+}.dmt .mkt{
   font:700 var(--fs-micro)/1 var(--font);
   margin-left:3px;
   vertical-align:2px;
   color:var(--ink-accent)
-}
-.dmt .mkt.hk {
+}.dmt .mkt.hk{
   color:var(--text3)
-}
-.dmt .tag {
+}.dmt .tag{
   grid-area:1/5;
   justify-self:start;
   display:inline-flex;
@@ -519,8 +451,7 @@ body[data-ds-dark-theme] .dmt {
   color:var(--text2);
   letter-spacing:.02em;
   white-space:nowrap
-}
-.dmt .qty {
+}.dmt .qty{
   grid-area:1/6;
   justify-self:start;
   min-width:0;
@@ -530,40 +461,31 @@ body[data-ds-dark-theme] .dmt {
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis
-}
-/* The flex spacer the old single-line row needed; the grid's 1fr column does
-   that job now, so it only exists for the narrow layout. */
-.dmt .sp {
+}/* The flex spacer the old single-line row needed; the grid's 1fr column does
+   that job now, so it only exists for the narrow layout. */.dmt .sp{
   display:none
-}
-.dmt .pnl {
+}.dmt .pnl{
   grid-area:1/9;
   justify-self:end;
   text-align:right;
   font:700 var(--fs-2xl)/1.2 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em
-}
-.dmt .pnl.up {
+}.dmt .pnl.up{
   color:var(--ok)
-}
-.dmt .pnl.down {
+}.dmt .pnl.down{
   color:var(--bad)
-}
-.dmt .pnl.na {
+}.dmt .pnl.na{
   color:var(--cap);
   font-weight:500;
   font-size:var(--fs-md)
-}
-/* Marks the focus number as the position's floating percent rather than this
-   fill's realized amount — two different quantities in one slot. */
-.dmt .pnlk {
+}/* Marks the focus number as the position's floating percent rather than this
+   fill's realized amount — two different quantities in one slot. */.dmt .pnlk{
   font:600 var(--fs-xs)/1.2 var(--font);
   color:var(--cap);
   margin-right:3px;
   letter-spacing:0
-}
-.dmt .t1 {
+}.dmt .t1{
   grid-area:1/8;
   justify-self:end;
   display:inline-flex;
@@ -574,24 +496,19 @@ body[data-ds-dark-theme] .dmt {
   font:600 var(--fs-xs)/1 var(--font);
   white-space:nowrap;
   font-variant-numeric:tabular-nums
-}
-.dmt .t1.up {
+}.dmt .t1.up{
   color:var(--ok);
   background:var(--ok-soft);
   border:1px solid var(--t1-up-border)
-}
-.dmt .t1.down {
+}.dmt .t1.down{
   color:var(--bad);
   background:var(--bad-soft);
   border:1px solid var(--t1-down-border)
-}
-.dmt .t1.flat {
+}.dmt .t1.flat{
   color:var(--text2);
   background:var(--tint-soft)
-}
-/* A fill that ran against its own plan, marked in the folded row —
-   `data-align=opposite` is the stable contract the spec and screenshots read. */
-.dmt .al {
+}/* A fill that ran against its own plan, marked in the folded row —
+   `data-align=opposite` is the stable contract the spec and screenshots read. */.dmt .al{
   grid-area:1/7;
   justify-self:end;
   display:inline-flex;
@@ -602,43 +519,35 @@ body[data-ds-dark-theme] .dmt {
   font:600 var(--fs-xs)/1 var(--font);
   white-space:nowrap;
   letter-spacing:.02em
-}
-.dmt .al.opp {
+}.dmt .al.opp{
   color:var(--warn);
   background:var(--warn-soft);
   border:1px solid var(--t1-warn-border)
-}
-.dmt .chev {
+}.dmt .chev{
   grid-area:1/10;
   justify-self:end;
   color:var(--cap);
   font-size:var(--fs-micro)
-}
-.dmt .cell.open .chev {
+}.dmt .cell.open .chev{
   transform:rotate(180deg)
-}
-.dmt .detail {
+}.dmt .detail{
   grid-area:2/1/auto/-1;
   display:grid;
   grid-template-rows:0fr;
   opacity:0;
   overflow:hidden
-}
-.dmt .cell.open .detail {
+}.dmt .cell.open .detail{
   grid-template-rows:1fr;
   opacity:1;
   margin-top:9px
-}
-/* Zero padding here on purpose: a closed row's `0fr` track collapses the
+}/* Zero padding here on purpose: a closed row's `0fr` track collapses the
    content but not this box's own padding, which is where every collapsed card
    used to carry ~27px of dead space. The padding lives on `.dbody`, which is
-   only mounted while the row is open. */
-.dmt .dinner {
+   only mounted while the row is open. */.dmt .dinner{
   overflow:hidden;
   min-height:0;
   padding:0
-}
-/* The expanded detail is glass too (kcn: 点开也应该是透明的质感) — but as a
+}/* The expanded detail is glass too (kcn: 点开也应该是透明的质感) — but as a
    recessed INK well with no backdrop-filter of its own: the group's filter
    already blurs everything behind this box, and blur inside blur reads as
    mud. The lighting is inverted on purpose — the ink wash is darkest at the
@@ -646,16 +555,14 @@ body[data-ds-dark-theme] .dmt {
    the BOTTOM inner edge. That is what a recess looks like; the previous
    top-lit edge was the raised-panel language on a sunken box, which is why
    the open state read as another flat card. The side margins keep the group's
-   rounded rail visible around it. */
-.dmt .dbody {
+   rounded rail visible around it. */.dmt .dbody{
   margin:0 10px 10px;
   padding:var(--card-gutter);
   border:1px solid var(--tint-border);
   border-radius:var(--radius-inset);
   background:var(--tray-fill);
   box-shadow:var(--tray-shadow), inset 0 -1px 0 var(--glass-rim)
-}
-.dmt .trhead {
+}.dmt .trhead{
   display:flex;
   align-items:center;
   gap:6px;
@@ -663,19 +570,16 @@ body[data-ds-dark-theme] .dmt {
   color:var(--cap);
   letter-spacing:.05em;
   margin-bottom:8px
-}
-.dmt .trhead::before {
+}.dmt .trhead::before{
   content:"";
   width:6px;
   height:6px;
   border-radius:50%;
   background:var(--ink-accent)
-}
-.dmt .trace {
+}.dmt .trace{
   position:relative;
   padding-left:22px
-}
-.dmt .trace::before {
+}.dmt .trace::before{
   content:"";
   position:absolute;
   left:5px;
@@ -683,15 +587,12 @@ body[data-ds-dark-theme] .dmt {
   bottom:10px;
   width:2px;
   background:var(--tint-mid)
-}
-.dmt .tnode {
+}.dmt .tnode{
   position:relative;
   padding:2px 0 14px
-}
-.dmt .tnode:last-child {
+}.dmt .tnode:last-child{
   padding-bottom:2px
-}
-.dmt .tnode::before {
+}.dmt .tnode::before{
   content:"";
   position:absolute;
   left:-22px;
@@ -705,64 +606,48 @@ body[data-ds-dark-theme] .dmt {
   background:var(--card-solid);
   border:2px solid var(--cap);
   box-sizing:border-box
-}
-.dmt .tnode.dec::before {
+}.dmt .tnode.dec::before{
   border-color:var(--ink-accent)
-}
-.dmt .tnode.follow::before {
+}.dmt .tnode.follow::before{
   border-color:var(--ok)
-}
-.dmt .tnode.skip::before {
+}.dmt .tnode.skip::before{
   border-color:var(--warn)
-}
-.dmt .tnode.win::before {
+}.dmt .tnode.win::before{
   border-color:var(--ok)
-}
-.dmt .tnode.loss::before {
+}.dmt .tnode.loss::before{
   border-color:var(--bad)
-}
-.dmt .tnode .tw {
+}.dmt .tnode .tw{
   font:400 var(--fs-micro)/1.4 var(--mono);
   color:var(--cap);
   margin-bottom:1px
-}
-.dmt .tnode .n {
+}.dmt .tnode .n{
   font:500 var(--fs-xs)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.04em;
   margin-bottom:2px
-}
-.dmt .tnode .v {
+}.dmt .tnode .v{
   font:600 var(--fs-md)/1.4 var(--font)
-}
-/* The plan-alignment chip is a separate fact. Keep its border whole when a
-   long fill sentence wraps on a narrow card. */
-.dmt .tnode .fill-v {
+}/* The plan-alignment chip is a separate fact. Keep its border whole when a
+   long fill sentence wraps on a narrow card. */.dmt .tnode .fill-v{
   display:flex;
   flex-wrap:wrap;
   align-items:baseline;
   gap:4px 6px;
   overflow-wrap:anywhere
-}
-.dmt .tnode.win .v {
+}.dmt .tnode.win .v{
   color:var(--ok)
-}
-.dmt .tnode.loss .v {
+}.dmt .tnode.loss .v{
   color:var(--bad)
-}
-.dmt .tnode.follow .v {
+}.dmt .tnode.follow .v{
   color:var(--ok)
-}
-.dmt .tnode.skip .v {
+}.dmt .tnode.skip .v{
   color:var(--warn)
-}
-.dmt .pchips {
+}.dmt .pchips{
   display:flex;
   flex-wrap:wrap;
   gap:6px;
   margin:4px 0 8px
-}
-.dmt .pc {
+}.dmt .pc{
   font:400 var(--fs-xs)/1.4 var(--font);
   padding:2px 8px;
   box-sizing:border-box;
@@ -774,8 +659,7 @@ body[data-ds-dark-theme] .dmt {
   border:1px solid var(--glass-border);
   box-shadow:inset 0 1px 0 var(--glass-rim);
   color:var(--text2)
-}
-.dmt .tnote {
+}.dmt .tnote{
   margin:7px 0;
   padding:3px 0 3px 10px;
   border-left:3px solid var(--tint-strong);
@@ -783,26 +667,21 @@ body[data-ds-dark-theme] .dmt {
   color:var(--text2);
   white-space:pre-wrap;
   overflow-wrap:anywhere
-}
-.dmt .tnote.why {
+}.dmt .tnote.why{
   border-left-color:var(--ink-accent)
-}
-.dmt .tnote.emo {
+}.dmt .tnote.emo{
   border-left-color:var(--warn)
-}
-.dmt .tnote .k {
+}.dmt .tnote .k{
   color:var(--cap);
   font:600 var(--fs-xs)/1.4 var(--font)
-}
-.dmt .tmiss {
+}.dmt .tmiss{
   padding:7px 10px;
   border:1px dashed var(--border2);
   border-radius:var(--radius-chip);
   font:400 var(--fs-sm)/1.5 var(--font);
   color:var(--cap);
   margin-top:8px
-}
-.dmt .empty {
+}.dmt .empty{
   padding:48px 20px;
   text-align:center;
   color:var(--cap);
@@ -813,8 +692,7 @@ body[data-ds-dark-theme] .dmt {
   border-radius:var(--radius-card);
   background:var(--glass-fill-card);
   box-shadow:inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-under-edge)
-}
-.dmt .trace-more {
+}.dmt .trace-more{
   display:block;
   width:100%;
   margin:12px 0 0;
@@ -826,18 +704,13 @@ body[data-ds-dark-theme] .dmt {
   font:600 var(--fs-sm)/1.4 var(--font);
   cursor:pointer;
   transition:background .12s,border-color .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
-}
-.dmt .trace-more:active {
+}.dmt .trace-more:active{
   transform:scale(.98)
-}
-@media (hover: hover) and (pointer: fine) {
-  .dmt .trace-more:hover {
+}@media (hover: hover) and (pointer: fine){.dmt .trace-more:hover{
     background:var(--hover);
     border-color:var(--ink-accent);
     color:var(--text)
-  }
-}
-.dmt .skel {
+  }}.dmt .skel{
   display:flex;
   align-items:center;
   gap:12px;
@@ -850,234 +723,156 @@ body[data-ds-dark-theme] .dmt {
   backdrop-filter:blur(var(--glass-card-blur)) saturate(var(--glass-saturate));
   box-shadow:var(--glass-shadow), inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-under-edge);
   margin:8px 0
-}
-.dmt .skel-dot {
+}.dmt .skel-dot{
   flex:none;
   width:6px;
   height:6px;
   border-radius:50%;
   background:var(--tint-strong)
-}
-.dmt .skel-bar {
+}.dmt .skel-bar{
   position:relative;
   overflow:hidden;
   height:10px;
   border-radius:5px;
   background:var(--tint-mid)
-}
-.dmt .skel-bar::after {
+}.dmt .skel-bar::after{
   content:"";
   position:absolute;
   inset:0;
   transform:translateX(-100%);
   background:linear-gradient(90deg, transparent, var(--tint-strong), transparent);
   animation:clawock-shimmer 1.2s ease-in-out infinite
-}
-@keyframes clawock-shimmer {
+}@keyframes clawock-shimmer{
   to { transform:translateX(100%) }
-}
-/* Filters and day folds are frequent, keyboard-reachable navigation. Their
-   result is immediate; repeating an entrance would delay scanning the rows. */
-.dmt .skel-bar.w40 {
+}/* Filters and day folds are frequent, keyboard-reachable navigation. Their
+   result is immediate; repeating an entrance would delay scanning the rows. */.dmt .skel-bar.w40{
   width:40%
-}
-.dmt .skel-bar.w20 {
+}.dmt .skel-bar.w20{
   width:20%
-}
-/* Reduced motion keeps colour feedback while dropping the skeleton sweep.
-   Frequent chevron/detail swaps and filter results are already immediate. */
-@media (prefers-reduced-motion: reduce) {
-  .dmt .detail {
+}/* Reduced motion keeps colour feedback while dropping the skeleton sweep.
+   Frequent chevron/detail swaps and filter results are already immediate. */@media (prefers-reduced-motion: reduce){.dmt .detail {
     transition:opacity .15s ease
-  }
-  .dmt .ft,
+  }.dmt .ft,
   .dmt .trace-more {
     transition:background .12s,color .12s,border-color .12s,transform 0s
-  }
-  .dmt .ft:active,
+  }.dmt .ft:active,
   .dmt .trace-more:active {
     transform:none
-  }
-  .dmt .skel-bar::after {
+  }.dmt .skel-bar::after {
     animation:none
-  }
-}
-
-/* Phone layout. Keep the ticker, fill quantity/price and P&L readable in
+  }}/* Phone layout. Keep the ticker, fill quantity/price and P&L readable in
    their own grid cells. WebKit at 390px measured both ticker and fill price
-   wider than their old flex boxes, so ellipsis hid the actual trade. */
-@media (max-width:520px) {
-  .dmt .top {
+   wider than their old flex boxes, so ellipsis hid the actual trade. */@media (max-width:520px){.dmt .top {
     padding:8px 10px 0
-  }
-  .dmt .bar {
+  }.dmt .bar {
     padding:6px 10px
-  }
-  .dmt .bin {
+  }.dmt .bin {
     max-width:none
-  }
-  .dmt .tin {
+  }.dmt .tin {
     max-width:none;
     padding:10px var(--card-gutter) 9px
-  }
-  .dmt .ts {
+  }.dmt .ts {
     flex:1 0 100%;
     white-space:normal
-  }
-  .dmt .stats {
+  }.dmt .stats {
     display:block;
     margin-top:6px
-  }
-  .dmt .sg {
+  }.dmt .sg {
     justify-content:space-between;
     gap:10px;
     padding:3px 0
-  }
-  .dmt .sl { min-width:0 }
-  .dmt .sg+.sg {
+  }.dmt .sl { min-width:0 }.dmt .sg+.sg {
     border-top:1px solid var(--border)
-  }
-  .dmt .sv {
+  }.dmt .sv {
     flex:none;
     white-space:nowrap;
     text-align:right
-  }
-  .dmt .ft {
+  }.dmt .ft {
     min-height:32px;
     padding:6px 11px
-  }
-  .dmt .list {
+  }.dmt .list {
     padding:0 10px calc(var(--dsh-composer-height, 152px) + 24px)
-  }
-  .dmt .day.fold {
+  }.dmt .day.fold {
     padding:7px 6px
-  }
-  .dmt .group {
+  }.dmt .group {
     display:block
-  }
-  .dmt .cell {
+  }.dmt .cell {
     display:block;
     padding:0
-  }
-  .dmt .main {
+  }.dmt .main {
     display:grid;
     grid-template-columns:7px minmax(0,1fr) max-content;
     align-items:center;
     column-gap:8px;
     row-gap:2px;
     padding:10px 12px 2px
-  }
-  .dmt .main .dotm { grid-area:1/1 }
-  .dmt .main .tk { grid-area:1/2 }
-  .dmt .main .pnl { grid-area:1/3 }
-  .dmt .main .tag { grid-area:2/2 }
-  .dmt .main .qty {
+  }.dmt .main .dotm { grid-area:1/1 }.dmt .main .tk { grid-area:1/2 }.dmt .main .pnl { grid-area:1/3 }.dmt .main .tag { grid-area:2/2 }.dmt .main .qty {
     grid-area:2/3;
     justify-self:end
-  }
-  .dmt .sub {
+  }.dmt .sub {
     display:flex;
     align-items:center;
     gap:8px;
     padding:2px 12px 10px
-  }
-  .dmt .dotm {
+  }.dmt .dotm {
     flex:none;
     width:7px;
     height:7px
-  }
-  .dmt .tk {
+  }.dmt .tk {
     font-size:var(--fs-lg)
-  }
-  .dmt .tag {
+  }.dmt .tag {
     justify-self:start;
     height:19px;
     padding:0 6px
-  }
-  .dmt .qty { font-size:var(--fs-sm) }
-  .dmt .sp {
+  }.dmt .qty { font-size:var(--fs-sm) }.dmt .sp {
     display:none
-  }
-  .dmt .pnl {
+  }.dmt .pnl {
     font-size:var(--fs-xl)
-  }
-  .dmt .t1,
+  }.dmt .t1,
   .dmt .al {
     flex:none
-  }
-  .dmt .sub .date {
+  }.dmt .sub .date {
     flex:none
-  }
-  .dmt .chev {
+  }.dmt .chev {
     margin-left:auto;
     flex:none
-  }
-  .dmt .cell.open .detail {
+  }.dmt .cell.open .detail {
     margin-top:0
-  }
-  .dmt .dbody {
+  }.dmt .dbody {
     margin:0 8px 8px;
     padding:10px var(--card-gutter) 11px
-  }
-  .dmt .trace {
+  }.dmt .trace {
     padding-left:16px
-  }
-  .dmt .tnode::before {
+  }.dmt .tnode::before {
     left:-16px
-  }
-  .dmt .trace::before {
+  }.dmt .trace::before {
     left:3px
-  }
-  /* Reduce the shared blur tier on a phone GPU without changing its recipe. */
-  .dmt, .pbc {
+  }/* Reduce the shared blur tier on a phone GPU without changing its recipe. */.dmt, .pbc {
     --glass-header-blur:14px;
     --glass-card-blur:10px;
     --glass-chip-blur:8px;
     --glass-popover-blur:18px
-  }
-}
-/* Visual boxes remain compact; a coarse pointer gets a finger-sized target. */
-@media (pointer:coarse) {
-  .dmt .ft, .dmt .day.fold, .dmt .trace-more { min-height:44px }
-  .dmt .day.fold { box-sizing:border-box }
-  .pbc.pbf.rail .bchip::after {
-    content:"";
-    inset:-4px;
-    border-radius:22px
-  }
-}
-
-/* Reduced transparency keeps host-neutral hierarchy with opaque host layers. */
-@media (prefers-reduced-transparency: reduce) {
-  .dmt {
+  }}/* Visual boxes remain compact; a coarse pointer gets a finger-sized target. */@media (pointer:coarse){.dmt .ft, .dmt .day.fold, .dmt .trace-more { min-height:44px }.dmt .day.fold { box-sizing:border-box }}/* Reduced transparency keeps host-neutral hierarchy with opaque host layers. */@media (prefers-reduced-transparency: reduce){.dmt {
     background-image:none
-  }
-  .dmt .tin,
+  }.dmt .tin,
   .dmt .group,
   .dmt .skel {
     background:var(--surface);
     -webkit-backdrop-filter:none;
     backdrop-filter:none;
     box-shadow:var(--dsw-shadow-lv2, var(--shadow-sm))
-  }
-  .dmt .dbody {
+  }.dmt .dbody {
     background:var(--tint-soft);
     box-shadow:none
-  }
-  .dmt .bar {
+  }.dmt .bar {
     background:var(--canvas);
     -webkit-backdrop-filter:none;
     backdrop-filter:none
-  }
-  .dmt .bar::after {
+  }.dmt .bar::after {
     content:none
-  }
-}
-
-/* Sidebar footer actions and their popovers live outside .dmt. The opened
+  }}/* Sidebar footer actions and their popovers live outside .dmt. The opened
    popovers share its glass recipe while entry rows follow the host's plain
-   sidebar controls. The footer's [data-slot] wrapper has display:contents. */
-.pbc {
+   sidebar controls. The footer's [data-slot] wrapper has display:contents. */.pbc{
   --text:var(--dsw-alias-label-primary, #15171B);
   --text3:var(--dsw-alias-label-tertiary, #81858C);
   --cap:var(--dsw-alias-label-caption, #ADB2B8);
@@ -1095,8 +890,7 @@ body[data-ds-dark-theme] .dmt {
   --mono:var(--ds-font-family-code, ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
   position:relative;
   display:inline-flex
-}
-body[data-ds-dark-theme] .pbc {
+}body[data-ds-dark-theme] .pbc{
   --ok:#3FCB74;
   --bad:#FA716A;
   --warn:#E0A752;
@@ -1104,8 +898,7 @@ body[data-ds-dark-theme] .pbc {
   --warn-soft:#3B3224;
   --label-2:var(--dsw-alias-label-secondary, #A9ADB4);
   --glass-separator:var(--dsw-alias-border-l2, rgba(255,255,255,.12))
-}
-.pbc .bchip {
+}.pbc .bchip{
   position:relative;
   display:inline-flex;
   align-items:center;
@@ -1123,86 +916,59 @@ body[data-ds-dark-theme] .pbc {
   color:var(--label-2);
   cursor:pointer;
   transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
-}
-.pbc .bchip::after {
+}.pbc .bchip::after{
   content:"";
   position:absolute;
   inset:-7px;
   border-radius:20px
-}
-.pbc .bchip:active {
+}.pbc .bchip:active{
   transform:scale(.96)
-}
-@media (hover: hover) and (pointer: fine) {
-  .pbc .bchip:hover {
+}@media (hover: hover) and (pointer: fine){.pbc .bchip:hover{
     background:var(--hover)
-  }
-}
-.pbc .bchip[aria-expanded="true"] {
+  }}.pbc .bchip[aria-expanded="true"]{
   background:var(--hover)
-}
-.pbc .bchip:focus-visible {
+}.pbc .bchip:focus-visible{
   outline:1px solid var(--ink-accent);
   outline-offset:1px
-}
-.pbc .bchip-item {
+}.pbc .bchip-item{
   display:inline-flex;
   align-items:center;
   gap:5px
-}
-.pbc .bchip-dot {
+}.pbc .bchip-dot{
   flex:none;
   width:6px;
   height:6px;
   border-radius:50%;
   background:var(--cap);
   transition:background .15s
-}
-.pbc .bchip-item[data-balance-state="ok"] .bchip-dot { background:var(--ok) }
-.pbc .bchip-item[data-balance-state="low"] .bchip-dot { background:var(--bad) }
-.pbc .bchip-item[data-balance-state="stale"] .bchip-dot { background:var(--warn) }
-.pbc .bchip-v {
+}.pbc .bchip-item[data-balance-state="ok"] .bchip-dot{ background:var(--ok) }.pbc .bchip-item[data-balance-state="low"] .bchip-dot{ background:var(--bad) }.pbc .bchip-item[data-balance-state="stale"] .bchip-dot{ background:var(--warn) }.pbc .bchip-v{
   font:600 var(--fs-sm)/1 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em;
   white-space:nowrap;
   color:var(--text)
-}
-.pbc .bchip-v[data-balance-state="low"] { color:var(--bad) }
-.pbc .bchip-v[data-balance-state="none"] { color:var(--cap); font-weight:500 }
-/* 配额头条数字按用量档位染色(kcn 配色口径):低用量=安心绿,逼近上限
+}.pbc .bchip-v[data-balance-state="low"]{ color:var(--bad) }.pbc .bchip-v[data-balance-state="none"]{ color:var(--cap); font-weight:500 }/* 配额头条数字按用量档位染色(kcn 配色口径):低用量=安心绿,逼近上限
    先黄后红;档位阈值由 lowPct 派生(默认 20 → 60% 黄 / 80% 红)。金额行
-   不带该属性,保持墨色、low 红走 tone。#908:档位只染色,不减信息。 */
-.pbc .bchip-v[data-used-level="ok"] { color:var(--ok) }
-.pbc .bchip-v[data-used-level="mid"] { color:var(--warn) }
-.pbc .bchip-v[data-used-level="low"] { color:var(--bad) }
-/* stale 黄必须排在用量档之后(与面板 bp-win-fill 同一优先级):这几条选择器
+   不带该属性,保持墨色、low 红走 tone。#908:档位只染色,不减信息。 */.pbc .bchip-v[data-used-level="ok"]{ color:var(--ok) }.pbc .bchip-v[data-used-level="mid"]{ color:var(--warn) }.pbc .bchip-v[data-used-level="low"]{ color:var(--bad) }/* stale 黄必须排在用量档之后(与面板 bp-win-fill 同一优先级):这几条选择器
    特异度相同,同元素同时带 data-balance-state 与 data-used-level,源序后者赢
    ——排在前面的 stale 规则会被 ok/mid/low 档盖成「安心绿」,数字不可信的信号丢失。
-   spec 的 CSS 契约钉住了这条顺序。 */
-.pbc .bchip-v[data-balance-state="stale"] { color:var(--warn) }
-/* 头条窗口的重置时刻:小号等宽,回答「什么时候恢复」,面板每窗一行
-   (bp-win-reset)是同一视觉语言的完整版。 */
-.pbc .bchip-reset {
+   spec 的 CSS 契约钉住了这条顺序。 */.pbc .bchip-v[data-balance-state="stale"]{ color:var(--warn) }/* 头条窗口的重置时刻:小号等宽,回答「什么时候恢复」,面板每窗一行
+   (bp-win-reset)是同一视觉语言的完整版。 */.pbc .bchip-reset{
   font-family:var(--mono);
   font-size:var(--fs-xs);
   font-weight:500;
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
   color:var(--cap)
-}
-/* 第二窗口(周限额)副读数:比主读数低一级,同轴排版,不挤主数。 */
-.pbc .bchip-sub {
+}/* 第二窗口(周限额)副读数:比主读数低一级,同轴排版,不挤主数。 */.pbc .bchip-sub{
   font:500 var(--fs-xs)/1 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:.01em;
   white-space:nowrap;
   color:var(--text3)
-}
-/* The panel: anchored to its trigger (transform-origin top right), enters
+}/* The panel: anchored to its trigger (transform-origin top right), enters
    from scale(.97)+4px up — nothing appears from nowhere — and never steals
-   a click while leaving (pointer-events none). */
-.pbc .bp {
+   a click while leaving (pointer-events none). */.pbc .bp{
   --text:var(--dsw-alias-label-primary, #15171B);
   --text3:var(--dsw-alias-label-secondary, #61666B);
   --cap:var(--dsw-alias-label-secondary, #61666B);
@@ -1223,37 +989,30 @@ body[data-ds-dark-theme] .pbc {
   box-shadow:var(--glass-float-shadow), inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-under-edge);
   transform-origin:top right;
   transition:transform .16s cubic-bezier(.23,1,.32,1)
-}
-body[data-ds-dark-theme] .pbc .bp {
+}body[data-ds-dark-theme] .pbc .bp{
   --text:var(--dsw-alias-label-primary, #F7F8FA);
   --text3:var(--dsw-alias-label-secondary, #DADEE5);
   --cap:var(--dsw-alias-label-secondary, #DADEE5)
-}
-.pbc .bp :is(.bp-label, .bp-sub, .bp-note, .bp-empty, .bp-win-label, .bp-win-reset) {
+}.pbc .bp :is(.bp-label, .bp-sub, .bp-note, .bp-empty, .bp-win-label, .bp-win-reset){
   font-weight:550;
   letter-spacing:.02em
-}
-.pbc .bp[data-open="false"] {
+}.pbc .bp[data-open="false"]{
   opacity:0;
   transform:scale(.97) translateY(-4px);
   pointer-events:none
-}
-.pbc .bp[data-open="true"] {
+}.pbc .bp[data-open="true"]{
   opacity:1;
   pointer-events:auto
-}
-.pbc .bp-head {
+}.pbc .bp-head{
   display:flex;
   align-items:center;
   justify-content:space-between;
   margin-bottom:2px
-}
-.pbc .bp-title {
+}.pbc .bp-title{
   font:600 var(--fs-xs)/1.3 var(--font);
   letter-spacing:.04em;
   color:var(--text3)
-}
-.pbc .bp-row {
+}.pbc .bp-row{
   display:grid;
   grid-template-columns:auto auto 1fr;
   align-items:center;
@@ -1270,12 +1029,10 @@ body[data-ds-dark-theme] .pbc .bp {
   cursor:pointer;
   border-radius:8px;
   transition:background .12s,transform .16s cubic-bezier(.23,1,.32,1)
-}
-.pbc .bp-row + .bp-row {
+}.pbc .bp-row + .bp-row{
   position:relative;
   border-radius:0 0 8px 8px
-}
-.pbc .bp-row + .bp-row::before {
+}.pbc .bp-row + .bp-row::before{
   content:"";
   position:absolute;
   top:0;
@@ -1283,110 +1040,83 @@ body[data-ds-dark-theme] .pbc .bp {
   right:6px;
   height:.5px;
   background:var(--glass-separator)
-}
-@media (hover: hover) and (pointer: fine) {
-  .pbc .bp-row:hover {
+}@media (hover: hover) and (pointer: fine){.pbc .bp-row:hover{
     background:var(--hover)
-  }
-}
-.pbc .bp-row:active {
+  }}.pbc .bp-row:active{
   transform:scale(.98);
   background:var(--hover)
-}
-.pbc .bp-row:focus-visible {
+}.pbc .bp-row:focus-visible{
   outline:1px solid var(--ink-accent);
   outline-offset:-1px
-}
-.pbc .bp-dot {
+}.pbc .bp-dot{
   width:7px;
   height:7px;
   border-radius:50%;
   background:var(--cap)
-}
-.pbc .bp-dot[data-balance-state="ok"] { background:var(--ok) }
-.pbc .bp-dot[data-balance-state="low"] { background:var(--bad) }
-.pbc .bp-dot[data-balance-state="stale"] { background:var(--warn) }
-.pbc .bp-label {
+}.pbc .bp-dot[data-balance-state="ok"]{ background:var(--ok) }.pbc .bp-dot[data-balance-state="low"]{ background:var(--bad) }.pbc .bp-dot[data-balance-state="stale"]{ background:var(--warn) }.pbc .bp-label{
   display:inline-flex;
   align-items:center;
   gap:5px;
   font:500 var(--fs-sm)/1.4 var(--font);
   color:var(--text)
-}
-.pbc .bp-pin {
+}.pbc .bp-pin{
   flex:none;
   width:5px;
   height:5px;
   border-radius:50%;
   background:var(--ink-accent)
-}
-.pbc .bp-v {
+}.pbc .bp-v{
   justify-self:end;
   font:650 var(--fs-md)/1.2 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em;
   white-space:nowrap;
   color:var(--text)
-}
-.pbc .bp-v.bad {
+}.pbc .bp-v.bad{
   color:var(--bad)
-}
-/* 旧版页头 popover 的面板行与侧栏/新面板同一套已使用档位。stale 必须排在
-   档位之后,否则一张过期读数会被 ok/mid/low 盖掉「不可信」的黄色。 */
-.pbc .bp-v[data-used-level="ok"] { color:var(--ok) }
-.pbc .bp-v[data-used-level="mid"] { color:var(--warn) }
-.pbc .bp-v[data-used-level="low"] { color:var(--bad) }
-.pbc .bp-v[data-balance-state="stale"] { color:var(--warn) }
-/* Per-window grid: one line per quota window — label / remaining / reset —
+}/* 旧版页头 popover 的面板行与侧栏/新面板同一套已使用档位。stale 必须排在
+   档位之后,否则一张过期读数会被 ok/mid/low 盖掉「不可信」的黄色。 */.pbc .bp-v[data-used-level="ok"]{ color:var(--ok) }.pbc .bp-v[data-used-level="mid"]{ color:var(--warn) }.pbc .bp-v[data-used-level="low"]{ color:var(--bad) }.pbc .bp-v[data-balance-state="stale"]{ color:var(--warn) }/* Per-window grid: one line per quota window — label / remaining / reset —
    plus a hairline remaining-bar under it. The bar is a translucent ink track
    ON the frosted panel (no second glass layer — glass inside glass reads as
    mud), fill tinted by the usage tier — colour only: label, percent and
-   reset stay rendered at every tier (#908). */
-.pbc .bp-wins {
+   reset stay rendered at every tier (#908). */.pbc .bp-wins{
   grid-column:1 / -1;
   display:flex;
   flex-direction:column;
   gap:6px;
   margin-top:2px
-}
-.pbc .bp-win {
+}.pbc .bp-win{
   display:flex;
   flex-direction:column;
   gap:3px;
   font-size:var(--fs-xs)
-}
-.pbc .bp-win-line {
+}.pbc .bp-win-line{
   display:flex;
   align-items:baseline;
   gap:8px;
   line-height:1.5
-}
-.pbc .bp-win-label {
+}.pbc .bp-win-label{
   color:var(--cap);
   min-width:30px;
   letter-spacing:.02em
-}
-.pbc .bp-win-pct {
+}.pbc .bp-win-pct{
   margin-left:auto;
   font-weight:600;
   color:var(--text);
   font-variant-numeric:tabular-nums
-}
-.pbc .bp-win-reset {
+}.pbc .bp-win-reset{
   color:var(--cap);
   font-family:var(--mono);
   font-size:var(--fs-xs);
   min-width:58px;
   text-align:right;
   font-variant-numeric:tabular-nums
-}
-.pbc .bp-win-bar {
+}.pbc .bp-win-bar{
   height:3px;
   border-radius:2px;
   overflow:hidden;
   background:color-mix(in srgb, var(--text) 9%, transparent)
-}
-.pbc .bp-win-fill {
+}.pbc .bp-win-fill{
   height:100%;
   border-radius:2px;
   /* 填充=已使用量,颜色按用量档位(kcn 配色口径,恢复):低=绿、逼近上限
@@ -1394,27 +1124,17 @@ body[data-ds-dark-theme] .pbc .bp {
      reset 在任何档位都完整渲染。 */
   background:var(--ok);
   transition:background .15s
-}
-.pbc .bp-win-fill[data-balance-state="mid"] { background:var(--warn) }
-.pbc .bp-win-fill[data-balance-state="low"] { background:var(--bad) }
-.pbc .bp-win-fill[data-balance-state="stale"] { background:var(--warn) }
-.pbc .bp-note, .pbc .bp-sub {
+}.pbc .bp-win-fill[data-balance-state="mid"]{ background:var(--warn) }.pbc .bp-win-fill[data-balance-state="low"]{ background:var(--bad) }.pbc .bp-win-fill[data-balance-state="stale"]{ background:var(--warn) }.pbc .bp-note, .pbc .bp-sub{
   grid-column:1 / -1;
   font:400 var(--fs-xs)/1.5 var(--font);
   overflow-wrap:anywhere
-}
-.pbc .bp-sub { color:var(--cap) }
-.pbc .bp-note.warn { color:var(--warn) }
-.pbc .bp-note.bad { color:var(--bad) }
-.pbc .bp-empty {
+}.pbc .bp-sub{ color:var(--cap) }.pbc .bp-note.warn{ color:var(--warn) }.pbc .bp-note.bad{ color:var(--bad) }.pbc .bp-empty{
   padding:8px 0 10px;
   font:400 var(--fs-sm)/1.5 var(--font);
   color:var(--cap)
-}
-/* The manual refresh is a ghost circular icon button (#870): transparent,
+}/* The manual refresh is a ghost circular icon button (#870): transparent,
    no border, tint only on hover; its state is the icon's shape. The ::after
-   ring extends the hit target to ~36px without moving a visual pixel. */
-.pbc .bal-rf {
+   ring extends the hit target to ~36px without moving a visual pixel. */.pbc .bal-rf{
   position:relative;
   display:inline-flex;
   align-items:center;
@@ -1429,251 +1149,73 @@ body[data-ds-dark-theme] .pbc .bp {
   font:600 var(--fs-sm)/1 var(--font);
   cursor:pointer;
   transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
-}
-.pbc .bal-rf::after {
+}.pbc .bal-rf::after{
   content:"";
   position:absolute;
   inset:-9px;
   border-radius:50%
-}
-.pbc .bal-rf:active {
+}.pbc .bal-rf:active{
   transform:scale(.95)
-}
-@media (hover: hover) and (pointer: fine) {
-  .pbc .bal-rf:hover {
+}@media (hover: hover) and (pointer: fine){.pbc .bal-rf:hover{
     background:var(--hover);
     color:var(--text)
-  }
-}
-.pbc .bal-rf:focus-visible {
+  }}.pbc .bal-rf:focus-visible{
   outline:1px solid var(--ink-accent);
   outline-offset:1px
-}
-.pbc .bal-rf.spin {
+}.pbc .bal-rf.spin{
   animation:clawock-spin .8s linear infinite
-}
-.pbc .bal-rf.flash-ok {
+}.pbc .bal-rf.flash-ok{
   color:var(--ink-accent)
-}
-.pbc .bal-rf.flash-same {
+}.pbc .bal-rf.flash-same{
   color:var(--ok)
-}
-@keyframes clawock-spin {
+}@keyframes clawock-spin{
   to { transform:rotate(360deg) }
-}
-/* Reduced motion: no scale/translate travel; state and colour changes remain
-   immediate so the panel still answers the tap. */
-@media (prefers-reduced-motion: reduce) {
-  .pbc .bchip, .pbc .bal-rf {
+}/* Reduced motion: no scale/translate travel; state and colour changes remain
+   immediate so the panel still answers the tap. */@media (prefers-reduced-motion: reduce){.pbc .bchip, .pbc .bal-rf {
     transition:background .12s,color .12s,transform 0s
-  }
-  .pbc .bp {
+  }.pbc .bp {
     transition:none
-  }
-  .pbc .bp[data-open="false"] {
+  }.pbc .bp[data-open="false"] {
     transform:none
-  }
-  .pbc .bchip:active, .pbc .bal-rf:active {
+  }.pbc .bchip:active, .pbc .bal-rf:active {
     transform:none
-  }
-  .pbc .bal-rf.spin {
+  }.pbc .bal-rf.spin {
     animation:none
-  }
-  .pbc .bp-win-fill {
+  }.pbc .bp-win-fill {
     transition:none
-  }
-}
-/* A popover over phone text needs more neutral fill from the same surface. */
-@media (max-width: 520px) {
-  .pbc .bp {
+  }}/* A popover over phone text needs more neutral fill from the same surface. */@media (max-width: 520px){.pbc .bp {
     --glass-fill-popover:color-mix(in srgb, var(--surface) 97%, transparent)
-  }
-}
-/* Reduced transparency: frost over — solid surfaces, no blur cost. */
-@media (prefers-reduced-transparency: reduce) {
-  .pbc .bp {
+  }}/* Reduced transparency: frost over — solid surfaces, no blur cost. */@media (prefers-reduced-transparency: reduce){.pbc .bp {
     background:var(--surface);
     -webkit-backdrop-filter:none;
     backdrop-filter:none
-  }
-}
-/* The foot seat sits beside Settings and the host Cordis badge: 42px row,
-   16px glyph at 8px left inset, 14/22 label, and a 36px rail circle. Unlike
-   the opened popover, its entry has no material — just the host's hover wash.
-   The provider name leads because the foot gives no other balance context. */
-.pbc.pbf {
-  display:flex;
-  align-items:center;
-  width:100%;
-  height:42px;
-  margin:8px 0 0
-}
-.pbc.pbf .bchip {
-  width:calc(100% + 4px);
-  height:42px;
-  margin:0 -2px;
-  padding:0 10px 0 8px;
-  justify-content:flex-start;
-  gap:8px;
-  border:0;
-  border-radius:12px;
-  background:transparent;
-  -webkit-backdrop-filter:none;
-  backdrop-filter:none;
-  box-shadow:none;
-  color:var(--text);
-  font:400 var(--fs-lg)/22px var(--font);
-  overflow:hidden;
-  transition:none
-}
-.pbc.pbf .bchip::after {
-  content:none
-}
-.pbc.pbf .bchip:active {
-  transform:none;
-  background:var(--hover)
-}
-@media (hover: hover) and (pointer: fine) {
-  .pbc.pbf .bchip:hover {
-    background:var(--hover)
-  }
-}
-.pbc.pbf .bchip[data-active] {
-  background:var(--hover)
-}
-.pbc.pbf .bchip:focus-visible {
-  outline:revert;
-  outline-offset:revert
-}
-.pbc.pbf .bchip-item {
-  gap:8px;
-  min-width:0;
-  overflow:hidden
-}
-/* The weekly sub-reading is the first thing the 260px row runs out of room
-   for; it ends in an ellipsis instead of a cut glyph (the title attribute and
-   the panel carry it in full). */
-.pbc.pbf .bchip-sub {
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis
-}
-.pbc .bchip-name {
+  }}.pbc .bchip-name{
   font:500 var(--fs-sm)/1 var(--font);
   color:var(--text);
   white-space:nowrap
-}
-.pbc.pbf .bchip-name {
-  font:400 var(--fs-lg)/22px var(--font)
-}
-.pbc.pbf.rail {
-  width:36px;
-  height:36px;
-  margin:0
-}
-.pbc.pbf.rail .bchip {
-  justify-content:center;
-  width:36px;
-  height:36px;
-  margin:0;
-  padding:0;
-  border-radius:50%
-}
-/* The foot glyph (see renderBalanceGlyph): the gauge takes the ink the host
+}/* The foot glyph (see renderBalanceGlyph): the gauge takes the ink the host
    gives its own foot icons — primary label on the rail, where the host's
    collapsed rows switch to it too — and the badge carries the tone. The
    badge's colour eases like the chip dot; shape (solid / hollow) does not
-   animate, because a tone change is a state flip, not motion to watch. */
-.pbc .bal-lead {
+   animate, because a tone change is a state flip, not motion to watch. */.pbc .bal-lead{
   flex:none;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   color:var(--text)
-}
-.pbc .bal-glyph {
+}.pbc .bal-glyph{
   display:block;
   overflow:visible
-}
-.pbc .bal-badge {
+}.pbc .bal-badge{
   fill:var(--cap);
   transition:fill .15s ease,stroke .15s ease
-}
-.pbc .bal-badge[data-balance-state="ok"] { fill:var(--ok) }
-.pbc .bal-badge[data-balance-state="low"] { fill:var(--bad) }
-.pbc .bal-badge[data-balance-state="stale"] {
+}.pbc .bal-badge[data-balance-state="ok"]{ fill:var(--ok) }.pbc .bal-badge[data-balance-state="low"]{ fill:var(--bad) }.pbc .bal-badge[data-balance-state="stale"]{
   fill:none;
   stroke:var(--warn);
   stroke-width:1.3
-}
-@media (prefers-reduced-motion: reduce) {
-  .pbc .bal-badge {
+}@media (prefers-reduced-motion: reduce){.pbc .bal-badge{
     transition:none
-  }
-}
-/* The foot popover (ui-cordis's foot panel recipe): fixed-position so the
-   clipped sidebar column cannot cut it, anchored by inline left/bottom to the
-   row's rect, opening upward from the row's corner. Same glass material and
-   enter/exit as the header popover, mirrored vertically. */
-.pbc.pbf .bp {
-  position:fixed;
-  top:auto;
-  right:auto;
-  z-index:30;
-  transform-origin:bottom left
-}
-.pbc.pbf .bp[data-open="false"] {
-  transform:scale(.97) translateY(4px)
-}
-/* The foot panel is portaled to <body> (client.ts renderFootPanel): in 0.2.2
-   the phone sidebar is a transformed drawer with overflow:hidden, so a fixed
-   panel inside it is clipped to the drawer and loses its right edge. The
-   wrapper keeps the .pbc scope (tokens and every .pbc .tq-* rule) without
-   taking a box of its own. */
-.pbc.pbp.pbf.tqf.ppf {
-  display:contents
-}
-.pbc.pbp .bp {
-  z-index:80
-}
-@media (prefers-reduced-motion: reduce) {
-  .pbc.pbf .bp[data-open="false"] {
-    transform:none
-  }
-}
-/* Dispatch task queue (2026-09-26 redesign): drawn like the host's own foot
-   occupant, ui-cordis' plugin badge and panel (read from its bundle, not
-   guessed): a 42px badge row with the label leading and a tertiary 12/16
-   count trailing; a fixed menu-material panel (--dsw-specific-menu +
-   --dsw-menu-backdrop-filter, --dsw-elevation-prominent, 12px corners) with a
-   44px header, caption-size group titles and 13/20 row names. Every colour is
-   a host alias token; the role tokens below are the only place one is named.
-
-   One colour, one meaning (the "too many green dots" fix):
-     --tq-run   business blue   holds its agent's lock and runs
-     --tq-wait  warn            waits (lock, slot, memory, quota, retry)
-     --tq-bad   error red       failed / a read or an action failed
-     --tq-idle  idle grey       nothing to judge (an empty lane)
-   Ended tasks carry no dot at all: they speak in words.
-
-   Stacking. The host lays its foot actions out in a flex ROW
-   (.footerActions), and every item of the list slot is rendered inside one
-   `<div data-slot="sidebar.footer.action" style="display:contents">`, so this
-   row is a GRANDCHILD of the flex container. `:has(> .tqf)` alone therefore
-   matched only the box-less wrapper and the two rows sat side by side (kcn,
-   2026-09-23). The rules reach the container through the wrapper; the bare
-   child form stays for a host that renders items unwrapped. Column + the
-   default stretch gives each row the full foot width (.pbf is width:100%);
-   the rail centres them like the host's own collapsed foot. */
-:has(> .pbc.tqf),
-:has(> [data-slot] > .pbc.tqf) {
-  flex-direction:column
-}
-:has(> .pbc.tqf.rail),
-:has(> [data-slot] > .pbc.tqf.rail) {
-  align-items:center
-}
-.pbc.tqf {
+  }}.pbc.tqf{
   --tq-run:var(--dsw-alias-state-business-primary);
   --tq-wait:var(--dsw-alias-state-warn-primary);
   --tq-bad:var(--dsw-alias-state-error-primary);
@@ -1758,83 +1300,17 @@ body[data-ds-dark-theme] .pbc .bp {
      panel, so an allowance (on the panel) and a task (on the well) never share a surface. */
   --tq-well:var(--dsw-alias-interactive-bg-hover);
   --tq-text-ok:var(--ok)
-}
-/* The row: the host badge's geometry (.pbf) with its trailing count. */
-.pbc.pbf.tqf .bchip {
-  color:var(--tq-ink)
-}
-.pbc.pbf.tqf .bchip:focus-visible {
-  outline:var(--tq-focus-ring);
-  outline-offset:-2px
-}
-.pbc.pbf.tqf .bchip-item {
-  flex:1 1 auto
-}
-.pbc.tqf .tq-count {
-  flex:none;
-  margin-left:auto;
-  font:var(--dsw-font-xxs-12);
-  line-height:16px;
-  font-variant-numeric:tabular-nums;
-  white-space:nowrap;
-  color:var(--tq-ink-3)
-}
-/* The panel: the host's foot panel, not the balance popover's glass. */
-.pbc.pbf.tqf .bp {
-  display:flex;
-  flex-direction:column;
-  box-sizing:border-box;
-  isolation:isolate;
-  width:min(380px, calc(100vw - 24px));
-  max-width:none;
-  min-width:0;
-  padding:0;
-  border:0;
-  border-radius:var(--tq-radius);
-  background:none;
-  -webkit-backdrop-filter:none;
-  backdrop-filter:none;
-  box-shadow:var(--dsw-elevation-prominent);
-  overflow:hidden
-}
-.pbc.pbf.tqf .bp::before {
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:-1;
-  border-radius:inherit;
-  background:var(--dsw-specific-menu);
-  -webkit-backdrop-filter:var(--dsw-menu-backdrop-filter);
-  backdrop-filter:var(--dsw-menu-backdrop-filter);
-  pointer-events:none
-}
-/* The panel is taller than any phone viewport, and iOS hides its scrollbar.
-   A short fade at the bottom says the next row continues instead of looking
-   like content cut mid-line (the 2026-11-06 screenshot ended inside a task). */
-.pbc.pbf.tqf .bp::after {
-  content:"";
-  position:absolute;
-  inset:auto 0 0;
-  z-index:1;
-  height:18px;
-  border-radius:0 0 var(--tq-radius) var(--tq-radius);
-  background:linear-gradient(to top, var(--dsw-specific-menu), transparent);
-  pointer-events:none
-}
-.pbc .tq-list,
+}.pbc .tq-list,
 .pbc .tq-layer,
-.pbc .tq-detail {
+.pbc .tq-detail{
   display:flex;
   flex-direction:column;
   flex:1 1 auto;
   min-height:0
-}
-/* Task detail is frequent navigation. Keep the swap immediate so a keyboard
-   user can open, inspect and back out without waiting on a one-way entrance. */
-.pbc .tq-list[inert] {
+}/* Task detail is frequent navigation. Keep the swap immediate so a keyboard
+   user can open, inspect and back out without waiting on a one-way entrance. */.pbc .tq-list[inert]{
   display:none
-}
-.pbc .tq-head {
+}.pbc .tq-head{
   box-sizing:border-box;
   display:flex;
   flex:none;
@@ -1843,37 +1319,30 @@ body[data-ds-dark-theme] .pbc .bp {
   gap:8px;
   min-height:44px;
   padding:10px 12px
-}
-.pbc .tq-title {
+}.pbc .tq-title{
   font:var(--dsw-font-s-strong-14);
   line-height:20px;
   color:var(--tq-ink)
-}
-.pbc .tq-caption {
+}.pbc .tq-caption{
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-scroll {
+}.pbc .tq-scroll{
   flex:1 1 auto;
   min-height:0;
   padding:0 12px 12px;
   overflow-y:auto;
   overscroll-behavior:contain;
   scrollbar-width:thin
-}
-.pbc .tq-group + .tq-group {
+}.pbc .tq-group + .tq-group{
   margin-top:8px;
   padding-top:8px;
   border-top:.5px solid var(--tq-hairline)
-}
-/* A section (what just ended, patrol) is a grouped list: set apart by space, not another line. */
-.pbc .tq-group + .tq-section {
+}/* A section (what just ended, patrol) is a grouped list: set apart by space, not another line. */.pbc .tq-group + .tq-section{
   margin-top:14px;
   padding-top:0;
   border-top:0
-}
-.pbc .tq-sub {
+}.pbc .tq-sub{
   min-width:0;
   max-width:100%;
   overflow:hidden;
@@ -1884,37 +1353,26 @@ body[data-ds-dark-theme] .pbc .bp {
   font-weight:400;
   letter-spacing:0;
   color:var(--tq-ink-3)
-}
-.pbc .tq-agent-glyph {
+}.pbc .tq-agent-glyph{
   flex:none;
   color:var(--tq-ink-2)
-}
-/* The whale is drawn with currentColor; give its existing hook the DeepSeek brand token
-   instead of adding a second fill or a new blue. The chart's dsh series uses the same token. */
-.pbc .tq-agent-glyph[data-tq-agent="dsh"],
-.pbc .tq-agent-glyph[data-pp-provider="deepseek"] { color:var(--tq-brand-dsh) }
-.pbc .tq-dot {
+}/* The whale is drawn with currentColor; give its existing hook the DeepSeek brand token
+   instead of adding a second fill or a new blue. The chart's dsh series uses the same token. */.pbc .tq-agent-glyph[data-tq-agent="dsh"],
+.pbc .tq-agent-glyph[data-pp-provider="deepseek"]{ color:var(--tq-brand-dsh) }.pbc .tq-dot{
   flex:none;
   width:6px;
   height:6px;
   border-radius:50%
-}
-.pbc .tq-dot { background:var(--tq-idle) }
-.pbc .tq-dot[data-balance-state="ok"] { background:var(--tq-run) }
-.pbc .tq-dot[data-balance-state="stale"] { background:var(--tq-wait) }
-.pbc .tq-dot[data-balance-state="low"] { background:var(--tq-bad) }
-/* A row on the grid: the host's panel row (8px inset, 12px corners, hover wash). Line 1 sits on
+}.pbc .tq-dot{ background:var(--tq-idle) }.pbc .tq-dot[data-balance-state="ok"]{ background:var(--tq-run) }.pbc .tq-dot[data-balance-state="stale"]{ background:var(--tq-wait) }.pbc .tq-dot[data-balance-state="low"]{ background:var(--tq-bad) }/* A row on the grid: the host's panel row (8px inset, 12px corners, hover wash). Line 1 sits on
    one baseline (name, value, the chip's word); the glyph centres in its track. Rhythm: 6px above
    and below a head, 8px above and below a row on a well; a 20px first line, 16px lines after it,
-   each 2px below the one above (padding, not row-gap, so a missing line costs nothing). */
-.pbc .tq-item {
+   each 2px below the one above (padding, not row-gap, so a missing line costs nothing). */.pbc .tq-item{
   position:relative;
   display:flex;
   align-items:center;
   gap:2px;
   margin:0 -8px
-}
-.pbc [data-tq-row] {
+}.pbc [data-tq-row]{
   display:grid;
   grid-template-columns:var(--tq-grid);
   column-gap:var(--tq-gap);
@@ -1922,8 +1380,7 @@ body[data-ds-dark-theme] .pbc .bp {
   align-items:baseline;
   align-content:center;
   min-width:0
-}
-.pbc .tq-row {
+}.pbc .tq-row{
   flex:1 1 auto;
   box-sizing:border-box;
   padding:6px 8px;
@@ -1935,13 +1392,9 @@ body[data-ds-dark-theme] .pbc .bp {
   color:inherit;
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-row.tq-static { cursor:default }
-.pbc .tq-row:active {
+}.pbc .tq-row.tq-static{ cursor:default }.pbc .tq-row:active{
   background:var(--tq-fill-press)
-}
-.pbc .tq-row.tq-static:active { background:transparent }
-.pbc .tq-lead {
+}.pbc .tq-row.tq-static:active{ background:transparent }.pbc .tq-lead{
   grid-column:1;
   align-self:center;
   display:flex;
@@ -1949,16 +1402,14 @@ body[data-ds-dark-theme] .pbc .bp {
   justify-content:center;
   height:20px;
   color:var(--tq-ink-2)
-}
-.pbc .tq-name {
+}.pbc .tq-name{
   grid-column:2;
   min-width:0;
   font:var(--dsw-font-xs-13);
   line-height:20px;
   overflow-wrap:anywhere;
   color:var(--tq-ink)
-}
-.pbc .tq-value {
+}.pbc .tq-value{
   grid-column:3;
   justify-self:end;
   font:var(--dsw-font-xs-strong-13);
@@ -1966,25 +1417,15 @@ body[data-ds-dark-theme] .pbc .bp {
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
   color:var(--tq-ink)
-}
-.pbc .tq-value[data-used-level="ok"] { color:var(--tq-text-ok) }
-.pbc .tq-value[data-used-level="mid"] { color:var(--tq-text-warn) }
-.pbc .tq-value[data-used-level="low"] { color:var(--tq-text-bad) }
-.pbc .tq-value[data-balance-state="low"] { color:var(--tq-text-bad) }
-/* stale 黄排在用量档之后，与头条 chip、每窗进度条同一优先级：同元素同时带两个属性时
-   源序后者赢，读数不可信这件事要压过它（已经过期的）用量档颜色。 */
-.pbc .tq-value[data-balance-state="stale"] { color:var(--tq-text-warn) }
-/* The direction word rides beside the number: '已用 88%' can only mean one
-   thing, which a bare '88%' next to the CLI's '剩 12%' could not. */
-.pbc .tq-unit {
+}.pbc .tq-value[data-used-level="ok"]{ color:var(--tq-text-ok) }.pbc .tq-value[data-used-level="mid"]{ color:var(--tq-text-warn) }.pbc .tq-value[data-used-level="low"]{ color:var(--tq-text-bad) }.pbc .tq-value[data-balance-state="low"]{ color:var(--tq-text-bad) }/* stale 黄排在用量档之后，与头条 chip、每窗进度条同一优先级：同元素同时带两个属性时
+   源序后者赢，读数不可信这件事要压过它（已经过期的）用量档颜色。 */.pbc .tq-value[data-balance-state="stale"]{ color:var(--tq-text-warn) }/* The direction word rides beside the number: '已用 88%' can only mean one
+   thing, which a bare '88%' next to the CLI's '剩 12%' could not. */.pbc .tq-unit{
   margin-right:4px;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-/* 侧栏折叠行第二行:每个窗口的重置时刻。与第一行同宽、右对齐、10px/12px;
-   两行 16px+12px 正好落在桌面 28px 行高里,不改变行的几何。 */
-.pbc .tq-reset-line {
+}/* 侧栏折叠行第二行:每个窗口的重置时刻。与第一行同宽、右对齐、10px/12px;
+   两行 16px+12px 正好落在桌面 28px 行高里,不改变行的几何。 */.pbc .tq-reset-line{
   grid-area:2 / 2 / 3 / 4;
   justify-self:end;
   align-self:center;
@@ -1998,9 +1439,7 @@ body[data-ds-dark-theme] .pbc .bp {
   font-variant-numeric:tabular-nums;
   letter-spacing:.01em;
   color:var(--tq-ink-3)
-}
-/* 过期读数不能说成「旧数字还好」:在读数后给一个词,颜色仍由 stale 黄统一。 */
-.pbc .tq-stale {
+}/* 过期读数不能说成「旧数字还好」:在读数后给一个词,颜色仍由 stale 黄统一。 */.pbc .tq-stale{
   flex:none;
   margin-right:4px;
   padding:0 3px;
@@ -2009,20 +1448,8 @@ body[data-ds-dark-theme] .pbc .bp {
   font:500 var(--fs-micro, 10px)/12px var(--font);
   white-space:nowrap;
   color:var(--tq-text-warn)
-}
-/* The panel's cells (FACT_CELL). The folded sidebar lines keep their own four-track subgrid below. */
-.pbc .tq-row > .tq-name { grid-column:2 / 5 }
-.pbc .tq-row > .tq-value { grid-column:5 }
-.pbc .tq-row > .tq-chip[data-tq-chip="status"] { grid-column:5; justify-self:stretch }
-.pbc .tq-row > [data-tq-fact="model"] { grid-area:2 / 2 / 3 / 5 }
-.pbc .tq-row > :is([data-tq-fact="tries"], [data-tq-fact="receipt"]) { grid-area:2 / 5 / 3 / 6 }
-.pbc .tq-row > [data-tq-fact="when"] { grid-area:3 / 2 / 4 / 3 }
-.pbc .tq-row > [data-tq-fact="took"] { grid-area:3 / 3 / 4 / 4 }
-.pbc .tq-row > [data-tq-fact="cost"] { grid-area:3 / 5 / 4 / 6; justify-self:end }
-.pbc .tq-row > .tq-caption-line { grid-area:2 / 2 / 3 / -1 }
-/* Facts are words in their cell, not chips: 12/16 tertiary, figures tabular. The model is the
-   one secondary-ink fact (it is read, the rest are scanned); a warning speaks in the text role. */
-.pbc .tq-fact {
+}/* The panel's cells (FACT_CELL). The folded sidebar lines keep their own four-track subgrid below. */.pbc .tq-row > .tq-name{ grid-column:2 / 5 }.pbc .tq-row > .tq-value{ grid-column:5 }.pbc .tq-row > .tq-chip[data-tq-chip="status"]{ grid-column:5; justify-self:stretch }.pbc .tq-row > [data-tq-fact="model"]{ grid-area:2 / 2 / 3 / 5 }.pbc .tq-row > :is([data-tq-fact="tries"], [data-tq-fact="receipt"]){ grid-area:2 / 5 / 3 / 6 }.pbc .tq-row > [data-tq-fact="when"]{ grid-area:3 / 2 / 4 / 3 }.pbc .tq-row > [data-tq-fact="took"]{ grid-area:3 / 3 / 4 / 4 }.pbc .tq-row > [data-tq-fact="cost"]{ grid-area:3 / 5 / 4 / 6; justify-self:end }.pbc .tq-row > .tq-caption-line{ grid-area:2 / 2 / 3 / -1 }/* Facts are words in their cell, not chips: 12/16 tertiary, figures tabular. The model is the
+   one secondary-ink fact (it is read, the rest are scanned); a warning speaks in the text role. */.pbc .tq-fact{
   min-width:0;
   padding-top:2px;
   font:var(--dsw-font-xxs-12);
@@ -2030,35 +1457,20 @@ body[data-ds-dark-theme] .pbc .bp {
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
   color:var(--tq-ink-3)
-}
-.pbc .tq-fact[data-tq-fact="model"] {
+}.pbc .tq-fact[data-tq-fact="model"]{
   white-space:normal;
   color:var(--tq-ink-2)
-}
-/* Patrol evidence gets the unused aside space, not another chip or summary row.
-   Severity is written (P0…P3) as well as coloured; links keep their underline. */
-.pbc .tq-row > [data-tq-fact="filed"] {
+}/* Patrol evidence gets the unused aside space, not another chip or summary row.
+   Severity is written (P0…P3) as well as coloured; links keep their underline. */.pbc .tq-row > [data-tq-fact="filed"]{
   grid-area:2 / 2 / 3 / 6;
   white-space:normal;
   display:flex;
   flex-wrap:wrap;
   align-items:baseline;
   color:var(--tq-ink-2)
-}
-.pbc .tq-filed-part { white-space:nowrap }
-.pbc .tq-filed-part:first-child { font-weight:600 }
-.pbc .tq-filed-part[data-severity="P0"],
-.pbc .tq-filed-part[data-severity="P1"] { color:var(--tq-text-bad) }
-.pbc .tq-filed-part[data-severity="P2"] { color:var(--tq-text-warn) }
-.pbc .tq-filed-part a { color:inherit; text-underline-offset:3px; border-radius:var(--tq-radius-xs) }
-.pbc .tq-filed-part a:focus-visible { outline:var(--tq-focus-ring); outline-offset:2px }
-.pbc .tq-filed-sep { color:var(--tq-ink-3) }
-@media (pointer: coarse) {
-  .pbc .tq-filed-part a { display:inline-flex; align-items:center; min-height:44px }
-}
-.pbc .tq-fact[data-voice="warn"],
-.pbc .tq-caption-line [data-voice="warn"] { color:var(--tq-text-warn) }
-.pbc .tq-caption-line {
+}.pbc .tq-filed-part{ white-space:nowrap }.pbc .tq-filed-part:first-child{ font-weight:600 }.pbc .tq-filed-part[data-severity="P0"],
+.pbc .tq-filed-part[data-severity="P1"]{ color:var(--tq-text-bad) }.pbc .tq-filed-part[data-severity="P2"]{ color:var(--tq-text-warn) }.pbc .tq-filed-part a{ color:inherit; text-underline-offset:3px; border-radius:var(--tq-radius-xs) }.pbc .tq-filed-part a:focus-visible{ outline:var(--tq-focus-ring); outline-offset:2px }.pbc .tq-filed-sep{ color:var(--tq-ink-3) }@media (pointer: coarse){.pbc .tq-filed-part a{ display:inline-flex; align-items:center; min-height:44px }}.pbc .tq-fact[data-voice="warn"],
+.pbc .tq-caption-line [data-voice="warn"]{ color:var(--tq-text-warn) }.pbc .tq-caption-line{
   min-width:0;
   padding-top:2px;
   font:var(--dsw-font-xxs-12);
@@ -2066,15 +1478,10 @@ body[data-ds-dark-theme] .pbc .bp {
   font-variant-numeric:tabular-nums;
   overflow-wrap:anywhere;
   color:var(--tq-ink-3)
-}
-/* Two levels, never mixed (kcn: 「任务和 provider 上下不明显」). A source head is the panel's
+}/* Two levels, never mixed (kcn: 「任务和 provider 上下不明显」). A source head is the panel's
    strong line: 14/20 name and reading, its caption, its bars. A section head (what just ended,
    patrol) is a label for the list under it: 12/16 caption ink, like a grouped list's header. The
-   rows themselves are 13/20 regular on the well. */
-.pbc .tq-row[data-tq-row="source"] > :is(.tq-name, .tq-value) { font:var(--dsw-font-s-strong-14); line-height:20px }
-.pbc .tq-row[data-tq-row="head"] > .tq-name { font:var(--dsw-font-xxs-strong-12); line-height:20px; color:var(--tq-ink-3) }
-.pbc .tq-row[data-tq-row="head"] > .tq-lead { color:var(--tq-ink-3) }
-.pbc .tq-tag {
+   rows themselves are 13/20 regular on the well. */.pbc .tq-row[data-tq-row="source"] > :is(.tq-name, .tq-value){ font:var(--dsw-font-s-strong-14); line-height:20px }.pbc .tq-row[data-tq-row="head"] > .tq-name{ font:var(--dsw-font-xxs-strong-12); line-height:20px; color:var(--tq-ink-3) }.pbc .tq-row[data-tq-row="head"] > .tq-lead{ color:var(--tq-ink-3) }.pbc .tq-tag{
   flex:none;
   padding:0 4px;
   border:.5px solid var(--tq-pill-border);
@@ -2082,23 +1489,15 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-/* The well: the one surface a queue, the ended list and patrol's rounds sit on. It starts on
+}/* The well: the one surface a queue, the ended list and patrol's rounds sit on. It starts on
    the name's edge; its rows keep the full grid (the lead track too), so a name, a state, a time
-   is on the same line in every well; rows are divided by a hairline that starts at the name. */
-.pbc .tq-well {
+   is on the same line in every well; rows are divided by a hairline that starts at the name. */.pbc .tq-well{
   margin:4px 0 2px var(--tq-main-inset);
   border-radius:var(--tq-radius);
   background:var(--tq-well);
   overflow:hidden
-}
-/* One right edge for the whole panel: a head's reading and chip, the window bars and every well
-   row's chip and cost all end 8px in from the content edge (the well rows' own inset). */
-.pbc .tq-group > .tq-item > .tq-row:is([data-tq-row="source"], [data-tq-row="head"]) { padding-right:16px }
-.pbc .pp-allowance, .pbc .tq-group > .tq-note { margin-right:8px }
-.pbc .tq-well > .tq-item { margin:0 }
-.pbc .tq-well .tq-row { padding:8px; border-radius:0 }
-.pbc .tq-well > .tq-item + .tq-item::before {
+}/* One right edge for the whole panel: a head's reading and chip, the window bars and every well
+   row's chip and cost all end 8px in from the content edge (the well rows' own inset). */.pbc .tq-group > .tq-item > .tq-row:is([data-tq-row="source"], [data-tq-row="head"]){ padding-right:16px }.pbc .tq-well > .tq-item{ margin:0 }.pbc .tq-well .tq-row{ padding:8px; border-radius:0 }.pbc .tq-well > .tq-item + .tq-item::before{
   content:"";
   position:absolute;
   top:0;
@@ -2107,44 +1506,32 @@ body[data-ds-dark-theme] .pbc .bp {
   height:.5px;
   background:var(--tq-hairline);
   pointer-events:none
-}
-/* Move up: laid over the live row's empty lead track, so the row keeps the full width and its
-   cells stay on the panel's lines. */
-.pbc .tq-well > .tq-item > .tq-up {
+}/* Move up: laid over the live row's empty lead track, so the row keeps the full width and its
+   cells stay on the panel's lines. */.pbc .tq-well > .tq-item > .tq-up{
   position:absolute;
   top:28px;
   left:1px;
   width:24px;
   height:24px
-}
-/* The notification layer: one mark per channel — its glyph and what its receipt says (✓ ✕ ?).
+}/* The notification layer: one mark per channel — its glyph and what its receipt says (✓ ✕ ?).
    Green only for a receipt that says delivered; red for one that says failed; no receipt is
-   the tertiary ink with a question mark, never a guessed colour. */
-.pbc .tq-notify {
+   the tertiary ink with a question mark, never a guessed colour. */.pbc .tq-notify{
   display:inline-flex;
   align-items:center;
   gap:8px
-}
-.pbc .tq-receipt {
+}.pbc .tq-receipt{
   display:inline-flex;
   align-items:center;
   gap:1px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-receipt[data-state="sent"] { color:var(--tq-text-ok) }
-.pbc .tq-receipt[data-state="failed"] { color:var(--tq-text-bad) }
-.pbc .tq-notify-glyph, .pbc .tq-receipt-glyph { display:block; flex:none }
-/* The fallback mark on the model line: the fallback role in words and glyph, not a second chip. */
-.pbc .tq-mark {
+}.pbc .tq-receipt[data-state="sent"]{ color:var(--tq-text-ok) }.pbc .tq-receipt[data-state="failed"]{ color:var(--tq-text-bad) }.pbc .tq-notify-glyph, .pbc .tq-receipt-glyph{ display:block; flex:none }/* The fallback mark on the model line: the fallback role in words and glyph, not a second chip. */.pbc .tq-mark{
   display:inline-flex;
   align-items:center;
   gap:2px;
   margin-left:6px;
   vertical-align:top;
   color:var(--tq-text-warn)
-}
-/* Round icon buttons: the host panel's 28px action button (refresh, move up). */
-.pbc .tq-icon-btn {
+}/* Round icon buttons: the host panel's 28px action button (refresh, move up). */.pbc .tq-icon-btn{
   position:relative;
   flex:none;
   display:inline-flex;
@@ -2159,32 +1546,26 @@ body[data-ds-dark-theme] .pbc .bp {
   color:var(--tq-ink-3);
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-icon-btn:active {
+}.pbc .tq-icon-btn:active{
   transform:scale(var(--tq-press-scale));
   background:var(--tq-fill-press)
-}
-.pbc .tq-icon-btn:disabled {
+}.pbc .tq-icon-btn:disabled{
   opacity:.4;
   cursor:default
-}
-.pbc .tq-icon-btn.spin svg {
+}.pbc .tq-icon-btn.spin svg{
   animation:clawock-spin .8s linear infinite
-}
-/* Controls (client.ts DETAIL_ACTIONS): the fold control's shape — a 26px capsule, 12/16, press
+}/* Controls (client.ts DETAIL_ACTIONS): the fold control's shape — a 26px capsule, 12/16, press
    scale, the focus ring outside the capsule, a 44px target under a finger — so every control of the
    panel is one height on one baseline. The kind is the look:
      view    reads, never writes: a quiet filled bed, secondary ink, its glyph
      write   changes the queue: an outlined capsule in primary ink, beside the fact it changes
      danger  ends work: outlined, red words, last in the layer
-   An armed control (its first tap asked for a second) takes its role's soft bed. */
-.pbc .tq-actions {
+   An armed control (its first tap asked for a second) takes its role's soft bed. */.pbc .tq-actions{
   display:flex;
   flex-wrap:wrap;
   align-items:center;
   gap:6px
-}
-.pbc .tq-pill {
+}.pbc .tq-pill{
   position:relative;
   display:inline-flex;
   align-items:center;
@@ -2203,51 +1584,34 @@ body[data-ds-dark-theme] .pbc .bp {
   color:var(--tq-ink);
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-pill[data-tq-kind="view"] {
+}.pbc .tq-pill[data-tq-kind="view"]{
   padding:0 10px 0 8px;
   border-color:transparent;
   background:var(--tq-fill-inset);
   color:var(--tq-ink-2)
-}
-.pbc .tq-pill-glyph { display:block; flex:none; color:var(--tq-ink-3) }
-.pbc .tq-pill.tq-danger {
+}.pbc .tq-pill-glyph{ display:block; flex:none; color:var(--tq-ink-3) }.pbc .tq-pill.tq-danger{
   color:var(--tq-text-bad)
-}
-.pbc .tq-pill[data-armed] { border-color:var(--tq-wait); background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }
-.pbc .tq-pill.tq-danger[data-armed] { border-color:var(--tq-bad); background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }
-.pbc .tq-pill:active {
+}.pbc .tq-pill[data-armed]{ border-color:var(--tq-wait); background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }.pbc .tq-pill.tq-danger[data-armed]{ border-color:var(--tq-bad); background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }.pbc .tq-pill:active{
   transform:scale(var(--tq-press-scale));
   background:var(--tq-fill-press)
-}
-.pbc .tq-pill:disabled {
+}.pbc .tq-pill:disabled{
   opacity:.4;
   cursor:default
-}
-.pbc .tq-pill:focus-visible {
+}.pbc .tq-pill:focus-visible{
   outline:var(--tq-focus-ring);
   outline-offset:1px
-}
-.pbc :is(.tq-row, .tq-icon-btn, .tq-back):focus-visible {
+}.pbc :is(.tq-row, .tq-icon-btn, .tq-back):focus-visible{
   outline:var(--tq-focus-ring);
   outline-offset:-2px
-}
-@media (hover: hover) and (pointer: fine) {
-  .pbc :is(.tq-row:not(.tq-static), .tq-icon-btn, .tq-back):hover:not(:disabled) {
+}@media (hover: hover) and (pointer: fine){.pbc :is(.tq-row:not(.tq-static), .tq-icon-btn, .tq-back):hover:not(:disabled){
     background:var(--tq-fill-hover)
-  }
-  .pbc .tq-icon-btn:hover:not(:disabled) {
+  }.pbc .tq-icon-btn:hover:not(:disabled){
     color:var(--tq-ink-2)
-  }
-  .pbc .tq-pill:hover:not(:disabled):not([data-armed]) {
+  }.pbc .tq-pill:hover:not(:disabled):not([data-armed]){
     background:var(--tq-fill-hover)
-  }
-  .pbc .tq-pill.tq-danger:hover:not(:disabled):not([data-armed]) {
+  }.pbc .tq-pill.tq-danger:hover:not(:disabled):not([data-armed]){
     background:var(--tq-fill-danger)
-  }
-}
-/* Notes: one line of context under a group or at the top of the panel. */
-.pbc .tq-note {
+  }}/* Notes: one line of context under a group or at the top of the panel. */.pbc .tq-note{
   display:flex;
   align-items:center;
   gap:6px;
@@ -2255,37 +1619,29 @@ body[data-ds-dark-theme] .pbc .bp {
   min-width:0;
   font:var(--dsw-font-xxs-12);
   line-height:16px
-}
-.pbc .tq-note.tq-ok { color:var(--tq-ink-2) }
-.pbc .tq-note.tq-bad { color:var(--tq-text-bad) }
-.pbc .tq-note.tq-warn { color:var(--tq-text-warn) }
-.pbc .tq-empty {
+}.pbc .tq-note.tq-ok{ color:var(--tq-ink-2) }.pbc .tq-note.tq-bad{ color:var(--tq-text-bad) }.pbc .tq-note.tq-warn{ color:var(--tq-text-warn) }.pbc .tq-empty{
   padding:4px 0 6px;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-sub.tq-wrap {
+}.pbc .tq-sub.tq-wrap{
   max-width:none;
   overflow:visible;
   text-overflow:clip;
   white-space:normal;
   overflow-wrap:anywhere
-}
-.pbc .tq-chips {
+}.pbc .tq-chips{
   display:flex;
   flex-wrap:wrap;
   align-items:center;
   gap:4px;
   min-width:0
-}
-/* THE chip (client.ts STATE_ROLES): a row's one state, as a capsule whose bed, glyph and word all
+}/* THE chip (client.ts STATE_ROLES): a row's one state, as a capsule whose bed, glyph and word all
    carry the role, so it reads in dark mode and in greyscale as well as in colour —
      filled bed   run · sleep · partial · fail · done
      outline      queue · wait · off · fallback
      dashed       unknown
-   One width per column (the aside track), the glyph and word left-aligned on its inner edge. */
-.pbc .tq-chip {
+   One width per column (the aside track), the glyph and word left-aligned on its inner edge. */.pbc .tq-chip{
   display:inline-flex;
   align-items:center;
   flex:none;
@@ -2302,24 +1658,10 @@ body[data-ds-dark-theme] .pbc .bp {
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
   color:var(--tq-ink-2)
-}
-.pbc .tq-chip-text { min-width:0 }
-.pbc .tq-role-glyph { display:block; flex:none }
-.pbc .tq-chip[data-role="run"] { background:var(--tq-chip-run-fill); color:var(--tq-run) }
-.pbc .tq-chip[data-role="queue"] { border-color:var(--tq-run); background:transparent; color:var(--tq-run) }
-.pbc .tq-chip:is([data-role="sleep"], [data-role="partial"]) { background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }
-.pbc .tq-chip:is([data-role="wait"], [data-role="fallback"]) { border-color:var(--tq-wait); background:transparent; color:var(--tq-text-warn) }
-.pbc .tq-chip[data-role="fail"] { background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }
-.pbc .tq-chip[data-role="done"] { background:var(--tq-chip-fill); color:var(--tq-ink-2) }
-.pbc .tq-chip[data-role="off"] { border-color:var(--tq-chip-edge); background:transparent; color:var(--tq-ink-3) }
-/* Not recorded: dashed, no fill — the one place the tertiary grey is still the voice. */
-.pbc .tq-chip[data-role="unknown"] { border-style:dashed; border-color:var(--tq-pill-border); background:transparent; color:var(--tq-ink-3) }
-/* The fold control. One native <details>, immediate opening, no height animation: the raw
+}.pbc .tq-chip-text{ min-width:0 }.pbc .tq-role-glyph{ display:block; flex:none }.pbc .tq-chip[data-role="run"]{ background:var(--tq-chip-run-fill); color:var(--tq-run) }.pbc .tq-chip[data-role="queue"]{ border-color:var(--tq-run); background:transparent; color:var(--tq-run) }.pbc .tq-chip:is([data-role="sleep"], [data-role="partial"]){ background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }.pbc .tq-chip:is([data-role="wait"], [data-role="fallback"]){ border-color:var(--tq-wait); background:transparent; color:var(--tq-text-warn) }.pbc .tq-chip[data-role="fail"]{ background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }.pbc .tq-chip[data-role="done"]{ background:var(--tq-chip-fill); color:var(--tq-ink-2) }.pbc .tq-chip[data-role="off"]{ border-color:var(--tq-chip-edge); background:transparent; color:var(--tq-ink-3) }/* Not recorded: dashed, no fill — the one place the tertiary grey is still the voice. */.pbc .tq-chip[data-role="unknown"]{ border-style:dashed; border-color:var(--tq-pill-border); background:transparent; color:var(--tq-ink-3) }/* The fold control. One native <details>, immediate opening, no height animation: the raw
    supervisor log inside a task detail. The patrol history is one list and the coverage is a
    page, so this is the only fold left in the panel. The summary is a hairline capsule with the
-   chevron leading; the body fades in, the layout is immediate. */
-.pbc .tq-fold { margin:4px 0 2px var(--tq-main-inset) }
-.pbc .tq-fold-summary {
+   chevron leading; the body fades in, the layout is immediate. */.pbc .tq-fold{ margin:4px 0 2px var(--tq-main-inset) }.pbc .tq-fold-summary{
   position:relative;
   box-sizing:border-box;
   list-style:none;
@@ -2327,20 +1669,11 @@ body[data-ds-dark-theme] .pbc .bp {
   user-select:none;
   -webkit-user-select:none;
   transition:background-color var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-fold-summary::-webkit-details-marker { display:none }
-.pbc .tq-fold-summary::marker { content:"" }
-.pbc .tq-fold-chev {
+}.pbc .tq-fold-summary::-webkit-details-marker{ display:none }.pbc .tq-fold-summary::marker{ content:"" }.pbc .tq-fold-chev{
   flex:none;
   color:var(--tq-ink-3);
   transition:transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-fold[open] > .tq-fold-summary .tq-fold-chev { transform:rotate(90deg) }
-.pbc .tq-fold-summary:focus-visible { outline:var(--tq-focus-ring); outline-offset:1px }
-@media (hover: hover) and (pointer: fine) {
-  .pbc .tq-fold-summary:hover { background:var(--tq-fill-hover) }
-}
-.pbc .tq-fold-pill > .tq-fold-summary {
+}.pbc .tq-fold[open] > .tq-fold-summary .tq-fold-chev{ transform:rotate(90deg) }.pbc .tq-fold-summary:focus-visible{ outline:var(--tq-focus-ring); outline-offset:1px }@media (hover: hover) and (pointer: fine){.pbc .tq-fold-summary:hover{ background:var(--tq-fill-hover) }}.pbc .tq-fold-pill > .tq-fold-summary{
   display:inline-flex;
   align-items:flex-start;
   gap:4px;
@@ -2355,78 +1688,53 @@ body[data-ds-dark-theme] .pbc .bp {
   line-height:16px;
   color:var(--tq-ink-2);
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-fold-pill > .tq-fold-summary > .tq-fold-label { min-width:0; overflow-wrap:anywhere }
-.pbc .tq-fold-pill > .tq-fold-summary > .tq-fold-chev { margin-top:2px }
-.pbc .tq-fold-pill > .tq-fold-summary:active {
+}.pbc .tq-fold-pill > .tq-fold-summary > .tq-fold-label{ min-width:0; overflow-wrap:anywhere }.pbc .tq-fold-pill > .tq-fold-summary > .tq-fold-chev{ margin-top:2px }.pbc .tq-fold-pill > .tq-fold-summary:active{
   transform:scale(var(--tq-press-scale));
   background:var(--tq-fill-press)
-}
-.pbc .tq-fold-body { margin:2px 0 0 calc(-1 * var(--tq-main-inset)) }
-.pbc .tq-fold-body > .tq-log { margin:2px 0 4px var(--tq-main-inset) }
-.pbc .tq-fold[open] > .tq-fold-body { animation:tq-fold-in var(--tq-standard) var(--tq-ease-out) both }
-@keyframes tq-fold-in {
+}.pbc .tq-fold-body{ margin:2px 0 0 calc(-1 * var(--tq-main-inset)) }.pbc .tq-fold-body > .tq-log{ margin:2px 0 4px var(--tq-main-inset) }.pbc .tq-fold[open] > .tq-fold-body{ animation:tq-fold-in var(--tq-standard) var(--tq-ease-out) both }@keyframes tq-fold-in{
   from { opacity:0 }
   to { opacity:1 }
-}
-.pbc .tq-patrol-kpis {
+}.pbc .tq-patrol-kpis{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:8px;
   margin:10px var(--tq-main-inset) 0
-}
-.pbc .tq-patrol-kpi {
+}.pbc .tq-patrol-kpi{
   min-width:0;
   padding:8px 10px;
   border-radius:var(--tq-radius);
   background:var(--tq-well)
-}
-.pbc .tq-patrol-kpi-label {
+}.pbc .tq-patrol-kpi-label{
   display:flex;
   align-items:center;
   gap:5px;
   color:var(--tq-ink-3);
   font:var(--dsw-font-xxs-12);
   line-height:16px
-}
-.pbc .tq-patrol-kpi-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
-.pbc .tq-patrol-kpi-dot[data-role="done"] { background:var(--tq-run) }
-.pbc .tq-patrol-kpi-dot[data-role="partial"] { background:var(--tq-wait) }
-.pbc .tq-patrol-kpi-dot[data-role="fail"] { background:var(--tq-bad) }
-.pbc .tq-patrol-kpi-dot[data-coverage-state="none"] { background:var(--tq-text-ok) }
-.pbc .tq-patrol-kpi-dot[data-coverage-state="open"] { background:var(--tq-wait) }
-.pbc .tq-patrol-kpi-dot[data-coverage-state="unknown"] { background:var(--tq-text-warn) }
-.pbc .tq-patrol-kpi-value {
+}.pbc .tq-patrol-kpi-dot{ flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }.pbc .tq-patrol-kpi-dot[data-role="done"]{ background:var(--tq-run) }.pbc .tq-patrol-kpi-dot[data-role="partial"]{ background:var(--tq-wait) }.pbc .tq-patrol-kpi-dot[data-role="fail"]{ background:var(--tq-bad) }.pbc .tq-patrol-kpi-dot[data-coverage-state="none"]{ background:var(--tq-text-ok) }.pbc .tq-patrol-kpi-dot[data-coverage-state="open"]{ background:var(--tq-wait) }.pbc .tq-patrol-kpi-dot[data-coverage-state="unknown"]{ background:var(--tq-text-warn) }.pbc .tq-patrol-kpi-value{
   margin-top:2px;
   color:var(--tq-ink);
   font:var(--dsw-font-s-strong-14);
   line-height:20px;
   font-variant-numeric:tabular-nums;
   overflow-wrap:anywhere
-}
-.pbc .tq-patrol-kpi-caption {
+}.pbc .tq-patrol-kpi-caption{
   margin-top:2px;
   color:var(--tq-ink-2);
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   overflow-wrap:anywhere
-}
-.pbc .tq-patrol-section { margin:12px 0 0 var(--tq-main-inset) }
-.pbc .tq-patrol-section .tq-rhythm { margin-left:0 }
-.pbc .tq-patrol-section .tq-cov-page { margin-left:0 }
-.pbc .tq-patrol-section-head {
+}.pbc .tq-patrol-section{ margin:12px 0 0 var(--tq-main-inset) }.pbc .tq-patrol-section .tq-rhythm{ margin-left:0 }.pbc .tq-patrol-section .tq-cov-page{ margin-left:0 }.pbc .tq-patrol-section-head{
   display:flex;
   align-items:baseline;
   justify-content:space-between;
   gap:8px;
   min-width:0
-}
-.pbc .tq-patrol-section-title {
+}.pbc .tq-patrol-section-title{
   color:var(--tq-ink-2);
   font:var(--dsw-font-xxs-strong-12);
   line-height:16px
-}
-.pbc .tq-patrol-section-count {
+}.pbc .tq-patrol-section-count{
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -2435,17 +1743,13 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums
-}
-.pbc .tq-patrol-detail {
+}.pbc .tq-patrol-detail{
   display:flex;
   flex-direction:column;
   flex:1 1 auto;
   min-height:0
-}
-.pbc .tq-patrol-page { min-width:0 }
-/* The patrol entry: one row for the live phase and the coverage conclusion, then the page.
-   The entry itself is 44px and is the only patrol control in the panel. */
-.pbc .tq-patrol-entry {
+}.pbc .tq-patrol-page{ min-width:0 }/* The patrol entry: one row for the live phase and the coverage conclusion, then the page.
+   The entry itself is 44px and is the only patrol control in the panel. */.pbc .tq-patrol-entry{
   box-sizing:border-box;
   display:flex;
   flex-direction:column;
@@ -2462,27 +1766,18 @@ body[data-ds-dark-theme] .pbc .bp {
   text-align:left;
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-patrol-entry-main {
+}.pbc .tq-patrol-entry-main{
   display:flex;
   align-items:center;
   gap:8px;
   min-width:0;
   width:100%
-}
-.pbc .tq-patrol-entry:active { background:var(--tq-fill-press) }
-.pbc .tq-patrol-entry:focus-visible { outline:var(--tq-focus-ring); outline-offset:1px }
-@media (hover: hover) and (pointer: fine) {
-  .pbc .tq-patrol-entry:hover { background:var(--tq-fill-hover) }
-}
-.pbc .tq-patrol-entry-lead { display:flex; flex:none; color:var(--tq-ink-2) }
-.pbc .tq-patrol-entry-label {
+}.pbc .tq-patrol-entry:active{ background:var(--tq-fill-press) }.pbc .tq-patrol-entry:focus-visible{ outline:var(--tq-focus-ring); outline-offset:1px }@media (hover: hover) and (pointer: fine){.pbc .tq-patrol-entry:hover{ background:var(--tq-fill-hover) }}.pbc .tq-patrol-entry-lead{ display:flex; flex:none; color:var(--tq-ink-2) }.pbc .tq-patrol-entry-label{
   flex:none;
   font:var(--dsw-font-xs-strong-13);
   line-height:20px;
   color:var(--tq-ink)
-}
-.pbc .tq-patrol-entry-phase {
+}.pbc .tq-patrol-entry-phase{
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -2490,8 +1785,7 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-patrol-entry-value {
+}.pbc .tq-patrol-entry-value{
   display:inline-flex;
   align-items:center;
   gap:6px;
@@ -2501,14 +1795,7 @@ body[data-ds-dark-theme] .pbc .bp {
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
   color:var(--tq-ink-2)
-}
-.pbc .tq-patrol-entry-value[data-coverage-state="open"] { color:var(--tq-ink) }
-.pbc .tq-patrol-entry-value[data-coverage-state="unknown"] { color:var(--tq-text-warn) }
-.pbc .tq-patrol-entry-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
-.pbc .tq-patrol-entry-value[data-coverage-state="none"] .tq-patrol-entry-dot { background:var(--tq-text-ok) }
-.pbc .tq-patrol-entry-value[data-coverage-state="open"] .tq-patrol-entry-dot { background:var(--tq-wait) }
-.pbc .tq-patrol-entry-value[data-coverage-state="unknown"] .tq-patrol-entry-dot { background:var(--tq-text-warn) }
-.pbc .tq-patrol-entry-strip {
+}.pbc .tq-patrol-entry-value[data-coverage-state="open"]{ color:var(--tq-ink) }.pbc .tq-patrol-entry-value[data-coverage-state="unknown"]{ color:var(--tq-text-warn) }.pbc .tq-patrol-entry-dot{ flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }.pbc .tq-patrol-entry-value[data-coverage-state="none"] .tq-patrol-entry-dot{ background:var(--tq-text-ok) }.pbc .tq-patrol-entry-value[data-coverage-state="open"] .tq-patrol-entry-dot{ background:var(--tq-wait) }.pbc .tq-patrol-entry-value[data-coverage-state="unknown"] .tq-patrol-entry-dot{ background:var(--tq-text-warn) }.pbc .tq-patrol-entry-strip{
   display:flex;
   gap:1px;
   width:100%;
@@ -2516,25 +1803,16 @@ body[data-ds-dark-theme] .pbc .bp {
   border-radius:999px;
   overflow:hidden;
   background:var(--tq-hairline)
-}
-.pbc .tq-patrol-entry-seg { flex:1 1 0; min-width:0; height:100%; background:var(--tq-idle) }
-.pbc .tq-patrol-entry-seg[data-role="done"] { background:var(--tq-chart-run) }
-.pbc .tq-patrol-entry-seg[data-role="partial"] { background:var(--tq-chart-wait) }
-.pbc .tq-patrol-entry-seg[data-role="fail"] { background:var(--tq-chart-bad) }
-.pbc .tq-patrol-entry-seg[data-role="idle"] { background:var(--tq-chart-idle) }
-/* The patrol outcome strip: one thin tinted segment per round, newest first like the list.
+}.pbc .tq-patrol-entry-seg{ flex:1 1 0; min-width:0; height:100%; background:var(--tq-idle) }.pbc .tq-patrol-entry-seg[data-role="done"]{ background:var(--tq-chart-run) }.pbc .tq-patrol-entry-seg[data-role="partial"]{ background:var(--tq-chart-wait) }.pbc .tq-patrol-entry-seg[data-role="fail"]{ background:var(--tq-chart-bad) }.pbc .tq-patrol-entry-seg[data-role="idle"]{ background:var(--tq-chart-idle) }/* The patrol outcome strip: one thin tinted segment per round, newest first like the list.
    The solid semantic token is reserved for the count dots below (and other <=6px marks); the
-   bar takes the 35% chart tint, so it is data without being a saturated wall. */
-.pbc .tq-rhythm { margin:6px 0 0 var(--tq-main-inset) }
-.pbc .tq-rhythm-bar {
+   bar takes the 35% chart tint, so it is data without being a saturated wall. */.pbc .tq-rhythm{ margin:6px 0 0 var(--tq-main-inset) }.pbc .tq-rhythm-bar{
   display:flex;
   gap:1px;
   height:6px;
   border-radius:999px;
   overflow:hidden;
   background:var(--tq-hairline)
-}
-.pbc .tq-rhythm-seg {
+}.pbc .tq-rhythm-seg{
   flex:1 1 0;
   min-width:0;
   height:100%;
@@ -2542,15 +1820,9 @@ body[data-ds-dark-theme] .pbc .bp {
   transform:scaleX(1);
   transform-origin:left;
   transition:transform var(--tq-standard) var(--tq-ease-out)
-}
-@starting-style {
+}@starting-style{
   .pbc .tq-rhythm-seg { transform:scaleX(0) }
-}
-.pbc .tq-rhythm-seg[data-role="done"] { background:var(--tq-chart-run) }
-.pbc .tq-rhythm-seg[data-role="partial"] { background:var(--tq-chart-wait) }
-.pbc .tq-rhythm-seg[data-role="fail"] { background:var(--tq-chart-bad) }
-.pbc .tq-rhythm-seg[data-role="idle"] { background:var(--tq-chart-idle) }
-.pbc .tq-rhythm-summary {
+}.pbc .tq-rhythm-seg[data-role="done"]{ background:var(--tq-chart-run) }.pbc .tq-rhythm-seg[data-role="partial"]{ background:var(--tq-chart-wait) }.pbc .tq-rhythm-seg[data-role="fail"]{ background:var(--tq-chart-bad) }.pbc .tq-rhythm-seg[data-role="idle"]{ background:var(--tq-chart-idle) }.pbc .tq-rhythm-summary{
   display:flex;
   flex-wrap:wrap;
   gap:2px 10px;
@@ -2558,28 +1830,16 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums
-}
-.pbc .tq-rhythm-item { display:inline-flex; align-items:center; gap:4px; color:var(--tq-ink-2) }
-.pbc .tq-rhythm-sep { color:var(--tq-ink-3) }
-.pbc .tq-rhythm-dot { flex:none; width:5px; height:5px; border-radius:50%; background:var(--tq-idle) }
-.pbc .tq-rhythm-item[data-role="done"] .tq-rhythm-dot { background:var(--tq-run) }
-.pbc .tq-rhythm-item[data-role="partial"] .tq-rhythm-dot { background:var(--tq-wait) }
-.pbc .tq-rhythm-item[data-role="fail"] .tq-rhythm-dot { background:var(--tq-bad) }
-.pbc .tq-rhythm-item[data-role="idle"] .tq-rhythm-dot { background:var(--tq-ink-3) }
-.pbc .tq-foot {
+}.pbc .tq-rhythm-item{ display:inline-flex; align-items:center; gap:4px; color:var(--tq-ink-2) }.pbc .tq-rhythm-sep{ color:var(--tq-ink-3) }.pbc .tq-rhythm-dot{ flex:none; width:5px; height:5px; border-radius:50%; background:var(--tq-idle) }.pbc .tq-rhythm-item[data-role="done"] .tq-rhythm-dot{ background:var(--tq-run) }.pbc .tq-rhythm-item[data-role="partial"] .tq-rhythm-dot{ background:var(--tq-wait) }.pbc .tq-rhythm-item[data-role="fail"] .tq-rhythm-dot{ background:var(--tq-bad) }.pbc .tq-rhythm-item[data-role="idle"] .tq-rhythm-dot{ background:var(--tq-ink-3) }.pbc .tq-foot{
   margin-top:8px;
   padding-top:6px;
   border-top:.5px solid var(--tq-hairline);
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-foot.tq-bad { color:var(--tq-text-bad) }
-/* Detail. */
-.pbc .tq-d-head {
+}.pbc .tq-foot.tq-bad{ color:var(--tq-text-bad) }/* Detail. */.pbc .tq-d-head{
   padding-bottom:6px
-}
-.pbc .tq-back {
+}.pbc .tq-back{
   position:relative;
   display:inline-flex;
   align-items:center;
@@ -2594,113 +1854,75 @@ body[data-ds-dark-theme] .pbc .bp {
   color:var(--tq-ink);
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-back:active {
+}.pbc .tq-back:active{
   transform:scale(var(--tq-press-scale));
   background:var(--tq-fill-press)
-}
-.pbc .tq-back-chev {
+}.pbc .tq-back-chev{
   width:6px;
   height:6px;
   border-left:1.5px solid currentColor;
   border-bottom:1.5px solid currentColor;
   transform:translateX(1px) rotate(45deg)
-}
-/* The detail layer (client.ts DETAIL_SECTIONS). The back bar stays; the sections scroll; the
+}/* The detail layer (client.ts DETAIL_SECTIONS). The back bar stays; the sections scroll; the
    answer to a write sits in the resident foot. Sections are set apart by space (the list's rhythm
    between sections), never by another line; each has a caption in the list's section-head type.
    Everything under the hero starts on the name's edge (--tq-main-inset), like everything under a
-   head in the list. Nothing here animates: the layer is re-read every 15s. */
-/* A control focused by Tab scrolls clear of the layer's edges, not flush under them. */
-.pbc .tq-d-scroll { scroll-padding-block:12px }
-.pbc .tq-d-sec + .tq-d-sec { margin-top:14px }
-.pbc .tq-d-sec-title {
+   head in the list. Nothing here animates: the layer is re-read every 15s. *//* A control focused by Tab scrolls clear of the layer's edges, not flush under them. */.pbc .tq-d-scroll{ scroll-padding-block:12px }.pbc .tq-d-sec + .tq-d-sec{ margin-top:14px }.pbc .tq-d-sec-title{
   margin:0 0 2px var(--tq-main-inset);
   font:var(--dsw-font-xxs-strong-12);
   line-height:20px;
   color:var(--tq-ink-3)
-}
-/* The hero: the row the reader tapped, in the row's own cells — glyph in lead, the name over
-   when…rest, the same state chip in aside; the whole sentence under it. */
-.pbc .tq-d-hero {
+}/* The hero: the row the reader tapped, in the row's own cells — glyph in lead, the name over
+   when…rest, the same state chip in aside; the whole sentence under it. */.pbc .tq-d-hero{
   display:grid;
   grid-template-columns:var(--tq-grid);
   column-gap:var(--tq-gap);
   align-items:baseline;
   padding-top:2px
-}
-.pbc .tq-d-hero > .tq-lead { grid-area:1 / 1 }
-.pbc .tq-d-name {
+}.pbc .tq-d-hero > .tq-lead{ grid-area:1 / 1 }.pbc .tq-d-name{
   grid-area:1 / 2 / 2 / 5;
   min-width:0;
   font:var(--dsw-font-s-strong-14);
   line-height:20px;
   overflow-wrap:anywhere;
   color:var(--tq-ink)
-}
-.pbc .tq-d-hero > .tq-chip { grid-area:1 / 5; justify-self:stretch }
-.pbc .tq-d-status {
+}.pbc .tq-d-hero > .tq-chip{ grid-area:1 / 5; justify-self:stretch }.pbc .tq-d-status{
   grid-area:2 / 2 / 3 / -1;
   padding-top:4px;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   overflow-wrap:anywhere;
   color:var(--tq-ink-2)
-}
-.pbc .tq-d-status[data-balance-state="ok"] { color:var(--tq-ink-2) }
-.pbc .tq-d-status[data-balance-state="stale"] { color:var(--tq-text-warn) }
-.pbc .tq-d-status[data-balance-state="low"] { color:var(--tq-text-bad) }
-/* A field on THE row grid: the label on the when track (the name's edge), the value over
+}.pbc .tq-d-status[data-balance-state="ok"]{ color:var(--tq-ink-2) }.pbc .tq-d-status[data-balance-state="stale"]{ color:var(--tq-text-warn) }.pbc .tq-d-status[data-balance-state="low"]{ color:var(--tq-text-bad) }/* A field on THE row grid: the label on the when track (the name's edge), the value over
    took…rest, its control in aside — where the list keeps the state chip. One baseline per line:
-   a 26px control's word sits on the label's and the value's baseline. */
-.pbc .tq-d-fields { margin:0; padding:0 }
-.pbc .tq-d-field {
+   a 26px control's word sits on the label's and the value's baseline. */.pbc .tq-d-fields{ margin:0; padding:0 }.pbc .tq-d-field{
   display:grid;
   grid-template-columns:var(--tq-grid);
   column-gap:var(--tq-gap);
   align-items:baseline;
   padding:3px 0
-}
-.pbc .tq-d-field > :is(dt, dd) { margin:0; min-width:0 }
-.pbc .tq-d-k {
+}.pbc .tq-d-field > :is(dt, dd){ margin:0; min-width:0 }.pbc .tq-d-k{
   grid-area:1 / 2;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   overflow-wrap:break-word;
   color:var(--tq-ink-3)
-}
-.pbc .tq-d-v {
+}.pbc .tq-d-v{
   grid-area:1 / 3 / 2 / -1;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums;
   overflow-wrap:break-word;
   color:var(--tq-ink)
-}
-.pbc .tq-d-has-control > .tq-d-v { grid-column:3 / 5 }
-.pbc .tq-d-v[data-voice="warn"] { color:var(--tq-text-warn) }
-.pbc .tq-d-v.tq-mono { word-break:break-all; color:var(--tq-ink-2) }
-.pbc .tq-d-sub {
+}.pbc .tq-d-has-control > .tq-d-v{ grid-column:3 / 5 }.pbc .tq-d-v[data-voice="warn"]{ color:var(--tq-text-warn) }.pbc .tq-d-v.tq-mono{ word-break:break-all; color:var(--tq-ink-2) }.pbc .tq-d-sub{
   grid-area:2 / 3 / 3 / -1;
   padding-top:2px;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   overflow-wrap:break-word;
   color:var(--tq-ink-3)
-}
-.pbc .tq-d-control { grid-area:1 / 5; justify-self:end; display:flex; gap:6px }
-.pbc .tq-d-control-wide { grid-area:3 / 3 / 4 / -1; justify-self:start; flex-wrap:wrap; padding-top:6px }
-.pbc .tq-d-after { grid-area:4 / 2 / 5 / -1 }
-.pbc .tq-d-after > :first-child { margin-top:6px }
-.pbc .tq-d-lines { display:flex; flex-direction:column; gap:4px }
-.pbc .pp-allowance.tq-d-windows { margin:0 }
-/* Blocks under a section's caption (the summary, the controls, the files, the log) start on the
-   name's edge too. */
-.pbc .tq-d-sec > :is(.tq-actions, .tq-brief, .tq-log, .tq-d-summary, .tq-empty, .tq-note) { margin-left:var(--tq-main-inset) }
-.pbc .tq-d-sec > :is(.tq-brief, .tq-log, .tq-note) { margin-top:8px }
-/* A confirmation: what the second tap costs, then the way out under it. */
-.pbc .tq-confirm { flex-direction:column; align-items:flex-start; gap:6px }
-.pbc .tq-d-notice {
+}.pbc .tq-d-control{ grid-area:1 / 5; justify-self:end; display:flex; gap:6px }.pbc .tq-d-control-wide{ grid-area:3 / 3 / 4 / -1; justify-self:start; flex-wrap:wrap; padding-top:6px }.pbc .tq-d-after{ grid-area:4 / 2 / 5 / -1 }.pbc .tq-d-after > :first-child{ margin-top:6px }.pbc .tq-d-lines{ display:flex; flex-direction:column; gap:4px }/* Blocks under a section's caption (the summary, the controls, the files, the log) start on the
+   name's edge too. */.pbc .tq-d-sec > :is(.tq-actions, .tq-brief, .tq-log, .tq-d-summary, .tq-empty, .tq-note){ margin-left:var(--tq-main-inset) }.pbc .tq-d-sec > :is(.tq-brief, .tq-log, .tq-note){ margin-top:8px }/* A confirmation: what the second tap costs, then the way out under it. */.pbc .tq-confirm{ flex-direction:column; align-items:flex-start; gap:6px }.pbc .tq-d-notice{
   flex:none;
   padding:8px 12px;
   border-top:.5px solid var(--tq-hairline);
@@ -2708,18 +1930,10 @@ body[data-ds-dark-theme] .pbc .bp {
   line-height:16px;
   overflow-wrap:anywhere;
   color:var(--tq-ink-2)
-}
-.pbc .tq-d-notice:empty { padding:0; border-top:0 }
-.pbc .tq-d-notice.tq-bad { color:var(--tq-text-bad) }
-/* A finger: every control of the layer is a 26px capsule, so 9px above and below make 44px. */
-@media (pointer: coarse) {
-  .pbc .tq-d-sec .tq-pill::after { inset:-9px -8px }
-}
-/* Stats: a card in the list, not a fourth fold. The collapsed form is one tile (title,
+}.pbc .tq-d-notice:empty{ padding:0; border-top:0 }.pbc .tq-d-notice.tq-bad{ color:var(--tq-text-bad) }/* A finger: every control of the layer is a 26px capsule, so 9px above and below make 44px. */@media (pointer: coarse){.pbc .tq-d-sec .tq-pill::after { inset:-9px -8px }}/* Stats: a card in the list, not a fourth fold. The collapsed form is one tile (title,
    three readings, a completion bar, one caption); the chart layer opens from it with the
    same .tq-layer as a task detail. The card is the only lazy read: its data arrives when
-   the panel opens, never on the queue's poll. */
-.pbc .tq-stats-card {
+   the panel opens, never on the queue's poll. */.pbc .tq-stats-card{
   box-sizing:border-box;
   display:flex;
   flex-direction:column;
@@ -2735,58 +1949,45 @@ body[data-ds-dark-theme] .pbc .bp {
   text-align:left;
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-stats-card:active {
+}.pbc .tq-stats-card:active{
   transform:scale(var(--tq-press-scale));
   background:var(--tq-fill-press)
-}
-.pbc .tq-stats-card:focus-visible {
+}.pbc .tq-stats-card:focus-visible{
   outline:var(--tq-focus-ring);
   outline-offset:1px
-}
-@media (hover: hover) and (pointer: fine) {
-  .pbc .tq-stats-card:hover { background:var(--tq-fill-hover) }
-}
-.pbc .tq-stats-top {
+}@media (hover: hover) and (pointer: fine){.pbc .tq-stats-card:hover{ background:var(--tq-fill-hover) }}.pbc .tq-stats-top{
   display:flex;
   align-items:center;
   gap:6px;
   width:100%;
   min-width:0
-}
-.pbc .tq-stats-glyph-wrap {
+}.pbc .tq-stats-glyph-wrap{
   display:flex;
   flex:none;
   color:var(--tq-ink-2)
-}
-.pbc .tq-stats-glyph { display:block }
-.pbc .tq-stats-title {
+}.pbc .tq-stats-glyph{ display:block }.pbc .tq-stats-title{
   min-width:0;
   font:var(--dsw-font-xxs-strong-12);
   line-height:16px;
   color:var(--tq-ink-2);
   overflow-wrap:anywhere
-}
-.pbc .tq-stats-chev {
+}.pbc .tq-stats-chev{
   display:flex;
   flex:none;
   margin-left:auto;
   color:var(--tq-ink-3)
-}
-.pbc .tq-stats-metrics {
+}.pbc .tq-stats-metrics{
   display:grid;
   grid-template-columns:repeat(3, minmax(0, 1fr));
   gap:8px;
   width:100%;
   min-width:0
-}
-.pbc .tq-stats-metric {
+}.pbc .tq-stats-metric{
   display:flex;
   flex-direction:column;
   gap:1px;
   min-width:0
-}
-.pbc .tq-stats-value {
+}.pbc .tq-stats-value{
   font:var(--dsw-font-s-strong-14);
   line-height:20px;
   font-variant-numeric:tabular-nums;
@@ -2794,90 +1995,65 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis
-}
-.pbc .tq-stats-label {
+}.pbc .tq-stats-label{
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3);
   white-space:nowrap
-}
-.pbc .tq-stats-bar-wrap { width:100%; padding-top:2px }
-.pbc .tq-stats-bar {
+}.pbc .tq-stats-bar-wrap{ width:100%; padding-top:2px }.pbc .tq-stats-bar{
   display:flex;
   width:100%;
   height:4px;
   border-radius:999px;
   overflow:hidden;
   background:var(--tq-hairline)
-}
-.pbc .tq-stats-bar-lg { height:6px }
-.pbc .tq-stats-seg {
+}.pbc .tq-stats-bar-lg{ height:6px }.pbc .tq-stats-seg{
   flex-basis:0;
   flex-shrink:1;
   min-width:0;
   height:100%
-}
-.pbc .tq-stats-seg-done { background:var(--tq-run) }
-.pbc .tq-stats-seg-partial { background:var(--tq-wait) }
-.pbc .tq-stats-seg-unfinished { background:var(--tq-bad) }
-.pbc .tq-stats-seg-live { background:var(--tq-ink-3) }
-.pbc .tq-stats-caption {
+}.pbc .tq-stats-seg-done{ background:var(--tq-run) }.pbc .tq-stats-seg-partial{ background:var(--tq-wait) }.pbc .tq-stats-seg-unfinished{ background:var(--tq-bad) }.pbc .tq-stats-seg-live{ background:var(--tq-ink-3) }.pbc .tq-stats-caption{
   display:flex;
   gap:0;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums;
   color:var(--tq-ink-3)
-}
-.pbc .tq-stats-skeleton {
+}.pbc .tq-stats-skeleton{
   min-height:104px;
   justify-content:center;
   cursor:default;
   pointer-events:none
-}
-.pbc .tq-stats-skel-line {
+}.pbc .tq-stats-skel-line{
   display:block;
   border-radius:4px;
   background:var(--tq-hairline);
   opacity:.75
-}
-.pbc .tq-stats-skel-40 { width:40%; height:16px }
-.pbc .tq-stats-skel-70 { width:70%; height:32px }
-.pbc .tq-stats-skel-100 { width:100%; height:6px }
-.pbc .tq-stats-error {
+}.pbc .tq-stats-skel-40{ width:40%; height:16px }.pbc .tq-stats-skel-70{ width:70%; height:32px }.pbc .tq-stats-skel-100{ width:100%; height:6px }.pbc .tq-stats-error{
   cursor:default;
   gap:6px
-}
-.pbc .tq-stats-error-text {
+}.pbc .tq-stats-error-text{
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-text-bad);
   overflow-wrap:anywhere
-}
-.pbc .tq-stats-retry { align-self:flex-start }
-.pbc .tq-stats-summary {
+}.pbc .tq-stats-retry{ align-self:flex-start }.pbc .tq-stats-summary{
   margin:2px 0 14px var(--tq-main-inset);
   font:var(--dsw-font-s-strong-14);
   line-height:20px;
   font-variant-numeric:tabular-nums;
   color:var(--tq-ink)
-}
-.pbc .tq-stats-chart-sub {
+}.pbc .tq-stats-chart-sub{
   margin:0 0 4px var(--tq-main-inset);
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-stats-chart-wrap { margin:0 0 6px var(--tq-main-inset) }
-.pbc .tq-stats-chart-svg { display:block; width:100%; height:auto; overflow:visible }
-.pbc .tq-stats-chart-svg text {
+}.pbc .tq-stats-chart-wrap{ margin:0 0 6px var(--tq-main-inset) }.pbc .tq-stats-chart-svg{ display:block; width:100%; height:auto; overflow:visible }.pbc .tq-stats-chart-svg text{
   font:var(--dsw-font-xxs-12);
   font-size:var(--fs-micro);
   font-variant-numeric:tabular-nums;
   fill:var(--tq-ink-3)
-}
-.pbc .tq-stats-chart-grid { stroke:var(--tq-hairline); stroke-width:.5 }
-.pbc .tq-stats-chart-legend {
+}.pbc .tq-stats-chart-grid{ stroke:var(--tq-hairline); stroke-width:.5 }.pbc .tq-stats-chart-legend{
   display:flex;
   flex-wrap:wrap;
   gap:2px 10px;
@@ -2885,30 +2061,24 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-stats-chart-legend-item { display:inline-flex; align-items:center; gap:5px; white-space:nowrap }
-.pbc .tq-stats-chart-swatch { flex:none; width:8px; height:8px; border-radius:2px }
-.pbc .tq-stats-chart-note {
+}.pbc .tq-stats-chart-legend-item{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap }.pbc .tq-stats-chart-swatch{ flex:none; width:8px; height:8px; border-radius:2px }.pbc .tq-stats-chart-note{
   margin:0 0 2px var(--tq-main-inset);
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3);
   overflow-wrap:anywhere
-}
-.pbc .tq-stats-row {
+}.pbc .tq-stats-row{
   display:flex;
   flex-direction:column;
   gap:5px;
   margin:10px 0 0 var(--tq-main-inset)
-}
-.pbc .tq-stats-row-head {
+}.pbc .tq-stats-row-head{
   display:flex;
   align-items:baseline;
   justify-content:space-between;
   gap:8px;
   min-width:0
-}
-.pbc .tq-stats-agent {
+}.pbc .tq-stats-agent{
   display:flex;
   align-items:center;
   gap:6px;
@@ -2916,70 +2086,58 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xs-13);
   line-height:20px;
   color:var(--tq-ink)
-}
-.pbc .tq-stats-agent-name { overflow-wrap:anywhere }
-.pbc .tq-stats-numbers {
+}.pbc .tq-stats-agent-name{ overflow-wrap:anywhere }.pbc .tq-stats-numbers{
   flex:none;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
   color:var(--tq-ink-3)
-}
-.pbc .tq-stats-track {
+}.pbc .tq-stats-track{
   height:6px;
   border-radius:999px;
   overflow:hidden;
   background:var(--tq-hairline)
-}
-.pbc .tq-stats-fill {
+}.pbc .tq-stats-fill{
   height:100%;
   border-radius:inherit;
   background:var(--tq-run)
-}
-.pbc .tq-stats-breakdown {
+}.pbc .tq-stats-breakdown{
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   font-variant-numeric:tabular-nums;
   color:var(--tq-ink-3)
-}
-.pbc .tq-stats-legend {
+}.pbc .tq-stats-legend{
   display:flex;
   flex-wrap:wrap;
   gap:2px 10px;
   margin:2px 0 0 var(--tq-main-inset)
-}
-.pbc .tq-stats-legend-item {
+}.pbc .tq-stats-legend-item{
   display:inline-flex;
   align-items:center;
   gap:5px;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-stats-swatch {
+}.pbc .tq-stats-swatch{
   flex:none;
   width:8px;
   height:8px;
   border-radius:2px
-}
-.pbc .tq-stats-foot {
+}.pbc .tq-stats-foot{
   margin:14px 0 4px var(--tq-main-inset);
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   overflow-wrap:anywhere;
   color:var(--tq-ink-3)
-}
-.pbc .tq-inline {
+}.pbc .tq-inline{
   display:inline-flex;
   flex-wrap:wrap;
   align-items:center;
   gap:5px
-}
-.pbc .tq-mono {
+}.pbc .tq-mono{
   font-family:var(--tq-mono)
-}
-.pbc .tq-picker {
+}.pbc .tq-picker{
   display:flex;
   flex-direction:column;
   gap:6px;
@@ -2987,16 +2145,14 @@ body[data-ds-dark-theme] .pbc .bp {
   padding:10px;
   border-radius:var(--tq-radius-sm);
   background:var(--tq-fill-hover)
-}
-.pbc .tq-field {
+}.pbc .tq-field{
   display:grid;
   grid-template-columns:auto minmax(0, 1fr);
   align-items:center;
   gap:8px;
   font:var(--dsw-font-xxs-12);
   color:var(--tq-ink-3)
-}
-.pbc .tq-field select {
+}.pbc .tq-field select{
   min-width:0;
   height:28px;
   padding:0 8px;
@@ -3005,12 +2161,10 @@ body[data-ds-dark-theme] .pbc .bp {
   background:transparent;
   font:inherit;
   color:var(--tq-ink-2)
-}
-.pbc .tq-field select:focus-visible {
+}.pbc .tq-field select:focus-visible{
   outline:var(--tq-focus-ring);
   outline-offset:-2px
-}
-.pbc .tq-log {
+}.pbc .tq-log{
   max-height:220px;
   margin:10px 0 0;
   padding:8px 10px;
@@ -3021,9 +2175,7 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:pre-wrap;
   overflow-wrap:anywhere;
   color:var(--tq-ink-2)
-}
-.pbc .tq-picker-actions { display:flex; gap:6px }
-.pbc .tq-d-summary {
+}.pbc .tq-picker-actions{ display:flex; gap:6px }.pbc .tq-d-summary{
   margin:0;
   padding:8px 10px;
   border-radius:var(--tq-radius-sm);
@@ -3032,217 +2184,37 @@ body[data-ds-dark-theme] .pbc .bp {
   white-space:pre-wrap;
   overflow-wrap:anywhere;
   color:var(--tq-ink-2)
-}
-/* The menu material only reads if the blur happens. Asked for less transparency, or on an
-   engine that cannot blur, the panel turns solid (the host's layer colour) so the sidebar never
-   shows through the rows. */
-@media (prefers-reduced-transparency: reduce) {
-  .pbc.pbf.tqf .bp::before {
-    background:var(--dsw-alias-bg-layer-1);
-    -webkit-backdrop-filter:none;
-    backdrop-filter:none
-  }
-}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
-  .pbc.pbf.tqf .bp::before {
-    background:var(--dsw-alias-bg-layer-1)
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pbc .tq-icon-btn.spin svg {
+}@media (prefers-reduced-motion: reduce){.pbc .tq-icon-btn.spin svg{
     animation:none
-  }
-  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-summary, .tq-stats-card):active {
+  }.pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-summary, .tq-stats-card):active{
     transform:none
-  }
-  .pbc .tq-fold-chev {
+  }.pbc .tq-fold-chev{
     transition:none
-  }
-  /* The raw-log fold content appears; the strip and the coverage bars keep their final length. */
-  .pbc .tq-fold[open] > .tq-fold-body {
+  }/* The raw-log fold content appears; the strip and the coverage bars keep their final length. */.pbc .tq-fold[open] > .tq-fold-body{
     animation:none
-  }
-  .pbc .tq-rhythm-seg,
+  }.pbc .tq-rhythm-seg,
   .pbc .tq-cov-fill,
-  .pbc .tq-cov-runs-fill {
+  .pbc .tq-cov-runs-fill{
     transition:none
-  }
-}
-/* Fingers: every control a finger can reach gets a 44px target; the visible
-   shape stays the host's size, the extra is an invisible hit area. */
-@media (pointer: coarse) {
-  /* Only a row that opens something is a target; a head or a read-only round keeps the rhythm. */
-  .pbc .tq-row:not(.tq-static) {
+  }}/* Fingers: every control a finger can reach gets a 44px target; the visible
+   shape stays the host's size, the extra is an invisible hit area. */@media (pointer: coarse){/* Only a row that opens something is a target; a head or a read-only round keeps the rhythm. */.pbc .tq-row:not(.tq-static) {
     min-height:44px
-  }
-  .pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-pill > .tq-fold-summary)::after {
+  }.pbc :is(.tq-icon-btn, .tq-pill, .tq-back, .tq-fold-pill > .tq-fold-summary)::after {
     content:"";
     position:absolute;
     inset:-8px
-  }
-  /* The pill is 26px; 9px above and below make a 44px target. The coverage link is already
-     full width, so it grows to 44px itself and does not borrow a neighbour's hit area. */
-  .pbc .tq-fold-pill > .tq-fold-summary::after {
+  }/* The pill is 26px; 9px above and below make a 44px target. The coverage link is already
+     full width, so it grows to 44px itself and does not borrow a neighbour's hit area. */.pbc .tq-fold-pill > .tq-fold-summary::after {
     inset:-9px -8px
-  }
-  .pbc .tq-field select {
+  }.pbc .tq-field select {
     height:36px
-  }
-}
-/* A narrow phone keeps the chip's full width; only the time and duration tracks shrink. */
-@media (max-width: 380px) {
-  .pbc.tqf {
-    --tq-when:60px;
-    --tq-took:60px;
-    --tq-aside:104px
-  }
-}
-/* Provider panel (2026-09-27): the balance and the queue as one foot cell. Folded, one 28px
-   line per source on THE row grid (--tq-grid, client.ts ROW_KINDS.source): glyph · name ·
-   value · one state chip. The lines are a subgrid of .pp-rows, so the five values and the
-   five chips each share one column (2026-09-28: each line used to size its own columns, and
-   the readings started anywhere from 81 to 107px). The lines are the host panel's rows
-   (8px inset, --tq-radius, hover wash only on a fine pointer, press = the press fill, no
-   scale: a full-width row that shrinks reads as a jump, the fill is the feedback). Nothing
-   here animates: the values are re-read every 15-60s and read many times a day (emil:
-   frequent → no motion); the popover and the detail layer keep their existing transitions. */
-.pbc.pbf.ppf {
-  display:block;
-  height:auto;
-  margin:8px 0 0
-}
-.pbc.pbf.ppf.rail {
-  display:flex;
-  width:36px;
-  height:36px;
-  margin:0
-}
-.pbc.ppf .pp-rows {
-  display:grid;
-  /* Two lines per source, the host drawer's own rhythm: glyph · name · reading on
-     line 1, the state chip or the reset stamps on line 2. The old four-track
-     subgrid reserved a chip column in every row; once every window and its
-     reset had to be printed, that column plus the reading's max-content pushed
-     the name to 0 width. The reading now owns the flexible track and the second
-     line carries what does not fit beside it. */
-  grid-template-columns:calc(var(--tq-lead) + 8px) minmax(64px, 1fr) minmax(0, auto);
-  column-gap:var(--tq-gap);
-  margin:0 -2px
-}
-.pbc.ppf .pp-row {
-  grid-column:1 / -1;
-  grid-template-columns:var(--tq-grid);
-  grid-template-columns:subgrid;
-  box-sizing:border-box;
-  width:100%;
-  min-height:28px;
-  align-items:center;
-  padding:0 8px;
-  border:0;
-  border-radius:var(--tq-radius);
-  background:transparent;
-  font:var(--dsw-font-xxs-12);
-  line-height:16px;
-  text-align:left;
-  color:var(--tq-ink);
-  cursor:pointer;
-  transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc.ppf .pp-row > :is(.tq-name, .tq-value) {
-  line-height:16px
-}
-.pbc.ppf .pp-row > .tq-lead { height:16px }
-.pbc.ppf .pp-row > .tq-name {
-  grid-column:2;
-  max-width:96px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap
-}
-.pbc.ppf .pp-row > .tq-value {
-  grid-column:3;
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap
-}
-/* Line 2: the one state chip or the resets. Never both today; if a provider
-   ever has both, the chip is on the left and the clocks on the right. */
-.pbc.ppf .pp-row > .tq-chip[data-tq-chip="status"] {
-  grid-area:2 / 2 / 3 / 4;
-  justify-self:end;
-  align-self:center;
-  box-sizing:border-box;
-  height:16px;
-  padding:0 6px
-}
-/* Both a state chip and reset stamps on line 2: chip left, clocks right. */
-.pbc.ppf .pp-row.pp-row-split > .tq-chip[data-tq-chip="status"] {
-  justify-self:start
-}
-.pbc.ppf .pp-row[data-active] { background:var(--tq-fill-hover) }
-.pbc.ppf .pp-row:active { background:var(--tq-fill-press) }
-.pbc.ppf .pp-row:focus-visible,
-.pbc.ppf .pp-group:focus-visible,
-.pbc .tq-file:focus-visible {
-  outline:var(--tq-focus-ring);
-  outline-offset:-2px
-}
-.pbc.ppf .pp-group:focus { outline:none }
-.pbc.ppf .pp-group:focus-visible { border-radius:var(--tq-radius-sm) }
-@media (hover: hover) and (pointer: fine) {
-  .pbc.ppf .pp-row:hover,
-  .pbc .tq-file:hover { background:var(--tq-fill-hover) }
-}
-/* No source to show: the title and why, one line across the grid. */
-.pbc.ppf .pp-empty {
-  display:flex;
-  align-items:center;
-  gap:var(--tq-gap)
-}
-.pbc.ppf .pp-name {
-  flex:none;
-  font:var(--dsw-font-xs-strong-13);
-  line-height:16px
-}
-.pbc.ppf .pp-last {
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  color:var(--tq-ink-3)
-}
-/* The rail: one 36px glyph; all rail states live here (the header badge keeps its own rule). */
-.pbc.ppf .bal-badge[data-balance-state="ok"] { fill:var(--tq-run) }
-.pbc.ppf .bal-badge[data-balance-state="low"] { fill:var(--tq-bad) }
-.pbc.ppf .bal-badge[data-balance-state="stale"] { fill:none; stroke:var(--tq-wait); stroke-width:1.3 }
-/* The open panel: a group per source — its source row, then the allowance and any note on the
-   name's edge, then the queue's task rows. */
-.pbc .tq-inset { margin-left:var(--tq-main-inset) }
-.pbc .pp-allowance { margin-top:0; margin-bottom:6px }
-/* The window lines speak the panel's voice, not the header popover's: label and reset in the
-   12px regular of the facts, the figure in the value's strong weight, no monospace clock. */
-.pbc .pp-allowance :is(.bp-win-label, .bp-win-reset, .bp-sub) {
-  font:var(--dsw-font-xxs-12);
-  line-height:16px;
-  letter-spacing:0;
-  font-variant-numeric:tabular-nums;
-  color:var(--tq-ink-2)
-}
-.pbc .pp-allowance .bp-win-pct {
-  font:var(--dsw-font-xxs-strong-12);
-  line-height:16px;
-  font-variant-numeric:tabular-nums;
-  color:var(--tq-ink)
-}
-/* Brief: files that open in dsh's own preview, read-only. */
-.pbc .tq-brief {
+  }}/* The open panel: a group per source — its source row, then the allowance and any note on the
+   name's edge, then the queue's task rows. */.pbc .tq-inset{ margin-left:var(--tq-main-inset) }/* Brief: files that open in dsh's own preview, read-only. */.pbc .tq-brief{
   display:flex;
   flex-direction:column;
   gap:2px;
   margin-top:8px
-}
-.pbc .tq-file {
+}.pbc .tq-file{
   position:relative;
   display:flex;
   align-items:center;
@@ -3259,44 +2231,14 @@ body[data-ds-dark-theme] .pbc .bp {
   color:var(--tq-ink-2);
   cursor:pointer;
   transition:background-color var(--tq-fast) var(--tq-ease), transform var(--tq-fast) var(--tq-ease)
-}
-.pbc .tq-file:active { background:var(--tq-fill-press) }
-.pbc .tq-file-name {
+}.pbc .tq-file:active{ background:var(--tq-fill-press) }.pbc .tq-file-name{
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   text-decoration:underline;
   text-underline-offset:2px
-}
-.pbc .tq-tag[data-tq-delivered="false"] { border-color:var(--tq-wait); color:var(--tq-text-warn) }
-.pbc .tq-file-label { min-width:0; display:flex; flex-direction:column; gap:3px }
-.pbc .tq-file-excerpt { color:var(--tq-ink-3); overflow-wrap:anywhere; white-space:normal }
-.pbc .tq-timeline { margin:8px 0 0 var(--tq-main-inset); font:var(--dsw-font-xxs-12); color:var(--tq-ink-2) }
-.pbc .tq-timeline ol { margin:8px 0; padding:0; list-style:none }
-.pbc .tq-timeline li { border-left:1px solid var(--tq-hairline); padding:0 0 12px 10px; overflow-wrap:anywhere }
-.pbc .tq-timeline time { display:block; color:var(--tq-ink-3); font-variant-numeric:tabular-nums }
-.pbc .tq-timeline strong { display:block; font-weight:600; color:var(--tq-ink) }
-/* Fingers: every line and file row is a 44px target; the glyph and type keep their size. */
-@media (pointer: coarse) {
-  .pbc.ppf .pp-row, .pbc .tq-file { min-height:44px }
-}
-.pbc.pbf.ppf .pp-rail { flex:none }
-/* On a phone the panel overlaps the composer and conversation. The host's
-   menu tint alone lets large text show through small status/action copy;
-   keep its blur, but give this layer the host's nearly solid surface. */
-@media (max-width: 520px) {
-  .pbc.pbf.tqf .bp::before {
-    background:color-mix(in srgb, var(--dsw-alias-bg-layer-1) 96%, var(--dsw-specific-menu))
-  }
-}
-@media (prefers-reduced-transparency: reduce) {
-  .pbc.pbf.tqf .bp::before {
-    background:var(--dsw-alias-bg-layer-1)
-  }
-}
-
-/* Patrol coverage page (client.ts renderCoverageDetail): two visual tables on the layer's own
+}.pbc .tq-tag[data-tq-delivered="false"]{ border-color:var(--tq-wait); color:var(--tq-text-warn) }.pbc .tq-file-label{ min-width:0; display:flex; flex-direction:column; gap:3px }.pbc .tq-file-excerpt{ color:var(--tq-ink-3); overflow-wrap:anywhere; white-space:normal }.pbc .tq-timeline{ margin:8px 0 0 var(--tq-main-inset); font:var(--dsw-font-xxs-12); color:var(--tq-ink-2) }.pbc .tq-timeline ol{ margin:8px 0; padding:0; list-style:none }.pbc .tq-timeline li{ border-left:1px solid var(--tq-hairline); padding:0 0 12px 10px; overflow-wrap:anywhere }.pbc .tq-timeline time{ display:block; color:var(--tq-ink-3); font-variant-numeric:tabular-nums }.pbc .tq-timeline strong{ display:block; font-weight:600; color:var(--tq-ink) }/* Patrol coverage page (client.ts renderCoverageDetail): two visual tables on the layer's own
    surface, reached from one link row in the panel. One left edge and one set of right-aligned
    number tracks for both, so a count is under a count whichever table it is in; a caveat is one
    caption under the heading it qualifies; the provenance is the footer.
@@ -3312,36 +2254,23 @@ body[data-ds-dark-theme] .pbc .bp {
    the `when` column. Within each band the order is still last run first.
 
    Motion: the bars grow once when the page mounts; no value is tweened, and a refresh only
-   repaints the real numbers. */
-.pbc .tq-cov-page { margin-left:var(--tq-main-inset) }
-.pbc .tq-cov {
+   repaints the real numbers. */.pbc .tq-cov-page{ margin-left:var(--tq-main-inset) }.pbc .tq-cov{
   padding:8px;
   font:var(--dsw-font-xxs-12);
   line-height:16px;
   color:var(--tq-ink-2);
   font-variant-numeric:tabular-nums;
   --tq-cov-num:36px
-}
-.pbc .tq-cov-block + .tq-cov-block {
+}.pbc .tq-cov-block + .tq-cov-block{
   margin-top:10px;
   padding-top:10px;
   border-top:.5px solid var(--tq-hairline)
-}
-.pbc .tq-cov-head { font:var(--dsw-font-xxs-strong-12); line-height:16px; color:var(--tq-ink) }
-.pbc :is(.tq-cov-note, .tq-cov-foot, .tq-cov-cols, .tq-cov-last, .tq-cov-clear-label) { color:var(--tq-ink-3) }
-.pbc .tq-cov-note { margin-bottom:6px; overflow-wrap:anywhere }
-.pbc .tq-cov-alert { margin-bottom:8px; color:var(--tq-text-warn); overflow-wrap:anywhere }
-.pbc .tq-cov-list { margin:0; padding:0; list-style:none }
-.pbc :is(.tq-cov-area, .tq-cov-lens) {
+}.pbc .tq-cov-head{ font:var(--dsw-font-xxs-strong-12); line-height:16px; color:var(--tq-ink) }.pbc :is(.tq-cov-note, .tq-cov-foot, .tq-cov-cols, .tq-cov-last, .tq-cov-clear-label){ color:var(--tq-ink-3) }.pbc .tq-cov-note{ margin-bottom:6px; overflow-wrap:anywhere }.pbc .tq-cov-alert{ margin-bottom:8px; color:var(--tq-text-warn); overflow-wrap:anywhere }.pbc .tq-cov-list{ margin:0; padding:0; list-style:none }.pbc :is(.tq-cov-area, .tq-cov-lens){
   display:grid;
   column-gap:var(--tq-gap);
   align-items:baseline;
   padding:4px 0
-}
-.pbc .tq-cov-area { grid-template-columns:minmax(0, 5.5em) minmax(0, 1fr) var(--tq-cov-num) }
-.pbc .tq-cov-lens { grid-template-columns:minmax(0, 1fr) var(--tq-when) 56px var(--tq-cov-num) }
-.pbc .tq-cov-cols { padding:0 0 2px; text-align:right }
-.pbc .tq-cov-name {
+}.pbc .tq-cov-area{ grid-template-columns:minmax(0, 5.5em) minmax(0, 1fr) var(--tq-cov-num) }.pbc .tq-cov-lens{ grid-template-columns:minmax(0, 1fr) var(--tq-when) 56px var(--tq-cov-num) }.pbc .tq-cov-cols{ padding:0 0 2px; text-align:right }.pbc .tq-cov-name{
   justify-self:start;
   max-width:100%;
   overflow:hidden;
@@ -3354,20 +2283,9 @@ body[data-ds-dark-theme] .pbc .bp {
   text-decoration-color:var(--tq-pill-border);
   text-underline-offset:3px;
   border-radius:var(--tq-radius-xs)
-}
-.pbc .tq-cov a:focus-visible { outline:var(--tq-focus-ring); outline-offset:2px }
-.pbc .tq-cov-num { text-align:right; white-space:nowrap }
-/* The lens's name and its last-run dot share one cell, so the name still starts on the table's
-   left edge; the dot is a chart mark (its word is in the last-round line below). */
-.pbc .tq-cov-lens-name { display:flex; align-items:center; gap:6px; min-width:0 }
-.pbc .tq-cov-lens-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }
-.pbc .tq-cov-lens-dot[data-role="done"] { background:var(--tq-run) }
-.pbc .tq-cov-lens-dot[data-role="partial"] { background:var(--tq-wait) }
-.pbc .tq-cov-lens-dot[data-role="fail"] { background:var(--tq-bad) }
-.pbc .tq-cov-lens-dot[data-role="idle"] { background:var(--tq-ink-3) }
-/* The two bands: a one-word heading and a dot, so an exception list never looks like a new
-   sort of the whole rotation. */
-.pbc .tq-cov-band {
+}.pbc .tq-cov a:focus-visible{ outline:var(--tq-focus-ring); outline-offset:2px }.pbc .tq-cov-num{ text-align:right; white-space:nowrap }/* The lens's name and its last-run dot share one cell, so the name still starts on the table's
+   left edge; the dot is a chart mark (its word is in the last-round line below). */.pbc .tq-cov-lens-name{ display:flex; align-items:center; gap:6px; min-width:0 }.pbc .tq-cov-lens-dot{ flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-idle) }.pbc .tq-cov-lens-dot[data-role="done"]{ background:var(--tq-run) }.pbc .tq-cov-lens-dot[data-role="partial"]{ background:var(--tq-wait) }.pbc .tq-cov-lens-dot[data-role="fail"]{ background:var(--tq-bad) }.pbc .tq-cov-lens-dot[data-role="idle"]{ background:var(--tq-ink-3) }/* The two bands: a one-word heading and a dot, so an exception list never looks like a new
+   sort of the whole rotation. */.pbc .tq-cov-band{
   display:flex;
   align-items:center;
   gap:6px;
@@ -3375,31 +2293,21 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-strong-12);
   line-height:16px;
   color:var(--tq-ink-3)
-}
-.pbc .tq-cov-band[data-band="needs"] { color:var(--tq-ink-2) }
-.pbc .tq-cov-band-dot { flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-ink-3) }
-.pbc .tq-cov-band[data-band="needs"] .tq-cov-band-dot { background:var(--tq-wait) }
-/* A run count with a bar against the busiest lens. The number stays; the bar is the shape. */
-.pbc .tq-cov-runs {
+}.pbc .tq-cov-band[data-band="needs"]{ color:var(--tq-ink-2) }.pbc .tq-cov-band-dot{ flex:none; width:6px; height:6px; border-radius:50%; background:var(--tq-ink-3) }.pbc .tq-cov-band[data-band="needs"] .tq-cov-band-dot{ background:var(--tq-wait) }/* A run count with a bar against the busiest lens. The number stays; the bar is the shape. */.pbc .tq-cov-runs{
   display:flex;
   align-items:center;
   justify-content:flex-end;
   gap:4px;
   min-height:20px
-}
-.pbc .tq-cov-runs-bar {
+}.pbc .tq-cov-runs-bar{
   flex:none;
   width:28px;
   height:4px;
   border-radius:2px;
   overflow:hidden;
   background:var(--tq-hairline)
-}
-.pbc .tq-cov-runs-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-2); transform:scaleX(1); transform-origin:left; transition:transform var(--tq-standard) var(--tq-ease-out) }
-.pbc .tq-cov-runs-num { flex:none; min-width:16px; text-align:right; font-variant-numeric:tabular-nums }
-/* An open count is a badge, not a bare digit: amber when it needs a look, quiet when zero,
-   dashed when the issue source is unknown. */
-.pbc .tq-cov-open {
+}.pbc .tq-cov-runs-fill{ display:block; height:100%; border-radius:2px; background:var(--tq-ink-2); transform:scaleX(1); transform-origin:left; transition:transform var(--tq-standard) var(--tq-ease-out) }.pbc .tq-cov-runs-num{ flex:none; min-width:16px; text-align:right; font-variant-numeric:tabular-nums }/* An open count is a badge, not a bare digit: amber when it needs a look, quiet when zero,
+   dashed when the issue source is unknown. */.pbc .tq-cov-open{
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -3412,338 +2320,63 @@ body[data-ds-dark-theme] .pbc .bp {
   font:var(--dsw-font-xxs-strong-12);
   line-height:16px;
   font-variant-numeric:tabular-nums
-}
-.pbc .tq-cov-open[data-open="true"] { background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }
-.pbc .tq-cov-open[data-open="false"] { background:transparent; color:var(--tq-ink-3); font-weight:400 }
-.pbc .tq-cov-open[data-open="unknown"] {
+}.pbc .tq-cov-open[data-open="true"]{ background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }.pbc .tq-cov-open[data-open="false"]{ background:transparent; color:var(--tq-ink-3); font-weight:400 }.pbc .tq-cov-open[data-open="unknown"]{
   border:.5px dashed var(--tq-pill-border);
   background:transparent;
   color:var(--tq-ink-3);
   font-weight:400
-}
-.pbc .tq-cov-bar {
+}.pbc .tq-cov-bar{
   align-self:center;
   height:3px;
   border-radius:2px;
   overflow:hidden;
   background:color-mix(in srgb, var(--text) 9%, transparent)
-}
-.pbc .tq-cov-fill { display:block; height:100%; border-radius:2px; background:var(--tq-ink-3); transform:scaleX(1); transform-origin:left; transition:transform var(--tq-standard) var(--tq-ease-out) }
-.pbc .tq-cov-clear {
+}.pbc .tq-cov-fill{ display:block; height:100%; border-radius:2px; background:var(--tq-ink-3); transform:scaleX(1); transform-origin:left; transition:transform var(--tq-standard) var(--tq-ease-out) }.pbc .tq-cov-clear{
   display:flex;
   flex-wrap:wrap;
   align-items:baseline;
   gap:0 10px;
   padding-top:4px
-}
-.pbc .tq-cov-clear .tq-cov-name { font:var(--dsw-font-xxs-12); line-height:20px; color:var(--tq-ink-2) }
-.pbc .tq-cov-clear-label { display:inline-flex; align-items:center; gap:4px; color:var(--tq-ink-2) }
-.pbc .tq-cov-clear-mark { display:inline-flex; color:var(--tq-text-ok) }
-.pbc .tq-cov-clear-label .tq-role-glyph { width:11px; height:11px }
-/* A lens's last round: quiet facts set apart by space, so a wrapped line never starts on a dot. */
-.pbc .tq-cov-last {
+}.pbc .tq-cov-clear .tq-cov-name{ font:var(--dsw-font-xxs-12); line-height:20px; color:var(--tq-ink-2) }.pbc .tq-cov-clear-label{ display:inline-flex; align-items:center; gap:4px; color:var(--tq-ink-2) }.pbc .tq-cov-clear-mark{ display:inline-flex; color:var(--tq-text-ok) }.pbc .tq-cov-clear-label .tq-role-glyph{ width:11px; height:11px }/* A lens's last round: quiet facts set apart by space, so a wrapped line never starts on a dot. */.pbc .tq-cov-last{
   grid-column:1 / -1;
   display:flex;
   flex-wrap:wrap;
   align-items:baseline;
   column-gap:.75em;
   min-width:0
-}
-.pbc .tq-cov-filed { display:contents }
-.pbc .tq-cov-state { white-space:nowrap }
-.pbc .tq-cov .tq-filed-sep { display:none }
-.pbc .tq-cov .tq-filed-part:first-child { font-weight:400 }
-.pbc .tq-cov-state .tq-role-glyph { display:inline-block; margin-right:3px; vertical-align:-1px }
-.pbc .tq-cov-state[data-role="fail"] { color:var(--tq-text-bad) }
-.pbc .tq-cov-state[data-role="partial"] { color:var(--tq-text-warn) }
-.pbc .tq-cov-lens + .tq-cov-lens { border-top:.5px solid var(--tq-hairline) }
-.pbc .tq-cov-foot {
+}.pbc .tq-cov-filed{ display:contents }.pbc .tq-cov-state{ white-space:nowrap }.pbc .tq-cov .tq-filed-sep{ display:none }.pbc .tq-cov .tq-filed-part:first-child{ font-weight:400 }.pbc .tq-cov-state .tq-role-glyph{ display:inline-block; margin-right:3px; vertical-align:-1px }.pbc .tq-cov-state[data-role="fail"]{ color:var(--tq-text-bad) }.pbc .tq-cov-state[data-role="partial"]{ color:var(--tq-text-warn) }.pbc .tq-cov-lens + .tq-cov-lens{ border-top:.5px solid var(--tq-hairline) }.pbc .tq-cov-foot{
   margin-top:10px;
   padding-top:8px;
   border-top:.5px solid var(--tq-hairline);
   overflow-wrap:anywhere
-}
-/* The page's bars reach their real length from the left once, when the page mounts. Transform
-   only; the numbers are already the true values. */
-@starting-style {
+}/* The page's bars reach their real length from the left once, when the page mounts. Transform
+   only; the numbers are already the true values. */@starting-style{
   .pbc .tq-cov-fill,
   .pbc .tq-cov-runs-fill { transform:scaleX(0) }
-}
-/* The coverage rules are after the general reduced-motion block; restate the no-transition
-   override here so a reader who asked for less motion gets the bars at their final length. */
-@media (prefers-reduced-motion: reduce) {
-  .pbc .tq-cov-fill,
-  .pbc .tq-cov-runs-fill { transition:none }
-}
-@media (pointer: coarse) {
-  /* A finger's target without a taller row: inline padding widens the hit area, not the line box. */
-  .pbc .tq-cov a { display:inline; min-height:0; padding-block:12px }
-  .pbc .tq-cov a.tq-cov-name { padding-block:6px; margin-block:-6px }
-}
-
-/* Phone: the foot panel is an inner page of the host drawer, not a floating
-   card. It spans the drawer's width from below the 52px top strip to the
-   bottom, with a 44px head (back + title + refresh) and a scroll body that
-   reserves the home indicator. The drawer portal (client.ts renderFootPanel)
-   keeps it attached to the drawer, so closing the drawer takes the page with
-   it; there is no IntersectionObserver exit. */
-@media (max-width: 767px) {
-  .pbc.pbf.tqf .bp {
-    position:absolute;
-    top:52px;
-    right:auto;
-    bottom:auto;
-    left:0;
-    width:100%;
-    max-width:min(280px, 100vw - 48px);
-    min-width:0;
-    height:calc(100dvh - 52px);
-    max-height:none;
-    padding:0;
-    border:0;
-    border-radius:0;
-    background:var(--dsw-alias-bg-layer-1);
-    box-shadow:none;
-    transform:none;
-    overflow:hidden
-  }
-  .pbc.pbf.tqf .bp[data-open="false"] {
-    opacity:0;
-    transform:none;
-    pointer-events:none
-  }
-  .pbc.pbf.tqf .bp[data-open="true"] {
-    opacity:1;
-    transform:none;
-    pointer-events:auto
-  }
-  .pbc.pbf.tqf .bp::before {
-    border-radius:0;
-    background:var(--dsw-alias-bg-layer-1);
-    -webkit-backdrop-filter:none;
-    backdrop-filter:none
-  }
-  .pbc.pbf.tqf .bp::after { display:none }
-  .pbc.pbf.tqf .tq-p-head {
-    min-height:44px;
-    padding:0 12px
-  }
-  .pbc.pbf.tqf .tq-p-back {
-    display:inline-flex;
-    width:28px;
-    height:28px;
-    margin-left:-6px;
-    padding:0;
-    justify-content:center
-  }
-  .pbc.pbf.tqf .tq-scroll {
-    padding:0 12px calc(12px + env(safe-area-inset-bottom));
-    overflow-x:hidden
-  }
-  /* The block is one more host footer row: 8px above and below, with the
-     hairline the host uses between stacked groups. The old 8/0 margin left
-     30px above and 5px below; both sides now read as the same gap. */
-  .pbc.pbf.ppf {
-    margin:8px 0;
-    border-top:.5px solid var(--tq-hairline)
-  }
-  /* The five sources are one full-width row each. No subgrid: a row owns its
-     own 16px lead, a flexible name and an auto reading, so the name starts at
-     the same x in every source and the value ends at the same right edge. */
-  .pbc.ppf .pp-rows {
-    margin:0;
-    grid-template-columns:1fr;
-    column-gap:0
-  }
-  .pbc.ppf .pp-rows .pp-row {
-    position:relative;
-    isolation:isolate;
-    display:grid;
-    grid-template-columns:16px minmax(0, 1fr) minmax(0, auto);
-    grid-template-rows:16px 16px;
-    column-gap:7px;
-    align-items:start;
-    align-content:space-between;
-    box-sizing:border-box;
-    width:100%;
-    height:44px;
-    min-height:44px;
-    padding:5px 8.5px 5px 12px;
-    border:0;
-    border-radius:8px;
-    background:transparent
-  }
-  /* The host paints row fills inside a 3px transparent inset (sidebar paint
-   inset); drawing the wash on a pseudo-element keeps the text geometry and
-   still lands the fill at the drawer's L11 edge. */
-  .pbc.ppf .pp-rows .pp-row::before {
-    content:"";
-    position:absolute;
-    inset:0 3px;
-    z-index:-1;
-    border-radius:8px;
-    background:transparent;
-    pointer-events:none
-  }
-  .pbc.ppf .pp-rows .pp-row[data-active],
-  .pbc.ppf .pp-rows .pp-row:active {
-    background:transparent
-  }
-  .pbc.ppf .pp-rows .pp-row[data-active]::before,
-  .pbc.ppf .pp-rows .pp-row:active::before {
-    background:var(--tq-fill-hover)
-  }
-  .pbc.ppf .pp-rows .pp-row > * {
-    position:relative;
-    z-index:1
-  }
-  .pbc.ppf .pp-rows .pp-row > .tq-lead {
-    grid-area:1 / 1 / 2 / 2;
-    align-self:start;
-    width:16px;
-    height:16px
-  }
-  .pbc.ppf .pp-rows .pp-row > .tq-lead svg {
-    width:16px;
-    height:16px
-  }
-  .pbc.ppf .pp-rows .pp-row > .tq-name {
-    grid-area:1 / 2 / 2 / 3;
-    max-width:none;
-    font:500 var(--fs-md)/16px var(--font)
-  }
-  .pbc.ppf .pp-rows .pp-row > .tq-value {
-    grid-area:1 / 3 / 2 / 4;
-    justify-self:end;
-    font:600 var(--fs-md)/16px var(--font);
-    font-variant-numeric:tabular-nums
-  }
-  .pbc.ppf .pp-rows .pp-row > .tq-value .tq-unit {
-    font:400 var(--fs-sm)/16px var(--font)
-  }
-  /* The second line starts under the name (x=43), not at the row's left or
-     the reading's right edge; 11/16 is one step above the old 10px stamp. */
-  .pbc.ppf .pp-rows .pp-row > .tq-reset-line {
-    grid-area:2 / 2 / 3 / 4;
-    align-self:center;
-    justify-self:stretch;
-    max-width:100%;
-    text-align:left;
-    font:400 var(--fs-xs)/16px var(--font);
-    font-variant-numeric:tabular-nums
-  }
-  .pbc.ppf .pp-rows .pp-row > .tq-reset-line .tq-stale {
-    font:500 var(--fs-xs)/16px var(--font)
-  }
-  .pbc.ppf .pp-rows .pp-row > .tq-chip[data-tq-chip="status"] {
-    grid-area:2 / 2 / 3 / 4;
-    justify-self:start;
-    align-self:center;
-    height:16px;
-    padding:0 6px;
-    font:400 var(--fs-xs)/16px var(--font)
-  }
-  /* The sheet floats over both the drawer and the page behind it; at 97% glass
-     the text underneath showed through the provider rows. The page uses the
-     host's opaque layer instead, so no unrelated copy bleeds into it. */
-  .pbc.pbf.tqf .bp::before {
-    background:var(--dsw-alias-bg-layer-1, #fff)
-  }
-  /* The page is 280/272px wide, so the panel's desktop five-track grid no
-     longer fits (the old 64/64/104 tracks alone are 232px before the name).
-     Keep the same cells, shrink the fixed tracks, and let a source head use a
-     plain lead · name · reading grid: its reading is the one thing that must
-     not be clipped at the drawer edge. */
-  .pbc.tqf {
-    --tq-lead:14px;
-    --tq-gap:6px;
-    /* 44/40 leaves a visible gap around "12h ago" and "1h 26m" in the rounds
-       list; the old 38/38 tracks let the relative time run into the duration. */
-    --tq-when:44px;
-    --tq-took:40px;
-    --tq-aside:70px
-  }
-  .pbc.tqf .tq-row {
-    padding-left:6px;
-    padding-right:6px
-  }
-  .pbc.tqf .tq-row[data-tq-row="source"] {
-    grid-template-columns:14px minmax(0, 1fr) auto
-  }
-  .pbc.tqf .tq-row[data-tq-row="source"] > .tq-name { grid-column:2 }
-  .pbc.tqf .tq-row[data-tq-row="source"] > .tq-value { grid-column:3 }
-  /* The task page's hero: the 5-track grid leaves the name only 66px, so the
-     title wraps into a column. Give it the same lead · name · state shape as
-     the list, with the status line underneath. */
-  .pbc.tqf .tq-d-hero {
-    grid-template-columns:14px minmax(0, 1fr) auto
-  }
-  .pbc.tqf .tq-d-hero > .tq-lead { grid-area:1 / 1 / 2 / 2 }
-  .pbc.tqf .tq-d-hero > .tq-name { grid-area:1 / 2 / 2 / 3 }
-  .pbc.tqf .tq-d-hero > .tq-chip {
-    grid-area:1 / 3 / 2 / 4;
-    justify-self:end
-  }
-  .pbc.tqf .tq-d-hero > .tq-d-status { grid-area:2 / 2 / 3 / 4 }
-  /* A field's label gets 72px instead of the 38px when track; otherwise
-     "Deadline"/"Resumes"/"Running for" break mid-word in the drawer. The value
-     keeps its column, the control keeps the right edge. */
-  .pbc.tqf .tq-d-field {
-    grid-template-columns:72px minmax(0, 1fr) auto
-  }
-  .pbc.tqf .tq-d-k {
-    grid-area:1 / 1 / 2 / 2;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis
-  }
-  .pbc.tqf .tq-d-v { grid-area:1 / 2 / 2 / 4 }
-  .pbc.tqf .tq-d-has-control > .tq-d-v { grid-column:2 / 3 }
-  .pbc.tqf .tq-d-sub { grid-area:2 / 2 / 3 / 4 }
-  .pbc.tqf .tq-d-control { grid-area:1 / 3 / 2 / 4 }
-  .pbc.tqf .tq-d-control-wide {
-    grid-area:3 / 2 / 4 / 4;
-    justify-self:start
-  }
-  .pbc.tqf .tq-d-after { grid-area:4 / 1 / 5 / -1 }
-}
-/* The target right edge on the 320px drawer is 259.5, four pixels further out
-   than the 390px row allows after its 8.5px inset. Reclaim that from the right
-   padding rather than widening the row past the host's 264px edge. */
-@media (max-width: 340px) {
-  .pbc.ppf .pp-rows .pp-row {
-    padding-right:4.5px
-  }
-}
-/* The page's back control is a phone affordance; the desktop card keeps its
-   anchored-popover exits (outside tap, Escape). */
-.pbc .tq-p-head-main {
+}/* The coverage rules are after the general reduced-motion block; restate the no-transition
+   override here so a reader who asked for less motion gets the bars at their final length. */@media (prefers-reduced-motion: reduce){.pbc .tq-cov-fill,
+  .pbc .tq-cov-runs-fill { transition:none }}@media (pointer: coarse){/* A finger's target without a taller row: inline padding widens the hit area, not the line box. */.pbc .tq-cov a{ display:inline; min-height:0; padding-block:12px }.pbc .tq-cov a.tq-cov-name{ padding-block:6px; margin-block:-6px }}/* The page's back control is a phone affordance; the desktop card keeps its
+   anchored-popover exits (outside tap, Escape). */.pbc .tq-p-head-main{
   display:flex;
   align-items:center;
   gap:4px;
   min-width:0
-}
-.pbc .tq-p-head-main .tq-title {
+}.pbc .tq-p-head-main .tq-title{
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap
-}
-.pbc .tq-p-back {
+}.pbc .tq-p-back{
   display:none
-}
-
-/* ---------------------------------------------------------------------------
+}/* ---------------------------------------------------------------------------
    The workbench (2026-11-07): a permanent panellist entry with one count badge
    and one full-page surface. The queue is three foldable group headers; the
    alarm group starts open, the other two start closed and remember the choice
    on this device. It deliberately carries no KPI cards, quota readings,
    search, filters, tabs, status dots per row or infinite scroll. Red appears
    only for a stuck task and the destructive action.
-   --------------------------------------------------------------------------- */
-.wb {
-  --fs-micro:10px; --fs-xs:11px; --fs-sm:12px; --fs-md:13px; --fs-lg:14px; --fs-xl:15px; --fs-2xl:16px;
-  --wb-body-size:15px;
+   --------------------------------------------------------------------------- */.wb{
+  --wb-body-size:var(--fs-xl);
   --wb-title-size:20px;
   --wb-ink:var(--dsw-alias-label-primary);
   --wb-ink-2:var(--dsw-alias-label-secondary);
@@ -3757,6 +2390,12 @@ body[data-ds-dark-theme] .pbc .bp {
   --wb-select:color-mix(in srgb, var(--wb-ink) 6%, transparent);
   --wb-bad:#C01313;
   --wb-bad-soft:color-mix(in srgb, var(--wb-bad) 10%, transparent);
+  /* The review fixed the alert red; the host's state-error token is a
+     different red (#ec1313), so this one semantic colour is local. */
+  --wb-alert:#E5484D;
+  --wb-warn:var(--dsw-alias-state-warn-primary);
+  --wb-ok:var(--dsw-alias-state-success-primary);
+  --wb-info:var(--dsw-alias-link);
   --wb-primary:var(--dsw-alias-label-primary);
   --wb-primary-ink:var(--dsw-alias-label-primary-inverted);
   color:var(--wb-ink);
@@ -3770,163 +2409,102 @@ body[data-ds-dark-theme] .pbc .bp {
   padding-top:var(--dsh-frame-top-clearance, 0px);
   font-size:var(--fs-md);
   line-height:20px;
-}
-body[data-ds-dark-theme] .wb {
+}body[data-ds-dark-theme] .wb{
   --wb-bad:#FA716A;
-}
-/* The panellist icon: a 16px glyph with a fixed-width ink badge. */
-.wb-icon {
+}/* The panellist icon: a 16px glyph with a fixed-width ink badge. */.wb-icon{
   position:relative; display:inline-flex; align-items:center; justify-content:center;
   width:100%; height:100%; color:var(--dsw-alias-label-primary);
-}
-.wb-icon-on { color:var(--dsw-alias-label-primary); }
-.wb-badge {
+}.wb-icon-on{ color:var(--dsw-alias-label-primary); }.wb-badge{
   position:absolute; top:-5px; right:-2px; box-sizing:border-box;
   min-width:18px; height:14px; padding:0 4px; border-radius:7px;
   background:var(--dsw-alias-label-primary); color:var(--dsw-alias-label-primary-inverted);
   --wb-badge-size:9px; font-size:var(--wb-badge-size); line-height:14px; font-weight:600; text-align:center;
   font-variant-numeric:tabular-nums; pointer-events:none;
-}
-.wb-badge[data-wb-tone=danger] { background:var(--dsw-alias-state-error-primary); color:#fff; }
-
-/* Page shell */
-.wb-head { flex:none; border-bottom:1px solid var(--wb-hair); }
-.wb-head-row { display:flex; align-items:center; gap:8px; height:44px; padding:0 12px; box-sizing:border-box; }
-.wb-back {
+}.wb-badge[data-wb-tone=danger]{ background:var(--dsw-alias-state-error-primary); color:#fff; }/* The one-bit provider alarm on the host's Workbench label: an 8px dot in
+   the 22px line box, so the row height (36px) does not move. The dot is
+   decorative; the host button's aria-label carries the alert. */[class*="panelTitle"][data-wb-provider-alert]::after{
+  content:""; display:inline-block; width:8px; height:8px; margin-inline-start:8px;
+  border-radius:50%; background:#E5484D; vertical-align:middle;
+}/* Page shell. The pad is the one width-driven value (12 under 360, 16 at
+   and above it); everything else is the same DOM/CSS at both widths. */.wb{ --wb-pad:12px; }@media (min-width:360px){.wb{ --wb-pad:16px; }}.wb-head{ flex:none; border-bottom:1px solid var(--wb-hair); }.wb-head-row{ display:flex; align-items:center; gap:8px; height:44px; padding:0 var(--wb-pad); box-sizing:border-box; }.wb-back{
   flex:none; width:28px; height:28px; margin-left:-8px; padding:0; border:0; border-radius:var(--dsw-radius-sm, 6px);
   background:transparent; color:var(--wb-ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
-}
-.wb-back:hover { background:var(--wb-hover); }
-.wb-back-chev { font-size:var(--fs-2xl); line-height:1; margin-top:-2px; }
-.wb-title { margin:0; font-size:var(--fs-xl); font-weight:600; line-height:22px; }
-.wb-updated { margin-left:auto; font-size:var(--fs-xs); color:var(--wb-ink-3); white-space:nowrap; }
-.wb-refresh {
+}.wb-back:hover{ background:var(--wb-hover); }.wb-back-chev{ font-size:var(--fs-2xl); line-height:1; margin-top:-2px; }.wb-title{ margin:0; font-size:var(--fs-xl); font-weight:600; line-height:22px; }.wb-updated{ margin-left:auto; font-size:var(--fs-xs); color:var(--wb-ink-3); white-space:nowrap; }.wb-refresh{
   flex:none; width:32px; height:32px; margin-left:4px; padding:0; border:0; border-radius:var(--dsw-radius-sm, 6px);
   background:transparent; color:var(--wb-ink-2); cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
-}
-.wb-refresh:hover { background:var(--wb-hover); color:var(--wb-ink); }
-.wb-sub { padding:0 12px 8px 40px; font-size:var(--fs-sm); line-height:16px; color:var(--wb-ink-2); }
-
-.wb-main { flex:1; min-height:0; overflow:hidden; display:flex; }
-.wb-grid { flex:1; min-height:0; display:grid; grid-template-columns:340px minmax(0,1fr); }
-.wb-queue { min-height:0; overflow:auto; border-right:1px solid var(--wb-hair); }
-.wb-pane { min-height:0; overflow:hidden; }
-.wb-view { min-height:0; flex:1; display:flex; flex-direction:column; }
-.wb-main > .wb-view { display:block; overflow:auto; }
-.wb-queue > .wb-view { display:flex; flex-direction:column; }
-@media (prefers-reduced-motion:no-preference) {
-  .wb-view { animation:wb-in 160ms var(--ds-ease-out, cubic-bezier(.2,0,0,1)); }
-  @keyframes wb-in {
-    from { opacity:0; transform:translateY(2px); }
-    to { opacity:1; transform:translateY(0); }
-  }
-}
-@media (prefers-reduced-motion:reduce) {
-  .wb-view { animation:wb-fade 160ms linear; }
-  @keyframes wb-fade { from { opacity:0; } to { opacity:1; } }
-}
-
-/* Queue */
-.wb-queue-body { padding:0 0 24px; }
-.wb-group-section { margin:0; }
-.wb-group {
-  display:flex; align-items:center; gap:8px; width:100%; height:44px; box-sizing:border-box;
-  margin:0; padding:0 12px; border:0; border-bottom:1px solid var(--wb-hair);
+}.wb-refresh:hover{ background:var(--wb-hover); color:var(--wb-ink); }.wb-sub{ padding:0 var(--wb-pad) 8px calc(var(--wb-pad) + 28px); font-size:var(--fs-sm); line-height:16px; color:var(--wb-ink-2); }/* The 44px segmented control: equal halves, a filled selected half, no underline. */.wb-tabs{
+  display:flex; gap:3px; height:44px; margin:0 var(--wb-pad) 8px; padding:3px;
+  box-sizing:border-box; border:1px solid var(--wb-hair);
+  border-radius:calc(var(--dsw-radius-sm, 8px) + 2px);
+  background:var(--dsw-alias-button-ghost-active-fill);
+}@media (min-width:768px){.wb-tabs{ max-width:340px; margin-right:auto; }}.wb-tab{
+  position:relative; flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:6px;
+  margin:0; padding:0 10px; border:0; border-radius:var(--dsw-radius-sm, 8px);
+  background:transparent; color:var(--wb-ink-2); font:inherit; font-size:var(--fs-md); font-weight:600;
+  line-height:20px; cursor:pointer;
+}.wb-tab:hover{ color:var(--wb-ink); }.wb-tab-on{ background:var(--wb-fill); color:var(--wb-ink); box-shadow:0 0 0 1px var(--wb-hair); }.wb-tab:focus-visible{ outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:-2px; }.wb-tab-count{
+  display:inline-block; min-width:18px; height:14px; padding:0 4px; box-sizing:border-box;
+  border-radius:7px; background:var(--dsw-alias-button-ghost-active-fill); color:var(--wb-ink-2);
+  font-size:var(--fs-micro); line-height:14px; font-weight:600; text-align:center; font-variant-numeric:tabular-nums;
+}.wb-tab-dot{
+  position:absolute; top:4px; right:10px; width:6px; height:6px; border-radius:50%;
+  background:var(--wb-alert);
+}.wb-tab-label{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.wb-main{ flex:1; min-height:0; overflow:hidden; display:flex; }.wb-grid{ flex:1; min-height:0; display:grid; grid-template-columns:340px minmax(0,1fr); }.wb-queue{ min-height:0; overflow:hidden; border-right:1px solid var(--wb-hair); }.wb-pane{ min-height:0; overflow:hidden; }.wb-view{ flex:1; min-height:0; overflow:auto; display:block; }.wb-queue > .wb-view{ height:100%; }@media (prefers-reduced-motion:no-preference){.wb-view{ animation:wb-fade 120ms linear; }@keyframes wb-fade{ from { opacity:0; } to { opacity:1; } }}@media (prefers-reduced-motion:reduce){.wb-view{ animation:none; }}/* Queue */.wb-queue-body{ padding:0 0 24px; }.wb-group-section{ margin:0; }.wb-group{
+  display:flex; align-items:center; gap:8px; width:100%; height:48px; box-sizing:border-box;
+  margin:0; padding:0 var(--wb-pad); border:0; border-bottom:1px solid var(--wb-hair); scroll-margin-top:64px;
   background:transparent; color:var(--wb-ink); font:inherit; font-size:var(--fs-md);
   font-weight:500; line-height:20px; text-align:left; cursor:pointer;
-}
-.wb-group:hover { background:var(--wb-hover); }
-.wb-group:active { background:var(--wb-press); }
-.wb-group:focus-visible { outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:-2px; }
-.wb-group[data-wb-tone=danger] { color:var(--wb-bad); }
-.wb-group-title { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.wb-group-alert { flex:none; display:inline-flex; }
-.wb-group-chev { flex:none; display:inline-flex; color:var(--wb-ink-3); transition:transform 160ms var(--ds-ease-out, ease); }
-.wb-group[aria-expanded=true] .wb-group-chev { transform:rotate(90deg); }
-@media (prefers-reduced-motion:reduce) { .wb-group-chev { transition:none; } }
-.wb-group-body { padding:4px 8px 8px; }
-.wb-row {
+}.wb-group:hover{ background:var(--wb-hover); }.wb-group:active{ background:var(--wb-press); }.wb-group:focus-visible{ outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:-2px; }.wb-group[data-wb-tone=danger]{ color:var(--wb-bad); }.wb-group-title{ flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }.wb-group-alert{ flex:none; display:inline-flex; }.wb-group-chev{ flex:none; display:inline-flex; color:var(--wb-ink-3); transition:transform 180ms var(--ds-ease-out, ease); }.wb-group[aria-expanded=true] .wb-group-chev{ transform:rotate(90deg); }@media (prefers-reduced-motion:reduce){.wb-group-chev{ transition:none; }}.wb-group-body{
+  display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows 200ms var(--ds-ease-out, ease);
+}.wb-group-section[data-wb-open=true] .wb-group-body{ grid-template-rows:1fr; }.wb-group-body-inner{ min-height:0; overflow:hidden; padding:4px 8px 8px; }@media (prefers-reduced-motion:reduce){.wb-group-body{ transition:none; }}.wb-more{
+  display:flex; align-items:center; width:100%; height:48px; box-sizing:border-box;
+  margin:0; padding:0 8px; border:0; border-bottom:1px solid var(--wb-hair);
+  background:transparent; color:var(--wb-ink-2); font:inherit; font-size:var(--fs-sm);
+  text-align:left; cursor:pointer;
+}.wb-more:hover{ background:var(--wb-hover); color:var(--wb-ink); }.wb-more:focus-visible{ outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:-2px; }.wb-row{
   display:flex; align-items:center; gap:12px; width:100%; box-sizing:border-box;
   height:56px; margin:0; padding:7px 8px; border:0; border-radius:var(--dsw-radius-md, 8px);
   background:transparent; color:var(--wb-ink); font:inherit; text-align:left; cursor:pointer;
-}
-.wb-row:hover { background:var(--wb-hover); }
-.wb-row:active { background:var(--wb-press); }
-.wb-row:focus-visible { outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:-2px; }
-.wb-row-on, .wb-row-on:hover { background:var(--wb-select); }
-.wb-row-main { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
-.wb-row-title { font-size:var(--fs-lg); font-weight:500; line-height:20px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.wb-row-sub { font-size:var(--fs-sm); line-height:16px; color:var(--wb-ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.wb-row-age { flex:none; align-self:flex-start; margin-top:3px; font-size:var(--fs-xs); line-height:16px; color:var(--wb-ink-2); font-variant-numeric:tabular-nums; }
-.wb-live-row { display:flex; align-items:center; gap:12px; height:40px; padding:0 8px; border-bottom:1px solid var(--wb-hair); }
-.wb-live-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-md); }
-.wb-live-age { flex:none; font-size:var(--fs-xs); color:var(--wb-ink-2); font-variant-numeric:tabular-nums; }
-
-.wb-empty { padding:32px 16px; text-align:left; }
-.wb-empty-title { font-size:var(--fs-xl); font-weight:500; line-height:22px; }
-.wb-empty-body { margin-top:6px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-2); }
-.wb-empty-meta { margin-top:18px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-2); }
-
-/* Focus view */
-.wb-returnbar {
+}.wb-row:hover{ background:var(--wb-hover); }.wb-row:active{ background:var(--wb-press); }.wb-row:focus-visible{ outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:-2px; }.wb-row-on, .wb-row-on:hover{ background:var(--wb-select); }.wb-row-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }.wb-row-title{ font-size:var(--fs-lg); font-weight:500; line-height:20px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.wb-row-sub{ font-size:var(--fs-sm); line-height:16px; color:var(--wb-ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.wb-row-age{ flex:none; align-self:flex-start; margin-top:3px; font-size:var(--fs-xs); line-height:16px; color:var(--wb-ink-2); font-variant-numeric:tabular-nums; }.wb-live-row{ display:flex; align-items:center; gap:12px; height:40px; padding:0 8px; border-bottom:1px solid var(--wb-hair); }.wb-live-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:var(--fs-md); }.wb-live-age{ flex:none; font-size:var(--fs-xs); color:var(--wb-ink-2); font-variant-numeric:tabular-nums; }.wb-empty{ padding:32px var(--wb-pad); text-align:left; }.wb-empty-title{ font-size:var(--fs-xl); font-weight:500; line-height:22px; }.wb-empty-body{ margin-top:6px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-2); }.wb-empty-meta{ margin-top:18px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-2); }.wb-empty-link{
+  display:flex; align-items:center; height:44px; margin:18px 0 0; padding:0;
+  border:0; background:transparent; color:var(--wb-ink); font:inherit; font-size:var(--fs-md);
+  font-weight:500; cursor:pointer;
+}.wb-empty-link:hover{ color:var(--wb-ink-2); }/* Providers: a data table, one row per source, never a button. */.wb-providers{ padding:0 var(--wb-pad) 24px; }.wb-providers-empty{ padding:32px var(--wb-pad); }.wb-prov{
+  display:flex; align-items:center; gap:6px; min-height:48px; box-sizing:border-box;
+  padding:3.5px 0; border-bottom:1px solid var(--wb-hair);
+}.wb-prov-glyph{ flex:none; width:16px; height:16px; display:inline-flex; color:var(--wb-ink-2); }.wb-prov-main{ flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; }.wb-prov-line{ display:flex; align-items:center; gap:8px; min-width:0; }.wb-prov-name{
+  flex:0 1 auto; max-width:84px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:var(--fs-xl); font-weight:600; line-height:20px;
+}.wb-prov-primary{
+  flex:none; font-size:var(--fs-md); font-weight:700; line-height:20px;
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}.wb-prov-secondary{
+  flex:none; margin-left:auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:var(--fs-md); font-weight:500; line-height:20px; color:var(--wb-ink-2);
+  font-variant-numeric:tabular-nums;
+}.wb-prov-sub{ display:flex; align-items:center; gap:6px; min-height:16px; margin-top:4px; min-width:0; }.wb-prov-chip{
+  flex:none; height:16px; box-sizing:border-box; padding:0 5px; border:1px solid currentColor;
+  border-radius:var(--dsw-radius-xs, 4px); font-size:var(--fs-xs); font-weight:500; line-height:14px;
+  white-space:nowrap;
+}.wb-prov-chip[data-wb-chip=sleep]{ color:var(--wb-warn); }.wb-prov-chip[data-wb-chip=queue], .wb-prov-chip[data-wb-chip=run], .wb-prov-chip[data-wb-chip=wait]{ color:var(--wb-info); }.wb-prov-window{
+  min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:var(--fs-sm); font-weight:400; line-height:16px; color:var(--wb-ink-3);
+}.wb-prov-arrow{ color:var(--wb-ink-3); }.wb-prov-alert{ flex:none; font-size:var(--fs-xs); line-height:1; color:var(--wb-alert); }.wb-prov-primary[data-wb-tone=alert],.wb-prov-secondary[data-wb-tone=alert]{ color:var(--wb-alert); }.wb-prov-primary[data-wb-tone=warn],.wb-prov-secondary[data-wb-tone=warn]{ color:var(--wb-warn); }.wb-prov-primary[data-wb-tone=ok]{ color:var(--wb-ok); }.wb-prov-primary[data-wb-tone=stale]{ color:var(--wb-ink-2); }.wb-prov[data-wb-tone=stale] .wb-prov-name{ color:var(--wb-ink); }.wb-prov-primary[data-wb-tone=none]{ color:var(--wb-ink-3); }@media (max-width:359px){.wb-prov-window .t-detail{ display:none; }}/* The host owns Settings; after the provider cell is gone, its 1px rule and
+   8px top gap make the remaining row read as the settings section. */:global([class*="settingsArea"]){
+  border-top:1px solid var(--dsw-alias-border-l2);
+  padding-top:8px;
+}/* Focus view *//* Focus view */.wb-returnbar{
   flex:none; display:flex; align-items:center; height:44px; padding:0 12px;
   border-bottom:1px solid var(--wb-hair); box-sizing:border-box;
-}
-.wb-returnbar .wb-back { width:auto; padding:0 8px 0 0; gap:4px; font-size:var(--fs-xl); font-weight:600; }
-.wb-detail { height:100%; min-height:0; display:flex; flex-direction:column; }
-.wb-detail-scroll { flex:1; min-height:0; overflow:auto; padding:20px 16px 40px; box-sizing:border-box; }
-.wb-detail-desktop .wb-detail-scroll { max-width:640px; width:100%; margin:0 auto; padding:28px 32px 48px; }
-.wb-detail-title {
+}.wb-returnbar .wb-back{ width:auto; padding:0 8px 0 0; gap:4px; font-size:var(--fs-xl); font-weight:600; }.wb-detail{ height:100%; min-height:0; display:flex; flex-direction:column; }.wb-detail-scroll{ flex:1; min-height:0; overflow:auto; padding:20px 16px 40px; box-sizing:border-box; }.wb-detail-desktop .wb-detail-scroll{ max-width:640px; width:100%; margin:0 auto; padding:28px 32px 48px; }.wb-detail-title{
   margin:0; font-size:var(--wb-title-size); font-weight:600; line-height:1.28;
   overflow-wrap:anywhere; outline:none;
-}
-.wb-detail-title:focus-visible { outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:3px; }
-.wb-detail-meta { margin-top:8px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-2); }
-.wb-needs-label { margin-top:24px; font-size:var(--fs-xs); font-weight:600; line-height:16px; color:var(--wb-ink-2); }
-.wb-needs { margin:6px 0 0; font-size:var(--wb-body-size); line-height:1.55; color:var(--wb-ink); white-space:pre-wrap; overflow-wrap:anywhere; }
-.wb-needs-empty { margin-top:6px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-3); }
-
-.wb-actions { margin-top:24px; display:flex; flex-direction:column; gap:8px; }
-.wb-act {
+}.wb-detail-title:focus-visible{ outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:3px; }.wb-detail-meta{ margin-top:8px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-2); }.wb-needs-label{ margin-top:24px; font-size:var(--fs-xs); font-weight:600; line-height:16px; color:var(--wb-ink-2); }.wb-needs{ margin:6px 0 0; font-size:var(--wb-body-size); line-height:1.55; color:var(--wb-ink); white-space:pre-wrap; overflow-wrap:anywhere; }.wb-needs-empty{ margin-top:6px; font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-3); }.wb-actions{ margin-top:24px; display:flex; flex-direction:column; gap:8px; }.wb-act{
   display:flex; align-items:center; justify-content:center; width:100%; height:44px; box-sizing:border-box;
   border-radius:var(--dsw-radius-md, 8px); font:inherit; font-size:var(--fs-lg); font-weight:500;
   cursor:pointer; padding:0 16px;
-}
-.wb-act:disabled { opacity:.55; cursor:default; }
-.wb-act:focus-visible { outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:2px; }
-.wb-act-primary { border:1px solid var(--wb-primary); background:var(--wb-primary); color:var(--wb-primary-ink); }
-.wb-act-primary:hover { opacity:.9; }
-.wb-act-secondary { border:1px solid var(--wb-hair-strong); background:transparent; color:var(--wb-ink); }
-.wb-act-secondary:hover { background:var(--wb-hover); }
-.wb-danger { margin-top:4px; padding-top:8px; border-top:1px solid var(--wb-hair); }
-.wb-act-danger { border:1px solid transparent; background:transparent; color:var(--wb-bad); font-weight:400; }
-.wb-act-danger:hover { background:var(--wb-bad-soft); }
-.wb-act-danger[data-wb-confirm=true] { background:var(--wb-bad-soft); font-weight:600; }
-
-.wb-recorded { margin-top:24px; padding:14px 16px; border-radius:var(--dsw-radius-md, 8px); background:var(--wb-inset); }
-.wb-recorded-line { font-size:var(--fs-lg); font-weight:500; }
-.wb-next { margin:0; padding:0; border:0; background:transparent; color:inherit; font:inherit; font-weight:600; cursor:pointer; }
-.wb-next:hover { text-decoration:underline; }
-.wb-recorded-time { display:block; margin-top:4px; font-size:var(--fs-xs); color:var(--wb-ink-2); font-variant-numeric:tabular-nums; }
-.wb-notice { margin-top:12px; font-size:var(--fs-sm); line-height:18px; }
-.wb-notice.wb-bad { color:var(--wb-ink); font-weight:500; }
-.wb-notice.wb-ok { color:var(--wb-ink-2); }
-
-.wb-folds { margin-top:28px; border-top:1px solid var(--wb-hair); }
-.wb-fold { border-bottom:1px solid var(--wb-hair); }
-.wb-fold-summary {
+}.wb-act:disabled{ opacity:.55; cursor:default; }.wb-act:focus-visible{ outline:var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, currentColor); outline-offset:2px; }.wb-act-primary{ border:1px solid var(--wb-primary); background:var(--wb-primary); color:var(--wb-primary-ink); }.wb-act-primary:hover{ opacity:.9; }.wb-act-secondary{ border:1px solid var(--wb-hair-strong); background:transparent; color:var(--wb-ink); }.wb-act-secondary:hover{ background:var(--wb-hover); }.wb-danger{ margin-top:4px; padding-top:8px; border-top:1px solid var(--wb-hair); }.wb-act-danger{ border:1px solid transparent; background:transparent; color:var(--wb-bad); font-weight:400; }.wb-act-danger:hover{ background:var(--wb-bad-soft); }.wb-act-danger[data-wb-confirm=true]{ background:var(--wb-bad-soft); font-weight:600; }.wb-recorded{ margin-top:24px; padding:14px 16px; border-radius:var(--dsw-radius-md, 8px); background:var(--wb-inset); }.wb-recorded-line{ font-size:var(--fs-lg); font-weight:500; }.wb-next{ margin:0; padding:0; border:0; background:transparent; color:inherit; font:inherit; font-weight:600; cursor:pointer; }.wb-next:hover{ text-decoration:underline; }.wb-recorded-time{ display:block; margin-top:4px; font-size:var(--fs-xs); color:var(--wb-ink-2); font-variant-numeric:tabular-nums; }.wb-notice{ margin-top:12px; font-size:var(--fs-sm); line-height:18px; }.wb-notice.wb-bad{ color:var(--wb-ink); font-weight:500; }.wb-notice.wb-ok{ color:var(--wb-ink-2); }.wb-folds{ margin-top:28px; border-top:1px solid var(--wb-hair); }.wb-fold{ border-bottom:1px solid var(--wb-hair); }.wb-fold-summary{
   display:flex; align-items:center; gap:8px; min-height:44px; padding:0 2px; cursor:pointer;
   font-size:var(--fs-sm); line-height:18px; color:var(--wb-ink-2); list-style:none;
-}
-.wb-fold-summary::-webkit-details-marker { display:none; }
-.wb-fold-summary > span:first-child { flex:1; min-width:0; }
-.wb-fold-chev { flex:none; display:inline-flex; color:var(--wb-ink-3); transition:transform 160ms var(--ds-ease-out, ease); }
-.wb-fold[open] .wb-fold-chev { transform:rotate(90deg); }
-@media (prefers-reduced-motion:reduce) { .wb-fold-chev { transition:none; } }
-.wb-fold-body { padding:4px 2px 16px; }
-.wb-fold-empty { font-size:var(--fs-sm); color:var(--wb-ink-3); }
-.wb-result { margin:0; font-family:var(--ds-font-family-code, monospace); font-size:var(--fs-sm); line-height:18px; white-space:pre-wrap; overflow-wrap:anywhere; }
-.wb-info { display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 16px; margin:0; font-size:var(--fs-sm); line-height:18px; }
-.wb-info dt { color:var(--wb-ink-3); }
-.wb-info dd { margin:0; color:var(--wb-ink); overflow-wrap:anywhere; }
-.wb-detail-empty { display:flex; align-items:center; justify-content:center; height:100%; padding:24px; color:var(--wb-ink-3); font-size:var(--fs-sm); }
+}.wb-fold-summary::-webkit-details-marker{ display:none; }.wb-fold-summary > span:first-child{ flex:1; min-width:0; }.wb-fold-chev{ flex:none; display:inline-flex; color:var(--wb-ink-3); transition:transform 160ms var(--ds-ease-out, ease); }.wb-fold[open] .wb-fold-chev{ transform:rotate(90deg); }@media (prefers-reduced-motion:reduce){.wb-fold-chev{ transition:none; }}.wb-fold-body{ padding:4px 2px 16px; }.wb-fold-empty{ font-size:var(--fs-sm); color:var(--wb-ink-3); }.wb-result{ margin:0; font-family:var(--ds-font-family-code, monospace); font-size:var(--fs-sm); line-height:18px; white-space:pre-wrap; overflow-wrap:anywhere; }.wb-info{ display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 16px; margin:0; font-size:var(--fs-sm); line-height:18px; }.wb-info dt{ color:var(--wb-ink-3); }.wb-info dd{ margin:0; color:var(--wb-ink); overflow-wrap:anywhere; }.wb-detail-empty{ display:flex; align-items:center; justify-content:center; height:100%; padding:24px; color:var(--wb-ink-3); font-size:var(--fs-sm); }

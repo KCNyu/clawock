@@ -443,6 +443,51 @@ export declare function sourceView(source: PanelSource, row: BalanceRow | undefi
     reading: ReturnType<typeof sourceReading>;
     queue: ReturnType<typeof _queueState> | null;
 };
+/** How a provider's allowance reads in the Providers segment: alert, near a limit, stale, fine, or unconfigured. */
+export type ProviderSignal = 'alert' | 'warn' | 'stale' | 'ok' | 'none';
+/** One provider row in the Providers segment (data table, never a button). */
+export type ProviderRowView = {
+    key: string;
+    label: string;
+    provider: string | null;
+    agent: string | null;
+    primary: string;
+    secondary: string | null;
+    signal: ProviderSignal;
+    tone: 'ok' | 'warn' | 'alert' | 'stale' | 'none';
+    primaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none';
+    secondaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none';
+    chip: {
+        text: string;
+        role: StateRole;
+    } | null;
+    window: {
+        startDate: string;
+        startDetail: string;
+        endDate: string;
+        endDetail: string;
+    } | null;
+    title: string;
+    aria: string;
+};
+/**
+ * The one-bit alarm rule (kcn's review, 2026-11-07): red only when a provider
+ * is actually broken — a quota window is exhausted, or the read itself failed.
+ * Stale is the normal overnight state and must never turn the dot red.
+ */
+export declare function providerSignal(row: BalanceRow): ProviderSignal;
+/** The provider rows the panellist dot / tab dot watches: only real providers, never the free pool. */
+export declare function providerAlerts(rows: readonly BalanceRow[]): BalanceRow[];
+/**
+ * The Providers segment's view model. A percentage provider leads with its
+ * first (5h) window and puts the week on the right; a money provider leads
+ * with the balance and leaves the right column empty (heterogeneous units are
+ * not forced into a false alignment). `sourceReading` still owns the value,
+ * tone and title, so the old panel and the new row cannot disagree.
+ */
+export declare function providerRowView(source: PanelSource, row: BalanceRow | undefined, result: TaskQueueResult | null, t: Translate, now: number): ProviderRowView;
+/** The Providers segment: sources in severity order, same-severity rows by label. */
+export declare function providerRowsView(sources: readonly PanelSource[], rows: ReadonlyMap<string, BalanceRow>, result: TaskQueueResult | null, t: Translate, now: number): ProviderRowView[];
 /** Provider rows with their display projection: what every surface of the cell reads. */
 export declare function balanceRows(result: BalancesResult | null, t: Translate, now: number): BalanceRow[];
 /** The provider windows of an agent (a quota wait names the reset it waits for). */

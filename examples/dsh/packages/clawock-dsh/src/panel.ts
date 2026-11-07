@@ -11,7 +11,7 @@
  */
 import { PROVIDER_JOIN, byAgentRank, sourceRank, type ProviderJoin } from './providers.ts'
 import { _usedLevel, type UsedLevel } from './levels.ts'
-import { resetStampOf, windowsOf, type Translate } from './copy.ts'
+import { resetStampPartsOf, resetStampOf, windowsOf, type Translate } from './copy.ts'
 import type { AgentQueue, AgentStats, BalanceResult, BalancesResult, DispatchTask, PatrolRound, TaskQueueResult, TaskStats } from './types.ts'
 
 /** The four visual states one provider's reading can take. */
@@ -1000,6 +1000,158 @@ export function sourceView(source: PanelSource, row: BalanceRow | undefined, res
   }
 }
 
+/** How a provider's allowance reads in the Providers segment: alert, near a limit, stale, fine, or unconfigured. */
+export type ProviderSignal = 'alert' | 'warn' | 'stale' | 'ok' | 'none'
+
+/** One provider row in the Providers segment (data table, never a button). */
+export type ProviderRowView = {
+  key: string
+  label: string
+  provider: string | null
+  agent: string | null
+  primary: string
+  secondary: string | null
+  signal: ProviderSignal
+  tone: 'ok' | 'warn' | 'alert' | 'stale' | 'none'
+  primaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none'
+  secondaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none'
+  chip: { text: string; role: StateRole } | null
+  window: { startDate: string; startDetail: string; endDate: string; endDetail: string } | null
+  title: string
+  aria: string
+}
+
+/**
+ * The one-bit alarm rule (kcn's review, 2026-11-07): red only when a provider
+ * is actually broken — a quota window is exhausted, or the read itself failed.
+ * Stale is the normal overnight state and must never turn the dot red.
+ */
+export function providerSignal(row: BalanceRow): ProviderSignal {
+  const result = row.result
+  if (!result.configured) return 'none'
+  if (result.status === 'failed') return 'alert'
+  const snapshot = result.snapshot
+  if (snapshot === null) return 'none'
+  if (snapshot.unit !== 'pct') {
+    if (!snapshot.isAvailable) return 'alert'
+    if (result.status === 'stale') return 'stale'
+    return result.low ? 'warn' : 'ok'
+  }
+  const windows = (snapshot.windows ?? []).filter((window) => window.percent !== null)
+  if (windows.some((window) => (window.percent as number) >= 100)) return 'alert'
+  if (result.status === 'stale') return 'stale'
+  // The two quota windows have different lengths; the near-limit line is 80%
+  // used for a 5h window and 90% for the week, as the review specified.
+  const near = windows.some((window) => (window.durationMins ?? 0) >= 7 * 24 * 60
+    ? (window.percent as number) >= 90
+    : (window.percent as number) >= 80)
+  return near ? 'warn' : 'ok'
+}
+
+/** The provider rows the panellist dot / tab dot watches: only real providers, never the free pool. */
+export function providerAlerts(rows: readonly BalanceRow[]): BalanceRow[] {
+  return rows.filter((row) => providerSignal(row) === 'alert')
+}
+
+/** A source's start→end window for the second line: the longest (last) window carries the week context. */
+function providerWindowView(row: BalanceRow | undefined, t: Translate, now: number): ProviderRowView['window'] {
+  const windows = row?.result.snapshot?.windows ?? []
+  if (windows.length === 0) return null
+  const window = windows[windows.length - 1]!
+  if (window.resetAtMs == null) return null
+  const startMs = window.durationMins != null && window.durationMins > 0
+    ? window.resetAtMs - window.durationMins * 60000
+    : null
+  if (startMs === null) return null
+  const start = resetStampPartsOf(t, { resetAt: '', resetAtMs: startMs }, now)
+  const end = resetStampPartsOf(t, { resetAt: window.resetAt, resetAtMs: window.resetAtMs }, now)
+  return { startDate: start.date, startDetail: start.detail, endDate: end.date, endDetail: end.detail }
+}
+
+/**
+ * The Providers segment's view model. A percentage provider leads with its
+ * first (5h) window and puts the week on the right; a money provider leads
+ * with the balance and leaves the right column empty (heterogeneous units are
+ * not forced into a false alignment). `sourceReading` still owns the value,
+ * tone and title, so the old panel and the new row cannot disagree.
+ */
+export function providerRowView(source: PanelSource, row: BalanceRow | undefined, result: TaskQueueResult | null, t: Translate, now: number): ProviderRowView {
+  const view = sourceView(source, row, result, t)
+  const signal = row === undefined ? 'none' : providerSignal(row)
+  const windows = row?.result.snapshot?.windows ?? []
+  const isPct = row?.result.snapshot?.unit === 'pct'
+  let primary = view.reading.value
+  let secondary: string | null = null
+  if (isPct && windows.length > 0) {
+    const labels = windowsOf(t, row!.result, now)
+    const first = labels[0]
+    if (first !== undefined) primary = first.percent === null ? first.label + ' —' : first.label + ' ' + Math.round(first.percent) + '%'
+    const second = labels[1]
+    if (second !== undefined) secondary = second.percent === null ? second.label + ' —' : second.label + ' ' + Math.round(second.percent) + '%'
+  }
+  const stale = signal === 'stale'
+  const chip = stale
+    ? { text: t('balance.staleShort'), role: 'sleep' as StateRole }
+    : view.queue?.chip ?? null
+  const window = isPct ? providerWindowView(row, t, now) : null
+  const windowText = window === null
+    ? ''
+    : [window.startDate, window.startDetail].filter((part) => part !== '').join(' ') + ' → '
+      + [window.endDate, window.endDetail].filter((part) => part !== '').join(' ')
+  const tone: ProviderRowView['tone'] = signal === 'alert' ? 'alert'
+    : signal === 'warn' ? 'warn'
+      : signal === 'stale' ? 'stale'
+        : signal === 'ok' ? 'ok' : 'none'
+  // Colour the reading that caused the state: a near/exhausted week is amber/red
+  // on the right, while a healthy 5h headline stays green. An alert still paints
+  // the headline red (the review's row rule), so the eye lands on the row first.
+  const near = (window: { percent: number | null; durationMins?: number | null }): boolean =>
+    window.percent !== null && (window.percent >= 100 ? false : (window.durationMins ?? 0) >= 7 * 24 * 60
+      ? window.percent >= 90 : window.percent >= 80)
+  const windowTone = (window: { percent: number | null; durationMins?: number | null }): 'ok' | 'warn' | 'alert' =>
+    window.percent !== null && window.percent >= 100 ? 'alert' : near(window) ? 'warn' : 'ok'
+  const primaryTone: ProviderRowView['primaryTone'] = signal === 'alert' ? 'alert'
+    : signal === 'stale' ? 'stale'
+      : signal === 'none' ? 'none'
+        : isPct && windows[0] !== undefined ? windowTone(windows[0]) : (signal === 'warn' ? 'warn' : 'ok')
+  const secondaryTone: ProviderRowView['secondaryTone'] = signal === 'stale' ? 'stale'
+    : isPct && windows[1] !== undefined ? (signal === 'alert' ? 'alert' : windowTone(windows[1])) : 'ok'
+  const aria = [
+    source.label,
+    primary,
+    secondary,
+    chip?.text,
+    windowText,
+    signal === 'alert' ? t('workbench.provider.alert') : '',
+  ].filter((part): part is string => part !== null && part !== undefined && part !== '').join(' · ')
+  return {
+    key: source.key,
+    label: source.label,
+    provider: source.provider?.provider ?? null,
+    agent: source.agent,
+    primary,
+    secondary,
+    signal,
+    tone,
+    primaryTone,
+    secondaryTone,
+    chip,
+    window,
+    title: view.reading.title,
+    aria,
+  }
+}
+
+/** Severity order for the segment: alert first, then stale, then near-limit, then normal. */
+const PROVIDER_RANK: Record<ProviderSignal, number> = { alert: 0, stale: 1, warn: 2, ok: 3, none: 4 }
+
+/** The Providers segment: sources in severity order, same-severity rows by label. */
+export function providerRowsView(sources: readonly PanelSource[], rows: ReadonlyMap<string, BalanceRow>, result: TaskQueueResult | null, t: Translate, now: number): ProviderRowView[] {
+  return sources
+    .map((source) => providerRowView(source, source.provider === null ? undefined : rows.get(source.provider.provider), result, t, now))
+    .sort((a, b) => PROVIDER_RANK[a.signal] - PROVIDER_RANK[b.signal] || a.label.localeCompare(b.label))
+}
+
 // ---- The open panel as data (2026-09-29) -------------------------------------------------
 // Everything the provider panel shows, decided once: which groups in which order, each
 // group's head, allowance, notes and task rows; what just ended; patrol; the ops footer.
@@ -1749,8 +1901,10 @@ export function signalView(tasks: DispatchTask[], t: Translate, now: number): Si
   return {
     ...counts,
     aria: t('signal.rowLabel', { n: String(counts.total), time: waitSpoken(counts.oldestMs, t) }),
-    red: counts.stuck > 0,
-    tone: counts.stuck > 0 ? 'danger' : 'neutral',
+    // The count is not an alarm (kcn's review): red belongs to a broken
+    // provider only, so the badge stays neutral even when a task is stuck.
+    red: false,
+    tone: 'neutral',
     badge: String(counts.total),
   }
 }
