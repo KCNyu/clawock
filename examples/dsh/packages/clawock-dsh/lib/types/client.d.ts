@@ -30,6 +30,7 @@ import { type Translate } from './copy.ts';
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts';
 export { _fmtTokens } from './panel.ts';
 export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts';
+export { WORKBENCH_EFFECTS, WORKBENCH_SHEETS, WORKBENCH_TABS, WORKBENCH_TRANSITIONS, effectsFor, initialWorkbenchState, isLegalWorkbenchAction, reduceWorkbench, workbenchSubscriptions, } from './workbench.ts';
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView, providerSignal, providerAlerts, providerRowsView } from './panel.ts';
 /**
  * The T+1 verdict in the active locale. `verdictKind` is the stable code; a

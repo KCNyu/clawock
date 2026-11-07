@@ -4172,38 +4172,52 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
   find(focus, (p) => p["data-wb-back"] !== undefined)[0].props.onClick();
   render();
 
-  // Overview: patrol open, stats folded, then stats expanded with its reused data.
+  // Overview: three entries to their own layers, never folds. The old
+  // two-open-folds state is exactly what the single state machine removed.
   tabs(page)[2].props.onClick();
   render();
   await new Promise((resolve) => setImmediate(resolve));
   await new Promise((resolve) => setImmediate(resolve));
   const overview = render();
   assert.ok(find(overview, (p) => p["data-wb-overview"] !== undefined)[0], "Overview mounted");
-  const patrolEntry = find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0];
-  assert.equal(patrolEntry.props["aria-expanded"], undefined,
-    "patrol is an entry to its own layer, not a fold");
-  assert.equal(find(overview, (p) => p["data-wb-patrol-layer"] !== undefined).length, 0,
-    "the patrol layer is not mounted in Overview");
-  assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props["aria-expanded"], false,
-    "stats is folded by default");
+  for (const id of ["patrol", "stats", "history"]) {
+    const entry = find(overview, (p) => p["data-wb-group-button"] === "overview-" + id)[0];
+    assert.ok(entry, id + " entry present");
+    assert.equal(entry.props["aria-expanded"], undefined, id + " is an entry to its own layer, not a fold");
+    assert.equal(find(overview, (p) => p["data-wb-" + id + "-layer"] !== undefined).length, 0,
+      id + " layer is not mounted in Overview");
+  }
   const statsHead = find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0];
-  assert.match(textOf(statsHead), /5 tasks/, "folded header keeps the totals summary");
+  assert.match(textOf(statsHead), /5 tasks/, "the entry keeps the totals summary");
   statsHead.props.onClick();
-  const expanded = render();
-  assert.equal(find(expanded, (p) => p["data-wb-group-button"] === "overview-stats")[0].props["aria-expanded"], true);
-  assert.equal(find(expanded, (p) => p["data-wb-overview-done"] !== undefined)[0].props["data-wb-overview-done"], "2");
-  assert.match(textOf(expanded), /1.2M/, "token metric");
-  assert.match(textOf(expanded), /\$3.40/, "cost metric");
-  assert.equal(find(expanded, (p) => p["data-wb-overview"] !== undefined).length, 1);
-  assert.equal(find(expanded, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,
+  const statsLayer = render();
+  assert.equal(find(statsLayer, (p) => p["data-wb-stats-layer"] !== undefined).length, 1,
+    "Stats opened as its own layer");
+  assert.equal(find(statsLayer, (p) => p["data-wb-overview"] !== undefined).length, 0,
+    "Stats is mutually exclusive with Overview");
+  assert.equal(find(statsLayer, (p) => p["data-wb-overview-done"] !== undefined)[0].props["data-wb-overview-done"], "2");
+  assert.match(textOf(statsLayer), /1.2M/, "token metric");
+  assert.match(textOf(statsLayer), /\$3.40/, "cost metric");
+  assert.equal(find(statsLayer, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,
     "the old per-provider stacked chart is restored");
-  assert.ok(find(expanded, (p) => p["data-tq-stats-bar"] !== undefined).length > 0,
+  assert.ok(find(statsLayer, (p) => p["data-tq-stats-bar"] !== undefined).length > 0,
     "the chart still draws one bar per provider/day");
-  const history = find(expanded, (p) => p["data-wb-group-button"] === "overview-history")[0];
-  assert.equal(history.props["aria-expanded"], false, "history is folded by default");
-  assert.match(textOf(history), /0 ended/, "the folded history header counts ended tasks");
-  assert.equal(find(expanded, (p) => p["data-wb-history"] !== undefined).length, 0,
-    "a closed history mounts no rows");
+  find(statsLayer, (p) => p["data-wb-stats-back"] !== undefined)[0].props.onClick();
+  const backToOverview = render();
+  assert.ok(find(backToOverview, (p) => p["data-wb-overview"] !== undefined)[0], "Back returns to Overview");
+  const history = find(backToOverview, (p) => p["data-wb-group-button"] === "overview-history")[0];
+  assert.match(textOf(history), /0 ended/, "the history entry counts ended tasks");
+  history.props.onClick();
+  const historyLayer = render();
+  assert.equal(find(historyLayer, (p) => p["data-wb-history-layer"] !== undefined).length, 1,
+    "History opened as its own layer");
+  assert.equal(find(historyLayer, (p) => p["data-wb-overview"] !== undefined).length, 0,
+    "History is mutually exclusive with Overview");
+  assert.equal(find(historyLayer, (p) => p["data-wb-history"] !== undefined).length, 0,
+    "an empty history mounts no rows");
+  find(historyLayer, (p) => p["data-wb-history-back"] !== undefined)[0].props.onClick();
+  const expanded = render();
+  assert.ok(find(expanded, (p) => p["data-wb-overview"] !== undefined)[0], "Back from History returns to Overview");
 
   // Providers: both detail lines are always visible, no click/second layer.
   tabs(expanded)[1].props.onClick();

@@ -397,6 +397,16 @@ jobs:
         if: steps.changes.outputs.dsplugin == 'true'
         run: node tests/decision_studio_plugin.spec.js
 
+      # The Workbench's state machine and type ladder are static contracts;
+      # both run in the same plugin lane as the client bundle they describe.
+      - name: Workbench state machine (every legal/illegal transition)
+        if: steps.changes.outputs.dsplugin == 'true'
+        run: node tests/workbench_fsm.spec.js
+
+      - name: Workbench typography (tokens + type table + no literals)
+        if: steps.changes.outputs.dsplugin == 'true'
+        run: node tests/workbench_typography.spec.js
+
       # The spec above imports lib/ out of the checkout, where the repo's own
       # node_modules satisfies everything — so it stayed green while #708
       # shipped an undeclared-at-the-install-site `zod` and crash-looped dsh in
@@ -591,6 +601,47 @@ jobs:
           done
           rm -rf "$tmp"
           echo "OK: rebuild deterministic modulo generation stamps"
+
+  # The Workbench geometry contract: real bundle, real React, real browsers.
+  # WebKit is the phone (390/320), Chromium the desktop (1440/1280). This is
+  # the only job that installs two browser builds; it runs only when the
+  # plugin lane is selected, so dashboard-only PRs keep the Chromium cache.
+  workbench-overlap:
+    needs: scope
+    if: needs.scope.outputs.dsplugin == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Playwright (Chromium + WebKit)
+        uses: ./.github/actions/clawock-playwright
+        with:
+          browsers: 'chromium webkit'
+      - name: Set up Node for the Workbench browser contract
+        uses: ./.github/actions/clawock-node
+      - name: Install the plugin's own dependencies (React UMD is a devDependency)
+        env:
+          NODE_OPTIONS: --dns-result-order=ipv4first
+          NO_UPDATE_NOTIFIER: '1'
+          npm_config_replace_registry_host: 'always'
+        run: |
+          set -euo pipefail
+          cd examples/dsh/packages/clawock-dsh
+          npm ci --include=dev --no-audit --no-fund
+      - name: Workbench overlap + computed type contract
+        env:
+          WORKBENCH_OUT: ${{ runner.temp }}/workbench-overlap.json
+          WORKBENCH_SHOTS: ${{ runner.temp }}/workbench-overlap-shots
+        run: node tests/workbench_overlap.spec.js
+      - name: Upload the overlap matrix and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workbench-overlap
+          path: |
+            ${{ runner.temp }}/workbench-overlap.json
+            ${{ runner.temp }}/workbench-overlap-shots
+          if-no-files-found: warn
 
   browser-tests:
     needs: scope

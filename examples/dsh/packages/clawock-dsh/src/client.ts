@@ -32,6 +32,11 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 import * as React from 'react'
 import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
+import {
+  effectsFor, initialWorkbenchState, isLegalWorkbenchAction, reduceWorkbench,
+  workbenchSubscriptions, type WorkbenchAction, type WorkbenchOrigin, type WorkbenchPhase,
+  type WorkbenchSheetKind, type WorkbenchState, type WorkbenchTab, type WorkbenchToast,
+} from './workbench.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
 import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, panelNotices, opsFooter, _queueHeadline, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, historyRowsView, _fmtTokens, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView, type HistoryRowView } from './panel.ts'
@@ -40,6 +45,10 @@ export { _fmtTokens } from './panel.ts'
 // Pure projections, re-exported so the spec can pin the fixed signal copy and
 // the wait formatters without a browser.
 export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts'
+export {
+  WORKBENCH_EFFECTS, WORKBENCH_SHEETS, WORKBENCH_TABS, WORKBENCH_TRANSITIONS, effectsFor,
+  initialWorkbenchState, isLegalWorkbenchAction, reduceWorkbench, workbenchSubscriptions,
+} from './workbench.ts'
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView, providerSignal, providerAlerts, providerRowsView } from './panel.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
@@ -1699,6 +1708,102 @@ function renderViewGlyph(key: string): React.ReactElement {
       : h('path', { ...stroke, d: 'M2 3H10M2 6H10M2 9H7' }))
 }
 
+/** The brief's file list and prompt text, shown in the detail sheet (not inline). */
+function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Translate,
+  openPath: (path: string) => void, live: boolean): React.ReactElement | null {
+  if (brief === null) return null
+  const kbOf = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
+  return h('div', {
+    className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading'),
+  },
+    h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
+    h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { openPath(brief.path) } },
+      h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kbOf(brief.bytes) })),
+      brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kbOf(brief.bytes) })) : null),
+    brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
+      : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
+        : brief.appends.map((append, index) => h('button', {
+          type: 'button', key: append.file, className: cx('tq-file'), 'data-tq-file': append.path,
+          onClick: () => { openPath(append.path) },
+        },
+          h('span', { className: cx('tq-file-label') },
+            h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file })),
+            append.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, append.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
+          h('span', { className: cx('tq-tag'), 'data-tq-delivered': append.delivered ? 'true' : 'false' },
+            t(append.delivered ? 'queue.brief.delivered' : (append.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending')))))
+}
+
+function renderBriefText(task: DispatchTask, brief: BriefView | null, t: Translate): React.ReactElement | null {
+  if (brief === null || brief.text === '') return null
+  const kbOf = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
+  return h('details', { className: cx('tq-fold'), key: 'brief-text', 'data-tq-brief-text': task.id },
+    h('summary', { className: cx('tq-fold-summary') },
+      foldChevron(),
+      h('span', { className: cx('tq-fold-label') }, t('queue.brief.prompt', { kb: kbOf(brief.bytes) }))),
+    h('pre', {
+      className: cx('tq-log'), tabIndex: 0, role: 'region',
+      'aria-label': t('queue.brief.prompt', { kb: kbOf(brief.bytes) }),
+    }, brief.text))
+}
+
+function renderTimelineBlock(task: DispatchTask, timeline: TaskTimeline | 'older' | null, t: Translate): React.ReactElement | null {
+  if (timeline === null) return null
+  return h('div', { className: cx('tq-timeline'), key: 'timeline', 'data-tq-timeline': task.id },
+    h('div', { className: cx('tq-caption') }, t('queue.timeline.heading')),
+    timeline === 'older' ? h('div', { className: cx('tq-note') }, t('queue.timeline.older')) : [
+      h('div', { className: cx('tq-note'), key: 'source' }, t('queue.timeline.source')),
+      timeline.log_missing ? h('div', { className: cx('tq-note'), key: 'missing' }, t('queue.timeline.missing')) : null,
+      timeline.omitted_bytes > 0 || timeline.omitted_events > 0 || timeline.audit_truncated
+        ? h('div', { className: cx('tq-note'), key: 'cut' }, t('queue.timeline.cut', { bytes: timeline.omitted_bytes, count: timeline.omitted_events })) : null,
+      timeline.events.length === 0 ? h('div', { className: cx('tq-empty'), key: 'empty' }, t('queue.timeline.empty'))
+        : h('ol', { key: 'events' }, ...timeline.events.map((event, index) => h('li', { key: index },
+          h('time', null, event.stamp),
+          h('strong', null, t('queue.timeline.' + event.kind)),
+          event.text ? h('div', null, event.text) : null))),
+    ])
+}
+
+function renderLogBlock(task: DispatchTask, log: string[] | null, t: Translate): React.ReactElement | null {
+  if (log === null) return null
+  return h('pre', {
+    className: cx('tq-log'), key: 'log', 'data-tq-log': task.id, tabIndex: 0, role: 'region',
+    'aria-label': t('queue.a.log'),
+  }, log.join('\n'))
+}
+
+function renderPickerBlock(task: DispatchTask, picker: ModelPicker, t: Translate, ui: {
+  setPicker: (picker: ModelPicker | null) => void
+  save: (model: string, effort: string) => void
+  close: () => void
+  busy: boolean
+}): React.ReactElement {
+  return h('div', { className: cx('tq-picker'), 'data-tq-picker': task.id },
+    picker.allowed
+      ? [
+        h('label', { className: cx('tq-field'), key: 'm' }, h('span', null, t('queue.d.model')),
+          h('select', {
+            value: picker.model,
+            onChange: (event: { target: { value: string } }) => {
+              const model = event.target.value
+              const efforts = picker.efforts[model] ?? []
+              ui.setPicker({ ...picker, model, effort: efforts.includes(picker.effort) ? picker.effort : '' })
+            },
+          }, picker.models.map((model) => h('option', { key: model, value: model }, _modelView(model).label + ' (' + model + ')')))),
+        h('label', { className: cx('tq-field'), key: 'e' }, h('span', null, picker.flag),
+          h('select', {
+            value: picker.effort,
+            disabled: (picker.efforts[picker.model] ?? []).length === 0,
+            onChange: (event: { target: { value: string } }) => { ui.setPicker({ ...picker, effort: event.target.value }) },
+          }, [h('option', { key: '', value: '' }, t('queue.d.effortDefault')),
+            ...(picker.efforts[picker.model] ?? []).map((effort) => h('option', { key: effort, value: effort }, effort))])),
+        h('div', { className: cx('tq-picker-actions'), key: 'save' },
+          actionPill('save', t('queue.a.save'), () => { ui.save(picker.model, picker.effort) }, { disabled: ui.busy }),
+          actionPill('close', t('queue.a.close'), ui.close, { kind: 'view' })),
+        h('div', { className: cx('tq-caption'), key: 'hint' }, t('queue.a.modelHint')),
+      ]
+      : h('div', { className: cx('tq-note') }, picker.reason))
+}
+
 type DetailField = {
   key: string
   label: string
@@ -1779,36 +1884,6 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       if (confirming(action)) { ui.askConfirm(null); ui.act(action, task, arg) } else ui.askConfirm(action + ':' + task.id)
     }, { disabled: busy || old, armed: confirming(action), said: confirming(action) ? t('queue.a.confirmLabel', { label }) : label }),
   ]
-  const picker = ui.picker
-  const pickerView = picker === null ? null : h('div', { className: cx('tq-picker'), 'data-tq-picker': task.id },
-    picker.allowed
-      ? [
-        h('label', { className: cx('tq-field'), key: 'm' }, h('span', null, t('queue.d.model')),
-          h('select', {
-            value: picker.model,
-            onChange: (event: { target: { value: string } }) => {
-              const model = event.target.value
-              const efforts = picker.efforts[model] ?? []
-              ui.setPicker({ ...picker, model, effort: efforts.includes(picker.effort) ? picker.effort : '' })
-            },
-          }, picker.models.map((model) => h('option', { key: model, value: model }, _modelView(model).label + ' (' + model + ')')))),
-        h('label', { className: cx('tq-field'), key: 'e' }, h('span', null, picker.flag),
-          h('select', {
-            value: picker.effort,
-            disabled: (picker.efforts[picker.model] ?? []).length === 0,
-            onChange: (event: { target: { value: string } }) => { ui.setPicker({ ...picker, effort: event.target.value }) },
-          }, [h('option', { key: '', value: '' }, t('queue.d.effortDefault')),
-            ...(picker.efforts[picker.model] ?? []).map((effort) => h('option', { key: effort, value: effort }, effort))])),
-        h('div', { className: cx('tq-picker-actions'), key: 'save' },
-          actionPill('save', t('queue.a.save'), () => {
-            ui.setPicker(null)
-            ui.act('model', task, picker.model + '|' + (picker.effort === '' ? 'default' : picker.effort))
-          }, { disabled: busy }),
-          actionPill('close', t('queue.a.close'), () => { ui.setPicker(null) }, { kind: 'view' })),
-        h('div', { className: cx('tq-caption'), key: 'hint' }, t('queue.a.modelHint')),
-      ]
-      : h('div', { className: cx('tq-note') }, picker.reason))
-
   // ---- run: what the next attempt runs with, each beside its control.
   const place = live && task.waiting === 'lock' && task.position ? t('queue.d.placeValue', { n: task.position, agent: task.agent }) : null
   const placeSub = [task.protected ? t('queue.d.protected') : null, task.priority ? t('queue.d.priorityValue', { n: task.priority }) : null]
@@ -1823,7 +1898,6 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       control: writable && (task.runnerApi ?? 2) >= 2 && !task.patrol
         ? [actionPill('model', ui.readPending === 'choices' ? t('queue.a.reading') : t('queue.a.model'), () => { ui.openPicker(task) }, { disabled: busy || reading })]
         : null,
-      after: pickerView,
     },
     place === null ? null : {
       key: 'place', label: t('queue.d.place'), value: place, sub: placeSub, wide: true,
@@ -1938,9 +2012,6 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     view.push(actionPill('log', ui.readPending === 'log' ? t('queue.a.reading') : t('queue.a.log'), () => { ui.loadLog(task) }, { disabled: reading }))
     view.push(actionPill('timeline', ui.readPending === 'timeline' ? t('queue.a.reading') : t('queue.timeline.heading'), () => { ui.loadTimeline(task) }, { disabled: reading }))
   }
-  const brief = ui.brief !== null && ui.brief.id === task.id ? ui.brief : null
-  const kb = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
-
   // ---- raw: folded, the source lines the fields above were read from.
   const raw = renderFields([
     live && task.lastEvent ? { key: 'latest', label: t('queue.d.latest'), value: task.lastEvent + (task.lastEventAtMs == null ? '' : ' · ' + stamp(task.lastEventAtMs)), mono: true } : null,
@@ -1950,57 +2021,6 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     { key: 'id', label: t('queue.d.id'), value: task.id, mono: true,
       control: [actionPill('raw-log', t('queue.a.fullLog'), () => { ui.openFullLog(task) }, { title: t('queue.a.fullLogTitle') })] },
   ])
-
-  // Read-only view blocks. The brief text comes back with the `brief` action, so
-  // a global workbench (no conversation to preview into) still reads it here.
-  const kbOf = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
-  const briefBlock = brief === null ? null : h('div', {
-    className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading'),
-  },
-    h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
-    h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { ui.openPath(brief.path) } },
-      h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kbOf(brief.bytes) })),
-      brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kbOf(brief.bytes) })) : null),
-    brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
-      : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
-        : brief.appends.map((append, index) => h('button', {
-          type: 'button', key: append.file, className: cx('tq-file'), 'data-tq-file': append.path,
-          onClick: () => { ui.openPath(append.path) },
-        },
-          h('span', { className: cx('tq-file-label') },
-            h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file })),
-            append.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, append.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
-          h('span', { className: cx('tq-tag'), 'data-tq-delivered': append.delivered ? 'true' : 'false' },
-            t(append.delivered ? 'queue.brief.delivered' : (append.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending')))))
-  const briefText = brief === null || brief.text === '' ? null : h('details', {
-    className: cx('tq-fold'), key: 'brief-text', 'data-tq-brief-text': task.id,
-  },
-    h('summary', { className: cx('tq-fold-summary') },
-      foldChevron(),
-      h('span', { className: cx('tq-fold-label') }, t('queue.brief.prompt', { kb: kbOf(brief.bytes) }))),
-    h('pre', {
-      className: cx('tq-log'), tabIndex: 0, role: 'region',
-      'aria-label': t('queue.brief.prompt', { kb: kbOf(brief.bytes) }),
-    }, brief.text))
-  const timelineBlock = ui.timeline === null ? null : h('div', {
-    className: cx('tq-timeline'), key: 'timeline', 'data-tq-timeline': task.id,
-  },
-    h('div', { className: cx('tq-caption') }, t('queue.timeline.heading')),
-    ui.timeline === 'older' ? h('div', { className: cx('tq-note') }, t('queue.timeline.older')) : [
-      h('div', { className: cx('tq-note'), key: 'source' }, t('queue.timeline.source')),
-      ui.timeline.log_missing ? h('div', { className: cx('tq-note'), key: 'missing' }, t('queue.timeline.missing')) : null,
-      ui.timeline.omitted_bytes > 0 || ui.timeline.omitted_events > 0 || ui.timeline.audit_truncated
-        ? h('div', { className: cx('tq-note'), key: 'cut' }, t('queue.timeline.cut', { bytes: ui.timeline.omitted_bytes, count: ui.timeline.omitted_events })) : null,
-      ui.timeline.events.length === 0 ? h('div', { className: cx('tq-empty'), key: 'empty' }, t('queue.timeline.empty'))
-        : h('ol', { key: 'events' }, ...ui.timeline.events.map((event, index) => h('li', { key: index },
-          h('time', null, event.stamp),
-          h('strong', null, t('queue.timeline.' + event.kind)),
-          event.text ? h('div', null, event.text) : null))),
-    ])
-  const logBlock = ui.log === null ? null : h('pre', {
-    className: cx('tq-log'), key: 'log', 'data-tq-log': task.id, tabIndex: 0, role: 'region',
-    'aria-label': t('queue.a.log'),
-  }, ui.log.join('\n'))
 
   const sections: Record<DetailSection, React.ReactElement | null> = {
     status: h('div', { className: cx('tq-d-sec', 'tq-d-hero'), key: 'status', 'data-tq-section': 'status' },
@@ -2017,10 +2037,6 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     ]),
     view: renderSection('view', null, [
       h('div', { className: cx('tq-actions'), key: 'pills', role: 'group', 'aria-label': t('queue.a.viewGroup') }, ...view),
-      briefBlock,
-      briefText,
-      timelineBlock,
-      logBlock,
     ]),
     run: renderSection('run', t('queue.d.sec.run'), [run, budgetOld]),
     allowance: renderSection('allowance', t('queue.d.sec.allowance'), [allowance]),
@@ -2044,8 +2060,11 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       extras.bottom ?? null),
     // Resident: the answer to a write, wherever the reader had scrolled to. Always mounted, so a
     // screen reader hears it when it fills.
-    h('div', { className: cx('tq-d-notice', notice !== null && (notice.ok ? 'tq-ok' : 'tq-bad')), role: 'status', 'data-tq-notice': notice === null ? undefined : 'true' },
-      notice === null ? null : notice.text))
+    h('div', {
+      className: cx('tq-d-notice', notice !== null && (notice.ok ? 'tq-ok' : 'tq-bad')), role: 'status',
+      'data-tq-notice': notice === null ? undefined : 'true',
+      'data-wb-toast': notice === null ? undefined : (notice.ok ? 'ok' : 'bad'),
+    }, notice === null ? null : notice.text))
 }
 
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
@@ -2094,7 +2113,6 @@ const WORKBENCH_GROUPS_KEY = 'workbench.groups.v2'
 /** Per-device provider pin: the reader's chosen first row in Providers. */
 const WORKBENCH_PIN_KEY = 'workbench.provider.pin.v1'
 type WorkbenchGroup = 'stuck' | 'pending' | 'live'
-type WorkbenchTab = 'tasks' | 'providers' | 'overview'
 type WorkbenchGroups = Record<WorkbenchGroup, boolean>
 /** The alarm group is open until the reader folds it; the other two start closed. */
 const WORKBENCH_GROUPS_DEFAULT: WorkbenchGroups = { stuck: true, pending: true, live: false }
@@ -2494,9 +2512,30 @@ function WorkbenchDetail(props: {
 export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const { t } = props
   const queue = useTaskQueue(props)
-  const [tab, setTab] = useState<WorkbenchTab>('tasks')
-  const [view, setView] = useState<'queue' | 'focus' | 'patrol'>('queue')
-  const [selected, setSelected] = useState<string | null>(null)
+  // The one view/overlay machine (src/workbench.ts). No other assignment to a
+  // tab, layer, sheet or toast is allowed; every navigation goes through
+  // `navigate`, which calls the single reducer.
+  const [nav, setNav] = useState<WorkbenchState>(initialWorkbenchState)
+  const tab = nav.tab
+  const view = nav.phase
+  const selected = nav.taskId
+  const navigate = (action: WorkbenchAction): void => {
+    setNav((current) => reduceWorkbench(current, action, {
+      strict: typeof globalThis !== 'undefined'
+        && (globalThis as { __CLAWOCK_WORKBENCH_STRICT__?: boolean }).__CLAWOCK_WORKBENCH_STRICT__ === true,
+    }))
+  }
+  const showToast = (toast: WorkbenchToast): void => { navigate({ type: 'TOAST', ok: toast.ok, text: toast.text }) }
+  const clearToast = (): void => { if (nav.toast !== null) navigate({ type: 'DISMISS_TOAST' }) }
+  const closeSheet = (): void => {
+    const kind = nav.sheet
+    navigate({ type: 'CLOSE_SHEET' })
+    if (kind === 'picker') setPicker(null)
+    else if (kind === 'log') setLog(null)
+    else if (kind === 'timeline') setTimeline(null)
+    else if (kind === 'brief') setBrief(null)
+  }
+  const notice = nav.toast
   const [snapshot, setSnapshot] = useState<DispatchTask | null>(null)
   const [groups, setGroups] = useState<WorkbenchGroups>(readWorkbenchGroups)
   const [showAll, setShowAll] = useState<Partial<Record<WorkbenchGroup, boolean>>>({})
@@ -2505,12 +2544,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   // toggle away instead of being a second permanent list.
   const [groupBy, setGroupBy] = useState<'status' | 'source'>('status')
   const [sourceOpen, setSourceOpen] = useState<Record<string, boolean>>({})
-  const [overviewStatsOpen, setOverviewStatsOpen] = useState(false)
-  const [overviewHistoryOpen, setOverviewHistoryOpen] = useState(false)
   const [pinnedProvider, setPinnedProvider] = useState<string | null>(readWorkbenchPin)
   const [updated, setUpdated] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
-  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [confirmStop, setConfirmStop] = useState(false)
   const [submittedAt, setSubmittedAt] = useState<string | null>(null)
   // The old task-detail layer's own state (writes, reads, pickers). It is kept
@@ -2523,11 +2559,18 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const [readPending, setReadPending] = useState<string | null>(null)
   const desktop = useMedia(WORKBENCH_WIDE)
   const narrow = useMedia('(max-width: 359px)')
-  const balances = useProviderReadings(props, 'workbench-page', tab === 'providers')
-  const stats = useTaskStats(props, tab === 'overview')
+  const subs = workbenchSubscriptions(nav)
+  const balances = useProviderReadings(props, 'workbench-page', subs.balances)
+  const stats = useTaskStats(props, subs.stats)
   const titleRef = useRef<HTMLElement | null>(null)
   const patrolBackRef = useRef<HTMLButtonElement | null>(null)
+  const statsBackRef = useRef<HTMLButtonElement | null>(null)
+  const historyBackRef = useRef<HTMLButtonElement | null>(null)
   const patrolOpenerRef = useRef<HTMLButtonElement | null>(null)
+  const statsOpenerRef = useRef<HTMLButtonElement | null>(null)
+  const historyOpenerRef = useRef<HTMLButtonElement | null>(null)
+  const queueScroll = useRef(0)
+  const navRef = useRef(nav)
   const rowRefs = useRef(new Map<string, HTMLButtonElement>())
   const groupRefs = useRef(new Map<WorkbenchGroup, HTMLButtonElement>())
   const openedInitial = useRef(false)
@@ -2545,7 +2588,6 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const detailRequest = useRef(0)
   const activeDetail = useRef<string | null>(null)
-  const historyReturn = useRef<string | null>(null)
   const groupId = useId()
   const now = Date.now()
   const result = queue.data.result
@@ -2641,21 +2683,71 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   // never steal a selection the reader made while data was arriving.
   useEffect(() => {
     if (!desktop || selected !== null || rendered.length === 0) return
-    setSelected(rendered[0]!.id)
+    navigate({ type: 'SELECT_TASK', id: rendered[0]!.id })
     setSnapshot(rendered[0]!)
   }, [desktop, selected, firstRendered])
-  // Each detail layer owns its own first focus. The task layer focuses its
-  // title (phone only; desktop keeps the column), the patrol layer focuses its
-  // back control because it replaces the Overview page.
+  // One effects engine for the state machine. `effectsFor` decides; this
+  // switch only knows how to perform a named effect. No navigation handler
+  // focuses or scrolls on its own.
+  const previousNav = useRef(nav)
   useEffect(() => {
-    if (view === 'patrol') {
-      const timer = setTimeout(() => { patrolBackRef.current?.focus({ preventScroll: true }) }, 0)
-      return () => clearTimeout(timer)
+    const previous = previousNav.current
+    if (previous === nav) return
+    previousNav.current = nav
+    if (typeof document === 'undefined') return
+    const effects = effectsFor(previous, nav)
+    if (effects.length === 0) return
+    const later = (read: () => HTMLElement | null, ms = 0): void => {
+      setTimeout(() => { read()?.focus({ preventScroll: true }) }, ms)
     }
-    if (desktop || view !== 'focus') return
-    const timer = setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
-    return () => clearTimeout(timer)
-  }, [desktop, view, selected])
+    const scroller = (): HTMLElement | null => document.querySelector<HTMLElement>('[data-wb-scroll]')
+    for (const effect of effects) {
+      switch (effect) {
+        case 'focus:task-title':
+          if (!desktop) later(() => titleRef.current)
+          break
+        case 'focus:patrol-back':
+          later(() => patrolBackRef.current)
+          break
+        case 'focus:stats-back':
+          later(() => statsBackRef.current)
+          break
+        case 'focus:history-back':
+          if (!effects.includes('focus:history-row')) later(() => historyBackRef.current)
+          break
+        case 'focus:task-row':
+          if (nav.phase === 'queue') later(() => nav.taskId === null ? null : rowRefs.current.get(nav.taskId) ?? null)
+          break
+        case 'focus:history-row':
+          later(() => nav.taskId === null ? null
+            : document.querySelector<HTMLElement>('[data-wb-history="' + CSS.escape(nav.taskId) + '"]'), 20)
+          break
+        case 'focus:overview-entry': {
+          const phase = previous.phase
+          if (phase === 'patrol' || phase === 'stats' || phase === 'history') {
+            later(() => document.querySelector<HTMLElement>('[data-wb-group-button="overview-' + phase + '"]'))
+          }
+          break
+        }
+        case 'focus:sheet-close':
+          later(() => document.querySelector<HTMLElement>('[data-wb-sheet-back]'))
+          break
+        case 'focus:sheet-trigger': {
+          const key = previous.sheet === 'picker' ? 'model' : previous.sheet
+          if (key !== null) later(() => document.querySelector<HTMLElement>('[data-tq-action="' + key + '"]'))
+          break
+        }
+        case 'scroll:layer-top':
+          if (nav.phase !== 'queue') { const element = scroller(); if (element !== null) element.scrollTop = 0 }
+          break
+        case 'scroll:queue-restore':
+          if (nav.phase === 'queue') { const element = scroller(); if (element !== null) element.scrollTop = queueScroll.current }
+          break
+        default:
+          break
+      }
+    }
+  }, [nav.phase, nav.tab, nav.taskId, nav.sheet, nav.origin, desktop])
   useEffect(() => {
     if (confirmStop) {
       if (confirmTimer.current !== null) clearTimeout(confirmTimer.current)
@@ -2723,7 +2815,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   }
   const selectTab = (id: WorkbenchTab): void => {
     if (id === tab) return
-    setTab(id)
+    navigate({ type: 'TAB', tab: id })
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => { tabRefs.current.get(id)?.focus({ preventScroll: true }) })
     }
@@ -2740,72 +2832,49 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     event.preventDefault()
     selectTab(next)
   }
-  const choose = (task: DispatchTask): void => {
+  const choose = (task: DispatchTask, mode: 'open' | 'select' = 'open'): void => {
     detailRequest.current += 1
     activeDetail.current = task.id
-    setSelected(task.id)
+    if (mode === 'select') navigate({ type: 'SELECT_TASK', id: task.id })
+    else navigate({ type: 'OPEN_TASK', id: task.id, mobile: !desktop, from: nav.phase === 'history' ? 'history' : 'tasks' })
     setSnapshot(task)
     setSubmittedAt(null)
-    setNotice(null)
+    if (nav.toast !== null) navigate({ type: 'DISMISS_TOAST' })
     setConfirmStop(false)
     setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
   }
   const open = (task: DispatchTask): void => {
     choose(task)
-    if (!desktop) setView('focus')
-    else setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
   }
   // Patrol is its own detail layer, not a fold inside Overview and not the
   // coverage block of a task: one `view` value means entering either layer
   // unmounts the other, and Overview is the shared layer underneath both.
   const openPatrol = (): void => {
-    setView('patrol')
-    setNotice(null)
+    navigate({ type: 'OPEN_PATROL' })
     setConfirmStop(false)
   }
-  const closePatrol = (): void => {
-    setView('queue')
-    setNotice(null)
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => {
-        const opener = patrolOpenerRef.current
-          ?? document.querySelector<HTMLButtonElement>('[data-wb-group-button="overview-patrol"]')
-        opener?.focus({ preventScroll: false })
-      })
-    }
+  const openStats = (): void => {
+    navigate({ type: 'OPEN_STATS' })
+    setConfirmStop(false)
   }
+  const openHistory = (): void => {
+    navigate({ type: 'OPEN_HISTORY' })
+    setConfirmStop(false)
+  }
+  const closePatrol = (): void => { navigate({ type: 'BACK' }) }
   const back = (): void => {
-    const id = selected
-    const task = shown
-    const returnHistory = tab === 'overview' ? historyReturn.current : null
-    historyReturn.current = null
-    setView('queue')
-    setNotice(null)
+    navigate({ type: 'BACK' })
     setConfirmStop(false)
     detailRequest.current += 1
     activeDetail.current = null
     setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => {
-        if (returnHistory !== null) {
-          const historyRow = document.querySelector<HTMLElement>('[data-wb-history="' + CSS.escape(returnHistory) + '"]')
-          if (historyRow !== null) { historyRow.focus({ preventScroll: false }); return }
-        }
-        const row = id === null ? undefined : rowRefs.current.get(id)
-        if (row !== undefined) {
-          row.focus({ preventScroll: false })
-          return
-        }
-        if (task !== null) groupRefs.current.get(isStuckTask(task) ? 'stuck' : 'pending')?.focus({ preventScroll: false })
-      })
-    }
   }
   const move = (from: DispatchTask, delta: number): void => {
     const index = rendered.findIndex((task) => task.id === from.id)
     if (index < 0) return
     const next = rendered[Math.max(0, Math.min(rendered.length - 1, index + delta))]
     if (next === undefined) return
-    choose(next)
+    choose(next, 'select')
     const element = rowRefs.current.get(next.id)
     if (element !== undefined) element.focus()
   }
@@ -2820,6 +2889,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       const root = document.querySelector('[data-wb]')
       if (root === null || root.getClientRects().length === 0) return
       if (event.key === 'Escape') {
+        if (nav.sheet !== null) { event.preventDefault(); closeSheet(); return }
         if (confirmStop) { event.preventDefault(); setConfirmStop(false); return }
         if (view === 'patrol') { event.preventDefault(); closePatrol(); return }
         if (!desktop && view === 'focus') { event.preventDefault(); back(); return }
@@ -2854,7 +2924,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return undefined
     window.addEventListener('keydown', onKey)
     return () => { window.removeEventListener('keydown', onKey) }
-  }, [confirmStop, desktop, view, selected, rendered, shown, groups, tab])
+  }, [confirmStop, desktop, view, selected, rendered, shown, groups, tab, nav.sheet])
 
   const refresh = (): void => {
     setUpdated(false)
@@ -2870,19 +2940,18 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const advance = (): void => {
     const index = rendered.findIndex((task) => task.id === selected)
     const next = rendered.find((task, at) => task.id !== selected && at >= index + 1) ?? rendered.find((task) => task.id !== selected)
-    if (next === undefined) { setView('queue'); return }
+    if (next === undefined) { navigate({ type: 'BACK' }); return }
     choose(next)
-    if (!desktop) setView('focus')
   }
   const act = (action: 'continue' | 'modify' | 'stop'): void => {
     if (shown === null || props.runWorkbenchAction === undefined || busy !== null) return
     if (action === 'stop' && !confirmStop) { setConfirmStop(true); return }
     setBusy(action)
-    setNotice(null)
+    clearToast()
     props.runWorkbenchAction(action, shown.id).then((answer) => {
       setBusy(null)
       if (!answer.ok) {
-        setNotice({ ok: false, text: t('workbench.actionFailed', { message: answer.message || String(answer.code) }) })
+        showToast({ ok: false, text: t('workbench.actionFailed', { message: answer.message || String(answer.code) }) })
         return
       }
       setConfirmStop(false)
@@ -2890,7 +2959,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       queue.refresh()
     }, (error: unknown) => {
       setBusy(null)
-      setNotice({ ok: false, text: t('workbench.actionFailed', { message: error instanceof Error ? error.message : String(error) }) })
+      showToast({ ok: false, text: t('workbench.actionFailed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
   // ---- The old detail layer's reads and writes ---------------------------------
@@ -2907,20 +2976,20 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const queueAct = (action: string, task: DispatchTask, arg = ''): void => {
     if (runAction === undefined || busy !== null) return
     setBusy(action + ':' + task.id)
-    setNotice(null)
+    clearToast()
     runAction(action, task.id, arg).then((answer) => {
       setBusy(null)
-      setNotice({ ok: answer.ok, text: needsHost(answer) ? t('queue.r.needsHost') : _describeAction(answer, t) })
+      showToast({ ok: answer.ok, text: needsHost(answer) ? t('queue.r.needsHost') : _describeAction(answer, t) })
       queue.refresh()
     }, (error: unknown) => {
       setBusy(null)
-      setNotice({ ok: false, text: t('queue.r.failed', { message: error instanceof Error ? error.message : String(error) }) })
+      showToast({ ok: false, text: t('queue.r.failed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
   const openPath = (path: string): void => {
     const opened = props.openFile === undefined ? { ok: false as const, reason: 'no-service' as const } : props.openFile(path)
     const file = path.slice(path.lastIndexOf('/') + 1)
-    setNotice(opened.ok ? { ok: true, text: t('queue.brief.opened', { file }) }
+    showToast(opened.ok ? { ok: true, text: t('queue.brief.opened', { file }) }
       : { ok: false, text: opened.reason === 'no-session' ? t('queue.brief.noSession', { path })
         : opened.reason === 'no-service' ? t('queue.brief.noService', { path })
           : t('queue.brief.failed', { message: opened.message ?? '', path }) })
@@ -2929,10 +2998,12 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     const logDir = result?.logDir
     const fallback = logDir ? logDir.replace(/\/+$/, '') + '/' + task.id + '/prompt.md' : null
     setConfirm(null)
-    const noDir = (): void => { setNotice({ ok: false, text: t('queue.brief.noDir') }) }
+    const noDir = (): void => { showToast({ ok: false, text: t('queue.brief.noDir') }) }
     if (runAction === undefined) {
       if (fallback === null) { noDir(); return }
-      setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true, text: '' }); return
+      setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true, text: '' })
+      navigate({ type: 'OPEN_SHEET', sheet: 'brief' })
+      return
     }
     const request = detailRequest.current
     setReadPending('brief')
@@ -2943,7 +3014,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       let detail: Answer = {}
       try { detail = JSON.parse(answer.detail || '{}') as Answer } catch { detail = {} }
       if (!answer.ok && !needsHost(answer)) {
-        setNotice({ ok: false, text: t('queue.a.readFailed', { message: answer.message }) })
+        showToast({ ok: false, text: t('queue.a.readFailed', { message: answer.message }) })
         return
       }
       const path = (answer.ok ? detail.path : undefined) ?? fallback
@@ -2952,15 +3023,16 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         ? { id: task.id, path, bytes: detail.brief_bytes ?? 0, truncated: detail.truncated === true, appends: detail.appends ?? [], needsHost: false, text: detail.brief ?? '' }
         : { id: task.id, path, bytes: 0, truncated: false, appends: [], needsHost: true, text: '' }
       setBrief(view)
+      navigate({ type: 'OPEN_SHEET', sheet: 'brief' })
     }, (error: unknown) => {
       if (request !== detailRequest.current || activeDetail.current !== task.id) return
       setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+      showToast({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
   const openFullLog = (task: DispatchTask): void => {
     const logDir = result?.logDir
-    if (!logDir) { setNotice({ ok: false, text: t('queue.a.logNoDir') }); return }
+    if (!logDir) { showToast({ ok: false, text: t('queue.a.logNoDir') }); return }
     const path = logDir.replace(/\/+$/, '') + '/' + task.id + '/run.log'
     const opened = props.openFile === undefined ? { ok: false as const } : props.openFile(path)
     // The workbench is a global main panel, so dsh has no conversation to
@@ -2985,10 +3057,11 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         model: detail.requested?.model ?? task.modelRequested ?? task.model, effort: detail.requested?.effort ?? '',
         allowed: answer.ok && detail.allowed === true, reason: answer.ok ? detail.reason ?? '' : answer.message,
       })
+      navigate({ type: 'OPEN_SHEET', sheet: 'picker' })
     }, (error: unknown) => {
       if (request !== detailRequest.current || activeDetail.current !== task.id) return
       setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+      showToast({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
   const loadLog = (task: DispatchTask): void => {
@@ -3003,10 +3076,11 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       let lines: string[] = []
       try { lines = (JSON.parse(answer.detail || '{}') as { lines?: string[] }).lines ?? [] } catch { lines = [] }
       setLog(answer.ok ? lines : [answer.message])
+      navigate({ type: 'OPEN_SHEET', sheet: 'log' })
     }, (error: unknown) => {
       if (request !== detailRequest.current || activeDetail.current !== task.id) return
       setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+      showToast({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
   const loadTimeline = (task: DispatchTask): void => {
@@ -3016,14 +3090,15 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     runAction('log', task.id, '').then((answer) => {
       if (request !== detailRequest.current || activeDetail.current !== task.id) return
       setReadPending(null)
-      if (!answer.ok) { setNotice({ ok: false, text: t('queue.a.readFailed', { message: answer.message }) }); return }
+      if (!answer.ok) { showToast({ ok: false, text: t('queue.a.readFailed', { message: answer.message }) }); return }
       let reply: { timeline?: TaskTimeline } = {}
       try { reply = JSON.parse(answer.detail || '{}') as typeof reply } catch { /* older ops */ }
       setTimeline(reply.timeline ?? 'older')
+      navigate({ type: 'OPEN_SHEET', sheet: 'timeline' })
     }, (error: unknown) => {
       if (request !== detailRequest.current || activeDetail.current !== task.id) return
       setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+      showToast({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
   const windowsOf = (agent: string): ReadonlyArray<{ resetAtMs?: number | null }> | undefined => agentWindows(rowMap, agent)
@@ -3049,6 +3124,54 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog, brief, readPending,
     openBrief, openFullLog, openPath, windowsOf, sourceOf, timeline, loadTimeline,
   })
+
+  const shownLive = shown !== null && (result?.active ?? []).some((task) => task.id === shown.id)
+  // The detail sheet: one overlay over focus, never a phase of its own. The
+  // scrim is an explicit z-axis barrier (excluded from the geometry audit);
+  // the panel is opaque, so its content never reads through the page.
+  const renderSheet = (): React.ReactElement | null => {
+    const kind = nav.sheet
+    if (kind === null || shown === null) return null
+    const title = kind === 'brief' ? t('queue.brief.heading')
+      : kind === 'log' ? t('queue.a.log')
+        : kind === 'timeline' ? t('queue.timeline.heading')
+          : t('queue.d.model')
+    const body: React.ReactNode[] = kind === 'brief'
+      ? [renderBriefBlock(shown, brief !== null && brief.id === shown.id ? brief : null, t, openPath, shownLive),
+        renderBriefText(shown, brief !== null && brief.id === shown.id ? brief : null, t)]
+      : kind === 'log' ? [renderLogBlock(shown, log, t)]
+        : kind === 'timeline' ? [renderTimelineBlock(shown, timeline, t)]
+          : [picker === null
+            ? h('div', { className: cx('tq-empty') }, t('queue.a.reading'))
+            : renderPickerBlock(shown, picker, t, {
+              setPicker,
+              save: (model, effort) => {
+                closeSheet()
+                queueAct('model', shown, model + '|' + (effort === '' ? 'default' : effort))
+              },
+              close: closeSheet,
+              busy: busy !== null,
+            })]
+    return h('div', {
+      className: cx('wb-overlay'), 'data-wb-overlay': 'sheet', 'data-wb-sheet-kind': kind,
+    },
+      h('div', {
+        className: cx('wb-scrim'), 'data-wb-scrim': 'true', 'aria-hidden': 'true',
+        onClick: closeSheet,
+      }),
+      h('div', {
+        className: cx('wb-sheet'), role: 'dialog', 'aria-modal': 'true', 'aria-label': title,
+        'data-wb-sheet': kind,
+      },
+        h('div', { className: cx('wb-sheet-head') },
+          h('span', { className: cx('wb-sheet-title') }, title),
+          h('button', {
+            type: 'button', className: cx('wb-sheet-close'), 'data-wb-sheet-back': 'true',
+            'aria-label': t('queue.a.close'), title: t('queue.a.close'), onClick: closeSheet,
+          }, '×')),
+        h('div', { className: cx('wb-sheet-body') }, ...body)))
+  }
+  const sheetNode = renderSheet()
 
   const renderQueue = (): React.ReactElement => {
     if (pending.length === 0 && live.length === 0) {
@@ -3159,88 +3282,73 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         }), split.review, 'neutral', renderRow),
         live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live, 'neutral', renderLive)))
   }
+  // Overview's summaries and the Stats/History layers read the same
+  // projections; compute them once so a layer cannot disagree with its entry.
+  const statsFailed = stats.data !== null && !stats.data.available
+  const totals = statsFailed ? null : statsData?.totals ?? null
+  const metrics: Array<[string, string]> = [
+    [t('stats.metric.tasks'), totals === null ? '—' : String(totals.tasks)],
+    [t('stats.metric.tokens'), totals === null ? '—' : totals.tokensText],
+    [t('stats.metric.cost'), totals === null ? '—' : totals.costText],
+  ]
+  const doneN = totals?.done ?? 0
+  const unfinishedN = totals === null ? 0 : Math.max(0, totals.settled - totals.done)
+  const settledN = doneN + unfinishedN
+  const statsMessage = statsData === null
+    ? stats.error !== null ? t('workbench.overview.unavailable', { message: stats.error })
+      : props.fetchTaskStats === undefined ? t('workbench.overview.noHost') : t('workbench.overview.loading')
+    : statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' }) : null
+  const statsTop = h('div', { className: cx('wb-ov-stats') },
+    h('div', { className: cx('wb-ov-metrics') },
+      ...metrics.map(([label, value], at) => h('div', { className: cx('wb-ov-metric'), key: 'm' + at },
+        h('span', { className: cx('wb-ov-metric-label') }, label),
+        h('span', { className: cx('wb-ov-metric-value') }, value)))),
+    h('div', { className: cx('wb-ov-done'), 'data-wb-overview-done': String(doneN) },
+      h('div', { className: cx('wb-ov-done-bar') },
+        h('span', { className: cx('wb-ov-done-fill'), style: { width: (settledN > 0 ? doneN / settledN * 100 : 0) + '%' } }),
+        h('span', { className: cx('wb-ov-open-fill'), style: { width: (settledN > 0 ? unfinishedN / settledN * 100 : 0) + '%' } })),
+      h('div', { className: cx('wb-ov-done-labels') },
+        h('span', null, t('workbench.overview.done', { n: doneN })),
+        h('span', null, t('workbench.overview.open', { n: unfinishedN })))))
+  const statsError = statsFailed || (statsData === null && stats.error !== null)
+  const statsBody = statsError
+    ? h('div', { className: cx('wb-ov-body', 'pbc') },
+      h('div', { className: cx('tq-stats-error'), 'data-tq-stats-error': 'true', role: 'status' },
+        h('span', { className: cx('tq-stats-error-text') }, statsMessage ?? ''),
+        h('button', {
+          type: 'button', className: cx('tq-pill', 'tq-stats-retry'), 'data-tq-stats-retry': 'true',
+          disabled: stats.loading,
+          onClick: () => { stats.refresh() },
+        }, t('stats.retry'))))
+    : statsMessage !== null
+      ? h('div', { className: cx('wb-ov-body', 'pbc') }, h('p', { className: cx('wb-ov-note') }, statsMessage))
+      : h('div', null, statsTop, statsData === null ? null : renderStatsBody(statsData, t))
+  const statsSummary = statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' })
+    : statsData?.summaryLine ?? (stats.loading ? t('workbench.overview.loading') : '—')
+  const historyRows = historyRowsView(result, t, now)
+  const footer = opsFooter(result, t)
+  const openHistoryRow = (id: string, _element: HTMLElement | null): void => {
+    const task = (result?.recent ?? []).find((row) => row.id === id)
+    if (task === undefined) return
+    setSnapshot(task)
+    detailRequest.current += 1
+    activeDetail.current = task.id
+    navigate({ type: 'OPEN_TASK', id: task.id, mobile: !desktop, from: 'history' })
+    setSubmittedAt(null)
+    clearToast()
+  }
   const renderOverview = (): React.ReactElement => {
-    const overviewGroup = (id: string, label: string, open: boolean, onToggle: () => void, summary: string | undefined, body: React.ReactNode): React.ReactElement =>
+    const entry = (id: WorkbenchPhase, label: string, summary: string, ref: (element: HTMLButtonElement | null) => void, onOpen: () => void): React.ReactElement =>
       h('section', {
         className: cx('wb-group-section', 'wb-ov-group'), 'data-wb-overview-group': id,
-        'data-wb-open': open ? 'true' : 'false',
-      },
-        h(WorkbenchGroupHeader, {
-          id: 'overview-' + id, label, open, tone: 'neutral', bodyId: groupId + '-ov-' + id, summary,
-          buttonRef: () => {},
-          onToggle,
-        }),
-        h('div', {
-          className: cx('wb-group-body'), id: groupId + '-ov-' + id, 'aria-hidden': open ? undefined : 'true',
-          inert: open ? undefined : '',
-        }, h('div', { className: cx('wb-group-body-inner') }, body)))
-    const statsFailed = stats.data !== null && !stats.data.available
-    const totals = statsFailed ? null : statsData?.totals ?? null
-    const metrics: Array<[string, string]> = [
-      [t('stats.metric.tasks'), totals === null ? '—' : String(totals.tasks)],
-      [t('stats.metric.tokens'), totals === null ? '—' : totals.tokensText],
-      [t('stats.metric.cost'), totals === null ? '—' : totals.costText],
-    ]
-    const doneN = totals?.done ?? 0
-    const unfinishedN = totals === null ? 0 : Math.max(0, totals.settled - totals.done)
-    const settledN = doneN + unfinishedN
-    const statsMessage = statsData === null
-      ? stats.error !== null ? t('workbench.overview.unavailable', { message: stats.error })
-        : props.fetchTaskStats === undefined ? t('workbench.overview.noHost') : t('workbench.overview.loading')
-      : statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' }) : null
-    const statsTop = h('div', { className: cx('wb-ov-stats') },
-      h('div', { className: cx('wb-ov-metrics') },
-        ...metrics.map(([label, value], at) => h('div', { className: cx('wb-ov-metric'), key: 'm' + at },
-          h('span', { className: cx('wb-ov-metric-label') }, label),
-          h('span', { className: cx('wb-ov-metric-value') }, value)))),
-      h('div', { className: cx('wb-ov-done'), 'data-wb-overview-done': String(doneN) },
-        h('div', { className: cx('wb-ov-done-bar') },
-          h('span', { className: cx('wb-ov-done-fill'), style: { width: (settledN > 0 ? doneN / settledN * 100 : 0) + '%' } }),
-          h('span', { className: cx('wb-ov-open-fill'), style: { width: (settledN > 0 ? unfinishedN / settledN * 100 : 0) + '%' } })),
-        h('div', { className: cx('wb-ov-done-labels') },
-          h('span', null, t('workbench.overview.done', { n: doneN })),
-          h('span', null, t('workbench.overview.open', { n: unfinishedN })))))
-    const statsError = statsFailed || (statsData === null && stats.error !== null)
-    const statsBody = statsError
-      ? h('div', { className: cx('wb-ov-body', 'pbc') },
-        h('div', { className: cx('tq-stats-error'), 'data-tq-stats-error': 'true', role: 'status' },
-          h('span', { className: cx('tq-stats-error-text') }, statsMessage ?? ''),
-          h('button', {
-            type: 'button', className: cx('tq-pill', 'tq-stats-retry'), 'data-tq-stats-retry': 'true',
-            disabled: stats.loading,
-            onClick: () => { stats.refresh() },
-          }, t('stats.retry'))))
-      : statsMessage !== null
-        ? h('div', { className: cx('wb-ov-body', 'pbc') }, h('p', { className: cx('wb-ov-note') }, statsMessage))
-        : h('div', null, statsTop, statsData === null ? null : renderStatsBody(statsData, t))
-    const statsSummary = statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' })
-      : statsData?.summaryLine ?? (stats.loading ? t('workbench.overview.loading') : '—')
-    const historyRows = historyRowsView(result, t, now)
-    const footer = opsFooter(result, t)
-    const openHistory = (id: string, _element: HTMLElement | null): void => {
-      const task = (result?.recent ?? []).find((row) => row.id === id)
-      if (task === undefined) return
-      historyReturn.current = id
-      choose(task)
-      if (!desktop) setView('focus')
-      else setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
-    }
-    return h('div', { className: cx('wb-ov'), 'data-wb-overview': 'true' },
-      h('section', {
-        className: cx('wb-group-section', 'wb-ov-group'), 'data-wb-overview-group': 'patrol',
         'data-wb-open': 'false',
       },
-        h(WorkbenchEntryHeader, {
-          id: 'overview-patrol', label: t('workbench.overview.patrol'), summary: patrolSummary,
-          buttonRef: (element: HTMLButtonElement | null) => { patrolOpenerRef.current = element },
-          onOpen: openPatrol,
-        })),
-      overviewGroup('stats', t('workbench.overview.stats'), overviewStatsOpen,
-        () => { setOverviewStatsOpen((open) => !open) }, statsSummary, statsBody),
-      overviewGroup('history', t('workbench.overview.history'), overviewHistoryOpen,
-        () => { setOverviewHistoryOpen((open) => !open) },
-        t('workbench.overview.historySummary', { n: historyRows.length }),
-        renderHistoryBody(historyRows, t, openHistory)),
+        h(WorkbenchEntryHeader, { id: 'overview-' + id, label, summary, buttonRef: ref, onOpen }))
+    return h('div', { className: cx('wb-ov'), 'data-wb-overview': 'true' },
+      entry('patrol', t('workbench.overview.patrol'), patrolSummary, (element) => { patrolOpenerRef.current = element }, openPatrol),
+      entry('stats', t('workbench.overview.stats'), statsSummary, (element) => { statsOpenerRef.current = element }, openStats),
+      entry('history', t('workbench.overview.history'), t('workbench.overview.historySummary', { n: historyRows.length }),
+        (element) => { historyOpenerRef.current = element }, openHistory),
       footer === null ? null : h('p', {
         className: cx('wb-ov-foot', footer.bad && 'wb-ov-foot-bad'), 'data-wb-ops': footer.version,
       }, footer.text))
@@ -3273,7 +3381,6 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         },
       })))
   }
-  const shownLive = shown !== null && (result?.active ?? []).some((task) => task.id === shown.id)
   const showPresets = shown !== null && (!shownLive || shown.question === true)
   const needsBlock = shown === null ? null : h('div', { className: cx('wb-needs-block') },
     h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
@@ -3368,10 +3475,37 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         patrol === null
           ? h('div', { className: cx('wb-ov') },
             h('p', { className: cx('wb-ov-note') }, t('workbench.overview.noPatrol', { time: nextTime })))
-          : h('div', { className: cx('wb-ov') }, renderPatrolBody(summary, patrol, t))))
+          : h('div', { className: cx('wb-ov') }, renderPatrolBody(summary, patrol, t))),
+      sheetNode)
   }
 
+  // Stats and History are detail layers in the same machine as Patrol: one
+  // `phase` means entering any of them replaces the Overview page, and Back
+  // returns to the overview entry that opened it.
+  const renderStatsLayer = (): React.ReactElement => h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'stats' },
+    h('div', { className: cx('wb-returnbar') },
+      h('button', {
+        type: 'button', className: cx('wb-back'), 'data-wb-stats-back': 'true',
+        'aria-label': t('workbench.back.overview'), title: t('workbench.back.overview'),
+        ref: statsBackRef, onClick: () => { navigate({ type: 'BACK' }) },
+      }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.back.overview'))),
+    h('div', {
+      className: cx('wb-view', 'pbc'), 'data-wb-scroll': 'true', 'data-wb-stats-layer': 'true',
+    }, h('div', { className: cx('wb-ov') }, statsBody)), sheetNode)
+  const renderHistoryLayer = (): React.ReactElement => h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'history' },
+    h('div', { className: cx('wb-returnbar') },
+      h('button', {
+        type: 'button', className: cx('wb-back'), 'data-wb-history-back': 'true',
+        'aria-label': t('workbench.back.overview'), title: t('workbench.back.overview'),
+        ref: historyBackRef, onClick: () => { navigate({ type: 'BACK' }) },
+      }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.back.overview'))),
+    h('div', {
+      className: cx('wb-view', 'pbc'), 'data-wb-scroll': 'true', 'data-wb-history-layer': 'true',
+    }, h('div', { className: cx('wb-ov') }, renderHistoryBody(historyRows, t, openHistoryRow))), sheetNode)
+
   if (view === 'patrol') return renderPatrolLayer()
+  if (view === 'stats') return renderStatsLayer()
+  if (view === 'history') return renderHistoryLayer()
 
   if (!desktop && view === 'focus') {
     return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'focus' },
@@ -3380,7 +3514,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           type: 'button', className: cx('wb-back'), 'data-wb-back': 'true',
           'aria-label': t('workbench.back'), title: t('workbench.back'), onClick: back,
         }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.back'))),
-      h('div', { className: cx('wb-view'), key: 'focus' }, detail))
+      h('div', { className: cx('wb-view'), key: 'focus' }, detail), sheetNode)
   }
   const tabs = h('div', { className: cx('wb-tabs'), role: 'tablist', 'aria-label': t('workbench.tab.aria'), 'data-wb-tabs': 'true' },
     h('button', {
@@ -3465,7 +3599,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           // Providers and Overview are full-width segments; the task detail
           // belongs to Tasks and must not sit beside an unrelated overview.
           : h('div', { className: cx('wb-pane'), 'data-wb-pane': 'true' }, mainPanel)
-        : mainPanel))
+        : mainPanel), sheetNode)
 }
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const t = props.t

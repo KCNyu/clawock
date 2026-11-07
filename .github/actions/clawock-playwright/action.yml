@@ -12,9 +12,13 @@ description: >-
 # workflow that installs Playwright without coming through this door.
 inputs:
   version:
-    description: Playwright version. Doubles as the complete cache key.
+    description: Playwright version. Doubles as the cache key with the browser set.
     required: false
     default: '1.60.0'
+  browsers:
+    description: Browsers to install (space separated). The cache key includes this set.
+    required: false
+    default: 'chromium'
 
 runs:
   using: composite
@@ -33,7 +37,7 @@ runs:
       uses: actions/cache@v6
       with:
         path: ~/.cache/ms-playwright
-        key: playwright-${{ inputs.version }}-${{ runner.os }}
+        key: playwright-${{ inputs.version }}-${{ runner.os }}-${{ inputs.browsers }}
 
     - name: Install Playwright + Chromium
       shell: bash
@@ -43,7 +47,7 @@ runs:
         # are not restored by the cache, so they are installed either way;
         # only the browser download is skipped on a hit.
         if [ "${{ steps.browser-cache.outputs.cache-hit }}" = "true" ]; then
-          npx playwright install-deps chromium
+          npx playwright install-deps ${{ inputs.browsers }}
         else
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps ${{ inputs.browsers }}
         fi

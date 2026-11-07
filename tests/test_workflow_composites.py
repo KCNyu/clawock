@@ -165,7 +165,7 @@ def test_the_playwright_composite_owns_the_version_and_the_cache_key():
     version = re.search(r"default: '(\d+\.\d+\.\d+)'", composite)
     assert version, "the playwright pin must be a plain default input"
     for marker in (
-        "playwright-${{ inputs.version }}-${{ runner.os }}",
+        "playwright-${{ inputs.version }}-${{ runner.os }}-${{ inputs.browsers }}",
         "path: ~/.cache/ms-playwright",
         "playwright@${{ inputs.version }}",
     ):
