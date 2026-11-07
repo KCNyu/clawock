@@ -1181,33 +1181,42 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   // contract is the data attribute itself, not its quoting.
   assert.match(css, /_bchip-v\[data-balance-state=low\]/, "chip low value selector required");
   assert.match(css, /_bp\[data-open=false\]/, "closed-panel state selector required");
-  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*width:calc\(100vw - 16px\)/,
-    "the phone sheet uses the host's drawer breakpoint and 8px side margins");
-  assert.match(css, /@media \(width<=767px\)\{[\s\S]*?_pp-row\{min-height:36px\}/,
-    "phone rows follow the host drawer's 36px rhythm");
+  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*position:absolute[^}]*inset:52px/,
+    "the phone panel is a page inside the drawer, below the 52px top strip");
+  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*width:100%[^}]*height:calc\(100dvh - 52px\)/,
+    "the phone page takes the drawer's width and the rest of its height");
+  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*border-radius:0/,
+    "the phone page is square, like the host's own Settings page");
+  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row\{[^}]*height:44px[^}]*min-height:44px/,
+    "every phone provider row is a 44px finger target");
+  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row\{[^}]*padding:5px 8\.5px 5px 12px/,
+    "the row inset puts the name at x=43 and the reading at the drawer's right edge");
+  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row\{[^}]*grid-template-rows:16px 16px/,
+    "every folded line reserves the same two lines, including a one-line source");
+  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row>\.?[A-Za-z0-9_-]*_tq-name\{[^}]*font:500 var\(--fs-md\)\/16px/,
+    "phone names are 13/500");
+  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row>\.?[A-Za-z0-9_-]*_tq-value\{[^}]*font:600 var\(--fs-md\)\/16px/,
+    "phone readings are 13/600 tabular");
+  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row>\.?[A-Za-z0-9_-]*_tq-reset-line\{[^}]*font:400 var\(--fs-xs\)\/16px/,
+    "the second phone line is 11/400");
   assert.match(css, /_pp-row-split[^}]*_tq-chip[^}]*justify-self:start/,
     "a quota row with both a state chip and resets must split them left/right");
-  assert.match(css, /@media \(width<=767px\) and \(height<=640px\)[^{]*\{[\s\S]*?_pp-row\{min-height:32px\}/,
-    "short phones keep both lines in 32px so the session list keeps room");
-  // kcn 2026-11-07: the folded block is a guest of the host drawer. From 767px
-  // down it takes the host's geometry (x=8/w=264, a 16px glyph, a 14px label at
-  // x=42) and reserves the same two 16px lines in every row, so a one-line row
-  // no longer centres while its neighbours start at the top and a reset/stale
-  // line no longer floats at its own right edge.
-  assert.match(css, /_pp-rows\{grid-template-columns:26px minmax\(64px,1fr\) minmax\(0,auto\);margin:0\}/,
-    "phone provider lines take the host drawer's full row width");
-  assert.match(css, /_pp-row\{grid-template-rows:16px 16px;align-content:center;padding:0 9px 0 12px\}/,
-    "every folded line reserves the same two lines at the host's inset");
-  assert.match(css, /_pp-row>\.?[A-Za-z0-9_-]*_tq-name\{max-width:96px;font:500 var\(--fs-lg\)\/16px var\(--font\)\}/,
-    "the folded provider name uses the host drawer's 14px label");
-  assert.match(css, /_tq-reset-line\{text-align:left;font:400 var\(--fs-xs\)\/16px var\(--font\);font-variant-numeric:tabular-nums;place-self:center stretch\}/,
-    "the reset/stale line starts under the name instead of floating right");
-  assert.match(css, /_bp:before\{background:var\(--dsw-alias-bg-layer-1,#fff\);backdrop-filter:none\}/,
-    "the phone sheet is opaque so the page behind it cannot bleed through");
-  assert.match(css, /@media \(width<=340px\)\{[^}]*_tq-reset-line\{font:400 var\(--fs-micro\)\/16px/,
-    "a 320px phone drops only the reset line to micro so the last reset is not cut");
-  assert.match(css, /_tq-scroll\{[^}]*padding-bottom:max\(12px,\s*env\(safe-area-inset-bottom\)\)/,
-    "the sheet's scroll body reserves the bottom safe area");
+  assert.match(css, /@media \(width<=340px\)\{[^}]*_pp-row\{padding-right:4\.5px/,
+    "the 320px drawer reclaims the last four pixels for the reading's right edge");
+  assert.match(css, /_ppf\{border-top:\.5px solid var\(--tq-hairline\);margin:8px 0\}/,
+    "the block sits on the same 8px gap above and below, with the host hairline");
+  assert.match(css, /_pp-rows\{grid-template-columns:1fr;column-gap:0;margin:0\}/,
+    "the five phone lines are one full-width column with no row gap");
+  assert.match(css, /_pp-row\{[^}]*align-content:space-between/,
+    "a one-line source starts on the same first-line baseline as a two-line one");
+  assert.match(css, /_bp:before\{background:var\(--dsw-alias-bg-layer-1(?:,#fff)?\);backdrop-filter:none/,
+    "the phone page is opaque so the drawer behind it cannot bleed through");
+  assert.match(css, /_tq-scroll\{padding:0 12px calc\(12px \+ env\(safe-area-inset-bottom\)\);overflow-x:hidden/,
+    "the page body reserves the bottom safe area and never scrolls sideways");
+  assert.match(css, /_tq-d-field\{grid-template-columns:72px minmax\(0,1fr\) auto\}/,
+    "a detail field's label gets a real column at the drawer width");
+  assert.doesNotMatch(fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8"), /IntersectionObserver/,
+    "the drawer portal replaces the old visibility observer; no observer should remain");
   assert.match(css, /_bp\[data-open=true\]\{opacity:1;pointer-events:auto\}/,
     "an opened glass popover must become visible and interactive on its first tap");
   // Tier colours must NOT paint over a stale reading (数字不可信优先于用量档,
@@ -4593,6 +4602,8 @@ test("client: the provider panel keeps both clocks, the pool position, stale rea
   assert.deepEqual(foldedKeys, ["claude", "codex", "deepseek", "opencode"], "paid sources precede the free pool");
   find(render(), (p) => p["data-pp-row"] === "claude")[0].props.onClick({ currentTarget: null });
   let tree = render();
+  assert.equal(find(tree, (p) => p["data-tq-page-back"] === "true").length, 1,
+    "the page head has exactly one back control; the task detail keeps its own data-tq-back");
   const claude = find(tree, (p) => p["data-pp-group"] === "claude")[0];
   assert.match(texts(claude), /刷新失败（429 Too Many Requests），显示 .* 的读数/, "① the failure and the time of the reading still shown");
   assert.match(texts(claude), /会话 已用 36%/, "① the last good windows are kept, not dropped");
@@ -5371,11 +5382,10 @@ test("patrol issue failures preserve the last good queue, disclose stale and ret
   }
 });
 
-test("client: the phone foot panel is clamped to the viewport", async () => {
-  // 0.2.2's phone sidebar is a transformed drawer; the panel is portaled to
-  // <body> so it is not clipped, and this clamp keeps a row that is not at
-  // x=0 from pushing the 360px card past the right edge (which mobile Safari
-  // answers with a zoomed-out page). Pure inputs, no browser needed.
+test("client: the phone foot panel is a drawer page; the desktop card is clamped", async () => {
+  // On a phone the panel is an inner page of the drawer: its geometry is CSS
+  // (100% width, top 52px, the drawer's height), so there is no viewport
+  // anchor to compute. The desktop popover keeps the old 380px clamp.
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-store") return {};
@@ -5384,21 +5394,18 @@ test("client: the phone foot panel is clamped to the viewport", async () => {
     if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     throw new Error(`unexpected require: ${s}`);
   });
-  const phone = api._popoverAnchor({ left: 8, top: 568 }, 390, 844);
-  assert.deepEqual(phone, { left: 8, bottom: 284, room: 500 },
-    "374px sheet, 8px side margins, 60px host top strip above it");
-  assert.equal(844 - phone.bottom - phone.room, 60, "the sheet starts below the drawer's top strip");
-  // A row inside a drawer that starts at 42: a near-full-width sheet has no
-  // room to deck right, so it stays at the 8px viewport margin.
-  assert.equal(api._popoverAnchor({ left: 42, top: 568 }, 390, 844).left, 8);
-  const narrow = api._popoverAnchor({ left: 8, top: 540 }, 360, 800);
-  assert.equal(narrow.left, 8);
-  assert.equal(narrow.left + 344, 352, "344px sheet fits 360px minus two 8px margins");
-  assert.equal(800 - narrow.bottom - narrow.room, 60);
-  const tiny = api._popoverAnchor({ left: 0, top: 400 }, 320, 568);
-  assert.ok(tiny.left >= 8 && tiny.left + 304 <= 312, "304px sheet fits 320px");
-  assert.equal(tiny.room, 332, "room is the space above the row, not the viewport");
-  assert.equal(api._popoverAnchor({ left: 700, top: 900 }, 390, 844).bottom, 8, "a row below the fold keeps the card above the bottom edge");
-  assert.equal(api._popoverAnchor({ left: 8, top: 200 }, 1280, 900).room, 240, "the top gap never squeezes the panel below its floor");
-  assert.equal(api._popoverAnchor({ left: 8, top: 800 }, 1280, 900).room, 780, "desktop keeps its 12px top gap");
+  assert.equal(api._popoverAnchor({ left: 8, top: 568 }, 390, 844), null,
+    "390px phone: the page owns its geometry");
+  assert.equal(api._popoverAnchor({ left: 0, top: 400 }, 320, 568), null,
+    "320px phone: same page, no floating card");
+  assert.equal(api._popoverAnchor({ left: 8, top: 568 }, 767, 844), null,
+    "767px is still the host's drawer breakpoint");
+  const desktop = api._popoverAnchor({ left: 8, top: 800 }, 1280, 900);
+  assert.deepEqual(desktop, { left: 8, bottom: 108, room: 780 }, "desktop keeps the 380px card and 12px gap");
+  assert.equal(api._popoverAnchor({ left: 8, top: 200 }, 1280, 900).room, 240,
+    "the top gap never squeezes the panel below its floor");
+  assert.equal(api._popoverAnchor({ left: 8, top: 900 }, 1024, 700).bottom, 8,
+    "a row below the fold keeps the card above the bottom edge");
+  const edge = api._popoverAnchor({ left: 700, top: 600 }, 800, 900);
+  assert.equal(edge.left, 412, "a row near the right edge is decked left by the card width");
 });
