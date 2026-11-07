@@ -3755,7 +3755,7 @@ test("workbench host: the three presets run the existing dispatcher commands", a
   assert.match(tq.workbenchCommand("stop", "../bad", plain), /not a task id/);
 });
 
-test("workbench client: one sidebar entry, a neutral count and the provider dot", async () => {
+test("workbench client: one sidebar entry, a neutral count and an explained provider alert", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
@@ -3835,20 +3835,30 @@ test("workbench client: one sidebar entry, a neutral count and the provider dot"
   assert.ok(badge, "pending tasks still show the count");
   assert.equal(badge.props["data-wb-tone"], "neutral", "the count badge is never red");
   assert.equal(find(danger, (p) => p["data-wb-provider-alert"] !== undefined)[0].props["data-wb-provider-alert"], "Codex",
-    "only the alert provider lights the dot");
+    "only the alert provider names the alert");
   assert.equal(find(danger, (p) => p["data-wb-provider-alert"] !== undefined)[0].props["aria-label"], undefined,
-    "the dot is not a second text node");
-  assert.equal(find(danger, (p) => p["data-wb-rail-dot"] !== undefined).length, 1,
-    "the rail dot is a separate node from the count badge");
+    "the icon keeps its glyph; the words are on the host row");
+  assert.equal(find(danger, (p) => p["data-wb-rail-alert"] !== undefined).length, 1,
+    "the 56px rail keeps an exclamation mark, not a colour-only dot");
   assert.equal(find(renderIcon(stale), (p) => p["data-wb-provider-alert"] !== undefined).length, 0,
-    "stale never lights the dot");
+    "stale never raises an alert");
+  const en = api.createTranslator(api.dictionaries.en);
+  const zh = api.createTranslator(api.dictionaries.zh);
+  assert.equal(en("workbench.labelAlert", { alerts: en("workbench.provider.alertCountOne") }),
+    "Workbench · 1 alert", "the host row says what the alert is, in words");
+  assert.equal(en("workbench.labelAlert", { alerts: en("workbench.provider.alertCount", { n: 2 }) }),
+    "Workbench · 2 alerts");
+  assert.equal(zh("workbench.labelAlert", { alerts: zh("workbench.provider.alertCountOne") }),
+    "工作台 · 1 个告警");
+  assert.equal(zh("workbench.labelAlert", { alerts: zh("workbench.provider.alertCount", { n: 3 }) }),
+    "工作台 · 3 个告警");
   const hundred = Array.from({ length: 100 }, (_, i) => task("m" + i, now - i * 1000));
   assert.equal(badgeOf(renderIcon(alert, hundred)).children.join(""), "99+",
     "the rail badge caps at 99+");
   assert.equal(badgeOf(renderIcon(BALANCES_OK, [task("r", now - 60_000)])).children.join(""), "1",
     "the count is still stuck + pending");
   assert.equal(badgeOf(renderIcon(BALANCES_OK, [])), undefined, "zero pending renders no badge");
-  // The sidebar entry must not print a provider number: the dot is the whole signal.
+  // The sidebar entry must not print a provider number: the label says the count, nothing more.
   assert.doesNotMatch(JSON.stringify(renderIcon(alert, [])), /123\.9|5h|week/,
     "no allowance reading is rendered in the drawer");
   disposeReactEffects();
@@ -3927,8 +3937,8 @@ test("workbench client: Tasks | Providers tabs, rows and status", async () => {
   assert.equal(tabs(page.tree)[0].props.tabIndex, 0, "roving tabindex starts on Tasks");
   assert.equal(tabs(page.tree)[1].props.tabIndex, -1);
   assert.equal(page.tree.props["data-wb-tab"], "tasks");
-  assert.equal(find(page.tree, (p) => p["data-wb-tab-dot"] !== undefined).length, 1,
-    "the Providers tab carries the alert dot");
+  assert.equal(find(page.tree, (p) => p["data-wb-tab-alert"] !== undefined).length, 1,
+    "the Providers tab carries an exclamation mark instead");
   assert.equal(tabs(page.tree)[1].props["aria-label"], "提供方，1 个异常");
 
   tabs(page.tree)[1].props.onClick();
@@ -3959,7 +3969,7 @@ test("workbench client: Tasks | Providers tabs, rows and status", async () => {
   const stale = { ...BALANCES_OK, providers: BALANCES_OK.providers.map((row) => row.provider !== "claude" ? row
     : { ...row, result: { ...row.result, status: "stale" } }) };
   const stalePage = make(queue, stale);
-  assert.equal(find(stalePage.tree, (p) => p["data-wb-tab-dot"] !== undefined).length, 0);
+  assert.equal(find(stalePage.tree, (p) => p["data-wb-tab-alert"] !== undefined).length, 0);
   tabs(stalePage.tree)[1].props.onClick();
   assert.deepEqual(find(stalePage.render(), (p) => p["data-wb-provider"] !== undefined).map((row) => row.props["data-wb-provider-signal"]),
     ["stale", "ok", "ok", "ok", "none"]);
@@ -3968,8 +3978,6 @@ test("workbench client: Tasks | Providers tabs, rows and status", async () => {
   const quiet = make({ ...queue, available: false }, QUIET_BALANCES);
   tabs(quiet.tree)[1].props.onClick();
   assert.match(textOf(quiet.render()), /还没有配置 provider/);
-  assert.ok(find(quiet.render(), (p) => p["data-wb-add-provider"] !== undefined)[0],
-    "the empty state keeps the add-provider action");
   disposeReactEffects();
 });
 
@@ -4171,8 +4179,8 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
   await new Promise((resolve) => setImmediate(resolve));
   const overview = render();
   assert.ok(find(overview, (p) => p["data-wb-overview"] !== undefined)[0], "Overview mounted");
-  assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0].props["aria-expanded"], true,
-    "patrol is open by default");
+  assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-patrol")[0].props["aria-expanded"], false,
+    "patrol is folded by default so Overview opens short");
   assert.equal(find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props["aria-expanded"], false,
     "stats is folded by default");
   assert.match(textOf(overview), /Last round/);
@@ -4188,8 +4196,15 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
   assert.match(textOf(expanded), /1.2M/, "token metric");
   assert.match(textOf(expanded), /\$3.40/, "cost metric");
   assert.equal(find(expanded, (p) => p["data-wb-overview"] !== undefined).length, 1);
-  assert.equal(find(expanded, (p) => p["data-wb-ov-bar"] !== undefined).length, 7,
-    "seven daily bars are present");
+  assert.equal(find(expanded, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,
+    "the old per-provider stacked chart is restored");
+  assert.ok(find(expanded, (p) => p["data-tq-stats-bar"] !== undefined).length > 0,
+    "the chart still draws one bar per provider/day");
+  const history = find(expanded, (p) => p["data-wb-group-button"] === "overview-history")[0];
+  assert.equal(history.props["aria-expanded"], false, "history is folded by default");
+  assert.match(textOf(history), /0 ended/, "the folded history header counts ended tasks");
+  assert.equal(find(expanded, (p) => p["data-wb-history"] !== undefined).length, 0,
+    "a closed history mounts no rows");
 
   // Providers: both detail lines are always visible, no click/second layer.
   tabs(expanded)[1].props.onClick();
@@ -4271,7 +4286,8 @@ test("workbench client: Overview copy is pinned in Chinese", async () => {
   find(overview, (p) => p["data-wb-group-button"] === "overview-stats")[0].props.onClick();
   const expanded = render();
   assert.match(textOf(expanded), /完成 2/);
-  assert.match(textOf(expanded), /近 7 天 Token/);
+  assert.match(textOf(expanded), /Token \/ API 估价/);
+  assert.match(textOf(expanded), /暂无用量数据/);
   disposeReactEffects();
 });
 
@@ -4444,6 +4460,111 @@ test("workbench client: the fold choice is remembered in workbench.groups", asyn
     assert.equal(openRows.length, 0);
   } finally {
     delete globalThis.window;
+    disposeReactEffects();
+  }
+});
+
+test("workbench client: the old task-detail capabilities are all reachable in place", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const base = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 1,
+    running: 1, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+    ops: { available: true, version: "abc", repoVersion: "abc", api: 7, runnerApi: 7, fairWaitSec: 30, error: "" },
+  };
+  const liveTask = {
+    id: "live-1", name: "live one", agent: "dsh", model: "deepseek-flash", state: "running", waiting: "", slot: "dsh-1",
+    attempts: 2, outcome: "", startedAtMs: now - 3600_000, updatedAtMs: now, wakeAtMs: null, patrol: false,
+    summary: "", lastEvent: "working", lastEventAtMs: now, finishedAtMs: null, needs: "confirm the change",
+    stage: "working", attention: "person", session: "session-1", runnerApi: 7,
+    deadlineAtMs: now + 7200_000, maxAttempts: 3, quotaResumes: 3, quotaResumesUsed: 0,
+    tokensTotal: 12000, tokensIn: 1000, tokensCacheW: 0, tokensCacheR: 10000, tokensOut: 1000,
+    costUsd: "0.12", notify: ["weixin"], notified: [], notifyFailed: [], queuedAtMs: now - 7200_000,
+  };
+  const endedTask = {
+    ...liveTask, id: "done-1", name: "done one", state: "partial", outcome: "PARTIAL", finishedAtMs: now - 60_000,
+    startedAtMs: now - 7200_000, updatedAtMs: now - 60_000, summary: "shipped half", lastEvent: "", session: "session-2",
+  };
+  const queue = { ...base, active: [liveTask], recent: [endedTask] };
+  const calls = [];
+  const stub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = () => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => BALANCES_OK, fetchBalances: async () => BALANCES_OK,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+      runQueueAction: async (action, id, arg) => {
+        calls.push([action, id, arg]);
+        return { ok: true, code: 0, action, id, message: "ok", detail: "" };
+      },
+      t: translatorFor(api),
+    });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const text = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  };
+  const tabs = (tree) => find(tree, (p) => p.role === "tab");
+
+  try {
+    // Live task: every old detail section and write control is mounted in place.
+    let tree = render();
+  find(tree, (p) => p["data-wb-task"] === "live-1")[0].props.onClick();
+  tree = render();
+  assert.ok(find(tree, (p) => p["data-tq-detail"] === "live-1")[0], "row -> in-place detail");
+  assert.deepEqual(find(tree, (p) => p["data-tq-section"] !== undefined).map((node) => node.props["data-tq-section"]),
+    ["status", "view", "run", "allowance", "time", "usage", "notify", "end", "raw"]);
+  const actions = find(tree, (p) => p["data-tq-action"] !== undefined).map((node) => node.props["data-tq-action"]);
+  for (const action of ["brief", "log", "timeline", "model", "deadline", "attempts", "resumes", "wrapup", "cancel", "raw-log"]) {
+    assert.ok(actions.includes(action), `detail action ${action} is reachable`);
+  }
+  assert.match(text(tree), /DeepSeek|deepseek-flash/i, "model is shown");
+  assert.match(text(tree), /0\.12|12k|Tokens/i, "cost and tokens are shown");
+  assert.match(text(tree), /微信|WeChat|weixin/i, "the notification channel is shown");
+  assert.equal(find(tree, (p) => p["data-tq-field"] === "tokens").length, 1);
+
+  // Ended task: the history row opens the same detail, with its result and retry.
+  find(render(), (p) => p["data-wb-back"] !== undefined)[0].props.onClick();
+  tree = render();
+  tabs(tree)[2].props.onClick();
+  tree = render();
+  find(tree, (p) => p["data-wb-group-button"] === "overview-history")[0].props.onClick();
+  tree = render();
+  const history = find(tree, (p) => p["data-wb-history"] === "done-1");
+  assert.equal(history.length, 1, "the history row is mounted once its fold opens");
+  history[0].props.onClick();
+  tree = render();
+  assert.ok(find(tree, (p) => p["data-tq-detail"] === "done-1")[0], "history -> the same task detail");
+  assert.ok(find(tree, (p) => p["data-tq-section"] === "summary")[0], "the closing result is restored");
+  assert.ok(find(tree, (p) => p["data-tq-action"] === "retry")[0], "an ended task can be retried");
+  assert.match(text(tree), /shipped half/, "the frozen result is printed");
+  assert.equal(calls.length, 0, "opening a detail writes nothing");
+  } finally {
     disposeReactEffects();
   }
 });

@@ -448,12 +448,16 @@ export type ProviderSignal = 'alert' | 'warn' | 'stale' | 'ok' | 'none';
 /** One provider row in the Providers segment (data table, never a button). */
 export type ProviderRowView = {
     key: string;
+    /** The source row this provider/agent is drawn from (glyph, label, plan, pool). */
+    source: PanelSource;
     label: string;
     provider: string | null;
     agent: string | null;
     primary: string;
     secondary: string | null;
     signal: ProviderSignal;
+    /** The row's one visual state: the six provider states, stale kept apart from warn. */
+    state: 'ok' | 'warn' | 'alert' | 'exhausted' | 'free' | 'unknown' | 'stale';
     tone: 'ok' | 'warn' | 'alert' | 'stale' | 'none';
     primaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none';
     secondaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none';
@@ -466,6 +470,20 @@ export type ProviderRowView = {
         startDetail: string;
         endDate: string;
         endDetail: string;
+    } | null;
+    /** The window reset the row prints on line 2 (the 5h unless the week is near its cap). */
+    reset: {
+        date: string;
+        detail: string;
+    } | null;
+    /**
+     * The one progress bar every provider shares: filled to the fullest window's
+     * used percentage, null when the row has no percentage to draw (money, free
+     * pool, unreadable). `state` is the colour role; stale is grey.
+     */
+    bar: {
+        pct: number;
+        state: 'ok' | 'warn' | 'alert' | 'stale';
     } | null;
     title: string;
     aria: string;
@@ -486,6 +504,25 @@ export declare function providerAlerts(rows: readonly BalanceRow[]): BalanceRow[
  * tone and title, so the old panel and the new row cannot disagree.
  */
 export declare function providerRowView(source: PanelSource, row: BalanceRow | undefined, result: TaskQueueResult | null, t: Translate, now: number): ProviderRowView;
+/** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
+export declare function _fmtTokens(n: number): string;
+/**
+ * One row of the Overview's history fold. The row is a button that opens the
+ * same task detail as the queue; it still prints the two facts a reader came
+ * for (what it ended as, what it cost) without opening anything.
+ */
+export type HistoryRowView = {
+    id: string;
+    title: string;
+    stateText: string;
+    stateRole: StateRole;
+    tone: BalanceTone;
+    meta: string;
+    cost: string;
+    aria: string;
+};
+/** The ended-task list: frozen result, finished time and cost, newest first (host order). */
+export declare function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[];
 /** The Providers segment: sources in severity order, same-severity rows by label. */
 export declare function providerRowsView(sources: readonly PanelSource[], rows: ReadonlyMap<string, BalanceRow>, result: TaskQueueResult | null, t: Translate, now: number): ProviderRowView[];
 /** Provider rows with their display projection: what every surface of the cell reads. */

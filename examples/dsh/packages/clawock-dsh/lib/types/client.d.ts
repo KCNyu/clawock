@@ -28,6 +28,7 @@ import * as React from 'react';
 import type { BalancesResult, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1 } from './types.ts';
 import { type Translate } from './copy.ts';
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts';
+export { _fmtTokens } from './panel.ts';
 export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts';
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView, providerSignal, providerAlerts, providerRowsView } from './panel.ts';
 /**
@@ -201,8 +202,21 @@ export interface TaskQueueInjected {
      */
     runQueueAction?: (action: string, id: string, arg: string) => Promise<QueueActionResult>;
 }
-/** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
-export declare function _fmtTokens(n: number): string;
+/** What opening a file through dsh's own preview answered. */
+type OpenFile = (path: string) => {
+    ok: true;
+} | {
+    ok: false;
+    reason: 'no-session' | 'no-service' | 'error';
+    message?: string;
+};
+/**
+ * The file-preview address of a path read through one session — dsh-util-workspace-path's
+ * `sessionFileAddress` grammar (an absolute path keeps its leading `/`, hence `…/<id>//root/…`).
+ * The preview claims only this scope: `file/absolute/…` answered "no registered tab type claims"
+ * on the live host (2026-09-27), so the brief opens in the conversation's own sidebar.
+ */
+export declare function _sessionFileAddress(sessionId: string, path: string): string;
 /**
  * The detail layer's order (2026-09-28, kcn: 「问题在详情页……信息没有秩序」). The layer
  * holds what the row cannot: the whole status sentence, the allowance the task
@@ -261,6 +275,8 @@ export type WorkbenchInjected = TaskQueueInjected & BalancesInjected & {
     closeWorkbench: () => void;
     /** One preset through the host's dispatcher entry; absent on an older host half. */
     runWorkbenchAction?: (action: string, id: string) => Promise<QueueActionResult>;
+    /** Open a brief/log in dsh's own preview; absent on a host without the sidebar service. */
+    openFile?: OpenFile;
 };
 export type WorkbenchProps = WorkbenchInjected & {
     t: Translate;

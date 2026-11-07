@@ -34,8 +34,9 @@ import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, panelNotices, opsFooter, _queueHeadline, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, historyRowsView, _fmtTokens, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView, type HistoryRowView } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
+export { _fmtTokens } from './panel.ts'
 // Pure projections, re-exported so the spec can pin the fixed signal copy and
 // the wait formatters without a browser.
 export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts'
@@ -1033,24 +1034,6 @@ function useTaskQueue(props: TaskQueueInjected & { t: Translate }) {
   return { data, refresh }
 }
 
-/** The foot glyph: three queue lines in the host's 16px icon geometry, badge notched like the gauge. */
-function renderQueueGlyph(tone: BalanceTone, size: number, instanceId: string): React.ReactElement {
-  const badge = tone === 'ok' || tone === 'low' || tone === 'stale'
-  const notch = 'clawock-queue-notch-' + instanceId
-  return h('svg', {
-    className: cx('bal-glyph'), width: size, height: size, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true',
-  },
-    badge
-      ? h('defs', null,
-        h('mask', { id: notch, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: 16, height: 16 },
-          h('rect', { x: 0, y: 0, width: 16, height: 16, fill: 'white' }),
-          h('circle', { cx: 12.75, cy: 12.75, r: 3.9, fill: 'black' })))
-      : null,
-    h('g', { mask: badge ? 'url(#' + notch + ')' : undefined },
-      h('path', { d: 'M2.5 4H13.5M2.5 8H13.5M2.5 12H13.5', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round' })),
-    renderFootStatusBadge(tone))
-}
-
 // ---- The four layers: executor, model, slot, notification ------------------
 
 /**
@@ -1117,84 +1100,11 @@ function renderChip(chip: SlotChip, opts: { key?: string; slot?: string } = {}):
     'data-role': chip.role, 'data-bed': STATE_ROLES[chip.role].bed, 'data-tq-chip': opts.slot, title: chip.title ?? chip.text,
   }, renderRoleGlyph(chip.role), h('span', { className: cx('tq-chip-text') }, chip.text))
 }
-
-/** What a round filed: words and issue links, severity written as well as coloured. */
-function renderFiledParts(parts: NonNullable<Fact['parts']>, t: Translate): React.ReactElement[] {
-  return parts.map((part, i) => h('span', { key: i, className: cx('tq-filed-part'), 'data-severity': part.severity },
-    i === 0 ? null : h('span', { className: cx('tq-filed-sep'), 'aria-hidden': 'true' }, ' · '),
-    part.href === undefined ? part.text : h('a', { href: part.href, target: '_blank', rel: 'noopener noreferrer',
-      'aria-label': t('queue.round.openIssue', { issue: part.text }) }, part.text)))
-}
-
-/** A row's cells in grid order, and the sentence it reads as. */
-function rowCells(view: RowView, t: Translate): { cells: React.ReactElement[]; said: string } {
-  const kind = ROW_KINDS[view.kind]
-  const slots = FACT_ORDER.filter((slot) => kind.facts.includes(slot) && view.facts[slot] != null)
-  const value = kind.value && view.value != null ? view.value : null
-  const caption = (view.caption ?? []).filter((part) => part.text !== '')
-  // The sidebar's folded line prints EVERY readable window (5h AND week), not
-  // just the headline the old chip showed. The panel's head keeps the headline
-  // + its per-window bars, so the same reading is not written twice there.
-  const text = value === null ? ''
-    : view.folded === true && value.windowsText !== undefined && value.windowsText !== ''
-      ? value.windowsText
-      : value.text
-  const resets = value?.resets ?? []
-  const stale = value?.stale === true && view.folded === true
-  const unit = value === null ? undefined : view.folded === true ? value.foldedUnit : value.unit
-  const cells = [
-    h('span', { className: cx('tq-lead'), key: 'lead', 'aria-hidden': 'true' }, kind.lead && view.lead != null ? renderLead(view.lead) : null),
-    h('span', { className: cx('tq-name'), key: 'name' }, view.name),
-    value === null ? null : h('span', {
-      className: cx('tq-value'), key: 'value', 'data-balance-state': value.tone, 'data-used-level': value.level ?? undefined,
-    }, unit === undefined ? null : h('span', { className: cx('tq-unit') }, unit), text),
-    view.state === null ? null : renderChip(view.state, { slot: 'status' }),
-    ...slots.map((slot) => {
-      const fact = view.facts[slot]!
-      return h('span', {
-        className: cx('tq-fact'), key: slot, 'data-tq-fact': slot, 'data-voice': fact.voice, title: fact.title ?? fact.said,
-      }, fact.receipts != null ? renderReceipts(fact.receipts, t) : fact.parts == null ? fact.text : renderFiledParts(fact.parts, t),
-        fact.mark == null ? null : h('span', { className: cx('tq-mark'), 'data-role': fact.mark.role, title: fact.mark.title }, renderRoleGlyph(fact.mark.role), fact.mark.text))
-    }),
-    view.folded === true && (resets.length > 0 || stale)
-      ? h('span', { className: cx('tq-reset-line'), key: 'resets' },
-        stale ? h('span', { className: cx('tq-stale'), title: t('balance.stale') }, t('balance.staleShort')) : null,
-        resets.length > 0 ? '↻ ' + resets.join(' · ') : null)
-      : null,
-    caption.length === 0 ? null : h('span', { className: cx('tq-caption-line'), key: 'caption' },
-      ...caption.map((part, i) => h('span', { key: i, 'data-voice': part.voice, title: part.title }, (i > 0 ? ' · ' : '') + part.text))),
-  ].filter((cell): cell is React.ReactElement => cell !== null)
-  const said = [view.name, value === null ? null : (unit === undefined ? '' : unit + ' ') + text,
-    stale ? t('balance.staleShort') : null,
-    ...resets.map((reset) => '↻ ' + reset),
-    view.state?.title ?? view.state?.text, ...slots.map((slot) => view.facts[slot]!.said ?? view.facts[slot]!.text),
-    ...caption.map((part) => part.text)]
-    .filter((part) => part != null && part !== '').join(' · ')
-  return { cells, said }
-}
-
-/**
- * One row of the panel on the grid above: a button when it opens the detail
- * layer, else a read-only group (a head is neither: its section is labelled).
- * `after` is a sibling beside the row (the move-up button, laid over the
- * empty lead track so the row keeps its full width) — never a button inside
- * a button.
- */
-function renderRow(view: RowView, t: Translate, after: React.ReactElement | null = null): React.ReactElement {
-  const { cells, said } = rowCells(view, t)
-  const head = view.kind === 'source' || view.kind === 'head'
-  const common = { className: cx('tq-row', view.open === undefined && 'tq-static'), 'data-tq-row': view.kind, ...(view.attrs ?? {}) }
-  return h('div', { className: cx('tq-item'), key: view.key, 'data-tq-item': view.key },
-    view.open === undefined
-      ? h('div', head ? common : { ...common, role: 'group', 'aria-label': said }, ...cells)
-      : h('button', { ...common, type: 'button', 'aria-label': said + ' · ' + t('queue.d.open'), title: said, onClick: view.open }, ...cells),
-    after)
-}
-
 /** The one chevron the raw-log fold and the coverage link share. */
 function foldChevron(): React.ReactElement {
-  return h('svg', { className: cx('tq-fold-chev'), width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
-    h('path', { d: 'M4.5 2.5L8 6L4.5 9.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))
+  // One chevron glyph for the workbench folds and the old detail's folds;
+  // only the class that owns the rotation differs.
+  return renderWorkbenchChevron(12, 'tq-fold-chev')
 }
 
 /**
@@ -1259,40 +1169,6 @@ function renderSourceGlyph(source: PanelSource): React.ReactElement {
   }, shape)
 }
 
-type PanelUi = DetailUi & {
-  /** Rows by provider id with their display projection (the balance channel). */
-  rows: Map<string, BalanceRow>
-  /** Close the panel itself (the phone page's back control). */
-  close: () => void
-  /** The stats card's opener: the element focus returns to when the layer closes. */
-  openStats: (opener: HTMLElement) => void
-  statsOpen: boolean
-  /** The coverage row's opener: the page replaces the list, the same detail layer as a task. */
-  openPatrol: (opener: HTMLElement) => void
-  patrolOpen: boolean
-}
-
-/** A row's lead track (panel.ts RowLead) as its glyph. */
-function renderLead(lead: RowLead): React.ReactElement {
-  if ('agent' in lead) return renderAgentGlyph(lead.agent, lead.size)
-  if ('section' in lead) return renderSectionGlyph(lead.section)
-  return renderSourceGlyph(lead.source)
-}
-
-/** Section glyphs in the executor glyphs' 14px outline: a clock turning back (just ended), a shield (patrol). */
-function renderSectionGlyph(kind: 'recent' | 'patrol', size = 14): React.ReactElement {
-  const stroke = { stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }
-  return h('svg', { className: cx('tq-agent-glyph'), width: size, height: size, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
-    kind === 'recent'
-      ? h('path', { ...stroke, d: 'M2.6 7.6A4.5 4.5 0 1 0 3.9 3.8M3.6 1.6V4.1H6.1M7 4.6V7.2L8.7 8.3' })
-      : h('path', { ...stroke, d: 'M7 1.8L11.4 3.4V6.9C11.4 9.5 9.6 11.4 7 12.2C4.4 11.4 2.6 9.5 2.6 6.9V3.4ZM5 7L6.4 8.4L9.1 5.7' }))
-}
-
-/** A list of rows on the inset well: the one surface every task, ended task and round sits on. */
-function renderWell(key: string, rows: Array<React.ReactElement | null>): React.ReactElement | null {
-  const present = rows.filter((row): row is React.ReactElement => row !== null)
-  return present.length === 0 ? null : h('div', { className: cx('tq-well'), key: 'well-' + key, 'data-tq-well': key }, ...present)
-}
 
 /**
  * The patrol summary: the same rounds as the list below, drawn once. One thin segment per round,
@@ -1326,10 +1202,10 @@ function renderPatrolRhythm(rhythm: PatrolRhythm): React.ReactElement {
 function renderCoverageTables(view: CoverageView, t: Translate): Array<React.ReactElement | null> {
   const link = (name: string, href: string): React.ReactElement => h('a', { className: cx('tq-cov-name'), href, target: '_blank', rel: 'noopener noreferrer' }, name)
   const heading = (text: string, note: string): React.ReactElement[] => [
-    h('div', { className: cx('tq-cov-head'), key: 'h', role: 'heading', 'aria-level': 4 }, text),
-    h('div', { className: cx('tq-cov-note'), key: 'n' }, note),
+    h('h3', { className: cx('tq-cov-head'), key: 'h' }, text),
+    h('p', { className: cx('tq-cov-note'), key: 'n' }, note),
   ]
-  const nothing = h('div', { className: cx('tq-cov-note') }, view.empty)
+  const nothing = h('p', { className: cx('tq-cov-note') }, view.empty)
   const badge = (open: string, hasOpen: boolean | null): React.ReactElement =>
     h('span', { className: cx('tq-cov-open'), 'data-open': hasOpen === null ? 'unknown' : String(hasOpen) }, open)
   const needs = view.lenses.filter((l) => l.hasOpen === true || l.last?.state?.role === 'fail')
@@ -1338,22 +1214,24 @@ function renderCoverageTables(view: CoverageView, t: Translate): Array<React.Rea
   const lensRow = (l: (typeof view.lenses)[number]): React.ReactElement => {
     const delay = (Math.min(lensAt++, 7) * 30) + 'ms'
     return h('li', { key: l.name, className: cx('tq-cov-lens'), 'data-coverage-lens': l.name },
-      h('span', { className: cx('tq-cov-lens-name') },
-        h('span', { className: cx('tq-cov-lens-dot'), 'data-role': chartRole(l.last?.state?.role), 'aria-hidden': 'true' }),
-        link(l.name, l.href)),
-      h('span', { className: cx('tq-cov-num'), title: l.when?.title }, l.when?.text ?? '—'),
-      h('span', { className: cx('tq-cov-num', 'tq-cov-runs'), title: view.columns.runs },
-        h('span', { className: cx('tq-cov-runs-bar'), 'aria-hidden': 'true' },
-          l.runsShare === null ? null : h('span', { className: cx('tq-cov-runs-fill'), style: {
-            width: Math.max(2, Math.round(l.runsShare * 28)) + 'px', transitionDelay: delay } })),
-        h('span', { className: cx('tq-cov-runs-num') }, l.runs)),
-      h('span', { className: cx('tq-cov-num') }, badge(l.open, l.hasOpen)),
-      h('span', { className: cx('tq-cov-last') }, ...(l.last === null ? [l.none] : [
-        h('span', { key: 'r' }, l.last.round),
-        l.last.state === null ? null : h('span', { key: 's', className: cx('tq-cov-state'), 'data-role': l.last.state.role, title: l.last.state.title },
-          renderRoleGlyph(l.last.state.role), l.last.state.text),
-        l.last.filed?.parts == null ? null : h('span', { key: 'f', className: cx('tq-cov-filed') }, ...renderFiledParts(l.last.filed.parts, t)),
-      ])))
+      h('div', { className: cx('tq-cov-lens-head') },
+        h('span', { className: cx('tq-cov-lens-name') },
+          h('span', { className: cx('tq-cov-lens-dot'), 'data-role': chartRole(l.last?.state?.role), 'aria-hidden': 'true' }),
+          link(l.name, l.href)),
+        badge(l.open, l.hasOpen)),
+      h('div', { className: cx('tq-cov-lens-meta') },
+        l.last === null
+          ? h('span', { className: cx('tq-cov-last') }, l.none)
+          : h('span', { className: cx('tq-cov-last') },
+            h('span', { key: 'r' }, l.last.round),
+            l.last.state === null ? null : h('span', { key: 's', className: cx('tq-cov-state'), 'data-role': l.last.state.role, title: l.last.state.title },
+              renderRoleGlyph(l.last.state.role), l.last.state.text),
+            l.when === null ? null : h('span', { key: 'w' }, l.when.text)),
+        h('span', { className: cx('tq-cov-runs') },
+          h('span', { className: cx('tq-cov-runs-bar'), 'aria-hidden': 'true' },
+            l.runsShare === null ? null : h('span', { className: cx('tq-cov-runs-fill'), style: {
+              width: Math.max(2, Math.round(l.runsShare * 28)) + 'px', transitionDelay: delay } })),
+          h('span', { className: cx('tq-cov-runs-num') }, l.runs + ' ' + view.columns.runs))))
   }
   const band = (kind: 'needs' | 'rotation', label: string): React.ReactElement =>
     h('div', { key: 'band-' + kind, className: cx('tq-cov-band'), 'data-band': kind, role: 'heading', 'aria-level': 5 },
@@ -1366,25 +1244,24 @@ function renderCoverageTables(view: CoverageView, t: Translate): Array<React.Rea
       view.areas.length === 0 && view.clear.names.length === 0 ? nothing : null,
       view.areas.length === 0 ? null : h('ul', { className: cx('tq-cov-list') }, ...view.areas.map((a, at) =>
         h('li', { key: a.name, className: cx('tq-cov-area'), 'data-coverage-area': a.name },
-          link(a.name, a.href),
+          h('div', { className: cx('tq-cov-area-head') },
+            link(a.name, a.href),
+            badge(a.open, a.hasOpen)),
           h('span', { className: cx('tq-cov-bar'), 'aria-hidden': 'true' },
             a.share === null ? null : h('span', { className: cx('tq-cov-fill'), style: {
-              width: Math.round(a.share * 100) + '%', transitionDelay: (Math.min(at, 7) * 30) + 'ms' } })),
-          h('span', { className: cx('tq-cov-num') }, badge(a.open, a.hasOpen))))),
+              width: Math.round(a.share * 100) + '%', transitionDelay: (Math.min(at, 7) * 30) + 'ms' } }))))),
       view.clear.names.length === 0 ? null : h('div', { className: cx('tq-cov-clear') },
         h('span', { className: cx('tq-cov-clear-label') }, h('span', { className: cx('tq-cov-clear-mark') }, renderRoleGlyph('done')), view.clear.label),
         ...view.clear.names.map((a) => h('span', { key: a.name, 'data-coverage-area': a.name }, link(a.name, a.href))))),
     h('section', { className: cx('tq-cov-block'), 'data-coverage': 'lenses' },
       ...heading(view.lensHeading, view.lensNote),
       view.lenses.length === 0 ? nothing : [
-        h('div', { key: 'lens-cols', className: cx('tq-cov-lens', 'tq-cov-cols'), 'aria-hidden': 'true' },
-          h('span', null), h('span', null, view.columns.last), h('span', null, view.columns.runs), h('span', null, view.columns.open)),
         needs.length === 0 ? null : band('needs', t('queue.coverage.needsLook')),
-        ...needs.map(lensRow),
+        h('ul', { key: 'needs-list', className: cx('tq-cov-list') }, ...needs.map(lensRow)),
         rest.length === 0 ? null : band('rotation', t('queue.coverage.byRotation')),
-        ...rest.map(lensRow),
+        h('ul', { key: 'rest-list', className: cx('tq-cov-list') }, ...rest.map(lensRow)),
       ]),
-    view.footnote === '' ? null : h('div', { className: cx('tq-cov-foot') }, view.footnote),
+    view.footnote === '' ? null : h('p', { className: cx('tq-cov-foot') }, view.footnote),
   ]
 }
 
@@ -1427,88 +1304,101 @@ function renderPatrolKpis(patrol: NonNullable<PanelModel['patrol']>, t: Translat
       t('queue.patrol.kpi.roundsCaption'), null))
 }
 
-/** A section heading on the patrol dashboard: a label and its small count/conclusion. */
-function renderPatrolSectionHead(label: string, count: string): React.ReactElement {
-  return h('div', { className: cx('tq-patrol-section-head') },
-    h('span', { className: cx('tq-patrol-section-title') }, label),
-    h('span', { className: cx('tq-patrol-section-count') }, count))
-}
-
-/** The patrol page: live head, dashboard tiles, outcome strip, rounds, coverage. */
-function renderPatrolDetail(patrol: NonNullable<PanelModel['patrol']>, t: Translate,
-  back: () => void, backRef: React.Ref<HTMLButtonElement>): React.ReactElement {
-  const conclusion = patrol.progress === null ? t('queue.coverage.openUnknown') : patrol.progress.conclusion
-  return h('div', {
-    className: cx('tq-detail', 'tq-patrol-detail'), 'data-tq-patrol-layer': 'true',
-    role: 'group', 'aria-label': t('queue.patrolHeading'),
+/** One patrol round: round · state · time · duration, on one line, right edges aligned. */
+function renderPatrolRounds(patrol: NonNullable<PanelModel['patrol']>, t: Translate): React.ReactElement {
+  if (patrol.rounds.length === 0) return h('p', { className: cx('wb-ov-note') }, t('queue.patrol.kpi.none'))
+  return h('ul', { className: cx('wb-ov-rounds') }, ...patrol.rounds.map((round) => h('li', {
+    key: round.key, className: cx('wb-ov-round'), 'data-wb-round': round.key,
   },
-    h('div', { className: cx('tq-head', 'tq-d-head') },
-      h('button', {
-        type: 'button', className: cx('tq-back'), 'data-tq-back': 'true',
-        'aria-label': t('queue.patrol.back'), title: t('queue.patrol.back'), ref: backRef, onClick: back,
-      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('queue.patrol.back')),
-      h('span', { className: cx('tq-caption') }, conclusion)),
-    h('div', { className: cx('tq-scroll', 'tq-d-scroll') },
-      h('div', { className: cx('tq-patrol-page') },
-        renderRow(patrol.head, t),
-        renderPatrolKpis(patrol, t),
-        patrol.rhythm === null ? null : h('section', {
-          className: cx('tq-patrol-section'), 'data-tq-patrol-section': 'outcome',
-        },
-          renderPatrolSectionHead(t('queue.patrol.section.outcome'), t('queue.patrol.count.rounds', { n: patrol.rounds.length })),
-          renderPatrolRhythm(patrol.rhythm)),
-        h('section', { className: cx('tq-patrol-section'), 'data-tq-patrol-section': 'rounds' },
-          renderPatrolSectionHead(t('queue.patrol.section.rounds'), t('queue.patrol.count.records', { n: patrol.rounds.length })),
-          renderWell('rounds', patrol.rounds.map((round) => renderRow(round, t)))),
-        patrol.progress === null ? null : h('section', {
-          className: cx('tq-patrol-section'), 'data-tq-patrol-section': 'coverage',
-        },
-          renderPatrolSectionHead(t('queue.patrol.section.coverage'), patrol.progress.conclusion),
-          h('div', { className: cx('tq-cov', 'tq-cov-page') },
-            ...renderCoverageTables(patrol.progress, t))))))
+    h('span', { className: cx('wb-ov-round-name') }, round.name),
+    round.state === null ? h('span', { className: cx('wb-ov-round-state') }, '—')
+      : h('span', { className: cx('wb-ov-round-state'), 'data-role': round.state.role, title: round.state.title },
+        renderRoleGlyph(round.state.role), round.state.text),
+    h('span', { className: cx('wb-ov-round-when') }, round.facts.when?.text ?? '—'),
+    h('span', { className: cx('wb-ov-round-took') }, round.facts.took?.text ?? '—'))))
 }
 
-/** The panel's one patrol entry: the phase and the coverage conclusion, then the page. */
-function renderPatrolSummary(patrol: NonNullable<PanelModel['patrol']>, t: Translate,
-  open: (opener: HTMLElement) => void): React.ReactElement {
-  const phase = patrol.head.state?.text ?? ''
-  const conclusion = patrol.progress === null ? t('queue.coverage.openUnknown') : patrol.progress.conclusion
-  const tone = patrol.progress === null ? 'unknown' : patrol.progress.tone
-  const aria = [t('queue.patrolHeading'), phase, conclusion, t('queue.patrol.open')]
-    .filter((part) => part !== '').join(' · ')
-  return h('button', {
-    type: 'button', className: cx('tq-patrol-entry'), 'data-tq-patrol-summary': 'true',
-    'data-tq-patrol-open': 'true', 'aria-haspopup': 'dialog', 'aria-label': aria, title: aria,
-    onClick: (event: { currentTarget: HTMLElement }) => { open(event.currentTarget) },
+/** The patrol fold's body: the four summary rows, KPI tiles, outcome strip, rounds and coverage. */
+function renderPatrolBody(summary: React.ReactNode, patrol: NonNullable<PanelModel['patrol']>, t: Translate): React.ReactElement {
+  return h('div', { className: cx('wb-ov-body', 'pbc', 'tqf') },
+    summary,
+    renderPatrolKpis(patrol, t),
+    patrol.rhythm === null ? null : h('section', { className: cx('wb-ov-sec'), 'data-wb-ov-sec': 'outcome' },
+      h('div', { className: cx('wb-ov-sec-head') },
+        h('h3', { className: cx('wb-ov-sec-title') }, t('queue.patrol.section.outcome')),
+        h('span', { className: cx('wb-ov-sec-count') }, t('queue.patrol.count.rounds', { n: patrol.rounds.length }))),
+      renderPatrolRhythm(patrol.rhythm)),
+    h('section', { className: cx('wb-ov-sec'), 'data-wb-ov-sec': 'rounds' },
+      h('div', { className: cx('wb-ov-sec-head') },
+        h('h3', { className: cx('wb-ov-sec-title') }, t('queue.patrol.section.rounds')),
+        h('span', { className: cx('wb-ov-sec-count') }, t('queue.patrol.count.records', { n: patrol.rounds.length }))),
+      renderPatrolRounds(patrol, t)),
+    patrol.progress === null ? null : h('section', { className: cx('wb-ov-sec', 'tq-cov'), 'data-wb-ov-sec': 'coverage' },
+      h('div', { className: cx('wb-ov-sec-head') },
+        h('h3', { className: cx('wb-ov-sec-title') }, t('queue.patrol.section.coverage')),
+        h('span', { className: cx('wb-ov-sec-count') }, patrol.progress.conclusion)),
+      ...renderCoverageTables(patrol.progress, t)))
+}
+
+/** The stats fold's body: the old per-agent tables and stacked chart, full width. */
+function renderStatsBody(stats: StatsView, t: Translate): React.ReactElement {
+  const legend = [
+    { kind: 'done', label: t('stats.legend.done') },
+    { kind: 'partial', label: t('stats.legend.partial') },
+    { kind: 'unfinished', label: t('stats.legend.unfinished') },
+    ...(stats.totals.live > 0 ? [{ kind: 'live', label: t('stats.legend.live') }] : []),
+  ]
+  const tokenRow = (agent: StatsView['agents'][number]): React.ReactElement => h('div', {
+    className: cx('tq-stats-row'), 'data-tq-stats-token': agent.agent, key: 't-' + agent.agent,
   },
-    h('span', { className: cx('tq-patrol-entry-main') },
-      h('span', { className: cx('tq-patrol-entry-lead'), 'aria-hidden': 'true' }, renderSectionGlyph('patrol')),
-      h('span', { className: cx('tq-patrol-entry-label') }, t('queue.patrolHeading')),
-      phase === '' ? null : h('span', { className: cx('tq-patrol-entry-phase') }, phase),
-      h('span', { className: cx('tq-patrol-entry-value'), 'data-coverage-state': tone },
-        h('span', { className: cx('tq-patrol-entry-dot'), 'aria-hidden': 'true' }), conclusion),
-      foldChevron()),
-    patrol.rhythm === null ? null : h('span', {
-      className: cx('tq-patrol-entry-strip'), 'data-tq-patrol-strip': 'true', 'aria-hidden': 'true',
-    }, ...patrol.rhythm.bars.map((bar) => h('span', {
-      key: 's-' + bar.key, className: cx('tq-patrol-entry-seg'), 'data-role': chartRole(bar.role),
-      'data-tq-rhythm-round': bar.round, title: bar.title,
-    }))))
+    h('div', { className: cx('tq-stats-row-head') },
+      h('span', { className: cx('tq-stats-agent') }, renderAgentGlyph(agent.agent, 14),
+        h('span', { className: cx('tq-stats-agent-name') }, agent.label)),
+      h('span', { className: cx('tq-stats-numbers') }, agent.tokensText + ' · ' + agent.costText)),
+    h('div', { className: cx('tq-stats-track') },
+      h('div', { className: cx('tq-stats-fill'), style: { width: Math.round(agent.share * 100) + '%' } })))
+  const doneRow = (agent: StatsView['agents'][number]): React.ReactElement => h('div', {
+    className: cx('tq-stats-row'), 'data-tq-stats-done': agent.agent, key: 'd-' + agent.agent,
+  },
+    h('div', { className: cx('tq-stats-row-head') },
+      h('span', { className: cx('tq-stats-agent') }, renderAgentGlyph(agent.agent, 14),
+        h('span', { className: cx('tq-stats-agent-name') }, agent.label)),
+      h('span', { className: cx('tq-stats-numbers') }, t('stats.card.done', { done: agent.done, settled: agent.settled }))),
+    renderStatsBar(agent, true),
+    h('div', { className: cx('tq-stats-breakdown') },
+      t('stats.partial', { n: agent.partial }), ' · ', t('stats.unfinished', { n: agent.unfinished }),
+      agent.live > 0 ? ' · ' + t('stats.live', { n: agent.live }) : ''))
+  return h('div', { className: cx('wb-ov-body', 'pbc', 'tqf') },
+    stats.series === null ? h('div', { className: cx('wb-ov-note') }, t('workbench.overview.noData'))
+      : h('div', { className: cx('tq-stats-chart-wrap') }, renderStatsSeries(stats.series, t)),
+    h('section', { className: cx('wb-ov-sec') },
+      h('h3', { className: cx('wb-ov-sec-title') }, t('stats.tokenHeading')),
+      ...stats.agents.map(tokenRow)),
+    h('section', { className: cx('wb-ov-sec') },
+      h('h3', { className: cx('wb-ov-sec-title') }, t('stats.doneHeading')),
+      h('div', { className: cx('tq-stats-legend') },
+        ...legend.map((item) => h('span', { className: cx('tq-stats-legend-item'), key: item.kind },
+          h('span', { className: cx('tq-stats-swatch', 'tq-stats-seg-' + item.kind), 'aria-hidden': 'true' }),
+          item.label))),
+      ...stats.agents.map(doneRow)),
+    h('p', { className: cx('tq-stats-foot') }, stats.footnote))
 }
 
-/** Patrol is one entry now: the phase and the coverage conclusion, then a page with both. */
-function renderPatrolSection(patrol: NonNullable<PanelModel['patrol']>, t: Translate,
-  openPatrol: (opener: HTMLElement) => void): React.ReactElement {
-  return h('section', { className: cx('tq-group', 'tq-section'), key: 'patrol', 'data-tq-group': 'patrol' },
-    renderPatrolSummary(patrol, t, openPatrol))
-}
-/** A tiny bar-chart mark for the stats card; the same 14px outline as the section glyphs. */
-function renderStatsGlyph(size = 14): React.ReactElement {
-  return h('svg', { className: cx('tq-stats-glyph'), width: size, height: size, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
-    h('path', {
-      d: 'M2.2 11.4V7.6M6.2 11.4V4.4M10.2 11.4V2.6M1.2 12.6H12.8',
-      stroke: 'currentColor', strokeWidth: 1.25, fill: 'none', strokeLinecap: 'round',
-    }))
+/** The history fold: one button per ended task; the detail it opens is the Tasks detail. */
+function renderHistoryBody(rows: HistoryRowView[], t: Translate, open: (id: string, element: HTMLElement | null) => void): React.ReactElement {
+  if (rows.length === 0) return h('p', { className: cx('wb-ov-note') }, t('workbench.history.empty'))
+  const row = (item: HistoryRowView): React.ReactElement => h('li', { key: item.id },
+    h('button', {
+      type: 'button', className: cx('wb-hist-row'), 'data-wb-history': item.id,
+      'data-wb-tone': item.tone, 'aria-label': item.aria,
+      onClick: (event?: { currentTarget?: HTMLElement }) => { open(item.id, event?.currentTarget ?? null) },
+    },
+      h('span', { className: cx('wb-hist-main') },
+        h('span', { className: cx('wb-hist-title') }, item.title),
+        item.meta === '' ? null : h('span', { className: cx('wb-hist-meta') }, item.meta)),
+      h('span', { className: cx('wb-hist-state'), 'data-role': item.stateRole }, item.stateText),
+      item.cost === '' ? null : h('span', { className: cx('wb-hist-cost') }, item.cost)))
+  return h('ul', { className: cx('wb-hist') }, ...rows.map(row))
 }
 
 type StatsBarCounts = { done: number; partial: number; unfinished: number; live: number }
@@ -1520,68 +1410,6 @@ function renderStatsBar(counts: StatsBarCounts, large = false): React.ReactEleme
     : null
   return h('span', { className: cx('tq-stats-bar', large && 'tq-stats-bar-lg'), 'aria-hidden': 'true' },
     part(counts.done, 'done'), part(counts.partial, 'partial'), part(counts.unfinished, 'unfinished'), part(counts.live, 'live'))
-}
-
-function renderStatsMetric(value: string, label: string): React.ReactElement {
-  return h('span', { className: cx('tq-stats-metric') },
-    h('span', { className: cx('tq-stats-value') }, value),
-    h('span', { className: cx('tq-stats-label') }, label))
-}
-
-/**
- * The stats card: not a fourth fold. It is one tappable tile with the three readings, a
- * completion bar and a caption; tapping opens the chart layer on the same data. The card is
- * only rendered after the lazy read answers, and it is the layer's opener (focus returns here).
- */
-function renderStatsCard(stats: StatsView, t: Translate, ui: PanelUi, open: boolean): React.ReactElement {
-  const aria = t('stats.cardAria', {
-    title: stats.title, window: stats.window,
-    tasks: t('stats.tasks', { n: stats.totals.tasks }),
-    tokens: t('stats.tokens', { tokens: stats.totals.tokensText }),
-    cost: stats.totals.costText,
-    done: stats.totals.done, settled: stats.totals.settled,
-    partial: stats.totals.partial, unfinished: stats.totals.unfinished,
-    open: t('stats.open'),
-  })
-  return h('button', {
-    type: 'button', className: cx('tq-stats-card'), 'data-tq-stats-card': 'true',
-    'aria-haspopup': 'dialog', 'aria-expanded': open ? 'true' : undefined,
-    'aria-label': aria, title: aria,
-    onClick: (event: { currentTarget: HTMLElement }) => { ui.openStats(event.currentTarget) },
-  },
-    h('span', { className: cx('tq-stats-top') },
-      h('span', { className: cx('tq-stats-glyph-wrap') }, renderStatsGlyph()),
-      h('span', { className: cx('tq-stats-title') }, stats.cardTitle + ' · ' + stats.window),
-      h('span', { className: cx('tq-stats-chev'), 'aria-hidden': 'true' },
-        h('svg', { width: 12, height: 12, viewBox: '0 0 12 12' },
-          h('path', { d: 'M4.5 2.5L8 6L4.5 9.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' })))),
-    h('span', { className: cx('tq-stats-metrics') },
-      renderStatsMetric(String(stats.totals.tasks), t('stats.metric.tasks')),
-      renderStatsMetric(stats.totals.tokensText, t('stats.metric.tokens')),
-      renderStatsMetric(stats.totals.costText, t('stats.metric.cost'))),
-    h('span', { className: cx('tq-stats-bar-wrap') }, renderStatsBar(stats.totals)),
-    h('span', { className: cx('tq-stats-caption') },
-      h('span', null, t('stats.card.done', { done: stats.totals.done, settled: stats.totals.settled })),
-      stats.totals.live > 0 ? h('span', null, ' · ' + t('stats.card.live', { n: stats.totals.live })) : null))
-}
-
-/** A static skeleton at the card's height: no shimmer, no movement while the lazy read runs. */
-function renderStatsSkeleton(t: Translate): React.ReactElement {
-  return h('div', {
-    className: cx('tq-stats-card', 'tq-stats-skeleton'), 'data-tq-stats-skeleton': 'true',
-    role: 'status', 'aria-busy': 'true', 'aria-label': t('stats.reading'),
-  },
-    h('span', { className: cx('tq-stats-skel-line', 'tq-stats-skel-40') }),
-    h('span', { className: cx('tq-stats-skel-line', 'tq-stats-skel-70') }),
-    h('span', { className: cx('tq-stats-skel-line', 'tq-stats-skel-100') }))
-}
-
-function renderStatsError(message: string, t: Translate, retry: () => void): React.ReactElement {
-  return h('div', {
-    className: cx('tq-stats-card', 'tq-stats-error'), 'data-tq-stats-error': 'true', role: 'status',
-  },
-    h('span', { className: cx('tq-stats-error-text') }, t('stats.unavailable', { message })),
-    h('button', { type: 'button', className: cx('tq-pill', 'tq-stats-retry'), onClick: retry }, t('stats.retry')))
 }
 
 /** A clean axis top: 1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8 or 10 × 10^n. */
@@ -1675,67 +1503,6 @@ function renderStatsSeries(series: StatsSeriesView, t: Translate): React.ReactEl
 }
 
 /**
- * The chart layer. It opens from the card like a task opens its detail (same `.tq-layer`,
- * same back bar, same focus move); the data is already in hand, so there is no second read.
- * The token bars are scaled to the largest agent; the completion bars are the same stacked
- * bar as the card, per agent. The footnote is the one caveat line, printed once.
- */
-function renderStatsDetail(stats: StatsView, t: Translate, back: () => void, backRef: React.Ref<HTMLButtonElement>): React.ReactElement {
-  const legend = [
-    { kind: 'done', label: t('stats.legend.done') },
-    { kind: 'partial', label: t('stats.legend.partial') },
-    { kind: 'unfinished', label: t('stats.legend.unfinished') },
-    ...(stats.totals.live > 0 ? [{ kind: 'live', label: t('stats.legend.live') }] : []),
-  ]
-  const tokenRow = (agent: StatsView['agents'][number]): React.ReactElement => h('div', {
-    className: cx('tq-stats-row'), 'data-tq-stats-token': agent.agent, key: 't-' + agent.agent,
-  },
-    h('div', { className: cx('tq-stats-row-head') },
-      h('span', { className: cx('tq-stats-agent') }, renderAgentGlyph(agent.agent, 14),
-        h('span', { className: cx('tq-stats-agent-name') }, agent.label)),
-      h('span', { className: cx('tq-stats-numbers') }, agent.tokensText + ' · ' + agent.costText)),
-    h('div', { className: cx('tq-stats-track') },
-      h('div', { className: cx('tq-stats-fill'), style: { width: Math.round(agent.share * 100) + '%' } })))
-  const doneRow = (agent: StatsView['agents'][number]): React.ReactElement => h('div', {
-    className: cx('tq-stats-row'), 'data-tq-stats-done': agent.agent, key: 'd-' + agent.agent,
-  },
-    h('div', { className: cx('tq-stats-row-head') },
-      h('span', { className: cx('tq-stats-agent') }, renderAgentGlyph(agent.agent, 14),
-        h('span', { className: cx('tq-stats-agent-name') }, agent.label)),
-      h('span', { className: cx('tq-stats-numbers') }, t('stats.card.done', { done: agent.done, settled: agent.settled }))),
-    renderStatsBar(agent, true),
-    h('div', { className: cx('tq-stats-breakdown') },
-      t('stats.partial', { n: agent.partial }),
-      ' · ',
-      t('stats.unfinished', { n: agent.unfinished }),
-      agent.live > 0 ? ' · ' + t('stats.live', { n: agent.live }) : ''))
-  return h('div', {
-    className: cx('tq-detail', 'tq-stats-detail'), 'data-tq-stats-layer': 'true',
-    role: 'group', 'aria-label': stats.title + ' · ' + stats.window,
-  },
-    h('div', { className: cx('tq-head', 'tq-d-head') },
-      h('button', {
-        type: 'button', className: cx('tq-back'), 'data-tq-back': 'true',
-        'aria-label': t('stats.back'), title: t('stats.back'), ref: backRef, onClick: back,
-      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), stats.title),
-      h('span', { className: cx('tq-caption') }, stats.window)),
-    h('div', { className: cx('tq-scroll', 'tq-d-scroll') },
-      h('div', { className: cx('tq-stats-summary') }, stats.summaryLine),
-      stats.series === null ? null : renderStatsSeries(stats.series, t),
-      h('section', { className: cx('tq-d-sec', 'tq-stats-sec'), 'data-tq-stats-section': 'tokens' },
-        h('div', { className: cx('tq-d-sec-title') }, t('stats.tokenHeading')),
-        ...stats.agents.map(tokenRow)),
-      h('section', { className: cx('tq-d-sec', 'tq-stats-sec'), 'data-tq-stats-section': 'done' },
-        h('div', { className: cx('tq-d-sec-title') }, t('stats.doneHeading')),
-        h('div', { className: cx('tq-stats-legend') },
-          ...legend.map((item) => h('span', { className: cx('tq-stats-legend-item'), key: item.kind },
-            h('span', { className: cx('tq-stats-swatch', 'tq-stats-seg-' + item.kind), 'aria-hidden': 'true' }),
-            item.label))),
-        ...stats.agents.map(doneRow)),
-      h('div', { className: cx('tq-stats-foot') }, stats.footnote)))
-}
-
-/**
  * The stats read: fired once when the panel opens, never on the queue's 15s poll. A late
  * answer after the panel closed is dropped (the request counter), the same shape as the
  * detail layer's reads. A host without the taskStats method has no card.
@@ -1777,103 +1544,6 @@ function useTaskStats(props: TaskQueueInjected & { t: Translate }, open: boolean
   return { ...state, refresh: read }
 }
 
-/**
- * One provider group of the open panel (2026-09-28, kcn: 「任务现在和 provider
- * 那个上下好像都不明显了」). Two levels, never mixed: the allowance is the
- * group's head on the panel itself (14px strong name and reading, the caption,
- * the window bars on the name's edge); the queue that allowance feeds is a
- * list on an inset well starting on that same edge, one step down in type
- * and in weight. A reader tells the two apart by surface and indent before
- * reading a word.
- */
-function renderSourceGroup(group: PanelGroup, t: Translate, ui: PanelUi): React.ReactElement {
-  const { source, row, balanceNote } = group
-  const detail = renderAllowance(group.detail, t)
-  return h('section', {
-    className: cx('tq-group', 'pp-group'), key: 'g-' + source.key, 'data-pp-group': source.key, 'data-tq-group': source.agent ?? undefined,
-    'aria-label': source.label, tabIndex: -1,
-  },
-    renderRow(group.head, t),
-    balanceNote === null && detail === null ? null
-      : h('div', { className: cx('pp-allowance', 'tq-inset'), 'data-pb-provider': row!.provider, 'data-pb-role': 'panel', 'data-balance-state': row!.view.tone },
-        balanceNote === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'bp-note', row!.view.tone === 'stale' ? 'warn' : 'bad') }, balanceNote),
-        detail),
-    ...group.notes.map((note, i) => h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-inset'), key: 'n' + i }, note)),
-    renderWell(source.key, group.tasks.map(({ task, row: view }) => renderRow(view, t,
-      ui.writable && reorderable(task) && (task.position ?? 0) > 1 ? h('button', {
-        type: 'button',
-        className: cx('tq-icon-btn', 'tq-up'),
-        'data-tq-up': task.id,
-        disabled: ui.busy !== null,
-        'aria-label': t('queue.a.upOf', { name: task.name }),
-        title: t('queue.a.up'),
-        onClick: () => { ui.act('priority', task, 'up') },
-      }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
-        h('path', { d: 'M7 11.5V2.5M3 6.5L7 2.5L11 6.5', stroke: 'currentColor', strokeWidth: 1.4, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))) : null))))
-}
-
-/**
- * The open panel: title + one refresh for both halves, then a group per
- * source in _panelSources order, then what just ended, patrol, and the ops
- * entry's version. Each half keeps its own read: a failed balance read never
- * hides the queue, and a host without the dispatcher shows providers only.
- */
-function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeof useTaskQueue>, balanceState: ReturnType<typeof useProviderBalances>,
-  statsState: ReturnType<typeof useTaskStats>, t: Translate, ui: PanelUi, notice: { ok: boolean; text: string } | null): Array<React.ReactElement | null> {
-  const loading = queueState.data.loading || balanceState.data.loading || statsState.loading
-  const head = h('div', { className: cx('tq-head', 'tq-p-head'), key: 'head' },
-    h('div', { className: cx('tq-p-head-main') },
-      // The phone page's back control. Desktop keeps the anchored popover,
-      // where the outside tap and Escape are the exits, so CSS hides it there.
-      h('button', {
-        type: 'button',
-        className: cx('tq-back', 'tq-p-back'),
-        'data-tq-page-back': 'true',
-        'aria-label': t('panel.back'),
-        title: t('panel.back'),
-        onClick: ui.close,
-      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' })),
-      h('span', { className: cx('tq-title') }, model.title)),
-    h('button', {
-      type: 'button',
-      className: cx('tq-icon-btn', loading && 'spin'),
-      'data-refresh': 'true',
-      'aria-label': t('panel.refresh'),
-      'aria-busy': loading ? 'true' : undefined,
-      title: t('panel.refresh'),
-      onClick: () => { queueState.refresh(); balanceState.refresh(); statsState.refresh() },
-    }, h('svg', { width: 14, height: 14, viewBox: '0 0 14 14', 'aria-hidden': 'true' },
-      h('path', { d: 'M11.5 7A4.5 4.5 0 1 1 10 3.6M11.5 1.8V4.4H8.9', stroke: 'currentColor', strokeWidth: 1.3, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }))))
-  return [head, h('div', { className: cx('tq-scroll'), key: 'scroll' }, [
-    notice === null ? null : h('div', { className: cx('tq-sub', 'tq-wrap', 'tq-note', notice.ok ? 'tq-ok' : 'tq-bad'), key: 'notice', role: 'status' }, notice.text),
-    ...model.notices.map((note) => h('div', { className: note.bad ? cx('tq-sub', 'tq-wrap', 'tq-note', 'tq-bad') : cx('tq-sub', 'tq-note'), key: note.key, role: 'status' }, note.text)),
-    model.empty === null ? null : h('div', { className: cx('tq-sub', 'tq-empty'), key: 'empty', role: 'status' }, model.empty),
-    ...model.groups.map((group) => renderSourceGroup(group, t, ui)),
-    model.recent === null ? null : h('section', { className: cx('tq-group', 'tq-section'), key: 'recent', 'data-tq-group': 'recent' },
-      renderRow(model.recent.head, t),
-      renderWell('recent', model.recent.rows.map((row) => renderRow(row, t)))),
-    model.patrol === null ? null : renderPatrolSection(model.patrol, t, ui.openPatrol),
-    // The stats tile is the closing summary, after patrol and before the ops footer: a 7-day
-    // retrospective, not a neighbour of recently ended. It is still the only consumer of the
-    // lazy taskStats read and only exists when that read answered. The card is not duplicated
-    // at the top: the queue is the opening view, the stats is the close.
-    model.stats !== null && statsState.error === null && statsState.data?.available === true ? renderStatsCard(model.stats, t, ui, ui.statsOpen)
-      : statsState.loading && statsState.data === null ? renderStatsSkeleton(t)
-        : statsState.error !== null ? renderStatsError(statsState.error, t, statsState.refresh)
-          : statsState.data !== null && !statsState.data.available ? renderStatsError(statsState.data.error, t, statsState.refresh)
-            : null,
-    model.footer === null ? null : h('div', { className: cx('tq-sub', 'tq-foot', model.footer.bad && 'tq-bad'), key: 'ops', 'data-tq-ops': model.footer.version }, model.footer.text),
-  ])]
-}
-
-/** A task's current copy by id: live first, then recently ended (it may have just finished). */
-function findTask(result: TaskQueueResult, id: string): { task: DispatchTask; live: boolean } | null {
-  const live = result.active.find((task) => task.id === id)
-  if (live !== undefined) return { task: live, live: true }
-  const ended = result.recent.find((task) => task.id === id)
-  return ended === undefined ? null : { task: ended, live: false }
-}
-
 type ModelPicker = { models: string[]; efforts: Record<string, string[]>; flag: string; model: string; effort: string; allowed: boolean; reason: string }
 
 /** What `brief <id>` answered, for the detail layer's list of files (null until asked). */
@@ -1882,6 +1552,8 @@ type BriefView = {
   path: string
   bytes: number
   truncated: boolean
+  /** The prompt.md text the ops entry already returns (≤48 KB); read in place, no preview needed. */
+  text: string
   appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; dropped?: boolean; bytes: number; text?: string }>
   /** The host half predates `brief` (a dsh restart is pending): only prompt.md can be listed. */
   needsHost: boolean
@@ -1928,11 +1600,18 @@ type DetailSource = {
   quotaBy: string
 }
 
-/** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
-export function _fmtTokens(n: number): string {
-  if (n < 1000) return String(n)
-  if (n < 1e6) return (n / 1e3).toFixed(n < 1e4 ? 1 : 0) + 'k'
-  return (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + 'M'
+/** What opening a file through dsh's own preview answered. */
+type OpenFile = (path: string) => { ok: true } | { ok: false; reason: 'no-session' | 'no-service' | 'error'; message?: string }
+
+/**
+ * The file-preview address of a path read through one session — dsh-util-workspace-path's
+ * `sessionFileAddress` grammar (an absolute path keeps its leading `/`, hence `…/<id>//root/…`).
+ * The preview claims only this scope: `file/absolute/…` answered "no registered tab type claims"
+ * on the live host (2026-09-27), so the brief opens in the conversation's own sidebar.
+ */
+export function _sessionFileAddress(sessionId: string, path: string): string {
+  const seg = (part: string): string => encodeURIComponent(part).replace(/%3A/gi, ':')
+  return 'dsh-resource://file/session/' + seg(sessionId) + '/' + path.split('/').map(seg).join('/')
 }
 
 /**
@@ -2071,8 +1750,9 @@ function renderFields(fields: Array<DetailField | null>): React.ReactElement | n
  * a write lands in the layer's resident foot, in view wherever the reader
  * scrolled to.
  */
-function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Translate, now: number, back: () => void,
-  backRef: { current: HTMLButtonElement | null }, ui: DetailUi, notice: { ok: boolean; text: string } | null): React.ReactElement {
+function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Translate, now: number,
+  ui: DetailUi, notice: { ok: boolean; text: string } | null,
+  extras: { top?: React.ReactNode; bottom?: React.ReactNode; titleRef?: React.Ref<HTMLElement> } = {}): React.ReactElement {
   const { task, live } = found
   const stamp = (ms: number | null | undefined): string | null => ms == null ? null : resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
   const status = live ? _taskStatus(task, t, now, ui.windowsOf(task.agent)) : { tone: endedTone(task), text: executionText(task.state, t) + ' · ' + reportText(task.outcome, t, task.state) }
@@ -2155,19 +1835,19 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     },
     live && (task.deadlineAtMs || budgets) ? {
       key: 'deadline', label: t('queue.d.deadline'), value: stamp(task.deadlineAtMs) ?? t('queue.d.notRecorded'),
-      control: budget('deadline', t('queue.a.deadline'), '+2h', '+2h'),
+      control: budget('deadline', t('queue.a.deadline'), t('queue.a.deadlineShort'), '+2h'),
       after: confirmNote('deadline', t('queue.a.deadlineConfirm', { when })),
     } : null,
     task.maxAttempts != null || budgets ? {
       key: 'retries', label: t('queue.d.retries'),
       value: task.maxAttempts == null ? t('queue.d.notRecorded') : t('queue.d.usedOf', { used: task.attempts, max: task.maxAttempts }),
-      control: budget('attempts', t('queue.a.attempts'), '+1', String((task.maxAttempts ?? 3) + 1)),
+      control: budget('attempts', t('queue.a.attempts'), t('queue.a.attemptsShort'), String((task.maxAttempts ?? 3) + 1)),
       after: confirmNote('attempts', t('queue.a.attemptsConfirm', { when })),
     } : null,
     task.quotaResumes != null || budgets ? {
       key: 'resumes', label: t('queue.d.quotaResumes'),
       value: task.quotaResumes == null ? t('queue.d.notRecorded') : t('queue.d.usedOf', { used: task.quotaResumesUsed ?? 0, max: task.quotaResumes }),
-      control: budget('resumes', t('queue.a.resumes'), '+1', String((task.quotaResumes ?? 3) + 1)),
+      control: budget('resumes', t('queue.a.resumes'), t('queue.a.resumesShort'), String((task.quotaResumes ?? 3) + 1)),
       after: confirmNote('resumes', t('queue.a.resumesConfirm', { when })),
     } : null,
   ])
@@ -2271,10 +1951,61 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       control: [actionPill('raw-log', t('queue.a.fullLog'), () => { ui.openFullLog(task) }, { title: t('queue.a.fullLogTitle') })] },
   ])
 
+  // Read-only view blocks. The brief text comes back with the `brief` action, so
+  // a global workbench (no conversation to preview into) still reads it here.
+  const kbOf = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
+  const briefBlock = brief === null ? null : h('div', {
+    className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading'),
+  },
+    h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
+    h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { ui.openPath(brief.path) } },
+      h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kbOf(brief.bytes) })),
+      brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kbOf(brief.bytes) })) : null),
+    brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
+      : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
+        : brief.appends.map((append, index) => h('button', {
+          type: 'button', key: append.file, className: cx('tq-file'), 'data-tq-file': append.path,
+          onClick: () => { ui.openPath(append.path) },
+        },
+          h('span', { className: cx('tq-file-label') },
+            h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file })),
+            append.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, append.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
+          h('span', { className: cx('tq-tag'), 'data-tq-delivered': append.delivered ? 'true' : 'false' },
+            t(append.delivered ? 'queue.brief.delivered' : (append.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending')))))
+  const briefText = brief === null || brief.text === '' ? null : h('details', {
+    className: cx('tq-fold'), key: 'brief-text', 'data-tq-brief-text': task.id,
+  },
+    h('summary', { className: cx('tq-fold-summary') },
+      foldChevron(),
+      h('span', { className: cx('tq-fold-label') }, t('queue.brief.prompt', { kb: kbOf(brief.bytes) }))),
+    h('pre', {
+      className: cx('tq-log'), tabIndex: 0, role: 'region',
+      'aria-label': t('queue.brief.prompt', { kb: kbOf(brief.bytes) }),
+    }, brief.text))
+  const timelineBlock = ui.timeline === null ? null : h('div', {
+    className: cx('tq-timeline'), key: 'timeline', 'data-tq-timeline': task.id,
+  },
+    h('div', { className: cx('tq-caption') }, t('queue.timeline.heading')),
+    ui.timeline === 'older' ? h('div', { className: cx('tq-note') }, t('queue.timeline.older')) : [
+      h('div', { className: cx('tq-note'), key: 'source' }, t('queue.timeline.source')),
+      ui.timeline.log_missing ? h('div', { className: cx('tq-note'), key: 'missing' }, t('queue.timeline.missing')) : null,
+      ui.timeline.omitted_bytes > 0 || ui.timeline.omitted_events > 0 || ui.timeline.audit_truncated
+        ? h('div', { className: cx('tq-note'), key: 'cut' }, t('queue.timeline.cut', { bytes: ui.timeline.omitted_bytes, count: ui.timeline.omitted_events })) : null,
+      ui.timeline.events.length === 0 ? h('div', { className: cx('tq-empty'), key: 'empty' }, t('queue.timeline.empty'))
+        : h('ol', { key: 'events' }, ...ui.timeline.events.map((event, index) => h('li', { key: index },
+          h('time', null, event.stamp),
+          h('strong', null, t('queue.timeline.' + event.kind)),
+          event.text ? h('div', null, event.text) : null))),
+    ])
+  const logBlock = ui.log === null ? null : h('pre', {
+    className: cx('tq-log'), key: 'log', 'data-tq-log': task.id, tabIndex: 0, role: 'region',
+    'aria-label': t('queue.a.log'),
+  }, ui.log.join('\n'))
+
   const sections: Record<DetailSection, React.ReactElement | null> = {
     status: h('div', { className: cx('tq-d-sec', 'tq-d-hero'), key: 'status', 'data-tq-section': 'status' },
       h('span', { className: cx('tq-lead'), 'aria-hidden': 'true' }, renderAgentGlyph(task.agent)),
-      h('span', { className: cx('tq-d-name'), role: 'heading', 'aria-level': 2 }, task.name),
+      h('span', { className: cx('tq-d-name'), role: 'heading', 'aria-level': 2, tabIndex: -1, ref: extras.titleRef }, task.name),
       renderChip(chip, { slot: 'status' }),
       status.text === chip.text ? null : h('div', {
         className: cx('tq-d-status'), 'data-balance-state': status.tone, title: live ? undefined : t('queue.statusLegend'),
@@ -2286,36 +2017,10 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     ]),
     view: renderSection('view', null, [
       h('div', { className: cx('tq-actions'), key: 'pills', role: 'group', 'aria-label': t('queue.a.viewGroup') }, ...view),
-      brief === null ? null : h('div', { className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading') },
-        h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
-        h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { ui.openPath(brief.path) } },
-          h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kb(brief.bytes) })),
-          brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kb(brief.bytes) })) : null),
-        brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
-          : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
-            : brief.appends.map((a, index) => h('button', {
-              type: 'button', key: a.file, className: cx('tq-file'), 'data-tq-file': a.path, onClick: () => { ui.openPath(a.path) },
-            },
-              h('span', { className: cx('tq-file-label') },
-                h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: a.stamp || a.file })),
-                a.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, a.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
-              h('span', { className: cx('tq-tag'), 'data-tq-delivered': a.delivered ? 'true' : 'false' },
-                t(a.delivered ? 'queue.brief.delivered' : (a.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending'))))),
-      ui.timeline === null ? null : h('div', { className: cx('tq-timeline'), key: 'timeline', 'data-tq-timeline': task.id },
-        h('div', { className: cx('tq-caption') }, t('queue.timeline.heading')),
-        ui.timeline === 'older' ? h('div', { className: cx('tq-note') }, t('queue.timeline.older')) : [
-          h('div', { className: cx('tq-note'), key: 'source' }, t('queue.timeline.source')),
-          ui.timeline.log_missing ? h('div', { className: cx('tq-note'), key: 'missing' }, t('queue.timeline.missing')) : null,
-          ui.timeline.omitted_bytes > 0 || ui.timeline.omitted_events > 0 || ui.timeline.audit_truncated
-            ? h('div', { className: cx('tq-note'), key: 'cut' }, t('queue.timeline.cut', { bytes: ui.timeline.omitted_bytes, count: ui.timeline.omitted_events })) : null,
-          ui.timeline.events.length === 0 ? h('div', { className: cx('tq-empty'), key: 'empty' }, t('queue.timeline.empty'))
-            : h('ol', { key: 'events' }, ...ui.timeline.events.map((event, index) => h('li', { key: index },
-              h('time', null, event.stamp),
-              h('strong', null, t('queue.timeline.' + event.kind)),
-              event.text ? h('div', null, event.text) : null))),
-        ]),
-      // The log scrolls inside itself: focusable and named, so a keyboard and a screen reader can read it.
-      ui.log === null ? null : h('pre', { className: cx('tq-log'), key: 'log', 'data-tq-log': task.id, tabIndex: 0, role: 'region', 'aria-label': t('queue.a.log') }, ui.log.join('\n')),
+      briefBlock,
+      briefText,
+      timelineBlock,
+      logBlock,
     ]),
     run: renderSection('run', t('queue.d.sec.run'), [run, budgetOld]),
     allowance: renderSection('allowance', t('queue.d.sec.allowance'), [allowance]),
@@ -2333,19 +2038,10 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       renderFold('raw', t('queue.d.sec.raw'), [raw])),
   }
   return h('div', { className: cx('tq-detail'), 'data-tq-detail': task.id, role: 'group', 'aria-label': task.name },
-    h('div', { className: cx('tq-head', 'tq-d-head') },
-      h('button', {
-        type: 'button',
-        className: cx('tq-back'),
-        'data-tq-back': 'true',
-        'aria-label': t('queue.back'),
-        title: t('queue.back'),
-        ref: backRef,
-        onClick: back,
-      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('panel.title')),
-      h('span', { className: cx('tq-caption') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
     h('div', { className: cx('tq-scroll', 'tq-d-scroll'), role: 'region', 'aria-label': t('queue.d.region', { name: task.name }) },
-      ...DETAIL_SECTIONS[live ? 'live' : 'ended'].map((id) => sections[id])),
+      extras.top ?? null,
+      ...DETAIL_SECTIONS[live ? 'live' : 'ended'].map((id) => sections[id]),
+      extras.bottom ?? null),
     // Resident: the answer to a write, wherever the reader had scrolled to. Always mounted, so a
     // screen reader hears it when it fills.
     h('div', { className: cx('tq-d-notice', notice !== null && (notice.ok ? 'tq-ok' : 'tq-bad')), role: 'status', 'data-tq-notice': notice === null ? undefined : 'true' },
@@ -2373,7 +2069,6 @@ export function _describeAction(result: QueueActionResult, t: Translate): string
 }
 
 /** How long an in-place confirmation waits for its second tap. */
-const CONFIRM_MS = 5000
 
 
 // ---------------------------------------------------------------------------
@@ -2390,6 +2085,8 @@ const CONFIRM_MS = 5000
 const WORKBENCH_WIDE = '(min-width: 768px)'
 /** Two-tap destructive confirmation, in place, then it reverts. */
 const WORKBENCH_CONFIRM_MS = 3000
+/** The detail layer's write confirmations (cancel, budgets) revert after 5s. */
+const DETAIL_CONFIRM_MS = 5000
 /** How long "刚刚更新" stays after a silent refresh. */
 const WORKBENCH_UPDATED_MS = 1600
 /** Per-device group fold memory (the design review fixed this key). */
@@ -2449,7 +2146,7 @@ function useMedia(query: string): boolean {
 }
 
 /** Local HH:MM for the header's patrol stamp and the recorded-at line. */
-function clockOf(ms: number | null): string {
+function hhmmOf(ms: number | null): string {
   if (ms === null || !Number.isFinite(ms)) return '—'
   const d = new Date(ms)
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
@@ -2476,8 +2173,11 @@ function renderWorkbenchGlyph(size = 16): React.ReactElement {
     h('path', { d: 'M3.1 3.4h9.8l1.2 5.8v2.9a1 1 0 0 1-1 1H2.9a1 1 0 0 1-1-1V9.2z' }))
 }
 
-function renderWorkbenchChevron(size = 12): React.ReactElement {
-  return h('svg', { width: size, height: size, viewBox: '0 0 12 12', 'aria-hidden': 'true' },
+function renderWorkbenchChevron(size = 12, className?: string): React.ReactElement {
+  return h('svg', {
+    className: className === undefined ? undefined : cx(className),
+    width: size, height: size, viewBox: '0 0 12 12', 'aria-hidden': 'true',
+  },
     h('path', {
       d: 'M4.5 2.5L8 6l-3.5 3.5', stroke: 'currentColor', strokeWidth: 1.4,
       fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round',
@@ -2503,6 +2203,7 @@ function WorkbenchGroupHeader(props: {
   tone: 'danger' | 'neutral'
   bodyId: string
   summary?: string
+  lead?: React.ReactNode
   buttonRef: (element: HTMLButtonElement | null) => void
   onToggle: () => void
 }): React.ReactElement {
@@ -2516,6 +2217,7 @@ function WorkbenchGroupHeader(props: {
     onClick: props.onToggle,
   },
     props.tone === 'danger' ? renderWorkbenchAlert() : null,
+    props.lead ?? null,
     h('span', { className: cx('wb-group-title') }, props.label),
     props.summary === undefined || props.summary === '' ? null : h('span', { className: cx('wb-group-summary') }, props.summary),
     h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron()))
@@ -2539,19 +2241,23 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
   const view = tasks.length === 0 ? null : signalView(tasks, props.t, Date.now())
   const alerts = providerAlerts(balances.rows)
   const alertNames = alerts.map((row) => row.label).join(', ')
+  const alertCount = alerts.length === 0 ? '' : alerts.length === 1
+    ? props.t('workbench.provider.alertCountOne')
+    : props.t('workbench.provider.alertCount', { n: alerts.length })
   const alertLabel = alertNames === '' ? null : props.t('workbench.provider.alertAria', { names: alertNames })
   const iconRef = useRef<HTMLSpanElement | null>(null)
-  // The host owns the row's button and its visible label; only the accessible
-  // name and tooltip can carry the count (the glyph slot is aria-hidden).
+  // The host owns the row's button and its visible label. An alert is written
+  // into that label ("Workbench · 1 alert"), never left as a colour-only dot:
+  // no legend, no hover and no width assumption can make a bare dot explain
+  // itself, and the rail keeps the same words in its title/aria-label.
   const label = view?.aria ?? props.t('signal.icon')
   const spoken = alertLabel === null ? label : label + ' · ' + alertLabel
   useEffect(() => {
     const button = iconRef.current?.closest('button')
     if (typeof HTMLElement === 'undefined' || !(button instanceof HTMLElement)) return undefined
     const previous = button.getAttribute('aria-label')
-    const previousPosition = button.style.position
     const title = button.querySelector<HTMLElement>('[class*="panelTitle"]')
-    button.style.position = 'relative'
+    const previousText = title?.textContent ?? null
     const updateRail = (): void => {
       const width = button.getBoundingClientRect().width
       if (width > 0 && width < 60) button.setAttribute('data-wb-rail', 'true')
@@ -2565,27 +2271,22 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
     railObserver?.observe(button)
     button.setAttribute('aria-label', spoken)
     button.setAttribute('title', spoken)
-    // The dot rides the host's label pseudo-element: it costs no line height
-    // and does not add a node inside the host's own button.
-    if (alertNames === '') button.removeAttribute('data-wb-provider-alert')
-    else button.setAttribute('data-wb-provider-alert', 'true')
     if (title !== null) {
-      if (alertNames === '') title.removeAttribute('data-wb-provider-alert')
-      else title.setAttribute('data-wb-provider-alert', 'true')
+      title.textContent = alertCount === ''
+        ? previousText ?? title.textContent
+        : props.t('workbench.labelAlert', { alerts: alertCount })
     }
     return () => {
       if (previous === null) button.removeAttribute('aria-label')
       else button.setAttribute('aria-label', previous)
       button.removeAttribute('title')
-      button.removeAttribute('data-wb-provider-alert')
       button.removeAttribute('data-wb-rail')
-      button.style.position = previousPosition
-      title?.removeAttribute('data-wb-provider-alert')
+      if (title !== null && previousText !== null) title.textContent = previousText
       if (typeof window !== 'undefined') window.removeEventListener('resize', updateRail)
       railObserver?.disconnect()
       if (railFrame !== null && typeof window !== 'undefined') window.cancelAnimationFrame(railFrame)
     }
-  }, [spoken, alertNames])
+  }, [spoken, alertCount, alertNames])
   return h('span', {
     className: cx('wb-icon', props.active && 'wb-icon-on'),
     'data-wb-icon': 'true',
@@ -2607,8 +2308,8 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
         'aria-live': 'polite',
       }, view.badge),
     alertNames === '' ? null : h('span', {
-      className: cx('wb-rail-dot'), 'data-wb-rail-dot': 'true', 'aria-hidden': 'true',
-    }))
+      className: cx('wb-rail-alert'), 'data-wb-rail-alert': 'true', 'aria-hidden': 'true', title: alertLabel ?? '',
+    }, '!'))
 }
 
 export type WorkbenchInjected = TaskQueueInjected & BalancesInjected & {
@@ -2616,6 +2317,8 @@ export type WorkbenchInjected = TaskQueueInjected & BalancesInjected & {
   closeWorkbench: () => void
   /** One preset through the host's dispatcher entry; absent on an older host half. */
   runWorkbenchAction?: (action: string, id: string) => Promise<QueueActionResult>
+  /** Open a brief/log in dsh's own preview; absent on a host without the sidebar service. */
+  openFile?: OpenFile
 }
 
 export type WorkbenchProps = WorkbenchInjected & { t: Translate }
@@ -2669,66 +2372,45 @@ function WorkbenchProviderRow(props: {
 }): React.ReactElement {
   const { row, t, detailRow } = props
   const snapshot = detailRow?.result.snapshot ?? null
-  const windows = snapshot?.windows ?? []
-  const first = windows[0]
-  const second = windows[1]
-  const used = first?.percent ?? null
-  const week = second?.percent ?? null
-  const maxUsed = Math.max(0, ...windows.map((window) => window.percent ?? 0))
   const money = snapshot?.unit === 'money'
-  const free = detailRow === undefined
-  const unknown = !free && (snapshot === null || detailRow?.result.configured === false || detailRow?.result.status === 'failed')
-  const stale = detailRow?.result.status === 'stale'
-  const moneyTotal = money ? (Number(snapshot?.totalBalance) || 0) + (Number(snapshot?.grantedBalance) || 0) : 0
-  const moneyLow = money && (Number(snapshot?.totalBalance) || 0) < 10
-  const state: 'ok' | 'warn' | 'alert' | 'exhausted' | 'free' | 'unknown' | 'stale' = free ? 'free'
-    : unknown ? 'unknown'
-      : stale ? 'stale'
-        : maxUsed >= 100 ? 'exhausted'
-          : maxUsed >= 90 || (money && moneyTotal <= 0) || row.signal === 'alert' ? 'alert'
-            : maxUsed >= 70 || moneyLow ? 'warn' : 'ok'
+  const free = row.state === 'free'
+  const unknown = row.state === 'unknown'
+  const state = row.state
   const stateLabel = state === 'stale' ? t('balance.staleShort') : t('workbench.provider.state.' + state)
-  const primary = free ? t('workbench.provider.state.free')
-    : unknown ? '—'
-      : state === 'exhausted' ? t('workbench.provider.state.exhausted')
-        : money ? ''
-          : used === null ? '—' : Math.round(used) + '%'
-  const secondary = money || free || unknown || week === null
-    ? null : t('balance.window.week') + ' ' + Math.round(week) + '%'
-  const resetWindow = second !== undefined && (second.percent ?? 0) >= 90 ? second : first
-  const reset = resetWindow === undefined ? '' : resetStampOf(t, { resetAt: resetWindow.resetAt, resetAtMs: resetWindow.resetAtMs }, props.now)
   const left = free ? t('workbench.provider.noWindow')
     : unknown ? t('workbench.provider.state.unknown')
-      : money ? '' : reset === '' ? '—' : t('workbench.provider.to', { time: reset })
+      : money ? '' : row.reset === null ? '—'
+        : t('workbench.provider.to', { time: [row.reset.date, row.reset.detail].filter((part) => part !== '').join(' ') })
   const credit = money && Number(snapshot?.grantedBalance) > 0
     ? t('workbench.provider.credit', { amount: (snapshot?.currency === 'CNY' ? '¥' : '$') + snapshot?.grantedBalance })
     : null
   const right = money && !free && !unknown
     ? [t('workbench.provider.balance', { amount: row.primary }), credit].filter((part): part is string => part !== null).join(' · ')
     : null
-  const barPct = free || unknown ? null : money ? (moneyTotal <= 0 ? 100 : 0) : Math.min(100, maxUsed)
-  const aria = [row.label, stateLabel, primary, secondary, left, right].filter((part): part is string => part !== null && part !== '').join(' · ')
   return h('div', {
     className: cx('wb-prov', 'wb-prov-' + state), role: 'listitem',
     'data-wb-provider': row.key, 'data-wb-provider-signal': row.signal, 'data-wb-provider-state': state,
-    'data-wb-tone': row.tone, 'aria-label': aria, title: row.title === '' ? undefined : row.title,
+    'data-wb-tone': row.tone, 'aria-label': row.aria, title: row.title === '' ? undefined : row.title,
   },
     h('div', { className: cx('wb-prov-line') },
       h('span', {
-        className: cx('wb-prov-dot'), 'data-role': state, 'aria-hidden': 'true',
-        'data-wb-dot-hidden': state === 'ok' || state === 'free' ? 'true' : undefined,
-      }),
+        className: cx('wb-prov-glyph'), 'data-pp-provider': row.provider ?? row.agent ?? '',
+        'aria-hidden': 'true',
+      }, renderSourceGlyph(row.source)),
       h('span', { className: cx('wb-prov-name') }, row.label),
       h('span', { className: cx('wb-prov-metrics') },
-        primary === '' ? null : h('span', { className: cx('wb-prov-primary'), 'data-wb-tone': row.primaryTone }, primary),
-        secondary === null ? null : h('span', { className: cx('wb-prov-secondary'), 'data-wb-tone': row.secondaryTone }, secondary))),
+        row.primary === '' ? null : h('span', { className: cx('wb-prov-primary'), 'data-wb-tone': row.primaryTone }, row.primary),
+        row.secondary === null ? null : h('span', { className: cx('wb-prov-secondary'), 'data-wb-tone': row.secondaryTone }, row.secondary))),
     h('div', { className: cx('wb-prov-meta') },
       h('span', { className: cx('wb-prov-left') },
         state === 'stale' && row.chip !== null ? h('span', { className: cx('wb-prov-stale') }, row.chip.text) : null,
         left),
       right === null ? null : h('span', { className: cx('wb-prov-right') }, right)),
-    barPct === null ? null : h('div', { className: cx('wb-prov-track'), 'aria-hidden': 'true' },
-      h('span', { className: cx('wb-prov-fill'), 'data-role': state, style: { width: barPct + '%' } })))
+    row.bar === null ? null : h('div', { className: cx('wb-prov-track'), 'data-wb-provider-bar': row.bar.state, 'aria-hidden': 'true' },
+      h('span', {
+        className: cx('wb-prov-fill'), 'data-wb-provider-fill': String(row.bar.pct), 'data-role': row.bar.state,
+        style: { width: row.bar.pct + '%' },
+      })))
 }
 
 /** A native details fold; the summary carries the whole row, the body the existing tables. */
@@ -2746,90 +2428,21 @@ function WorkbenchDetail(props: {
   now: number
   t: Translate
   desktop: boolean
-  titleRef: React.Ref<HTMLHeadingElement>
-  submittedAt: string | null
-  busy: string | null
+  live: boolean
+  titleRef: React.Ref<HTMLElement>
+  ui: DetailUi
   notice: { ok: boolean; text: string } | null
-  confirmStop: boolean
-  coverage: CoverageView | null
-  /** Areas with open items, from the raw progress (the view's `open` is already a label). */
-  areasOpen: number | null
-  onAction: (action: 'continue' | 'modify' | 'stop') => void
-  onNext: () => void
-  onStopFirst: () => void
+  top?: React.ReactNode
+  bottom?: React.ReactNode
 }): React.ReactElement {
-  const { task, t } = props
-  const stuck = isStuckTask(task)
-  const live = task.finishedAtMs === null || task.finishedAtMs === undefined
-  const meta = [
-    live ? t('workbench.running') : stuck ? t('workbench.stuck') : t('workbench.pending'),
-    t('workbench.waited', { time: waitLong(waitedOf(task, props.now)) }),
-    task.agent === '' ? null : task.agent,
-  ].filter((part): part is string => part !== null).join(' · ')
-  const coverageLabel = props.areasOpen === null
-    ? t('workbench.fold.coverageUnknown')
-    : t('workbench.fold.coverage', { n: props.areasOpen })
-  const stage = task.stage ?? ''
-  const info: Array<[string, string]> = [
-    [t('workbench.info.id'), task.id],
-    [t('workbench.info.agent'), task.agent === '' ? t('workbench.info.none') : task.agent],
-    [t('workbench.info.state'), [task.state, task.outcome].filter((part) => part !== '').join(' / ') || t('workbench.info.none')],
-    [t('workbench.info.stage'), stage === '' ? t('workbench.info.none') : stage],
-    [t('workbench.info.ended'), task.finishedAtMs === null || task.finishedAtMs === undefined ? t('workbench.info.none') : new Date(task.finishedAtMs).toLocaleString()],
-    [t('workbench.info.waited'), waitLong(waitedOf(task, props.now))],
-  ]
-  return h('div', { className: cx('wb-detail', props.desktop && 'wb-detail-desktop'), 'data-wb-detail': task.id },
-    h('div', { className: cx('wb-detail-scroll') },
-      h('h2', { className: cx('wb-detail-title'), tabIndex: -1, ref: props.titleRef }, taskTitle(task)),
-      h('div', { className: cx('wb-detail-meta') }, meta),
-      h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
-      task.needs === undefined || task.needs.trim() === ''
-        ? h('div', { className: cx('wb-needs-empty') }, t('workbench.needs.empty'))
-        : h('p', { className: cx('wb-needs') }, task.needs),
-      props.submittedAt === null
-        ? h('div', { className: cx('wb-actions') },
-          h('button', {
-            type: 'button', className: cx('wb-act', 'wb-act-primary'),
-            disabled: props.busy !== null,
-            onClick: () => { props.onAction('continue') },
-          }, props.busy === 'continue' ? t('workbench.busy') : t('workbench.act.continue')),
-          h('button', {
-            type: 'button', className: cx('wb-act', 'wb-act-secondary'),
-            disabled: props.busy !== null,
-            onClick: () => { props.onAction('modify') },
-          }, props.busy === 'modify' ? t('workbench.busy') : t('workbench.act.modify')),
-          h('div', { className: cx('wb-danger') },
-            h('button', {
-              type: 'button', className: cx('wb-act', 'wb-act-danger'),
-              disabled: props.busy !== null,
-              'data-wb-confirm': props.confirmStop ? 'true' : undefined,
-              'aria-live': 'polite',
-              onClick: () => { props.onStopFirst() },
-            }, props.busy === 'stop' ? t('workbench.busy')
-              : props.confirmStop ? t('workbench.act.confirm') : t('workbench.act.stop'))))
-        : h('div', { className: cx('wb-recorded'), role: 'status', 'data-wb-recorded': 'true' },
-          h('span', { className: cx('wb-recorded-line') },
-            t('workbench.recorded'), ' · ',
-            h('button', { type: 'button', className: cx('wb-next'), onClick: props.onNext }, t('workbench.next'))),
-          h('span', { className: cx('wb-recorded-time') }, props.submittedAt)),
-      props.notice === null ? null : h('div', {
-        className: cx('wb-notice', props.notice.ok ? 'wb-ok' : 'wb-bad'), role: 'status',
-      }, props.notice.text),
-      h('div', { className: cx('wb-folds') },
-        h(WorkbenchFold, { id: 'coverage', label: coverageLabel },
-          props.coverage === null
-            ? h('div', { className: cx('wb-fold-empty') }, t('workbench.info.none'))
-            : h('div', { className: cx('wb-cov', 'pbc', 'tqf') }, ...renderCoverageTables(props.coverage, t))),
-        h(WorkbenchFold, { id: 'result', label: t('workbench.fold.result') },
-          task.summary.trim() === ''
-            ? h('div', { className: cx('wb-fold-empty') }, t('workbench.result.empty'))
-            : h('pre', { className: cx('wb-result') }, task.summary)),
-        h(WorkbenchFold, { id: 'info', label: t('workbench.fold.info') },
-          h('dl', { className: cx('wb-info') },
-            ...info.flatMap(([label, value]) => [
-              h('dt', { key: 'd-' + label }, label),
-              h('dd', { key: 'v-' + label }, value),
-            ]))))))
+  return h('div', {
+    className: cx('wb-detail', props.desktop && 'wb-detail-desktop'),
+    'data-wb-detail': props.task.id,
+  },
+    h('div', { className: cx('wb-detail-tq', 'pbc', 'tqf') },
+      renderTaskDetail(
+        { task: props.task, live: props.live }, props.t, props.now, props.ui, props.notice,
+        { top: props.top, bottom: props.bottom, titleRef: props.titleRef })))
 }
 
 export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
@@ -2841,18 +2454,32 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const [snapshot, setSnapshot] = useState<DispatchTask | null>(null)
   const [groups, setGroups] = useState<WorkbenchGroups>(readWorkbenchGroups)
   const [showAll, setShowAll] = useState<Partial<Record<WorkbenchGroup, boolean>>>({})
-  const [overviewPatrolOpen, setOverviewPatrolOpen] = useState(true)
+  // The old panel grouped tasks under their provider/agent source. The new
+  // work queue groups by what the reader must do (status); source stays one
+  // toggle away instead of being a second permanent list.
+  const [groupBy, setGroupBy] = useState<'status' | 'source'>('status')
+  const [sourceOpen, setSourceOpen] = useState<Record<string, boolean>>({})
+  const [overviewPatrolOpen, setOverviewPatrolOpen] = useState(false)
   const [overviewStatsOpen, setOverviewStatsOpen] = useState(false)
+  const [overviewHistoryOpen, setOverviewHistoryOpen] = useState(false)
   const [updated, setUpdated] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [confirmStop, setConfirmStop] = useState(false)
   const [submittedAt, setSubmittedAt] = useState<string | null>(null)
+  // The old task-detail layer's own state (writes, reads, pickers). It is kept
+  // per selected task; a late read may never paint another task's panel.
+  const [confirm, setConfirm] = useState<string | null>(null)
+  const [picker, setPicker] = useState<ModelPicker | null>(null)
+  const [log, setLog] = useState<string[] | null>(null)
+  const [timeline, setTimeline] = useState<TaskTimeline | 'older' | null>(null)
+  const [brief, setBrief] = useState<BriefView | null>(null)
+  const [readPending, setReadPending] = useState<string | null>(null)
   const desktop = useMedia(WORKBENCH_WIDE)
   const narrow = useMedia('(max-width: 359px)')
   const balances = useProviderReadings(props, 'workbench-page', tab === 'providers')
   const stats = useTaskStats(props, tab === 'overview')
-  const titleRef = useRef<HTMLHeadingElement | null>(null)
+  const titleRef = useRef<HTMLElement | null>(null)
   const rowRefs = useRef(new Map<string, HTMLButtonElement>())
   const groupRefs = useRef(new Map<WorkbenchGroup, HTMLButtonElement>())
   const openedInitial = useRef(false)
@@ -2868,6 +2495,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const tabRefs = useRef(new Map<WorkbenchTab, HTMLButtonElement>())
   const updatedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const detailRequest = useRef(0)
+  const activeDetail = useRef<string | null>(null)
+  const historyReturn = useRef<string | null>(null)
   const groupId = useId()
   const now = Date.now()
   const result = queue.data.result
@@ -2900,7 +2530,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   ]
   const shown = selected === null ? null : pending.find((task) => task.id === selected) ?? snapshot
   const patrolAt = lastPatrolAt(result)
-  const stamp = clockOf(patrolAt)
+  const stamp = hhmmOf(patrolAt)
   const rawProgress = result?.patrol?.progress ?? null
   const overviewOpenValues = (rawProgress?.areas ?? []).map((area) => {
     const value = (area as { open?: unknown }).open
@@ -2965,6 +2595,11 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     }
     return () => { if (confirmTimer.current !== null) clearTimeout(confirmTimer.current) }
   }, [confirmStop])
+  useEffect(() => {
+    if (confirm === null) return undefined
+    const timer = setTimeout(() => { setConfirm(null) }, DETAIL_CONFIRM_MS)
+    return () => clearTimeout(timer)
+  }, [confirm])
   useEffect(() => () => {
     if (updatedTimer.current !== null) clearTimeout(updatedTimer.current)
     if (confirmTimer.current !== null) clearTimeout(confirmTimer.current)
@@ -3038,11 +2673,14 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     selectTab(next)
   }
   const choose = (task: DispatchTask): void => {
+    detailRequest.current += 1
+    activeDetail.current = task.id
     setSelected(task.id)
     setSnapshot(task)
     setSubmittedAt(null)
     setNotice(null)
     setConfirmStop(false)
+    setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
   }
   const open = (task: DispatchTask): void => {
     choose(task)
@@ -3052,11 +2690,20 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const back = (): void => {
     const id = selected
     const task = shown
+    const returnHistory = tab === 'overview' ? historyReturn.current : null
+    historyReturn.current = null
     setView('queue')
     setNotice(null)
     setConfirmStop(false)
+    detailRequest.current += 1
+    activeDetail.current = null
+    setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => {
+        if (returnHistory !== null) {
+          const historyRow = document.querySelector<HTMLElement>('[data-wb-history="' + CSS.escape(returnHistory) + '"]')
+          if (historyRow !== null) { historyRow.focus({ preventScroll: false }); return }
+        }
         const row = id === null ? undefined : rowRefs.current.get(id)
         if (row !== undefined) {
           row.focus({ preventScroll: false })
@@ -3151,13 +2798,170 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         return
       }
       setConfirmStop(false)
-      setSubmittedAt(clockOf(Date.now()))
+      setSubmittedAt(hhmmOf(Date.now()))
       queue.refresh()
     }, (error: unknown) => {
       setBusy(null)
       setNotice({ ok: false, text: t('workbench.actionFailed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
+  // ---- The old detail layer's reads and writes ---------------------------------
+  // These are the pre-fold task-detail capabilities (brief, log, timeline,
+  // model picker, priority, budgets, wrap-up/cancel/retry). They all call the
+  // host's existing queueAction; this page only owns their state.
+  const resetDetailReads = (): void => {
+    detailRequest.current += 1
+    setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
+  }
+  const needsHost = (answer: QueueActionResult): boolean => !answer.ok && /unknown action/.test(answer.message)
+  const runAction = props.runQueueAction
+  const writable = runAction !== undefined && result?.ops?.available === true
+  const queueAct = (action: string, task: DispatchTask, arg = ''): void => {
+    if (runAction === undefined || busy !== null) return
+    setBusy(action + ':' + task.id)
+    setNotice(null)
+    runAction(action, task.id, arg).then((answer) => {
+      setBusy(null)
+      setNotice({ ok: answer.ok, text: needsHost(answer) ? t('queue.r.needsHost') : _describeAction(answer, t) })
+      queue.refresh()
+    }, (error: unknown) => {
+      setBusy(null)
+      setNotice({ ok: false, text: t('queue.r.failed', { message: error instanceof Error ? error.message : String(error) }) })
+    })
+  }
+  const openPath = (path: string): void => {
+    const opened = props.openFile === undefined ? { ok: false as const, reason: 'no-service' as const } : props.openFile(path)
+    const file = path.slice(path.lastIndexOf('/') + 1)
+    setNotice(opened.ok ? { ok: true, text: t('queue.brief.opened', { file }) }
+      : { ok: false, text: opened.reason === 'no-session' ? t('queue.brief.noSession', { path })
+        : opened.reason === 'no-service' ? t('queue.brief.noService', { path })
+          : t('queue.brief.failed', { message: opened.message ?? '', path }) })
+  }
+  const openBrief = (task: DispatchTask): void => {
+    const logDir = result?.logDir
+    const fallback = logDir ? logDir.replace(/\/+$/, '') + '/' + task.id + '/prompt.md' : null
+    setConfirm(null)
+    const noDir = (): void => { setNotice({ ok: false, text: t('queue.brief.noDir') }) }
+    if (runAction === undefined) {
+      if (fallback === null) { noDir(); return }
+      setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true, text: '' }); return
+    }
+    const request = detailRequest.current
+    setReadPending('brief')
+    runAction('brief', task.id, '').then((answer) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      type Answer = { path?: string; brief?: string; brief_bytes?: number; truncated?: boolean; appends?: BriefView['appends'] }
+      let detail: Answer = {}
+      try { detail = JSON.parse(answer.detail || '{}') as Answer } catch { detail = {} }
+      if (!answer.ok && !needsHost(answer)) {
+        setNotice({ ok: false, text: t('queue.a.readFailed', { message: answer.message }) })
+        return
+      }
+      const path = (answer.ok ? detail.path : undefined) ?? fallback
+      if (path === null) { noDir(); return }
+      const view: BriefView = answer.ok
+        ? { id: task.id, path, bytes: detail.brief_bytes ?? 0, truncated: detail.truncated === true, appends: detail.appends ?? [], needsHost: false, text: detail.brief ?? '' }
+        : { id: task.id, path, bytes: 0, truncated: false, appends: [], needsHost: true, text: '' }
+      setBrief(view)
+    }, (error: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+    })
+  }
+  const openFullLog = (task: DispatchTask): void => {
+    const logDir = result?.logDir
+    if (!logDir) { setNotice({ ok: false, text: t('queue.a.logNoDir') }); return }
+    const path = logDir.replace(/\/+$/, '') + '/' + task.id + '/run.log'
+    const opened = props.openFile === undefined ? { ok: false as const } : props.openFile(path)
+    // The workbench is a global main panel, so dsh has no conversation to
+    // preview into. Fall back to the same ops-read log, inline.
+    if (!opened.ok) loadLog(task)
+  }
+  const openPicker = (task: DispatchTask): void => {
+    if (runAction === undefined) return
+    setConfirm(null)
+    const request = detailRequest.current
+    setLog(null)
+    setPicker(null)
+    setReadPending('choices')
+    runAction('choices', task.id, '').then((answer) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      type Answer = { models?: string[]; efforts?: Record<string, string[]>; effort_flag?: string; allowed?: boolean; reason?: string; requested?: { model?: string; effort?: string } }
+      let detail: Answer = {}
+      try { detail = JSON.parse(answer.detail || '{}') as Answer } catch { detail = {} }
+      setPicker({
+        models: detail.models ?? [], efforts: detail.efforts ?? {}, flag: detail.effort_flag ?? 'effort',
+        model: detail.requested?.model ?? task.modelRequested ?? task.model, effort: detail.requested?.effort ?? '',
+        allowed: answer.ok && detail.allowed === true, reason: answer.ok ? detail.reason ?? '' : answer.message,
+      })
+    }, (error: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+    })
+  }
+  const loadLog = (task: DispatchTask): void => {
+    if (runAction === undefined) return
+    setConfirm(null)
+    const request = detailRequest.current
+    setPicker(null)
+    setReadPending('log')
+    runAction('log', task.id, '').then((answer) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      let lines: string[] = []
+      try { lines = (JSON.parse(answer.detail || '{}') as { lines?: string[] }).lines ?? [] } catch { lines = [] }
+      setLog(answer.ok ? lines : [answer.message])
+    }, (error: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+    })
+  }
+  const loadTimeline = (task: DispatchTask): void => {
+    if (runAction === undefined) return
+    const request = detailRequest.current
+    setReadPending('timeline')
+    runAction('log', task.id, '').then((answer) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      if (!answer.ok) { setNotice({ ok: false, text: t('queue.a.readFailed', { message: answer.message }) }); return }
+      let reply: { timeline?: TaskTimeline } = {}
+      try { reply = JSON.parse(answer.detail || '{}') as typeof reply } catch { /* older ops */ }
+      setTimeline(reply.timeline ?? 'older')
+    }, (error: unknown) => {
+      if (request !== detailRequest.current || activeDetail.current !== task.id) return
+      setReadPending(null)
+      setNotice({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
+    })
+  }
+  const windowsOf = (agent: string): ReadonlyArray<{ resetAtMs?: number | null }> | undefined => agentWindows(rowMap, agent)
+  const sourceOf = (agent: string): DetailSource => {
+    const join = PROVIDER_JOIN.find((row) => row.agent === agent)
+    const queueRow = (result?.queues ?? []).find((row) => row.agent === agent)
+    return {
+      plan: join?.plan ?? null,
+      row: join?.provider ? rowMap.get(join.provider) : undefined,
+      pool: join?.kind === 'pool' ? _poolPosition(result) : undefined,
+      poolSize: join?.kind === 'pool' ? result?.opencodePool?.length ?? 0 : 0,
+      lane: result === null ? undefined : _slotLanes(result).find((lane) => lane.agent === agent),
+      quotaUntilMs: queueRow?.quotaUntilMs ?? null,
+      quotaBy: queueRow?.quotaBy ?? '',
+    }
+  }
+  const detailUi = (): DetailUi => ({
+    open: (id: string) => {
+      const task = pending.find((row) => row.id === id) ?? live.find((row) => row.id === id)
+      if (task !== undefined) choose(task)
+    },
+    act: queueAct, busy, writable,
+    confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog, brief, readPending,
+    openBrief, openFullLog, openPath, windowsOf, sourceOf, timeline, loadTimeline,
+  })
+
   const renderQueue = (): React.ReactElement => {
     if (pending.length === 0 && live.length === 0) {
       return h('div', { className: cx('wb-empty'), 'data-wb-empty': 'true' },
@@ -3208,23 +3012,69 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
               }, t('workbench.group.more', { n: rest }))
               : null)))
     }
+    const headline = result === null ? null : _queueHeadline(result, t, now)
+    const notices = panelNotices({ queue: result, queueError: queue.data.error, balances: null, balanceError: null, rowCount: 0 }, t)
+    const allTasks = [...pending, ...live]
+    const claimed = new Set<string>()
+    const bySource = sources.map((source) => {
+      const agents = new Set([source.agent, source.join?.agent].filter((agent): agent is string => agent !== null && agent !== undefined && agent !== ''))
+      const rows = allTasks.filter((task) => agents.has(task.agent)).sort((a, b) => (a.queuedAtMs ?? a.startedAtMs ?? 0) - (b.queuedAtMs ?? b.startedAtMs ?? 0))
+      for (const task of rows) claimed.add(task.id)
+      return { source, rows }
+    }).filter((entry) => entry.rows.length > 0)
+    const otherTasks = allTasks.filter((task) => !claimed.has(task.id))
+    const sourceSection = (key: string, label: string, rows: DispatchTask[], glyph: React.ReactNode): React.ReactElement => {
+      const open = sourceOpen[key] !== false
+      const bodyId = groupId + '-source-' + key
+      return h('section', {
+        className: cx('wb-group-section'), 'data-wb-group': 'source-' + key, 'data-wb-source': key, 'data-wb-open': open ? 'true' : 'false',
+      },
+        h(WorkbenchGroupHeader, {
+          id: 'source-' + key, label, open, tone: 'neutral', bodyId, summary: String(rows.length), lead: glyph,
+          buttonRef: () => {},
+          onToggle: () => { setSourceOpen((current) => ({ ...current, [key]: !open })) },
+        }),
+        h('div', {
+          className: cx('wb-group-body'), id: bodyId, 'aria-hidden': open ? undefined : 'true', inert: open ? undefined : '',
+        }, h('div', { className: cx('wb-group-body-inner') },
+          ...rows.map(renderRow))))
+    }
+    const sourceGroups = h('div', { className: cx('wb-source-groups'), 'data-wb-source-groups': 'true' },
+      ...bySource.map(({ source, rows }) => sourceSection(source.key, source.label, rows, h('span', { className: cx('wb-source-glyph'), 'aria-hidden': 'true' }, renderSourceGlyph(source)))),
+      otherTasks.length === 0 ? null : sourceSection('other', t('workbench.groupBy.other'), otherTasks, null))
+    const groupByBar = h('div', {
+      className: cx('wb-groupby'), role: 'group', 'aria-label': t('workbench.groupBy.aria'), 'data-wb-groupby': groupBy,
+    },
+      h('button', {
+        type: 'button', className: cx('wb-groupby-btn', groupBy === 'status' && 'wb-groupby-on'),
+        'aria-pressed': groupBy === 'status', onClick: () => { setGroupBy('status') },
+      }, t('workbench.groupBy.status')),
+      h('button', {
+        type: 'button', className: cx('wb-groupby-btn', groupBy === 'source' && 'wb-groupby-on'),
+        'aria-pressed': groupBy === 'source', onClick: () => { setGroupBy('source') },
+      }, t('workbench.groupBy.source')))
     return h('div', { className: cx('wb-queue-body') },
-      split.stuck.length === 0 ? null : group('stuck', t('workbench.group.stuck', { n: split.stuck.length }), split.stuck, 'danger', renderRow),
-      split.review.length === 0 ? null : group('pending', t('workbench.group.pendingOldest', {
-        n: split.review.length, age: waitShort(counts.oldestPendingMs),
-      }), split.review, 'neutral', renderRow),
-      live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live, 'neutral', renderLive))
-  }
-  const openProviderSettings = (): void => {
-    if (typeof document === 'undefined') return
-    const host = document.querySelector<HTMLButtonElement>('button[aria-label="Settings"], button[aria-label="设置"]')
-    if (host !== null) host.click()
-    else props.closeWorkbench()
+      notices.length === 0 ? null : h('div', { className: cx('wb-notices'), 'data-wb-notices': 'true' },
+        ...notices.map((notice) => h('p', {
+          key: notice.key, className: cx('wb-notice', notice.bad && 'wb-notice-bad'), role: notice.bad ? 'status' : undefined,
+        }, notice.text))),
+      headline === null ? null : h('div', {
+        className: cx('wb-headline'), 'data-wb-headline': 'true', 'data-wb-tone': headline.tone, title: headline.title,
+      },
+        h('span', { className: cx('wb-headline-value') }, headline.value),
+        headline.sub === '' ? null : h('span', { className: cx('wb-headline-sub') }, headline.sub)),
+      groupByBar,
+      groupBy === 'source' ? sourceGroups : h('div', { className: cx('wb-status-groups') },
+        split.stuck.length === 0 ? null : group('stuck', t('workbench.group.stuck', { n: split.stuck.length }), split.stuck, 'danger', renderRow),
+        split.review.length === 0 ? null : group('pending', t('workbench.group.pendingOldest', {
+          n: split.review.length, age: waitShort(counts.oldestPendingMs),
+        }), split.review, 'neutral', renderRow),
+        live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live, 'neutral', renderLive)))
   }
   const renderOverview = (): React.ReactElement => {
     const lastRound = result?.patrol.rounds?.[0] ?? null
     const lastView = patrol?.rounds?.[0] ?? null
-    const lastTime = clockOf(lastPatrolAt(result))
+    const lastTime = hhmmOf(lastPatrolAt(result))
     const lastTook = lastRound?.seconds == null ? '' : waitShort(lastRound.seconds * 1000)
     const progress = patrol?.progress ?? null
     const areaCount = result?.patrol.progress?.areas.length ?? progress?.areas.length ?? 0
@@ -3236,7 +3086,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     })
     const openKnown = openValues.length > 0 && openValues.every((value) => value !== null)
     const openCount = openKnown ? openValues.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null
-    const nextTime = clockOf(result?.patrol.untilMs ?? null)
+    const nextTime = hhmmOf(result?.patrol.untilMs ?? null)
     const overviewGroup = (id: string, label: string, open: boolean, onToggle: () => void, summary: string | undefined, body: React.ReactNode): React.ReactElement =>
       h('section', {
         className: cx('wb-group-section', 'wb-ov-group'), 'data-wb-overview-group': id,
@@ -3251,7 +3101,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           className: cx('wb-group-body'), id: groupId + '-ov-' + id, 'aria-hidden': open ? undefined : 'true',
           inert: open ? undefined : '',
         }, h('div', { className: cx('wb-group-body-inner') }, body)))
-    const patrolRows = lastRound === null
+    const patrolSummary = lastRound === null
       ? h('div', { className: cx('wb-ov-row') },
         h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
         h('span', { className: cx('wb-ov-value', 'wb-ov-muted') }, t('workbench.overview.noPatrol', { time: nextTime })))
@@ -3289,35 +3139,11 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     const doneN = totals?.done ?? 0
     const unfinishedN = totals === null ? 0 : Math.max(0, totals.settled - totals.done)
     const settledN = doneN + unfinishedN
-    const series = statsData?.series ?? null
-    const days = series?.days ?? []
-    const maxTotal = series?.maxTotal ?? 0
-    const chartDays = days.length === 7 ? days : Array.from({ length: 7 }, (_, i) => ({
-      date: '', label: '—', total: 0, tasks: 0, tokens: {},
-    }))
-    const chart = h('div', {
-      className: cx('wb-ov-chart'), role: 'img',
-      'aria-label': series === null ? t('workbench.overview.noData') : t('workbench.overview.chartAria', { total: totals?.tokensText ?? '—' }),
-    },
-      h('div', { className: cx('wb-ov-chart-cap') }, t('workbench.overview.chart')),
-      h('div', { className: cx('wb-ov-bars') },
-        ...chartDays.map((day, at) => {
-          const height = maxTotal > 0 ? Math.round(day.total / maxTotal * 72) : 0
-          const today = day.date !== '' && day.date === todayIso()
-          return h('div', { className: cx('wb-ov-slot'), key: 'd' + at, 'data-today': today ? 'true' : undefined },
-            h('div', { className: cx('wb-ov-track') },
-              h('div', {
-                className: cx('wb-ov-bar'), 'data-empty': height === 0 ? 'true' : undefined, 'data-wb-ov-bar': 'true',
-                style: { height: (height > 0 ? height : 4) + 'px' },
-              })),
-            h('span', { className: cx('wb-ov-day') }, day.date === '' ? '—' : day.label))
-        })),
-      series === null ? h('div', { className: cx('wb-ov-empty') }, t('workbench.overview.noData')) : null)
     const statsMessage = statsData === null
       ? stats.error !== null ? t('workbench.overview.unavailable', { message: stats.error })
         : props.fetchTaskStats === undefined ? t('workbench.overview.noHost') : t('workbench.overview.loading')
       : statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' }) : null
-    const statsBody = h('div', { className: cx('wb-ov-stats') },
+    const statsTop = h('div', { className: cx('wb-ov-stats') },
       h('div', { className: cx('wb-ov-metrics') },
         ...metrics.map(([label, value], at) => h('div', { className: cx('wb-ov-metric'), key: 'm' + at },
           h('span', { className: cx('wb-ov-metric-label') }, label),
@@ -3328,29 +3154,52 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           h('span', { className: cx('wb-ov-open-fill'), style: { width: (settledN > 0 ? unfinishedN / settledN * 100 : 0) + '%' } })),
         h('div', { className: cx('wb-ov-done-labels') },
           h('span', null, t('workbench.overview.done', { n: doneN })),
-          h('span', null, t('workbench.overview.open', { n: unfinishedN })))),
-      statsMessage === null ? chart : h('div', { className: cx('wb-ov-stats-msg') }, statsMessage))
+          h('span', null, t('workbench.overview.open', { n: unfinishedN })))))
+    const statsBody = statsMessage !== null
+      ? h('div', { className: cx('wb-ov-body', 'pbc') }, h('p', { className: cx('wb-ov-note') }, statsMessage))
+      : h('div', null, statsTop, statsData === null ? null : renderStatsBody(statsData, t))
     const statsSummary = statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' })
       : statsData?.summaryLine ?? (stats.loading ? t('workbench.overview.loading') : '—')
+    const historyRows = historyRowsView(result, t, now)
+    const footer = opsFooter(result, t)
+    const openHistory = (id: string, _element: HTMLElement | null): void => {
+      const task = (result?.recent ?? []).find((row) => row.id === id)
+      if (task === undefined) return
+      historyReturn.current = id
+      choose(task)
+      if (!desktop) setView('focus')
+      else setTimeout(() => { titleRef.current?.focus({ preventScroll: true }) }, 0)
+    }
     return h('div', { className: cx('wb-ov'), 'data-wb-overview': 'true' },
       overviewGroup('patrol', t('workbench.overview.patrol'), overviewPatrolOpen,
-        () => { setOverviewPatrolOpen((open) => !open) }, undefined, patrolRows),
+        () => { setOverviewPatrolOpen((open) => !open) },
+        lastRound === null ? t('workbench.overview.noPatrol', { time: nextTime })
+          : lastTime + (lastView?.state == null ? '' : ' · ' + lastView.state.text),
+        patrol === null ? h('p', { className: cx('wb-ov-note') }, t('workbench.overview.noPatrol', { time: nextTime }))
+          : renderPatrolBody(patrolSummary, patrol, t)),
       overviewGroup('stats', t('workbench.overview.stats'), overviewStatsOpen,
-        () => { setOverviewStatsOpen((open) => !open) }, statsSummary, statsBody))
+        () => { setOverviewStatsOpen((open) => !open) }, statsSummary, statsBody),
+      overviewGroup('history', t('workbench.overview.history'), overviewHistoryOpen,
+        () => { setOverviewHistoryOpen((open) => !open) },
+        t('workbench.overview.historySummary', { n: historyRows.length }),
+        renderHistoryBody(historyRows, t, openHistory)),
+      footer === null ? null : h('p', {
+        className: cx('wb-ov-foot', footer.bad && 'wb-ov-foot-bad'), 'data-wb-ops': footer.version,
+      }, footer.text))
   }
   const renderProviders = (): React.ReactElement => {
     if (providers.length === 0) {
+      if (balances.data.result === null && balances.data.error === null) {
+        return h('div', { className: cx('wb-providers-empty'), 'data-wb-providers-loading': 'true' },
+          h('div', { className: cx('wb-empty-body') }, t('balance.loading')))
+      }
       const failed = balances.data.error !== null && !balances.data.loading
       return h('div', { className: cx('wb-providers-empty'), 'data-wb-providers-empty': 'true' },
         h('span', { className: cx('wb-empty-glyph'), 'aria-hidden': 'true' }, renderWorkbenchGlyph(24)),
         h('div', { className: cx('wb-empty-title') }, failed ? t('workbench.provider.readFailed', { message: balances.data.error }) : t('workbench.provider.empty')),
-        failed ? null : h('div', { className: cx('wb-empty-body') }, t('workbench.provider.emptyHint')),
-        h('button', {
-          type: 'button', className: cx('wb-empty-add'), 'data-wb-add-provider': 'true',
-          onClick: openProviderSettings,
-        }, t('workbench.provider.add')))
+        failed ? null : h('div', { className: cx('wb-empty-body') }, t('workbench.provider.emptyHint')))
     }
-    return h('div', { className: cx('wb-providers'), role: 'list', 'aria-label': t('workbench.tab.providers'), 'data-wb-providers': 'true' },
+    return h('div', { className: cx('wb-providers', 'pbc'), role: 'list', 'aria-label': t('workbench.tab.providers'), 'data-wb-providers': 'true' },
       balances.data.error !== null && !balances.data.loading
         ? h('div', { className: cx('wb-providers-error'), role: 'status', 'data-wb-providers-error': 'true' },
           t('workbench.provider.readFailed', { message: balances.data.error }))
@@ -3358,20 +3207,55 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       ...providers.map((row) => h(WorkbenchProviderRow, {
         key: row.key, row, t, now,
         detailRow: row.provider === null ? undefined : rowMap.get(row.provider),
-      })),
-      h('div', { className: cx('wb-prov-add-row'), role: 'listitem' },
-        h('button', {
-          type: 'button', className: cx('wb-prov-add'), 'data-wb-add-provider': 'true',
-          onClick: openProviderSettings,
-        }, '+ ' + t('workbench.provider.add'))))
+      })))
   }
+  const shownLive = shown !== null && (result?.active ?? []).some((task) => task.id === shown.id)
+  const showPresets = shown !== null && (!shownLive || shown.question === true)
+  const coverage = patrol?.progress ?? null
+  const areasOpen = rawProgress === null ? null : rawProgress.areas.filter((area) => (area.open ?? 0) > 0).length
+  const coverageLabel = areasOpen === null
+    ? t('workbench.fold.coverageUnknown')
+    : t('workbench.fold.coverage', { n: areasOpen })
+  const needsBlock = shown === null ? null : h('div', { className: cx('wb-needs-block') },
+    h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
+    shown.needs === undefined || shown.needs.trim() === ''
+      ? h('div', { className: cx('wb-needs-empty') }, t('workbench.needs.empty'))
+      : h('p', { className: cx('wb-needs') }, shown.needs),
+    showPresets ? h('div', { className: cx('wb-actions') },
+      h('button', {
+        type: 'button', className: cx('wb-act', 'wb-act-primary'),
+        disabled: busy !== null,
+        onClick: () => { act('continue') },
+      }, busy === 'continue' ? t('workbench.busy') : t('workbench.act.continue')),
+      h('button', {
+        type: 'button', className: cx('wb-act', 'wb-act-secondary'),
+        disabled: busy !== null,
+        onClick: () => { act('modify') },
+      }, busy === 'modify' ? t('workbench.busy') : t('workbench.act.modify')),
+      h('div', { className: cx('wb-danger') },
+        h('button', {
+          type: 'button', className: cx('wb-act', 'wb-act-danger'),
+          disabled: busy !== null,
+          'data-wb-confirm': confirmStop ? 'true' : undefined,
+          'aria-live': 'polite',
+          onClick: () => { act('stop') },
+        }, busy === 'stop' ? t('workbench.busy')
+          : confirmStop ? t('workbench.act.confirm') : t('workbench.act.stop'))))
+      : null,
+    submittedAt === null ? null : h('div', { className: cx('wb-recorded'), role: 'status', 'data-wb-recorded': 'true' },
+      h('span', { className: cx('wb-recorded-line') },
+        t('workbench.recorded'), ' · ',
+        h('button', { type: 'button', className: cx('wb-next'), onClick: advance }, t('workbench.next'))),
+      h('span', { className: cx('wb-recorded-time') }, submittedAt)))
   const detail = shown === null
     ? h('div', { className: cx('wb-detail-empty') }, t('workbench.select'))
     : h(WorkbenchDetail, {
-      task: shown, now, t, desktop, titleRef, submittedAt, busy, notice, confirmStop,
-      coverage: result === null ? null : patrolSection(result, t, now)?.progress ?? null,
-      areasOpen: rawProgress === null ? null : rawProgress.areas.filter((area) => (area.open ?? 0) > 0).length,
-      onAction: act, onNext: advance, onStopFirst: () => { act('stop') },
+      task: shown, now, t, desktop, live: shownLive, titleRef, ui: detailUi(), notice,
+      top: needsBlock,
+      bottom: h(WorkbenchFold, { id: 'coverage', label: coverageLabel },
+        coverage === null
+          ? h('div', { className: cx('wb-fold-empty') }, t('workbench.info.none'))
+          : h('div', { className: cx('wb-cov', 'pbc', 'tqf') }, ...renderCoverageTables(coverage, t))),
     })
 
   if (!desktop && view === 'focus') {
@@ -3410,8 +3294,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     },
       h('span', { className: cx('wb-tab-label') }, t('workbench.tab.providers')),
       alerts.length === 0 ? null : h('span', {
-        className: cx('wb-tab-dot'), 'data-wb-tab-dot': 'true', 'aria-hidden': 'true', title: alertNames,
-      })),
+        className: cx('wb-tab-alert'), 'data-wb-tab-alert': 'true', 'aria-hidden': 'true',
+        title: alertNames,
+      }, '!')),
     h('button', {
       type: 'button', role: 'tab', id: tabId('overview'), className: cx('wb-tab', tab === 'overview' && 'wb-tab-on'),
       'aria-selected': tab === 'overview', 'aria-controls': panelId, tabIndex: tab === 'overview' ? 0 : -1,
@@ -3835,6 +3720,20 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
         ? (action, id, arg) => call<QueueActionResult>('queueAction', [action, id, arg])
         : undefined,
     })
+    // dsh's own file preview (the right sidebar). Looked up at click time — long after apply, so
+    // the service exists when there is one — and never injected: a host without it keeps the page.
+    const openFile: OpenFile = (path) => {
+      const sidebar = ctx.get('sidebarRight') as { openResource?: (address: string, options?: unknown) => void; mounted?: { getSnapshot(): unknown } } | undefined
+      if (sidebar === undefined || typeof sidebar.openResource !== 'function') return { ok: false, reason: 'no-service' }
+      const session = sidebar.mounted?.getSnapshot()
+      if (typeof session !== 'string' || session === '') return { ok: false, reason: 'no-session' }
+      try {
+        sidebar.openResource(_sessionFileAddress(session, path))
+        return { ok: true }
+      } catch (error) {
+        return { ok: false, reason: 'error', message: error instanceof Error ? error.message : String(error) }
+      }
+    }
     // The two entries and the page share one remembered trigger: whichever
     // control opened the workbench gets focus back when it closes.
     let workbenchTrigger: HTMLElement | null = null
@@ -3856,13 +3755,14 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
       ...queueInjected(),
       ...balancesInjected(),
       closeWorkbench,
+      openFile,
       // A host half older than this method gives the page a read-only focus view.
       runWorkbenchAction: typeof studioRemote.workbenchAction === 'function'
         ? (action, id) => call<QueueActionResult>('workbenchAction', [action, id])
         : undefined,
     })
     const label = (): string =>
-      typeof ctx.locale.bind === 'function' ? ctx.locale.bind(LOCALE_NS)('signal.icon') : '工作台'
+      typeof ctx.locale.bind === 'function' ? ctx.locale.bind(LOCALE_NS)('signal.icon') : dictionaries.en['signal.icon'] ?? ''
     // The permanent entry: the icon is a main-panel launcher, never a second
     // block in the sidebar; the host owns its button and selected state.
     ctx.slots.inject('main', () => ctx.slots.register({
