@@ -17,3 +17,16 @@ def test_every_doc_is_reachable_from_the_index():
     missing = sorted(str(p.relative_to(ROOT)) for p in docs
                      if p.resolve() not in linked and p not in stubs)
     assert not missing, f"not linked from docs/README.md: {missing}"
+
+
+def test_every_moved_page_points_at_a_document_that_exists():
+    """A redirect stub is only useful while its destination is there."""
+    stubs = [p for p in DOCS.rglob("*.md") if "\n# Moved" in p.read_text()]
+    assert len(stubs) >= 2, "moved-page stubs disappeared; this check is vacuous"
+    for stub in stubs:
+        targets = [t for t in re.findall(r"\]\(([^)#\s]+)", stub.read_text())
+                   if not t.startswith(("http://", "https://", "mailto:"))]
+        assert targets, f"{stub.relative_to(ROOT)} names no destination"
+        for target in targets:
+            assert (stub.parent / target).resolve().exists(), (
+                f"{stub.relative_to(ROOT)} points at missing {target}")
