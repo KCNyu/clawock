@@ -1,4 +1,6 @@
 ---
+sitemap: false
+robots: noindex, follow
 layout: default
 title: clawock · moved to the SQLite maintenance runbook
 ---

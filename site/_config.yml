@@ -60,6 +60,24 @@ defaults:
       # default OpenGraph/Twitter image for pages that don't set their own (briefs) —
       # jekyll-seo-tag picks this up so every page shares a proper social card
       image: https://kcnyu.github.io/clawock/assets/social-card.png
+  # The briefs and weekly reviews are written in Chinese; the layout already
+  # declares lang="zh-CN", and jekyll-seo-tag otherwise falls back to en_US
+  # because these pages carry no `lang` of their own.
+  - scope:
+      path: "memory"
+    values:
+      locale: zh_CN
+  - scope:
+      path: "briefs.md"
+    values:
+      locale: zh_CN
+  # The product docs are written in English even when a section carries a
+  # Chinese translation; the site layout would otherwise declare them zh-CN.
+  - scope:
+      path: "docs"
+    values:
+      lang: en
+      locale: en_US
 
 # Author
 author:

@@ -1,7 +1,7 @@
 ---
 layout: default
 title: clawock · daily briefs
-description: 全部历史每日深度简报 + 周复盘
+description: clawock 的全部历史每日深度简报与周复盘：每个工作日 08:03 HKT 的港股 + 美股盘前判断，未生成的日期也列出。
 ---
 
 # Briefs

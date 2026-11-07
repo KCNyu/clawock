@@ -1,6 +1,7 @@
 ---
 layout: default
 title: clawock · research lifecycle cadence
+description: "How often clawock asks each research question: daily local checks versus event-driven deep reviews, and why the split keeps intraday paths cheap."
 ---
 
 # Research lifecycle cadence

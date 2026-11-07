@@ -9,6 +9,8 @@
 <link rel="icon" type="image/png" sizes="64x64" href="{{ '/assets/icons/favicon-64.png' | relative_url }}">
 <link rel="apple-touch-icon" href="{{ '/assets/icons/apple-touch-icon.png' | relative_url }}">
 {% seo %}
+<!-- Pages kept only so old links still land, not as search results. -->
+{% if page.robots %}<meta name="robots" content="{{ page.robots }}">{% endif %}
 <link rel="describedby" type="text/plain" href="{{ '/llms.txt' | relative_url }}">
 {% if page.path == 'faq.md' %}
 <link rel="alternate" type="text/markdown" href="{{ '/faq.html.md' | relative_url }}">
