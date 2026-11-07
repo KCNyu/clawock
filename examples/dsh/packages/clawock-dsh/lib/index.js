@@ -1,6 +1,6 @@
 import { n as taskQueueConfig, t as createBalanceReader } from "./desk.js";
 import { getRun, listRuns } from "./scan.js";
-import { createQueueActionRunner, createTaskQueueService } from "./taskqueue.js";
+import { createQueueActionRunner, createTaskQueueService, createWorkbenchActionRunner } from "./taskqueue.js";
 import { readLedger, readPlans, readPortfolio, readTraces } from "./ledger.js";
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from "./freshness.js";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
@@ -69,6 +69,7 @@ let ClawockStudioGateway = (() => {
 	let _taskQueue_decorators;
 	let _taskStats_decorators;
 	let _queueAction_decorators;
+	let _workbenchAction_decorators;
 	return class ClawockStudioGateway extends _classSuper {
 		static {
 			const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
@@ -82,6 +83,7 @@ let ClawockStudioGateway = (() => {
 			_taskQueue_decorators = [Remote];
 			_taskStats_decorators = [Remote];
 			_queueAction_decorators = [Remote];
+			_workbenchAction_decorators = [Remote];
 			__esDecorate(this, null, _list_decorators, {
 				kind: "method",
 				name: "list",
@@ -192,6 +194,17 @@ let ClawockStudioGateway = (() => {
 				},
 				metadata: _metadata
 			}, null, _instanceExtraInitializers);
+			__esDecorate(this, null, _workbenchAction_decorators, {
+				kind: "method",
+				name: "workbenchAction",
+				static: false,
+				private: false,
+				access: {
+					has: (obj) => "workbenchAction" in obj,
+					get: (obj) => obj.workbenchAction
+				},
+				metadata: _metadata
+			}, null, _instanceExtraInitializers);
 			if (_metadata) Object.defineProperty(this, Symbol.metadata, {
 				enumerable: true,
 				configurable: true,
@@ -223,6 +236,8 @@ let ClawockStudioGateway = (() => {
 		taskQueueService = null;
 		/** The task chip's write door (the ops entry), built with the reader. */
 		queueActionRunner = null;
+		/** The workbench presets' door (`dispatch.sh` answer/append/cancel), built lazily. */
+		workbenchRunner = null;
 		/**
 		* The row config, owned by the instance. cordis constructs a class plugin as
 		* `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
@@ -330,6 +345,21 @@ let ClawockStudioGateway = (() => {
 		*/
 		async queueAction(action, id, arg) {
 			return this.queueServices().act(action, id, arg);
+		}
+		/**
+		* One workbench preset, through the dispatcher entry that already owns it.
+		* In-band like queueAction(): never throws; a refusal is `{ ok: false, … }`.
+		* @param action - continue | modify | stop.
+		* @param id - the task id; anything that is not one is refused before any process runs.
+		*/
+		async workbenchAction(action, id) {
+			if (this.workbenchRunner === null) {
+				const config = taskQueueConfig(this.config, workspaceOf());
+				this.workbenchRunner = createWorkbenchActionRunner(config);
+			}
+			const result = await this.workbenchRunner(action, id);
+			if (result.ok) this.queueServices().reader.invalidate();
+			return result;
 		}
 		queueServices() {
 			if (this.taskQueueService === null || this.queueActionRunner === null) {

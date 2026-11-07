@@ -18,7 +18,7 @@ import type {
 import type { BalanceCredentials } from './balance.ts'
 import { createBalanceReader, taskQueueConfig, type BalanceReader, type ClawockStudioConfig } from './desk.ts'
 import { getRun, listRuns } from './scan.ts'
-import { createQueueActionRunner, createTaskQueueService, type QueueActionRunner, type TaskQueueService } from './taskqueue.ts'
+import { createQueueActionRunner, createTaskQueueService, createWorkbenchActionRunner, type QueueActionRunner, type TaskQueueService, type WorkbenchAction, type WorkbenchActionRunner } from './taskqueue.ts'
 
 export type { ClawockStudioConfig } from './desk.ts'
 import { readLedger, readPlans, readPortfolio, readTraces } from './ledger.ts'
@@ -56,6 +56,9 @@ export class ClawockStudioGateway extends TypertRemoteService {
 
   /** The task chip's write door (the ops entry), built with the reader. */
   private queueActionRunner: QueueActionRunner | null = null
+
+  /** The workbench presets' door (`dispatch.sh` answer/append/cancel), built lazily. */
+  private workbenchRunner: WorkbenchActionRunner | null = null
 
   /**
    * The row config, owned by the instance. cordis constructs a class plugin as
@@ -182,6 +185,23 @@ export class ClawockStudioGateway extends TypertRemoteService {
   @Remote
   async queueAction(action: string, id: string, arg: string): Promise<QueueActionResult> {
     return this.queueServices().act(action, id, arg)
+  }
+
+  /**
+   * One workbench preset, through the dispatcher entry that already owns it.
+   * In-band like queueAction(): never throws; a refusal is `{ ok: false, … }`.
+   * @param action - continue | modify | stop.
+   * @param id - the task id; anything that is not one is refused before any process runs.
+   */
+  @Remote
+  async workbenchAction(action: string, id: string): Promise<QueueActionResult> {
+    if (this.workbenchRunner === null) {
+      const config = taskQueueConfig(this.config, workspaceOf())
+      this.workbenchRunner = createWorkbenchActionRunner(config)
+    }
+    const result = await this.workbenchRunner(action as WorkbenchAction, id)
+    if (result.ok) this.queueServices().reader.invalidate()
+    return result
   }
 
   private queueServices(): { reader: TaskQueueService; act: QueueActionRunner } {

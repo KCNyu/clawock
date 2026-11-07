@@ -30,11 +30,14 @@
  * balance services: `get()` never throws, a failed read keeps the last good
  * snapshot as 'stale'.
  */
+import { spawn } from 'node:child_process';
 import type { PatrolProgress, PatrolRound, PatrolStatus, QueueActionResult, TaskQueueResult, TaskStats } from './types.ts';
 export declare const DEFAULT_DISPATCH_LOG_DIR: string;
 export declare const DEFAULT_DISPATCH_LIMITS_PATH: string;
 export declare const DEFAULT_PATROL_STATE_DIR: string;
 export declare const DEFAULT_TASK_QUEUE_OPS_PATH: string;
+/** The dispatcher's public entry: the one existing door for answer/append/cancel. */
+export declare const DEFAULT_DISPATCH_SCRIPT_PATH: string;
 export declare const DEFAULT_TASK_QUEUE_REFRESH_MS = 15000;
 export declare const DEFAULT_TASK_QUEUE_RECENT = 5;
 /** The chip's stats fold: the last seven local calendar days, today included. */
@@ -49,6 +52,8 @@ export interface TaskQueueConfig {
     opsPath?: string;
     /** The repository's copy of it, hashed to show a merged-but-not-installed entry ('' = skip). */
     repoOpsPath?: string;
+    /** The dispatcher entry (`dispatch.sh`); the workbench's continue/modify/stop calls it. */
+    dispatchScriptPath?: string;
 }
 /** The host commands, injectable so tests run without systemd. */
 export interface TaskQueueDeps {
@@ -128,6 +133,31 @@ export declare function sinceDay(days: number, now?: number): string;
  */
 export declare function readStats(config: Required<TaskQueueConfig>, deps: TaskQueueDeps, options?: StatsOptions): Promise<TaskStats>;
 export declare function readTaskQueue(config: Required<TaskQueueConfig>, deps: TaskQueueDeps): Promise<QueueRead>;
+/** The three presets the workbench offers. They are not a second approval channel:
+ * each one calls the dispatcher entry that already owns that step. */
+export type WorkbenchAction = 'continue' | 'modify' | 'stop';
+/** What `continue` says when the task left no ask block: resume its session and do the rest. */
+export declare const WORKBENCH_CONTINUE_TEXT = "\u7EE7\u7EED\uFF1A\u6309 NEEDS \u91CC\u5199\u7684\u4E8B\u9879\u7EE7\u7EED\u5B8C\u6210\u5269\u4F59\u5DE5\u4F5C\uFF1B\u5148\u6838\u5BF9\u5F53\u524D\u771F\u5B9E\u72B6\u6001\uFF08git/PR/CI/\u6587\u4EF6\uFF09\uFF0C\u590D\u7528\u5DF2\u6709\u4EA7\u7269\uFF0C\u4E0D\u8981\u91CD\u590D\u5DF2\u5B8C\u6210\u7684\u6B65\u9AA4\u3002";
+/** What `modify` says when the task left no ask block: talk before touching anything. */
+export declare const WORKBENCH_MODIFY_TEXT = "\u9700\u8981\u4FEE\u6539\uFF1A\u5148\u8BF4\u660E\u4F60\u6253\u7B97\u6539\u4EC0\u4E48\u3001\u4E3A\u4EC0\u4E48\uFF0C\u4E0D\u8981\u76F4\u63A5\u52A8\u624B\uFF1B\u7B49\u6211\u786E\u8BA4\u540E\u518D\u7EE7\u7EED\u3002";
+/** The exact argv (and stdin, when any) each preset runs. Exported so a test can pin the mapping. */
+export declare function workbenchCommand(action: WorkbenchAction, id: string, question: {
+    open: boolean;
+    recommend: number;
+}): {
+    args: string[];
+    stdin: string;
+} | string;
+export type WorkbenchActionRunner = (action: WorkbenchAction, id: string) => Promise<QueueActionResult>;
+/**
+ * Run one preset through `dispatch.sh` (never through a new store or service).
+ * Never throws: a missing entry, timeout or refusal is an in-band failure. The
+ * 120 s bound covers `append` after an ended task, which dispatches the new
+ * task synchronously before returning.
+ */
+export declare function createWorkbenchActionRunner(config?: Pick<TaskQueueConfig, 'dispatchScriptPath' | 'logDir'>, deps?: {
+    spawn?: typeof spawn;
+}): WorkbenchActionRunner;
 export type TaskQueueService = {
     get(force: boolean): Promise<TaskQueueResult>;
     /** Frozen-result totals for one window; independent of get()'s cache, never throws. */

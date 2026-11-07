@@ -436,12 +436,17 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     },
     remote: {
       $mount: async (descriptors) => {
-        // Ten: the eight read methods, taskStats (the chip's lazy stats read) and
-        // queueAction, the task chip's one write door.
-        assert.equal(descriptors.descriptors.length, 10);
+        // Eleven: the eight read methods, taskStats (the chip's lazy stats read),
+        // queueAction (the task chip's one write door) and workbenchAction
+        // (the workbench's continue/modify/stop presets through dispatch.sh).
+        assert.equal(descriptors.descriptors.length, 11);
         const queueDesc = descriptors.descriptors.find((d) => d.method === "taskQueue");
         assert.ok(queueDesc, "taskQueue descriptor present (hand-carried wire, see build.mjs)");
         assert.equal(queueDesc.parameters.length, 1, "taskQueue(force) must declare its argument");
+        const workbenchDesc = descriptors.descriptors.find((d) => d.method === "workbenchAction");
+        assert.ok(workbenchDesc, "workbenchAction descriptor present (hand-carried wire, see build.mjs)");
+        assert.deepEqual(workbenchDesc.parameters.map((p) => p.name), ["action", "id"],
+          "workbenchAction(action, id) must declare both arguments");
         const statsDesc = descriptors.descriptors.find((d) => d.method === "taskStats");
         assert.ok(statsDesc, "taskStats descriptor present (hand-carried wire, see build.mjs)");
         assert.deepEqual(statsDesc.parameters.map((p) => p.name), ["days", "since", "patrol"],
@@ -2434,7 +2439,7 @@ test("typert: every shipped codec meets DSH 0.1.7's create() contract", async ()
   for (const rel of ["lib/typert.host.js", "lib/typert.remote-client.js"]) {
     const face = await import(pathToFileURL(path.join(PLUGIN, rel)).href);
     const invocations = face.TYPERT?.invocations ?? face.TYPERT_REMOTE.descriptors;
-    assert.equal(invocations.length, 10, rel);
+    assert.equal(invocations.length, 11, rel);
     for (const invocation of invocations) {
       for (const codec of [...invocation.parameters.map((parameter) => parameter.codec), invocation.result]) {
         assert.equal(typeof codec.create, "function", `${rel}: ${invocation.id}`);
@@ -2589,8 +2594,8 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   };
   await api.apply(ctx);
   for (const fn of ctx.slots._fns) fn();
-  assert.deepEqual(ctx.slots._seats, ["conversation.view", "sidebar.footer.action"],
-    "Decision Mind stays a conversation tab; balance + queue are ONE foot action — no `main` panel, no header chip");
+  assert.deepEqual(ctx.slots._seats, ["conversation.view", "main", "sidebar.panellist", "sidebar.footer.action"],
+    "Decision Mind stays a conversation tab; the workbench is the main keyed page plus a panellist entry, and balance + queue stay ONE foot action");
   const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
   assert.equal(action.definition.name, "sidebar.footer.action");
 
@@ -2633,6 +2638,8 @@ test("client: the sidebar-foot provider cell lists every provider, opens on its 
   await tick(); await tick(); await tick();
   let foot = render();
   assert.deepEqual(lines(foot).map((l) => l.props["data-pp-row"]), ["deepseek", "minimax"]);
+  assert.equal(find(foot, (p) => p["data-wb-signal"] !== undefined).length, 0,
+    "no task needs a person: the event line does not exist at all");
   assert.equal(texts(lines(foot)[0]), "DeepSeek 余额 ¥110");
   assert.match(texts(lines(foot)[1]), /^MiniMax 5h 24% · 周 10% ↻ 21:00 · 周四 21:00$/, "resident: name, every readable window and their resets");
   assert.match(lines(foot)[1].props["aria-label"], /^MiniMax · 已用 5h 24% · 周 10% · ↻ 21:00 · ↻ 周四 21:00 · /, "the direction, every window and every reset are read out");
@@ -5410,4 +5417,254 @@ test("client: the phone foot panel is a drawer page; the desktop card is clamped
     "a row below the fold keeps the card above the bottom edge");
   const edge = api._popoverAnchor({ left: 700, top: 600 }, 800, 900);
   assert.equal(edge.left, 412, "a row near the right edge is decked left by the card width");
+});
+
+test("workbench: the signal copy, waits and first sentence are fixed", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const t = translatorFor(api);
+  const now = 1_000_000_000_000;
+  const task = (id, finished, extra = {}) => ({
+    id, name: id, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: null, updatedAtMs: finished + 1, wakeAtMs: null, patrol: false, summary: "", lastEvent: "",
+    lastEventAtMs: null, finishedAtMs: finished, needs: "", stage: "person/review", attention: "person", ...extra,
+  });
+  assert.equal(api.waitShort(45 * 60_000), "45m");
+  assert.equal(api.waitShort(6 * 3600_000), "6h");
+  assert.equal(api.waitShort(2 * 86400_000), "2d");
+  assert.equal(api.waitLong(2 * 3600_000 + 14 * 60_000), "2h 14m");
+  assert.equal(api.waitLong(2 * 86400_000 + 3 * 3600_000), "2d 3h");
+  assert.equal(api.waitSpoken(6 * 3600_000), "6 小时");
+
+  assert.equal(api.signalView([task("a", now - 12 * 60_000)], t, now).text, "1 件待处理 · 12m");
+  assert.deepEqual(api.signalView([task("a", now - 12 * 60_000)], t, now).aria,
+    "工作台：1 件待处理，12 分钟，打开");
+  assert.equal(api.signalView([
+    task("a", now - 6 * 3600_000), task("b", now - 2 * 3600_000), task("c", now - 60_000),
+  ], t, now).text, "3 件待处理 · 最旧 6h");
+  assert.equal(api.signalView([task("a", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" })], t, now).text,
+    "1 件卡住 · 最旧 2d");
+  assert.equal(api.signalView([
+    task("a", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" }),
+    task("b", now - 86400_000, { stage: "person/blocked", state: "quota" }),
+    task("c", now - 3600_000, { stage: "person/blocked", state: "quota" }),
+  ], t, now).text, "3 件全卡住 · 最旧 2d");
+  const overflow = api.signalView(Array.from({ length: 10 }, (_, i) => task("x" + i, now - 3 * 86400_000 + i)), t, now);
+  assert.equal(overflow.text, "9+ 件待处理 · 最旧 3d");
+  assert.equal(overflow.badge, "9+");
+  assert.equal(overflow.red, false, "review work never paints the dot red");
+
+  assert.equal(api.firstSentence("第一句。第二句。"), "第一句。");
+  assert.equal(api.firstSentence("one. two."), "one");
+  assert.equal(api.firstSentence("a".repeat(200), 20).endsWith("…"), true);
+});
+
+test("workbench host: pending is ATTENTION=person only, minus continuations and answers", async () => {
+  const tq = await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-workbench-"));
+  const logDir = path.join(root, "tasks");
+  const task = (id, result, meta = "AGENT=dsh\nNAME=" + id + "\n") => {
+    fs.mkdirSync(path.join(logDir, id), { recursive: true });
+    fs.writeFileSync(path.join(logDir, id, "meta.env"), meta);
+    fs.writeFileSync(path.join(logDir, id, "result.env"), result);
+  };
+  const result = (state, finished, stage, attention, needs = "") =>
+    `STATE=${state}\nATTENTION=${attention}\nSTAGE=${stage}\nNEEDS='${needs}'\nFINISHED_EPOCH=${finished}\nUPDATED=2026-11-07\\ 10:00:00\n`;
+  // finished epochs are seconds; the list is oldest first.
+  task("old-stuck", result("quota", 1000, "person/blocked", "person"));
+  task("answered", result("ok", 1500, "person/review", "person", "already answered"));
+  fs.writeFileSync(path.join(logDir, "answered", "answer.json"), JSON.stringify({ state: "resolved" }));
+  task("review-old", result("partial", 2000, "person/review", "person", "第一句。第二句。"));
+  task("child-parent", result("ok", 2500, "person/review", "person", "continued"));
+  fs.mkdirSync(path.join(logDir, "child"), { recursive: true });
+  fs.writeFileSync(path.join(logDir, "child", "meta.env"), "AGENT=dsh\nNAME=child\nPARENT_TASK_ID=child-parent\n");
+  fs.writeFileSync(path.join(logDir, "child", "result.env"), "STATE=ok\nUPDATED=2026-11-07\\ 11:00:00\n");
+  task("review-new", result("ok", 3000, "person/review", "person", "do the next thing"),
+    "AGENT=dsh\nNAME=review-new\n");
+  fs.writeFileSync(path.join(logDir, "review-new", "question.json"), JSON.stringify({ recommend: 1, options: ["a", "b"] }));
+  task("legacy", "STATE=partial\nATTENTION=\nSTAGE=\nFINISHED_EPOCH=\nUPDATED=2026-10-01\\ 10:00:00\n");
+  task("patrol-x", result("blocked", 1200, "person/blocked", "person"));
+  task("live", "STATE=running\nATTENTION=\nSTAGE=working\nUPDATED=2026-11-07\\ 10:00:00\n");
+  const deps = {
+    activeTaskIds: async () => ["live"],
+    patrolService: async () => "",
+    patrolLog: async () => [],
+  };
+  const config = { logDir, limitsPath: path.join(root, "limits.env"), patrolDir: path.join(root, "patrol"), recent: 5 };
+  const r = await tq.createTaskQueueService(config, deps).get(true);
+  assert.deepEqual(r.pending.map((task) => task.id), ["old-stuck", "review-old", "review-new"],
+    "oldest first; answered, continued and patrol tasks are not pending");
+  assert.equal(r.pendingTotal, 3);
+  assert.equal(r.pending[0].stage, "person/blocked");
+  assert.equal(r.pending[1].needs, "第一句。第二句。", "NEEDS is carried verbatim and bounded by the runner");
+  assert.equal(r.pending[1].finishedAtMs, 2_000_000, "FINISHED_EPOCH seconds become ms");
+  assert.equal(r.pending[2].question, true);
+  assert.equal(r.pending[2].questionRecommend, 1);
+  assert.equal(r.recent.length, 5, "the recent list keeps its own newest-first window");
+});
+
+test("workbench host: the three presets run the existing dispatcher commands", async () => {
+  const tq = await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href);
+  const question = { open: true, recommend: 1 };
+  const plain = { open: false, recommend: 0 };
+  assert.deepEqual(tq.workbenchCommand("continue", "task-1", question), { args: ["answer", "task-1", "2"], stdin: "" });
+  assert.deepEqual(tq.workbenchCommand("modify", "task-1", question),
+    { args: ["answer", "task-1", "--text", tq.WORKBENCH_MODIFY_TEXT], stdin: "" });
+  assert.deepEqual(tq.workbenchCommand("stop", "task-1", question), { args: ["answer", "task-1", "--resolve"], stdin: "" });
+  const cont = tq.workbenchCommand("continue", "task-1", plain);
+  assert.deepEqual(cont.args, ["append", "task-1"], "no ask block: continue resumes the ended session");
+  assert.match(cont.stdin, /NEEDS/);
+  const mod = tq.workbenchCommand("modify", "task-1", plain);
+  assert.deepEqual(mod.args, ["append", "task-1"]);
+  assert.match(mod.stdin, /不要直接动手/);
+  assert.deepEqual(tq.workbenchCommand("stop", "task-1", plain), { args: ["cancel", "task-1"], stdin: "" });
+  assert.match(tq.workbenchCommand("stop", "../bad", plain), /not a task id/);
+});
+
+test("workbench client: the foot event line appears only with pending work", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const task = (id, state, stage, finished, needs) => ({
+    id, name: id, agent: "dsh", model: "", state, waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: null, updatedAtMs: finished, wakeAtMs: null, patrol: false, summary: "", lastEvent: "",
+    lastEventAtMs: null, finishedAtMs: finished, needs, stage, attention: "person",
+  });
+  const queue = (pending) => ({
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending, pendingTotal: pending.length,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+  });
+  const mount = async (pending) => {
+    const reactStub = makeReactStub();
+    const remoteFace = {
+      balance: async () => ({ ok: true, value: BALANCES_OK }),
+      taskQueue: async () => ({ ok: true, value: queue(pending) }),
+    };
+    const ctx = {
+      effect() {}, locale: { register() { return () => {}; } },
+      get() { return remoteFace; },
+      layout: { selectPanel() {} },
+      slots: { inject(name, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
+      remote: { $mount: async () => {} },
+    };
+    await api.apply(ctx);
+    for (const fn of ctx.slots._fns) fn();
+    const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
+    const face = action.definition.inject();
+    const store = makeBalanceStoreStub();
+    const render = () => {
+      reactStub._resetCursor();
+      return action.Component({ wide: true, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
+    };
+    const find = (tree, pred) => {
+      const out = [];
+      (function walk(node) {
+        if (node == null) return;
+        if (Array.isArray(node)) { node.forEach(walk); return; }
+        if (typeof node !== "object") return;
+        if (pred(node.props || {})) out.push(node);
+        (node.children || []).forEach(walk);
+      })(tree);
+      return out;
+    };
+    render();
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+    return { tree: render(), find };
+  };
+  const now = Date.now();
+  const review = await mount([
+    task("a", "ok", "person/review", now - 6 * 3600_000, "x"),
+    task("b", "partial", "person/review", now - 3600_000, "y"),
+    task("c", "ok", "person/review", now - 60_000, "z"),
+  ]);
+  const line = review.find(review.tree, (p) => p["data-wb-signal"] === "true")[0];
+  assert.ok(line, "pending work renders the event line");
+  assert.equal(line.props["aria-label"], "工作台：3 件待处理，最旧 6 小时，打开");
+  assert.match(review.find(review.tree, (p) => p["data-wb-live-count"] === "true")[0].children.join(""), /3/,
+    "the live region carries the count only");
+
+  const stuck = await mount([
+    task("a", "quota", "person/blocked", now - 2 * 86400_000, ""),
+    task("b", "blocked", "person/blocked", now - 3600_000, ""),
+  ]);
+  const stuckLine = stuck.find(stuck.tree, (p) => p["data-wb-signal"] === "true")[0];
+  assert.equal(stuckLine.props["aria-label"], "工作台：2 件全卡住，最旧 2 天，打开");
+  disposeReactEffects();
+});
+
+test("workbench client: the empty state and the 20-row cap are the page's own copy", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const reactStub = makeReactStub();
+  const t = translatorFor(api);
+  const base = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+  };
+  const task = (i) => ({
+    id: "t" + i, name: "任务" + i, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: null, updatedAtMs: Date.now(), wakeAtMs: null, patrol: false, summary: "", lastEvent: "", lastEventAtMs: null,
+    finishedAtMs: Date.now() - i * 60000, needs: "需要人处理", stage: "person/review", attention: "person",
+  });
+  const renderPage = (queue) => {
+    reactStub._resetCursor();
+    const tree = api.WorkbenchPage({
+      cachedTaskQueue: () => queue,
+      fetchTaskQueue: async () => queue,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+      t,
+    });
+    const texts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { texts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return { tree, text: texts.join(" ") };
+  };
+  const empty = renderPage(base);
+  assert.match(empty.text, /暂无待办/);
+  assert.match(empty.text, /任务需要你时会出现在这里。/);
+  assert.match(empty.text, /上次巡检 — · 无未决/);
+  let emptyBox = null;
+  (function walk(node) {
+    if (node == null || emptyBox !== null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node !== "object") return;
+    if ((node.props || {})["data-wb-empty"] === "true") emptyBox = node;
+    (node.children || []).forEach(walk);
+  })(empty.tree);
+  assert.ok(emptyBox, "the empty state is the page's own box");
+
+  const many = { ...base, pending: Array.from({ length: 25 }, (_, i) => task(i)), pendingTotal: 25 };
+  const capped = renderPage(many);
+  let more = null;
+  (function walk(node) {
+    if (node == null || more !== null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node !== "object") return;
+    if ((node.props || {})["data-wb-more"] !== undefined) more = node;
+    (node.children || []).forEach(walk);
+  })(capped.tree);
+  assert.ok(more, "more than 20 pending tasks renders the in-place expansion");
+  assert.equal(more.props["data-wb-more"], "5");
+  assert.match((more.children || []).join(""), /还有 5 件/);
+  assert.equal(capped.text.split("任务").length - 1 >= 20, true);
+  disposeReactEffects();
 });

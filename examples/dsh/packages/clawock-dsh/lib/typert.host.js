@@ -82,6 +82,16 @@ const clawock_dsh_clawockStudio_taskStats_result$schema = z.object({
   'unknown': z.number(),
 }))).optional(),
 })
+const clawock_dsh_clawockStudio_workbenchAction_parameter_0$schema = z.string()
+const clawock_dsh_clawockStudio_workbenchAction_parameter_1$schema = z.string()
+const clawock_dsh_clawockStudio_workbenchAction_result$schema = z.object({
+  'ok': z.boolean(),
+  'code': z.number(),
+  'action': z.string(),
+  'id': z.string(),
+  'message': z.string(),
+  'detail': z.string(),
+})
 const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()
 const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'id': z.string(),
@@ -101,6 +111,12 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'summary': z.string(),
   'lastEvent': z.string(),
   'lastEventAtMs': z.union([z.number(), z.literal(null)]),
+  'needs': z.string().optional(),
+  'stage': z.string().optional(),
+  'attention': z.string().optional(),
+  'finishedAtMs': z.union([z.number(), z.literal(null)]).optional(),
+  'question': z.boolean().optional(),
+  'questionRecommend': z.number().optional(),
   'queuedAtMs': z.union([z.number(), z.literal(null)]).optional(),
   'waitMs': z.union([z.number(), z.literal(null)]).optional(),
   'position': z.union([z.number(), z.literal(null)]).optional(),
@@ -143,6 +159,8 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'running': z.number(),
   'active': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
   'recent': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
+  'pending': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema).optional(),
+  'pendingTotal': z.number().optional(),
   'patrol': z.object({
   'service': z.string(),
   'phase': z.union([z.literal("running"), z.literal("yielding"), z.literal("waiting"), z.literal("stopped"), z.literal("unknown")]),
@@ -454,6 +472,41 @@ export const TYPERT = {
         create: () => clawock_dsh_clawockStudio_taskStats_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":166,"column":3},
+    },
+    {
+      id: 'clawock-dsh#clawockStudio/workbenchAction',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'workbenchAction',
+      invocation: { kind: 'direct' },
+      parameters: [
+        {
+          name: 'action',
+          wire: 'action',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/workbenchAction:action',
+            create: () => clawock_dsh_clawockStudio_workbenchAction_parameter_0$schema,
+          },
+        },
+        {
+          name: 'id',
+          wire: 'id',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/workbenchAction:id',
+            create: () => clawock_dsh_clawockStudio_workbenchAction_parameter_1$schema,
+          },
+        },
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#QueueActionResult',
+        create: () => clawock_dsh_clawockStudio_workbenchAction_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":281,"column":3},
     },
     {
       id: 'clawock-dsh#clawockStudio/get',

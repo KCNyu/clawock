@@ -308,11 +308,27 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 
 队列与历史来自本机文件加 `systemctl`/`journalctl`;新增覆盖区的 open issue 数另用只读 `gh` 标签查询（最多缓存五分钟）;宿主侧 5s 缓存、客户端
 15s 轮询。没有派发目录的主机上这一行不出现。可选配置 `dispatchLogDir` /
-`dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent` / `taskQueueOpsPath`。
+`dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent` / `taskQueueOpsPath` / `dispatchScriptPath`。
 宿主把侧栏底部动作排成一行(`.footerActions` 横向 flex),而且 list slot 的每一项
 都包在一个 `display:contents` 的 `[data-slot]` 容器里——本行是那格的**孙子**。
 样式表用 `:has(> [data-slot] > .tqf)` 越过这层容器把那一格改成竖排,任务行才
 叠在余额上方、各占一整行;不支持 `:has()` 的浏览器上两行并排,功能不变。
+
+## 工作台 / Workbench
+
+`needs_person` 的任务不再只出现在派发队列的详情层里。侧栏底部的 `工作台` 图标是常驻入口
+（`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）；底部的信号行只在有待办时出现，
+位置在额度组之上、与 Claude 行留 10px，平时整行不存在。信号只讲一件事：几件待处理 / 最旧
+等了多久；只有卡住的任务让点和角标变红，文字始终是墨色。
+
+工作台是一个页面两个视图：队列默认显示 `卡住`、`待你处理`、`进行中` 三段；窄屏点行进
+焦点视图，桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。焦点视图只给三个
+预设动作：继续 / 需要修改 / 终止；终止是就地两段确认，不开弹窗。提交后就地变成
+`已记录 · 下一件 ›`，不自动跳页。三个动作分别调用现有的 `dispatch.sh answer` /
+`dispatch.sh append` / `dispatch.sh cancel`（有 ask 块时走 `answer --resolve`），
+插件不另造审批通道，也不新增存储。Esc 从焦点视图返回队列，再按一次离开工作台；焦点回到
+打开它的行或图标。data 来自 runner 已写入的 `result.env` 的 `NEEDS` / `STAGE` / `OUTCOME` /
+`ATTENTION`，巡检覆盖沿用派发详情页的同一读取路径。
 
 ## Dispatch queue
 

@@ -28,6 +28,7 @@ import * as React from 'react';
 import type { BalancesResult, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1 } from './types.ts';
 import { type Translate } from './copy.ts';
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts';
+export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts';
 export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView } from './panel.ts';
 /**
  * The T+1 verdict in the active locale. `verdictKind` is the stable code; a
@@ -179,6 +180,8 @@ export declare function _balanceCadence(reading: boolean, refreshMs: number | un
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export declare const BALANCE_PANEL = "clawock-provider-balance";
+/** The main panel key and the panellist id are the same id (the host contract). */
+export declare const WORKBENCH_PANEL = "clawock-workbench";
 /** Fixed-position anchor for the popover: left edge of the row, just above it, and the room up to the viewport top. */
 export type PopoverAnchor = {
     left: number;
@@ -277,10 +280,32 @@ export declare const DETAIL_ACTIONS: Record<string, {
 }>;
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
 export declare function _describeAction(result: QueueActionResult, t: Translate): string;
+/** The panellist icon: a permanent entry; the badge exists only with pending tasks. */
+export type WorkbenchIconInjected = TaskQueueInjected & {
+    rememberTrigger: (element: HTMLElement | null) => void;
+};
+export type WorkbenchIconProps = WorkbenchIconInjected & {
+    size: number;
+    active: boolean;
+    t: Translate;
+};
+export declare function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement;
+export type WorkbenchInjected = TaskQueueInjected & {
+    /** Return to the conversation and put focus back on the control that opened the page. */
+    closeWorkbench: () => void;
+    /** One preset through the host's dispatcher entry; absent on an older host half. */
+    runWorkbenchAction?: (action: string, id: string) => Promise<QueueActionResult>;
+};
+export type WorkbenchProps = WorkbenchInjected & {
+    t: Translate;
+};
+export declare function WorkbenchPage(props: WorkbenchProps): React.ReactElement;
 export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {
     /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
     wide: boolean;
     t: Translate;
+    /** Open the workbench page; the event line passes itself so close() can restore focus. */
+    openWorkbench: (trigger: HTMLElement) => void;
     /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
     openFile?: OpenFile;
 };
@@ -321,6 +346,8 @@ interface ClientContributionContext {
     /** Locale registry: this bundle owns one dictionary namespace (see LOCALE_NS). */
     locale: {
         register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void;
+        /** Optional only for the test harness and a host older than this service face. */
+        bind?: (ns: string) => Translate;
     };
     /** Injected host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
     layout?: LayoutProbe;
@@ -330,6 +357,8 @@ interface ClientContributionContext {
 /** `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
 type LayoutProbe = {
     selectPanel?: (panelId: string | null) => void;
+    /** Open/close the left column; below 768px that is the drawer. */
+    toggleSidebar?: () => void;
 };
 /** Register the Decision Mind tab into the conversation view ring. */
 export declare function apply(ctx: Context & ClientContributionContext): Promise<void>;
