@@ -3343,9 +3343,13 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           : t('workbench.sub.overview', { time: stamp, n: overviewOpen ?? '—' }))),
     h('div', { className: cx('wb-main') },
       desktop
-        ? h('div', { className: cx('wb-grid') },
-          h('aside', { className: cx('wb-queue'), 'data-wb-queue': 'true' }, mainPanel),
-          h('div', { className: cx('wb-pane'), 'data-wb-pane': 'true' }, detail))
+        ? tab === 'tasks'
+          ? h('div', { className: cx('wb-grid') },
+            h('aside', { className: cx('wb-queue'), 'data-wb-queue': 'true' }, mainPanel),
+            h('div', { className: cx('wb-pane'), 'data-wb-pane': 'true' }, detail))
+          // Providers and Overview are full-width segments; the task detail
+          // belongs to Tasks and must not sit beside an unrelated overview.
+          : h('div', { className: cx('wb-pane'), 'data-wb-pane': 'true' }, mainPanel)
         : mainPanel))
 }
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {

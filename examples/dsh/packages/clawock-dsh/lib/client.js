@@ -13752,13 +13752,16 @@ function WorkbenchPage(props) {
 	}) : t("workbench.sub.overview", {
 		time: stamp,
 		n: overviewOpen ?? "—"
-	}))), h("div", { className: cx("wb-main") }, desktop ? h("div", { className: cx("wb-grid") }, h("aside", {
+	}))), h("div", { className: cx("wb-main") }, desktop ? tab === "tasks" ? h("div", { className: cx("wb-grid") }, h("aside", {
 		className: cx("wb-queue"),
 		"data-wb-queue": "true"
 	}, mainPanel), h("div", {
 		className: cx("wb-pane"),
 		"data-wb-pane": "true"
-	}, detail)) : mainPanel));
+	}, detail)) : h("div", {
+		className: cx("wb-pane"),
+		"data-wb-pane": "true"
+	}, mainPanel) : mainPanel));
 }
 function DecisionMind(props) {
 	const t = props.t;
