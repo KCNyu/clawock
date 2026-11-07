@@ -3507,3 +3507,73 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc .tq-cov a { display:inline; min-height:0; padding-block:12px }
   .pbc .tq-cov a.tq-cov-name { padding-block:6px; margin-block:-6px }
 }
+
+/* Phone: the folded provider block is a guest of the host drawer, so from 767px
+   down it takes the host's row geometry instead of its own. The host's panel
+   rows are 36px high at x=8/w=264 with a 16px glyph at x=20 and a 14px label at
+   x=42; the provider rows used to sit at x=6/w=268 with a 12px glyph at x=14 and
+   a 13px name at x=36. Every row also reserves the same two 16px lines, so a
+   one-line row (OpenCode) no longer centres while its neighbours start at the
+   top, and the reset/stale line starts under the name instead of floating
+   right. This block is last in the file so it wins over the base row rules by
+   source order (same specificity). */
+@media (max-width: 767px) {
+  .pbc.ppf .pp-rows {
+    margin:0;
+    grid-template-columns:26px minmax(64px, 1fr) minmax(0, auto)
+  }
+  .pbc.ppf .pp-rows .pp-row {
+    grid-template-rows:16px 16px;
+    align-content:center;
+    padding:0 9px 0 12px
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-lead {
+    width:16px;
+    height:16px
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-lead svg {
+    width:16px;
+    height:16px
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-name {
+    max-width:96px;
+    font:500 var(--fs-lg)/16px var(--font)
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-value {
+    font:600 var(--fs-md)/16px var(--font);
+    font-variant-numeric:tabular-nums
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-value .tq-unit {
+    font:400 var(--fs-sm)/16px var(--font)
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-reset-line {
+    place-self:center stretch;
+    text-align:left;
+    font:400 var(--fs-xs)/16px var(--font);
+    font-variant-numeric:tabular-nums
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-reset-line .tq-stale {
+    font:500 var(--fs-xs)/16px var(--font)
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-chip[data-tq-chip="status"] {
+    justify-self:start
+  }
+  /* The sheet floats over both the drawer and the page behind it; at 97% glass
+     the text underneath showed through the provider rows. The phone sheet uses
+     the host's opaque layer instead, so no unrelated copy bleeds into it. */
+  .pbc.pbf.tqf .bp::before {
+    background:var(--dsw-alias-bg-layer-1, #fff);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none
+  }
+}
+/* A 320px phone has 217px for the reset line; the 11px stamp needs ~225px.
+   Drop that one line to the ladder's micro size so the last reset is not cut. */
+@media (max-width: 340px) {
+  .pbc.ppf .pp-rows .pp-row > .tq-reset-line {
+    font:400 var(--fs-micro)/16px var(--font)
+  }
+  .pbc.ppf .pp-rows .pp-row > .tq-reset-line .tq-stale {
+    font:500 var(--fs-micro)/16px var(--font)
+  }
+}

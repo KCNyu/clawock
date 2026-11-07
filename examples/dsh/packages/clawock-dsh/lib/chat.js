@@ -821,7 +821,7 @@ const dictionaries = {
 		"queue.patrol.unknown": "patrol state unknown",
 		"queue.patrolState.running": "running",
 		"queue.patrolState.yielding": "giving way",
-		"queue.patrolState.waiting": "idle",
+		"queue.patrolState.waiting": "waiting",
 		"queue.patrolState.waitingUntil": "next round {time}",
 		"queue.patrolState.stopped": "stopped",
 		"queue.patrolState.unknown": "state unknown",
