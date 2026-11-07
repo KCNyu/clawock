@@ -1215,6 +1215,8 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
     "the page body reserves the bottom safe area and never scrolls sideways");
   assert.match(css, /_tq-d-field\{grid-template-columns:72px minmax\(0,1fr\) auto\}/,
     "a detail field's label gets a real column at the drawer width");
+  assert.match(css, /_tqf\{--tq-lead:14px;--tq-gap:6px;--tq-when:44px;--tq-took:40px;--tq-aside:70px\}/,
+    "the phone page leaves room for a relative time before the duration");
   assert.doesNotMatch(fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8"), /IntersectionObserver/,
     "the drawer portal replaces the old visibility observer; no observer should remain");
   assert.match(css, /_bp\[data-open=true\]\{opacity:1;pointer-events:auto\}/,

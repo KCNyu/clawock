@@ -3657,9 +3657,11 @@ body[data-ds-dark-theme] .pbc .bp {
   .pbc.tqf {
     --tq-lead:14px;
     --tq-gap:6px;
-    --tq-when:38px;
-    --tq-took:38px;
-    --tq-aside:76px
+    /* 44/40 leaves a visible gap around "12h ago" and "1h 26m" in the rounds
+       list; the old 38/38 tracks let the relative time run into the duration. */
+    --tq-when:44px;
+    --tq-took:40px;
+    --tq-aside:70px
   }
   .pbc.tqf .tq-row {
     padding-left:6px;
