@@ -1006,17 +1006,29 @@ export type ProviderSignal = 'alert' | 'warn' | 'stale' | 'ok' | 'none'
 /** One provider row in the Providers segment (data table, never a button). */
 export type ProviderRowView = {
   key: string
+  /** The source row this provider/agent is drawn from (glyph, label, plan, pool). */
+  source: PanelSource
   label: string
   provider: string | null
   agent: string | null
   primary: string
   secondary: string | null
   signal: ProviderSignal
+  /** The row's one visual state: the six provider states, stale kept apart from warn. */
+  state: 'ok' | 'warn' | 'alert' | 'exhausted' | 'free' | 'unknown' | 'stale'
   tone: 'ok' | 'warn' | 'alert' | 'stale' | 'none'
   primaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none'
   secondaryTone: 'ok' | 'warn' | 'alert' | 'stale' | 'none'
   chip: { text: string; role: StateRole } | null
   window: { startDate: string; startDetail: string; endDate: string; endDetail: string } | null
+  /** The window reset the row prints on line 2 (the 5h unless the week is near its cap). */
+  reset: { date: string; detail: string } | null
+  /**
+   * The one progress bar every provider shares: filled to the fullest window's
+   * used percentage, null when the row has no percentage to draw (money, free
+   * pool, unreadable). `state` is the colour role; stale is grey.
+   */
+  bar: { pct: number; state: 'ok' | 'warn' | 'alert' | 'stale' } | null
   title: string
   aria: string
 }
@@ -1093,6 +1105,9 @@ export function providerRowView(source: PanelSource, row: BalanceRow | undefined
     ? ''
     : [window.startDate, window.startDetail].filter((part) => part !== '').join(' ') + ' → '
       + [window.endDate, window.endDetail].filter((part) => part !== '').join(' ')
+  const resetWindow = windows.length > 1 && (windows[1]!.percent ?? 0) >= 90 ? windows[1]! : windows[0]
+  const reset = resetWindow === undefined ? null
+    : resetStampPartsOf(t, { resetAt: resetWindow.resetAt, resetAtMs: resetWindow.resetAtMs }, now)
   const tone: ProviderRowView['tone'] = signal === 'alert' ? 'alert'
     : signal === 'warn' ? 'warn'
       : signal === 'stale' ? 'stale'
@@ -1110,6 +1125,21 @@ export function providerRowView(source: PanelSource, row: BalanceRow | undefined
         : isPct && windows[0] !== undefined ? windowTone(windows[0]) : (signal === 'warn' ? 'warn' : 'ok')
   const secondaryTone: ProviderRowView['secondaryTone'] = signal === 'stale' ? 'stale'
     : isPct && windows[1] !== undefined ? (signal === 'alert' ? 'alert' : windowTone(windows[1])) : 'ok'
+  // The row state and the one bar's fill are decided here, not in the renderer:
+  // every provider gets the same track, and only the colour/width changes.
+  const maxUsed = Math.max(0, ...windows.map((window) => window.percent ?? 0))
+  const state: ProviderRowView['state'] = row === undefined ? 'free'
+    : row.result.configured === false || row.result.status === 'failed' || row.result.snapshot === null ? 'unknown'
+      : signal === 'stale' ? 'stale'
+        : maxUsed >= 100 ? 'exhausted'
+          : signal === 'alert' ? 'alert'
+            : signal === 'warn' ? 'warn' : 'ok'
+  const bar = !isPct || signal === 'none' || windows.length === 0 ? null
+    : { pct: Math.min(100, maxUsed), state: signal === 'stale' ? 'stale' as const
+      : signal === 'alert' ? 'alert' as const : signal === 'warn' ? 'warn' as const : 'ok' as const }
+  // A used-up window is the row's headline, not a secondary percentage: the
+  // reader must not have to add 5h 18% + week 100% to see why it is red.
+  if (state === 'exhausted') primary = t('workbench.provider.state.exhausted')
   const aria = [
     source.label,
     primary,
@@ -1120,20 +1150,72 @@ export function providerRowView(source: PanelSource, row: BalanceRow | undefined
   ].filter((part): part is string => part !== null && part !== undefined && part !== '').join(' · ')
   return {
     key: source.key,
+    source,
     label: source.label,
     provider: source.provider?.provider ?? null,
     agent: source.agent,
     primary,
     secondary,
     signal,
+    state,
     tone,
     primaryTone,
     secondaryTone,
     chip,
     window,
+    reset,
+    bar,
     title: view.reading.title,
     aria,
   }
+}
+
+/** `4200` → `4.2k`, `83123861` → `83.1M`: token counts read at a glance, exact value in the aria text. */
+export function _fmtTokens(n: number): string {
+  if (n < 1000) return String(n)
+  if (n < 1e6) return (n / 1e3).toFixed(n < 1e4 ? 1 : 0) + 'k'
+  return (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + 'M'
+}
+
+/**
+ * One row of the Overview's history fold. The row is a button that opens the
+ * same task detail as the queue; it still prints the two facts a reader came
+ * for (what it ended as, what it cost) without opening anything.
+ */
+export type HistoryRowView = {
+  id: string
+  title: string
+  stateText: string
+  stateRole: StateRole
+  tone: BalanceTone
+  meta: string
+  cost: string
+  aria: string
+}
+
+/** The ended-task list: frozen result, finished time and cost, newest first (host order). */
+export function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[] {
+  const rows = result?.recent ?? []
+  return rows.map((task) => {
+    const chip = _endedState(task.state, task.outcome, t)
+    const cost = _costOf(task)
+    const costText = cost === null ? ''
+      : cost.kind === 'usd' ? '$' + (task.costUsd ?? '')
+        : cost.kind === 'free' ? t('queue.d.costFreeShort') : t('queue.d.costUnpriced')
+    const at = task.finishedAtMs ?? task.updatedAtMs
+    const meta = [task.agent === '' ? '' : _agentLabel(task.agent), at === null || at === undefined ? '' : agoOf(t, Math.max(0, now - at))]
+      .filter((part) => part !== '').join(' · ')
+    return {
+      id: task.id,
+      title: taskTitle(task),
+      stateText: chip.text,
+      stateRole: chip.role,
+      tone: endedTone(task),
+      meta,
+      cost: costText,
+      aria: t('workbench.history.rowAria', { title: taskTitle(task), state: chip.text, cost: costText === '' ? t('workbench.info.none') : costText }),
+    }
+  })
 }
 
 /** Severity order for the segment: alert first, then stale, then near-limit, then normal. */

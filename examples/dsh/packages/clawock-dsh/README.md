@@ -113,23 +113,31 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 左侧栏只剩一个**工作台**入口：provider 额度不再常驻 footer（Settings 仍是宿主的，留在原位）。
 工作台页标题下是 44px 三段控件 `任务 | 提供方 | 概况`：
 
-- **任务**：卡住 / 待你处理 / 进行中三个折叠组。组头整行可点，chevron 只作指示；
-  默认最多展开 6 条（<360px 4 条），<360px 同时只开 1 组、以上 2 组，超出给「还有 N 条 ›」。
-- **提供方**：每个来源两行常显，行高 72px：第一行 6px 状态点 + 名称 14/600 +
-  右侧已用%（周% 灰色）；第二行重置时间，余额制显示 `余额 · 赠金`。底部 3px
-  用量条按同一状态着色。不做行内展开，也没有第二层详情页。余额制（DeepSeek）和
-  百分比制（MiniMax/Claude/Codex）共用这一行；OpenCode 显示 `免费`，不可读显示
-  `数据不可用` 和灰点。异常（任一窗口 ≥90% 或余额+赠金 ≤0）用红点/红条；70–90%
-  琥珀；stale 只降灰、永不点红。
-- **概况**：巡检和统计两个折叠组，复用任务组的 44px 组头。巡检默认展开四行：
-  最近轮次 + 状态、area/lens 覆盖、未决数、节奏；统计默认折叠，组头右侧是
-  `任务 · token · API 估价` 摘要，展开后是三列指标、完成/未完成条和 7 天柱图。
+- **任务**：卡住 / 待你处理 / 进行中三个折叠组，另有 `状态 / 来源` 分组切换。组头整行
+  可点，chevron 只作指示；默认最多展开 6 条（<360px 4 条），<360px 同时只开 1 组、以上
+  2 组，超出给「还有 N 条 ›」。组上方一行 queue headline 说清 running 和每种等待。
+- **提供方**：每个来源两行常显，行高 76px：第一行 14px 品牌/类型图标（Claude 星芒、
+  Codex 终端提示符、DeepSeek 鲸鱼、MiniMax 波浪、OpenCode 方括号）+ 名称 14/600 +
+  右侧已用%（周% 灰色）；第二行重置时间，余额制显示 `余额 · 赠金`。底部一条统一的 4px
+  用量条，从行内容左边缘到右边缘，按状态取色：ok 绿、70–90% 琥珀、≥90% 红、stale 降灰。
+  余额制（DeepSeek）和百分比制（MiniMax/Claude/Codex）共用这一行；金额和免费池没有
+  百分比，就不画条；OpenCode 显示 `免费`，不可读显示 `数据不可用`。没有 `Add provider`。
+- **概况**：巡检、统计、历史三个折叠组，复用任务组的 44px 组头。巡检默认折叠，展开是
+  KPI、结果条、一行一轮的轮次（轮次号 · 状态 · 时间 · 用时）和单列覆盖表；统计折叠，
+  组头右侧是 `任务 · token · API 估价` 摘要，展开是三列指标、完成/未完成条、按 provider
+  堆叠的 7 天图、按 agent 的 token/花费和完成表；历史默认折叠，列出最近结束任务的状态与
+  花费，点开进同一个任务详情看结果、花费与全部字段。
 
-抽屉里**不显示任何额度数值**。56px 窄轨上待办数是 16×≤22px 数字徽章（1–99，
-99+ 封顶），provider 告警是独立的 8px 红点：徽章在右上、红点在下方，右缘对齐
-`x=52`，垂直间隔 4px，互不重叠；stale 永不点亮。更宽侧栏仍是标签右侧中性徽章 +
-provider 红点。打开工作台后，顶栏唯一的刷新按钮随分段切换：任务/概况刷新巡检，
-提供方拉额度。更早、没有 keyed `main` 面板的宿主仍退回会话标题行的余额芯片。
+任务详情在焦点视图原位保留旧版能力：状态、结果摘要、任务书正文（内联折叠）、日志、
+时间线、模型、排队/优先级、deadline/重试/续跑预算、agent/slot/来源/窗口/池/额度、时间、
+花费/tokens、通知回执、体面收尾/取消/重试、原始记录折叠与完整日志，以及巡检覆盖折叠。
+全局工作台没有会话可开 dsh 文件预览时，任务书正文和日志内联显示。
+
+抽屉里**不显示任何额度数值**。56px 窄轨上待办数是 16×≤22px 数字徽章（1–99，99+ 封顶），
+provider 告警是图标右上角的 `!` 字形，右缘对齐、垂直间隔 4px，互不重叠；stale 永不点红。
+更宽侧栏仍是标签右侧中性徽章 + `工作台 · N 个告警` 文案；不再有只有颜色、没有文字的
+裸红点。打开工作台后，顶栏唯一的刷新按钮随分段切换：任务/概况刷新巡检，提供方拉额度。
+更早、没有 keyed `main` 面板的宿主仍退回会话标题行的余额芯片。
 
 配额读数一律是**已使用 %**(kcn:「剩余」不直观;头条数字
 与进度条同用这套档位配色):
@@ -308,19 +316,27 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 
 ## 工作台 / Workbench
 
-`needs_person` 的任务不再只出现在派发队列的详情层里。侧栏的 `工作台` 图标是常驻入口
-（`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）；底部不再有信号行。页面标题下是
-44px 分段控件 `任务 | 提供方 | 概况`。任务段显示 `卡住`、`待你处理`、`进行中` 三个折叠组；
-提供方段是两行常显的 72px provider 行（状态点 + 名称 + 已用% / 周%、第二行重置时间 /
-余额·赠金、底部 3px 用量条），不做行内展开或二级页；概况段把巡检和统计收进同一套折叠组
-（巡检默认展开 4 行，统计默认折叠，展开后是指标、完成条和 7 天柱图）。窄屏点任务进焦点视图；
-桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。焦点视图只给三个预设动作：
-继续 / 需要修改 / 终止；终止是就地两段确认，不开弹窗。提交后就地变成 `已记录 · 下一件 ›`，
-不自动跳页。三个动作分别调用现有的 `dispatch.sh answer` /
-`dispatch.sh append` / `dispatch.sh cancel`（有 ask 块时走 `answer --resolve`），
-插件不另造审批通道，也不新增存储。Esc 从焦点视图返回队列，再按一次离开工作台；焦点回到
-打开它的行或图标。data 来自 runner 已写入的 `result.env` 的 `NEEDS` / `STAGE` / `OUTCOME` /
-`ATTENTION`，巡检覆盖沿用派发详情页的同一读取路径。
+侧栏的 `工作台` 图标是常驻入口（`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）；
+底部不再有信号行。有 provider 告警时，宿主行文案变成 `工作台 · N 个告警`（中英各一份），
+56px rail 用 `!` 字形加 `title`/`aria-label` 兜底——不再有只有颜色、没有文字的裸红点。
+页面标题下是 44px 分段控件 `任务 | 提供方 | 概况`。任务段显示 `卡住`、`待你处理`、
+`进行中` 三个折叠组，并带 `状态 / 来源` 分组切换；顶部的 queue headline 说清 running 和
+每种等待。提供方段是两行常显的 76px 行：14px 品牌/类型图标 + 名称 + 已用% / 周%，第二行
+重置时间 / 余额·赠金，底部一条统一的 4px 用量条（从行内容左边缘到右边缘，按 ok /
+near-limit / alert / stale 取色；金额和免费池没有百分比，就不画条）。没有 `Add provider`。
+概况段把巡检、统计、历史收进同一套折叠组：巡检默认折叠，展开是 KPI、结果条、一行一轮的
+轮次和单列覆盖表；统计展开是总览指标、按 provider 堆叠的 7 天图、按 agent 的 token/花费
+和完成表；历史默认折叠，列出最近结束任务的状态与花费，点开进同一个任务详情。窄屏点任务进
+焦点视图；桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。焦点视图保留继续 /
+需要修改 / 终止三个预设动作（终止就地两段确认），同时恢复旧版任务详情的全部原位能力：
+状态、结果摘要、任务书（正文内联折叠）、日志、时间线、模型、排队/优先级、deadline/重试/
+续跑预算、agent/slot/来源/窗口/池/额度、时间、花费/tokens、通知回执、体面收尾/取消/重试、
+原始记录折叠与完整日志，以及巡检覆盖折叠。全局工作台没有会话可开 dsh 文件预览时，任务书
+正文和日志改为内联显示。三个预设仍只调用现有的 `dispatch.sh answer` / `append` / `cancel`
+（有 ask 块时走 `answer --resolve`），插件不另造审批通道，也不新增存储。Esc 从焦点视图
+返回队列，再按一次离开工作台；焦点回到打开它的行、历史行或图标。data 来自 runner 已写入的
+`result.env` 的 `NEEDS` / `STAGE` / `OUTCOME` / `ATTENTION`，巡检覆盖沿用派发详情页的同一
+读取路径。
 
 ## Dispatch queue
 
@@ -334,16 +350,27 @@ steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispat
 ### English
 
 **Where it lives (2026-11-07).** The permanent sidebar-footer provider block is gone. The
-sidebar keeps one **Workbench** entry: a neutral pending count (capped at `99+`) and, only
-while a provider is actually broken, one 8px red dot. On the 56px rail the count badge and
-the provider dot stay separate: the badge sits top-right, the dot below it at the rail's
-right edge. The page has one 44px segmented control, **Tasks | Providers | Overview**.
-Providers are two-line, always-visible 72px rows (state dot, name, used % / muted week,
-reset line, balance/credit split, 3px usage bar) — no row expansion and no second page.
-Overview reuses the Tasks fold groups: Patrol is open by default with four summary rows;
-Stats is folded, and expands to its metrics, completion bar and seven-day chart. Stale
-readings never light the dot. Task actions live in the Workbench focus view. The queue
-description below still owns the data model and the host-side reads.
+sidebar keeps one **Workbench** entry: a neutral pending count (capped at `99+`) and, while
+a provider is actually broken, the host row's own words: `Workbench · 1 alert` (zh
+`工作台 · 1 个告警`). The 56px rail keeps a `!` glyph with `title`/`aria-label`; the colour
+is never the only signal, and no bare dot is drawn. The page has one 44px segmented
+control, **Tasks | Providers | Overview**. Tasks keep the three status folds and gain a
+`Status / Source` grouping toggle; the queue headline says what is running and what each
+task waits for. Providers are two-line, always-visible 76px rows: a 14px brand/type icon
+(Claude spark, Codex terminal prompt, DeepSeek whale, MiniMax wave, OpenCode brackets),
+name, used % / muted week, reset line and balance/credit split, with one shared 4px bar
+from the row's content left edge to its right edge, coloured by ok / near-limit / alert /
+stale. Money and free rows have no percentage, so they draw no bar. There is no
+`Add provider`. Overview folds Patrol (KPI, outcome strip, one-line rounds, single-column
+coverage), Stats (metrics, stacked provider chart, per-agent token/cost and completion)
+and History (recently ended tasks with result and cost, opening the same task detail).
+The detail restores the old in-place sections and controls: status, result summary, brief
+text (inline fold), log, timeline, model, place/priority, deadline/retry/resume budgets,
+agent/slot/source/windows/pool/quota, time, cost/tokens, notification receipts,
+wrap-up/cancel/retry, the folded raw record with full log, plus the patrol coverage fold.
+When the global page has no conversation to preview a file into, the brief text and log
+are shown inline instead. The queue description below still owns the data model and the
+host-side reads.
 
 **What it is.** agent-dispatch runs headless Claude Code, Codex and OpenCode tasks, each in
 its own transient systemd unit, so a task outlives the chat, terminal or dsh session that
