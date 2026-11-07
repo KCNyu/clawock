@@ -208,7 +208,7 @@ const HARNESS_JS = String.raw`
 
   const never = () => new Promise(() => {});
   const answer = (action, id) => {
-    if (action === 'brief') return { ok: true, code: 0, action, id, message: '', detail: JSON.stringify({ path: '/tmp/tasks/' + id + '/prompt.md', brief: '# task\n\nline one\nline two', brief_bytes: 4096, truncated: false, appends: [] }) };
+    if (action === 'brief') return { ok: true, code: 0, action, id, message: '', detail: JSON.stringify({ path: '/tmp/tasks/' + id + '/prompt.md', brief: '# task\n\nline one\nline two', brief_bytes: 4096, truncated: false, appends: [{ file: 'append-1.md', path: '/tmp/tasks/' + id + '/append-1.md', stamp: '2026-11-07 19:45', delivered: true, bytes: 2048, text: '【kcn 追加（逐字）】这是一段足够长的追加正文，用来验证任务书浮层里文件名、摘要与投递标签不会互相压住。' }] }) };
     if (action === 'log') return { ok: true, code: 0, action, id, message: '', detail: JSON.stringify({ lines: ['line 1', 'line 2', 'line 3'], timeline: { events: [{ stamp: '21:21', kind: 'start', text: 'started' }, { stamp: '21:22', kind: 'end', text: 'done' }], omitted_bytes: 0, omitted_events: 0, audit_truncated: false, log_missing: false } }) };
     if (action === 'choices') return { ok: true, code: 0, action, id, message: '', detail: JSON.stringify({ models: ['deepseek-official/deepseek-flash', 'deepseek-official/deepseek-pro'], efforts: { 'deepseek-official/deepseek-flash': ['max', 'high'] }, effort_flag: 'effort', allowed: true, reason: '', requested: { model: 'deepseek-official/deepseek-flash', effort: 'max' } }) };
     return { ok: true, code: 0, action, id, message: '', detail: '{}' };
