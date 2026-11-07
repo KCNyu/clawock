@@ -108,36 +108,25 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 
 面板是只读 Remote,不改任何文件;结算仍归 clawock 自己的机制。
 
-### 侧边栏左下角的 provider 面板（额度 · 队列）
+### 工作台里的 provider 额度（2026-11-07）
 
-web GUI **左侧栏底部、Settings 正上方**常驻一个 cell（`provider-balance`，2026-09-27 起
-余额与派发队列合成一个，原先上方的 `dispatch-queue` 已退休），不跟随当前会话。折叠态**每个
-来源一行**，只放四样：字形 · 名字 · 额度读数（已使用 % / 余额 / 免费池写「免费」）· 一枚状态
-芯片。芯片只说这一队最需要看的一件事——等额度 > 排队 > 其他等待 > 运行，带数量；闲着或没有
-队列的 provider 不画芯片。五行共用一套列（subgrid），读数与芯片上下对齐。重置时刻、plan、
-key 来源、池内位置不常驻：它们在面板里该来源的分组上，也仍在这一行的读屏文本与 title 里。
-（2026-09-28 之前最后一列是 ▶ ≡ ⏸ 形状+数字，是 260px 塞不下时钟与计数时的权宜，已撤掉。）顺序只写在
-`src/providers.ts` 的 join 表（有 agent 的 claude、codex、dsh、opencode 在前），其余 provider 按
-`BALANCE_PROVIDERS` 表序；新增 provider 仍只改那张表。侧栏收起（56px rail）时只剩一枚图标：
-有窗口到阈值或有任务在睡额度 → 琥珀方角标，读数失败 → 红色空心环，否则不带角标。
+左侧栏只剩一个**工作台**入口：provider 额度不再常驻 footer（Settings 仍是宿主的，留在原位）。
+工作台页标题下是 44px 分段控件 `任务 | 服务`：
 
-点任意一行在 cell 正上方弹出面板并落在该来源的分组：组头就是折叠态那一行（同一字形、名字、
-读数，14px 粗体，不再带芯片），其下一行灰字说明 plan · 槽位 · 池，然后是额度（每窗口一行读数 + 发丝进度条 + 重置；
-DeepSeek 是钱，显示赠金 / 充值拆分，不画条），最后是它喂的那条队列——放在从名字那条边开始的**内嵌底板**
-上（状态芯片是短词——运行中 / 排队 #2 / 等额度…，完整原因与 runner 的「等到」、窗口重置两个时刻在芯片的
-title 与详情层）。额度在面板上、任务在底板上，两级不混。点任务进详情层：槽位、模型与 effort、尝试 /
-停滞、实际生效的 deadline 与重试预算、花费（按 API 价估算，非实际扣费）、通知回执，以及
-「任务书」（在 dsh 自带的右侧文件预览里打开 `prompt.md` 与各条追加，只读）和既有的写操作
-（全部经 `ops/host/task_queue_ops.py`）。取数失败的 provider 保留上一次好读数并写明读数时间；
-没有派发器的主机只显示 provider 行。
+- **任务**：卡住 / 待你处理 / 进行中三个折叠组。组头整行可点，chevron 只作指示；
+  默认最多展开 6 条（<360px 4 条），<360px 同时只开 1 组、以上 2 组，超出给「还有 N 条 ›」。
+- **服务**：五个来源一行一个。名称 15/600（最长 84px 省略），主指标 13/700
+  tabular-nums 紧贴名称右侧 8px，次指标 13/500 灰色右对齐；第二行是 stale/queued
+  芯片 + 窗口时间。余额制（DeepSeek/OpenCode）主指标是余额/免费，百分比制主指标
+  是 5h、次指标是周。异常（5h 或周耗尽、认证失败、不可达）排最前，红字 + `⚠`；
+  stale 只把数字降灰、永不点红。
 
-挂载点是 DSH 公开的 `sidebar.footer.action`(侧栏底部 Settings 旁的动作座位),
-弹出层照抄宿主自己同座位的 Cordis 面板:固定定位锚在这一行上方、点外面/Esc 关闭。
-(第一版曾用 keyed `main` 中间面板,点一下整栏对话就被换成一张几乎空白的页,
-体感是「被切走」,已改掉。)插件在 DSH `0.1.5-rc.1` 起(有 `ctx.layout.selectPanel`)
-的宿主上挂到侧栏;更早的宿主退回会话标题行右侧 utilities 座位的毛玻璃芯片
-(行为同上)。它不是 Decision Mind 的一部分:账户状态是应用级 chrome,
-不是交易语义。配额读数一律是**已使用 %**(kcn:「剩余」不直观;头条数字
+抽屉里**不显示任何额度数值**。工作台行末只在 provider alert 时出现一个 8px 红点
+（`#E5484D`，绝对定位、0 行高；stale 永不点亮），待办数徽章保持中性。打开工作台后，
+顶栏唯一的刷新按钮随分段切换：任务段刷新巡检，服务段拉额度。更早、没有 keyed `main`
+面板的宿主仍退回会话标题行的余额芯片。
+
+配额读数一律是**已使用 %**(kcn:「剩余」不直观;头条数字
 与进度条同用这套档位配色):
 
 | Provider | 口径 | 读数 |
@@ -309,22 +298,18 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 队列与历史来自本机文件加 `systemctl`/`journalctl`;新增覆盖区的 open issue 数另用只读 `gh` 标签查询（最多缓存五分钟）;宿主侧 5s 缓存、客户端
 15s 轮询。没有派发目录的主机上这一行不出现。可选配置 `dispatchLogDir` /
 `dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent` / `taskQueueOpsPath` / `dispatchScriptPath`。
-宿主把侧栏底部动作排成一行(`.footerActions` 横向 flex),而且 list slot 的每一项
-都包在一个 `display:contents` 的 `[data-slot]` 容器里——本行是那格的**孙子**。
-样式表用 `:has(> [data-slot] > .tqf)` 越过这层容器把那一格改成竖排,任务行才
-叠在余额上方、各占一整行;不支持 `:has()` 的浏览器上两行并排,功能不变。
+侧栏底部不再挂 clawock 的自定义动作；Settings 是宿主自带的，provider 行与额度都移进
+工作台。工作台行只保留中性计数徽章，以及仅在 provider 异常时出现的 8px 红点。
 
 ## 工作台 / Workbench
 
-`needs_person` 的任务不再只出现在派发队列的详情层里。侧栏底部的 `工作台` 图标是常驻入口
-（`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）；底部的信号行只在有待办时出现，
-位置在额度组之上、与 Claude 行留 10px，平时整行不存在。信号只讲一件事：几件待处理 / 最旧
-等了多久；只有卡住的任务让点和角标变红，文字始终是墨色。
-
-工作台是一个页面两个视图：队列默认显示 `卡住`、`待你处理`、`进行中` 三段；窄屏点行进
-焦点视图，桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。焦点视图只给三个
-预设动作：继续 / 需要修改 / 终止；终止是就地两段确认，不开弹窗。提交后就地变成
-`已记录 · 下一件 ›`，不自动跳页。三个动作分别调用现有的 `dispatch.sh answer` /
+`needs_person` 的任务不再只出现在派发队列的详情层里。侧栏的 `工作台` 图标是常驻入口
+（`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）；底部不再有信号行。页面标题下是
+44px 分段控件 `任务 | 服务`：任务段显示 `卡住`、`待你处理`、`进行中` 三个折叠组，服务段
+显示五个 provider 行（余额 / 5h / 周 / stale / queued / 异常）。窄屏点任务进焦点视图；
+桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。焦点视图只给三个预设动作：
+继续 / 需要修改 / 终止；终止是就地两段确认，不开弹窗。提交后就地变成 `已记录 · 下一件 ›`，
+不自动跳页。三个动作分别调用现有的 `dispatch.sh answer` /
 `dispatch.sh append` / `dispatch.sh cancel`（有 ask 块时走 `answer --resolve`），
 插件不另造审批通道，也不新增存储。Esc 从焦点视图返回队列，再按一次离开工作台；焦点回到
 打开它的行或图标。data 来自 runner 已写入的 `result.env` 的 `NEEDS` / `STAGE` / `OUTCOME` /
@@ -333,13 +318,20 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 ## Dispatch queue
 
 The second thing this package does, separate from investment decisions: on a host that runs
-clawock's agent-dispatch, the sidebar panel also shows that host's task queue and lets you
-steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispatch 的主机上,侧栏面板同时是
+clawock's agent-dispatch, the **Workbench** page shows that host's task queue and lets you
+steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispatch 的主机上,工作台页面同时是
 这台机器派发队列的视图和操作台。English first, 中文在后,内容相同。
 
-<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-dispatch-queue.png" width="400" alt="The whole sidebar provider panel on a live host: every row on one five-track grid (name and one role-coloured status chip, model and delivery receipts, time, duration and cost in fixed columns); each agent's quota windows above its queue on an inset well, the DeepSeek and MiniMax balances, the OpenCode free pool, recently ended tasks, patrol as one entry with its 4px outcome strip, the closing seven-day stats card, and the ops footer / 真实主机上的整块侧栏 provider 面板,每一行同一套五轨栅格(名字与一枚按角色着色的状态芯片、模型与送达回执、时刻用时费用各在定宽列):各 agent 的额度窗口在上、队列在内嵌底板上、DeepSeek 与 MiniMax 余额、OpenCode 免费池、最近结束、巡检的一个入口与 4px 结果条、收尾的近 7 天统计卡,以及 ops 页脚"></p>
+
 
 ### English
+
+**Where it lives (2026-11-07).** The permanent sidebar-footer provider block is gone. The
+sidebar keeps one **Workbench** entry: a neutral pending count and, only while a provider is
+actually broken, one 8px red dot. Allowance numbers, the five provider rows and their
+windows live in the Workbench page's **Providers** segment, next to **Tasks** in a 44px
+segmented control; stale readings never light the dot. Task actions live in the Workbench
+focus view. The queue description below still owns the data model and the host-side reads.
 
 **What it is.** agent-dispatch runs headless Claude Code, Codex and OpenCode tasks, each in
 its own transient systemd unit, so a task outlives the chat, terminal or dsh session that

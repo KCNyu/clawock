@@ -41,6 +41,18 @@ export declare function windowLabelOf(t: Translate, window: {
     label: string;
     durationMins?: number | null;
 }): string;
+/**
+ * The reset instant split into the part that always stays (date) and the
+ * weekday/time detail the narrow provider row hides. One formatter serves
+ * both {@link resetStampOf} and the row, so the two cannot drift.
+ */
+export declare function resetStampPartsOf(t: Translate, window: {
+    resetAt: string;
+    resetAtMs?: number | null;
+}, now: number): {
+    date: string;
+    detail: string;
+};
 /** The reset instant → the stamp in the active locale, host string as fallback. */
 export declare function resetStampOf(t: Translate, window: {
     resetAt: string;

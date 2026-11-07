@@ -142,6 +142,9 @@ const dictionaries = {
 		"balance.reset.today": "今天 {time}",
 		"balance.reset.tomorrow": "明天 {time}",
 		"balance.reset.dated": "{date} {weekday} {time}",
+		"balance.reset.todayOnly": "今天",
+		"balance.reset.tomorrowOnly": "明天",
+		"balance.reset.dateOnly": "{date}",
 		"queue.name": "任务",
 		"queue.panelTitle": "派发任务队列",
 		"queue.panelHeading": "派发队列",
@@ -245,6 +248,21 @@ const dictionaries = {
 		"workbench.title": "工作台",
 		"workbench.queue": "队列",
 		"workbench.refresh": "刷新",
+		"workbench.tab.aria": "工作台视图",
+		"workbench.tab.tasks": "任务",
+		"workbench.tab.providers": "服务",
+		"workbench.tab.tasksAria": "任务，{n} 件待办",
+		"workbench.tab.providersAria": "服务，{n} 个异常",
+		"workbench.tab.providersClear": "服务，无异常",
+		"workbench.tab.providersOne": "服务，1 个异常",
+		"workbench.refresh.tasks": "刷新巡检",
+		"workbench.refresh.providers": "刷新额度",
+		"workbench.provider.alert": "异常",
+		"workbench.provider.alertAria": "服务异常：{names}",
+		"workbench.provider.empty": "还没有配置 provider",
+		"workbench.provider.emptyHint": "在 Settings 里添加 API Key",
+		"workbench.provider.readFailed": "额度读取失败：{message}",
+		"workbench.group.more": "还有 {n} 条 ›",
 		"workbench.updated": "刚刚更新",
 		"workbench.meta": "{n} 件待处理 · 上次巡检 {time}",
 		"workbench.group.stuck": "卡住 {n}",
@@ -739,6 +757,9 @@ const dictionaries = {
 		"balance.reset.today": "today {time}",
 		"balance.reset.tomorrow": "tomorrow {time}",
 		"balance.reset.dated": "{date} {weekday} {time}",
+		"balance.reset.todayOnly": "today",
+		"balance.reset.tomorrowOnly": "tomorrow",
+		"balance.reset.dateOnly": "{date}",
 		"queue.name": "Tasks",
 		"queue.panelTitle": "Dispatch task queue",
 		"queue.panelHeading": "Dispatch queue",
@@ -842,6 +863,21 @@ const dictionaries = {
 		"workbench.title": "Workbench",
 		"workbench.queue": "Queue",
 		"workbench.refresh": "Refresh",
+		"workbench.tab.aria": "Workbench views",
+		"workbench.tab.tasks": "Tasks",
+		"workbench.tab.providers": "Providers",
+		"workbench.tab.tasksAria": "Tasks, {n} pending",
+		"workbench.tab.providersAria": "Providers, {n} alerts",
+		"workbench.tab.providersClear": "Providers, no alerts",
+		"workbench.tab.providersOne": "Providers, 1 alert",
+		"workbench.refresh.tasks": "Refresh patrol",
+		"workbench.refresh.providers": "Refresh allowances",
+		"workbench.provider.alert": "Alert",
+		"workbench.provider.alertAria": "Provider alert: {names}",
+		"workbench.provider.empty": "No providers configured yet",
+		"workbench.provider.emptyHint": "Add an API key in Settings",
+		"workbench.provider.readFailed": "Could not read allowances: {message}",
+		"workbench.group.more": "{n} more ›",
 		"workbench.updated": "Updated just now",
 		"workbench.meta": "{n} pending · last patrol {time}",
 		"workbench.group.stuck": "Stuck {n}",
@@ -1236,21 +1272,38 @@ function windowLabelOf(t, window) {
 	if (mins % 60 === 0) return t("balance.window.hours", { n: mins / 60 });
 	return t("balance.window.minutes", { n: Math.round(mins) });
 }
-/** The reset instant → the stamp in the active locale, host string as fallback. */
-function resetStampOf(t, window, now) {
+/**
+* The reset instant split into the part that always stays (date) and the
+* weekday/time detail the narrow provider row hides. One formatter serves
+* both {@link resetStampOf} and the row, so the two cannot drift.
+*/
+function resetStampPartsOf(t, window, now) {
 	const ms = window.resetAtMs;
-	if (ms == null) return window.resetAt;
+	if (ms == null) return {
+		date: window.resetAt,
+		detail: ""
+	};
 	const at = new Date(ms);
 	const time = String(at.getHours()).padStart(2, "0") + ":" + String(at.getMinutes()).padStart(2, "0");
 	const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 	const days = Math.round((startOfDay(at) - startOfDay(new Date(now))) / 864e5);
-	if (days === 0) return t("balance.reset.today", { time });
-	if (days === 1) return t("balance.reset.tomorrow", { time });
-	return t("balance.reset.dated", {
-		date: at.getMonth() + 1 + "/" + at.getDate(),
-		weekday: t("time.weekday." + at.getDay()),
-		time
-	});
+	if (days === 0) return {
+		date: t("balance.reset.todayOnly"),
+		detail: time
+	};
+	if (days === 1) return {
+		date: t("balance.reset.tomorrowOnly"),
+		detail: time
+	};
+	return {
+		date: t("balance.reset.dateOnly", { date: at.getMonth() + 1 + "/" + at.getDate() }),
+		detail: t("time.weekday." + at.getDay()) + " " + time
+	};
+}
+/** The reset instant → the stamp in the active locale, host string as fallback. */
+function resetStampOf(t, window, now) {
+	const parts = resetStampPartsOf(t, window, now);
+	return parts.detail === "" ? parts.date : parts.date + " " + parts.detail;
 }
 /** Every window of a snapshot, named and stamped for the active locale. */
 function windowsOf(t, result, now) {

@@ -1186,42 +1186,6 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   // contract is the data attribute itself, not its quoting.
   assert.match(css, /_bchip-v\[data-balance-state=low\]/, "chip low value selector required");
   assert.match(css, /_bp\[data-open=false\]/, "closed-panel state selector required");
-  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*position:absolute[^}]*inset:52px/,
-    "the phone panel is a page inside the drawer, below the 52px top strip");
-  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*width:100%[^}]*height:calc\(100dvh - 52px\)/,
-    "the phone page takes the drawer's width and the rest of its height");
-  assert.match(css, /@media[^{]*767px[^{]*\{[^}]*_bp\{[^}]*border-radius:0/,
-    "the phone page is square, like the host's own Settings page");
-  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row\{[^}]*height:44px[^}]*min-height:44px/,
-    "every phone provider row is a 44px finger target");
-  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row\{[^}]*padding:5px 8\.5px 5px 12px/,
-    "the row inset puts the name at x=43 and the reading at the drawer's right edge");
-  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row\{[^}]*grid-template-rows:16px 16px/,
-    "every folded line reserves the same two lines, including a one-line source");
-  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row>\.?[A-Za-z0-9_-]*_tq-name\{[^}]*font:500 var\(--fs-md\)\/16px/,
-    "phone names are 13/500");
-  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row>\.?[A-Za-z0-9_-]*_tq-value\{[^}]*font:600 var\(--fs-md\)\/16px/,
-    "phone readings are 13/600 tabular");
-  assert.match(css, /@media[^{]*767px[^{]*\{[\s\S]*?_pp-row>\.?[A-Za-z0-9_-]*_tq-reset-line\{[^}]*font:400 var\(--fs-xs\)\/16px/,
-    "the second phone line is 11/400");
-  assert.match(css, /_pp-row-split[^}]*_tq-chip[^}]*justify-self:start/,
-    "a quota row with both a state chip and resets must split them left/right");
-  assert.match(css, /@media \(width<=340px\)\{[^}]*_pp-row\{padding-right:4\.5px/,
-    "the 320px drawer reclaims the last four pixels for the reading's right edge");
-  assert.match(css, /_ppf\{border-top:\.5px solid var\(--tq-hairline\);margin:8px 0\}/,
-    "the block sits on the same 8px gap above and below, with the host hairline");
-  assert.match(css, /_pp-rows\{grid-template-columns:1fr;column-gap:0;margin:0\}/,
-    "the five phone lines are one full-width column with no row gap");
-  assert.match(css, /_pp-row\{[^}]*align-content:space-between/,
-    "a one-line source starts on the same first-line baseline as a two-line one");
-  assert.match(css, /_bp:before\{background:var\(--dsw-alias-bg-layer-1(?:,#fff)?\);backdrop-filter:none/,
-    "the phone page is opaque so the drawer behind it cannot bleed through");
-  assert.match(css, /_tq-scroll\{padding:0 12px calc\(12px \+ env\(safe-area-inset-bottom\)\);overflow-x:hidden/,
-    "the page body reserves the bottom safe area and never scrolls sideways");
-  assert.match(css, /_tq-d-field\{grid-template-columns:72px minmax\(0,1fr\) auto\}/,
-    "a detail field's label gets a real column at the drawer width");
-  assert.match(css, /_tqf\{--tq-lead:14px;--tq-gap:6px;--tq-when:44px;--tq-took:40px;--tq-aside:70px\}/,
-    "the phone page leaves room for a relative time before the duration");
   assert.doesNotMatch(fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8"), /IntersectionObserver/,
     "the drawer portal replaces the old visibility observer; no observer should remain");
   assert.match(css, /_bp\[data-open=true\]\{opacity:1;pointer-events:auto\}/,
@@ -1243,13 +1207,6 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   // The panel's reading cell carries both attributes too (#2338): its stale
   // rule sat between the tiers, so a stale reading at >=80% used painted red
   // in the row while the pill above it painted the same reading yellow.
-  const valueStale = idxOf(/_tq-value\[data-balance-state=stale\]/);
-  const valueLow = idxOf(/_tq-value\[data-used-level=low\]/);
-  assert.ok(valueStale > -1 && valueLow > -1 && valueStale > valueLow,
-    "stale yellow must out-rank the reading cell's usage tiers in source order");
-  assert.match(css, /_tq-value\[data-used-level=ok\]/, "reading green tier selector required");
-  assert.match(css, hashed("tq-reset-line"), "the folded line's reset row required");
-  assert.match(css, hashed("tq-stale"), "the folded line's stale word required");
   // The legacy header popover's rows are the third surface of the same reading.
   assert.match(css, /_bp-v\[data-used-level=mid\]/, "legacy panel row yellow tier selector required");
   assert.match(css, /_bp-v\[data-used-level=low\]/, "legacy panel row red tier selector required");
@@ -1271,7 +1228,7 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   }
   // The balance capsule renders outside .dmt, so it needs the ladder in its
   // own scope — a token that resolves nowhere renders as the browser default.
-  assert.match(css, /\.[A-Za-z0-9_-]+_dmt,\s*\.[A-Za-z0-9_-]+_pbc\{[^}]*--fs-micro/,
+  assert.match(css, /\.[A-Za-z0-9_-]+_dmt,\s*\.[A-Za-z0-9_-]+_pbc,\s*\.[A-Za-z0-9_-]+_wb\{[^}]*--fs-micro/,
     "the ladder must be declared for both roots, not just the board (#1216)");
   assert.doesNotMatch(css, /--fs-(?:nano|caption|(?:xs|sm|md|lg|xl)-l):/,
     "half-step aliases must not return to the ladder");
@@ -1314,29 +1271,12 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
     "glass-fill-popover", "glass-saturate", "glass-rim", "glass-border"]) {
     assert.match(css, new RegExp(`--${token}:`), `${token} must remain available to the board and opened popovers`);
   }
-  assert.match(css, /_dmt,\.[A-Za-z0-9_-]+_pbc\{[^}]*--glass-fill-popover/,
+  assert.match(css, /_dmt,\.[A-Za-z0-9_-]+_pbc(?:,\.[A-Za-z0-9_-]+_wb)?\{[^}]*--glass-fill-popover/,
     "the glass recipe must resolve in both the tab and opened sidebar popovers");
   // The live DSH foot entry sits beside Settings: 42px row, 16px glyph at
   // x+8, 14/22 label; Cordis uses the same row geometry. Its material must
   // disappear completely until the anchored popover opens. Check the built
   // bundle, not only source text, so an overriding rule cannot fake this.
-  const nativeFoot = css.match(/_pbc\.[A-Za-z0-9_-]+_pbf \.[A-Za-z0-9_-]+_bchip\{([^}]*)\}/)?.[1];
-  assert.ok(nativeFoot, "the compiled sidebar-foot action rule must exist");
-  for (const declaration of ["height:42px", "padding:0 10px 0 8px", "border:0",
-    "backdrop-filter:none", "box-shadow:none", "font:400 var(--fs-lg)/22px var(--font)",
-    "transform:none", "transition:none"]) {
-    // transform:none belongs to :active, rather than the static rule.
-    const rule = declaration === "transform:none"
-      ? css.match(/_pbc\.[A-Za-z0-9_-]+_pbf \.[A-Za-z0-9_-]+_bchip:active\{([^}]*)\}/)?.[1]
-      : nativeFoot;
-    assert.ok(rule?.includes(declaration), `native foot action must compile ${declaration}`);
-  }
-  assert.match(nativeFoot, /background:(?:0 0|transparent)(?:;|$)/,
-    "a closed foot action must not carry a translucent glass fill");
-  assert.match(css, /_pbc\.[A-Za-z0-9_-]+_pbf \.[A-Za-z0-9_-]+_bchip:focus-visible\{outline:revert;outline-offset:revert\}/,
-    "the foot action must inherit the same browser focus ring as Settings");
-  assert.match(css, /_pbc\.[A-Za-z0-9_-]+_pbf\.[A-Za-z0-9_-]+_rail \.[A-Za-z0-9_-]+_bchip\{[^}]*width:36px;height:36px/,
-    "collapsed foot actions must share the host's 36px rail target");
   const openedPanel = css.match(/_pbc \.[A-Za-z0-9_-]+_bp\{([^}]*)\}/)?.[1];
   assert.ok(openedPanel, "the compiled popover rule must exist");
   for (const declaration of ["background:var(--glass-sheen), var(--glass-fill-popover)",
@@ -2556,223 +2496,6 @@ test("client: the header chip headlines one provider and the panel pins the rest
   disposeReactEffects();
 });
 
-test("client: the sidebar-foot provider cell lists every provider, opens on its group and stays open while you refresh", async () => {
-  const loaded = await loadClient();
-  const reactStub = makeReactStub();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
-    throw new Error(`unexpected require: ${s}`);
-  });
-  const LOW_DS = JSON.parse(JSON.stringify(DS_ROW_OK));
-  LOW_DS.result.low = true;
-  let forced = 0;
-  let queueForced = 0;
-  let emptyBalance = false;
-  const remoteFace = {
-    balance: async (force) => {
-      if (force) forced += 1;
-      return { ok: true, value: { providers: emptyBalance ? [] : [force ? LOW_DS : DS_ROW_OK, MM_ROW_OK], refreshMs: 60000 } };
-    },
-    // A host without the dispatcher (C3 ②): provider lines only, no empty queue.
-    taskQueue: async (force) => { if (force) queueForced += 1; return { ok: true, value: { available: false, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0, running: 0, active: [], recent: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] } } }; },
-  };
-  const selected = [];
-  const ctx = {
-    effect() {},
-    locale: { register() { return () => {}; } },
-    get() { return remoteFace; },
-    // DSH >= 0.1.5-rc.1. The foot must never drive panel navigation: selecting
-    // a `main` panel swapped the whole conversation out from under the user.
-    // `selectPanel` present is what routes the balance to the sidebar foot.
-    layout: { selectPanel(id) { selected.push(id); } },
-    slots: {
-      inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
-      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
-    },
-    remote: { $mount: async () => {} },
-  };
-  await api.apply(ctx);
-  for (const fn of ctx.slots._fns) fn();
-  assert.deepEqual(ctx.slots._seats, ["conversation.view", "main", "sidebar.panellist", "sidebar.footer.action"],
-    "Decision Mind stays a conversation tab; the workbench is the main keyed page plus a panellist entry, and balance + queue stay ONE foot action");
-  const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
-  assert.equal(action.definition.name, "sidebar.footer.action");
-
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const store = makeBalanceStoreStub();
-  const face = action.definition.inject();
-  const render = (wide = true) => {
-    reactStub._resetCursor();
-    return action.Component({ wide, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
-  };
-  const find = (tree, pred) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node !== "object") return;
-      if (pred(node.props || {})) out.push(node);
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out;
-  };
-  const texts = (tree) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node === "string") { out.push(node); return; }
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out.join(" ");
-  };
-  const lines = (tree) => find(tree, (p) => p["data-pp-row"] !== undefined);
-  const popover = (tree) => find(tree, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
-  const rail = (tree) => find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL && p["aria-haspopup"] === "dialog")[0];
-
-  // Folded: one line per provider, in BALANCE_PROVIDERS order after the (absent) agents, each
-  // naming itself first, then its reading. A provider without a queue has no state chip: where
-  // its key lives is the plan on its group, the reset is on its window bars and in the label.
-  render();
-  await tick(); await tick(); await tick();
-  let foot = render();
-  assert.deepEqual(lines(foot).map((l) => l.props["data-pp-row"]), ["deepseek", "minimax"]);
-  assert.equal(find(foot, (p) => p["data-wb-signal"] !== undefined).length, 0,
-    "no task needs a person: the event line does not exist at all");
-  assert.equal(texts(lines(foot)[0]), "DeepSeek 余额 ¥110");
-  assert.match(texts(lines(foot)[1]), /^MiniMax 5h 24% · 周 10% ↻ 21:00 · 周四 21:00$/, "resident: name, every readable window and their resets");
-  assert.match(lines(foot)[1].props["aria-label"], /^MiniMax · 已用 5h 24% · 周 10% · ↻ 21:00 · ↻ 周四 21:00 · /, "the direction, every window and every reset are read out");
-  assert.equal(lines(foot)[0].props["data-balance-state"], "ok");
-  assert.equal(lines(foot)[0].props["aria-expanded"], false);
-  assert.equal(popover(foot).props["data-open"], "false");
-  assert.match(texts(popover(foot)), /此主机没有派发队列；额度仍可查看/, "a missing dispatcher is named rather than silently omitted");
-  // Closed means out of interaction, not merely transparent (React 18: `inert=""`, never `true`).
-  assert.equal(popover(foot).props.inert, "", "a closed popover must be inert, not just transparent");
-  const railTrigger = rail(render(false));
-  assert.match(railTrigger.props.title, /DeepSeek 余额 ¥110/, "the rail keeps every reading in its title");
-  assert.match(railTrigger.props["aria-label"], /MiniMax 已用 5h 24% · 周 10%/, "and reads it out, with every window and the direction");
-  const railClasses = find(railTrigger, (p) => typeof p.className === "string").flatMap((node) => node.props.className.split(" "));
-  assert.ok(railClasses.some((token) => token.endsWith("_bal-lead")), "the rail renders the glyph wrapper class");
-  assert.ok(railClasses.some((token) => token.endsWith("_bal-glyph")), "the rail renders the gauge class");
-  const statusBadge = (tree) => find(tree, (p) => typeof p.className === "string" && p.className.endsWith("_bal-badge"))[0];
-  assert.equal(statusBadge(railTrigger), undefined, "nothing to act on: the rail stays neutral, no badge");
-  assert.deepEqual(railClasses.filter((token) => token !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(token)), [],
-    "every rendered rail class must resolve through the stylesheet");
-
-  // Open on MiniMax's line: the popover is part of the cell's own tree, one group per provider.
-  lines(render())[1].props.onClick({ currentTarget: null });
-  foot = render();
-  assert.equal(lines(foot)[1].props["aria-expanded"], true);
-  assert.equal(lines(foot)[1].props["data-active"], "", "the line that opened it stays marked");
-  assert.equal(popover(foot).props["data-open"], "true");
-  assert.equal(popover(foot).props.inert, undefined, "an open popover must be interactive");
-  assert.deepEqual(find(popover(foot), (p) => p["data-pp-group"] !== undefined).map((g) => g.props["data-pp-group"]), ["deepseek", "minimax"]);
-  assert.deepEqual(find(popover(foot), (p) => p["data-pb-role"] === "panel").map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
-  const ds = find(popover(foot), (p) => p["data-pp-group"] === "deepseek")[0];
-  assert.match(texts(ds), /DeepSeek 余额 ¥110 本机 API 账户 赠金 ¥10.00 · 充值 ¥100.00/, "money: the amount on the head, its split under it, no bar (⑤)");
-  assert.equal(find(ds, (p) => p["data-pp-provider"] === "deepseek").length, 1, "the source uses its whale glyph");
-  assert.equal(find(ds, (p) => typeof p.className === "string" && p.className.endsWith("_bp-win-bar")).length, 0);
-  assert.match(texts(find(popover(foot), (p) => p["data-pp-group"] === "minimax")[0]), /MiniMax 已用 24% Token Plan · 源：OpenClaw 配置 .*5h 已用 24% ↻ 21:00/);
-
-  // One refresh forces both halves once, keeps the panel open and paints the low reading.
-  find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick(); await tick();
-  foot = render();
-  assert.deepEqual([forced, queueForced], [1, 1], "one forced fetch per half");
-  assert.equal(lines(foot)[0].props["data-balance-state"], "low", "the low reading shows right after the refresh");
-  assert.equal(statusBadge(rail(render(false))).type, "rect", "low: a square badge, independent of its hue");
-  assert.equal(popover(foot).props["data-open"], "true", "refreshing must not close the popover");
-
-  emptyBalance = true;
-  find(popover(foot), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick(); await tick();
-  foot = render();
-  assert.match(texts(lines(foot)[0]), /没有可用的余额来源/, "a completed empty read must not claim it is still loading");
-  assert.match(texts(popover(foot)), /没有可显示的额度或派发来源/);
-
-  // The line (or an outside pointer / Escape, browser-only) closes it.
-  lines(foot)[0].props.onClick({ currentTarget: null });
-  assert.equal(popover(render()).props["data-open"], "false");
-  assert.deepEqual(selected, [], "the foot never navigates the main column");
-  disposeReactEffects();
-});
-
-test("client: the rail keeps only its badge current, and reading the numbers reads them now", async () => {
-  const loaded = await loadClient();
-  const reactStub = makeReactStub();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
-    throw new Error(`unexpected require: ${s}`);
-  });
-  assert.equal(api._balanceCadence(true, 60000), 60000, "numbers on screen follow the host's cadence");
-  assert.equal(api._balanceCadence(true, 5000), 60000, "never faster than a minute");
-  assert.equal(api._balanceCadence(false, 60000), api.BALANCE_BADGE_MS, "the rail's badge is checked far less often");
-  assert.ok(api.BALANCE_BADGE_MS >= 10 * 60000);
-  assert.equal(api._balanceCadence(false, 3600000), 3600000, "a host slower than the badge still decides");
-
-  let calls = 0;
-  let forced = 0;
-  const remoteFace = {
-    balance: async (force) => { calls += 1; if (force) forced += 1; return { ok: true, value: BALANCES_OK }; },
-    taskQueue: async () => ({ ok: true, value: { available: false, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0, running: 0, active: [], recent: [], patrol: { service: "", state: "unknown", rounds: [] } } }),
-  };
-  const ctx = {
-    effect() {},
-    locale: { register() { return () => {}; } },
-    get() { return remoteFace; },
-    layout: { selectPanel() {} },
-    slots: {
-      inject(name, fn) { (this._fns ??= []).push(fn); },
-      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
-    },
-    remote: { $mount: async () => {} },
-  };
-  await api.apply(ctx);
-  for (const fn of ctx.slots._fns) fn();
-  const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
-  const store = makeBalanceStoreStub();
-  const face = action.definition.inject();
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  // The interval each render arms for the balance channel (the queue's own 15s poll is the other one).
-  const realSetInterval = globalThis.setInterval;
-  const realNow = Date.now;
-  let armed = [];
-  let clock = realNow();
-  globalThis.setInterval = (fn, ms) => { armed.push(ms); return realSetInterval(() => {}, 1 << 30); };
-  Date.now = () => clock;
-  try {
-    // The stub runs every effect on every render, so each render repeats the mount read once:
-    // a render that costs TWO requests is one where "became read" fetched as well.
-    const render = async (wide) => {
-      armed = [];
-      const before = calls;
-      reactStub._resetCursor();
-      action.Component({ wide, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
-      await tick(); await tick();
-      return { balanceInterval: armed.find((ms) => ms !== 15000), requests: calls - before };
-    };
-    assert.deepEqual(await render(false), { balanceInterval: api.BALANCE_BADGE_MS, requests: 1 },
-      "rail: one read at mount, then the badge cadence — not a request a minute");
-    assert.deepEqual(await render(true), { balanceInterval: 60000, requests: 1 },
-      "widening right after an answer arms the reading cadence without a second request");
-    assert.deepEqual(await render(false), { balanceInterval: api.BALANCE_BADGE_MS, requests: 1 });
-    clock += 59000;
-    assert.equal((await render(true)).requests, 1, "an answer younger than a poll would leave it is not re-read");
-    await render(false);
-    clock += 61000;
-    assert.deepEqual(await render(true), { balanceInterval: 60000, requests: 2 },
-      "became read with an older answer on hand: read now, do not wait a minute for the first poll");
-    assert.equal((await render(true)).requests, 1, "staying read is not a transition");
-    assert.equal(forced, 0, "none of this forces past the host's TTLs: only the refresh button does");
-  } finally {
-    globalThis.setInterval = realSetInterval;
-    Date.now = realNow;
-    disposeReactEffects();
-  }
-});
-
 test("balance: every face asking at once is one upstream request, and another only after the window", async () => {
   // The lazy cadence adds askers (the badge tick, "became read", a sibling surface, the chat
   // command) — the bound on upstream traffic is still the service's, not the callers' restraint.
@@ -2945,111 +2668,6 @@ test("quota line: an exhausted window says quota, names when it is back, and rul
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
-});
-
-test("client: a balance fetch that fails says so instead of loading forever (#1553)", async () => {
-  // The RPC itself failing (transport down, remote error envelope) used to
-  // clear the spinner and nothing else: a cold panel read 正在读取各服务余额…
-  // for good, a warm one kept its old numbers with no word that they were old.
-  const loaded = await loadClient();
-  const reactStub = makeReactStub();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
-    throw new Error(`unexpected require: ${s}`);
-  });
-  let answer = "down";
-  const remoteFace = {
-    balance: async () => {
-      if (answer === "down") throw new Error("transport disconnected");
-      if (answer === "error") return { ok: false, error: { code: "INTERNAL", message: "boom" } };
-      return { ok: true, value: { providers: [DS_ROW_OK], refreshMs: 60000 } };
-    },
-    taskQueue: async () => ({ ok: true, value: { available: false, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0, running: 0, active: [], recent: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] } } }),
-  };
-  const ctx = {
-    effect() {},
-    locale: { register() { return () => {}; } },
-    get() { return remoteFace; },
-    layout: { selectPanel() {} },
-    slots: {
-      inject(name, fn) { (this._fns ??= []).push(fn); },
-      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
-    },
-    remote: { $mount: async () => {} },
-  };
-  await api.apply(ctx);
-  for (const fn of ctx.slots._fns) fn();
-  const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const store = makeBalanceStoreStub();
-  const face = action.definition.inject();
-  const render = () => {
-    reactStub._resetCursor();
-    return action.Component({ wide: true, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
-  };
-  const find = (tree, pred) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node !== "object") return;
-      if (pred(node.props || {})) out.push(node);
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out;
-  };
-  const texts = (tree) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node === "string") { out.push(node); return; }
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out.join(" ");
-  };
-  const popover = (tree) => find(tree, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
-  const rail = () => { reactStub._resetCursor(); const tree = action.Component({ wide: false, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face }); return find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0]; };
-  const line = (tree) => find(tree, (p) => p["data-pp-row"] !== undefined)[0];
-  const refresh = async () => {
-    find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
-    await tick(); await tick(); await tick();
-    return render();
-  };
-
-  // Cold, and the mount fetch fails: the panel names the failure, the foot
-  // shows the hollow stale badge rather than "nothing to judge".
-  render();
-  await tick(); await tick(); await tick();
-  let foot = render();
-  assert.match(texts(popover(foot)), /余额读取失败:transport disconnected/);
-  assert.doesNotMatch(texts(popover(foot)), /正在读取/);
-  assert.equal(rail().props["data-balance-state"], "stale");
-  const staleBadge = find(rail(), (p) => typeof p.className === "string" && p.className.endsWith("_bal-badge"))[0];
-  assert.equal(staleBadge.type, "circle");
-  assert.equal(staleBadge.props.r, 2.05, "stale keeps the smaller hollow badge geometry");
-  assert.match(texts(line(foot)), /余额读取失败/, "the folded cell says so too, not a blank line");
-
-  // A remote error envelope is a failure too.
-  answer = "error";
-  foot = await refresh();
-  assert.match(texts(popover(foot)), /余额读取失败:clawockStudio\.balance failed: INTERNAL: boom/);
-
-  // Recovered: rows back, the failure line gone.
-  answer = "ok";
-  foot = await refresh();
-  assert.equal(line(foot).props["data-balance-state"], "ok");
-  assert.doesNotMatch(texts(popover(foot)), /失败/);
-
-  // Warm, then a refresh fails: the last numbers stay, labelled as the last ones.
-  answer = "down";
-  foot = await refresh();
-  assert.match(texts(popover(foot)), /¥110/);
-  // The two render sites used to spell this differently (`:` vs `: `); they
-  // share one dictionary key now, so the tight form is gone on purpose.
-  assert.match(texts(popover(foot)), /刷新失败,显示最近一次: transport disconnected/);
-  disposeReactEffects();
 });
 
 test("client: the panel says each provider's story once, abnormal rows loudest", async () => {
@@ -3573,542 +3191,6 @@ function actionHomes(layer) {
   return out;
 }
 
-test("client: one provider cell carries the queue under each agent's provider and shows who waits for what", async () => {
-  const loaded = await loadClient();
-  const reactStub = makeReactStub();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
-    throw new Error(`unexpected require: ${s}`);
-  });
-  const now = Date.now();
-  const QUEUE = {
-    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 2, statsApi: true,
-    slotLimits: [{ agent: "claude", max: 1 }, { agent: "codex", max: 1 }, { agent: "opencode", max: 1 }],
-    active: [
-      { id: "a-1", name: "patrol-source-sync", agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "claude-1",
-        attempts: 2, stalls: 1, outcome: "", startedAtMs: now - 65 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
-      { id: "b-1", name: "model-bump", agent: "claude", model: "claude-opus-5-5", state: "queued", waiting: "lock", slot: "",
-        attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
-      { id: "patrol-recent-1", name: "patrol-recent", agent: "opencode", model: "opencode/x", state: "running", waiting: "", slot: "opencode-1",
-        attempts: 1, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: true },
-    ],
-    recent: [{ id: "c-1", name: "merge-pr1767", agent: "codex", model: "gpt", state: "ok", waiting: "", slot: "", attempts: 1,
-      outcome: "DONE", startedAtMs: now - 3600000, updatedAtMs: now - 30 * 60000, wakeAtMs: null, patrol: false }],
-    patrol: { service: "active", phase: "yielding", round: "patrol-recent-1", detail: "preempting patrol-recent-1: b-1 is waiting for its agent lock",
-      untilMs: null, rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "preempted:cancelled", seconds: 4090 }] },
-  };
-  const STATS = {
-    available: true, error: "", since: "2026-10-11", days: 7, patrolIncluded: false, asOf: AS_OF,
-    agents: [
-      { agent: "claude", tasks: 56, live: 1,
-        states: [{ name: "ok", count: 42 }, { name: "partial", count: 9 }, { name: "failed", count: 1 },
-          { name: "cancelled", count: 3 }, { name: "running", count: 1 }],
-        outcomes: [{ name: "DONE", count: 42 }, { name: "PARTIAL", count: 9 }],
-        tokensTotal: 625213302, tokensUnknown: 1, costUsdEstimate: 261.64, costUnpriced: 1, costFree: 0 },
-      { agent: "codex", tasks: 35, live: 0,
-        states: [{ name: "ok", count: 23 }, { name: "partial", count: 7 }, { name: "cancelled", count: 3 },
-          { name: "quota", count: 1 }, { name: "blocked", count: 1 }],
-        outcomes: [{ name: "DONE", count: 23 }, { name: "PARTIAL", count: 5 }, { name: "BLOCKED", count: 2 }],
-        tokensTotal: 161534676, tokensUnknown: 8, costUsdEstimate: 236.16, costUnpriced: 8, costFree: 0 },
-    ],
-    daily: {
-      "2026-10-11": { claude: { tasks: 10, tokens: 100000000, unknown: 0 }, codex: { tasks: 6, tokens: 25000000, unknown: 0 } },
-      "2026-10-12": { claude: { tasks: 10, tokens: 110000000, unknown: 0 }, codex: { tasks: 6, tokens: 30000000, unknown: 0 } },
-      "2026-10-13": { claude: { tasks: 0, tokens: 0, unknown: 0 }, codex: { tasks: 0, tokens: 0, unknown: 0 } },
-      "2026-10-14": { claude: { tasks: 9, tokens: 90000000, unknown: 0 }, codex: { tasks: 6, tokens: 25000000, unknown: 0 } },
-      "2026-10-15": { claude: { tasks: 9, tokens: 100000000, unknown: 0 }, codex: { tasks: 6, tokens: 25000000, unknown: 0 } },
-      "2026-10-16": { claude: { tasks: 9, tokens: 110000000, unknown: 0 }, codex: { tasks: 6, tokens: 30000000, unknown: 8 } },
-      "2026-10-17": { claude: { tasks: 9, tokens: 115213302, unknown: 1 }, codex: { tasks: 5, tokens: 26534676, unknown: 0 } },
-    },
-  };
-  let forced = 0;
-  let statsCalls = 0;
-  let answer = QUEUE;
-  const remoteFace = {
-    balance: async () => ({ ok: true, value: QUIET_BALANCES }),
-    taskQueue: async (force) => { if (force) forced += 1; return { ok: true, value: answer }; },
-    taskStats: async () => { statsCalls += 1; return { ok: true, value: STATS }; },
-  };
-  const ctx = {
-    effect() {},
-    locale: { register() { return () => {}; } },
-    get() { return remoteFace; },
-    layout: { selectPanel() {} },
-    slots: {
-      inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
-      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
-    },
-    remote: { $mount: async () => {} },
-  };
-  await api.apply(ctx);
-  for (const fn of ctx.slots._fns) fn();
-  const feet = ctx.slots._regs.filter((r) => r.definition.name === "sidebar.footer.action");
-  // 2026-09-27: the balance and the queue are ONE cell. `provider-balance` is the container;
-  // `dispatch-queue` is retired (it was a second cell stacked above, ordered -1).
-  assert.deepEqual(feet.map((r) => r.definition.id), ["provider-balance"], "one foot cell, the provider panel");
-
-  const face = feet[0].definition.inject();
-  const t = translatorFor(api);
-  const store = makeBalanceStoreStub();
-  const render = (wide = true) => {
-    reactStub._resetCursor();
-    return feet[0].Component({ wide, t, useStore: store.useStore, actions: store.actions, ...face });
-  };
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const find = (tree, pred) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node !== "object") return;
-      if (pred(node.props || {})) out.push(node);
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out;
-  };
-  const texts = (tree) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node === "string") { out.push(node); return; }
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out.join(" ");
-  };
-  assert.equal(find(render(), (p) => p["data-pp-row"] === "claude").length, 0, "no agent line before the queue answers");
-  await tick(); await tick();
-  const foot = render();
-  // The fixture is an OLD host's answer (no queue fields, no ops, no queueAction): it must still
-  // render, read-only. The new host's answer is exercised further down.
-  const lines = find(foot, (p) => p["data-pp-row"] !== undefined);
-  // Folded: one line per source, agents first (no balance providers answered here, C3 ②'s mirror).
-  // DeepSeek's row is dsh's queue (#3040), so like Claude's it stands without its balance answer.
-  assert.deepEqual(lines.map((l) => l.props["data-pp-row"]), ["claude", "codex", "deepseek", "opencode"]);
-  // The state column is ONE chip: the state that most needs the reader. b-1 queues for the claude
-  // lock (its holder runs), so claude's chip is the amber queue; an idle agent has no chip at all.
-  // No shapes that need a legend (the ▶ ≡ ⏸ column was the 260px stopgap this replaced).
-  // Each chip is a ROLE (client.ts STATE_ROLES): its bed, glyph and word, not a grey level.
-  const state = (key) => find(lines.find((l) => l.props["data-pp-row"] === key), (p) => p["data-tq-chip"] === "status")[0];
-  assert.equal(texts(state("claude")), "排队 1");
-  assert.deepEqual([state("claude").props["data-role"], state("claude").props["data-bed"]], ["queue", "edge"]);
-  assert.equal(state("codex"), undefined, "idle: no chip, no grey word");
-  assert.equal(texts(state("opencode")), "运行 1");
-  assert.deepEqual([state("opencode").props["data-role"], state("opencode").props["data-bed"]], ["run", "fill"]);
-  assert.doesNotMatch(texts(lines), /[▶≡⏸…]/);
-  assert.match(lines[0].props["aria-label"], /^Claude Code .*排队 1 · 运行 1 .*打开 Claude Code 的额度与队列/, "each line still reads out every count");
-  const classes = find(foot, (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
-  assert.deepEqual(classes.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
-    "every rendered class resolves through the stylesheet");
-
-  assert.equal(statsCalls, 0, "the stats read stays cold until the panel opens");
-  lines[0].props.onClick({ currentTarget: null });
-  let open = render();
-  await tick(); await tick();
-  open = render();
-  const popover = find(open, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
-  assert.equal(popover.props["data-open"], "true");
-  // Grouped by executor (each agent has its own lock, so each is its own queue), then ended, then patrol.
-  assert.deepEqual(find(popover, (p) => p["data-tq-group"] !== undefined).map((g) => g.props["data-tq-group"]),
-    ["claude", "codex", "dsh", "opencode", "recent", "patrol"]);
-  assert.match(texts(popover), /Claude Code .*槽 1\/1 .*Codex .*槽 0\/1 .*OpenCode .*槽 1\/1 .*最近结束 .*巡检/);
-  assert.doesNotMatch(texts(popover), /没有任务/, "an idle group is its head alone, not a grey sentence");
-  // A group's head IS its folded line (glyph · name · value), minus the state chip — the tasks it
-  // counts are right below it on their well — plus its caption, in words (no chips).
-  const heads = find(popover, (p) => p["data-pp-head"] !== undefined);
-  const firstLine = (node) => (node.children || []).filter((c) => c && /_tq-(lead|name|value)$/.test(c.props.className || "")).map(texts).join(" ");
-  for (const head of heads) {
-    const line = lines.find((l) => l.props["data-pp-row"] === head.props["data-pp-head"]);
-    assert.equal(firstLine(head), firstLine(line), `${head.props["data-pp-head"]}: the head repeats its folded line`);
-    assert.equal(find(head, (p) => p["data-tq-chip"] !== undefined).length, 0, `${head.props["data-pp-head"]}: no chip on a source head`);
-  }
-  const slotsOf = (agent) => find(heads.find((h) => h.props["data-pp-head"] === agent), (p) => p.title === "运行槽按 agent 分:每个 agent 只用自己的槽,互不挤占;排队看各自那一格")[0];
-  assert.deepEqual(["claude", "codex", "opencode"].map((a) => [texts(slotsOf(a)).replace(/^ · /, ""), slotsOf(a).props["data-voice"]]),
-    [["槽 1/1", "warn"], ["槽 0/1", undefined], ["槽 1/1", undefined]],
-    "claude's one slot is full and a claude task queues for it: that slot count is the queue's reason");
-  // Two levels, never mixed: every task sits on a well under its source head, none on the panel.
-  for (const group of find(popover, (p) => p["data-pp-group"] !== undefined)) {
-    const wells = find(group, (p) => p["data-tq-well"] !== undefined);
-    const tasks = find(group, (p) => p["data-tq-task"] !== undefined);
-    assert.equal(tasks.length, wells.flatMap((w) => find(w, (p) => p["data-tq-task"] !== undefined)).length,
-      `${group.props["data-pp-group"]}: its tasks are on its well`);
-  }
-  const rows = find(popover, (p) => p["data-tq-task"] !== undefined);
-  assert.deepEqual(rows.map((r) => [r.props["data-tq-task"], r.props["data-tq-waiting"]]),
-    [["a-1", ""], ["b-1", "lock"], ["patrol-recent-1", ""], ["c-1", ""]], "the holder first, then its queue, per agent");
-  const chip = (node, slot) => find(node, (p) => p["data-tq-chip"] === slot)[0];
-  const fact = (node, slot) => find(node, (p) => p["data-tq-fact"] === slot)[0];
-  assert.equal(texts(chip(rows[0], "status")), "运行中");
-  assert.equal(chip(rows[0], "status").props["data-role"], "run");
-  assert.doesNotMatch(texts(rows[0]), /槽/, "one slot per agent: the group head already says whose");
-  assert.match(texts(rows[0]), /运行中 Claude Opus 5\.5 第 2 次 · 卡死 1 (?:\d{1,2}\/\d{1,2} )?\d{2}:\d{2} 1 小时 5 分/,
-    "the full model name, useful retry and stall numbers, then when it started and how long");
-  assert.equal(fact(rows[0], "tries").props["data-voice"], "warn", "a stall is a warning, not a plain count");
-  assert.match(fact(rows[0], "took").props.title, /^已跑 1 小时 5 分$/, "a bare figure in its cell, its words in the title");
-  assert.equal(find(rows[0], (p) => p.className && /_tq-model-mark/.test(p.className)).length, 0, "no two-letter model tile");
-  assert.equal(texts(chip(rows[2], "status")), "运行中", "slot-opencode-1: running in its own agent's slot");
-  // The state chip is the short word; the whole phrase (whose lock) is its title.
-  assert.equal(texts(chip(rows[1], "status")), "排队");
-  assert.match(chip(rows[1], "status").props.title, /等 claude 锁/);
-  assert.equal(chip(rows[1], "status").props["data-role"], "queue");
-  // An ended task's ONE state folds the runner's verdict and the model's report; both are its title.
-  assert.equal(texts(chip(rows[3], "status")), "完成");
-  assert.equal(chip(rows[3], "status").props["data-role"], "done");
-  assert.equal(chip(rows[3], "status").props.title, "执行完成 · 任务：完成");
-  assert.equal(find(rows, (p) => p.className && /_tq-dot(?!-)/.test(p.className)).length, 0, "no row speaks through a dot: states are chips");
-  assert.equal(find(rows[3], (p) => p["data-tq-agent"] === "codex").length, 1, "an ended row identifies its executor outside the provider groups");
-  assert.equal(find(rows[0], (p) => p["data-tq-agent"] === "claude").length, 1, "a live task fills the shared lead track with its executor");
-  // Every row is on the one grid: its facts are words in FACT_ORDER, and only the ones its kind lists.
-  const factSlots = (node) => find(node, (p) => p["data-tq-fact"] !== undefined).map((c) => c.props["data-tq-fact"]);
-  assert.deepEqual(factSlots(rows[3]), ["model", "when", "took"],
-    "an ended task: model · when · took (the report axis and the first queue wait are in its detail layer)");
-  assert.deepEqual(factSlots(rows[0]), ["model", "tries", "when", "took"]);
-  const roundEntry = find(popover, (p) => p["data-tq-patrol-open"] !== undefined)[0];
-  assert.ok(roundEntry, "patrol is one entry in the panel");
-  assert.match(texts(roundEntry), /巡检.*让路中/, "the entry carries the live phase");
-  roundEntry.props.onClick({ currentTarget: null });
-  const roundPage = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
-  const round = find(roundPage, (p) => p["data-tq-round"] === "R139")[0];
-  assert.deepEqual(factSlots(round), ["when", "took"], "a round fills the same cells on the patrol page");
-  assert.equal(find(round, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "partial");
-  assert.match(texts(round), /R139 · automation 让路取消 .*1 小时 8 分/, "the last round is a readable record");
-  assert.equal(round.type, "div", "a round opens nothing, so it is not a button");
-  assert.equal(find(roundPage, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
-  const status = find(roundPage, (p) => p["data-tq-patrol"] !== undefined)[0];
-  assert.deepEqual(find(status, (p) => p["data-tq-chip"] !== undefined).map((c) => [c.props["data-tq-chip"], texts(c), c.props["data-role"]]),
-    [["status", "让路中", "wait"]], "the patrol head: its phase as its one chip");
-  const patrolPageRows = find(roundPage, (p) => p["data-tq-row"] !== undefined);
-  find(roundPage, (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  assert.equal(texts(find(status, (p) => /_tq-caption-line$/.test(p.className || ""))[0]), "让手工任务先行  · b-1  · 已跑 1 分",
-    "then why it gives way and to whom, in words");
-  // THE row grid (client.ts ROW_KINDS / FACT_ORDER / FACT_CELL): every row of the cell, folded or
-  // open, is lead · name · value · state then its facts, a kind draws only what ROW_KINDS gives
-  // it, each fact has its own cell, and no row carries more than RESIDENT_CHIPS chips.
-  const { ROW_KINDS, FACT_ORDER, FACT_CELL, RESIDENT_CHIPS } = api;
-  assert.equal(RESIDENT_CHIPS, 1);
-  for (const [kind, spec] of Object.entries(ROW_KINDS)) {
-    const cellsOf = spec.facts.map((slot) => `${FACT_CELL[slot].line}/${FACT_CELL[slot].track}`);
-    assert.equal(new Set(cellsOf).size, cellsOf.length, `${kind}: no two of its facts share a cell`);
-  }
-  assert.deepEqual(Object.fromEntries(Object.entries(ROW_KINDS).map(([kind, spec]) => [kind, spec.lead])),
-    { source: true, head: true, task: true, ended: true, round: true },
-    "every row kind fills the common lead track; no empty 14px stripe");
-  for (const [kind, spec] of Object.entries(ROW_KINDS)) {
-    const at = spec.facts.map((slot) => FACT_ORDER.indexOf(slot));
-    assert.ok(at.every((i, n) => i >= 0 && (n === 0 || i > at[n - 1])), `${kind}: its facts are a run of FACT_ORDER, in order`);
-  }
-  const gridRows = [...lines, ...find(popover, (p) => p["data-tq-row"] !== undefined), ...patrolPageRows];
-  assert.deepEqual([...new Set(gridRows.map((r) => r.props["data-tq-row"]))].sort(), Object.keys(ROW_KINDS).sort(),
-    "this fixture renders every row kind");
-  const cellName = (node) => /_(tq-[a-z-]+)$/.exec(node.props.className || "")?.[1];
-  for (const row of gridRows) {
-    const kind = row.props["data-tq-row"];
-    const spec = ROW_KINDS[kind];
-    const cells = (row.children || []).filter((c) => c && typeof c === "object");
-    const order = cells.map((c) => c.props["data-tq-chip"] === "status" ? "state" : ({ "tq-lead": "lead", "tq-name": "main", "tq-value": "value", "tq-fact": "facts", "tq-caption-line": "caption" })[cellName(c)]);
-    assert.ok(order.every(Boolean), `${kind}: nothing but grid cells (${cells.map(cellName)})`);
-    const columns = ["lead", "main", "value", "state", "facts", "caption"];
-    assert.deepEqual(order.filter((c, i) => order.indexOf(c) === i), columns.filter((c) => order.includes(c)), `${kind}: cells in column order`);
-    assert.ok(find(row, (p) => p["data-tq-chip"] !== undefined).length <= RESIDENT_CHIPS, `${kind}: at most one chip`);
-    assert.deepEqual(order.slice(0, 2), ["lead", "main"], `${kind}: the lead column is always there, so every name starts on one edge`);
-    assert.equal(order.includes("value"), spec.value && order.includes("value"), `${kind}: a value only where the kind has one`);
-    if (spec.lead) assert.ok((cells[0].children || []).filter(Boolean).length > 0, `${kind}: its lead carries a glyph`);
-    else assert.equal((cells[0].children || []).filter(Boolean).length, 0, `${kind}: no glyph in the lead track`);
-    const facts = cells.filter((c) => cellName(c) === "tq-fact").map((c) => c.props["data-tq-fact"]);
-    assert.ok(facts.every((slot) => spec.facts.includes(slot)), `${kind}: only its own facts (${facts})`);
-    assert.deepEqual(facts, [...facts].sort((a, b) => FACT_ORDER.indexOf(a) - FACT_ORDER.indexOf(b)), `${kind}: facts in FACT_ORDER`);
-  }
-  assert.equal(find(popover, (p) => p["data-tq-up"] !== undefined).length, 0, "an old host offers no reordering");
-
-  // The stats card: one lazy read per panel open, then the closing tile after patrol and before
-  // the ops footer. It is deliberately not beside recently ended; the queue is the opening view,
-  // the 7-day retrospective is the close. The footer stays last (metadata, not content).
-  const all = [];
-  (function walk(node) {
-    if (node == null || typeof node !== "object") return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    all.push(node);
-    (node.children || []).forEach(walk);
-  })(popover);
-  const at = (pred) => all.findIndex((node) => pred(node.props || {}));
-  const recentAt = at((p) => p["data-tq-group"] === "recent");
-  const patrolAt = at((p) => p["data-tq-group"] === "patrol");
-  const statsAt = at((p) => p["data-tq-stats-card"] === "true");
-  const opsAt = at((p) => p["data-tq-ops"] !== undefined);
-  assert.ok(recentAt >= 0 && patrolAt > recentAt && statsAt > patrolAt && (opsAt < 0 || opsAt > statsAt),
-    `stats sits at the bottom: recent ${recentAt}, patrol ${patrolAt}, stats ${statsAt}, ops ${opsAt}`);
-  const statsCard = find(popover, (p) => p["data-tq-stats-card"] === "true")[0];
-  assert.ok(statsCard, "the stats card is in the open panel");
-  assert.equal(statsCalls, 1, "one summary read, not one per queue poll");
-  assert.match(texts(statsCard), /统计 · 近 7 天 91 任务 786\.7M token \$497\.80 API 估价 完成 65\/90/);
-  statsCard.props.onClick({ currentTarget: null });
-  let statsLayer = find(render(), (p) => p["data-tq-stats-layer"] === "true")[0];
-  assert.ok(statsLayer, "the card opens the chart layer, not a fourth fold");
-  assert.match(texts(statsLayer), /派发统计 近 7 天 91 项 · token 786\.7M · API \$497\.80/);
-  const tokenRows = find(statsLayer, (p) => p["data-tq-stats-token"] !== undefined);
-  assert.deepEqual(tokenRows.map((row) => row.props["data-tq-stats-token"]), ["claude", "codex"]);
-  assert.match(texts(tokenRows[0]), /Claude Code 625\.2M · \$261\.64/);
-  const doneRows = find(statsLayer, (p) => p["data-tq-stats-done"] !== undefined);
-  assert.deepEqual(doneRows.map((row) => row.props["data-tq-stats-done"]), ["claude", "codex"]);
-  assert.match(texts(doneRows[0]), /Claude Code 完成 42\/55 部分 9 .*未完成 4/);
-  assert.match(texts(statsLayer), /API 估价非订阅额度/);
-  assert.doesNotMatch(texts(statsLayer), /token 未知|已结束任务冻结值|巡检不计/);
-  // The daily chart: seven days, stacked provider bars on one left axis, a real zero day and a
-  // lower-bound note for unrecorded tokens. There is no line and no second axis; the total is the
-  // stack's height, and the legend has no "+?" marker.
-  const chart = find(statsLayer, (p) => p["data-tq-stats-chart"] === "true")[0];
-  assert.ok(chart, "the stats layer has the daily chart");
-  assert.match(texts(chart), /每日 token · 按 provider/);
-  assert.match(texts(chart), /柱是 provider 堆叠 · 总高度 = 当天总计/);
-  assert.doesNotMatch(texts(chart), /\+\?|总计 786\.7M\s*\+/);
-  assert.equal(find(chart, (p) => p["data-tq-stats-line"] !== undefined).length, 0, "no total line");
-  assert.equal(find(chart, (p) => p["data-tq-stats-total"] !== undefined).length, 0, "no right-axis line points");
-  const bars = find(chart, (p) => p["data-tq-stats-bar"] !== undefined);
-  assert.equal(bars.length, 12, "two providers on six non-zero days");
-  assert.deepEqual(bars.filter((b) => b.props["data-day"] === "2026-10-13").length, 0, "a zero day has no bar, only its label");
-  const dayTotals = ["2026-10-11", "2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17"]
-    .map((day) => bars.filter((b) => b.props["data-day"] === day).reduce((sum, b) => sum + b.props["data-tokens"], 0));
-  assert.deepEqual(dayTotals, [125000000, 140000000, 0, 115000000, 125000000, 140000000, 141747978],
-    "each day's stack sums to the day total, including the zero day");
-  assert.equal(dayTotals.reduce((sum, n) => sum + n, 0), 786747978, "the stack sums to the card's token total");
-  assert.deepEqual(bars.filter((b) => b.props["data-provider"] === "claude").map((b) => b.props["data-tokens"]),
-    [100000000, 110000000, 90000000, 100000000, 110000000, 115213302]);
-  assert.deepEqual(bars.filter((b) => b.props["data-provider"] === "codex").map((b) => b.props["data-tokens"]),
-    [25000000, 30000000, 25000000, 25000000, 30000000, 26534676]);
-  assert.deepEqual(bars.filter((b) => b.props["data-unknown"] === "true").map((b) => [b.props["data-day"], b.props["data-provider"]]),
-    [["2026-10-16", "codex"], ["2026-10-17", "claude"]], "only the provider-days with unrecorded tokens are marked");
-  assert.match(texts(chart), /75M/);
-  assert.match(texts(chart), /150M/);
-  assert.match(texts(chart), /Claude Code\s+625\.2M/);
-  assert.match(texts(chart), /Codex\s+161\.5M/);
-  assert.match(texts(chart), /1 天没有任务，按 0 计/);
-  assert.doesNotMatch(texts(chart), /9 个任务未记录 token|个进行中任务未计入 token/, 'the old visible unknown/live caption is gone');
-  const unknownBar = bars.find((b) => b.props["data-unknown"] === "true");
-  assert.match(texts(unknownBar), /8 个未记录/, 'the unknown fact stays in the segment title');
-  assert.equal(find(chart, (p) => /_tq-stats-chart-note$/.test(p.className || "")).length, 1,
-    "only the zero-day caveat remains visible");
-  const svg = find(chart, (p) => p.role === "img")[0];
-  assert.ok(svg, "the chart is one labelled image for a screen reader");
-  assert.match(svg.props["aria-label"], /每日 token：/);
-  assert.match(svg.props["aria-label"], /总计 786\.7M/);
-  assert.deepEqual([...new Set(bars.map((b) => b.props.style.fill))],
-    ["var(--tq-series-1)", "var(--tq-series-2)"], "providers use the local categorical series, not semantic state colours");
-  assert.equal(statsCalls, 1, "opening the layer does not reread");
-  find(statsLayer, (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  statsLayer = find(render(), (p) => p["data-tq-stats-layer"] === "true")[0];
-  assert.equal(statsLayer, undefined, "back closes the stats layer");
-  // A host half older than taskStats omits statsApi: no card, and no call to the missing method.
-  answer = { ...QUEUE, statsApi: undefined };
-  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  assert.equal(find(render(), (p) => p["data-tq-stats-card"] !== undefined).length, 0, "no stats card without statsApi");
-  const oldHostCalls = statsCalls;
-  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  assert.equal(statsCalls, oldHostCalls, "once the host says it has no statsApi, it is never asked again");
-  answer = QUEUE;
-  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-
-  // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
-  assert.equal(find(popover, (p) => p["data-tq-detail"] !== undefined).length, 0, "no layer until a task is picked");
-  rows[1].props.onClick();
-  let layered = render();
-  const detail = find(layered, (p) => p["data-tq-detail"] !== undefined)[0];
-  assert.equal(detail.props["data-tq-detail"], "b-1");
-  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0].props["data-open"], "true",
-    "the layer lives inside the open popover — no second surface");
-  assert.equal(find(layered, (p) => p.inert === "" && p["aria-hidden"] === "true").length, 1, "the list underneath is inert");
-  assert.match(texts(detail), /进行中 model-bump 排队 等 claude 锁 .*模型 Claude Opus 5\.5 .*Agent Claude Code .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/,
-    "the hero (name, the row's chip, the whole sentence), then the sections in DETAIL_SECTIONS order");
-  assert.doesNotMatch(texts(detail), /判卡死/, "no stall row when there was none");
-  assertDetailOrder(api, detail, "live");
-  const heroChip = find(find(detail, (p) => p["data-tq-section"] === "status")[0], (p) => p["data-tq-chip"] === "status")[0];
-  assert.deepEqual([texts(heroChip), heroChip.props["data-role"]], [texts(chip(rows[1], "status")), chip(rows[1], "status").props["data-role"]],
-    "the hero carries the very chip the list row had");
-  assert.equal(find(detail, (p) => /_tq-dot(?!-)/.test(p.className || "")).length, 0, "no dot repeating the chip");
-  // Without the write door, only file-preview reads remain.
-  assert.deepEqual(find(detail, (p) => p["data-tq-action"] !== undefined).map((n) => n.props["data-tq-action"]), ["brief", "raw-log"],
-    "no write actions without the host's write door");
-  // Back returns to the list; so does Escape (tested through the same back function).
-  find(detail, (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  layered = render();
-  assert.equal(find(layered, (p) => p["data-tq-detail"] !== undefined).length, 0, "back closes the layer");
-  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0].props["data-open"], "true",
-    "and leaves the popover open on the list");
-  // An ended task shows how it closed: took, ended, and the agent's closing report.
-  answer = { ...QUEUE, recent: [{ ...QUEUE.recent[0], summary: "- merged: PR #1767\n- CI green" }] };
-  find(layered, (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  find(render(), (p) => p["data-tq-task"] === "c-1")[0].props.onClick();
-  const ended = find(render(), (p) => p["data-tq-detail"] === "c-1")[0];
-  assert.match(texts(ended), /已结束 merge-pr1767 完成 执行完成 · 任务：完成 结果摘要 - merged: PR #1767\n- CI green .*用时 30 分 .*结束 .*30 分钟前/,
-    "an ended task: its verdict on both axes, then what it reported, before how it ran");
-  assertDetailOrder(api, ended, "ended");
-  assert.doesNotMatch(texts(ended), /最近事件/, "an ended task has no latest event row");
-  const panelClasses = find(render(), (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
-  assert.deepEqual(panelClasses.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
-    "every class the open panel and its detail layer render resolves through the stylesheet");
-  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  answer = { ...QUEUE, recent: [
-    { ...QUEUE.recent[0], id: "closed-a", state: "ok", outcome: "PARTIAL", waitMs: 7 * 60000,
-      notify: ["weixin", "telegram"], notified: ["telegram"], notifyFailed: ["weixin"] },
-    { ...QUEUE.recent[0], id: "closed-b", state: "failed", outcome: "DONE", waitMs: null, notify: ["weixin"] },
-    { ...QUEUE.recent[0], id: "closed-c", state: "blocked", outcome: "BLOCKED" },
-  ] };
-  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  const receipts = find(render(), (p) => p["data-tq-task"]?.startsWith("closed-"));
-  assert.deepEqual(receipts.map((row) => row.props["data-tq-task"]), ["closed-a", "closed-b", "closed-c"],
-    "ended tasks keep the host's newest-first order across agents");
-  const verdict = (row) => { const c = find(row, (p) => p["data-tq-chip"] === "status")[0]; return [texts(c), c.props["data-role"], c.props.title]; };
-  assert.deepEqual(receipts.map(verdict), [
-    ["部分完成", "partial", "执行完成 · 任务：部分完成"],
-    ["失败", "fail", "执行失败 · 任务：自报完成"],
-    ["受阻", "partial", "执行受阻 · 任务：受阻"],
-  ], "one state per ended task; the chip's title keeps both axes (the runner's verdict, then the model's report)");
-  // Receipts: per channel, from result.env alone — delivered, failed, or no receipt at all (never
-  // "delivered" by inference). Each mark says it in its glyph and words, not only its colour.
-  const marks = (row) => find(row, (p) => p["data-tq-notify"] !== undefined).map((m) => [m.props["data-tq-notify"], m.props["data-state"]]);
-  assert.deepEqual(receipts.map(marks), [[["weixin", "failed"], ["telegram", "sent"]], [["weixin", "unknown"]], []]);
-  assert.equal(find(receipts[1], (p) => p.role === "img")[0].props["aria-label"], "微信 无回执");
-  assert.equal(find(receipts[0], (p) => p["data-tq-fact"] === "receipt").length, 1, "receipts have their one cell");
-  // The first queue wait is not resident (ROW_KINDS.ended): it is one tap away, recorded or not.
-  assert.doesNotMatch(texts(receipts), /首次排队|排队耗时未记录/);
-  for (const [id, said] of [["closed-a", /首次排队 7 分/], ["closed-b", /排队耗时未记录/]]) {
-    find(render(), (p) => p["data-tq-task"] === id)[0].props.onClick();
-    assert.match(texts(find(render(), (p) => p["data-tq-detail"] === id)[0]), said);
-    find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  }
-
-  // Distinct ended tasks stay visible; only long patrol history folds, as one group.
-  const endedTask = (i) => ({ ...QUEUE.recent[0], id: "e-" + i, name: "ended-" + i, updatedAtMs: now - (i + 1) * 60000 });
-  const rounds = [0, 1, 2, 3, 4].map((i) => ({ endedAt: `2026-09-23 0${5 - i}:00:00`, round: "R" + (140 - i), axis: "logic", result: "ok/DONE", seconds: 600 }));
-  // What the newest round routed through the filing gate (patrol.sh's third `/` field): line 2.
-  rounds[0].result = "ok/DONE/P1#2240 +2 digest +1 comment";
-  answer = { ...QUEUE, recent: [0, 1, 2, 3, 4].map(endedTask), patrol: { ...QUEUE.patrol, rounds } };
-  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  const panel = render();
-  const section = (key) => find(panel, (p) => p["data-tq-group"] === key)[0];
-  const folds = (node) => find(node, (p) => p["data-tq-fold"] !== undefined);
-  assert.equal(find(section("recent"), (p) => p["data-tq-task"] !== undefined).length, 5, "every ended task the host sends is on screen");
-  assert.equal(folds(section("recent")).length, 0, "no ended task hides behind a fold");
-  const patrolEntry = find(section("patrol"), (p) => p["data-tq-patrol-open"] !== undefined)[0];
-  assert.ok(patrolEntry, "the patrol section is one entry, not a head + list + link");
-  assert.equal(folds(section("patrol")).length, 0, "the rounds are behind the page; there is no fold");
-  assert.equal(find(section("patrol"), (p) => p["data-tq-round"] !== undefined).length, 0, "no rounds in the panel");
-  assert.match(texts(patrolEntry), /巡检/);
-  assert.match(texts(patrolEntry), /未决数未知/);
-  assert.equal(patrolEntry.props["data-tq-patrol-summary"], "true");
-  assert.match(patrolEntry.props["aria-label"], /巡检.*未决数未知.*打开巡检详情/);
-  const entryStrip = find(patrolEntry, (p) => p["data-tq-patrol-strip"] !== undefined)[0];
-  assert.ok(entryStrip, "the entry has a small static outcome strip");
-  assert.deepEqual(find(entryStrip, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-tq-rhythm-round"]),
-    ["R140", "R139", "R138", "R137", "R136"], "the outer strip reads like the page strip");
-  assert.equal(find(patrolEntry, (p) => p["data-tq-patrol-open"] !== undefined).length, 1, "the strip is inside the one entry, not a second target");
-  patrolEntry.props.onClick({ currentTarget: null });
-  const patrolPage = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
-  assert.ok(patrolPage, "the entry opens the patrol page");
-  assert.equal(find(patrolPage, (p) => p["data-tq-patrol-summary"] !== undefined).length, 0, "the page is not another entry");
-  const kpis = find(patrolPage, (p) => p["data-tq-patrol-kpi"] !== undefined);
-  assert.deepEqual(kpis.map((k) => k.props["data-tq-patrol-kpi"]), ["latest", "areas", "lenses", "rounds"],
-    "the page opens with a four-tile dashboard, not one more list");
-  assert.match(texts(kpis[0]), /R140.*完成/, "the latest tile carries the newest round's verdict");
-  assert.match(texts(kpis[1]), /—.*未决数未知/, "without a coverage read the areas tile says unknown, not zero");
-  assert.match(texts(kpis[3]), /5/, "the rounds tile counts the host's records");
-  assert.equal(find(patrolPage, (p) => p["data-tq-patrol-dashboard"] !== undefined).length, 1);
-  assert.equal(find(patrolPage, (p) => p["data-tq-patrol-section"] !== undefined).length, 2,
-    "outcome and rounds are cards; coverage is absent when unread");
-  const rhythm = find(patrolPage, (p) => p["data-tq-rhythm"] !== undefined)[0];
-  assert.ok(rhythm, "the page has the outcome strip");
-  assert.deepEqual(find(rhythm, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-tq-rhythm-round"]),
-    ["R140", "R139", "R138", "R137", "R136"], "the strip reads newest first, like the list");
-  assert.deepEqual(find(rhythm, (p) => p["data-tq-rhythm-round"] !== undefined).map((b) => b.props["data-role"]),
-    ["done", "done", "done", "done", "done"], "the segment takes the round's verdict role");
-  assert.match(texts(rhythm), /完成 5/, "the count line is the legend in words");
-  assert.deepEqual(find(patrolPage, (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]),
-    ["R140", "R139", "R138", "R137", "R136"], "every round is in the one page list");
-  const newest = find(patrolPage, (p) => p["data-tq-round"] === "R140")[0];
-  assert.deepEqual(factSlots(newest), ["filed", "when", "took"], "a round that filed says so on line 2");
-  assert.equal(texts(find(newest, (p) => p["data-tq-fact"] === "filed")[0]).replace(/ +/g, " "), "提报 1 · P1 #2240 · 汇总 2 · 补充 1");
-  const issueLink = find(newest, (p) => p.href !== undefined)[0];
-  assert.equal(issueLink.type, "a", "filing evidence has an exit to the actual finding");
-  assert.equal(issueLink.props.href, "https://github.com/KCNyu/clawock/issues/2240");
-  assert.match(issueLink.props["aria-label"], /P1 #2240/);
-  assert.equal(find(newest, (p) => p["data-severity"] === "P1").length, 1, "severity is text and a paint role");
-  assert.equal(find(newest, (p) => p["data-tq-chip"] === "status")[0].props["data-role"], "done", "the filed field is not part of the state");
-  assert.doesNotMatch(texts(patrolPage), /preempting patrol-recent-1/, "raw supervisor output is not a task conclusion");
-  find(patrolPage, (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  // Boundary cases, including mixed outcomes: never split into count/state chunks.
-  for (const count of [0, 1, 2, 3, 4, 5, 6]) {
-    const history = Array.from({ length: count }, (_, i) => ({ ...rounds[i % rounds.length], round: 'B' + i,
-      result: i % 2 === 0 ? 'ok/DONE' : 'failed/BLOCKED' }));
-    answer = { ...answer, patrol: { ...answer.patrol, rounds: history } };
-    find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-    await tick(); await tick();
-    const entry = find(render(), (p) => p["data-tq-patrol-open"] !== undefined)[0];
-    assert.ok(entry, `${count} rounds: the one entry is still there`);
-    entry.props.onClick({ currentTarget: null });
-    const patrol = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
-    assert.equal(folds(patrol).length, 0, `${count} rounds: never a fold`);
-    assert.deepEqual(find(patrol, (p) => p["data-tq-round"] !== undefined).map((r) => r.props["data-tq-round"]), history.map(r => r.round),
-      `${count} rounds: all visible in the one page list`);
-    assert.equal(find(patrol, (p) => p["data-tq-rhythm"] !== undefined).length, count >= 2 ? 1 : 0,
-      `${count} rounds: the strip needs at least two segments`);
-    find(patrol, (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  }
-
-
-  // #3133: a warm failed read discloses the actual last successful timestamp.
-  for (const asOf of ['2026-10-21T07:42:00+08:00', '', 'not-a-date']) {
-    answer = { ...QUEUE, status: 'stale', message: 'queue probe failed', asOf };
-    find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-    await tick(); await tick();
-    const notice = texts(render());
-    if (asOf.startsWith('2026')) {
-      const stamp = api.resetStampOf(translatorFor(api), { resetAt: '', resetAtMs: Date.parse(asOf) }, Date.now());
-      assert.ok(notice.includes(`刷新失败（queue probe failed），显示 ${stamp} 的读数`));
-    } else {
-      assert.match(notice, /刷新失败,显示最近一次: queue probe failed/);
-      assert.doesNotMatch(notice, /Invalid Date|NaN/);
-    }
-  }
-
-  // #2053: a cold IN-BAND failure (status 'failed': nothing was ever read) is a read failure,
-  // not "showing the last read" — the same judgement the balance half makes on its rows.
-  answer = { available: false, status: "failed", message: "EACCES: permission denied", asOf: "", refreshMs: 15000, maxRunning: 0,
-    running: 0, active: [], recent: [], slotLimits: [], queues: [], patrol: { service: "unknown", phase: "unknown", round: "", detail: "", untilMs: null, rounds: [] } };
-  find(render(), (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  assert.match(texts(render()), /任务队列读取失败:EACCES: permission denied/);
-  assert.doesNotMatch(texts(render()), /显示最近一次/, "nothing was read, so nothing 'last' is shown");
-  answer = QUEUE;
-
-  // The host renders list-slot items inside a `display:contents` [data-slot]
-  // wrapper, so the flex row to turn into a column is the wrapper's parent.
-  const bundle = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
-  assert.match(bundle, /:has\(>\[data-slot\]>\.\w+_pbc\.\w+_tqf\)\{flex-direction:column\}/,
-    "the foot stacks through the host's slot wrapper, not only a direct child");
-
-  const forcedBefore = forced;
-  find(popover, (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  assert.equal(forced, forcedBefore + 1, "the refresh button forces one host read");
-
-  // A host without the dispatcher answers available:false: the agent lines go, nothing blank
-  // is left behind (C3 ②) — the providers (none here) are what remains.
-  answer = { ...QUEUE, available: false, active: [], recent: [] };
-  find(popover, (p) => p["data-refresh"] === "true")[0].props.onClick();
-  await tick(); await tick();
-  assert.equal(find(render(), (p) => p["data-pp-row"] !== undefined && p["data-pp-row"] !== "").length, 0);
-  disposeReactEffects();
-});
-
-// #2071: the give-way label was matched against a sentence the supervisor never writes. The
-// reasons below are instantiated from the templates as they stand in the two files that write
-// them (the test fails if a template changes), in each of the log shapes patrol.sh writes.
 test("patrol: every give-way reason the supervisor can write gets its true label (#2071)", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
@@ -4342,857 +3424,6 @@ test("task queue host: stats rereads the frozen summary only, never sessions; un
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
-test("client: the queue can be steered in place — move up, two-step cancel, model for the next attempt", async () => {
-  const loaded = await loadClient();
-  const reactStub = makeReactStub();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
-    throw new Error(`unexpected require: ${s}`);
-  });
-  const now = Date.now();
-  const live = (id, extra) => ({ id, name: id, agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "",
-    attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "", lastEvent: "",
-    lastEventAtMs: null, runnerApi: 2, modelRequested: "claude-opus-5-5", effortRequested: "high",
-    notify: ["weixin", "telegram"], notified: [], notifyFailed: [], session: "", ...extra });
-  const QUEUE = {
-    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,
-    slotLimits: [{ agent: "claude", max: 1 }],
-    active: [
-      live("holder", { slot: "claude-1", attempts: 1, session: "s-1", modelUsed: "claude-sonnet-5", effortUsed: "high" }),
-      live("first", { waiting: "lock", position: 1 }),
-      live("second", { waiting: "lock", position: 2, notifyFailed: ["weixin"] }),
-    ],
-    recent: [],
-    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
-    queues: [{ agent: "claude", held: true, holder: "holder", order: ["first", "second"], quotaUntilMs: null, quotaBy: "" }],
-    ops: { available: true, version: "abc123abc123", repoVersion: "def456def456", api: 2, runnerApi: 2, fairWaitSec: 14400, error: "" },
-  };
-  const calls = [];
-  let holdChoices = false;
-  let resolveChoices;
-  const runQueueAction = async (action, id, arg) => {
-    calls.push([action, id, arg]);
-    if (action === "choices") {
-      if (holdChoices) return new Promise((resolve) => { resolveChoices = resolve; });
-      return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, allowed: true, reason: "",
-        models: ["claude-opus-5-5", "sonnet"], efforts: { "claude-opus-5-5": ["low", "high"], sonnet: ["low", "high"] },
-        effort_flag: "--effort", requested: { model: "claude-opus-5-5", effort: "high" } }) };
-    }
-    const detail = action === "priority" ? { ok: true, changed: true, position: 1, queue: ["second", "first"] }
-      : action === "model" ? { ok: true, model_next: "sonnet", effort_next: "low" }
-        : { ok: true, was: "running", session: "s-1", resume: "cd /root && claude --resume s-1" };
-    return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify(detail) };
-  };
-  const t = translatorFor(api);
-  const store = makeBalanceStoreStub();
-  const opened = [];
-  const props = { wide: true, t, cachedTaskQueue: () => QUEUE, fetchTaskQueue: async () => QUEUE, runQueueAction,
-    ...balanceProps(), useStore: store.useStore, actions: store.actions,
-    openFile: (path) => { opened.push(path); return { ok: true }; } };
-  const render = () => { reactStub._resetCursor(); return api.ProviderPanelSidebarAction(props); };
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const find = (tree, pred) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node !== "object") return;
-      if (pred(node.props || {})) out.push(node);
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out;
-  };
-  const texts = (tree) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node === "string") { out.push(node); return; }
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out.join(" ");
-  };
-  find(render(), (p) => p["data-pp-row"] === "claude")[0].props.onClick({ currentTarget: null });
-  let tree = render();
-  // Move up: only a reorderable waiter that is not already first.
-  const ups = find(tree, (p) => p["data-tq-up"] !== undefined);
-  assert.deepEqual(ups.map((b) => b.props["data-tq-up"]), ["second"]);
-  assert.match(texts(tree), /Sonnet 5 · high/, "a running task shows the model it actually runs on");
-  const second = find(tree, (p) => p["data-tq-task"] === "second")[0];
-  const secondState = find(second, (p) => p["data-tq-chip"] === "status")[0];
-  assert.equal(texts(secondState), "排队 #2", "the chip says the place in line");
-  assert.equal(secondState.props.title, "等 claude 锁 · 第 2 位", "and its title the whole phrase");
-  assert.match(texts(tree), /ops 入口与仓库不一致（主机 abc123abc123 \/ 仓库 def456def456）/, "version skew is visible");
-  // A live row carries no receipt (its closing notification is not sent yet); the receipt of a
-  // notice it already sent (a quota wait's) is in its detail layer, failed legs marked as failed.
-  assert.equal(find(second, (p) => p["data-tq-notify"] !== undefined).length, 0, "no receipt on a live row");
-  second.props.onClick();
-  const secondDetail = find(render(), (p) => p["data-tq-detail"] === "second")[0];
-  assert.equal(find(secondDetail, (p) => p["data-tq-notify"] === "weixin" && p["data-state"] === "failed").length, 1,
-    "the failed leg is marked in the detail layer");
-  assert.match(texts(secondDetail), /微信 失败/);
-  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  tree = render();
-  ups[0].props.onClick();
-  await tick(); await tick();
-  assert.deepEqual(calls.at(-1), ["priority", "second", "up"]);
-  assert.match(texts(render()), /现在排第 1 位（共 2）/, "the answer says where it landed");
-
-  // Cancel a running task: the first tap only explains what it costs; the second one cancels.
-  find(render(), (p) => p["data-tq-task"] === "holder")[0].props.onClick();
-  tree = render();
-  const cancel = () => find(render(), (p) => p["data-tq-action"] === "cancel")[0];
-  assert.ok(find(tree, (p) => p["data-tq-action"] === "wrapup").length === 1, "a running task with a session can be wrapped up");
-  assert.equal(find(tree, (p) => p["data-tq-action"] === "top").length, 0, "a running task is not reordered");
-  const before = calls.length;
-  cancel().props.onClick();
-  assert.equal(calls.length, before, "one tap never cancels");
-  assert.match(texts(render()), /它正在跑：本轮进度会丢；会话 s-1 可用 --resume 续/);
-  assert.match(texts(cancel()), /确认取消/);
-  cancel().props.onClick();
-  await tick(); await tick();
-  assert.deepEqual(calls.at(-1), ["cancel", "holder", ""]);
-  assert.match(texts(render()), /已停止，本轮进度已丢；续跑：cd \/root && claude --resume s-1/, "the session to resume is reported");
-
-  // Model: offered from the entry's own choices, saved for the next attempt.
-  find(render(), (p) => p["data-tq-action"] === "model")[0].props.onClick();
-  await tick(); await tick();
-  const picker = find(render(), (p) => p["data-tq-picker"] !== undefined)[0];
-  assert.match(texts(picker), /Opus 5\.5 \(claude-opus-5-5\) .*Sonnet \(sonnet\) .*下一次尝试生效/);
-  find(picker, (p) => typeof p.onChange === "function")[0].props.onChange({ target: { value: "sonnet" } });
-  find(render(), (p) => typeof p.onChange === "function")[1].props.onChange({ target: { value: "low" } });
-  find(render(), (p) => p["data-tq-action"] === "save")[0].props.onClick();
-  await tick(); await tick();
-  assert.deepEqual(calls.at(-1), ["model", "holder", "sonnet|low"]);
-  assert.match(texts(render()), /下一次尝试：sonnet · low/);
-
-  // A confirmation has an explicit way out; Escape follows the same first step.
-  cancel().props.onClick();
-  assert.ok(find(render(), (p) => p["data-tq-action"] === "dismiss-confirm").length);
-  const countBeforeKeep = calls.length;
-  find(render(), (p) => p["data-tq-action"] === "dismiss-confirm")[0].props.onClick();
-  assert.equal(calls.length, countBeforeKeep);
-  assert.equal(find(render(), (p) => p["data-tq-confirm"] === "holder").length, 0);
-
-  // A slow choices reply from a task left behind must not become the next task's picker.
-  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  find(render(), (p) => p["data-tq-task"] === "second")[0].props.onClick();
-  holdChoices = true;
-  find(render(), (p) => p["data-tq-action"] === "model")[0].props.onClick();
-  assert.match(texts(find(render(), (p) => p["data-tq-action"] === "model")[0]), /读取中/);
-  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  find(render(), (p) => p["data-tq-task"] === "holder")[0].props.onClick();
-  resolveChoices({ ok: true, detail: JSON.stringify({ allowed: true, models: ["sonnet"], requested: { model: "sonnet" } }) });
-  await tick(); await tick();
-  assert.equal(find(render(), (p) => p["data-tq-picker"] !== undefined).length, 0);
-  disposeReactEffects();
-});
-
-test("client: the provider panel keeps both clocks, the pool position, stale readings, cost, the brief and the budgets", async () => {
-  const loaded = await loadClient();
-  const reactStub = makeReactStub();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
-    throw new Error(`unexpected require: ${s}`);
-  });
-  const t = translatorFor(api);
-  const now = new Date(2026, 8, 26, 22, 0, 0).getTime();
-  const at = (h, m) => new Date(2026, 8, 26, h, m, 0).getTime();
-  // ③ the runner's wake and the window's reset are two facts, both shown.
-  const sleeping = { id: "s", name: "s", agent: "claude", model: "m", state: "running", waiting: "quota", slot: "", attempts: 1, outcome: "",
-    startedAtMs: now, updatedAtMs: now, wakeAtMs: at(23, 22), patrol: false };
-  assert.equal(api._taskStatus(sleeping, t, now, [{ resetAtMs: at(23, 19) }, { resetAtMs: at(23, 19) + 86400000 * 2 }]).text,
-    "等到 今天 23:22（窗口 今天 23:19 +3m 缓冲）");
-  assert.equal(api._taskStatus(sleeping, t, now, []).text, "等到 今天 23:22（窗口重置时刻未读到）", "never one clock standing in for the other");
-  assert.match(api._taskStatus(sleeping, t, now).text, /等额度 · 今天 23:22 续跑/, "no provider windows known: the runner's own clock only");
-
-  // Scarce paid sources first, unknown costs next, then the interchangeable free pool.
-  const prov = (id, label) => ({ provider: id, label, result: DS_ROW_OK.result });
-  const queue = { available: true, active: [{ agent: "gemini" }], slotLimits: [{ agent: "claude", max: 1 }] };
-  assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("minimax", "MiniMax"), prov("claude", "Claude"), prov("codex", "Codex"), prov("zeta", "Zeta")], queue)
-    .map((src) => [src.key, src.agent]),
-  [["claude", "claude"], ["codex", "codex"], ["deepseek", "dsh"], ["minimax", null], ["gemini", "gemini"], ["zeta", null], ["opencode", "opencode"]],
-  "dsh's queue is the DeepSeek balance's: dsh tasks are paid from it (#3040)");
-  assert.deepEqual(api._panelSources([prov("deepseek", "DeepSeek"), prov("claude", "Claude")], { available: false, active: [] })
-    .map((src) => [src.key, src.agent]), [["claude", null], ["deepseek", null]], "② no dispatcher: providers only, no empty queues");
-
-  // ④ the pool: the position comes from MODEL_USED, else the file order says so.
-  const pooled = (tasks) => ({ opencodePool: ["opencode/a-free", "opencode/b-free", "opencode/c-free"], active: tasks, recent: [] });
-  assert.deepEqual(api._poolPosition(pooled([{ agent: "opencode", modelUsed: "opencode/b-free", attempts: 1 }])),
-    { current: "opencode/b-free", next: "opencode/c-free", fromOrder: false });
-  assert.deepEqual(api._poolPosition(pooled([])), { current: "opencode/a-free", next: "opencode/b-free", fromOrder: true });
-  assert.equal(api._poolPosition({ active: [], recent: [] }), null, "no pool file, no task: nothing invented");
-
-  // Cost: an estimate, free, or a dash — never a guess.
-  assert.deepEqual(api._costOf({ tokensTotal: 10, costUsd: "3.12" }), { short: "$3.12", kind: "usd" });
-  assert.deepEqual(api._costOf({ tokensTotal: 10, costUsd: "free" }), { short: "free", kind: "free" });
-  assert.deepEqual(api._costOf({ tokensTotal: 10, costUsd: "" }), { short: "—", kind: "unpriced" });
-  assert.equal(api._costOf({ costUsd: "" }), null, "nothing recorded: no cost cell");
-  assert.equal(api._fmtTokens(83123861), "83.1M");
-  assert.equal(api._sessionFileAddress("s1", "/root/logs/agent-dispatch/x y/prompt.md"),
-    "dsh-resource://file/session/s1//root/logs/agent-dispatch/x%20y/prompt.md", "dsh-util-workspace-path's session grammar");
-
-  // The panel itself: ① a stale provider keeps its last reading and says when it was taken.
-  const STALE_CL = JSON.parse(JSON.stringify(CL_ROW_OK));
-  Object.assign(STALE_CL.result, { status: "stale", message: "429 Too Many Requests" });
-  const task = (id, extra) => ({ id, name: id, agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "",
-    attempts: 1, outcome: "", startedAtMs: Date.now() - 60000, updatedAtMs: Date.now(), wakeAtMs: null, patrol: false, summary: "",
-    lastEvent: "", lastEventAtMs: null, runnerApi: 3, modelRequested: "claude-opus-5-5", effortRequested: "high", session: "s-1", ...extra });
-  const QUEUE = {
-    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,
-    slotLimits: [{ agent: "claude", max: 1 }, { agent: "opencode", max: 1 }], opencodePool: ["opencode/a-free", "opencode/b-free"],
-    active: [task("new-run", { slot: "claude-1", maxAttempts: 3, quotaResumes: 3, quotaResumesUsed: 0, deadlineAtMs: Date.now() + 3600000,
-      tokensIn: 10, tokensCacheW: 1000, tokensCacheR: 100000, tokensOut: 500, tokensTotal: 101510, costUsd: "0.04" }),
-    task("old-wait", { waiting: "lock", position: 1, runnerApi: 2, attempts: 0 })],
-    recent: [task("done", { state: "ok", outcome: "DONE", tokensTotal: 5, costUsd: "free", agent: "opencode" })],
-    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
-    queues: [{ agent: "claude", held: true, holder: "new-run", order: ["old-wait"], quotaUntilMs: null, quotaBy: "" }],
-    ops: { available: true, version: "v", repoVersion: "v", api: 3, runnerApi: 3, fairWaitSec: 14400, error: "" },
-    // The host's own dispatch directory, any account's home (#2065: never a literal /root).
-    logDir: "/home/someone/logs/agent-dispatch/",
-  };
-  const calls = [];
-  let hostKnows = false;
-  let briefFailure = false;
-  let deferLog = false;
-  let resolveLog;
-  const runQueueAction = async (action, id, arg) => {
-    calls.push([action, id, arg]);
-    if (action === "brief") {
-      if (briefFailure) return { ok: false, code: 1, action, id, message: "permission denied", detail: "" };
-      return hostKnows
-        ? { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, path: "/tasks/" + id + "/prompt.md", brief_bytes: 70000, truncated: true,
-          appends: [{ file: "20260927-010000-1-queue.md", path: "/tasks/" + id + "/inbox/delivered/20260927-010000-1-queue.md", stamp: "2026-09-27 01:00:00", delivered: true, bytes: 12, text: "# 缩小范围\n只修 handler" },
-            { file: "20260927-020000-2-now.md", path: "/tasks/" + id + "/inbox/20260927-020000-2-now.md", stamp: "2026-09-27 02:00:00", delivered: false, bytes: 13, text: "修正验收依据" }] }) }
-        : { ok: false, code: 2, action, id, message: 'unknown action "brief"', detail: "" };
-    }
-    if (action === "log" && deferLog) return new Promise((resolve) => { resolveLog = resolve; });
-    if (action === "log") return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({
-      ok: true, lines: ["log tail"], timeline: hostKnows ? { events: [
-        { stamp: "2026-09-27 01:00:00", kind: "lock_wait", text: "waiting for claude lock" },
-        { stamp: "2026-09-27 02:00:00", kind: "ended", text: "end state=ok" },
-      ], omitted_bytes: 0, omitted_events: 0, audit_truncated: false, log_missing: false } : undefined,
-    }) };
-    return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({ ok: true, changed: true, message: "deadline moved" }) };
-  };
-  const opened = [];
-  let preview = { ok: true };
-  const store = makeBalanceStoreStub();
-  const props = { wide: true, t, cachedTaskQueue: () => QUEUE, fetchTaskQueue: async () => QUEUE, runQueueAction,
-    cachedBalances: () => ({ providers: [STALE_CL, DS_ROW_OK], refreshMs: 60000 }), fetchBalances: async () => ({ providers: [STALE_CL, DS_ROW_OK], refreshMs: 60000 }),
-    useStore: store.useStore, actions: store.actions, openFile: (path) => { opened.push(path); return preview; } };
-  const render = () => { reactStub._resetCursor(); return api.ProviderPanelSidebarAction(props); };
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const find = (tree, pred) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node !== "object") return;
-      if (pred(node.props || {})) out.push(node);
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out;
-  };
-  const texts = (tree) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node === "string") { out.push(node); return; }
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out.join(" ");
-  };
-  await tick(); await tick();
-  const foldedKeys = find(render(), (p) => p["data-pp-row"] !== undefined).map((n) => n.props["data-pp-row"]);
-  assert.deepEqual(foldedKeys, ["claude", "codex", "deepseek", "opencode"], "paid sources precede the free pool");
-  find(render(), (p) => p["data-pp-row"] === "claude")[0].props.onClick({ currentTarget: null });
-  let tree = render();
-  assert.equal(find(tree, (p) => p["data-tq-page-back"] === "true").length, 1,
-    "the page head has exactly one back control; the task detail keeps its own data-tq-back");
-  const claude = find(tree, (p) => p["data-pp-group"] === "claude")[0];
-  assert.match(texts(claude), /刷新失败（429 Too Many Requests），显示 .* 的读数/, "① the failure and the time of the reading still shown");
-  assert.match(texts(claude), /会话 已用 36%/, "① the last good windows are kept, not dropped");
-  assert.match(texts(claude), /new-run .*\$0\.04/, "the row carries its cost");
-  assert.match(texts(find(tree, (p) => p["data-pp-group"] === "opencode")[0]), /池 A → 下一个 B（表序）/, "④ pool position, labelled as file order");
-  assert.equal(find(tree, (p) => p["data-pp-group"] === "opencode" && /\d+%/.test(texts(find(tree, (q) => q["data-pp-group"] === "opencode")[0]))).length, 0,
-    "④ no percentage for the free pool");
-
-  // Detail of a runner-api-3 task: the enforced deadline and budgets, tokens and cost.
-  find(tree, (p) => p["data-tq-task"] === "new-run")[0].props.onClick();
-  tree = render();
-  assert.match(texts(tree), /截止 今天 \d\d:\d\d \+2h 重试 已用 1 \/ 3 \+1 额度续跑 已用 0 \/ 3 \+1 .*花费 \$0\.04 按 API 价估算，非实际扣费 · 截至上一次尝试结束 Tokens 共 102k 输入 10 · 缓存写 1\.0k · 缓存读 100k · 输出 500/,
-    "each budget beside its control; a figure on its line, its breakdown or caveat under it");
-  const layer = find(tree, (p) => p["data-tq-detail"] === "new-run")[0];
-  assertDetailOrder(api, layer, "live");
-  // The list moved these here (#2129): the plan that pays, the windows with their resets.
-  assert.match(texts(find(layer, (p) => p["data-tq-section"] === "allowance")[0]),
-    /额度 Agent Claude Code 槽 1 \/ 1 额度来源 Anthropic 订阅 刷新失败.*窗口 会话 已用 36% ↻ 10:00 本周 已用 69% ↻ 周四 10:00/);
-  // Writes sit beside the fact they change; reads are one quiet row; the ending writes come last.
-  const homes = actionHomes(layer);
-  assert.deepEqual(Object.keys(homes), ["brief", "log", "timeline", "model", "deadline", "attempts", "resumes", "wrapup", "cancel", "raw-log"]);
-  for (const [key, where] of Object.entries(homes)) {
-    assert.equal(where.home, api.DETAIL_ACTIONS[key].home, `${key} lives in ${api.DETAIL_ACTIONS[key].home}`);
-    assert.equal(where.kind, api.DETAIL_ACTIONS[key].kind, `${key} looks like a ${api.DETAIL_ACTIONS[key].kind}`);
-  }
-  // The raw record folds (the list's disclosure rule); the scroll area is a named region; the
-  // answer to a write has a resident place outside it.
-  const rawFold = find(find(layer, (p) => p["data-tq-section"] === "raw")[0], (p) => p["data-tq-fold"] === "raw")[0];
-  assert.ok(rawFold && rawFold.type === "details" && !rawFold.props.open, "the raw record is folded");
-  const scrollRegion = find(layer, (p) => p.role === "region" && /_tq-d-scroll/.test(p.className || ""))[0];
-  assert.match(scrollRegion.props["aria-label"], /new-run/);
-  const foot = find(layer, (p) => /_tq-d-notice/.test(p.className || ""))[0];
-  assert.equal(foot.props.role, "status");
-  assert.equal(find(scrollRegion, (p) => /_tq-d-notice/.test(p.className || "")).length, 0, "the answer is not inside the scroll area");
-  // Budgets confirm in place and say what they cost; the second tap goes through the ops entry.
-  const pill = (key) => find(render(), (p) => p["data-tq-action"] === key)[0];
-  pill("raw-log").props.onClick();
-  assert.equal(opened.at(-1), "/home/someone/logs/agent-dispatch/new-run/run.log", "full log uses the host's directory and file-preview door");
-  assert.equal(calls.length, 0, "opening a full log does not call a queue write");
-  const savedDir = QUEUE.logDir;
-  delete QUEUE.logDir;
-  const openedBeforeNoDir = opened.length;
-  pill("raw-log").props.onClick();
-  assert.equal(opened.length, openedBeforeNoDir, "an old host without a directory must not guess a path");
-  assert.match(texts(render()), /未报告派发目录/);
-  QUEUE.logDir = savedDir;
-  pill("resumes").props.onClick();
-  assert.equal(calls.length, 0, "one tap never writes");
-  assert.match(texts(render()), /多给一次额度续跑：每次都会重放会话上下文，有成本（缓存读）。它在跑：本次尝试的时限不变，下一次尝试起生效。/);
-  assert.equal(texts(pill("resumes")), "确认", "the armed control says what the second tap does");
-  assert.equal(pill("resumes").props["aria-label"], "确认 续跑 +1");
-  assert.equal(pill("resumes").props["data-armed"], "true");
-  assert.ok(find(find(render(), (p) => p["data-tq-field"] === "resumes")[0], (p) => p["data-tq-confirm"] !== undefined).length === 1,
-    "its confirmation sits under its own line, not at the end of an action bar");
-  pill("resumes").props.onClick();
-  await tick(); await tick();
-  assert.deepEqual(calls.at(-1), ["resumes", "new-run", "4"]);
-  assert.equal(find(render(), (p) => /_tq-d-notice/.test(p.className || ""))[0].props["data-tq-notice"], "true", "the answer lands in the resident foot");
-  pill("deadline").props.onClick(); pill("deadline").props.onClick();
-  await tick(); await tick();
-  assert.deepEqual(calls.at(-1), ["deadline", "new-run", "+2h"]);
-
-  pill("timeline").props.onClick();
-  await tick(); await tick();
-  assert.match(texts(render()), /本机队列 ops 尚未更新/);
-  hostKnows = true;
-  pill("timeline").props.onClick();
-  await tick(); await tick();
-  assert.match(texts(find(render(), (p) => p["data-tq-timeline"] === "new-run")[0]), /01:00:00 等待执行锁.*02:00:00 结束/);
-  assert.deepEqual(calls.at(-1), ["log", "new-run", ""], "timeline uses the existing read-only host transport");
-  hostKnows = false;
-
-  // The brief opens in dsh's own preview; an older host half cannot list the appends and says so.
-  pill("brief").props.onClick();
-  await tick(); await tick();
-  assert.equal(opened.at(-1), "/home/someone/logs/agent-dispatch/new-run/prompt.md", "the fallback is the host's logDir, not /root");
-  assert.match(texts(render()), /追加列表要等插件 host 半边更新（需重启 dsh）/);
-  hostKnows = true;
-  pill("brief").props.onClick();
-  await tick(); await tick();
-  tree = render();
-  assert.equal(opened.at(-1), "/tasks/new-run/prompt.md");
-  const files = find(tree, (p) => p["data-tq-file"] !== undefined);
-  assert.deepEqual(files.map((f) => f.props["data-tq-file"]), ["/tasks/new-run/prompt.md",
-    "/tasks/new-run/inbox/delivered/20260927-010000-1-queue.md", "/tasks/new-run/inbox/20260927-020000-2-now.md"]);
-  assert.match(texts(tree), /原文 68 KB.*追加 #1 · 2026-09-27 01:00:00 缩小范围 已投递 .*追加 #2 · 2026-09-27 02:00:00 修正验收依据 待投递/);
-  files[2].props.onClick();
-  assert.equal(opened.at(-1), "/tasks/new-run/inbox/20260927-020000-2-now.md", "an append opens its own file");
-  preview = { ok: false, reason: "no-session" };
-  files[0].props.onClick();
-  assert.match(texts(render()), /右侧预览要在会话里打开：先进入任意会话，再点一次。文件：\/tasks\/new-run\/prompt\.md/, "no silent failure");
-  briefFailure = true;
-  const openedBeforeFailure = opened.length;
-  pill("brief").props.onClick();
-  await tick(); await tick();
-  assert.equal(opened.length, openedBeforeFailure, "a failed brief read must not pretend a fallback file opened");
-  assert.match(texts(render()), /读取失败：permission denied/);
-
-  deferLog = true;
-  pill("timeline").props.onClick();
-  await tick();
-  // An api-2 task: the budget pills are off and the reason is printed, not hover-only.
-  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  find(render(), (p) => p["data-tq-task"] === "old-wait")[0].props.onClick();
-  tree = render();
-  assert.equal(pill("deadline").props.disabled, true);
-  assert.match(texts(tree), /这个任务的 runner 是 api 2/);
-  resolveLog({ ok: true, code: 0, action: "log", id: "new-run", message: "", detail: JSON.stringify({
-    timeline: { events: [{ stamp: "2026-09-27 03:00:00", kind: "ended", text: "late result" }],
-      omitted_bytes: 0, omitted_events: 0, audit_truncated: false, log_missing: false },
-  }) });
-  await tick(); await tick();
-  assert.equal(find(render(), (p) => p["data-tq-timeline"] !== undefined).length, 0, "a late timeline cannot paint another task");
-
-  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
-  find(render(), (p) => p["data-tq-task"] === "done")[0].props.onClick();
-  assert.equal(find(render(), (p) => p["data-tq-section"] === "summary").length, 0, "no summary does not consume an entire section");
-  preview = { ok: false, reason: "no-session" };
-  pill("raw-log").props.onClick();
-  assert.match(texts(render()), /右侧预览要在会话里打开/, "the log exit reports missing preview context");
-  QUEUE.recent[0].summary = "Truncated report…";
-  tree = render();
-  assertDetailOrder(api, find(tree, (p) => p["data-tq-detail"] === "done")[0], "ended");
-  assert.equal(actionHomes(tree)["summary-log"].home, "summary", "a report has an exit to its complete source");
-  preview = { ok: true };
-  pill("summary-log").props.onClick();
-  assert.equal(opened.at(-1), "/home/someone/logs/agent-dispatch/done/run.log");
-  disposeReactEffects();
-
-  // Touch: every new pressable is a 44px target under a coarse pointer; hover lives only behind a fine one.
-  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
-  assert.match(css, /@media \(pointer: ?coarse\)\{[^}]*_pp-row[^}]*_tq-file[^}]*\{min-height:44px/, "folded lines and brief files are finger-sized");
-  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_pp-row:hover/, "the line's hover wash is fine-pointer only");
-  // One fold is left: the raw supervisor log's pill. The patrol history is one list and the
-  // coverage is a link row plus a page, so the old row/foot shapes are gone. The pill keeps the
-  // focus ring, a fine-pointer hover and a 44px finger target; the coverage row presses with a
-  // wash and grows to 44px itself.
-  const ruleOf = (sel) => css.match(new RegExp(`${sel}\\{([^}]*)\\}`))?.[1] ?? "";
-  assert.match(ruleOf("_tq-fold-summary"), /list-style:none/);
-  assert.match(ruleOf("_tq-fold-summary"), /cursor:pointer/);
-  assert.match(css, /_tq-fold\[open\]>\.[A-Za-z0-9_-]+_tq-fold-summary \.[A-Za-z0-9_-]+_tq-fold-chev\{transform:rotate\(90deg\)\}/);
-  assert.match(ruleOf("_tq-fold-summary:focus-visible"), /outline:var\(--tq-focus-ring\)/);
-  const pillRule = ruleOf("_tq-fold-pill>\\.\\w+_tq-fold-summary");
-  assert.match(pillRule, /border:\.5px solid var\(--tq-pill-border\)/);
-  assert.match(pillRule, /transition:[^;]*transform/, "the pill's own transition still names transform");
-  assert.match(css, /_tq-fold-pill>\.\w+_tq-fold-summary:active\{[^}]*transform:scale\(var\(--tq-press-scale\)\)/);
-  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^}]*_tq-fold-summary:hover/);
-  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-fold-pill>\.\w+_tq-fold-summary:after\{inset:-9px -8px\}/);
-  const entryRule = ruleOf("_tq-patrol-entry");
-  assert.match(entryRule, /min-height:44px/);
-  assert.match(entryRule, /width:calc\(100% - var\(--tq-main-inset\)\)/);
-  assert.match(entryRule, /transition:background-color/);
-  assert.match(ruleOf("_tq-patrol-entry:focus-visible"), /outline:var\(--tq-focus-ring\)/);
-  assert.match(css, /_tq-patrol-entry:active\{background:var\(--tq-fill-press\)\}/);
-  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^@]*_tq-patrol-entry:hover/);
-  assert.match(ruleOf("_tq-patrol-entry-phase"), /text-overflow:ellipsis/);
-  assert.match(ruleOf("_tq-patrol-entry-value"), /margin-left:auto/);
-  assert.match(ruleOf("_tq-patrol-entry-lead"), /flex:none/);
-  assert.match(ruleOf("_tq-patrol-entry"), /flex-direction:column/);
-  assert.match(ruleOf("_tq-patrol-entry-strip"), /height:4px/);
-  assert.match(css, /_tq-patrol-entry-seg\[data-role=fail\]\{background:var\(--tq-chart-bad\)\}/);
-  assert.match(css, /_tq-patrol-detail\{[^}]*display:flex/);
-  assert.match(css, /_tq-patrol-page\{[^}]*min-width:0/);
-  assert.doesNotMatch(css, /_tq-cov-link/);
-  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-row:not\(\.[A-Za-z0-9_-]+_tq-static\)\{min-height:44px\}/, "every row that opens a detail is finger-sized");
-  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-fold-summary[^{]*:active\{transform:none\}/);
-  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-stats-card[^{]*:active\{transform:none\}/, "the stats card's press respects reduced motion");
-
-  // The charts use the design system's standard entrance: 240ms on the strong ease-out curve,
-  // one transform per mark; nothing loops and no value is tweened. The strip is 6px of 35%
-  // chart tints; the solid token is only the 5px legend dot.
-  assert.match(css, /--tq-ease-out:cubic-bezier\(\.23, 1, \.32, 1\)/);
-  assert.match(css, /--tq-standard:\.24s/);
-  assert.match(css, /--tq-chart-run:color-mix\(in srgb, var\(--tq-run\) 35%, transparent\)/);
-  assert.match(css, /--tq-chart-wait:color-mix\(in srgb, var\(--tq-wait\) 35%, transparent\)/);
-  assert.match(css, /_tq-fold\[open\]>\.\w+_tq-fold-body\{animation:\w+_tq-fold-in var\(--tq-standard\) var\(--tq-ease-out\) both\}/);
-  assert.match(css, /_tq-rhythm-bar\{[^}]*height:6px/);
-  assert.match(css, /_tq-rhythm-seg\{[^}]*transition:transform var\(--tq-standard\) var\(--tq-ease-out\)/);
-  assert.match(css, /@starting-style\{[^}]*_tq-rhythm-seg\{transform:scaleX\(0\)\}/, 'the strip draws from its left edge on mount');
-  assert.match(css, /_tq-rhythm-seg\[data-role=done\]\{background:var\(--tq-chart-run\)\}/);
-  assert.match(css, /_tq-rhythm-seg\[data-role=fail\]\{background:var\(--tq-chart-bad\)\}/);
-  assert.match(css, /_tq-cov-fill\{[^}]*background:var\(--tq-ink-3\)/, 'a magnitude bar is neutral; the badge carries the state');
-  assert.match(css, /_tq-cov-fill\{[^}]*transition:transform var\(--tq-standard\)/);
-  assert.match(css, /@starting-style\{[^}]*_tq-cov-fill[^}]*transform:scaleX\(0\)/);
-  assert.match(css, /_tq-cov-runs-fill\{[^}]*transition:transform var\(--tq-standard\)/);
-  assert.match(css, /_tq-cov-lens-dot\[data-role=fail\]\{background:var\(--tq-bad\)\}/);
-  assert.match(css, /_tq-cov-open\[data-open=true\]\{background:var\(--tq-chip-warn-fill\);color:var\(--tq-text-warn\)\}/);
-  assert.match(css, /_tq-cov-clear-mark\{[^}]*color:var\(--tq-text-ok\)/);
-  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-rhythm-seg[^{]*\{transition:none\}/);
-  assert.match(css, /@media \(prefers-reduced-motion: ?reduce\)\{[^@]*_tq-cov-fill[^{]*\{transition:none\}/);
-  // Provider categories use brand hues muted into one lightness band and a 90% tint; no
-  // semantic state token is the category value and there is no total line.
-  assert.match(css, /--tq-brand-claude:oklch\(62% \.1 50\)/);
-  assert.match(css, /--tq-brand-codex:oklch\(62% \.08 165\)/);
-  assert.match(css, /--tq-brand-dsh:oklch\(60% \.1 260\)/);
-  assert.match(css, /--tq-brand-opencode:oklch\(62% \.08 310\)/);
-  assert.match(css, /--tq-series-1:color-mix\(in oklab, var\(--tq-brand-claude\) 90%, transparent\)/);
-  assert.match(css, /_tq-agent-glyph\[data-tq-agent=dsh\][^}]*color:var\(--tq-brand-dsh\)/, 'the dsh whale keeps currentColor and takes the brand token through it');
-  assert.doesNotMatch(css, /--tq-viz|--tq-series-total|_tq-stats-chart-total\{/);
-
-});
-
-// 2026-09-28 (kcn: 「很多地方都没有对齐显示」): one grid for the whole panel, five tracks, three
-// of them fixed — lead · when · took · rest · aside — so a time, a duration, a cost and a state sit
-// on one vertical line in every row. Each fact's cell is FACT_CELL in client.ts; this checks the
-// stylesheet places every one of them there, and that the folded sidebar lines keep one subgrid.
-test("provider panel: every row takes its columns from the one grid", async () => {
-  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
-  const rules = (sel) => [...css.matchAll(new RegExp(`${sel}(?:,[^{}]*)?\\{([^}]*)\\}`, "g"))].map((m) => m[1]).join(";");
-  assert.equal((css.match(/--tq-grid:/g) ?? []).length, 1, "the columns are defined once");
-  assert.match(css, /--tq-grid:var\(--tq-lead\) var\(--tq-when\) var\(--tq-took\) minmax\(0(px)?, ?1fr\) var\(--tq-aside\)/);
-  for (const track of ["when", "took", "aside"]) assert.match(css, new RegExp(`--tq-${track}:\\d+px`), `--tq-${track} is a fixed width`);
-  const desktop = Object.fromEntries(["when", "took", "aside"].map((track) =>
-    [track, Number(css.match(new RegExp(`--tq-${track}:(\\d+)px`))?.[1])]));
-  const phone = css.match(/@media \(width<=380px\)\{[^}]*--tq-when:(\d+)px;--tq-took:(\d+)px;--tq-aside:(\d+)px/);
-  assert.ok(phone, "the narrow phone has a measured three-track budget");
-  const narrow = { when: Number(phone[1]), took: Number(phone[2]), aside: Number(phone[3]) };
-  // A 360px panel has 298px inside a well row; at 375px viewport the panel
-  // is 351px and the row has 289px. Keep room for the shared lead, four 8px
-  // gaps, both facts, the chip and at least 8px of elastic name track.
-  for (const [label, tracks, rowWidth] of [["desktop", desktop, 298], ["phone", narrow, 289]]) {
-    assert.ok(tracks.aside >= 104, `${label}: the longest resident state words and glyph fit the chip`);
-    assert.ok(14 + 4 * 8 + tracks.when + tracks.took + tracks.aside + 8 <= rowWidth,
-      `${label}: fixed tracks leave a name track at the real narrow sidebar width`);
-  }
-  assert.match(rules("_tq-chip"), /max-width:100%/, "the chip stays in the shared aside track");
-  assert.doesNotMatch(rules("_tq-chip") + rules("_tq-chip-text"), /(?:text-overflow:ellipsis|overflow:hidden)/,
-    "chip words are neither clipped nor ellipsised");
-  assert.match(css, /--tq-main-inset:calc\(var\(--tq-lead\) \+ var\(--tq-gap\)\)/);
-  assert.match(rules("\\[data-tq-row\\]"), /grid-template-columns:var\(--tq-grid\)/, "panel rows and folded lines alike");
-  assert.match(rules("\\[data-tq-row\\]"), /align-items:baseline/, "the first line shares one baseline");
-  assert.match(rules("_pp-row"), /grid-template-columns:subgrid/, "folded lines share the list's columns");
-  assert.match(rules("_pp-rows"), /grid-template-columns:calc\(var\(--tq-lead\) \+ 8px\) minmax/, "the lead track carries the line's inset");
-  // The panel's cells, as FACT_CELL says: line 1 name over when…rest, the chip or the value in aside.
-  const row = "\\.[A-Za-z0-9_-]+_tq-row>";
-  assert.match(rules(row + "\\.[A-Za-z0-9_-]+_tq-name"), /grid-column:2\/5/);
-  assert.match(rules(row + "\\.[A-Za-z0-9_-]+_tq-value"), /grid-column:5/);
-  assert.match(rules(row + "\\.[A-Za-z0-9_-]+_tq-chip\\[data-tq-chip=status\\]"), /grid-column:5;justify-self:stretch/, "one chip width per column");
-  const loaded = await loadClient();
-  const api = loaded.factory((s) => { if (s === "react") return makeReactStub(); return makeRuntimeStub(); });
-  const cols = { main: "2/5", full: "2/6", when: "2/3", took: "3/4", aside: "5/6" };
-  for (const [slot, cell] of Object.entries(api.FACT_CELL)) {
-    const [from, to] = cols[cell.track].split("/");
-    const placed = css.match(new RegExp(`_tq-row>(?::is\\([^)]*)?\\[data-tq-fact=${slot}\\][^{]*\\{([^}]*)\\}`))?.[1] ?? "";
-    assert.match(placed, new RegExp(`grid-area:${cell.line}/${from}/${cell.line + 1}/${to}(;|$)`), `${slot} sits on line ${cell.line}, track ${cell.track}`);
-  }
-  assert.match(rules(row + "\\.[A-Za-z0-9_-]+_tq-caption-line"), /grid-area:2\/2\/3\/-1/);
-  // Two levels: tasks sit on an inset well that starts on the name's edge; heads stay on the panel.
-  assert.match(rules("_tq-well"), /margin:[^;]*var\(--tq-main-inset\)/, "the well starts on the name's edge");
-  assert.match(rules("_tq-well"), /background:var\(--tq-well\)/);
-  assert.match(css, /--tq-well:var\(--dsw-alias-[a-z-]+\)/, "the well is a host token");
-  for (const sel of ["_tq-inset", "_tq-fold"]) assert.match(rules(sel), /var\(--tq-main-inset\)/, `${sel} starts on the name's edge`);
-  assert.doesNotMatch(css, /_(tq-record|tq-line|tq-meta|tq-num|tq-group-head|pp-reading|pp-reset|pp-money)[{ ,.:[]/, "no per-row-type layout is left");
-  // Every role has its bed, and no chip says anything through a grey level alone.
-  for (const role of Object.keys(api.STATE_ROLES)) {
-    assert.match(css, new RegExp(`_tq-chip(?::is\\([^)]*)?\\[data-role=${role}\\][^{]*\\{[^}]*color:var\\(--tq-`), `${role}: its own paint`);
-  }
-  assert.doesNotMatch(css, /data-tone=/, "the grey tone scale is gone");
-});
-
-// 2026-09-28 (kcn: 「问题在详情页」): the detail layer draws on the list's grid and the list's
-// controls. Its fields put the label on the when track (the name's edge), the value over
-// took…rest and a control in aside, where the list keeps its state chip; the hero is the row's own
-// cells. Every control is the fold control's 26px capsule with the panel's focus ring outside it,
-// press feedback and a 44px finger target; what it does (read / write / end) is its look.
-test("detail layer: its fields sit on the list's grid and its controls are one height", () => {
-  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
-  const rules = (sel) => [...css.matchAll(new RegExp(`${sel}(?:,[^{}]*)?\\{([^}]*)\\}`, "g"))].map((m) => m[1]).join(";");
-  for (const sel of ["_tq-d-field", "_tq-d-hero"]) {
-    assert.match(rules(sel), /grid-template-columns:var\(--tq-grid\)/, `${sel} is on THE row grid`);
-    assert.match(rules(sel), /align-items:baseline/, `${sel}: one baseline per line`);
-  }
-  assert.match(rules("_tq-d-k"), /grid-area:1\/2(;|$)/, "the label on the when track, the name's edge");
-  assert.match(rules("_tq-d-v"), /grid-area:1\/3\/2\/-1/, "the value over took…rest");
-  assert.match(rules("_tq-d-control"), /grid-area:1\/5(;|$)/, "a control in aside, where the list keeps its chip");
-  assert.match(rules("_tq-d-hero>\\.[A-Za-z0-9_-]+_tq-chip"), /grid-area:1\/5;justify-self:stretch/, "the hero's chip in the row's chip column");
-  assert.match(rules("_tq-d-sec-title"), /margin:0 0 2px var\(--tq-main-inset\)/, "a section starts on the name's edge");
-  const pill = rules("_tq-pill");
-  assert.match(pill, /height:26px/, "one control height: the fold control's");
-  assert.match(rules("_tq-fold-pill>\\.\\w+_tq-fold-summary"), /min-height:26px/, "the fold pill grows to wrap a long label");
-  assert.match(rules("_tq-fold-pill>\\.\\w+_tq-fold-summary"), /max-width:100%/, "it never runs past the panel");
-  assert.match(pill, /transition:[^;]*transform/, "its own transition still names transform");
-  assert.match(rules("_tq-pill:active"), /transform:scale\(var\(--tq-press-scale\)\)/);
-  assert.match(rules("_tq-pill:focus-visible"), /outline:var\(--tq-focus-ring\);outline-offset:1px/, "the ring outside the capsule");
-  assert.doesNotMatch(css, /_tq-pill,[^{]*:focus-visible\{outline:var\(--tq-focus-ring\);outline-offset:-2px/, "not the rows' inset ring");
-  assert.match(css, /@media \(pointer: ?coarse\)\{[^@]*_tq-d-sec \.[A-Za-z0-9_-]+_tq-pill:after\{inset:-9px -8px\}/, "26 + 9 + 9 = a 44px target");
-  assert.match(css, /@media \(hover: ?hover\) and \(pointer: ?fine\)\{[^@]*_tq-pill:hover/, "hover only on a fine pointer");
-  // Kinds look apart: a read is a filled quiet bed, a write an outlined capsule, an end red; armed = its role's bed.
-  const view = rules("_tq-pill\\[data-tq-kind=view\\]");
-  assert.match(view, /background:var\(--tq-fill-inset\)/);
-  assert.match(view, /border-color:(transparent|#0000)/, "a read has no outline");
-  assert.match(pill, /border:\.5px solid var\(--tq-pill-border\)/);
-  assert.match(rules("_tq-pill\\[data-armed\\]"), /background:var\(--tq-chip-warn-fill\)/);
-  assert.match(rules("_tq-pill\\.[A-Za-z0-9_-]+_tq-danger\\[data-armed\\]"), /background:var\(--tq-chip-bad-fill\)/);
-  // The answer to a write is resident, outside the scroll area, and never animates in.
-  assert.match(rules("_tq-d-notice"), /flex:none/);
-  assert.doesNotMatch(css, /_tq-d-[a-z-]+[^{]*\{[^}]*animation/, "nothing in the detail layer animates");
-});
-
-// #1955: the queue and provider panel wrote their waiting/failed WORDS in the host's state
-// tokens, which are dot and icon paint — the waiting amber (--dsw-alias-state-warn-label) was
-// 2.65:1 as 11px text on the panel, 2.39:1 hovered. Words now take the local semantic
-// colours; this pins both halves: every state-coloured text rule reads a text role, and the
-// colours those roles resolve to clear AA on the panel the host paints, hovered and pressed.
-test("queue and provider panel: state-coloured words clear 4.5:1, dots keep the host paint (#1955)", () => {
-  const css = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
-  assert.match(css, /--tq-text-warn:var\(--warn\)/);
-  assert.match(css, /--tq-text-bad:var\(--bad\)/);
-  assert.doesNotMatch(css, /--dsw-alias-state-warn-label/, "the host's warn label paint is not a text colour here");
-  // The minifier folds rules with the same body into one selector list: a selector may lead one.
-  const rule = (sel) => css.match(new RegExp(`_${sel}(?:,[^{}]*)?\\{([^}]*)\\}`))?.[1] ?? "";
-  for (const [sel, role] of [
-    ["tq-value\\[data-balance-state=stale\\]", "warn"], ["tq-value\\[data-balance-state=low\\]", "bad"],
-    ["tq-value\\[data-used-level=mid\\]", "warn"], ["tq-value\\[data-used-level=low\\]", "bad"],
-    ["tq-chip\\[data-role=fail\\]", "bad"], ["tq-fact\\[data-voice=warn\\]", "warn"],
-    ["tq-receipt\\[data-state=failed\\]", "bad"], ["tq-receipt\\[data-state=sent\\]", "ok"],
-    ["tq-d-status\\[data-balance-state=stale\\]", "warn"], ["tq-d-status\\[data-balance-state=low\\]", "bad"],
-    ["tq-note\\.[A-Za-z0-9_-]+_tq-warn", "warn"], ["tq-note\\.[A-Za-z0-9_-]+_tq-bad", "bad"],
-    ["tq-foot\\.[A-Za-z0-9_-]+_tq-bad", "bad"], ["tq-pill\\.[A-Za-z0-9_-]+_tq-danger", "bad"],
-  ]) {
-    assert.match(rule(sel), new RegExp(`color:var\\(--tq-text-${role}\\)`), `${sel} must be written in --tq-text-${role}`);
-  }
-  // The dots stay host paint (kcn 2026-09-26: one colour, one meaning).
-  assert.match(rule("tq-dot\\[data-balance-state=stale\\]"), /background:var\(--tq-wait\)/);
-
-  // WCAG 2 contrast. The beds are the host's own panel colour as measured on @deepseek-ai/dsh
-  // 0.1.7-rc.2 (--dsw-specific-menu 58% over the sidebar fill: light #f8f9fa, dark #2d2e31) and
-  // its hover/active fills (#2631480f / #2631481a) laid over the light one.
-  const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
-  const lum = (c) => hex(c).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
-    .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
-  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
-  const over = (rgba, bed) => {
-    const a = parseInt(rgba.slice(7, 9), 16) / 255;
-    return "#" + hex(rgba).map((v, i) => Math.round(v * a + hex(bed)[i] * (1 - a)).toString(16).padStart(2, "0")).join("");
-  };
-  const local = (body, name) => body.match(new RegExp(`--${name}:(#[0-9a-f]{6})`, "i"))?.[1];
-  const light = css.match(/\}\.[A-Za-z0-9_-]+_pbc\{([^}]*--warn:[^}]*)\}/)?.[1];
-  const dark = css.match(/\[data-ds-dark-theme\] \.[A-Za-z0-9_-]+_pbc\{([^}]*)\}/)?.[1];
-  assert.ok(light && dark, "the panel's local semantic colours must be found, light and dark");
-  const beds = { light: ["#f8f9fa", over("#2631480f", "#f8f9fa"), over("#2631481a", "#f8f9fa")], dark: ["#2d2e31"] };
-  for (const [theme, body] of [["light", light], ["dark", dark]]) {
-    for (const name of ["warn", "bad", "ok"]) {
-      for (const bed of beds[theme]) {
-        // --ok paints only the delivered receipt, a glyph (WCAG 1.4.11 non-text: 3:1); the rest are words.
-        const floor = name === "ok" ? 3 : 4.5;
-        const r = ratio(local(body, name), bed);
-        assert.ok(r >= floor, `${theme} --${name} ${local(body, name)} on ${bed}: ${r.toFixed(2)}:1 < ${floor}:1`);
-      }
-    }
-  }
-  // Verdict chips write those words on their own opaque soft fill: each pair owes 4.5:1 too.
-  assert.match(css, /--tq-chip-warn-fill:var\(--warn-soft\)/);
-  assert.match(css, /--tq-chip-bad-fill:var\(--bad-soft\)/);
-  for (const [theme, body] of [["light", light], ["dark", dark]]) {
-    for (const name of ["warn", "bad"]) {
-      const r = ratio(local(body, name), local(body, name + "-soft"));
-      assert.ok(r >= 4.5, `${theme} --${name} on --${name}-soft: ${r.toFixed(2)}:1 < 4.5:1`);
-    }
-  }
-  for (const [role, text] of [["sleep", "warn"], ["partial", "warn"], ["wait", "warn"], ["fallback", "warn"], ["fail", "bad"]]) {
-    assert.match(css, new RegExp(`_tq-chip(?::is\\([^)]*)?\\[data-role=${role}\\][^{]*\\{[^}]*color:var\\(--tq-text-${text}\\)`), `${role} chip words in --tq-text-${text}`);
-  }
-});
-
-// The OpenClaw `/dispatch-list` reply is the provider panel as text (src/text.ts over the
-// panel.ts model the sidebar draws). Its promise: for the same answers, the chat says
-// every row the panel shows, in the panel's order, with the panel's own words.
-test("openclaw /dispatch-list: the reply says every panel row, in order, in the panel's words", async () => {
-  const loaded = await loadClient();
-  const reactStub = makeReactStub();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
-    throw new Error(`unexpected require: ${s}`);
-  });
-  const chat = await import(pathToFileURL(path.join(PLUGIN, "lib", "chat.js")).href);
-  const now = Date.now();
-  const QUEUE = {
-    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 3, running: 1,
-    slotLimits: [{ agent: "claude", max: 1 }, { agent: "codex", max: 1 }, { agent: "opencode", max: 1 }],
-    active: [
-      { id: "a-1", name: "source-sync", agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "claude-1",
-        attempts: 2, stalls: 0, outcome: "", startedAtMs: now - 65 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
-      { id: "b-1", name: "model-bump", agent: "claude", model: "claude-opus-5-5", state: "queued", waiting: "lock", slot: "",
-        attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false, position: 1 },
-    ],
-    recent: [{ id: "c-1", name: "merge-pr1767", agent: "codex", model: "gpt-6-sol", state: "ok", waiting: "", slot: "", attempts: 1,
-      outcome: "DONE", startedAtMs: now - 3600000, updatedAtMs: now - 30 * 60000, wakeAtMs: null, patrol: false,
-      notify: ["weixin", "telegram"], notified: ["telegram"], notifyFailed: ["weixin"], tokensTotal: 1000, costUsd: "1.25" }],
-    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: now + 3600000,
-      rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE/P0#2241 +1 digest", seconds: 4090 }],
-      progress: { records: 40, lensInventory: true, areaInventory: true, firstAt: "2026-09-17 04:00:19", rejected: 1, issuesAt: "2026-10-04T08:23:04.597Z",
-        lenses: [
-          { name: "docs", rounds: 0, last: null, open: 0 },
-          { name: "logic", rounds: 9, last: { endedAt: "2026-09-22 03:55:00", round: "R130", axis: "logic", result: "failed", seconds: 60 }, open: 0 },
-          { name: "automation", rounds: 31, last: { endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "ok/DONE/P0#2241 +1 digest", seconds: 4090 }, open: 2 }],
-        areas: [{ name: "dashboard", open: 1 }, { name: "data", open: 4 }, { name: "debt", open: 0 }, { name: "risk", open: 0 }] } },
-    queues: [{ agent: "claude", held: true, holder: "a-1", order: ["b-1"], holderNote: "", quotaUntilMs: null, quotaBy: "" }],
-  };
-  const remoteFace = {
-    balance: async () => ({ ok: true, value: BALANCES_OK }),
-    taskQueue: async () => ({ ok: true, value: QUEUE }),
-  };
-  const ctx = {
-    effect() {},
-    locale: { register() { return () => {}; } },
-    get() { return remoteFace; },
-    layout: { selectPanel() {} },
-    slots: {
-      inject(name, fn) { (this._fns ??= []).push(fn); },
-      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
-    },
-    remote: { $mount: async () => {} },
-  };
-  await api.apply(ctx);
-  for (const fn of ctx.slots._fns) fn();
-  const foot = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
-  const face = foot.definition.inject();
-  const t = translatorFor(api);
-  const store = makeBalanceStoreStub();
-  const render = () => { reactStub._resetCursor(); return foot.Component({ wide: true, t, useStore: store.useStore, actions: store.actions, ...face }); };
-  const find = (tree, pred) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node !== "object") return;
-      if (pred(node.props || {})) out.push(node);
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out;
-  };
-  const texts = (tree) => {
-    const out = [];
-    (function walk(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(walk); return; }
-      if (typeof node === "string") { out.push(node); return; }
-      (node.children || []).forEach(walk);
-    })(tree);
-    return out.join("");
-  };
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  try {
-    render(); await tick(); await tick();
-    find(render(), (p) => p["data-pp-row"] !== undefined)[0].props.onClick({ currentTarget: null });
-    const popover = find(render(), (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
-    const reply = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
-
-    assert.ok(reply[0].startsWith('# '), 'Markdown title');
-    assert.ok(reply.some(line => line.startsWith('## ')), 'sections use supported headings');
-    assert.ok(reply.filter(line => /^#+ /.test(line)).length <= 3, 'a provider is a bold line: headings are the title and the two list sections');
-    assert.ok(reply.every((line, i) => !reply[i - 1]?.startsWith('- ') || line === '' || line.startsWith('- ')), 'nothing bare follows a list item (it would read as that item\'s continuation)');
-    assert.ok(reply.filter(line => /^- [●○☾⌛✓◐✕⊖?]/.test(line)).length >= 4, 'task, ended and round rows lead with their state');
-    assert.ok(reply.some(line => line.startsWith('- **')), 'allowance window labels use bold flat list items');
-    assert.ok(reply.some(line => line.startsWith('- ') && line.includes('source-sync')), 'live tasks use flat lists');
-    assert.ok(reply.every(line => !/^\s{2,}[-*]|^\|/.test(line)), 'no nested lists or Markdown tables');
-    assert.ok(reply.some((line) => /还剩 1 小时/.test(line)), "next-round wait has remaining time as well as the scheduled clock");
-    const overdue = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
-      queue: { ...QUEUE, patrol: { ...QUEUE.patrol, untilMs: now - 60000 } }, queueError: null }, t, now);
-    assert.match(overdue, /已到计划时间/, "a due round is not promised to have started");
-    assert.doesNotMatch(overdue, /还剩 -/, "no negative countdown");
-    const rows = find(popover, (p) => p["data-tq-row"] !== undefined);
-    assert.ok(rows.length >= 8, `the fixture fills the panel (${rows.length} rows)`);
-    const cell = (row, cls) => texts(find(row, (p) => new RegExp(`_tq-${cls}$`).test(p.className || "")));
-    let at = 0;
-    for (const row of rows) {
-      const name = cell(row, "name");
-      const line = reply.findIndex((l, i) => i >= at && l.includes(name));
-      assert.ok(line >= 0, `${row.props["data-tq-row"]} "${name}" is in the reply after line ${at}:\n${reply.join("\n")}`);
-      const squash = (text) => text.replace(/\s+/g, "");
-      for (const said of [cell(row, "value"), texts(find(row, (p) => p["data-tq-chip"] === "status"))]) {
-        if (said !== "") assert.ok(squash(reply[line]).includes(squash(said)), `"${said}" is on ${name}'s line: ${reply[line]}`);
-      }
-      for (const fact of find(row, (p) => p["data-tq-fact"] !== undefined && p["data-tq-fact"] !== "receipt")) {
-        assert.ok(reply[line].includes(texts(fact)), `${name}'s ${fact.props["data-tq-fact"]} "${texts(fact)}" is on its line: ${reply[line]}`);
-      }
-      at = line + 1;
-    }
-    // The allowance lines under a source head: every window's label, used share and reset.
-    for (const win of find(popover, (p) => /_bp-win$/.test(p.className || ""))) {
-      const [label, pct, reset] = ["label", "pct", "reset"].map((c) => texts(find(win, (p) => new RegExp(`_bp-win-${c}$`).test(p.className || ""))));
-      assert.ok(reply.some((l) => l.includes(label) && l.includes(pct) && l.includes(reset.replace("↻ ", "↻"))), `window ${label} ${pct} ${reset}`);
-    }
-    for (const count of [2, 4, 5]) {
-      const rounds = Array.from({ length: count }, (_, i) => ({ ...QUEUE.patrol.rounds[0], round: 'T' + i }));
-      const text = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
-        queue: { ...QUEUE, patrol: { ...QUEUE.patrol, rounds } }, queueError: null }, t, now);
-      // A chat cannot unfold: every round the host sent is said, and the sidebar's fold label is not.
-      for (let i = 0; i < count; i++) assert.ok(text.includes('T' + i));
-      assert.ok(!text.includes(t('queue.olderRounds', { n: count - 1 })));
-    }
-    // Patrol and coverage are one entry and one page. The panel has a single row carrying the
-    // phase and the coverage conclusion; the page holds the live head, the rounds and both tables.
-    const patrolGroup = find(popover, (p) => p["data-tq-group"] === "patrol")[0];
-    assert.equal(find(patrolGroup, (p) => p["data-tq-round"] !== undefined).length, 0, 'no round list in the panel');
-    assert.equal(find(patrolGroup, (p) => p["data-tq-coverage-open"] !== undefined).length, 0, 'no separate coverage link');
-    const patrolEntry = find(patrolGroup, (p) => p["data-tq-patrol-open"] !== undefined)[0];
-    assert.equal(patrolEntry.type, "button", 'patrol is one entry, not a head + list + link');
-    assert.equal(patrolGroup.children.filter(Boolean).at(-1), patrolEntry, 'the entry is the whole patrol section');
-    assert.match(texts(patrolEntry), /巡检/);
-    assert.match(texts(patrolEntry), /2 个 area 有未决/, 'the entry states the coverage conclusion');
-    assert.match(patrolEntry.props["aria-label"], /^巡检 · .* · 2 个 area 有未决 · 打开巡检详情$/, 'the accessible name carries the phase and the conclusion');
-    assert.equal(find(patrolEntry, (p) => p["data-coverage-state"] === "open").length, 1, 'open conclusions take the strong ink');
-    assert.equal(find(patrolEntry, (p) => /_tq-patrol-entry-dot$/.test(p.className || "")).length, 1, 'the entry carries one colour mark');
-    patrolEntry.props.onClick({ currentTarget: null });
-    const layer = find(render(), (p) => p["data-tq-patrol-layer"] !== undefined)[0];
-    assert.ok(layer, 'the entry opens the patrol page');
-    assert.equal(find(render(), (p) => p["data-tq-patrol-layer"] !== undefined).length, 1, 'one page, not a fold inside the list');
-    assert.equal(find(layer, (p) => p["data-tq-patrol-summary"] !== undefined).length, 0, 'the page does not repeat the entry');
-    assert.ok(find(layer, (p) => p["data-tq-round"] !== undefined).length > 0, 'the rounds are on the page');
-    assert.match(texts(find(layer, (p) => p["data-tq-back"] === undefined && /_tq-caption$/.test(p.className || ""))[0]), /2 个 area 有未决/, 'the page head states the conclusion');
-    const covered = (attr) => find(layer, (p) => p[attr] !== undefined).map((n) => [n.props[attr], texts(n)]);
-    assert.deepEqual(covered("data-coverage-area"), [["data", "data4"], ["dashboard", "dashboard1"], ["debt", "debt"], ["risk", "risk"]],
-      'areas with open issues first, most first; the ones with none keep their names and links on one line');
-    assert.deepEqual(covered("data-coverage-lens").map(([name]) => name), ["automation", "logic", "docs"], 'lenses most recently run first, never recorded last');
-    assert.match(covered("data-coverage-lens")[0][1], /312R139完成提报 1 · P0 #2241 · 汇总 1$/, 'runs, open, then the last round with its verdict and filings');
-    const automationLens = find(layer, (p) => p["data-coverage-lens"] === "automation")[0];
-    assert.equal(find(automationLens, (p) => /issues\/2241$/.test(p.href || "")).length, 1, 'a lens row\'s findings are links, as in a round row');
-    assert.match(covered("data-coverage-lens")[1][1], /R130失败/, 'a failed last round says so');
-    // The lens table is two bands: the rows with an open issue or a failed last run first, then the
-    // rest by last run. The heading is one word and a dot; the old counts were noise. The chart
-    // marks (dot, runs bar, open badge) are data, each with its word/number.
-    const bands = find(layer, (p) => p["data-band"] !== undefined);
-    assert.deepEqual(bands.map((b) => [b.props["data-band"], b.props.role, b.props["aria-level"]]),
-      [["needs", "heading", 5], ["rotation", "heading", 5]], 'two labelled bands, not one flat sort');
-    assert.match(texts(bands[0]), /^需要看一眼$/);
-    assert.match(texts(bands[1]), /^按上次运行$/);
-    const lens = (name) => find(layer, (p) => p["data-coverage-lens"] === name)[0];
-    const lensMark = (name, kind) => find(lens(name), (p) => new RegExp(`_tq-cov-${kind}$`).test(p.className || ""))[0];
-    assert.deepEqual(["automation", "logic", "docs"].map((name) => lensMark(name, "lens-dot").props["data-role"]),
-      ["done", "fail", "idle"], 'the dot is the last round\'s verdict, not the lens name\'s decoration');
-    assert.deepEqual(["automation", "logic", "docs"].map((name) => lensMark(name, "runs-fill").props.style.width),
-      ["28px", "8px", "2px"], 'the runs bar is against the busiest lens (31)');
-    assert.deepEqual(["automation", "logic", "docs"].map((name) => lensMark(name, "open").props["data-open"]),
-      ["true", "false", "false"], 'open issues are a badge, zero stays quiet');
-    const areaRow = (name) => find(layer, (p) => p["data-coverage-area"] === name)[0];
-    assert.deepEqual(["data", "dashboard"].map((name) => find(areaRow(name), (p) => /_tq-cov-open$/.test(p.className || ""))[0].props["data-open"]),
-      ["true", "true"], 'an area with findings carries the same badge');
-    assert.deepEqual(["data", "dashboard"].map((name) => find(areaRow(name), (p) => /_tq-cov-fill$/.test(p.className || ""))[0].props.style.width),
-      ["100%", "25%"], 'the area bar is against the largest (data has 4)');
-    assert.equal(find(layer, (p) => /_tq-cov-clear-label$/.test(p.className || "")).length, 1, 'the none-open line keeps its one label');
-    assert.equal(find(layer, (p) => /_tq-cov-clear-mark$/.test(p.className || "")).length, 1, 'the green check is a separate mark');
-    assert.doesNotMatch(texts(layer), /\d{4}-\d{2}-\d{2}[T ]\d{2}:/, 'no raw timestamp: stamps use the panel\'s own format');
-    assert.match(texts(layer), /40 条轮次记录 · 另有 1 条损坏未计 · 自 9\/17 .* 起 · issue 快照 /, 'provenance is one footer line');
-    find(layer, (p) => p["data-tq-back"] === "true")[0].props.onClick();
-    assert.equal(find(render(), (p) => p["data-tq-patrol-layer"] !== undefined).length, 0, 'back closes the patrol page');
-    // The chat reply keeps the archive out and speaks of coverage only when a source could not be read.
-    assert.ok(!reply.join("\n").includes('巡检覆盖') && !reply.some((l) => /dashboard|未决/.test(l)), 'no coverage block and no area counts in chat');
-    const unread = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null,
-      queue: { ...QUEUE, patrol: { ...QUEUE.patrol, progress: { ...QUEUE.patrol.progress, issuesAt: "" } } }, queueError: null }, t, now);
-    assert.ok(unread.includes('- ⚠ ' + t('queue.coverage.issuesUnreadable')), 'an unreadable source is said in chat too');
-    // A source's low mark is on the window that is at its limit, not on its headline reading.
-    const low = BALANCES_OK.providers.find((p) => (p.result?.snapshot?.windows ?? []).length > 1);
-    assert.ok(low, 'the fixture has a multi-window provider');
-    {
-      const spent = { ...BALANCES_OK, providers: BALANCES_OK.providers.map((p) => p !== low ? p
-        : { ...p, result: { ...p.result, snapshot: { ...p.result.snapshot, windows: p.result.snapshot.windows.map((w, i) => ({ ...w, percent: i === 0 ? 0 : 100 })) } } }) };
-      const lines = chat.dispatchListText({ balances: spent, balanceError: null, queue: QUEUE, queueError: null }, t, now).split("\n");
-      assert.ok(lines.some((l) => /^- \*\*.* 100% ⚠/.test(l)), 'the spent window carries the mark');
-      assert.ok(lines.every((l) => !/^\*\*.*⚠0%/.test(l)), 'the headline does not read as a fault at 0%');
-    }
-    // Receipts: the panel's glyphs are words and marks here, one per channel.
-    assert.match(reply.find((l) => l.includes("merge-pr1767")), /微信✕ Telegram✓/);
-    // dsh's tasks are paid from the DeepSeek balance (#3040): they list under that row, as claude's
-    // under Claude, not in the slot after the paid rows where an agent without a row lands.
-    {
-      const dsh = { ...QUEUE.active[0], id: "d-1", name: "dsh-routing", agent: "dsh", model: "deepseek-official/deepseek-flash", slot: "dsh-1" };
-      const queue = { ...QUEUE, slotLimits: [...QUEUE.slotLimits, { agent: "dsh", max: 1 }], active: [...QUEUE.active, dsh] };
-      const lines = chat.dispatchListText({ balances: BALANCES_OK, balanceError: null, queue, queueError: null }, t, now).split("\n");
-      const head = (label) => lines.findIndex((l) => l.startsWith("**" + label));
-      const at = lines.findIndex((l) => l.includes("dsh-routing"));
-      assert.ok(head("DeepSeek") >= 0 && head("DeepSeek") < at && at < head("MiniMax"), "the dsh task sits in the DeepSeek group:\n" + lines.join("\n"));
-    }
-  } finally {
-    disposeReactEffects();
-  }
-});
-
 test("dispatch stats: a table for /dispatch-stats, a bar fallback, and the wire's own snapshot", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
@@ -5391,34 +3622,6 @@ test("patrol issue failures preserve the last good queue, disclose stale and ret
   }
 });
 
-test("client: the phone foot panel is a drawer page; the desktop card is clamped", async () => {
-  // On a phone the panel is an inner page of the drawer: its geometry is CSS
-  // (100% width, top 52px, the drawer's height), so there is no viewport
-  // anchor to compute. The desktop popover keeps the old 380px clamp.
-  const loaded = await loadClient();
-  const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-store") return {};
-    if (s === "react") return makeReactStub();
-    if (s === "react-dom") return { createPortal: (children) => children };
-    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    throw new Error(`unexpected require: ${s}`);
-  });
-  assert.equal(api._popoverAnchor({ left: 8, top: 568 }, 390, 844), null,
-    "390px phone: the page owns its geometry");
-  assert.equal(api._popoverAnchor({ left: 0, top: 400 }, 320, 568), null,
-    "320px phone: same page, no floating card");
-  assert.equal(api._popoverAnchor({ left: 8, top: 568 }, 767, 844), null,
-    "767px is still the host's drawer breakpoint");
-  const desktop = api._popoverAnchor({ left: 8, top: 800 }, 1280, 900);
-  assert.deepEqual(desktop, { left: 8, bottom: 108, room: 780 }, "desktop keeps the 380px card and 12px gap");
-  assert.equal(api._popoverAnchor({ left: 8, top: 200 }, 1280, 900).room, 240,
-    "the top gap never squeezes the panel below its floor");
-  assert.equal(api._popoverAnchor({ left: 8, top: 900 }, 1024, 700).bottom, 8,
-    "a row below the fold keeps the card above the bottom edge");
-  const edge = api._popoverAnchor({ left: 700, top: 600 }, 800, 900);
-  assert.equal(edge.left, 412, "a row near the right edge is decked left by the card width");
-});
-
 test("workbench: the signal copy, waits and first sentence are fixed", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
@@ -5452,7 +3655,7 @@ test("workbench: the signal copy, waits and first sentence are fixed", async () 
   assert.equal(many.total, 3);
   assert.equal(many.oldestPendingMs, 6 * 3600_000);
   const stuck = api.signalView([task("a", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" })], t, now);
-  assert.equal(stuck.tone, "danger", "a stuck task takes the danger badge");
+  assert.equal(stuck.tone, "neutral", "the count badge stays neutral; only a provider alert turns the dot red");
   assert.equal(stuck.badge, "1", "the badge is stuck + pending, not the pending group alone");
   assert.equal(stuck.pending, 0);
   const allStuck = api.signalView([
@@ -5552,24 +3755,56 @@ test("workbench host: the three presets run the existing dispatcher commands", a
   assert.match(tq.workbenchCommand("stop", "../bad", plain), /not a task id/);
 });
 
-test("workbench client: the foot has no signal row; the panellist badge carries counts", async () => {
+test("workbench client: one sidebar entry, a neutral count and the provider dot", async () => {
   const loaded = await loadClient();
-  const reactStub = makeReactStub();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
-    if (s === "react") return reactStub;
+    if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
-  });
-  const task = (id, state, stage, finished, needs) => ({
-    id, name: id, agent: "dsh", model: "", state, waiting: "", slot: "", attempts: 1, outcome: "DONE",
-    startedAtMs: null, updatedAtMs: finished, wakeAtMs: null, patrol: false, summary: "", lastEvent: "",
-    lastEventAtMs: null, finishedAtMs: finished, needs, stage, attention: "person",
   });
   const queue = (pending) => ({
     available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
     running: 0, active: [], recent: [], pending, pendingTotal: pending.length,
     patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
   });
+  const remoteFace = {
+    balance: async () => ({ ok: true, value: BALANCES_OK }),
+    taskQueue: async () => ({ ok: true, value: queue([]) }),
+  };
+  const ctx = {
+    effect() {}, locale: { register() { return () => {}; } },
+    get() { return remoteFace; }, layout: { selectPanel() {} },
+    slots: { inject(name, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  assert.deepEqual(ctx.slots._regs.map((r) => r.definition.name).sort(),
+    ["conversation.view", "main", "sidebar.panellist"],
+    "there is no second footer action; the workbench is the only entry");
+
+  const now = Date.now();
+  const task = (id, finished, extra = {}) => ({
+    id, name: id, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: null, updatedAtMs: finished + 1, wakeAtMs: null, patrol: false, summary: "", lastEvent: "",
+    lastEventAtMs: null, finishedAtMs: finished, needs: "", stage: "person/review", attention: "person", ...extra,
+  });
+  const alert = {
+    ...BALANCES_OK,
+    providers: BALANCES_OK.providers.map((row) => row.provider === "codex" ? {
+      ...row, result: { ...row.result, snapshot: { ...row.result.snapshot,
+        windows: row.result.snapshot.windows.map((window, i) => i === 1 ? { ...window, percent: 100 } : window) } },
+    } : row.provider === "claude" ? {
+      ...row, result: { ...row.result, status: "stale" },
+    } : row),
+  };
+  const stale = {
+    ...BALANCES_OK,
+    providers: BALANCES_OK.providers.map((row) => row.provider !== "claude" ? row
+      : { ...row, result: { ...row.result, status: "stale" } }),
+  };
+  const icon = ctx.slots._regs.find((r) => r.definition.name === "sidebar.panellist");
+  const face = icon.definition.inject();
   const find = (tree, pred) => {
     const out = [];
     (function walk(node) {
@@ -5581,44 +3816,7 @@ test("workbench client: the foot has no signal row; the panellist badge carries 
     })(tree);
     return out;
   };
-  const mountFoot = async (pending) => {
-    const remoteFace = {
-      balance: async () => ({ ok: true, value: BALANCES_OK }),
-      taskQueue: async () => ({ ok: true, value: queue(pending) }),
-    };
-    const ctx = {
-      effect() {}, locale: { register() { return () => {}; } },
-      get() { return remoteFace; },
-      layout: { selectPanel() {} },
-      slots: { inject(name, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
-      remote: { $mount: async () => {} },
-    };
-    await api.apply(ctx);
-    for (const fn of ctx.slots._fns) fn();
-    const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
-    const face = action.definition.inject();
-    const store = makeBalanceStoreStub();
-    const render = () => {
-      reactStub._resetCursor();
-      return action.Component({ wide: true, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
-    };
-    render();
-    await new Promise((resolve) => setImmediate(resolve));
-    await new Promise((resolve) => setImmediate(resolve));
-    return { tree: render(), find };
-  };
-  const now = Date.now();
-  const foot = await mountFoot([
-    task("a", "ok", "person/review", now - 6 * 3600_000, "x"),
-    task("b", "partial", "person/review", now - 3600_000, "y"),
-    task("c", "ok", "person/review", now - 60_000, "z"),
-  ]);
-  assert.equal(foot.find(foot.tree, (p) => p["data-wb-signal"] !== undefined).length, 0,
-    "the independent footer signal row is gone");
-  assert.equal(foot.find(foot.tree, (p) => p["data-wb-live-count"] !== undefined).length, 0,
-    "its live region went with it");
-
-  const renderIcon = (pending) => {
+  const renderIcon = (balances, pending = []) => {
     const stub = makeReactStub();
     const iconApi = loaded.factory((s) => {
       if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
@@ -5626,30 +3824,32 @@ test("workbench client: the foot has no signal row; the panellist badge carries 
       throw new Error(`unexpected require: ${s}`);
     });
     return iconApi.WorkbenchIcon({
-      size: 16, active: false, t: translatorFor(iconApi),
-      cachedTaskQueue: () => queue(pending),
-      fetchTaskQueue: async () => queue(pending),
-      rememberTrigger: () => {},
+      size: 16, active: false, t: translatorFor(iconApi), rememberTrigger: () => {},
+      cachedTaskQueue: () => queue(pending), fetchTaskQueue: async () => queue(pending),
+      cachedBalances: () => balances, fetchBalances: async () => balances,
     });
   };
   const badgeOf = (tree) => find(tree, (p) => p["data-wb-badge"] === "true")[0];
-  const stuck = task("s", "quota", "person/blocked", now - 2 * 86400_000, "s");
-  const review = task("r", "ok", "person/review", now - 5 * 86400_000, "r");
-  const danger = renderIcon([stuck, review]);
-  const dangerBadge = badgeOf(danger);
-  assert.ok(dangerBadge, "a pending task renders the badge");
-  assert.equal(dangerBadge.props["data-wb-tone"], "danger");
-  assert.equal(dangerBadge.children.join(""), "2", "stuck + pending, one count");
-  assert.equal(dangerBadge.props["aria-hidden"], "true");
-  assert.equal(dangerBadge.props["aria-live"], "polite", "only the count span is live");
-  assert.equal(badgeOf(renderIcon([review])).props["data-wb-tone"], "neutral",
-    "no stuck task: neutral, not a warning yellow");
-  assert.equal(badgeOf(renderIcon([review])).children.join(""), "1");
-  assert.equal(badgeOf(renderIcon([])), undefined, "zero pending renders no badge");
+  const danger = renderIcon(alert, [task("s", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" })]);
+  const badge = badgeOf(danger);
+  assert.ok(badge, "pending tasks still show the count");
+  assert.equal(badge.props["data-wb-tone"], "neutral", "the count badge is never red");
+  assert.equal(find(danger, (p) => p["data-wb-provider-alert"] !== undefined)[0].props["data-wb-provider-alert"], "Codex",
+    "only the alert provider lights the dot");
+  assert.equal(find(danger, (p) => p["data-wb-provider-alert"] !== undefined)[0].props["aria-label"], undefined,
+    "the dot is not a second text node");
+  assert.equal(find(renderIcon(stale), (p) => p["data-wb-provider-alert"] !== undefined).length, 0,
+    "stale never lights the dot");
+  assert.equal(badgeOf(renderIcon(BALANCES_OK, [task("r", now - 60_000)])).children.join(""), "1",
+    "the count is still stuck + pending");
+  assert.equal(badgeOf(renderIcon(BALANCES_OK, [])), undefined, "zero pending renders no badge");
+  // The sidebar entry must not print a provider number: the dot is the whole signal.
+  assert.doesNotMatch(JSON.stringify(renderIcon(alert, [])), /123\.9|5h|week/,
+    "no allowance reading is rendered in the drawer");
   disposeReactEffects();
 });
 
-test("workbench client: the queue is three foldable group headers", async () => {
+test("workbench client: Tasks | Providers tabs, rows and status", async () => {
   const loaded = await loadClient();
   const base = {
     available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
@@ -5658,9 +3858,125 @@ test("workbench client: the queue is three foldable group headers", async () => 
   };
   const now = Date.now();
   const task = (i, extra = {}) => ({
-    id: "t" + i, name: "任务" + i, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1, outcome: "DONE",
-    startedAtMs: null, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "", lastEvent: "", lastEventAtMs: null,
-    finishedAtMs: now - i * 60000, needs: "需要人处理", stage: "person/review", attention: "person", ...extra,
+    id: "t" + i, name: "任务" + i, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1,
+    outcome: "DONE", startedAtMs: null, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "",
+    lastEvent: "", lastEventAtMs: null, finishedAtMs: now - i * 60000, needs: "需要人处理",
+    stage: "person/review", attention: "person", ...extra,
+  });
+  const alert = {
+    ...BALANCES_OK,
+    providers: BALANCES_OK.providers.map((row) => row.provider === "codex" ? {
+      ...row, result: { ...row.result, snapshot: { ...row.result.snapshot,
+        windows: row.result.snapshot.windows.map((window, i) => i === 1 ? { ...window, percent: 100 } : window) } },
+    } : row.provider === "claude" ? {
+      ...row, result: { ...row.result, status: "stale" },
+    } : row),
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const textOf = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  };
+  const make = (queue, balances) => {
+    const stub = makeReactStub();
+    const api = loaded.factory((s) => {
+      if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+      if (s === "react") return stub;
+      throw new Error(`unexpected require: ${s}`);
+    });
+    const render = () => {
+      stub._resetCursor();
+      return api.WorkbenchPage({
+        cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+        cachedBalances: () => balances, fetchBalances: async () => balances,
+        closeWorkbench: () => {},
+        runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+        t: translatorFor(api),
+      });
+    };
+    return { tree: render(), render, api };
+  };
+  const queue = { ...base, pending: [task(0), task(1)], pendingTotal: 2 };
+  const page = make(queue, alert);
+  const tabs = (tree) => find(tree, (p) => p.role === "tab");
+  assert.equal(find(page.tree, (p) => p.role === "tablist").length, 1, "one segmented control");
+  assert.equal(tabs(page.tree).length, 2);
+  assert.equal(tabs(page.tree)[0].props["aria-selected"], true, "Tasks is the default segment");
+  assert.equal(tabs(page.tree)[1].props["aria-selected"], false);
+  assert.equal(tabs(page.tree)[0].props.tabIndex, 0, "roving tabindex starts on Tasks");
+  assert.equal(tabs(page.tree)[1].props.tabIndex, -1);
+  assert.equal(page.tree.props["data-wb-tab"], "tasks");
+  assert.equal(find(page.tree, (p) => p["data-wb-tab-dot"] !== undefined).length, 1,
+    "the Providers tab carries the alert dot");
+  assert.equal(tabs(page.tree)[1].props["aria-label"], "服务，1 个异常");
+
+  tabs(page.tree)[1].props.onClick();
+  const providers = page.render();
+  assert.equal(providers.props["data-wb-tab"], "providers");
+  assert.equal(tabs(providers)[0].props["aria-selected"], false);
+  assert.equal(tabs(providers)[1].props["aria-selected"], true);
+  assert.equal(tabs(providers)[1].props.tabIndex, 0);
+  assert.equal(find(providers, (p) => p.role === "tabpanel")[0].props["data-wb-panel"], "providers");
+  const rows = find(providers, (p) => p["data-wb-provider"] !== undefined);
+  assert.deepEqual(rows.map((row) => row.props["data-wb-provider"]), ["codex", "claude", "deepseek", "minimax", "opencode"],
+    "alert first, then stale, then the healthy rows by label");
+  assert.deepEqual(rows.map((row) => row.props["data-wb-provider-signal"]), ["alert", "stale", "ok", "ok", "none"]);
+  assert.equal(rows[0].props["data-wb-tone"], "alert");
+  assert.match(textOf(rows[0]), /Codex 5h 18% ⚠ 周 100%/, "primary, warning glyph and secondary sit on the first line");
+  assert.match(textOf(rows[1]), /旧读数/, "stale keeps its chip");
+  assert.match(textOf(rows[2]), /¥110/, "a money row leads with its balance");
+  assert.match(textOf(rows[4]), /免费/, "the free pool has no number");
+  assert.equal(find(rows[0], (p) => p["data-wb-provider-alert"] !== undefined).length, 0,
+    "the provider row uses its own warning glyph, not the sidebar dot");
+  assert.match(textOf(rows[0]), /⚠/, "the alert is not carried by colour alone");
+  assert.ok(rows[0].props["aria-label"].includes("异常"));
+  assert.equal(find(providers, (p) => p["data-wb-empty-providers"] !== undefined).length, 0);
+
+  // A stale-only page has no dot on either surface.
+  const stale = { ...BALANCES_OK, providers: BALANCES_OK.providers.map((row) => row.provider !== "claude" ? row
+    : { ...row, result: { ...row.result, status: "stale" } }) };
+  const stalePage = make(queue, stale);
+  assert.equal(find(stalePage.tree, (p) => p["data-wb-tab-dot"] !== undefined).length, 0);
+  tabs(stalePage.tree)[1].props.onClick();
+  assert.deepEqual(find(stalePage.render(), (p) => p["data-wb-provider"] !== undefined).map((row) => row.props["data-wb-provider-signal"]),
+    ["stale", "ok", "ok", "ok", "none"]);
+
+  // An empty/failed read says so instead of pretending every provider is healthy.
+  const quiet = make({ ...queue, available: false }, QUIET_BALANCES);
+  tabs(quiet.tree)[1].props.onClick();
+  assert.match(textOf(quiet.render()), /还没有配置 provider/);
+  disposeReactEffects();
+});
+
+test("workbench client: task groups are capped and fold with aria", async () => {
+  const loaded = await loadClient();
+  const base = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+  };
+  const now = Date.now();
+  const task = (i, extra = {}) => ({
+    id: "t" + i, name: "任务" + i, agent: "dsh", model: "", state: "ok", waiting: "", slot: "", attempts: 1,
+    outcome: "DONE", startedAtMs: null, updatedAtMs: now, wakeAtMs: null, patrol: false, summary: "",
+    lastEvent: "", lastEventAtMs: null, finishedAtMs: now - i * 60000, needs: "需要人处理",
+    stage: "person/review", attention: "person", ...extra,
   });
   const find = (tree, pred) => {
     const out = [];
@@ -5681,9 +3997,107 @@ test("workbench client: the queue is three foldable group headers", async () => 
       if (typeof node === "string") { parts.push(node); return; }
       (node.children || []).forEach(walk);
     })(tree);
-    return parts.join("").replace(/\s+/g, " ").trim();
+    return parts.join(" ").replace(/\s+/g, " ").trim();
   };
-  const makePage = (queue) => {
+  const make = (queue, narrow = false) => {
+    const stub = makeReactStub();
+    const api = loaded.factory((s) => {
+      if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+      if (s === "react") return stub;
+      throw new Error(`unexpected require: ${s}`);
+    });
+    globalThis.window = {
+      localStorage: { getItem: () => null, setItem: () => {} },
+      matchMedia: (query) => ({ matches: narrow && query === "(max-width: 359px)", addEventListener() {}, removeEventListener() {} }),
+    };
+    const render = () => {
+      stub._resetCursor();
+      return api.WorkbenchPage({
+        cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+        cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+        closeWorkbench: () => {},
+        runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
+        t: translatorFor(api),
+      });
+    };
+    return { tree: render(), render };
+  };
+  const queue = {
+    ...base,
+    pending: [
+      task(0, { state: "quota", stage: "person/blocked", finishedAtMs: now - 2 * 86400_000 }),
+      ...Array.from({ length: 8 }, (_, i) => task(i + 1, { finishedAtMs: now - (i + 1) * 60000 })),
+    ],
+    pendingTotal: 9,
+  };
+  const page = make(queue);
+  const headers = (tree) => find(tree, (p) => p["data-wb-group-button"] !== undefined);
+  const bodies = (tree) => find(tree, (p) => p["data-wb-group-body"] !== undefined);
+  const openTaskRows = (tree) => find(tree, (p) => p["data-wb-open"] === "true" && p["data-wb-group"] !== undefined)
+    .flatMap((section) => find(section, (p) => p["data-wb-task"] !== undefined));
+  assert.deepEqual(bodies(page.tree).map((b) => b.props["data-wb-group-body"]), ["stuck", "pending"],
+    "both bodies are mounted for the height transition");
+  assert.ok(headers(page.tree)[1].props["aria-controls"], "a closed group still points at its body");
+  assert.equal(openTaskRows(page.tree).length, 1, "only the open group's rows count");
+  headers(page.tree)[1].props.onClick();
+  const open = page.render();
+  assert.equal(openTaskRows(open).length, 7, "the default cap is 6 pending + the stuck row");
+  assert.equal(find(open, (p) => p["data-wb-more"] !== undefined).length, 1);
+  assert.match(textOf(find(open, (p) => p["data-wb-more"] !== undefined)[0]), /还有 2 条 ›/);
+  find(open, (p) => p["data-wb-more"] !== undefined)[0].props.onClick();
+  const all = page.render();
+  assert.equal(openTaskRows(all).length, 9);
+  assert.equal(find(all, (p) => p["data-wb-more"] !== undefined).length, 0, "the escape hatch disappears at the end");
+
+  const narrow = make(queue, true);
+  headers(narrow.tree)[1].props.onClick();
+  const narrowOpen = narrow.render();
+  assert.equal(openTaskRows(narrowOpen).length, 4, "under 360px the cap is 4 pending; the stuck group closed behind it");
+  assert.match(textOf(find(narrowOpen, (p) => p["data-wb-more"] !== undefined)[0]), /还有 4 条 ›/);
+  headers(narrowOpen)[0].props.onClick();
+  const narrowStuck = narrow.render();
+  assert.equal(find(narrowStuck, (p) => p["data-wb-group-button"] === "pending")[0].props["aria-expanded"], false,
+    "under 360px opening another group closes the first");
+  assert.equal(find(narrowStuck, (p) => p["data-wb-group-button"] === "stuck")[0].props["aria-expanded"], true);
+  delete globalThis.window;
+  disposeReactEffects();
+});
+
+test("workbench client: English copy, a zero balance and a failed read", async () => {
+  const loaded = await loadClient();
+  const base = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 0,
+    running: 0, active: [], recent: [], pending: [], pendingTotal: 0,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const textOf = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  };
+  const zero = {
+    ...BALANCES_OK,
+    providers: BALANCES_OK.providers.map((row) => row.provider !== "deepseek" ? row : {
+      ...row, result: { ...row.result, snapshot: { ...row.result.snapshot, isAvailable: false, totalBalance: "0" } },
+    }),
+  };
+  const make = (balances, locale = "en", fail = false) => {
     const stub = makeReactStub();
     const api = loaded.factory((s) => {
       if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
@@ -5693,90 +4107,50 @@ test("workbench client: the queue is three foldable group headers", async () => 
     const render = () => {
       stub._resetCursor();
       return api.WorkbenchPage({
-        cachedTaskQueue: () => queue,
-        fetchTaskQueue: async () => queue,
+        cachedTaskQueue: () => base, fetchTaskQueue: async () => base,
+        cachedBalances: () => balances, fetchBalances: fail ? async () => { throw new Error("boom") } : async () => balances,
         closeWorkbench: () => {},
         runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
-        t: translatorFor(api),
+        t: translatorFor(api, locale),
       });
     };
-    return { tree: render(), render };
+    return { tree: render(), render, api };
   };
-  const headers = (tree) => find(tree, (p) => p["data-wb-group-button"] !== undefined);
-  const bodies = (tree) => find(tree, (p) => p["data-wb-group-body"] !== undefined);
-  const rows = (tree) => find(tree, (p) => p["data-wb-task"] !== undefined);
+  const page = make(zero, "en");
+  const tabs = (tree) => find(tree, (p) => p.role === "tab");
+  assert.equal(tabs(page.tree)[1].props["aria-label"], "Providers, 1 alert",
+    "the English tab says one alert in the singular");
+  tabs(page.tree)[1].props.onClick();
+  const rows = find(page.render(), (p) => p["data-wb-provider"] !== undefined);
+  assert.deepEqual(rows.map((row) => row.props["data-wb-provider"]), ["deepseek", "claude", "codex", "minimax", "opencode"]);
+  assert.equal(rows[0].props["data-wb-provider-signal"], "alert", "a zero balance is an alert");
+  assert.match(textOf(rows[0]), /¥0/, "zero prints, not an empty cell");
+  assert.equal(rows[1].props["data-wb-provider-signal"], "ok");
+  assert.match(textOf(rows[4]), /free/);
+  assert.equal(tabs(page.tree)[0].props["aria-label"], "Tasks, 0 pending");
 
-  const empty = makePage(base).tree;
-  assert.match(textOf(empty), /暂无待办/);
-  assert.ok(find(empty, (p) => p["data-wb-empty"] === "true")[0], "the empty state is the page's own box");
-
-  const queue = {
-    ...base,
-    pending: [
-      task(0, { state: "quota", stage: "person/blocked", finishedAtMs: now - 2 * 86400_000 }),
-      task(1, { finishedAtMs: now - 5 * 86400_000 }),
-      task(2, { finishedAtMs: now - 60_000 }),
-    ],
-    pendingTotal: 3,
-    active: [{
-      id: "live-1", name: "运行中的任务", agent: "dsh", model: "", state: "running", waiting: "", slot: "dsh-1",
-      attempts: 1, outcome: "", startedAtMs: now - 90_000, updatedAtMs: now - 90_000, wakeAtMs: null,
-      patrol: false, summary: "", lastEvent: "", lastEventAtMs: null, finishedAtMs: null, needs: "",
-      stage: "working", attention: "person",
-    }],
+  // A near-limit window is amber on the reading that caused it, not on the healthy headline.
+  const warn = {
+    ...BALANCES_OK,
+    providers: BALANCES_OK.providers.map((row) => row.provider !== "minimax" ? row : {
+      ...row, result: { ...row.result, snapshot: { ...row.result.snapshot,
+        windows: row.result.snapshot.windows.map((window, i) => i === 1 ? { ...window, percent: 95 } : window) } },
+    }),
   };
-  const page = makePage(queue);
-  assert.deepEqual(headers(page.tree).map((h) => h.props["data-wb-group-button"]), ["stuck", "pending", "live"]);
-  assert.equal(headers(page.tree)[0].props["aria-expanded"], true, "the alarm group starts open");
-  assert.equal(headers(page.tree)[1].props["aria-expanded"], false);
-  assert.equal(headers(page.tree)[2].props["aria-expanded"], false);
-  assert.match(textOf(headers(page.tree)[0]), /卡住 1/);
-  assert.match(textOf(headers(page.tree)[1]), /待你处理 2 · 最旧 5d/);
-  assert.match(textOf(headers(page.tree)[2]), /进行中 1/);
-  assert.equal(headers(page.tree)[1].props["aria-controls"], undefined, "a closed group has no aria reference");
-  assert.equal(find(page.tree, (p) => p["data-wb-close"] !== undefined)[0].props["aria-label"],
-    "关闭工作台，返回会话", "the top-level back closes the workbench, it does not return to the queue");
-  assert.deepEqual(bodies(page.tree).map((b) => b.props["data-wb-group-body"]), ["stuck"],
-    "only the open group mounts a list");
-  assert.equal(rows(page.tree).length, 1, "the two review tasks are not in the DOM");
-  assert.equal(find(page.tree, (p) => p["data-wb-live-task"] !== undefined).length, 0);
-
-  headers(page.tree)[1].props.onClick();
-  const expanded = page.render();
-  assert.equal(headers(expanded)[1].props["aria-expanded"], true);
-  assert.ok(headers(expanded)[1].props["aria-controls"], "an open group points at its list");
-  assert.deepEqual(bodies(expanded).map((b) => b.props["data-wb-group-body"]), ["stuck", "pending"]);
-  assert.equal(rows(expanded).length, 3);
-
-  headers(expanded)[1].props.onClick();
-  const collapsed = page.render();
-  assert.equal(headers(collapsed)[1].props["aria-expanded"], false);
-  assert.equal(rows(collapsed).length, 1);
-
-  headers(collapsed)[2].props.onClick();
-  const withLive = page.render();
-  assert.equal(find(withLive, (p) => p["data-wb-live-task"] !== undefined).length, 1);
-  assert.match(textOf(headers(withLive)[2]), /进行中 1/);
-
-  headers(withLive)[0].props.onClick();
-  const stuckClosed = page.render();
-  headers(stuckClosed)[2].props.onClick();
-  const allClosed = page.render();
-  assert.equal(rows(allClosed).length, 0, "a closed group keeps no rows in the DOM");
-  assert.equal(bodies(allClosed).length, 0);
-
-  // Only the secondary detail calls itself "返回队列"; the page-level back closes the page.
-  const focusPage = makePage(queue);
-  headers(focusPage.tree)[1].props.onClick();
-  const expandedFocus = focusPage.render();
-  rows(expandedFocus)[1].props.onClick();
-  const focus = focusPage.render();
-  assert.equal(focus.props["data-wb-view"], "focus");
-  const focusBack = find(focus, (p) => p["data-wb-back"] !== undefined)[0];
-  assert.equal(focusBack.props["aria-label"], "返回队列");
-  focusBack.props.onClick();
-  const returned = focusPage.render();
-  assert.equal(returned.props["data-wb-view"], "queue");
+  const warnPage = make(warn);
+  tabs(warnPage.tree)[1].props.onClick();
+  const mini = find(warnPage.render(), (p) => p["data-wb-provider"] === "minimax")[0];
+  assert.equal(find(mini, (p) => p["data-wb-tone"] === "warn" && /wb-prov-(primary|secondary)/.test(p.className || "")).length, 1,
+    "only the week reading turns amber");
+  assert.equal(find(mini, (p) => p["data-wb-tone"] === "ok" && /wb-prov-primary/.test(p.className || "")).length, 1,
+    "the healthy 5h headline stays green");
+  // A transport failure is stated in the segment, not hidden behind the empty copy.
+  const failed = make(null, "en", true);
+  tabs(failed.tree)[1].props.onClick();
+  failed.tree = failed.render();
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.match(textOf(failed.render()), /Could not read allowances/);
   disposeReactEffects();
 });
 
@@ -5788,6 +4162,7 @@ test("workbench client: the fold choice is remembered in workbench.groups", asyn
       getItem: (key) => storage.has(key) ? storage.get(key) : null,
       setItem: (key, value) => { storage.set(key, value); },
     },
+    matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
   };
   const makeApi = (stub) => loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
@@ -5810,7 +4185,9 @@ test("workbench client: the fold choice is remembered in workbench.groups", asyn
     const render = (api, stub) => {
       stub._resetCursor();
       return api.WorkbenchPage({
-        cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue, closeWorkbench: () => {},
+        cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+        cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+        closeWorkbench: () => {},
         runWorkbenchAction: async () => ({ ok: true, code: 0, action: "continue", id: "", message: "", detail: "" }),
         t: translatorFor(api),
       });

@@ -30,17 +30,16 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // The loader module table provides React at runtime; the types come from the
 // @types/react devDependency.
 import * as React from 'react'
-import { createPortal } from 'react-dom'
 import styles from './styles.module.css'
 import { PROVIDER_JOIN } from './providers.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 // Pure projections, re-exported so the spec can pin the fixed signal copy and
 // the wait formatters without a browser.
 export { signalView, waitShort, waitLong, waitSpoken, firstSentence, splitPending, taskTitle } from './panel.ts'
-export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView } from './panel.ts'
+export { type BalanceTone, type UsedLevel, _usedLevel, _rowDisplay, _balanceNote, _slotOf, _slotLanes, _taskStatus, _queueHeadline, _agentLabel, _modelView, type ReceiptState, _notifyState, type StateRole, STATE_ROLES, _endedState, FACT_ORDER, type FactSlot, type RowKind, RESIDENT_CHIPS, FACT_CELL, ROW_KINDS, _taskState, type PanelSource, _panelSources, _poolPosition, _queueState, _patrolReason, _costOf, roundFiled, statsView, providerSignal, providerAlerts, providerRowsView } from './panel.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
 
@@ -649,7 +648,7 @@ export function _balanceCadence(reading: boolean, refreshMs: number | undefined)
  * panel opens, the sidebar widens) reads at once, so what is looked at is the
  * host's current answer rather than the badge's last one.
  */
-function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> & { t: Translate }, pollKey: string, reading = true) {
+function useBalanceData(props: BalancesInjected & { t: Translate }, pollKey: string, reading: boolean) {
   const mountedRef = useRef(true)
   // When the last answer arrived (any surface's), and whether the previous render was read:
   // together they turn "became read" into one fetch, and only when the answer on hand is
@@ -663,8 +662,6 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
   const [data, setData] = useState<{ result: BalancesResult | null; loading: boolean; error: string | null }>(
     () => ({ result: props.cachedBalances(), loading: false, error: null }),
   )
-  const selected = props.useStore((state) => state.selected)
-  const select = (provider: string): void => { props.actions.select(provider) }
   const [flash, setFlash] = useState<'ok' | 'same' | null>(null)
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -729,21 +726,33 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
     }
   }, [data.result?.refreshMs, pollKey, reading])
 
-  const now = Date.now()
-  const rows = balanceRows(data.result, props.t, now)
-  // 胶囊只讲一个 provider:选中的优先,否则第一行(稳定的 deepseek-first 序)。
-  const primary = rows.find((row) => row.provider === selected) ?? rows[0]
   const refresh = (): void => {
     setData((current) => ({ ...current, loading: true }))
     runBalances(true)
   }
+  return { data, flash, refresh }
+}
+
+/** The read side every allowance surface shares: cached-first rows, poll, manual refresh. */
+function useProviderReadings(props: BalancesInjected & { t: Translate }, pollKey: string, reading = true) {
+  const core = useBalanceData(props, pollKey, reading)
+  const rows = balanceRows(core.data.result, props.t, Date.now())
+  return { ...core, rows }
+}
+
+function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> & { t: Translate }, pollKey: string, reading = true) {
+  const core = useProviderReadings(props, pollKey, reading)
+  const selected = props.useStore((state) => state.selected)
+  const select = (provider: string): void => { props.actions.select(provider) }
+  // 胶囊只讲一个 provider:选中的优先,否则第一行(稳定的 deepseek-first 序)。
+  const primary = core.rows.find((row) => row.provider === selected) ?? core.rows[0]
   // What the trigger says before any provider row exists: loading, or the
   // fetch failed (the hollow stale badge, not the blank "nothing to judge").
-  const failed = rows.length === 0 && data.error !== null && !data.loading
+  const failed = core.rows.length === 0 && core.data.error !== null && !core.data.loading
   const empty = failed
-    ? { tone: 'stale' as BalanceTone, title: props.t('balance.readFailed', { message: data.error }) }
-    : { tone: 'none' as BalanceTone, title: props.t(data.result === null ? 'balance.loading' : 'balance.noProviders') }
-  return { data, rows, primary, select, flash, refresh, empty }
+    ? { tone: 'stale' as BalanceTone, title: props.t('balance.readFailed', { message: core.data.error }) }
+    : { tone: 'none' as BalanceTone, title: props.t(core.data.result === null ? 'balance.loading' : 'balance.noProviders') }
+  return { ...core, primary, select, empty }
 }
 
 /**
@@ -918,8 +927,6 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
     h('div', panelAttrs(open, t('balance.panelTitle')), renderBalancePanelBody(state, t)))
 }
 
-/** Foot-action id of the balance surface (a stable DOM contract for probes). */
-export const BALANCE_PANEL = 'clawock-provider-balance'
 /** The main panel key and the panellist id are the same id (the host contract). */
 export const WORKBENCH_PANEL = 'clawock-workbench'
 
@@ -961,117 +968,9 @@ function panelAttrs(open: boolean, label: string, extra?: Partial<PanelAttrs>): 
   }
 }
 
-/** Fixed-position anchor for the popover: left edge of the row, just above it, and the room up to the viewport top. */
-export type PopoverAnchor = { left: number; bottom: number; room: number }
-
-/** Gap the popover keeps from the viewport top, and the least room it is ever given. */
-const POPOVER_TOP_GAP = 12
-const POPOVER_MIN_ROOM = 240
-/** dsh 0.2.2's own mobile/drawer breakpoint (layout: `width<=767px`). */
-const PHONE_MAX_WIDTH = 767
-
-/**
- * The viewport half of the foot panel's placement, pure so the desktop clamps
- * are pinned without a browser. On a phone the panel is no longer a floating
- * card: it is a page inside the drawer (width 100%, top 52px), so there is
- * nothing to clamp and this returns null. On a wide screen the old 380px card
- * and 12px gap are unchanged.
- */
-export function _popoverAnchor(rect: { left: number; top: number }, vw: number, vh: number): PopoverAnchor | null {
-  if (vw <= PHONE_MAX_WIDTH) return null
-  const width = Math.min(380, vw - 24)
-  return {
-    left: Math.max(8, Math.min(rect.left, vw - width - 8)),
-    bottom: Math.max(8, vh - rect.top + 8),
-    room: Math.max(POPOVER_MIN_ROOM, Math.min(rect.top - 8 - POPOVER_TOP_GAP, vh - POPOVER_TOP_GAP - 8)),
-  }
-}
-
-/**
- * The foot popover's open state and anchor, shared by every foot row. While
- * open: re-anchor on resize, Escape closes, a pointerdown outside the root
- * closes (document/window exist only in the browser — tests have no DOM).
- * `back` lets a popover with a nested layer take Escape first: it returns
- * true when it closed that layer, and the popover stays open.
- */
-function useFootPopover(back?: () => boolean) {
-  const [open, setOpen] = useState(false)
-  const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
-  const [phone, setPhone] = useState(false)
-  const rootRef = useRef<HTMLDivElement | null>(null)
-  // The panel is portaled out of the plugin root; on a phone it is a page
-  // inside the drawer, so outside-tap detection still needs both boxes.
-  const panelRef = useRef<HTMLDivElement | null>(null)
-  // The listener is attached once per opening; the ref hands it this render's `back`.
-  const backRef = useRef(back)
-  backRef.current = back
-
-  const place = (): void => {
-    const root = rootRef.current
-    if (root === null || typeof window === 'undefined') return
-    const rect = root.getBoundingClientRect()
-    const viewportWidth = window.innerWidth
-    const isPhone = viewportWidth <= PHONE_MAX_WIDTH
-    setPhone(isPhone)
-    // On a phone the panel is a page inside the drawer (CSS geometry), not an
-    // anchored card; on a desktop the anchor is still the row's viewport box.
-    setAnchor(isPhone ? null : _popoverAnchor(rect, viewportWidth, window.innerHeight))
-  }
-
-  useEffect(() => {
-    if (!open || typeof document === 'undefined') return undefined
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape') return
-      // The page (or its nested detail) owns Escape while it is open: without
-      // stopping propagation the host drawer also hears the key and closes
-      // behind the page. Capture phase lets this listener run before the host's.
-      event.stopPropagation()
-      if (backRef.current?.() === true) return
-      setOpen(false)
-    }
-    const onDown = (event: PointerEvent): void => {
-      const root = rootRef.current
-      const panel = panelRef.current
-      if (event.target instanceof Node && !(root?.contains(event.target) ?? false) && !(panel?.contains(event.target) ?? false)) setOpen(false)
-    }
-    document.addEventListener('keydown', onKey, true)
-    // Capture phase, unlike the host hook: the composer stops pointerdown from
-    // bubbling, so a bubble listener never hears a tap on the input box.
-    document.addEventListener('pointerdown', onDown, true)
-    window.addEventListener('resize', place)
-    return () => {
-      document.removeEventListener('keydown', onKey, true)
-      document.removeEventListener('pointerdown', onDown, true)
-      window.removeEventListener('resize', place)
-    }
-  }, [open])
-
-  return { open, setOpen, anchor, phone, place, rootRef, panelRef }
-}
-
-/**
- * The foot panel lives in a portal: dsh 0.2.2's phone sidebar is a transformed
- * drawer with `overflow:hidden`, and a `position:fixed` descendant of a
- * transformed ancestor is sized and clipped by that ancestor (measured
- * 2026-11-06 at 390px: a 360px panel lost its right 80px and every reset stamp
- * was cut). On a phone the page is portaled into the drawer column itself and
- * positioned absolute there (the drawer's overflow clips a fixed card, but an
- * absolute page is exactly what the host's own Settings page does); it moves
- * off screen with the drawer. The wrapper carries the `.pbc` class so the
- * panel's scoped CSS and host tokens still apply; `display:contents` keeps it
- * out of layout. The desktop card is still portaled to <body>, because a
- * 380px popover must escape the 280px column.
- */
-function renderFootPanel(panel: React.ReactElement, host?: Element | null): React.ReactElement {
-  const wrapped = h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', 'pbp'), style: { display: 'contents' }, 'data-pp-portal': '' }, panel)
-  if (typeof document === 'undefined') return wrapped
-  return createPortal(wrapped, host ?? document.body)
-}
-
 // ---------------------------------------------------------------------------
-// Dispatch task queue: the foot row above the balance, drawn like the host's
-// own foot occupant (ui-cordis: a 42px badge row with a trailing count, a
-// fixed menu-material panel with a 44px header and caption-sized groups).
+// Dispatch task queue: the shared read behind the workbench's queue and the
+// provider rows. The old footer cell is gone (2026-11-07).
 // ---------------------------------------------------------------------------
 
 /** What the task chip's `inject` factory hands the component. */
@@ -1996,9 +1895,6 @@ type TaskTimeline = {
   log_missing: boolean
 }
 
-/** The one door to dsh's own file preview (right sidebar), or why it cannot open (see apply). */
-export type OpenFile = (path: string) => { ok: true } | { ok: false; reason: 'no-service' | 'no-session' | 'error'; message?: string }
-
 type DetailUi = QueueUi & {
   confirm: string | null
   askConfirm: (key: string | null) => void
@@ -2037,17 +1933,6 @@ export function _fmtTokens(n: number): string {
   if (n < 1000) return String(n)
   if (n < 1e6) return (n / 1e3).toFixed(n < 1e4 ? 1 : 0) + 'k'
   return (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + 'M'
-}
-
-/**
- * The file-preview address of a path read through one session — dsh-util-workspace-path's
- * `sessionFileAddress` grammar (an absolute path keeps its leading `/`, hence `…/<id>//root/…`).
- * The preview claims only this scope: `file/absolute/…` answered "no registered tab type claims"
- * on the live host (2026-09-27), so the brief opens in the conversation's own sidebar.
- */
-export function _sessionFileAddress(sessionId: string, path: string): string {
-  const seg = (part: string): string => encodeURIComponent(part).replace(/%3A/gi, ':')
-  return 'dsh-resource://file/session/' + seg(sessionId) + '/' + path.split('/').map(seg).join('/')
 }
 
 /**
@@ -2622,8 +2507,9 @@ function WorkbenchGroupHeader(props: {
   return h('button', {
     type: 'button', className: cx('wb-group'), 'data-wb-group-button': props.id, 'data-wb-tone': props.tone,
     'aria-expanded': props.open,
-    // A closed group has no body node, so it must not point at one.
-    'aria-controls': props.open ? props.bodyId : undefined,
+    // The body is always mounted so grid-template-rows can animate; the
+    // closed state removes it from the accessibility tree and interaction.
+    'aria-controls': props.bodyId,
     ref: props.buttonRef,
     onClick: props.onToggle,
   },
@@ -2633,7 +2519,7 @@ function WorkbenchGroupHeader(props: {
 }
 
 /** The panellist icon: a permanent entry; the badge exists only with pending tasks. */
-export type WorkbenchIconInjected = TaskQueueInjected & {
+export type WorkbenchIconInjected = TaskQueueInjected & BalancesInjected & {
   rememberTrigger: (element: HTMLElement | null) => void
 }
 
@@ -2645,27 +2531,44 @@ export type WorkbenchIconProps = WorkbenchIconInjected & {
 
 export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
   const queue = useTaskQueue(props)
+  const balances = useProviderReadings(props, 'workbench-icon', false)
   const tasks = queue.data.result?.pending ?? []
   const view = tasks.length === 0 ? null : signalView(tasks, props.t, Date.now())
+  const alerts = providerAlerts(balances.rows)
+  const alertNames = alerts.map((row) => row.label).join(', ')
+  const alertLabel = alertNames === '' ? null : props.t('workbench.provider.alertAria', { names: alertNames })
   const iconRef = useRef<HTMLSpanElement | null>(null)
   // The host owns the row's button and its visible label; only the accessible
   // name and tooltip can carry the count (the glyph slot is aria-hidden).
   const label = view?.aria ?? props.t('signal.icon')
+  const spoken = alertLabel === null ? label : label + ' · ' + alertLabel
   useEffect(() => {
     const button = iconRef.current?.closest('button')
     if (typeof HTMLElement === 'undefined' || !(button instanceof HTMLElement)) return undefined
     const previous = button.getAttribute('aria-label')
-    button.setAttribute('aria-label', label)
-    button.setAttribute('title', label)
+    const title = button.querySelector<HTMLElement>('[class*="panelTitle"]')
+    button.setAttribute('aria-label', spoken)
+    button.setAttribute('title', spoken)
+    // The dot rides the host's label pseudo-element: it costs no line height
+    // and does not add a node inside the host's own button.
+    if (alertNames === '') button.removeAttribute('data-wb-provider-alert')
+    else button.setAttribute('data-wb-provider-alert', 'true')
+    if (title !== null) {
+      if (alertNames === '') title.removeAttribute('data-wb-provider-alert')
+      else title.setAttribute('data-wb-provider-alert', 'true')
+    }
     return () => {
       if (previous === null) button.removeAttribute('aria-label')
       else button.setAttribute('aria-label', previous)
       button.removeAttribute('title')
+      button.removeAttribute('data-wb-provider-alert')
+      title?.removeAttribute('data-wb-provider-alert')
     }
-  }, [label])
+  }, [spoken, alertNames])
   return h('span', {
     className: cx('wb-icon', props.active && 'wb-icon-on'),
     'data-wb-icon': 'true',
+    ...(alertNames === '' ? {} : { 'data-wb-provider-alert': alertNames }),
     ref: iconRef,
     onClick: (event: { currentTarget: HTMLElement }) => {
       const button = event.currentTarget.closest('button')
@@ -2684,7 +2587,7 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
       }, view.badge))
 }
 
-export type WorkbenchInjected = TaskQueueInjected & {
+export type WorkbenchInjected = TaskQueueInjected & BalancesInjected & {
   /** Return to the conversation and put focus back on the control that opened the page. */
   closeWorkbench: () => void
   /** One preset through the host's dispatcher entry; absent on an older host half. */
@@ -2725,6 +2628,39 @@ function WorkbenchRow(props: {
       h('span', { className: cx('wb-row-title') }, taskTitle(task)),
       sub === '' ? null : h('span', { className: cx('wb-row-sub') }, sub)),
     h('span', { className: cx('wb-row-age') }, waitShort(waitedOf(task, props.now))))
+}
+
+/**
+ * One provider in the Providers segment: a data row, never a button. The
+ * primary reading sits 8px after the name (never right-floating), the
+ * secondary one is right-aligned; the second line carries the state chip and
+ * the window, whose weekday/time detail is hidden under 360px without
+ * changing the DOM.
+ */
+function WorkbenchProviderRow(props: { row: ProviderRowView; source: PanelSource; t: Translate }): React.ReactElement {
+  const { row } = props
+  return h('div', {
+    className: cx('wb-prov'), role: 'listitem', 'data-wb-provider': row.key, 'data-wb-provider-signal': row.signal,
+    'data-wb-tone': row.tone, 'aria-label': row.aria, title: row.title === '' ? undefined : row.title,
+  },
+    h('span', { className: cx('wb-prov-glyph'), 'aria-hidden': 'true' }, renderSourceGlyph(props.source)),
+    h('span', { className: cx('wb-prov-main') },
+      h('span', { className: cx('wb-prov-line') },
+        h('span', { className: cx('wb-prov-name') }, row.label),
+        h('span', { className: cx('wb-prov-primary'), 'data-wb-tone': row.primaryTone }, row.primary),
+        row.signal === 'alert' ? h('span', { className: cx('wb-prov-alert'), 'aria-hidden': 'true' }, '⚠') : null,
+        row.secondary === null ? null : h('span', { className: cx('wb-prov-secondary'), 'data-wb-tone': row.secondaryTone }, row.secondary)),
+      h('span', { className: cx('wb-prov-sub') },
+        row.chip === null ? null : h('span', {
+          className: cx('wb-prov-chip'), 'data-wb-chip': row.chip.role,
+        }, row.chip.text),
+        row.window === null ? null : h('span', { className: cx('wb-prov-window') },
+          h('span', null, row.window.startDate),
+          h('span', { className: cx('t-detail') }, ' ' + row.window.startDetail),
+          h('span', { className: cx('wb-prov-arrow'), 'aria-hidden': 'true' }, ' → '),
+          h('span', null, row.window.endDate),
+          h('span', { className: cx('t-detail') }, ' ' + row.window.endDetail)))),
+    )
 }
 
 /** A native details fold; the summary carries the whole row, the body the existing tables. */
@@ -2814,7 +2750,7 @@ function WorkbenchDetail(props: {
         h(WorkbenchFold, { id: 'coverage', label: coverageLabel },
           props.coverage === null
             ? h('div', { className: cx('wb-fold-empty') }, t('workbench.info.none'))
-            : h('div', { className: cx('wb-cov') }, ...renderCoverageTables(props.coverage, t))),
+            : h('div', { className: cx('wb-cov', 'pbc', 'tqf') }, ...renderCoverageTables(props.coverage, t))),
         h(WorkbenchFold, { id: 'result', label: t('workbench.fold.result') },
           task.summary.trim() === ''
             ? h('div', { className: cx('wb-fold-empty') }, t('workbench.result.empty'))
@@ -2830,19 +2766,24 @@ function WorkbenchDetail(props: {
 export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const { t } = props
   const queue = useTaskQueue(props)
+  const [tab, setTab] = useState<'tasks' | 'providers'>('tasks')
   const [view, setView] = useState<'queue' | 'focus'>('queue')
   const [selected, setSelected] = useState<string | null>(null)
   const [snapshot, setSnapshot] = useState<DispatchTask | null>(null)
   const [groups, setGroups] = useState<WorkbenchGroups>(readWorkbenchGroups)
+  const [showAll, setShowAll] = useState<Partial<Record<WorkbenchGroup, boolean>>>({})
   const [updated, setUpdated] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [confirmStop, setConfirmStop] = useState(false)
   const [submittedAt, setSubmittedAt] = useState<string | null>(null)
   const desktop = useMedia(WORKBENCH_WIDE)
+  const narrow = useMedia('(max-width: 359px)')
+  const balances = useProviderReadings(props, 'workbench-page', tab === 'providers')
   const titleRef = useRef<HTMLHeadingElement | null>(null)
   const rowRefs = useRef(new Map<string, HTMLButtonElement>())
   const groupRefs = useRef(new Map<WorkbenchGroup, HTMLButtonElement>())
+  const tabRefs = useRef(new Map<'tasks' | 'providers', HTMLButtonElement>())
   const updatedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const groupId = useId()
@@ -2852,11 +2793,26 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const counts = workbenchCounts(pending, now)
   const split = splitPending(pending)
   const live = (result?.active ?? []).filter((task) => !task.patrol)
-  // Only the groups that are open contribute rows to the DOM (and to the
-  // desktop arrow order). A closed group has no list node at all.
+  const sources = _panelSources(balances.data.result?.providers ?? [], result)
+  const rowMap = new Map(balances.rows.map((row) => [row.provider, row] as const))
+  const providers = providerRowsView(sources, rowMap, result, t, now)
+  const sourceByKey = new Map(sources.map((source) => [source.key, source] as const))
+  const alerts = providerAlerts(balances.rows)
+  const alertNames = alerts.map((row) => row.label).join(', ')
+  const panelId = groupId + '-panel'
+  const tabId = (id: 'tasks' | 'providers'): string => groupId + '-tab-' + id
+  const capRows = narrow ? 4 : 6
+  const maxOpen = narrow ? 1 : 2
+  const rowsOf = (id: WorkbenchGroup): DispatchTask[] => id === 'stuck' ? split.stuck : id === 'pending' ? split.review : live
+  const visibleRows = (id: WorkbenchGroup): DispatchTask[] => {
+    const rows = rowsOf(id)
+    return showAll[id] === true ? rows : rows.slice(0, capRows)
+  }
+  // Only the rows actually mounted take part in the desktop arrow order; the
+  // "more" row is a pointer-only escape hatch for the cap.
   const rendered = [
-    ...(groups.stuck ? split.stuck : []),
-    ...(groups.pending ? split.review : []),
+    ...(groups.stuck ? visibleRows('stuck') : []),
+    ...(groups.pending ? visibleRows('pending') : []),
   ]
   const shown = selected === null ? null : pending.find((task) => task.id === selected) ?? snapshot
   const patrolAt = lastPatrolAt(result)
@@ -2889,17 +2845,72 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     if (confirmTimer.current !== null) clearTimeout(confirmTimer.current)
   }, [])
 
+  const focusGroup = (id: WorkbenchGroup): void => {
+    const focus = (): void => { groupRefs.current.get(id)?.focus({ preventScroll: true }) }
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(focus)
+    else focus()
+  }
+  const scrollerOf = (element: HTMLElement | null): HTMLElement | null =>
+    element === null ? null : element.closest<HTMLElement>('[data-wb-scroll]')
+  const contentTop = (header: HTMLElement, scroller: HTMLElement): number =>
+    header.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop
   const toggleGroup = (id: WorkbenchGroup): void => {
-    const next = { ...groups, [id]: !groups[id] }
+    const header = groupRefs.current.get(id) ?? null
+    const scroller = scrollerOf(header)
+    const closing = groups[id]
+    let before: number | null = null
+    if (closing && header !== null && scroller !== null) before = contentTop(header, scroller)
+    let next = { ...groups, [id]: !groups[id] }
+    if (!closing) {
+      // Keep at most one open group under 360px and two above it. Opening a
+      // third closes the oldest open one, so the page never grows past a screen.
+      const others = (['stuck', 'pending', 'live'] as const).filter((group) => group !== id && next[group])
+      if (others.length >= maxOpen) {
+        for (const group of others.slice(0, others.length - (maxOpen - 1))) next = { ...next, [group]: false }
+      }
+    } else {
+      setShowAll((current) => ({ ...current, [id]: false }))
+    }
     setGroups(next)
     saveWorkbenchGroups(next)
-  }
-  const focusGroup = (id: WorkbenchGroup): void => {
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => { groupRefs.current.get(id)?.focus({ preventScroll: true }) })
+    focusGroup(id)
+    if (closing && before !== null && header !== null && scroller !== null) {
+      // The finger is on the header: after the 200ms fold, put the header
+      // back where it was instead of letting the list jump under it.
+      const at = before
+      setTimeout(() => {
+        const nowTop = contentTop(header, scroller)
+        scroller.scrollTop += nowTop - at
+      }, 220)
       return
     }
-    groupRefs.current.get(id)?.focus({ preventScroll: true })
+    if (!closing && header !== null && scroller !== null
+      && typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => {
+        const hb = header.getBoundingClientRect()
+        const sb = scroller.getBoundingClientRect()
+        if (hb.bottom > sb.bottom) header.scrollIntoView({ block: 'start' })
+      })
+    }
+  }
+  const selectTab = (id: 'tasks' | 'providers'): void => {
+    if (id === tab) return
+    setTab(id)
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => { tabRefs.current.get(id)?.focus({ preventScroll: true }) })
+    }
+  }
+  const onTabKey = (event: React.KeyboardEvent, id: 'tasks' | 'providers'): void => {
+    const order: Array<'tasks' | 'providers'> = ['tasks', 'providers']
+    const at = order.indexOf(id)
+    let next: 'tasks' | 'providers' | null = null
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = order[(at + order.length - 1) % order.length]!
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = order[(at + 1) % order.length]!
+    if (event.key === 'Home') next = order[0]!
+    if (event.key === 'End') next = order[order.length - 1]!
+    if (next === null) return
+    event.preventDefault()
+    selectTab(next)
   }
   const choose = (task: DispatchTask): void => {
     setSelected(task.id)
@@ -2957,13 +2968,10 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         if (focused !== 'stuck' && focused !== 'pending' && focused !== 'live') return
         if (!groups[focused]) return
         event.preventDefault()
-        const next = { ...groups, [focused]: false }
-        setGroups(next)
-        saveWorkbenchGroups(next)
-        focusGroup(focused)
+        toggleGroup(focused)
         return
       }
-      if (!desktop || typing(event.target)) return
+      if (!desktop || tab !== 'tasks' || typing(event.target)) return
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         const index = rendered.findIndex((task) => task.id === selected)
         const delta = event.key === 'ArrowDown' ? 1 : -1
@@ -2986,7 +2994,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return undefined
     window.addEventListener('keydown', onKey)
     return () => { window.removeEventListener('keydown', onKey) }
-  }, [confirmStop, desktop, view, selected, rendered, shown, groups])
+  }, [confirmStop, desktop, view, selected, rendered, shown, groups, tab])
 
   const refresh = (): void => {
     setUpdated(false)
@@ -2995,7 +3003,8 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       if (updatedTimer.current !== null) clearTimeout(updatedTimer.current)
       updatedTimer.current = setTimeout(() => { setUpdated(false) }, WORKBENCH_UPDATED_MS)
     }
-    queue.refresh()
+    if (tab === 'providers') balances.refresh()
+    else queue.refresh()
     setTimeout(done, 350)
   }
   const advance = (): void => {
@@ -3029,7 +3038,11 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       return h('div', { className: cx('wb-empty'), 'data-wb-empty': 'true' },
         h('div', { className: cx('wb-empty-title') }, t('workbench.empty.title')),
         h('div', { className: cx('wb-empty-body') }, t('workbench.empty.body')),
-        h('div', { className: cx('wb-empty-meta') }, t('workbench.empty.meta', { time: stamp })))
+        h('div', { className: cx('wb-empty-meta') }, t('workbench.empty.meta', { time: stamp })),
+        h('button', {
+          type: 'button', className: cx('wb-empty-link'), 'data-wb-empty-providers': 'true',
+          onClick: () => { selectTab('providers') },
+        }, t('workbench.tab.providers') + ' ›'))
     }
     const bodyId = (id: WorkbenchGroup): string => groupId + '-' + id
     const renderRow = (task: DispatchTask): React.ReactElement => h(WorkbenchRow, {
@@ -3041,8 +3054,17 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       onOpen: () => { open(task) },
       onMove: (delta: number) => { move(task, delta) },
     })
-    const group = (id: WorkbenchGroup, label: string, rows: React.ReactNode[], tone: 'danger' | 'neutral'): React.ReactElement => {
+    const renderLive = (task: DispatchTask): React.ReactElement => h('div', {
+      key: task.id, className: cx('wb-live-row'), 'data-wb-live-task': task.id,
+    },
+      h('span', { className: cx('wb-live-name') }, taskTitle(task)),
+      h('span', { className: cx('wb-live-age') }, t('workbench.live.elapsed', {
+        time: waitShort(Math.max(0, now - (task.startedAtMs ?? task.updatedAtMs ?? now))),
+      })))
+    const group = (id: WorkbenchGroup, label: string, rows: DispatchTask[], tone: 'danger' | 'neutral', render: (task: DispatchTask) => React.ReactElement): React.ReactElement => {
       const isOpen = groups[id]
+      const shownRows = showAll[id] === true ? rows : rows.slice(0, capRows)
+      const rest = rows.length - shownRows.length
       return h('section', {
         className: cx('wb-group-section'), 'data-wb-group': id, 'data-wb-open': isOpen ? 'true' : 'false',
       },
@@ -3054,23 +3076,42 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           },
           onToggle: () => { toggleGroup(id) },
         }),
-        isOpen
-          ? h('div', { className: cx('wb-group-body'), id: bodyId(id), 'data-wb-group-body': id }, ...rows)
-          : null)
+        h('div', {
+          className: cx('wb-group-body'), id: bodyId(id), 'data-wb-group-body': id,
+          'aria-hidden': isOpen ? undefined : 'true', inert: isOpen ? undefined : '',
+        },
+          h('div', { className: cx('wb-group-body-inner') },
+            ...shownRows.map(render),
+            rest > 0
+              ? h('button', {
+                type: 'button', className: cx('wb-more'), 'data-wb-more': id,
+                onClick: () => { setShowAll((current) => ({ ...current, [id]: true })) },
+              }, t('workbench.group.more', { n: rest }))
+              : null)))
     }
-    const renderLive = (task: DispatchTask): React.ReactElement => h('div', {
-      key: task.id, className: cx('wb-live-row'), 'data-wb-live-task': task.id,
-    },
-      h('span', { className: cx('wb-live-name') }, taskTitle(task)),
-      h('span', { className: cx('wb-live-age') }, t('workbench.live.elapsed', {
-        time: waitShort(Math.max(0, now - (task.startedAtMs ?? task.updatedAtMs ?? now))),
-      })))
     return h('div', { className: cx('wb-queue-body') },
-      split.stuck.length === 0 ? null : group('stuck', t('workbench.group.stuck', { n: split.stuck.length }), split.stuck.map(renderRow), 'danger'),
+      split.stuck.length === 0 ? null : group('stuck', t('workbench.group.stuck', { n: split.stuck.length }), split.stuck, 'danger', renderRow),
       split.review.length === 0 ? null : group('pending', t('workbench.group.pendingOldest', {
         n: split.review.length, age: waitShort(counts.oldestPendingMs),
-      }), split.review.map(renderRow), 'neutral'),
-      live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live.map(renderLive), 'neutral'))
+      }), split.review, 'neutral', renderRow),
+      live.length === 0 ? null : group('live', t('workbench.group.live', { n: live.length }), live, 'neutral', renderLive))
+  }
+  const renderProviders = (): React.ReactElement => {
+    if (providers.length === 0) {
+      const failed = balances.data.error !== null && !balances.data.loading
+      return h('div', { className: cx('wb-providers-empty'), 'data-wb-providers-empty': 'true' },
+        h('div', { className: cx('wb-empty-title') }, failed ? t('workbench.provider.readFailed', { message: balances.data.error }) : t('workbench.provider.empty')),
+        failed ? null : h('div', { className: cx('wb-empty-body') }, t('workbench.provider.emptyHint')))
+    }
+    return h('div', { className: cx('wb-providers'), role: 'list', 'aria-label': t('workbench.tab.providers'), 'data-wb-providers': 'true' },
+      balances.data.error !== null && !balances.data.loading
+        ? h('div', { className: cx('wb-providers-error'), role: 'status', 'data-wb-providers-error': 'true' },
+          t('workbench.provider.readFailed', { message: balances.data.error }))
+        : null,
+      ...providers.map((row) => {
+        const source = sourceByKey.get(row.key)
+        return source === undefined ? null : h(WorkbenchProviderRow, { key: row.key, row, source, t })
+      }))
   }
   const detail = shown === null
     ? h('div', { className: cx('wb-detail-empty') }, t('workbench.select'))
@@ -3090,7 +3131,41 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.back'))),
       h('div', { className: cx('wb-view'), key: 'focus' }, detail))
   }
-  return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'queue' },
+  const tabs = h('div', { className: cx('wb-tabs'), role: 'tablist', 'aria-label': t('workbench.tab.aria'), 'data-wb-tabs': 'true' },
+    h('button', {
+      type: 'button', role: 'tab', id: tabId('tasks'), className: cx('wb-tab', tab === 'tasks' && 'wb-tab-on'),
+      'aria-selected': tab === 'tasks', 'aria-controls': panelId, tabIndex: tab === 'tasks' ? 0 : -1,
+      'aria-label': t('workbench.tab.tasksAria', { n: counts.total }),
+      ref: (element: HTMLButtonElement | null) => {
+        if (element === null) tabRefs.current.delete('tasks')
+        else tabRefs.current.set('tasks', element)
+      },
+      onClick: () => { selectTab('tasks') },
+      onKeyDown: (event: React.KeyboardEvent) => { onTabKey(event, 'tasks') },
+    },
+      h('span', null, t('workbench.tab.tasks')),
+      counts.total === 0 ? null : h('span', { className: cx('wb-tab-count') }, counts.total)),
+    h('button', {
+      type: 'button', role: 'tab', id: tabId('providers'), className: cx('wb-tab', tab === 'providers' && 'wb-tab-on'),
+      'aria-selected': tab === 'providers', 'aria-controls': panelId, tabIndex: tab === 'providers' ? 0 : -1,
+      'aria-label': alerts.length === 0 ? t('workbench.tab.providersClear') : alerts.length === 1 ? t('workbench.tab.providersOne') : t('workbench.tab.providersAria', { n: alerts.length }),
+      ref: (element: HTMLButtonElement | null) => {
+        if (element === null) tabRefs.current.delete('providers')
+        else tabRefs.current.set('providers', element)
+      },
+      onClick: () => { selectTab('providers') },
+      onKeyDown: (event: React.KeyboardEvent) => { onTabKey(event, 'providers') },
+    },
+      h('span', { className: cx('wb-tab-label') }, t('workbench.tab.providers')),
+      alerts.length === 0 ? null : h('span', {
+        className: cx('wb-tab-dot'), 'data-wb-tab-dot': 'true', 'aria-hidden': 'true', title: alertNames,
+      })))
+  const panel = tab === 'tasks' ? renderQueue() : renderProviders()
+  const mainPanel = h('div', {
+    className: cx('wb-view'), key: tab, role: 'tabpanel', id: panelId, 'aria-labelledby': tabId(tab),
+    'data-wb-scroll': 'true', 'data-wb-panel': tab,
+  }, panel)
+  return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'queue', 'data-wb-tab': tab },
     h('header', { className: cx('wb-head') },
       h('div', { className: cx('wb-head-row') },
         h('button', {
@@ -3102,390 +3177,23 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         h('span', { className: cx('wb-updated'), 'aria-live': 'polite' }, updated ? t('workbench.updated') : ''),
         h('button', {
           type: 'button', className: cx('wb-refresh'), 'data-wb-refresh': 'true',
-          'aria-label': t('workbench.refresh'), title: t('workbench.refresh'),
+          'aria-label': tab === 'providers' ? t('workbench.refresh.providers') : t('workbench.refresh.tasks'),
+          title: tab === 'providers' ? t('workbench.refresh.providers') : t('workbench.refresh.tasks'),
           onClick: refresh,
         }, h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true' },
           h('path', {
             d: 'M13 8a5 5 0 1 1-1.6-3.7M13 2.6V5h-2.4', stroke: 'currentColor', strokeWidth: 1.35,
             strokeLinecap: 'round', strokeLinejoin: 'round',
           })))),
-      h('div', { className: cx('wb-sub') }, t('workbench.meta', { n: counts.total, time: stamp }))),
+      h('div', { className: cx('wb-sub') }, t('workbench.meta', { n: counts.total, time: stamp })),
+      tabs),
     h('div', { className: cx('wb-main') },
       desktop
         ? h('div', { className: cx('wb-grid') },
-          h('aside', { className: cx('wb-queue'), 'data-wb-queue': 'true' }, h('div', { className: cx('wb-view'), key: 'queue' }, renderQueue())),
+          h('aside', { className: cx('wb-queue'), 'data-wb-queue': 'true' }, mainPanel),
           h('div', { className: cx('wb-pane'), 'data-wb-pane': 'true' }, detail))
-        : h('div', { className: cx('wb-view'), key: 'queue' }, renderQueue())))
+        : mainPanel))
 }
-export type ProviderPanelProps = BalancesInjected & PropsStore<BalanceStore> & TaskQueueInjected & {
-  /** Sidebar column state: false is the 56px rail (one glyph + a status badge). */
-  wide: boolean
-  t: Translate
-  /** dsh's own file preview (see apply); absent in tests and on hosts without it. */
-  openFile?: OpenFile
-}
-
-/**
- * The sidebar-foot provider panel (2026-09-27): the balance chip and the
- * dispatch queue as ONE cell, `provider-balance`. Folded, it is one line per
- * source — provider or agent name first, its reading and reset, then who
- * burns that allowance (the agent's queue) or where its key comes from. Any
- * line opens the panel on that source's group: the allowance (windows with
- * their resets, or money), then the queue that allowance feeds. The rail
- * keeps one glyph whose badge warns when a window is at its threshold or a
- * task sleeps on quota. Both halves keep their own read and cadence.
- */
-export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.ReactElement {
-  const t = props.t
-  const queueState = useTaskQueue(props)
-  const [detailId, setDetailId] = useState<string | null>(null)
-  const [statsOpen, setStatsOpen] = useState(false)
-  const [patrolOpen, setPatrolOpen] = useState(false)
-  const [busy, setBusy] = useState<string | null>(null)
-  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
-  const [confirm, setConfirm] = useState<string | null>(null)
-  const [picker, setPicker] = useState<ModelPicker | null>(null)
-  const [log, setLog] = useState<string[] | null>(null)
-  const [timeline, setTimeline] = useState<TaskTimeline | 'older' | null>(null)
-  const [brief, setBrief] = useState<BriefView | null>(null)
-  const [readPending, setReadPending] = useState<string | null>(null)
-  const [focusKey, setFocusKey] = useState<string | null>(null)
-  // Every detail request belongs to the task that was open when it began.
-  // A late reply must never paint a different task's picker, log or brief.
-  const detailRequest = useRef(0)
-  const activeDetail = useRef<string | null>(null)
-  useEffect(() => () => { detailRequest.current += 1; activeDetail.current = null }, [])
-  const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
-  const backRef = useRef<HTMLButtonElement | null>(null)
-  const statsBackRef = useRef<HTMLButtonElement | null>(null)
-  const patrolBackRef = useRef<HTMLButtonElement | null>(null)
-  // The stats card / coverage row that opened the layer: focus returns when it closes.
-  const statsOpenerRef = useRef<HTMLElement | null>(null)
-  const patrolOpenerRef = useRef<HTMLElement | null>(null)
-  // The control that opened the panel: focus returns to it when the panel closes.
-  const openerRef = useRef<HTMLElement | null>(null)
-  const closeStats = (): void => {
-    setStatsOpen(false)
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => { statsOpenerRef.current?.focus({ preventScroll: false }) })
-    }
-  }
-  const closePatrol = (): void => {
-    setPatrolOpen(false)
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => { patrolOpenerRef.current?.focus({ preventScroll: false }) })
-    }
-  }
-  const closeDetail = (): boolean => {
-    if (patrolOpen) { closePatrol(); return true }
-    if (statsOpen) { closeStats(); return true }
-    if (confirm !== null) { setConfirm(null); return true }
-    if (detailId === null) return false
-    const id = detailId
-    detailRequest.current += 1
-    activeDetail.current = null
-    setDetailId(null)
-    setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null)
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => {
-        rootRef.current?.querySelector<HTMLElement>('[data-tq-task="' + CSS.escape(id) + '"]')?.focus({ preventScroll: false })
-      })
-    }
-    return true
-  }
-  const { open, setOpen, anchor, phone, place, rootRef, panelRef } = useFootPopover(closeDetail)
-  // The stats read is lazy: it starts on the panel's first open, never on the queue's poll.
-  // A host half older than `taskStats` says so with the missing `statsApi` flag; no card, no call.
-  const statsCapable = queueState.data.result?.statsApi === true
-  const statsState = useTaskStats(props, open && statsCapable)
-  const statsViewData = statsState.data === null ? null : statsView(statsState.data, t)
-  // The folded lines and the open panel print the readings; the rail prints only its badge.
-  const balanceState = useProviderBalances(props, BALANCE_PANEL, props.wide || open)
-  const instanceId = useId()
-  useEffect(() => {
-    if (open) return
-    detailRequest.current += 1
-    activeDetail.current = null
-    setDetailId(null); setStatsOpen(false); setPatrolOpen(false); setNotice(null); setConfirm(null); setBrief(null)
-    setPicker(null); setLog(null); setTimeline(null); setReadPending(null)
-    // Closed by Escape or an outside tap while focus was inside: hand it back to the opener
-    // instead of letting it fall to <body>.
-    if (typeof document !== 'undefined' && rootRef.current !== null && openerRef.current !== null
-      && (document.activeElement === document.body || rootRef.current.contains(document.activeElement))) {
-      openerRef.current.focus({ preventScroll: true })
-    }
-  }, [open])
-  // Opening on a line lands on that source's group (and scrolls it into view).
-  useEffect(() => {
-    if (!open || focusKey === null || typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') return
-    window.requestAnimationFrame(() => {
-      rootRef.current?.querySelector<HTMLElement>('[data-pp-group="' + CSS.escape(focusKey) + '"]')?.focus({ preventScroll: false })
-    })
-  }, [open, focusKey])
-  useEffect(() => { if (detailId !== null) backRef.current?.focus({ preventScroll: true }) }, [detailId])
-  useEffect(() => { if (statsOpen) statsBackRef.current?.focus({ preventScroll: true }) }, [statsOpen])
-  useEffect(() => { if (patrolOpen) patrolBackRef.current?.focus({ preventScroll: true }) }, [patrolOpen])
-  useEffect(() => {
-    if (confirm === null) return undefined
-    const timer = setTimeout(() => { setConfirm(null) }, CONFIRM_MS)
-    return () => clearTimeout(timer)
-  }, [confirm])
-  const run = props.runQueueAction
-  const needsHost = (result: QueueActionResult): boolean => !result.ok && /unknown action/.test(result.message)
-  const act = (action: string, task: DispatchTask, arg = ''): void => {
-    if (run === undefined || busy !== null) return
-    setBusy(action + ':' + task.id)
-    setNotice(null)
-    run(action, task.id, arg).then((result) => {
-      setBusy(null)
-      setNotice({ ok: result.ok, text: needsHost(result) ? t('queue.r.needsHost') : _describeAction(result, t) })
-      queueState.refresh()
-    }, (err: unknown) => {
-      setBusy(null)
-      setNotice({ ok: false, text: t('queue.r.failed', { message: err instanceof Error ? err.message : String(err) }) })
-    })
-  }
-  const openPath = (path: string): void => {
-    const opened = props.openFile === undefined ? { ok: false as const, reason: 'no-service' as const } : props.openFile(path)
-    const file = path.slice(path.lastIndexOf('/') + 1)
-    setNotice(opened.ok ? { ok: true, text: t('queue.brief.opened', { file }) }
-      : { ok: false, text: opened.reason === 'no-session' ? t('queue.brief.noSession', { path })
-        : opened.reason === 'no-service' ? t('queue.brief.noService', { path })
-          : t('queue.brief.failed', { message: opened.message ?? '', path }) })
-  }
-  const openBrief = (task: DispatchTask): void => {
-    // When the ops entry cannot say where the brief is, the host half's own dispatch directory
-    // does (`logDir`); a host half older than that field gets no guessed path (#2065).
-    const logDir = queueState.data.result?.logDir
-    const fallback = logDir ? logDir.replace(/\/+$/, '') + '/' + task.id + '/prompt.md' : null
-    setConfirm(null)
-    const noDir = (): void => { setNotice({ ok: false, text: t('queue.brief.noDir') }) }
-    if (run === undefined) {
-      if (fallback === null) { noDir(); return }
-      setBrief({ id: task.id, path: fallback, bytes: 0, truncated: false, appends: [], needsHost: true }); openPath(fallback); return
-    }
-    const request = detailRequest.current
-    setReadPending('brief')
-    run('brief', task.id, '').then((result) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      type Answer = { path?: string; brief_bytes?: number; truncated?: boolean; appends?: BriefView['appends'] }
-      let detail: Answer = {}
-      try { detail = JSON.parse(result.detail || '{}') as Answer } catch { detail = {} }
-      if (!result.ok && !needsHost(result)) {
-        setNotice({ ok: false, text: t('queue.a.readFailed', { message: result.message }) })
-        return
-      }
-      const path = (result.ok ? detail.path : undefined) ?? fallback
-      if (path === null) { noDir(); return }
-      const view: BriefView = result.ok
-        ? { id: task.id, path, bytes: detail.brief_bytes ?? 0, truncated: detail.truncated === true, appends: detail.appends ?? [], needsHost: false }
-        : { id: task.id, path, bytes: 0, truncated: false, appends: [], needsHost: true }
-      setBrief(view)
-      openPath(view.path)
-    }, (err: unknown) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
-    })
-  }
-  const openFullLog = (task: DispatchTask): void => {
-    const logDir = queueState.data.result?.logDir
-    if (!logDir) { setNotice({ ok: false, text: t('queue.a.logNoDir') }); return }
-    openPath(logDir.replace(/\/+$/, '') + '/' + task.id + '/run.log')
-  }
-  const openPicker = (task: DispatchTask): void => {
-    if (run === undefined) return
-    setConfirm(null)
-    const request = detailRequest.current
-    setLog(null)
-    setPicker(null)
-    setReadPending('choices')
-    run('choices', task.id, '').then((result) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      let detail: { models?: string[]; efforts?: Record<string, string[]>; effort_flag?: string; allowed?: boolean; reason?: string; requested?: { model?: string; effort?: string } } = {}
-      try { detail = JSON.parse(result.detail || '{}') as typeof detail } catch { detail = {} }
-      setPicker({
-        models: detail.models ?? [], efforts: detail.efforts ?? {}, flag: detail.effort_flag ?? 'effort',
-        model: detail.requested?.model ?? task.modelRequested ?? task.model, effort: detail.requested?.effort ?? '',
-        allowed: result.ok && detail.allowed === true, reason: result.ok ? detail.reason ?? '' : result.message,
-      })
-    }, (err: unknown) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
-    })
-  }
-  const loadLog = (task: DispatchTask): void => {
-    if (run === undefined) return
-    setConfirm(null)
-    const request = detailRequest.current
-    setPicker(null)
-    setReadPending('log')
-    run('log', task.id, '').then((result) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      let lines: string[] = []
-      try { lines = (JSON.parse(result.detail || '{}') as { lines?: string[] }).lines ?? [] } catch { lines = [] }
-      setLog(result.ok ? lines : [result.message])
-    }, (err: unknown) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
-    })
-  }
-
-  // Reuse the existing read-only log transport: updating ops is enough even while the
-  // dsh host is waiting for its next restart. A late reply belongs only to its task.
-  const loadTimeline = (task: DispatchTask): void => {
-    if (run === undefined) return
-    const request = detailRequest.current
-    setReadPending('timeline')
-    run('log', task.id, '').then((result) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      if (!result.ok) { setNotice({ ok: false, text: t('queue.a.readFailed', { message: result.message }) }); return }
-      let answer: { timeline?: TaskTimeline } = {}
-      try { answer = JSON.parse(result.detail || '{}') as typeof answer } catch { /* older ops */ }
-      setTimeline(answer.timeline ?? 'older')
-    }, (err: unknown) => {
-      if (request !== detailRequest.current || activeDetail.current !== task.id) return
-      setReadPending(null)
-      setNotice({ ok: false, text: t('queue.a.readFailed', { message: err instanceof Error ? err.message : String(err) }) })
-    })
-  }
-
-  const now = Date.now()
-  const result = queueState.data.result
-  const dispatcher = result !== null && result.available
-  const pending = result?.pending ?? []
-  const rows = new Map(balanceState.rows.map((row) => [row.provider, row] as const))
-  const sources = _panelSources(balanceState.data.result?.providers ?? [], result)
-  const windowsOf = (agent: string): ReadonlyArray<{ resetAtMs?: number | null }> | undefined => agentWindows(rows, agent)
-  const sourceOf = (agent: string): DetailSource => {
-    const join = PROVIDER_JOIN.find((j) => j.agent === agent)
-    const queue = (result?.queues ?? []).find((q) => q.agent === agent)
-    return {
-      plan: join?.plan ?? null,
-      row: join?.provider ? rows.get(join.provider) : undefined,
-      pool: join?.kind === 'pool' ? _poolPosition(result) : undefined,
-      poolSize: join?.kind === 'pool' ? result?.opencodePool?.length ?? 0 : 0,
-      lane: dispatcher ? _slotLanes(result!).find((l) => l.agent === agent) : undefined,
-      quotaUntilMs: queue?.quotaUntilMs ?? null,
-      quotaBy: queue?.quotaBy ?? '',
-    }
-  }
-  const found = !dispatcher || detailId === null ? null : findTask(result!, detailId) ?? (lastSeen.current?.task.id === detailId ? lastSeen.current : null)
-  lastSeen.current = found
-  const writable = run !== undefined && dispatcher && result!.ops?.available === true
-  const ui: PanelUi = {
-    open: (id) => { detailRequest.current += 1; activeDetail.current = id; setStatsOpen(false); setPatrolOpen(false); setDetailId(id); setNotice(null); setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null) },
-    close: () => { setOpen(false) },
-    openStats: (opener) => { statsOpenerRef.current = opener; setPatrolOpen(false); setStatsOpen(true); setNotice(null) },
-    statsOpen,
-    openPatrol: (opener) => { patrolOpenerRef.current = opener; setStatsOpen(false); setPatrolOpen(true); setNotice(null) },
-    patrolOpen,
-    act, busy, writable, confirm, askConfirm: setConfirm, picker, openPicker, setPicker, log, loadLog,
-    brief, readPending, openBrief, openFullLog, openPath, windowsOf, sourceOf, rows, timeline, loadTimeline,
-  }
-  const model = panelModel({ balances: balanceState.data.result, balanceError: balanceState.data.error,
-    queue: result, queueError: queueState.data.error, stats: statsCapable ? statsState.data : null }, t, now, ui.open)
-  // One line per source (C1), on the row grid: glyph · name · value · the one state chip (sourceView).
-  const lines = sources.map((source) => {
-    const row = source.provider === null ? undefined : rows.get(source.provider.provider)
-    const view = sourceView(source, row, result, t)
-    return { source, view, reading: view.reading, text: view.queue?.text ?? '' }
-  })
-  // The rail badge: amber square when a window is at its threshold or a task sleeps on quota;
-  // hollow ring when a read failed; nothing when there is nothing to act on (neutral).
-  const warn = lines.some((line) => line.reading.tone === 'low' || line.reading.level === 'low')
-    || (dispatcher && result!.active.some((task) => task.waiting === 'quota'))
-  const failed = (queueState.data.error !== null && result === null) || (balanceState.data.error !== null && balanceState.rows.length === 0)
-    || lines.some((line) => line.reading.tone === 'stale')
-  const railTone: BalanceTone = warn ? 'low' : failed ? 'stale' : 'none'
-  const summary = lines.map((line) => [
-    line.source.label,
-    [line.view.value?.unit, line.reading.windowsText || line.reading.value].filter((part) => part != null && part !== '').join(' '),
-    ...line.reading.resets.map((reset) => '↻ ' + reset),
-    line.reading.tone === 'stale' ? t('balance.staleShort') : '',
-    line.text,
-  ].filter((part) => part !== '').join(' ')).join(' · ')
-  const toggle = (key: string | null, opener: HTMLElement | null): void => {
-    openerRef.current = opener
-    setFocusKey(key)
-    if (!open) place()
-    setOpen(!open)
-  }
-  // On a phone the page belongs to the drawer column: it inherits the drawer's
-  // width and leaves with it when the drawer closes. The plugin root is inside
-  // that column; the desktop card stays on <body>.
-  const portalHost = phone && typeof document !== 'undefined'
-    ? rootRef.current?.closest('[class*="sidebarCol"]') ?? null
-    : null
-  return h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', !props.wide && 'rail'), ref: rootRef, 'data-pp-warn': warn ? 'true' : undefined },
-    props.wide
-      ? h('div', { className: cx('pp-rows'), role: 'group', 'aria-label': t('panel.aria'), 'data-clawock-action': BALANCE_PANEL },
-        lines.length === 0
-          ? h('button', {
-            type: 'button', className: cx('pp-row', 'pp-empty'), 'data-pp-row': '', 'aria-expanded': open, 'aria-haspopup': 'dialog',
-            'data-active': open ? '' : undefined,
-            onClick: (event: { currentTarget: HTMLElement }) => { toggle(null, event.currentTarget) },
-          }, h('span', { className: cx('pp-name') }, t('panel.title')), h('span', { className: cx('tq-sub', 'pp-last') }, balanceState.empty.title))
-          : lines.map(({ source, view, reading, text }) => h('button', {
-            type: 'button',
-            key: source.key,
-            // A quota provider can have both a queue state chip and reset
-            // stamps. They share line 2; the split class puts the chip on the
-            // left and the clocks on the right instead of stacking both at the
-            // right edge (the overlap is visible when a Claude/Codex task runs).
-            className: cx('pp-row', (reading.resets.length > 0 || reading.tone === 'stale') && 'pp-row-split'),
-            'data-tq-row': 'source',
-            'data-pp-row': source.key,
-            'data-pb-provider': source.provider?.provider,
-            'data-pb-role': source.provider === null ? undefined : 'chip',
-            'data-balance-state': reading.tone,
-            'data-active': open && focusKey === source.key ? '' : undefined,
-            'aria-expanded': open,
-            'aria-haspopup': 'dialog',
-            'aria-label': [
-              source.label,
-              [view.value?.unit, reading.windowsText || reading.value].filter((part) => part != null && part !== '').join(' '),
-              ...reading.resets.map((reset) => '↻ ' + reset),
-              reading.tone === 'stale' ? t('balance.staleShort') : '',
-              text,
-              t('panel.openGroup', { name: source.label }),
-            ].filter((part) => part !== '').join(' · '),
-            title: reading.title,
-            onClick: (event: { currentTarget: HTMLElement }) => { toggle(source.key, event.currentTarget) },
-          }, ...rowCells({ ...view, caption: [], folded: true }, t).cells)))
-      : h('button', {
-        type: 'button',
-        className: cx('bchip', 'pp-rail'),
-        'data-clawock-action': BALANCE_PANEL,
-        'data-balance-state': railTone,
-        'data-active': open ? '' : undefined,
-        'aria-expanded': open,
-        'aria-haspopup': 'dialog',
-        'aria-label': t('panel.railTitle', { summary: (warn ? t('panel.warn') + ' · ' : '') + summary }),
-        title: t('panel.railTitle', { summary }),
-        onClick: (event: { currentTarget: HTMLElement }) => { toggle(null, event.currentTarget) },
-      }, h('span', { className: cx('bal-lead'), 'data-balance-state': railTone }, renderBalanceGlyph(railTone, 18, instanceId))),
-    renderFootPanel(h('div', panelAttrs(open, t('panel.aria'), {
-      ref: panelRef,
-      'data-clawock-popover': BALANCE_PANEL,
-      ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px', maxHeight: anchor.room + 'px' } }),
-    }),
-    h('div', { className: cx('tq-list'), key: 'list', inert: found !== null || statsOpen || patrolOpen ? '' : undefined, 'aria-hidden': found !== null || statsOpen || patrolOpen ? 'true' : undefined },
-      renderProviderPanelBody(model, queueState, balanceState, statsState, t, ui, found === null ? notice : null)),
-    found === null ? null : h('div', { className: cx('tq-layer'), key: 'detail' },
-      renderTaskDetail(found, t, now, () => { closeDetail() }, backRef, ui, notice)),
-    patrolOpen && model.patrol !== null ? h('div', { className: cx('tq-layer'), key: 'patrol' },
-      renderPatrolDetail(model.patrol, t, closePatrol, patrolBackRef)) : null,
-    statsOpen && statsViewData !== null ? h('div', { className: cx('tq-layer'), key: 'stats' },
-      renderStatsDetail(statsViewData, t, closeStats, statsBackRef)) : null), portalHost))
-}
-
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const t = props.t
   const filter = props.useStore((state) => state.filter)
@@ -3811,10 +3519,9 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     },
   })
   // The chip is app-level account chrome, not decision data, and belongs to
-  // no session. On hosts with global panels (`ctx.layout.selectPanel`,
-  // DSH >= 0.1.5-rc.1) it lives at the sidebar foot beside Settings
-  // (`sidebar.footer.action`) with a trigger-owned popover; older hosts keep
-  // it in the session header's utilities seat.
+  // no session. On hosts with global panels (`ctx.layout.selectPanel`) the
+  // readings moved into the workbench's Providers segment (2026-11-07); only
+  // an older host with no main-panel slot still gets the header chip.
   const balanceListeners = new Set<(result: BalancesResult) => void>()
   const balancesInjected = (): BalancesInjected => ({
     cachedBalances: () => cachedBalances,
@@ -3841,8 +3548,8 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
   }, DecisionMind))
   const balancesStore = createBalanceStore()
   if (typeof layout?.selectPanel === 'function') {
-    // One foot cell, `provider-balance` (2026-09-27): the balance and the dispatch queue it pays for.
-    // `dispatch-queue` is retired; both reads keep their own cadence inside the cell.
+    // The workbench's data channels: queue + balances share the same remote
+    // answer and the same cache, so the icon and the page cannot disagree.
     let cachedTaskQueue: TaskQueueResult | null = null
     const queueInjected = (): TaskQueueInjected => ({
       cachedTaskQueue: () => cachedTaskQueue,
@@ -3859,21 +3566,6 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
         ? (action, id, arg) => call<QueueActionResult>('queueAction', [action, id, arg])
         : undefined,
     })
-    // dsh's own file preview (the right sidebar). Looked up at click time — long after apply, so the
-    // service exists when there is one — and never injected: a host without it keeps the panel.
-    const openFile: OpenFile = (path) => {
-      const sidebar = ctx.get('sidebarRight') as { openResource?: (address: string, options?: unknown) => void; mounted?: { getSnapshot(): unknown } } | undefined
-      if (sidebar === undefined || typeof sidebar.openResource !== 'function') return { ok: false, reason: 'no-service' }
-      // Global panels (settings, …) have no right sidebar: it opens inside a conversation only.
-      const session = sidebar.mounted?.getSnapshot()
-      if (typeof session !== 'string' || session === '') return { ok: false, reason: 'no-session' }
-      try {
-        sidebar.openResource(_sessionFileAddress(session, path))
-        return { ok: true }
-      } catch (err) {
-        return { ok: false, reason: 'error', message: err instanceof Error ? err.message : String(err) }
-      }
-    }
     // The two entries and the page share one remembered trigger: whichever
     // control opened the workbench gets focus back when it closes.
     let workbenchTrigger: HTMLElement | null = null
@@ -3893,6 +3585,7 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     }
     const workbenchInjected = (): WorkbenchInjected => ({
       ...queueInjected(),
+      ...balancesInjected(),
       closeWorkbench,
       // A host half older than this method gives the page a read-only focus view.
       runWorkbenchAction: typeof studioRemote.workbenchAction === 'function'
@@ -3908,19 +3601,8 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     }, WorkbenchPage))
     ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
       name: 'sidebar.panellist', id: WORKBENCH_PANEL, order: 10, label, locale: LOCALE_NS,
-      inject: (): WorkbenchIconInjected => ({ ...queueInjected(), rememberTrigger }),
+      inject: (): WorkbenchIconInjected => ({ ...queueInjected(), ...balancesInjected(), rememberTrigger }),
     }, WorkbenchIcon))
-    ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
-      name: 'sidebar.footer.action',
-      id: 'provider-balance',
-      store: balancesStore,
-      locale: LOCALE_NS,
-      inject: (): BalancesInjected & TaskQueueInjected & { openFile: OpenFile } => ({
-        ...balancesInjected(),
-        ...queueInjected(),
-        openFile,
-      }),
-    }, ProviderPanelSidebarAction))
   } else {
     ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
       name: 'conversation.session.header.utilities',
