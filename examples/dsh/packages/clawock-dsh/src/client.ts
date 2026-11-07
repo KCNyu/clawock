@@ -890,10 +890,10 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
       const root = rootRef.current
       if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
     }
-    document.addEventListener('keydown', onKey)
+    document.addEventListener('keydown', onKey, true)
     document.addEventListener('mousedown', onDown)
     return () => {
-      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('keydown', onKey, true)
       document.removeEventListener('mousedown', onDown)
     }
   }, [open])
@@ -964,27 +964,21 @@ const POPOVER_TOP_GAP = 12
 const POPOVER_MIN_ROOM = 240
 /** dsh 0.2.2's own mobile/drawer breakpoint (layout: `width<=767px`). */
 const PHONE_MAX_WIDTH = 767
-/** On a phone the host drawer's 52px top strip stays visible above the sheet. */
-const PHONE_TOP_GAP = 60
 
 /**
- * The viewport half of the foot panel's placement, pure so the phone clamps are
- * pinned without a browser. On a phone the panel is a near-full-width sheet
- * (`100vw - 16px`, 8px side margins) that sits between the drawer's top strip
- * and the footer row: the row that opened it stays visible (so it still closes
- * it), and the host's brand/collapse control is not covered. On a wide screen
- * the old 380px card and 12px gap are unchanged. A row that sits against the
- * right edge (or inside a drawer offset from x=0) must not push the card past
- * the viewport, which is what mobile Safari turns into a zoomed-out page.
+ * The viewport half of the foot panel's placement, pure so the desktop clamps
+ * are pinned without a browser. On a phone the panel is no longer a floating
+ * card: it is a page inside the drawer (width 100%, top 52px), so there is
+ * nothing to clamp and this returns null. On a wide screen the old 380px card
+ * and 12px gap are unchanged.
  */
-export function _popoverAnchor(rect: { left: number; top: number }, vw: number, vh: number): PopoverAnchor {
-  const phone = vw <= PHONE_MAX_WIDTH
-  const width = phone ? vw - 16 : Math.min(380, vw - 24)
-  const topGap = phone ? PHONE_TOP_GAP : POPOVER_TOP_GAP
+export function _popoverAnchor(rect: { left: number; top: number }, vw: number, vh: number): PopoverAnchor | null {
+  if (vw <= PHONE_MAX_WIDTH) return null
+  const width = Math.min(380, vw - 24)
   return {
     left: Math.max(8, Math.min(rect.left, vw - width - 8)),
     bottom: Math.max(8, vh - rect.top + 8),
-    room: Math.max(POPOVER_MIN_ROOM, Math.min(rect.top - 8 - topGap, vh - topGap - 8)),
+    room: Math.max(POPOVER_MIN_ROOM, Math.min(rect.top - 8 - POPOVER_TOP_GAP, vh - POPOVER_TOP_GAP - 8)),
   }
 }
 
@@ -998,9 +992,10 @@ export function _popoverAnchor(rect: { left: number; top: number }, vw: number, 
 function useFootPopover(back?: () => boolean) {
   const [open, setOpen] = useState(false)
   const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
+  const [phone, setPhone] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
-  // The panel is portaled to <body> (see `renderFootPanel`); it is no longer a
-  // descendant of rootRef, so outside-tap detection has to know both boxes.
+  // The panel is portaled out of the plugin root; on a phone it is a page
+  // inside the drawer, so outside-tap detection still needs both boxes.
   const panelRef = useRef<HTMLDivElement | null>(null)
   // The listener is attached once per opening; the ref hands it this render's `back`.
   const backRef = useRef(back)
@@ -1010,18 +1005,22 @@ function useFootPopover(back?: () => boolean) {
     const root = rootRef.current
     if (root === null || typeof window === 'undefined') return
     const rect = root.getBoundingClientRect()
-    // On a phone the foot sits inside the sidebar drawer, which 0.2.2 slides
-    // with a transform. A fixed panel inside that transformed subtree is
-    // clipped to the 280px drawer (and the 360px panel lost its right edge).
-    // The panel is portaled to <body>; this clamps the viewport half of the
-    // placement (see _popoverAnchor).
-    setAnchor(_popoverAnchor(rect, window.innerWidth, window.innerHeight))
+    const viewportWidth = window.innerWidth
+    const isPhone = viewportWidth <= PHONE_MAX_WIDTH
+    setPhone(isPhone)
+    // On a phone the panel is a page inside the drawer (CSS geometry), not an
+    // anchored card; on a desktop the anchor is still the row's viewport box.
+    setAnchor(isPhone ? null : _popoverAnchor(rect, viewportWidth, window.innerHeight))
   }
 
   useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined
     const onKey = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return
+      // The page (or its nested detail) owns Escape while it is open: without
+      // stopping propagation the host drawer also hears the key and closes
+      // behind the page. Capture phase lets this listener run before the host's.
+      event.stopPropagation()
       if (backRef.current?.() === true) return
       setOpen(false)
     }
@@ -1030,49 +1029,38 @@ function useFootPopover(back?: () => boolean) {
       const panel = panelRef.current
       if (event.target instanceof Node && !(root?.contains(event.target) ?? false) && !(panel?.contains(event.target) ?? false)) setOpen(false)
     }
-    document.addEventListener('keydown', onKey)
+    document.addEventListener('keydown', onKey, true)
     // Capture phase, unlike the host hook: the composer stops pointerdown from
     // bubbling, so a bubble listener never hears a tap on the input box.
     document.addEventListener('pointerdown', onDown, true)
     window.addEventListener('resize', place)
     return () => {
-      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('keydown', onKey, true)
       document.removeEventListener('pointerdown', onDown, true)
       window.removeEventListener('resize', place)
     }
   }, [open])
 
-  // On a phone the drawer can be closed with the panel still open; the footer
-  // row then slides off screen and a portaled panel would stay behind. Close
-  // when the opener leaves the viewport (desktop never triggers this).
-  useEffect(() => {
-    if (!open || typeof IntersectionObserver === 'undefined') return undefined
-    const root = rootRef.current
-    if (root === null) return undefined
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry !== undefined && !entry.isIntersecting) setOpen(false)
-    })
-    observer.observe(root)
-    return () => { observer.disconnect() }
-  }, [open])
-
-  return { open, setOpen, anchor, place, rootRef, panelRef }
+  return { open, setOpen, anchor, phone, place, rootRef, panelRef }
 }
 
 /**
- * The foot panel lives in a portal on <body>: dsh 0.2.2's phone sidebar is a
- * transformed drawer with `overflow:hidden`, and a `position:fixed` descendant
- * of a transformed ancestor is sized and clipped by that ancestor (measured
+ * The foot panel lives in a portal: dsh 0.2.2's phone sidebar is a transformed
+ * drawer with `overflow:hidden`, and a `position:fixed` descendant of a
+ * transformed ancestor is sized and clipped by that ancestor (measured
  * 2026-11-06 at 390px: a 360px panel lost its right 80px and every reset stamp
- * was cut). The wrapper carries the `.pbc` class so the panel's scoped CSS and
- * host tokens still apply; `display:contents` keeps it out of layout.
+ * was cut). On a phone the page is portaled into the drawer column itself and
+ * positioned absolute there (the drawer's overflow clips a fixed card, but an
+ * absolute page is exactly what the host's own Settings page does); it moves
+ * off screen with the drawer. The wrapper carries the `.pbc` class so the
+ * panel's scoped CSS and host tokens still apply; `display:contents` keeps it
+ * out of layout. The desktop card is still portaled to <body>, because a
+ * 380px popover must escape the 280px column.
  */
-function renderFootPanel(panel: React.ReactElement): React.ReactElement {
-  if (typeof document === 'undefined') return panel
-  return createPortal(
-    h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', 'pbp'), style: { display: 'contents' }, 'data-pp-portal': '' }, panel),
-    document.body,
-  )
+function renderFootPanel(panel: React.ReactElement, host?: Element | null): React.ReactElement {
+  const wrapped = h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', 'pbp'), style: { display: 'contents' }, 'data-pp-portal': '' }, panel)
+  if (typeof document === 'undefined') return wrapped
+  return createPortal(wrapped, host ?? document.body)
 }
 
 // ---------------------------------------------------------------------------
@@ -1370,6 +1358,8 @@ function renderSourceGlyph(source: PanelSource): React.ReactElement {
 type PanelUi = DetailUi & {
   /** Rows by provider id with their display projection (the balance channel). */
   rows: Map<string, BalanceRow>
+  /** Close the panel itself (the phone page's back control). */
+  close: () => void
   /** The stats card's opener: the element focus returns to when the layer closes. */
   openStats: (opener: HTMLElement) => void
   statsOpen: boolean
@@ -1927,8 +1917,19 @@ function renderSourceGroup(group: PanelGroup, t: Translate, ui: PanelUi): React.
 function renderProviderPanelBody(model: PanelModel, queueState: ReturnType<typeof useTaskQueue>, balanceState: ReturnType<typeof useProviderBalances>,
   statsState: ReturnType<typeof useTaskStats>, t: Translate, ui: PanelUi, notice: { ok: boolean; text: string } | null): Array<React.ReactElement | null> {
   const loading = queueState.data.loading || balanceState.data.loading || statsState.loading
-  const head = h('div', { className: cx('tq-head'), key: 'head' },
-    h('span', { className: cx('tq-title') }, model.title),
+  const head = h('div', { className: cx('tq-head', 'tq-p-head'), key: 'head' },
+    h('div', { className: cx('tq-p-head-main') },
+      // The phone page's back control. Desktop keeps the anchored popover,
+      // where the outside tap and Escape are the exits, so CSS hides it there.
+      h('button', {
+        type: 'button',
+        className: cx('tq-back', 'tq-p-back'),
+        'data-tq-page-back': 'true',
+        'aria-label': t('panel.back'),
+        title: t('panel.back'),
+        onClick: ui.close,
+      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' })),
+      h('span', { className: cx('tq-title') }, model.title)),
     h('button', {
       type: 'button',
       className: cx('tq-icon-btn', loading && 'spin'),
@@ -2560,7 +2561,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     }
     return true
   }
-  const { open, setOpen, anchor, place, rootRef, panelRef } = useFootPopover(closeDetail)
+  const { open, setOpen, anchor, phone, place, rootRef, panelRef } = useFootPopover(closeDetail)
   // The stats read is lazy: it starts on the panel's first open, never on the queue's poll.
   // A host half older than `taskStats` says so with the missing `statsApi` flag; no card, no call.
   const statsCapable = queueState.data.result?.statsApi === true
@@ -2747,6 +2748,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
   const writable = run !== undefined && dispatcher && result!.ops?.available === true
   const ui: PanelUi = {
     open: (id) => { detailRequest.current += 1; activeDetail.current = id; setStatsOpen(false); setPatrolOpen(false); setDetailId(id); setNotice(null); setPicker(null); setLog(null); setTimeline(null); setConfirm(null); setBrief(null); setReadPending(null) },
+    close: () => { setOpen(false) },
     openStats: (opener) => { statsOpenerRef.current = opener; setPatrolOpen(false); setStatsOpen(true); setNotice(null) },
     statsOpen,
     openPatrol: (opener) => { patrolOpenerRef.current = opener; setStatsOpen(false); setPatrolOpen(true); setNotice(null) },
@@ -2782,6 +2784,12 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     if (!open) place()
     setOpen(!open)
   }
+  // On a phone the page belongs to the drawer column: it inherits the drawer's
+  // width and leaves with it when the drawer closes. The plugin root is inside
+  // that column; the desktop card stays on <body>.
+  const portalHost = phone && typeof document !== 'undefined'
+    ? rootRef.current?.closest('[class*="sidebarCol"]') ?? null
+    : null
   return h('div', { className: cx('pbc', 'pbf', 'tqf', 'ppf', !props.wide && 'rail'), ref: rootRef, 'data-pp-warn': warn ? 'true' : undefined },
     props.wide
       ? h('div', { className: cx('pp-rows'), role: 'group', 'aria-label': t('panel.aria'), 'data-clawock-action': BALANCE_PANEL },
@@ -2842,7 +2850,7 @@ export function ProviderPanelSidebarAction(props: ProviderPanelProps): React.Rea
     patrolOpen && model.patrol !== null ? h('div', { className: cx('tq-layer'), key: 'patrol' },
       renderPatrolDetail(model.patrol, t, closePatrol, patrolBackRef)) : null,
     statsOpen && statsViewData !== null ? h('div', { className: cx('tq-layer'), key: 'stats' },
-      renderStatsDetail(statsViewData, t, closeStats, statsBackRef)) : null)))
+      renderStatsDetail(statsViewData, t, closeStats, statsBackRef)) : null), portalHost))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {

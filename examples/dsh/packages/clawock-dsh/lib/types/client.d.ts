@@ -186,19 +186,16 @@ export type PopoverAnchor = {
     room: number;
 };
 /**
- * The viewport half of the foot panel's placement, pure so the phone clamps are
- * pinned without a browser. On a phone the panel is a near-full-width sheet
- * (`100vw - 16px`, 8px side margins) that sits between the drawer's top strip
- * and the footer row: the row that opened it stays visible (so it still closes
- * it), and the host's brand/collapse control is not covered. On a wide screen
- * the old 380px card and 12px gap are unchanged. A row that sits against the
- * right edge (or inside a drawer offset from x=0) must not push the card past
- * the viewport, which is what mobile Safari turns into a zoomed-out page.
+ * The viewport half of the foot panel's placement, pure so the desktop clamps
+ * are pinned without a browser. On a phone the panel is no longer a floating
+ * card: it is a page inside the drawer (width 100%, top 52px), so there is
+ * nothing to clamp and this returns null. On a wide screen the old 380px card
+ * and 12px gap are unchanged.
  */
 export declare function _popoverAnchor(rect: {
     left: number;
     top: number;
-}, vw: number, vh: number): PopoverAnchor;
+}, vw: number, vh: number): PopoverAnchor | null;
 /** What the task chip's `inject` factory hands the component. */
 export interface TaskQueueInjected {
     /** The last answer this registration fetched, or null cold. */
