@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-03T11:17:41Z",
+  "generated_at": "2026-11-07T10:38:50Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -442,6 +442,26 @@
       "timestamp": "2026-11-02T00:00:00Z",
       "count": 20,
       "uniques": 15
+    },
+    {
+      "timestamp": "2026-11-03T00:00:00Z",
+      "count": 12,
+      "uniques": 8
+    },
+    {
+      "timestamp": "2026-11-04T00:00:00Z",
+      "count": 10,
+      "uniques": 8
+    },
+    {
+      "timestamp": "2026-11-05T00:00:00Z",
+      "count": 13,
+      "uniques": 13
+    },
+    {
+      "timestamp": "2026-11-06T00:00:00Z",
+      "count": 17,
+      "uniques": 13
     }
   ],
   "clones": [
@@ -884,6 +904,26 @@
       "timestamp": "2026-11-02T00:00:00Z",
       "count": 625,
       "uniques": 116
+    },
+    {
+      "timestamp": "2026-11-03T00:00:00Z",
+      "count": 642,
+      "uniques": 139
+    },
+    {
+      "timestamp": "2026-11-04T00:00:00Z",
+      "count": 737,
+      "uniques": 166
+    },
+    {
+      "timestamp": "2026-11-05T00:00:00Z",
+      "count": 958,
+      "uniques": 155
+    },
+    {
+      "timestamp": "2026-11-06T00:00:00Z",
+      "count": 1739,
+      "uniques": 262
     }
   ],
   "referrers_snapshots": [
@@ -1636,6 +1676,42 @@
         },
         {
           "referrer": "dshbase.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-11-07T10:38:50Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "aocr.org",
+          "count": 151,
+          "uniques": 151
+        },
+        {
+          "referrer": "github.com",
+          "count": 36,
+          "uniques": 30
+        },
+        {
+          "referrer": "Google",
+          "count": 10,
+          "uniques": 8
+        },
+        {
+          "referrer": "kcnyu.github.io",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "referrer": "dshbase.com",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "vuink.com",
           "count": 1,
           "uniques": 1
         }
@@ -3226,6 +3302,72 @@
           "uniques": 2
         }
       ]
+    },
+    {
+      "captured_at": "2026-11-07T10:38:50Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 97,
+          "uniques": 77
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/scripts/data/fetch_catalysts.py",
+          "title": "/blob/master/scripts/data/fetch_catalysts.py",
+          "count": 36,
+          "uniques": 36
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 15,
+          "uniques": 10
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 8,
+          "uniques": 8
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/scripts/data/trading_calendar.py",
+          "title": "/blob/master/scripts/data/trading_calendar.py",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/pull/260",
+          "title": "/pull/260",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master",
+          "title": "/tree/master",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/actions/runs/26853887670/workflow",
+          "title": "/actions/runs/26853887670/workflow",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/DREAMS.md",
+          "title": "/blob/master/DREAMS.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/scrapling/SKILL.md",
+          "title": "/blob/master/skills/scrapling/SKILL.md",
+          "count": 2,
+          "uniques": 2
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -3371,6 +3513,13 @@
     },
     {
       "captured_at": "2026-11-03T11:17:41Z",
+      "stargazers": 23,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 0
+    },
+    {
+      "captured_at": "2026-11-07T10:38:50Z",
       "stargazers": 23,
       "forks": 0,
       "watchers": 0,
@@ -3652,6 +3801,19 @@
         "downloads": 1299,
         "start": "2026-10-04",
         "end": "2026-11-02"
+      }
+    },
+    {
+      "captured_at": "2026-11-07T10:38:50Z",
+      "pypi": {
+        "last_day": 11,
+        "last_month": 311,
+        "last_week": 131
+      },
+      "npm": {
+        "downloads": 1220,
+        "start": "2026-10-08",
+        "end": "2026-11-06"
       }
     }
   ]
