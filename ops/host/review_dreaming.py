@@ -19,6 +19,20 @@ import re
 SECTION = re.compile(r'^## Promoted From Short-Term Memory \(\d{4}-\d{2}-\d{2}\)\s*$', re.M)
 MARKER = re.compile(r'<!-- openclaw-memory-promotion:(memory:([^\n<>]+?):(\d+):(\d+)) -->')
 HEADING = '## Reviewed Dreaming Memory'
+REJECTED_RECEIPT = re.compile(
+    r'^' + MARKER.pattern + r'\n- Rejected candidate; see private review ledger\.$\n?', re.M)
+
+
+def clean_rejected_receipts(text):
+    """Migrate only exact generated receipts; preserve human and approved content."""
+    parts = re.split(r'(?=^## )', text, flags=re.M)
+    for i, part in enumerate(parts):
+        if part.splitlines()[:1] != [HEADING]:
+            continue
+        cleaned = REJECTED_RECEIPT.sub('', part)
+        if cleaned != part:
+            parts[i] = cleaned if cleaned[len(HEADING):].strip() else ''
+    return ''.join(parts).rstrip() + '\n' if parts != re.split(r'(?=^## )', text, flags=re.M) else text
 RULES = {
     'front_matter': r'\b(?:layout|title|description)\s*:',
     'html': r'</?[A-Za-z][^>]*>',
@@ -73,7 +87,7 @@ def validate_batch(text):
 
 
 def review(memory, candidates='', approvals=None):
-    base, legacy = extract(memory)
+    base, legacy = extract(clean_rejected_receipts(memory))
     _, queued = extract(candidates)
     entries = {}
     for entry in legacy + queued:
@@ -114,15 +128,20 @@ def review(memory, candidates='', approvals=None):
                 status = 'approved'
                 why.append('explicit_hash_bound_durable_review')
         report.append({**entry, 'decision': status, 'reasons': why})
-        if status == 'pending':
+        if status != 'approved':
             continue
-        # Preserve original markers as receipts, outside the budget-evicted sections.
-        additions.append(entry['marker'] + '\n' + (
+        # Only useful conclusions belong in injected memory. Rejections and
+        # their original markers/content are retained in the private archive.
+        additions.append(entry['marker'] + '\n' +
             f'- {conclusion}\n- Source: {entry["source"]}:{key.rsplit(":", 2)[1]}-'
-            f'{key.rsplit(":", 2)[2]} (reviewed {receipt["reviewed_on"]}; SHA256 {entry["sha256"]})\n'
-            if status == 'approved' else '- Rejected candidate; see private review ledger.\n'))
+            f'{key.rsplit(":", 2)[2]} (reviewed {receipt["reviewed_on"]}; SHA256 {entry["sha256"]})\n')
     if additions:
-        base = base + '\n\n' + HEADING + '\n\n' + '\n'.join(additions)
+        block = '\n'.join(additions)
+        if re.search(r'^' + HEADING + r'$', base, re.M):
+            base = re.sub(r'^' + HEADING + r'$',
+                          lambda _: HEADING + '\n\n' + block.rstrip('\n'), base, count=1, flags=re.M)
+        else:
+            base = base + '\n\n' + HEADING + '\n\n' + block
     return base, report
 
 
@@ -152,6 +171,8 @@ def main():
     memory_path = ws / 'MEMORY.md'
     memory = memory_path.read_text()
     if args.check:
+        if REJECTED_RECEIPT.search(memory):
+            raise ValueError('legacy rejected receipts remain; run review to migrate')
         validate_batch(memory)
         if SECTION.search(memory):
             raise ValueError('unreviewed promotion section remains')
@@ -176,7 +197,7 @@ def main():
     approvals = json.loads(approvals_path.read_text()) if approvals_path.exists() else {}
     output, report = review(memory, candidates, approvals)
     # Archive first: interrupted reruns never lose candidates or their original bytes.
-    if report:
+    if report or output != memory:
         archive = private / f'review-{digest(memory + candidates)}.json'
         if not archive.exists():
             atomic_write(archive, json.dumps({'memory_before': memory, 'candidates_before': candidates,

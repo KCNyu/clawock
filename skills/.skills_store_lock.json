@@ -1,65 +1,17 @@
 {
   "version": 1,
   "skills": {
-    "drunk-trading-analyzer": {
-      "name": "Trading Analyzer",
-      "zip_url": "http://lightmake.site/api/v1/download?slug=drunk-trading-analyzer",
-      "source": "skillhub",
-      "version": "0.0.6"
-    },
     "trading": {
       "name": "Trading",
       "zip_url": "http://lightmake.site/api/v1/download?slug=trading",
       "source": "skillhub",
       "version": "1.0.1"
     },
-    "multi-agent-collaboration": {
-      "name": "Multi Agent Collaboration",
-      "zip_url": "http://lightmake.site/api/v1/download?slug=multi-agent-collaboration",
-      "source": "skillhub",
-      "version": "1.0.0"
-    },
-    "reminder": {
-      "name": "Reminder",
-      "zip_url": "http://lightmake.site/api/v1/download?slug=reminder",
-      "source": "skillhub",
-      "version": "0.1.1"
-    },
-    "stock-monitor-siyou": {
-      "name": "Stock Monitor Skill",
-      "zip_url": "http://lightmake.site/api/v1/download?slug=stock-monitor-siyou",
-      "source": "skillhub",
-      "version": "2.0.0"
-    },
-    "successful-trader": {
-      "name": "Successful Trader",
-      "zip_url": "http://lightmake.site/api/v1/download?slug=successful-trader",
-      "source": "skillhub",
-      "version": "0.1.0"
-    },
     "us-stock-analysis": {
       "name": "Us Stock Analysis",
       "zip_url": "http://lightmake.site/api/v1/download?slug=us-stock-analysis",
       "source": "skillhub",
       "version": "0.1.1"
-    },
-    "travel-cn": {
-      "name": "Travel CN",
-      "zip_url": "https://lightmake.site/api/v1/download?slug=travel-cn",
-      "source": "skillhub",
-      "version": "1.0.0"
-    },
-    "trip": {
-      "name": "Trip",
-      "zip_url": "https://lightmake.site/api/v1/download?slug=trip",
-      "source": "skillhub",
-      "version": "1.2.0"
-    },
-    "ctrip-hot-trend": {
-      "name": "Ctrip",
-      "zip_url": "https://lightmake.site/api/v1/download?slug=ctrip-hot-trend",
-      "source": "skillhub",
-      "version": "0.1.0"
     }
   }
 }

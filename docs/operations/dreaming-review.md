@@ -53,13 +53,20 @@ status. This flow does not schedule a new model reviewer. Pending work needs a
 reviewer; absence of a reviewer keeps it private.
 
 Approved conclusions go into `## Reviewed Dreaming Memory`, outside the dated
-promotion sections, with source file/line range, review date and SHA256. Rejected
-candidates retain their original promotion marker as a content-free receipt.
-Original bytes and per-candidate decisions remain in ignored `review-<hash>.json`;
-legacy pending inputs remain in `legacy-promotion-candidates.md`. Reruns preserve
-accepted/rejected markers and do not duplicate permanent conclusions. Never
-publish these private archives or approval files. Pending storage and permanent
-receipts grow over time; archival pruning requires separate review.
+promotion sections, with source file/line range, review date and SHA256. Only
+approved entries keep public promotion markers. Rejected and pending candidates
+write no public placeholder or marker; their original bytes, markers and decisions
+remain in ignored `review-<hash>.json`. Repeated unchanged batches reuse that
+archive rather than growing MEMORY. Legacy pending inputs remain in
+`legacy-promotion-candidates.md`.
+
+The gate removes exact old marker-plus-rejection placeholders from reviewed
+sections and drops sections left empty. It archives the before-image before any
+write, even if no candidates remain. Approved entries and human prose are preserved;
+`--check` rejects unmigrated placeholders. The 03:20 job uses this same migration,
+so old and future rejected batches cannot repopulate injected memory. No gateway
+restart is needed for a change to this host-side Python gate. Never publish private
+archives or approval files. Private storage pruning requires separate review.
 
 ## Verification and recovery
 
