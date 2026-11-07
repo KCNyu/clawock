@@ -176,6 +176,12 @@ def test_main_json_mode(monkeypatch, capsys):
     assert payload["analysable"] is True
 
 
+def test_workbench_contracts_select_the_plugin_lane():
+    for name in ("workbench_fsm.spec.js", "workbench_typography.spec.js", "workbench_overlap.spec.js"):
+        assert push_scope.classify(["tests/" + name])["dsplugin"], name
+        assert push_scope.classify(["tests/" + name])["code"], name
+
+
 def test_node_toolchain_change_runs_the_plugin_build():
     lanes = push_scope.classify([".github/actions/clawock-node/action.yml"])
     assert lanes["dsplugin"] and lanes["code"]

@@ -161,7 +161,7 @@ UI_RE = (r"^(site/assets/(css|js)/|site/index\.html$|site/_layouts/|"
 # `quota.mjs` imports the package's built lib/balance.js and the plugin spec pins its wording.
 DSPLUGIN_RE = (r"^(.github/actions/clawock-node/|examples/dsh/|ops/host/agent-dispatch/quota\.mjs$|"
                r"ops/host/patrol\.sh$|ops/host/agent-dispatch/resource-pressure\.sh$|"
-               r"tests/decision_studio_plugin\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)")
+               r"tests/(decision_studio_plugin|workbench_fsm|workbench_typography|workbench_overlap)\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)")
 
 WORKFLOWS_PREFIX = ".github/workflows/"
 

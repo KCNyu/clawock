@@ -55,6 +55,9 @@ belongs here.
 - [`design-system.md`](design/design-system.md) — the dashboard's colour layers
   (semantic vs. everything else), motion scale, component recipes and the list of
   what a new component may not do, each with the gate that checks it.
+- [`workbench-type.md`](design/workbench-type.md) — the Workbench's one type
+  table (page/row/metric/meta/chip/button/tab/badge roles), the no-literal
+  audit, and the host token gap it declares.
 - [`task-chip.md`](design/task-chip.md) — the task chip's queue panel, patrol page
   (KPI grid, outcome strip, rounds and coverage) and 7-day stacked provider chart,
   plus the frozen numbers behind `/dispatch-stats`.
