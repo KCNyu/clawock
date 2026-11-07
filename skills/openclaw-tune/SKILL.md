@@ -1,219 +1,52 @@
 ---
 name: openclaw-tune
-description: OpenClaw **system-level** maintenance — cleans sessions/.bak rotation, disk bloat under ~/.openclaw/, validates model fallback chain, audits cron health, prunes short-term-recall noise. Run after `openclaw update` or every 1-2 weeks. Different from **workspace document tune-up** (single-responsibility canonical .md files, token waste scan) which follows the repository AGENTS.md worktree/PR workflow — triggered when user says "优化下 openclaw 的文档/skill/canonical". This skill is for `openclaw` daemon/CLI maintenance, NOT for workspace docs.
+description: OpenClaw host maintenance for session backup growth, disk usage, model/cron drift and memory health. Use for periodic maintenance or a specific health symptom. Version upgrades use openclaw-upgrade; repository document/skill cleanup follows AGENTS.md and its worktree/PR workflow.
 ---
 
-# OpenClaw Tune-Up
+# OpenClaw host maintenance
 
-Use this skill to keep kcn's openclaw setup lean. Run it after every `openclaw update`, or as a periodic chore every 1-2 weeks.
+Start from the reported symptom. Inspect the relevant surface below; a maintenance
+request does not require loading investment data, running quote refreshes or changing
+model choices. Workspace documentation changes follow `AGENTS.md` § Code changes.
 
-## When to invoke
+## Inspect before changing
 
-- User says `/openclaw-tune` or `优化下 openclaw`
-- After `openclaw update` (defaults may have shifted; configs may need migration)
-- When response feels slow / token costs creeping up
-- When `agents/main/sessions/` looks suspiciously large
-
-## Operating principles
-
-1. **Don't delete, archive first**: move stale files to `/root/scratch/openclaw-cleanup-<date>/` so they can be recovered for a day
-2. **Verify before touching live state**: if openclaw gateway is running, only touch files it doesn't actively hold (use `lsof`)
-3. **Real holdings, real data**: never propose changes that hardcode portfolio numbers — `portfolio.json` is the only source of truth
-4. **Report what was done** with sizes/counts; never silent fixes
-
-## Checklist
-
-### 1. Disk bloat
-
-Big offenders found historically:
-
-| Path | What to look for | Action |
+| Surface | Evidence | Owner / action |
 |---|---|---|
-| `~/.openclaw/agents/main/sessions/*.bak-*` | Transcript backups, no rotation. One active session can accumulate 100+ files (7MB each = 700MB) | Keep latest 3 per session, archive rest |
-| `~/.openclaw/agents/main/sessions/*.bak-*` (orphan) | `.bak` file with no matching `.jsonl` (session deleted but backup stayed) | Archive all |
-| `~/.openclaw/openclaw.json.clobbered.*` | Config corruption snapshots (e.g. 2026-04-25 had 78) | Archive all (the `.last-good` retains canonical state) |
-| `~/.openclaw/logs/stability/*.json` | Crash dumps from past unhandled rejections | Archive if older than 30 days |
-| `~/.openclaw/memory/main.sqlite.tmp-*` | Orphaned SQLite migration tmp file from interrupted write. Verify `lsof` returns empty, mtime > 7d, then delete | Delete only if not held |
-| `~/.openclaw/media/` | Generated images, voice clips | Check size; archive if > 100MB and not referenced |
-| `~/.openclaw/agents/main/sessions/*.trajectory.jsonl` | Audit trajectory logs — large but useful for debugging | Leave unless > 500MB total |
+| Session storage | Sizes, ages and matching transcript for `~/.openclaw/agents/main/sessions/*.bak-*`; distinguish active transcripts, backups and trajectory logs | Propose a bounded archive set. Preserve active sessions and useful diagnostic logs; file age or absence from the catalog alone does not establish that a file is disposable. |
+| Other disk growth | `~/.openclaw/openclaw.json.clobbered.*`, old stability dumps, media and SQLite temporary files | Check references and open handles (`lsof`) before moving anything. Never move an open database, WAL or SHM file. For index/state database compaction use `docs/operations/sqlite-maintenance.md`, including its offline/rollback requirements. |
+| Injected context | `config/context-manifest.json` plus actual `systemPromptReport`, file sizes and truncation | Remove duplicate ownership only after checking consumers. Preserve concrete incident rules, scheduled input contracts and tool/skill availability. No byte target justifies dropping required context. |
+| Model/fallback drift | `python3 ops/host/sync_models.py --effective`; compare with `config/models.toml` | `docs/operations/models.md` owns parameters, chains and synchronization. Report failing hops; do not reorder providers or change thinking/budgets as a cleanup. |
+| Cron drift | `openclaw cron list --json`, `bash ops/host/check_crons.sh --timeline`, `clawock system check` | Compare identities, schedules, enabled state, payloads and host triggers with `config/cron-schedules.json`; `docs/operations/cron-schedules.md` is generated. Change runtime cron only via supported CLI/sync tools. |
+| Recall / dreaming | Latest diagnostics and source dates, not just file counts or trading keywords | `docs/operations/dreaming-review.md` owns candidate review and promotion; `docs/operations/memory-recall-performance.md` owns recall diagnosis. Never prune a live recall store by keyword or promote daily prices as durable lessons. |
+| After an upgrade | Installed version, patch-kit checks, actual agent context and delivery | Follow `../openclaw-upgrade/SKILL.md`; do not duplicate its update/restart sequence here. |
 
-Sample script:
+## Apply only the evidenced cleanup
 
-```bash
-ARCHIVE=/root/scratch/openclaw-cleanup-$(date +%Y%m%d_%H%M%S)
-mkdir -p "$ARCHIVE"
+1. Enumerate the exact files and why each is stale. For inactive session backups,
+   retaining the latest three per session is a starting proposal, not permission
+   to discard transcripts or recovery evidence.
+2. Check live ownership and preserve a recovery path. Archive approved inactive
+   files under `/root/scratch/openclaw-cleanup-<date>/`, with original paths and
+   before/after sizes recorded there. Do not use `/tmp` for recovery material.
+3. Follow the owning runbook for state/config changes. Back up `openclaw.json`
+   before authorized edits. Repository files are changed in a task worktree and
+   delivered through PR, checks, merge and live refresh.
+4. Restart only when required and authorized for the task; first confirm no cron
+   is in flight with the upgrade skill's structured check. Archiving inactive
+   files and editing documentation alone do not require a restart.
 
-# Orphan .bak (no matching .jsonl)
-SESS=~/.openclaw/agents/main/sessions
-for bak in $SESS/*.bak-*; do
-    [ -f "$bak" ] || continue
-    base=$(echo "$bak" | sed 's/\.jsonl\.bak-.*//')
-    [ -f "$base.jsonl" ] || mv "$bak" "$ARCHIVE/"
-done
+Do not delete published briefs, trade records or incident lessons merely because
+positions were closed. Do not edit raw cron stores, SQLite internals or provider
+credentials to make a health check green. Generic prompt-writing advice and
+arbitrary file-size caps are not acceptance criteria.
 
-# Rotate .bak: keep latest 3 per session (by trailing timestamp)
-ls $SESS/*.bak-* 2>/dev/null | sed 's/\.jsonl\.bak-.*//' | sort -u | while read pfx; do
-    files=$(ls -1 ${pfx}.jsonl.bak-* 2>/dev/null)
-    count=$(echo "$files" | wc -l)
-    [ "$count" -gt 3 ] && \
-        echo "$files" | sort -t'-' -k3,3n | head -n -3 | xargs -I{} mv {} "$ARCHIVE/"
-done
+## Verify and report
 
-# Clobbered configs + old crash dumps
-mv ~/.openclaw/openclaw.json.clobbered.* "$ARCHIVE/" 2>/dev/null
-mv ~/.openclaw/logs/stability/openclaw-stability-*.json "$ARCHIVE/" 2>/dev/null
-```
+Re-run the check that exposed the symptom. For host health, check
+`curl -sf http://127.0.0.1:18789/health` and the relevant structured CLI output;
+a healthy HTTP endpoint alone does not prove cron, recall or delivery works.
+For repository documents, run the affected reference/schema checks.
 
-### 2. Prompt bloat (token cost)
-
-Bootstrap injection depends on the session profile: direct chat gets seven files including MEMORY.md and HEARTBEAT.md; isolated cron gets AGENTS/SOUL/TOOLS/IDENTITY/USER and does not read main-session MEMORY.md. Check `src/clawock/context/manifest.json` and the actual `systemPromptReport`, not an assumed file order.
-
-Check the size of each:
-
-```bash
-wc -c ~/.openclaw/workspace/{AGENTS,SOUL,USER,IDENTITY,MEMORY,TOOLS}.md
-```
-
-Historical size heuristics (not acceptance gates; do not remove concrete incident lessons or narrow cron context to meet them):
-- AGENTS.md: < 3 KB (core rules only; no philosophical fluff, no group-chat lore, no heartbeat docs — openclaw injects heartbeat prompt itself)
-- MEMORY.md: < 5 KB (durable preferences + data rules + key lessons; not historical trade records — structured ledgers and published briefs carry those; dated diaries were retired in #1038)
-- SOUL.md / IDENTITY.md / USER.md: < 2 KB each
-- TOOLS.md: < 4 KB (script reference + fallback chain summary only)
-
-**Common bloat patterns**:
-
-| Pattern | Where it lives | Fix |
-|---|---|---|
-| "Promoted From Short-Term Memory" in MEMORY.md | Dreaming auto-promotes summaries; they pile up | Flag dated market excerpts/front matter/HTML for review; preserve concrete incident lessons. Position exit alone does not make a lesson obsolete |
-| Duplicate fallback chains in MEMORY.md + TOOLS.md + INVESTMENT_SOP.md | Same rules 3x | Keep provider chains in docs/reference/tool-operations.md with the current implementation; TOOLS.md routes there, MEMORY.md keeps incident lessons |
-| Group chat / Discord behavior in AGENTS.md | User uses 1:1 weixin | Drop unless multi-user channels are added |
-| Verbose heartbeat instructions in AGENTS.md | openclaw injects `HEARTBEAT_CONTEXT_PROMPT` itself | Keep one short line about HEARTBEAT_OK token |
-| 50+ line preamble repeating "real data, no cache" | Said 5 times across files | One铁律 block in MEMORY.md, reference elsewhere |
-
-### 3. Model fallback chain (token cost)
-
-In `~/.openclaw/openclaw.json`, check `agents.defaults.model`:
-
-```bash
-python3 -c "
-import json
-cfg = json.load(open('/root/.openclaw/openclaw.json'))
-m = cfg['agents']['defaults']['model']
-print('primary:', m['primary'])
-print('fallbacks:')
-for f in m['fallbacks']: print(' ', f)
-"
-```
-
-Red flags:
-- **Unexpected provider order**: compare the live chain with the operator-configured order and the cron payload contract. Report drift; do not reorder or duplicate providers as a maintenance optimization.
-- **"Spare" provider with same API key** (`minimax-spare` same key as `minimax`): acts as a retry, not real redundancy. Fine if user knows that. Bad if they think it's a quota pool.
-- **Stale model IDs after openclaw update**: e.g., changelog deprecated `gpt-5.3-codex`. Cross-check `npm view openclaw versions` changelog for deprecation notices.
-
-### 4. Cron jobs
-
-`openclaw cron list --json` — check each enabled job against
-`config/cron-schedules.json`（schedule + payload profile + delivery）；system crontab
-watchdog 和 EDT/EST 切换也由同一 contract 管：
-
-- Does it reference an installed command or named `ops/*` entry that still exists?
-- Does it reference dead APIs? (e.g. "优先东方财富" but Eastmoney is 502 from this server)
-- Does it hardcode tickers? (should read from `portfolio.json` dynamically)
-- Pattern to use: **script outputs data block → agent layers analysis on top** (情绪面/技术面/操作建议)
-- For intraday: use `--wechat` flag for mobile-friendly compact output
-
-### 5. Short-term-recall noise
-
-`~/.openclaw/workspace/memory/.dreams/short-term-recall.json`:
-
-```bash
-python3 -c "
-import json
-data = json.loads(open('/root/.openclaw/workspace/memory/.dreams/short-term-recall.json','rb').read().decode('utf-8','replace'))
-e = data['entries']
-recalled = sum(1 for v in e.values() if v.get('recallCount',0) > 0)
-print(f'total: {len(e)}  ever recalled: {recalled}  ({recalled*100//len(e)}%)')
-"
-```
-
-If recall rate < 5% and total > 3000, prune noise:
-- Drop `session-corpus` entries with `recallCount=0` AND no trade keywords
-- `memory/*.md` is not a diary class: dated diaries were retired in #1038, while `*-pre-open.md` is a published brief. Do not promote its prices, front matter or HTML as durable wisdom; source path and trading keywords alone do not establish value.
-- Keep all entries with `交易记录|买入|卖出|加仓|减仓|清仓|持仓|盈利|亏损`
-
-### 6. After openclaw update
-
-Run these checks after `openclaw update` succeeds:
-
-```bash
-# 1. Defaults shifted? Compare default agent model
-diff <(openclaw config get agents.defaults.model) <(cat /tmp/last-known-model.json) 2>/dev/null
-
-# 2. Changelog skim for breaking changes
-PKG=$(find /root/.local/share/pnpm/global/5/.pnpm -name "openclaw" -path "*node_modules/openclaw" -type d | sort | tail -1)
-head -50 "$PKG/CHANGELOG.md"
-
-# 3. Deprecated model IDs check
-grep -i "deprecated\|suppress.*model\|stop advertising" "$PKG/CHANGELOG.md" | head -5
-
-# 4. Re-run the disk + prompt + fallback chain checks above
-```
-
-If OpenClaw introduced a new default model, verify the configured provider with a real
-smoke call before proposing any change; do not infer upgrades from an old model example.
-
-### 7. Verification before reporting done
-
-```bash
-# Confirm openclaw still healthy
-curl -sf http://127.0.0.1:18789/health && echo " ✓ gateway up"
-
-# Confirm scripts still run
-cd /root/.openclaw/workspace && clawock analyze-hk --no-fetch --no-news --wechat | head -5
-
-# Show cleanup summary
-du -sh /root/scratch/openclaw-cleanup-*/  # what was archived
-```
-
-## Output format
-
-End with a structured report:
-
-```
-## Tune-Up Report  YYYY-MM-DD
-
-### 清理（已归档到 /root/scratch/openclaw-cleanup-YYYYMMDD/）
-- Session .bak rotation: N 个 → ~X MB
-- ...
-
-### Prompt 瘦身
-- AGENTS.md: <old> → <new> 行 (-N%)
-- ...
-
-### 配置审计
-- 模型 fallback 链：<state>
-- Cron job 一致性：<state>
-- ...
-
-### 建议
-- [可选] 重启 gateway: <yes/no, reason>
-- [待办] <items needing user attention>
-
-### 跳过项
-- <什么没动以及为什么>
-```
-
-## Don't
-
-- ❌ Don't restart `openclaw-gateway` automatically — ask user first
-- ❌ Don't touch `agents.defaults.model.primary` — that's user's intentional choice
-- ❌ Don't delete anything before archiving to /tmp
-- ❌ Don't delete `*.trajectory.jsonl` — those are sometimes useful for debugging
-- ❌ Don't strip MEMORY.md entries that contain `交易记录` — those are real history kcn refers to
-- ❌ Don't propose hardcoding portfolio numbers in any doc/skill — always reference `portfolio.json`
-
-## Inputs / Outputs
-
-- **Reads**: `~/.openclaw/openclaw.json`, live cron state via `openclaw cron list --json`, `config/cron-schedules.json`, workspace canonical MD files, short-term recall state, and disk usage of `~/.openclaw/`
-- **Writes**: trimmed `*.md` workspace files (with bak), cron fields only through `openclaw cron edit` / `ops/host/sync_us_cron_dst.py` plus the tracked contract and regenerated `docs/operations/cron-schedules.md`, no portfolio changes during system maintenance; everything else archived to `/root/scratch/openclaw-cleanup-<date>/`
-- **Side effects**: may suggest gateway restart at the end (user-confirmed)
+Report the finding, exact changes, file/byte counts, archive/recovery path,
+verification results and remaining gaps. State whether a restart happened.

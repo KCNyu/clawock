@@ -254,13 +254,10 @@ Output:
 **User:** "02208 估值"
 **Approach:** Mode 3 — 跑脚本, web 搜风电政策最新动向 + 同业 (龙源/中广核新能源) 对比, 给估值区间
 
-## Reference files (lazy-load)
+## Shared output contract
 
-港股跟美股共享的市场无关教育内容，全部在 `../us-stock-analysis/references/`：
-- `../us-stock-analysis/references/technical-analysis.md` — RSI / MACD / MA / 形态定义
-- `../us-stock-analysis/references/fundamental-analysis.md` — 业务质量 / 财务健康度 / 估值框架
-- `../us-stock-analysis/references/financial-metrics.md` — 比率公式
-- `../us-stock-analysis/references/report-template.md` — Full Report 结构骨架
+For interactive technical, fundamental or full reports, use
+`../_shared/stock-analysis-output.md` for evidence, units, uncertainty and output scope.
 
 ## Companion tools
 

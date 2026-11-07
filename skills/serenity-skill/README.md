@@ -4,7 +4,7 @@ Manual, cross-market company and supply-chain research. Entry point:
 [SKILL.md](SKILL.md); the desk routes it from `TOOLS.md`. It does not run in cron.
 
 The skill links its research workflow, evidence standards, public sources and
-risk boundaries under `references/`, with prompts and templates in `assets/`,
+risk boundaries under `references/`, with templates in `assets/`,
 worked examples in `examples/`, and evaluation cases in `evals/test-cases.md`.
 
 From the repository root:

@@ -1,12 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "trading": {
-      "name": "Trading",
-      "zip_url": "http://lightmake.site/api/v1/download?slug=trading",
-      "source": "skillhub",
-      "version": "1.0.1"
-    },
     "us-stock-analysis": {
       "name": "Us Stock Analysis",
       "zip_url": "http://lightmake.site/api/v1/download?slug=us-stock-analysis",
