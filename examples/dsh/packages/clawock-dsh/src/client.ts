@@ -2545,6 +2545,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const [confirm, setConfirm] = useState<string | null>(null)
   const [picker, setPicker] = useState<ModelPicker | null>(null)
   const [log, setLog] = useState<string[] | null>(null)
+  const [logNote, setLogNote] = useState<string | null>(null)
   const [timeline, setTimeline] = useState<TaskTimeline | 'older' | null>(null)
   const [brief, setBrief] = useState<BriefView | null>(null)
   const [readPending, setReadPending] = useState<string | null>(null)
@@ -2832,7 +2833,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     setSubmittedAt(null)
     if (nav.toast !== null) navigate({ type: 'DISMISS_TOAST' })
     setConfirmStop(false)
-    setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
+    setPicker(null); setLog(null); setLogNote(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
   }
   const open = (task: DispatchTask): void => {
     choose(task)
@@ -2858,7 +2859,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     setConfirmStop(false)
     detailRequest.current += 1
     activeDetail.current = null
-    setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
+    setPicker(null); setLog(null); setLogNote(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
   }
   const move = (from: DispatchTask, delta: number): void => {
     const index = rendered.findIndex((task) => task.id === from.id)
@@ -2959,7 +2960,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   // host's existing queueAction; this page only owns their state.
   const resetDetailReads = (): void => {
     detailRequest.current += 1
-    setPicker(null); setLog(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
+    setPicker(null); setLog(null); setLogNote(null); setTimeline(null); setBrief(null); setReadPending(null); setConfirm(null)
   }
   const needsHost = (answer: QueueActionResult): boolean => !answer.ok && /unknown action/.test(answer.message)
   const runAction = props.runQueueAction
@@ -3035,6 +3036,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           : t('queue.a.logPreviewFailed', { message: opened.message ?? '' })
       showToast({ ok: false, text: message })
       loadLog(task)
+      // The log sheet covers the detail's notice; repeat the reason where the
+      // reader is looking instead of leaving only a toast behind the panel.
+      setLogNote(message)
     }
   }
   const openPicker = (task: DispatchTask): void => {
@@ -3065,6 +3069,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const loadLog = (task: DispatchTask): void => {
     if (runAction === undefined) return
     setConfirm(null)
+    setLogNote(null)
     const request = detailRequest.current
     setPicker(null)
     setReadPending('log')
@@ -3137,7 +3142,12 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     const body: React.ReactNode[] = kind === 'brief'
       ? [renderBriefBlock(shown, brief !== null && brief.id === shown.id ? brief : null, t, openPath, shownLive),
         renderBriefText(shown, brief !== null && brief.id === shown.id ? brief : null, t)]
-      : kind === 'log' ? [renderLogBlock(shown, log, t)]
+      : kind === 'log' ? [
+        logNote === null ? null : h('p', {
+          className: cx('tq-note', 'tq-log-note'), 'data-tq-log-note': 'true', role: 'status',
+        }, logNote),
+        renderLogBlock(shown, log, t),
+      ]
         : kind === 'timeline' ? [renderTimelineBlock(shown, timeline, t)]
           : [picker === null
             ? h('div', { className: cx('tq-empty') }, t('queue.a.reading'))
