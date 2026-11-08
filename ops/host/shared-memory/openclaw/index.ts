@@ -120,19 +120,44 @@ function replaceRecallPayload(result: unknown, payload: RecallPayload): unknown 
 // openclaw runtime, sees the real session key, and strips shared-store paths before
 // the model (or a later recall recorder) can use them. `memory_get` is guarded too,
 // because knowing a staging path is enough to read it.
+const recallSessionKeys = new Map<string, string>();
+const MAX_RECALL_SESSION_KEYS = 256;
+
+// The tool-result middleware context in OpenClaw 2026.7.1-2 carries the runtime
+// and cwd but not the session key. `before_tool_call` does carry it, so remember
+// the key for the duration of the call and consume it by toolCallId. The map is
+// bounded and entries are deleted when the result passes through.
+export function rememberRecallSession(toolCallId: string | undefined, sessionKey: string | undefined): void {
+  if (!toolCallId || !sessionKey) return;
+  if (recallSessionKeys.size >= MAX_RECALL_SESSION_KEYS) {
+    const oldest = recallSessionKeys.keys().next().value;
+    if (oldest) recallSessionKeys.delete(oldest);
+  }
+  recallSessionKeys.set(toolCallId, sessionKey);
+}
+
+export function createRecallSessionHook() {
+  return (event: { toolName?: string; toolCallId?: string }, ctx: { sessionKey?: string; toolCallId?: string }): void => {
+    if (event?.toolName !== "memory_search" && event?.toolName !== "memory_get") return;
+    rememberRecallSession(event.toolCallId ?? ctx?.toolCallId, ctx?.sessionKey);
+  };
+}
+
 export function createSharedMemoryRecallMiddleware(options: RecallIsolationOptions = {}) {
   return async (
-    event: { toolName?: string; args?: Record<string, unknown>; result?: unknown },
+    event: { toolName?: string; toolCallId?: string; args?: Record<string, unknown>; result?: unknown },
     ctx: { sessionKey?: string },
   ): Promise<{ result: unknown } | undefined> => {
-    if (sessionAllowed(ctx?.sessionKey)) return undefined;
+    const sessionKey = ctx?.sessionKey ?? (event?.toolCallId ? recallSessionKeys.get(event.toolCallId) : undefined);
+    if (event?.toolCallId) recallSessionKeys.delete(event.toolCallId);
+    if (sessionAllowed(sessionKey)) return undefined;
     if (event?.toolName !== "memory_search" && event?.toolName !== "memory_get") return undefined;
     const payload = readRecallPayload(event.result);
     if (!payload) return undefined;
     if (event.toolName === "memory_search") {
       const results = payload.results;
       if (!Array.isArray(results)) return undefined;
-      const filtered = filterSharedMemoryRecall(results as Array<{ path?: unknown }>, ctx?.sessionKey, options);
+      const filtered = filterSharedMemoryRecall(results as Array<{ path?: unknown }>, sessionKey, options);
       if (filtered.length === results.length) return undefined;
       return { result: replaceRecallPayload(event.result, { ...payload, results: filtered }) };
     }
@@ -408,6 +433,7 @@ export default function register(api: OpenClawPluginApi) {
   // future `agents.defaults.memorySearch.extraPaths` change cannot make the
   // built-in index return private notes to a group, cron or subagent session.
   if (config.isolateBuiltinIndex !== false && typeof api.registerAgentToolResultMiddleware === "function") {
+    if (typeof api.on === "function") api.on("before_tool_call", createRecallSessionHook());
     api.registerAgentToolResultMiddleware(createSharedMemoryRecallMiddleware({
       vectorRoot: typeof config.vectorRoot === "string" ? config.vectorRoot : undefined,
     }), { runtimes: ["openclaw"] });

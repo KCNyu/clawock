@@ -399,3 +399,31 @@ register({pluginConfig: {isolateBuiltinIndex: false}, logger: {warn() {}},
 console.log(JSON.stringify({calls: calls.length}));""")
     assert out == {"calls": 0}
 
+def test_the_before_tool_call_hook_carries_the_session_key_into_the_middleware():
+    hits = [
+        {"path": "../../.openclaw/state/shared-memory-vector/feedback-x.md", "source": "memory", "score": 1},
+        {"path": "memory/2026-11-08.md", "source": "memory", "score": 1},
+    ]
+    keys = {"direct": DIRECT, "group": GROUP, "channel": CHANNEL, "cron": CRON, "subagent": SUBAGENT}
+    out = node(f"""
+const payload = {{results: {json.dumps(hits)}}};
+const result = {{content: [{{type: 'text', text: JSON.stringify(payload, null, 2)}}], details: payload}};
+const hooks = [], mws = [];
+register({{pluginConfig: {{}}, logger: {{warn() {{}}}}, registerMemoryCorpusSupplement() {{}},
+  registerAgentToolResultMiddleware: (handler) => mws.push(handler),
+  on: (name, handler) => hooks.push({{name, handler}})}});
+const hook = hooks.find((item) => item.name === 'before_tool_call').handler;
+const mw = mws[0];
+const out = {{}};
+for (const [label, key] of Object.entries({json.dumps(keys)})) {{
+  const toolCallId = 'call-' + label;
+  hook({{toolName: 'memory_search', toolCallId}}, {{sessionKey: key, toolCallId}});
+  const changed = await mw({{toolName: 'memory_search', toolCallId, result}}, {{}});
+  out[label] = (changed ? changed.result.details : payload).results.map((hit) => hit.path);
+}}
+console.log(JSON.stringify({{hooks: hooks.map((item) => item.name), mws: mws.length, out}}));""")
+    assert out["mws"] == 1 and out["hooks"] == ["before_tool_call"]
+    assert out["out"]["direct"] == [hit["path"] for hit in hits]
+    for label in ("group", "channel", "cron", "subagent"):
+        assert out["out"][label] == ["memory/2026-11-08.md"], label
+
