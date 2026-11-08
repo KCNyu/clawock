@@ -109,6 +109,7 @@ memory/proposal-inputs/
 
 # OpenClaw memory system internals (not for public consumption)
 memory/.dreams/
+memory/.replay/
 memory/dreaming/
 
 # ── Coding-agent prose never enters the repository (#1069/#1071/#1074) ─────

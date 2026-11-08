@@ -12,9 +12,10 @@ an empty store and grows the user's own.
 | `scripts/memctl` | history, audit and wiring checks around the store (stdlib only; PyYAML optional for the dsh profile check) |
 | `scripts/recall.py` | private recall counter (`recall.jsonl`, `recall-stats.json`) shared by `memory.py` and the OpenClaw supplement |
 | `scripts/retire.py` | nightly nomination report: stale, unused, superseded and duplicate topics; never edits the store |
+| `scripts/replay.py` | nightly consolidation candidates (duplicates, contradictions, unused high-salience) under `memory/.replay/`; never edits the store |
 | `hooks/claude-hook.sh` | Claude Code `PostToolUse` / `SessionStart` hook |
 | `wiring.json` | where each agent looks, and which working directories share the store |
-| `systemd/` | three timers: a 10-minute snapshot, a daily bundle + deep self-check, and the 03:47 retirement nomination report |
+| `systemd/` | four timers: a 10-minute snapshot, a daily bundle + deep self-check, the 03:47 retirement nomination report, and the 04:02 replay candidate report |
 | `openclaw/` | read-only corpus plugin that lets an OpenClaw assistant search the store (see below) |
 
 ## Layout of a store
@@ -241,6 +242,19 @@ another topic or an index, or missing a write-time field.
 takes a snapshot first, removes the file and its single index route, records `op=forget`,
 and prints `memctl restore <slug> --at <commit>`. `archive` remains the recommended
 action for reviewed stale content.
+
+## Replay candidates (`memory/.replay/`)
+
+`scripts/replay.py` runs from its own 04:02 timer and reads the store, `memctl`'s ledger
+and recent task/session text. It writes `candidates.json` and `report.md` under the
+workspace's `memory/.replay/` — a gitignored sibling of `memory/.dreams/`. It never
+edits the store, `MEMORY.md`, `DREAMS.md` or any public file, and `commit_dreaming.sh`
+does not call it.
+
+Kinds: duplicate merge (same or ≥0.85 Jaccard body), contradiction (overlapping bodies
+with a stale/superseded pair or opposite policy markers), and unused high-salience
+(zero recalls in 30 days and no recent task/session mention). The report is a review
+queue; `manual_only` marks public, verified and persona/memory topics.
 
 ## Search matching
 

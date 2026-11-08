@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly shared agent memory consolidation candidates
+
+[Timer]
+OnCalendar=*-*-* 04:02
+AccuracySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
