@@ -15,6 +15,13 @@
  *   - the sticky tab bar over already-scrolled content (scrollTop > 0).
  * All exceptions are written to the JSON and the summary table with a reason.
  *
+ * On top of that scan, an explicit geometry contract names the pairs the
+ * 2026-11-08 screenshots broke: adjacent sidebar rows and the glyph/count/alert
+ * boxes inside the host's 36px row, the closing-report card vs its Full log
+ * row, and the patrol coverage tables (one column on a phone). The
+ * `sidebar-legacy` state replays the pre-fix badge geometry as a negative
+ * control, so the detector cannot quietly stop seeing the defect.
+ *
  * It also records computed font-size/line-height/weight for the provider rows
  * in normal / near-limit / alert / stale / free / unknown states and in both
  * themes; the same semantic role must resolve to the same values.
@@ -90,8 +97,19 @@ body[data-ds-dark-theme]{--dsw-alias-bg-layer-1:#171a1f;--dsw-alias-bg-base:#0f1
 .wb-stage{height:100%;display:flex}
 .wb-stage > *{flex:1 1 auto;min-width:0}
 .wb-stage > *{flex:1 1 auto;min-width:0}
-.rail-stage{width:56px;height:100%;border-right:1px solid #ddd;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;box-sizing:border-box}
-.rail-button{width:56px;height:48px;border:0;background:transparent;position:relative;padding:0}
+/* dsh's sidebar.panellist host, measured on the live desk at 402x874: 36px
+   rows, an 18px glyph slot, a 14px/22px label and a 2px gap. The rail is the
+   same list at 56px with 36px hit boxes and a 12px gap. */
+.host-sidebar{width:264px;min-height:100%;box-sizing:border-box;padding:8px;background:#f7f8fa;font:14px/22px system-ui,-apple-system,"Segoe UI",sans-serif;color:#15171b}
+.host-sidebar.host-rail{width:56px;padding:12px 10px}
+.host-panel-list{display:flex;flex-direction:column;gap:2px}
+.host-panel-row{display:flex;align-items:center;gap:10px;width:100%;height:36px;box-sizing:border-box;margin:0;padding:0 10px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left}
+.host-panel-row[aria-current=true]{background:rgba(38,49,72,.06)}
+.host-panel-glyph{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+.host-panel-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.host-rail .host-panel-list{gap:12px}
+.host-rail .host-panel-row{width:36px;justify-content:center;padding:0}
+.host-rail .host-panel-title{display:none}
 `;
 
 const PAGE = `<!doctype html><html><head><meta charset="utf-8">
@@ -155,8 +173,14 @@ const HARNESS_JS = String.raw`
     runnerApi: 7, session: 'session-' + i, tokensIn: 120000, tokensOut: 8000, tokensCacheW: 0,
     tokensCacheR: 900000, tokensTotal: 1028000, costUsd: '1.64', stalls: 0, cancelling: false,
   }, extra || {});
+  const closing = [
+    '- 风险 3：live top 3 仍是 5/8，说明字面召回是当前瓶颈；下一步可考虑给高频高 salience topic 补 tag，或单独改排序，不在本 PR 混入。',
+    'RESTART: ops/host/restart_gateway.sh 2026-11-08 01:39 CST success（首次因 systemd user bus 缺失失败，设置 XDG_RUNTIME_DIR/DBUS_SESSION_BUS_ADDRESS 后重试；日志确认 shared-memory-corpus 插件已加载）',
+    'NEEDS: none',
+    'STATUS: DONE',
+  ].join('\n');
   const pending = [
-    task(0, { name: 'workbench-parity-restore', needs: '请安排 MiniMax 子会话按 /root/scratch/workbench-parity/MATRIX.md、REVIEW.md 与 shots/ 证据验收' }),
+    task(0, { name: 'workbench-parity-restore', summary: closing, needs: '请安排 MiniMax 子会话按 /root/scratch/workbench-parity/MATRIX.md、REVIEW.md 与 shots/ 证据验收' }),
     task(1, { name: '巡检修复：dsh 工作台与 provider 行', needs: '确认一下窄屏下的断行与置顶按钮' }),
     task(2, { name: 'A-very-long-task-name-that-must-ellipsize-without-crossing-the-age-cell', needs: '检查长标题、百分比、第二行与角标' }),
     task(3, { name: '任务 3', needs: '再做一次' }),
@@ -239,29 +263,47 @@ const HARNESS_JS = String.raw`
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement('div', { className: 'wb-stage' }, React.createElement(mod.WorkbenchPage, props())));
   }
-  function mountRail() {
+  // A host-like sidebar list: the four panellist rows dsh draws above
+  // Workspaces, with the real row geometry. The Workbench row is the plugin's
+  // own icon; the neighbours are plain glyphs so a badge that leaves its row
+  // has something to collide with.
+  const SIDEBAR_ROWS = [
+    ['plugin', 'Plugins', 'M3.2 8.2 8 1.8l4.8 6.4v5.3a.7.7 0 0 1-.7.7H3.9a.7.7 0 0 1-.7-.7z'],
+    ['workbench', 'Workbench', null],
+    ['automation', 'Automation tasks', 'M8 1.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 8 1.8Zm0 2.6V8l2.6 1.5'],
+    ['more', 'More', 'M3 3h3v3H3zM10 3h3v3h-3zM3 10h3v3H3zM10 10h3v3h-3z'],
+  ];
+  function mountSidebar(mode) {
     const stage = document.createElement('div');
-    stage.className = 'wb-stage';
-    const rail = document.createElement('div');
-    rail.className = 'rail-stage';
-    const button = document.createElement('button');
-    button.className = 'rail-button';
-    button.setAttribute('aria-label', 'Workbench');
-    const title = document.createElement('span');
-    title.className = 'panelTitle';
-    title.textContent = 'Workbench';
-    title.style.position = 'absolute';
-    title.style.width = '1px';
-    title.style.height = '1px';
-    title.style.overflow = 'hidden';
-    button.appendChild(title);
-    const mount = document.createElement('span');
-    mount.style.display = 'block';
-    mount.style.width = '100%';
-    mount.style.height = '100%';
-    button.appendChild(mount);
-    rail.appendChild(button);
-    stage.appendChild(rail);
+    stage.className = 'host-sidebar' + (mode === 'rail' ? ' host-rail' : '');
+    const list = document.createElement('div');
+    list.className = 'host-panel-list';
+    let mount = null;
+    for (const [key, label, path] of SIDEBAR_ROWS) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'host-panel-row';
+      button.setAttribute('data-wb-sidebar-row', key);
+      button.setAttribute('aria-label', label);
+      if (key === 'workbench') button.setAttribute('aria-current', 'true');
+      const glyph = document.createElement('span');
+      glyph.className = 'host-panel-glyph';
+      if (path === null) {
+        const slot = document.createElement('div');
+        slot.style.display = 'contents';
+        glyph.appendChild(slot);
+        mount = slot;
+      } else {
+        glyph.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true"><path d="' + path + '"></path></svg>';
+      }
+      const title = document.createElement('span');
+      title.className = 'host-panel-title hHd-Xa_panelTitle';
+      title.textContent = label;
+      button.appendChild(glyph);
+      button.appendChild(title);
+      list.appendChild(button);
+    }
+    stage.appendChild(list);
     document.getElementById('root').appendChild(stage);
     const root = ReactDOM.createRoot(mount);
     root.render(React.createElement(mod.WorkbenchIcon, {
@@ -270,8 +312,21 @@ const HARNESS_JS = String.raw`
       cachedBalances: () => balances, fetchBalances: async () => balances,
       rememberTrigger: () => {},
     }));
+    if (scenario === 'sidebar-legacy') {
+      // The pre-fix geometry, kept as a negative control: the detector must
+      // still see the old 16px badge and the old bottom-right alert.
+      const legacy = document.createElement('style');
+      legacy.textContent = '[class*="_wb-badge"]{top:-5px!important;right:-2px!important;min-width:16px!important;max-width:22px!important;height:16px!important;padding:0 2px!important;border-radius:8px!important;line-height:16px!important;box-shadow:none!important}'
+        + '[data-wb-rail=true] [class*="_wb-badge"]{top:0!important;right:-6px!important}'
+        + '[class*="_wb-rail-alert"]{bottom:0!important;right:-5px!important;left:auto!important}';
+      document.head.appendChild(legacy);
+    }
   }
-  if (scenario === 'rail') mountRail(); else mountWorkbench();
+  if (scenario === 'sidebar' || scenario === 'sidebar-rail' || scenario === 'sidebar-legacy') {
+    mountSidebar(scenario === 'sidebar' ? 'wide' : 'rail');
+  } else {
+    mountWorkbench();
+  }
   window.__workbenchReady = () => document.querySelector('[data-wb], [data-wb-icon]') !== null;
 })();
 `;
@@ -410,6 +465,133 @@ function typographyInPage() {
 }
 
 // ---------------------------------------------------------------------------
+// Explicit geometry contracts. These are stricter than the generic overlap
+// scan: they name the pair that must not intersect and the gap that must stay
+// positive, so a regression says which row/card/column broke.
+// ---------------------------------------------------------------------------
+function gaugeInPage(mode) {
+  const box = (el) => {
+    if (el === null || el === undefined) return null;
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0.01 || r.height <= 0.01) return null;
+    const s = getComputedStyle(el);
+    if (s.display === "none" || s.visibility === "hidden") return null;
+    return { x: r.x, y: r.y, w: r.width, h: r.height, right: r.right, bottom: r.bottom };
+  };
+  const area = (a, b) => {
+    if (a === null || b === null) return 0;
+    const w = Math.min(a.right, b.right) - Math.max(a.x, b.x);
+    const h = Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y);
+    return Math.max(0, w) * Math.max(0, h);
+  };
+  const inside = (inner, outer) => inner !== null && outer !== null &&
+    inner.x >= outer.x - 0.5 && inner.y >= outer.y - 0.5 &&
+    inner.right <= outer.right + 0.5 && inner.bottom <= outer.bottom + 0.5;
+  const round = (n) => Math.round(n * 100) / 100;
+
+  if (mode === "sidebar") {
+    const rows = [...document.querySelectorAll("[data-wb-sidebar-row]")].map((el) => ({
+      name: el.getAttribute("data-wb-sidebar-row"),
+      rail: el.getAttribute("data-wb-rail") === "true",
+      row: box(el),
+      title: box(el.querySelector(".host-panel-title")),
+      icon: box(el.querySelector("[data-wb-icon]")),
+      badge: box(el.querySelector("[data-wb-badge]")),
+      alert: box(el.querySelector("[data-wb-rail-alert]")),
+    }));
+    const intersections = [];
+    for (let i = 0; i < rows.length; i += 1) {
+      for (let j = i + 1; j < rows.length; j += 1) {
+        const overlap = area(rows[i].row, rows[j].row);
+        if (overlap > 0.5) intersections.push({ a: rows[i].name, b: rows[j].name, area: round(overlap) });
+      }
+    }
+    const containment = rows.map((row) => ({
+      name: row.name,
+      titleInside: row.title === null || inside(row.title, row.row),
+      iconInside: row.icon === null || inside(row.icon, row.row),
+      badgeInside: row.badge === null || inside(row.badge, row.row),
+      alertInside: row.alert === null || inside(row.alert, row.row),
+      rowHeight: row.row === null ? 0 : round(row.row.h),
+    }));
+    const workbench = rows.find((row) => row.name === "workbench") || null;
+    const glyphArea = workbench !== null && workbench.icon !== null ? workbench.icon.w * workbench.icon.h : 0;
+    return {
+      mode, rows, intersections, containment,
+      badgeGlyphShare: glyphArea === 0 || workbench.badge === null ? 0 : round(area(workbench.badge, workbench.icon) / glyphArea),
+      badgeAlertArea: workbench === null ? 0 : round(area(workbench.badge, workbench.alert)),
+    };
+  }
+
+  if (mode === "detail") {
+    const summary = document.querySelector('[data-tq-section="summary"] [class*="_tq-d-summary"]');
+    if (summary === null) return { mode, present: false };
+    const section = summary.parentElement;
+    const actions = section.querySelector(':scope > [class*="_tq-actions"]');
+    const pill = actions === null ? null : actions.querySelector('[class*="_tq-pill"]');
+    const summaryBox = box(summary);
+    const actionsBox = box(actions);
+    return {
+      mode, present: true,
+      summary: summaryBox,
+      actions: actionsBox,
+      pill: box(pill),
+      gap: summaryBox === null || actionsBox === null ? null : round(actionsBox.y - summaryBox.bottom),
+      pillGap: summaryBox === null || box(pill) === null ? null : round(box(pill).y - summaryBox.bottom),
+      clipped: Math.max(0, Math.round(summary.scrollHeight - summary.clientHeight)),
+      widthOverflow: Math.max(0, Math.round(summary.scrollWidth - summary.clientWidth)),
+    };
+  }
+
+  if (mode === "coverage") {
+    const cov = document.querySelector('[data-wb-ov-sec="coverage"]');
+    if (cov === null) return { mode, present: false };
+    const covBox = box(cov);
+    const blocks = [...cov.querySelectorAll('[data-coverage]')].map((el) => ({
+      kind: el.getAttribute('data-coverage'),
+      box: box(el),
+      scrollOverflow: Math.max(0, Math.round(el.scrollWidth - el.clientWidth)),
+    }));
+    const sideBySide = [];
+    for (let i = 1; i < blocks.length; i += 1) {
+      const prev = blocks[i - 1].box, next = blocks[i].box;
+      if (prev === null || next === null) continue;
+      if (next.y < prev.bottom - 0.5) sideBySide.push({ a: blocks[i - 1].kind, b: blocks[i].kind, dy: round(next.y - prev.bottom) });
+    }
+    return {
+      mode, present: true,
+      display: getComputedStyle(cov).display,
+      cov: covBox,
+      blocks,
+      sideBySide,
+      widthOverflow: Math.max(0, Math.round(cov.scrollWidth - cov.clientWidth)),
+      narrowest: blocks.reduce((min, b) => b.box === null ? min : Math.min(min, b.box.w), Infinity),
+    };
+  }
+
+  if (mode === "providers") {
+    const rows = [...document.querySelectorAll('[data-wb-provider]')].map((el) => ({
+      key: el.getAttribute('data-wb-provider'),
+      name: box(el.querySelector('[class*="_wb-prov-name"]')),
+      primary: box(el.querySelector('[class*="_wb-prov-primary"]')),
+      secondary: box(el.querySelector('[class*="_wb-prov-secondary"]')),
+      metaLeft: box(el.querySelector('[class*="_wb-prov-left"]')),
+      metaRight: box(el.querySelector('[class*="_wb-prov-right"]')),
+      widthOverflow: Math.max(0, Math.round(el.scrollWidth - el.clientWidth)),
+    }));
+    const collisions = [];
+    for (const row of rows) {
+      for (const [a, b] of [["name", "primary"], ["name", "secondary"], ["primary", "secondary"], ["metaLeft", "metaRight"]]) {
+        const overlap = area(row[a], row[b]);
+        if (overlap > 0.5) collisions.push({ key: row.key, a, b, area: round(overlap) });
+      }
+    }
+    return { mode, present: rows.length > 0, rows, collisions };
+  }
+  return { mode, present: false };
+}
+
+// ---------------------------------------------------------------------------
 // Server + browser matrix
 // ---------------------------------------------------------------------------
 function serve() {
@@ -430,26 +612,32 @@ function serve() {
 
 const STATES = [
   { name: "tasks", width: 390, height: 844, scenario: "normal", drive: null },
-  { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers" },
+  { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers", gauge: "providers" },
   { name: "overview", width: 390, height: 844, scenario: "normal", drive: "overview" },
-  { name: "patrol", width: 390, height: 844, scenario: "normal", drive: "patrol" },
+  { name: "patrol", width: 390, height: 844, scenario: "normal", drive: "patrol", gauge: "coverage" },
   { name: "stats", width: 390, height: 844, scenario: "normal", drive: "stats" },
   { name: "history", width: 390, height: 844, scenario: "normal", drive: "history" },
-  { name: "task", width: 390, height: 844, scenario: "normal", drive: "task" },
+  { name: "task", width: 390, height: 844, scenario: "normal", drive: "task", gauge: "detail" },
   { name: "sheet", width: 390, height: 844, scenario: "normal", drive: "sheet" },
   { name: "toast", width: 390, height: 844, scenario: "toast", drive: "toast" },
   { name: "empty", width: 390, height: 844, scenario: "empty", drive: "empty" },
   { name: "read-failed", width: 390, height: 844, scenario: "read-failed", drive: "providers" },
   { name: "loading", width: 390, height: 844, scenario: "loading", drive: "providers" },
   { name: "320-tasks", width: 320, height: 568, scenario: "normal", drive: null },
+  { name: "task-375", width: 375, height: 667, scenario: "normal", drive: "task", gauge: "detail" },
+  { name: "patrol-375", width: 375, height: 667, scenario: "normal", drive: "patrol", gauge: "coverage" },
+  { name: "providers-375", width: 375, height: 667, scenario: "normal", drive: "providers", gauge: "providers" },
+  { name: "sidebar", width: 390, height: 844, scenario: "sidebar", drive: null, gauge: "sidebar" },
+  { name: "sidebar-375", width: 375, height: 667, scenario: "sidebar", drive: null, gauge: "sidebar" },
+  { name: "sidebar-legacy", width: 390, height: 844, scenario: "sidebar-legacy", drive: null, gauge: "sidebar", control: true },
   { name: "320-sticky", width: 320, height: 568, scenario: "normal", drive: "sticky" },
   { name: "320-providers", width: 320, height: 568, scenario: "normal", drive: "providers" },
-  { name: "320-task", width: 320, height: 568, scenario: "normal", drive: "task" },
+  { name: "320-task", width: 320, height: 568, scenario: "normal", drive: "task", gauge: "detail" },
   { name: "320-sheet", width: 320, height: 568, scenario: "normal", drive: "sheet" },
   { name: "keyboard", width: 390, height: 420, scenario: "normal", drive: "task-bottom" },
   { name: "dark-tasks", width: 390, height: 844, scenario: "normal", theme: "dark", drive: null },
   { name: "dark-providers", width: 390, height: 844, scenario: "normal", theme: "dark", drive: "providers" },
-  { name: "rail", width: 390, height: 844, scenario: "rail", drive: null },
+  { name: "rail", width: 390, height: 844, scenario: "sidebar-rail", drive: null, gauge: "sidebar" },
   { name: "desktop-tasks", width: 1440, height: 900, scenario: "normal", desktop: true, drive: null },
   { name: "desktop-providers", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "providers" },
   { name: "desktop-overview", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "overview" },
@@ -517,6 +705,61 @@ async function measureTypography(page) {
   return { light, dark };
 }
 
+function assertGauge(state, gauge) {
+  if (gauge === null) return;
+  if (state.gauge === "sidebar") {
+    assert.equal(gauge.rows.length, 4, state.name + ": four panellist rows are measured");
+    assert.deepEqual(gauge.intersections, [], state.name + ": adjacent panellist rows must not intersect");
+    for (const row of gauge.containment) {
+      assert.equal(row.rowHeight, 36, state.name + ": " + row.name + " keeps the host's 36px row");
+      assert.ok(row.titleInside, state.name + ": " + row.name + " label leaves its row");
+      assert.ok(row.iconInside, state.name + ": " + row.name + " glyph leaves its row");
+      assert.ok(row.badgeInside, state.name + ": " + row.name + " badge leaves its row");
+      assert.ok(row.alertInside, state.name + ": " + row.name + " alert leaves its row");
+    }
+    if (state.control) {
+      // Negative control: the pre-fix geometry must be caught, otherwise the
+      // positive assertions above could be vacuous.
+      assert.ok(gauge.badgeGlyphShare > 0.4 || gauge.badgeAlertArea > 0,
+        state.name + ": the legacy badge geometry is no longer detected (share="
+        + gauge.badgeGlyphShare + " alertArea=" + gauge.badgeAlertArea + ")");
+      console.log("  CONTROL legacy badge detected: glyphShare=" + gauge.badgeGlyphShare + " alertArea=" + gauge.badgeAlertArea);
+      return;
+    }
+    assert.ok(gauge.badgeGlyphShare <= 0.4,
+      state.name + ": the count badge covers " + Math.round(gauge.badgeGlyphShare * 100) + "% of the glyph (max 40%)");
+    assert.equal(gauge.badgeAlertArea, 0, state.name + ": the count badge and the rail alert must not intersect");
+    return;
+  }
+  if (state.gauge === "detail") {
+    if (legacy && !gauge.present) return;
+    assert.equal(gauge.present, true, state.name + ": the closing report is rendered");
+    assert.ok(gauge.gap !== null && gauge.gap >= 8,
+      state.name + ": the Full log row must clear the closing-report card by 8px (got " + gauge.gap + ")");
+    assert.ok(gauge.pillGap !== null && gauge.pillGap >= 8,
+      state.name + ": the Full log pill must clear the closing-report card by 8px (got " + gauge.pillGap + ")");
+    assert.equal(gauge.clipped, 0, state.name + ": the closing report must not clip its last line");
+    assert.equal(gauge.widthOverflow, 0, state.name + ": the closing report must not overflow horizontally");
+    return;
+  }
+  if (state.gauge === "coverage") {
+    assert.equal(gauge.present, true, state.name + ": the patrol coverage tables are rendered");
+    assert.ok(gauge.blocks.length >= 2, state.name + ": both coverage tables are rendered");
+    assert.deepEqual(gauge.sideBySide, [], state.name + ": coverage tables must stack in one column on a phone");
+    assert.equal(gauge.widthOverflow, 0, state.name + ": the coverage table must not overflow horizontally");
+    assert.ok(gauge.narrowest >= (gauge.cov === null ? 0 : gauge.cov.w) - 2,
+      state.name + ": a coverage table is narrower than its container");
+    return;
+  }
+  if (state.gauge === "providers") {
+    assert.equal(gauge.present, true, state.name + ": provider rows are rendered");
+    assert.deepEqual(gauge.collisions, [], state.name + ": provider name/value pairs must not intersect");
+    for (const row of gauge.rows) {
+      assert.ok(row.widthOverflow <= 1, state.name + ": provider " + row.key + " overflows horizontally by " + row.widthOverflow + "px");
+    }
+  }
+}
+
 async function main() {
   if (!fs.existsSync(bundlePath)) throw new Error("missing bundle: " + bundlePath);
   fs.mkdirSync(shotsDir, { recursive: true });
@@ -532,6 +775,7 @@ async function main() {
   });
   const results = [];
   const typography = [];
+  const gaugeFailures = [];
   let browserFailures = 0;
   try {
     for (const engineName of ["webkit", "chromium"]) {
@@ -601,15 +845,25 @@ async function main() {
           });
           assert.equal(rail.badge, true, "rail state mounts the count badge");
           assert.equal(rail.alert, true, "rail state mounts the alert !");
+          assert.equal(rail.area, 0, "rail state: the count badge and the alert ! must not intersect");
+        }
+        const gauge = state.gauge ? await page.evaluate(gaugeInPage, state.gauge) : null;
+        let gaugeError = null;
+        try {
+          assertGauge(state, gauge);
+        } catch (error) {
+          gaugeError = error.message;
+          gaugeFailures.push({ state: state.name, engine: engineName, message: error.message });
+          console.error("  GAUGE FAIL " + error.message);
         }
         const shot = path.join(shotsDir, engineName + "-" + state.name + ".png");
         await page.screenshot({ path: shot, fullPage: false });
-        const failures = geometry.failures;
+        const failures = state.control ? [] : geometry.failures;
         const record = {
           name: state.name, engine: engineName, width: state.width, height: state.height,
-          scenario: state.scenario, theme: state.theme || "light", scrollTop,
+          scenario: state.scenario, theme: state.theme || "light", scrollTop, control: state.control === true,
           blocks: geometry.blocks.length, failures, allowed: geometry.allowed,
-          safeArea, rail, errors, screenshot: shot,
+          gauge, gaugeError, safeArea, rail, errors, screenshot: shot,
         };
         results.push(record);
         browserFailures += failures.length;
@@ -660,7 +914,10 @@ async function main() {
       pageErrors: results.reduce((sum, record) => sum + record.errors.length, 0),
       typographyChecks: typographyChecks.length,
       typographyFailures: typographyFailures.length,
+      gaugeChecks: results.filter((record) => record.gauge !== null).length,
+      gaugeFailures: gaugeFailures.length,
     },
+    gaugeFailures,
     results,
     typography: { checks: typographyChecks, failures: typographyFailures, samples: typography },
   };
@@ -672,10 +929,16 @@ async function main() {
     console.log("| " + record.name + " | " + record.engine + " | " + record.width + "x" + record.height
       + " | " + record.blocks + " | " + record.failures.length + " | " + record.allowed.length + " |");
   }
-  console.log("overlaps=" + browserFailures + " typographyFailures=" + typographyFailures.length
+  console.log("overlaps=" + browserFailures + " gaugeFailures=" + gaugeFailures.length
+    + " typographyFailures=" + typographyFailures.length
     + " pageErrors=" + payload.summary.pageErrors + " json=" + outPath);
   if (browserFailures > 0) {
     console.error("\nFAIL: " + browserFailures + " overlapping visible block pair(s)");
+    process.exitCode = 1;
+  }
+  if (gaugeFailures.length > 0) {
+    console.error("\nFAIL: " + gaugeFailures.length + " explicit geometry contract(s)");
+    console.error(JSON.stringify(gaugeFailures.slice(0, 8), null, 1));
     process.exitCode = 1;
   }
   if (typographyFailures.length > 0) {

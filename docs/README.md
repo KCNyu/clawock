@@ -63,6 +63,9 @@ belongs here.
 - [`workbench-type.md`](design/workbench-type.md) — the Workbench's one type
   table (page/row/metric/meta/chip/button/tab/badge roles), the no-literal
   audit, and the host token gap it declares.
+- [`workbench-geometry.md`](design/workbench-geometry.md) — the phone sidebar,
+  closing-report and patrol-coverage geometry the overlap test pins, with
+  before/after captures.
 - [`task-chip.md`](design/task-chip.md) — the task chip's queue panel, patrol page
   (KPI grid, outcome strip, rounds and coverage) and 7-day stacked provider chart,
   plus the frozen numbers behind `/dispatch-stats`.

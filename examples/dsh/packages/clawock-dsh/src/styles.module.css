@@ -1801,9 +1801,10 @@
   white-space:pre-wrap;
   overflow-wrap:anywhere;
   color:var(--tq-ink-2)
-}.pbc .tq-picker-actions{ display:flex; gap:6px }.pbc .tq-d-summary{
+}.pbc .tq-picker-actions{ display:flex; gap:6px }/* The closing report is a card; its actions are a separate row, so the Full
+   log pill never sits on the card's last line (live 2026-11-08). */.pbc .tq-d-sec > .tq-d-summary + .tq-actions{ margin-top:10px }.pbc .tq-d-summary{
   margin:0;
-  padding:8px 10px;
+  padding:8px 10px 10px;
   border-radius:var(--tq-radius-sm);
   background:var(--tq-fill-hover);
   font:var(--dsw-font-xxs-12);
@@ -2017,14 +2018,18 @@
   line-height:var(--lh-lg);
 }body[data-ds-dark-theme] .wb{
   --wb-bad:#FA716A;
-}/* The panellist icon: a 16px glyph with a fixed-width ink badge. */.wb-icon{
-  position:relative; display:inline-flex; align-items:center; justify-content:center;
-  width:100%; height:100%; color:var(--dsw-alias-label-primary);
-}.wb-icon-on{ color:var(--dsw-alias-label-primary); }[data-wb-rail=true] .wb-icon{ position:relative; } [data-wb-rail=true] .wb-badge{ top:0; right:-6px; }.wb-badge{
-  position:absolute; top:-5px; right:-2px; box-sizing:border-box;
-  min-width:16px; max-width:22px; height:16px; padding:0 2px; border-radius:8px; overflow:hidden; white-space:nowrap;
+}/* The panellist icon: a 16px glyph with a compact ink badge. The live host's
+   rail button is 36px, so the badge and the alert are anchored to the glyph's
+   own 16px box, not to the host wrapper: a 16px badge there covered the glyph
+   and the bottom-right alert sat on top of it (2026-11-08 screenshots). */.wb-icon{
+  position:relative; display:inline-flex; flex:none; align-items:center; justify-content:center;
+  color:var(--dsw-alias-label-primary);
+}.wb-icon-on{ color:var(--dsw-alias-label-primary); }[data-wb-rail=true] .wb-icon{ position:relative; } [data-wb-rail=true] .wb-badge{ top:-4px; right:-6px; }.wb-badge{
+  position:absolute; top:-4px; right:-6px; box-sizing:border-box; display:flex; align-items:center; justify-content:center;
+  min-width:14px; max-width:20px; height:14px; padding:0 3px; border-radius:7px; overflow:hidden; white-space:nowrap;
   background:var(--dsw-alias-label-primary); color:var(--dsw-alias-label-primary-inverted);
-  font-size:var(--fs-badge); line-height:var(--lh-sm); font-weight:var(--fw-bold); text-align:center;
+  box-shadow:0 0 0 1.5px var(--dsw-alias-bg-layer-1, #fff);
+  font-size:var(--fs-badge); line-height:var(--lh-xs); font-weight:var(--fw-bold); text-align:center;
   font-variant-numeric:tabular-nums; pointer-events:none;
 }.wb-badge[data-wb-tone=danger]{ background:var(--dsw-alias-state-error-primary); color:#fff; }/* Alerts are words in the host's own label ("Workbench · 1 alert"); the
    plugin never paints a colour-only dot here. *//* Page shell. The pad is the one width-driven value (12 under 360, 16 at
@@ -2239,7 +2244,7 @@
 /* The rail keeps an exclamation mark beside the glyph: the host hides the row
    label at 56px, and a coloured dot alone would again be unexplainable. */
 .wb-rail-alert{
-  display:none; position:absolute; top:auto; bottom:0; right:-5px; z-index:1;
+  display:none; position:absolute; top:auto; bottom:-3px; right:auto; left:-6px; z-index:1;
   width:13px; height:13px; align-items:center; justify-content:center; box-sizing:border-box;
   border-radius:7px; background:var(--wb-alert, #E5484D); color:#fff;
   font-size:var(--fs-micro); line-height:var(--lh-micro); font-weight:var(--fw-bold); text-align:center;
