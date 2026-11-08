@@ -3025,10 +3025,17 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     const logDir = result?.logDir
     if (!logDir) { showToast({ ok: false, text: t('queue.a.logNoDir') }); return }
     const path = logDir.replace(/\/+$/, '') + '/' + task.id + '/run.log'
-    const opened = props.openFile === undefined ? { ok: false as const } : props.openFile(path)
+    const opened = props.openFile === undefined ? { ok: false as const, reason: 'no-service' as const } : props.openFile(path)
     // The workbench is a global main panel, so dsh has no conversation to
-    // preview into. Fall back to the same ops-read log, inline.
-    if (!opened.ok) loadLog(task)
+    // preview into. Say why the preview did not open, then show the same
+    // ops-read log inline instead of sending the reader to a conversation.
+    if (!opened.ok) {
+      const message = opened.reason === 'no-session' ? t('queue.a.logNoSession')
+        : opened.reason === 'no-service' ? t('queue.a.logNoService')
+          : t('queue.a.logPreviewFailed', { message: opened.message ?? '' })
+      showToast({ ok: false, text: message })
+      loadLog(task)
+    }
   }
   const openPicker = (task: DispatchTask): void => {
     if (runAction === undefined) return

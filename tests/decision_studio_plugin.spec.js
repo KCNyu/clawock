@@ -4703,6 +4703,105 @@ test("workbench client: a refused Stop shows the dispatcher's reason", async () 
   }
 });
 
+test("workbench client: Full log opens the preview or says why it cannot", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const task = {
+    id: "done-1", name: "done one", agent: "dsh", model: "deepseek-flash", state: "ok",
+    waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: now - 7200_000, updatedAtMs: now - 60_000, wakeAtMs: null, patrol: false,
+    summary: "- shipped half\nSTATUS: DONE", lastEvent: "", lastEventAtMs: null, finishedAtMs: now - 60_000,
+    needs: "review the result", stage: "person/review", attention: "person", question: false,
+    session: "session-done", runnerApi: 7, deadlineAtMs: null, maxAttempts: 3,
+    quotaResumes: 3, quotaResumesUsed: 0, tokensTotal: 0, tokensIn: 0, tokensCacheW: 0,
+    tokensCacheR: 0, tokensOut: 0, costUsd: "0", notify: [], notified: [], notifyFailed: [],
+    queuedAtMs: now - 7800_000, waitMs: 600_000, priority: 0, protected: false, position: null,
+  };
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 1,
+    running: 0, active: [], recent: [], pending: [task], pendingTotal: 1, logDir: "/tmp/tasks",
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+    ops: { available: true, version: "abc", repoVersion: "abc", api: 7, runnerApi: 7, fairWaitSec: 30, error: "" },
+  };
+  const make = (openFile) => {
+    const calls = [];
+    const stub = makeReactStub();
+    const api = loaded.factory((s) => {
+      if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+      if (s === "react") return stub;
+      throw new Error(`unexpected require: ${s}`);
+    });
+    const render = () => {
+      stub._resetCursor();
+      return api.WorkbenchPage({
+        cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+        cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+        closeWorkbench: () => {}, openFile,
+        runQueueAction: async (action, id) => {
+          calls.push([action, id]);
+          return { ok: true, code: 0, action, id, message: "", detail: JSON.stringify({
+            lines: ["line 1", "line 2"], timeline: { events: [], omitted_bytes: 0, omitted_events: 0, audit_truncated: false, log_missing: false },
+          }) };
+        },
+        t: translatorFor(api),
+      });
+    };
+    const find = (tree, pred) => {
+      const out = [];
+      (function walk(node) {
+        if (node == null) return;
+        if (Array.isArray(node)) { node.forEach(walk); return; }
+        if (typeof node !== "object") return;
+        if (pred(node.props || {})) out.push(node);
+        (node.children || []).forEach(walk);
+      })(tree);
+      return out;
+    };
+    const textOf = (tree) => {
+      const parts = [];
+      (function walk(node) {
+        if (node == null) return;
+        if (Array.isArray(node)) { node.forEach(walk); return; }
+        if (typeof node === "string") { parts.push(node); return; }
+        (node.children || []).forEach(walk);
+      })(tree);
+      return parts.join(" ").replace(/\s+/g, " ").trim();
+    };
+    return { render, calls, find, textOf };
+  };
+  try {
+    // No conversation on the global main panel: no native preview is possible.
+    const absent = make(() => ({ ok: false, reason: "no-session" }));
+    let tree = absent.render();
+    absent.find(tree, (p) => p["data-wb-task"] === "done-1")[0].props.onClick();
+    tree = absent.render();
+    absent.find(tree, (p) => p["data-tq-action"] === "summary-log")[0].props.onClick();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    tree = absent.render();
+    assert.deepEqual(absent.calls, [["log", "done-1"]], "the inline log is loaded");
+    const toast = absent.find(tree, (p) => p["data-wb-toast"] !== undefined)[0];
+    assert.ok(toast, "the reason is shown");
+    assert.match(absent.textOf(toast), /没有会话/);
+    assert.match(absent.textOf(toast), /内联/);
+    assert.doesNotMatch(absent.textOf(toast), /先进入任意会话|open any conversation/,
+      "no instruction that cannot be followed on this page");
+
+    // A host with a preview: the native path wins and nothing is said.
+    const native = make(() => ({ ok: true }));
+    tree = native.render();
+    native.find(tree, (p) => p["data-wb-task"] === "done-1")[0].props.onClick();
+    tree = native.render();
+    native.find(tree, (p) => p["data-tq-action"] === "summary-log")[0].props.onClick();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    tree = native.render();
+    assert.deepEqual(native.calls, [], "no inline fallback when the preview opened");
+    assert.equal(native.find(tree, (p) => p["data-wb-toast"] !== undefined).length, 0,
+      "no warning when the preview opened");
+  } finally {
+    disposeReactEffects();
+  }
+});
+
 test("workbench client: patrol and task are exclusive detail layers", async () => {
   const loaded = await loadClient();
   const now = Date.now();

@@ -7263,6 +7263,9 @@ const dictionaries = {
 		"queue.a.fullLog": "完整日志",
 		"queue.a.fullLogTitle": "在文件预览中打开完整日志",
 		"queue.a.logNoDir": "宿主未报告派发目录；更新插件并重启 dsh 后再打开完整日志。",
+		"queue.a.logNoSession": "此页没有会话，文件预览不可用；已显示内联日志。",
+		"queue.a.logNoService": "这个 dsh 没有文件预览；已显示内联日志。",
+		"queue.a.logPreviewFailed": "预览打不开：{message}；已显示内联日志。",
 		"queue.chip.elapsed": "已跑 {time}",
 		"queue.chip.took": "用时 {time}",
 		"queue.chip.cost": "估算费用（按 API 价，非实际扣费）",
@@ -7618,8 +7621,8 @@ const dictionaries = {
 		"queue.brief.pending": "待投递",
 		"queue.brief.undelivered": "未投递（任务已结束，指令未生效）",
 		"queue.brief.big": "原文 {kb} KB（预览里是完整文件；ops 读数已截断到 64 KB）",
-		"queue.brief.noSession": "右侧预览要在会话里打开：先进入任意会话，再点一次。文件：{path}",
-		"queue.brief.noService": "这个 dsh 没有文件预览栏。文件：{path}",
+		"queue.brief.noSession": "此页没有会话，文件预览不可用；内容已在本页内联显示。文件：{path}",
+		"queue.brief.noService": "这个 dsh 没有文件预览；内容已在本页内联显示。文件：{path}",
 		"queue.brief.noDir": "插件 host 半边是旧版，没有告诉任务目录在哪；重启 dsh 后才能打开任务书。",
 		"queue.brief.failed": "预览打不开：{message}。文件：{path}",
 		"queue.brief.opened": "已在右侧预览打开 {file}",
@@ -7910,6 +7913,9 @@ const dictionaries = {
 		"queue.a.fullLog": "Full log",
 		"queue.a.fullLogTitle": "Open the full log in file preview",
 		"queue.a.logNoDir": "The host did not report the dispatch directory; update the plugin and restart dsh before opening the full log.",
+		"queue.a.logNoSession": "This page has no conversation, so the file preview is unavailable; the log is shown inline.",
+		"queue.a.logNoService": "This dsh has no file preview; the log is shown inline.",
+		"queue.a.logPreviewFailed": "The preview could not open: {message}; the log is shown inline.",
 		"queue.chip.elapsed": "running {time}",
 		"queue.chip.took": "took {time}",
 		"queue.chip.cost": "Estimate at API prices, not a bill",
@@ -8265,8 +8271,8 @@ const dictionaries = {
 		"queue.brief.pending": "pending",
 		"queue.brief.undelivered": "not delivered (the task ended first)",
 		"queue.brief.big": "{kb} KB (the preview shows the whole file; the ops read is capped at 64 KB)",
-		"queue.brief.noSession": "The preview opens inside a conversation: open any conversation, then tap again. File: {path}",
-		"queue.brief.noService": "This dsh has no file preview. File: {path}",
+		"queue.brief.noSession": "This page has no conversation, so the file preview is unavailable; the content is shown inline here. File: {path}",
+		"queue.brief.noService": "This dsh has no file preview; the content is shown inline here. File: {path}",
 		"queue.brief.noDir": "The plugin's host half is older and does not say where task directories are: the brief opens after a dsh restart.",
 		"queue.brief.failed": "The preview did not open: {message}. File: {path}",
 		"queue.brief.opened": "Opened {file} in the preview",
@@ -13505,7 +13511,18 @@ function WorkbenchPage(props) {
 			return;
 		}
 		const path = logDir.replace(/\/+$/, "") + "/" + task.id + "/run.log";
-		if (!(props.openFile === void 0 ? { ok: false } : props.openFile(path)).ok) loadLog(task);
+		const opened = props.openFile === void 0 ? {
+			ok: false,
+			reason: "no-service"
+		} : props.openFile(path);
+		if (!opened.ok) {
+			const message = opened.reason === "no-session" ? t("queue.a.logNoSession") : opened.reason === "no-service" ? t("queue.a.logNoService") : t("queue.a.logPreviewFailed", { message: opened.message ?? "" });
+			showToast({
+				ok: false,
+				text: message
+			});
+			loadLog(task);
+		}
 	};
 	const openPicker = (task) => {
 		if (runAction === void 0) return;
