@@ -20,7 +20,9 @@
  * boxes inside the host's 36px row (with no numeric badge on the glyph), the
  * closing-report card vs its Full log row, and the patrol coverage tables
  * (one column on a phone). The wide row keeps the count in the host label;
- * the rail keeps only the non-numeric alert mark.
+ * the rail keeps only the non-numeric alert mark. `sidebar-control` is a
+ * negative control: it deliberately overlaps adjacent rows and the same
+ * check must report them, so the positive states cannot pass vacuously.
  *
  * It also records computed font-size/line-height/weight for the provider rows
  * in normal / near-limit / alert / stale / free / unknown states and in both
@@ -317,8 +319,15 @@ const HARNESS_JS = String.raw`
       cachedBalances: () => balances, fetchBalances: async () => balances,
       rememberTrigger: () => {},
     }));
+    if (scenario === 'sidebar-control') {
+      // Negative control: a real 10px overlap between adjacent rows must be
+      // reported by the same check the positive states rely on.
+      const broken = document.createElement('style');
+      broken.textContent = '.host-panel-row + .host-panel-row{ margin-top:-12px }';
+      document.head.appendChild(broken);
+    }
   }
-  if (scenario === 'sidebar' || scenario === 'sidebar-rail' || scenario === 'sidebar-quiet') {
+  if (scenario === 'sidebar' || scenario === 'sidebar-rail' || scenario === 'sidebar-quiet' || scenario === 'sidebar-control') {
     mountSidebar(scenario === 'sidebar-rail' ? 'rail' : 'wide');
   } else {
     mountWorkbench();
@@ -620,6 +629,7 @@ const STATES = [
   { name: "sidebar", width: 390, height: 844, scenario: "sidebar", drive: null, gauge: "sidebar" },
   { name: "sidebar-375", width: 375, height: 667, scenario: "sidebar", drive: null, gauge: "sidebar" },
   { name: "sidebar-quiet", width: 390, height: 844, scenario: "sidebar-quiet", drive: null, gauge: "sidebar" },
+  { name: "sidebar-control", width: 390, height: 844, scenario: "sidebar-control", drive: null, gauge: "sidebar", control: "row-overlap" },
   { name: "320-sticky", width: 320, height: 568, scenario: "normal", drive: "sticky" },
   { name: "320-providers", width: 320, height: 568, scenario: "normal", drive: "providers" },
   { name: "320-task", width: 320, height: 568, scenario: "normal", drive: "task", gauge: "detail" },
@@ -710,6 +720,12 @@ async function measureTypography(page) {
 function assertGauge(state, gauge) {
   if (gauge === null) return;
   if (state.gauge === "sidebar") {
+    if (state.control === "row-overlap") {
+      assert.ok(gauge.intersections.length > 0,
+        state.name + ": the detector must still see a deliberate adjacent-row overlap");
+      console.log("  CONTROL row overlap detected: " + JSON.stringify(gauge.intersections));
+      return;
+    }
     assert.equal(gauge.rows.length, 4, state.name + ": four panellist rows are measured");
     assert.deepEqual(gauge.intersections, [], state.name + ": adjacent panellist rows must not intersect");
     for (const row of gauge.containment) {
@@ -855,10 +871,10 @@ async function main() {
         }
         const shot = path.join(shotsDir, engineName + "-" + state.name + ".png");
         await page.screenshot({ path: shot, fullPage: false });
-        const failures = geometry.failures;
+        const failures = state.control === undefined ? geometry.failures : [];
         const record = {
           name: state.name, engine: engineName, width: state.width, height: state.height,
-          scenario: state.scenario, theme: state.theme || "light", scrollTop,
+          scenario: state.scenario, theme: state.theme || "light", scrollTop, control: state.control,
           blocks: geometry.blocks.length, failures, allowed: geometry.allowed,
           gauge, gaugeError, safeArea, rail, errors, screenshot: shot,
         };
@@ -868,9 +884,9 @@ async function main() {
           typography.push({ state: state.name, engine: engineName, ...(await measureTypography(page)) });
         }
         console.log([engineName, state.name, state.width + "x" + state.height,
-          "blocks=" + geometry.blocks.length, "overlaps=" + geometry.failures.length,
+          "blocks=" + geometry.blocks.length, "overlaps=" + failures.length,
           "allowed=" + geometry.allowed.length, "errors=" + errors.length].join(" "));
-        for (const failure of geometry.failures.slice(0, 8)) {
+        for (const failure of (state.control === undefined ? geometry.failures : []).slice(0, 8)) {
           console.log("  OVERLAP " + failure.area + "px2 " + failure.a + " <> " + failure.b + "  " + JSON.stringify(failure.text));
         }
         await context.close();
