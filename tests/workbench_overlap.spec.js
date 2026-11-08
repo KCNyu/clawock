@@ -525,9 +525,23 @@ function collectInPage(options) {
       clipping.push(row);
     }
   }
+  const scrollbars = [...document.querySelectorAll("*")].filter((el) => {
+    if (clip(el) === null) return false;
+    const style = getComputedStyle(el);
+    const scrolls = (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight)
+      || (/(auto|scroll)/.test(style.overflowX) && el.scrollWidth > el.clientWidth);
+    return scrolls && style.scrollbarWidth !== "none"
+      && getComputedStyle(el, "::-webkit-scrollbar").display !== "none";
+  }).map((el) => selectorOf(el));
+  const touch = [...document.querySelectorAll("[data-wb-task], [data-wb-tab], [data-wb-back]")]
+    .filter((el) => clip(el) !== null).map((el) => {
+      let target = el;
+      while (target && getComputedStyle(target).touchAction !== "manipulation") target = target.parentElement;
+      return {selector: selectorOf(el), manipulation: target !== null};
+    });
   const horizontalOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth;
   return {
-    clipping, truncation, horizontalOverflow,
+    clipping, truncation, horizontalOverflow, scrollbars, touch,
     scrollTop,
     blocks: blocks.map(({ el, ...rest }) => rest),
     failures,
@@ -1217,9 +1231,9 @@ async function main() {
           gaugeFailures.push({ state: state.name, engine: engineName, message: error.message });
           console.error("  GAUGE FAIL " + error.message);
         }
-        if (state.control === undefined && (geometry.clipping.length || geometry.horizontalOverflow)) {
+        if (state.control === undefined && (geometry.clipping.length || geometry.horizontalOverflow || geometry.scrollbars.length || geometry.touch.some((item) => !item.manipulation))) {
           gaugeFailures.push({ state: state.name, engine: engineName,
-            message: "text/document overflow: " + JSON.stringify({ clipping: geometry.clipping, horizontal: geometry.horizontalOverflow }) });
+            message: "text/document overflow: " + JSON.stringify({ clipping: geometry.clipping, horizontal: geometry.horizontalOverflow, scrollbars: geometry.scrollbars, touch: geometry.touch }) });
           console.error("  CLIP FAIL " + state.name + " " + JSON.stringify(geometry.clipping));
         }
         const shot = path.join(shotsDir, engineName + "-" + state.name + ".png");
@@ -1234,7 +1248,7 @@ async function main() {
           scenario: state.scenario, theme: state.theme || "light", scrollTop, control: state.control,
           blocks: geometry.blocks.length, failures, allowed: geometry.allowed,
           gauge, hostDiff, gaugeError, safeArea, rail, errors, screenshot: shot,
-          clipping: geometry.clipping, truncation: geometry.truncation, horizontalOverflow: geometry.horizontalOverflow,
+          clipping: geometry.clipping, truncation: geometry.truncation, horizontalOverflow: geometry.horizontalOverflow, scrollbars: geometry.scrollbars, touch: geometry.touch,
         };
         results.push(record);
         browserFailures += failures.length;
@@ -1278,7 +1292,8 @@ async function main() {
   const primitiveChecks = [];
   const near = (a, b) => a === b;
   const withSameViewport = (record, mode) => results.find((other) =>
-    other.engine === record.engine && other.width === record.width && other.gauge?.mode === mode);
+    other.engine === record.engine && other.width === record.width && other.height === record.height
+    && other.theme === record.theme && other.gauge?.mode === mode);
   for (const record of results) {
     if (record.gauge?.mode === "header") {
       const history = withSameViewport(record, "history");

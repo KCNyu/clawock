@@ -2171,6 +2171,11 @@ body[data-ds-dark-theme] .wb {
   border: 0; border-radius: var(--wb-radius-lg); background: transparent; color: var(--wb-text-2); cursor: pointer;
 }
 .wb-refresh:hover { background: var(--wb-hover-bg); color: var(--wb-text-1); }
+/* Workbench scrolling stays available without a visible scrollbar. Applying
+   manipulation to each element also covers nested scroll gesture boundaries;
+   panning and pinch zoom remain available, double-tap zoom does not. */
+.wb, .wb * { touch-action: manipulation; scrollbar-width: none; }
+.wb::-webkit-scrollbar, .wb *::-webkit-scrollbar { display: none; }
 .wb-view { flex: 1; min-height: 0; overflow: auto; display: block; }
 .wb-main { flex: 1; min-height: 0; overflow: hidden; display: flex; }
 .wb-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: var(--wb-queue-w) minmax(0, 1fr); }
