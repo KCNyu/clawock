@@ -1159,6 +1159,11 @@ async function main() {
         await page.waitForTimeout(120);
         if (state.drive) await drive(page, state.drive);
         await page.waitForTimeout(120);
+        if (state.gauge === "brief") {
+          // The body is an explicit scroller. Test that the bottom action can
+          // be brought fully into view on a short landscape viewport.
+          await page.locator('[data-wb-sheet] [class*="_wb-sheet-body"]').evaluate((el) => { el.scrollTop = el.scrollHeight; });
+        }
         const scrollTop = await scrollTopOf(page);
         const geometry = await page.evaluate(collectInPage, { scrollTop });
         const safeArea = await page.evaluate(() => {
@@ -1271,7 +1276,7 @@ async function main() {
   // the same for the 32px Button in the detail and the Sheet head, and for
   // the 36px SectionHeader on Tasks and Overview.
   const primitiveChecks = [];
-  const near = (a, b) => Math.abs(a - b) <= 0.51;
+  const near = (a, b) => a === b;
   const withSameViewport = (record, mode) => results.find((other) =>
     other.engine === record.engine && other.width === record.width && other.gauge?.mode === mode);
   for (const record of results) {
@@ -1319,7 +1324,7 @@ async function main() {
     legacy,
     summary: {
       states: results.length,
-      passing: results.filter((record) => record.failures.length === 0 && record.gaugeError === null && record.errors.length === 0).length,
+      passing: results.filter((record) => record.failures.length === 0 && record.gaugeError === null && record.errors.length === 0 && record.clipping.length === 0 && !record.horizontalOverflow).length,
       failing: results.filter((record) => record.failures.length > 0).map((record) => record.name),
       overlaps: browserFailures,
       allowedOverlays: results.reduce((sum, record) => sum + record.allowed.length, 0),

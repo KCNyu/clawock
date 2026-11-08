@@ -2164,7 +2164,7 @@ body[data-ds-dark-theme] .wb {
   font: inherit; font-size: var(--wb-font-ui); line-height: var(--wb-line-ui); cursor: pointer;
 }
 .wb-back:hover { background: var(--wb-hover-bg); }
-.wb-back-chev { margin-top: calc(var(--wb-space-1) * -0.5); font-size: var(--fs-2xl); line-height: var(--lh-1); }
+.wb-back-chev { margin-top: calc(var(--wb-space-1) * -0.5); font-size: var(--fs-2xl); line-height: var(--wb-line-ui); }
 .wb-refresh {
   display: inline-flex; flex: none; align-items: center; justify-content: center;
   width: var(--wb-btn-h); height: var(--wb-btn-h); margin-left: var(--wb-space-1); padding: 0;
