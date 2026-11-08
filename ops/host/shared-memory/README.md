@@ -188,6 +188,28 @@ stderr, never truncated silently. `memory.py search --scope SCOPE` applies the s
 recall. The live OpenClaw paths still read their existing files; switching them to this view is
 P3 in `docs/architecture/agent-memory-unified.md`.
 
+## Publish projection (`MEMORY.md`)
+
+The repository's `MEMORY.md` is generated, not hand-written: it is the projection of the active
+topics whose metadata says `publish: public`. A topic that is `private`, missing an order, or not
+in the store cannot reach the file.
+
+```bash
+python3 ops/host/shared-memory/scripts/publish.py --check --store ~/.shared-memory
+python3 ops/host/shared-memory/scripts/publish.py --write --store ~/.shared-memory
+```
+
+The generator sorts by `metadata.order` (contiguous `1..N`), writes `MEMORY.md`, and writes
+`ops/host/shared-memory/publish-manifest.json` with the header, per-section line counts and
+SHA-256 hashes. `--check` without `--store` validates the committed pair, so CI can run it from a
+clean checkout; with `--store` it also proves the file is not stale. The manifest is what makes
+a hand-added line, an edited paragraph, a deleted section or a `publish: private` section fail
+rather than silently ship.
+
+`MEMORY.md` stays the direct-chat injection source. The projection keeps the exact section text,
+order and separators of the reviewed file, so switching it in does not change what the chat sees.
+`tests/test_memory_publish.py` holds the committed-pair check and the fake-store round trip.
+
 ## Search matching
 
 `scripts/memory.py search` and `openclaw/index.ts` implement one set of matching rules, each in
