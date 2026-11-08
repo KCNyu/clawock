@@ -115,6 +115,68 @@ body[data-ds-dark-theme]{--dsw-alias-bg-layer-1:#171a1f;--dsw-alias-bg-base:#0f1
 .host-rail .host-panel-title{display:none}
 `;
 
+const HOST_ROW_CSS = `
+.host-ref{display:flex;align-items:flex-start;gap:12px;box-sizing:border-box;padding:8px;border-radius:12px;background:#f7f8fa;color:#15171b;
+ font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
+.host-ref-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.host-ref-title{font-size:14px;font-weight:500;line-height:23px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.host-ref-sub{font-size:13px;line-height:21px;color:#81858c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.host-ref-age{flex:none;align-self:flex-start;margin-top:2px;color:#61666b;font-size:13px;line-height:21px;font-variant-numeric:tabular-nums}
+.host-ref .host-ref-main{flex:1}
+body[data-ds-dark-theme] .host-ref{background:#151517;color:#f2f4f7}
+body[data-ds-dark-theme] .host-ref-sub{color:#8f97a3}
+body[data-ds-dark-theme] .host-ref-age{color:#b8bec7}
+`;
+
+/** Same-state pixel diff against the measured Automation tasks row. */
+async function measureHostDiff(context, origin, appRow, sample, engine, width, theme) {
+  const escaped = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const ref = await context.newPage();
+  const dark = theme === "dark";
+  await ref.setContent("<!doctype html><html><head><meta charset='utf-8'><style>" + HOST_ROW_CSS + "</style></head><body"
+    + (dark ? " data-ds-dark-theme='dark'" : "") + " style='margin:0;background:" + (dark ? "#151517" : "#f7f8fa") + "'>"
+    + "<div class='host-ref' id='host-row' style='width:" + sample.box.width + "px'><div class='host-ref-main'>"
+    + "<span class='host-ref-title'>" + escaped(sample.title) + "</span>"
+    + (sample.sub === "" ? "" : "<span class='host-ref-sub'>" + escaped(sample.sub) + "</span>")
+    + "</div><span class='host-ref-age'>" + escaped(sample.age) + "</span></div></body></html>");
+  const clip = await ref.locator("#host-row").screenshot();
+  const ours = await appRow.screenshot();
+  if (process.env.WORKBENCH_HOSTDIFF_DIR) {
+    fs.mkdirSync(process.env.WORKBENCH_HOSTDIFF_DIR, { recursive: true });
+    fs.writeFileSync(path.join(process.env.WORKBENCH_HOSTDIFF_DIR, engine + "-" + width + "-host.png"), clip);
+    fs.writeFileSync(path.join(process.env.WORKBENCH_HOSTDIFF_DIR, engine + "-" + width + "-ours.png"), ours);
+  }
+  const stats = await ref.evaluate(async ({ a, b }) => {
+    const load = (bytes) => new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = "data:image/png;base64," + bytes;
+    });
+    const [left, right] = await Promise.all([load(a), load(b)]);
+    const width = Math.min(left.width, right.width);
+    const height = Math.min(left.height, right.height);
+    const canvas = document.createElement("canvas");
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(left, 0, 0);
+    const one = ctx.getImageData(0, 0, width, height).data;
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(right, 0, 0);
+    const two = ctx.getImageData(0, 0, width, height).data;
+    let changed = 0;
+    for (let i = 0; i < one.length; i += 4) {
+      if (Math.abs(one[i] - two[i]) > 24 || Math.abs(one[i + 1] - two[i + 1]) > 24 || Math.abs(one[i + 2] - two[i + 2]) > 24) changed += 1;
+    }
+    return {
+      width, height, left: { w: left.width, h: left.height }, right: { w: right.width, h: right.height },
+      pixels: width * height, changed, pct: changed / (width * height),
+    };
+  }, { a: clip.toString("base64"), b: ours.toString("base64") });
+  await ref.close();
+  return { engine, width, ...sample, pixel: stats };
+}
+
 const PAGE = `<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>${HOST_CSS}</style>
@@ -546,6 +608,12 @@ function gaugeInPage(mode) {
       pillGap: summaryBox === null || box(pill) === null ? null : round(box(pill).y - summaryBox.bottom),
       clipped: Math.max(0, Math.round(summary.scrollHeight - summary.clientHeight)),
       widthOverflow: Math.max(0, Math.round(summary.scrollWidth - summary.clientWidth)),
+      fieldH: (() => {
+        const field = document.querySelector("[data-tq-field]");
+        return field === null ? null : field.getBoundingClientRect().height;
+      })(),
+      fieldLines: [...new Set([...document.querySelectorAll("[data-tq-field] [class*=_tq-d-v]")]
+        .map((el) => getComputedStyle(el).lineHeight))],
     };
   }
 
@@ -575,6 +643,18 @@ function gaugeInPage(mode) {
     };
   }
 
+  if (mode === "overview") {
+    const entry = document.querySelector('[data-wb-group-button="overview-patrol"]');
+    if (entry === null) return { mode, present: false };
+    const style = getComputedStyle(entry);
+    return {
+      mode, present: true,
+      entryH: entry.getBoundingClientRect().height,
+      entryPad: parseFloat(style.paddingLeft) || 0,
+      entryFont: style.fontSize, entryLine: style.lineHeight,
+    };
+  }
+
   if (mode === "header") {
     const q = (sel) => document.querySelector(sel);
     const title = q('[class*="_wb-title"]');
@@ -595,6 +675,15 @@ function gaugeInPage(mode) {
       },
       tabH: document.querySelector("[role=tab]")?.getBoundingClientRect().height ?? null,
       rowH: document.querySelector('[data-wb-task]')?.getBoundingClientRect().height ?? null,
+      rowPad: document.querySelector("[data-wb-task]") === null ? null
+        : parseFloat(getComputedStyle(document.querySelector("[data-wb-task]")).paddingLeft) || 0,
+      rowType: (() => {
+        const title = document.querySelector('[data-wb-task] [class*="_wb-row-title"]');
+        if (title === null) return null;
+        const style = getComputedStyle(title);
+        return { font: style.fontSize, line: style.lineHeight, weight: style.fontWeight };
+      })(),
+      groupH: document.querySelector("[data-wb-group-button]")?.getBoundingClientRect().height ?? null,
       groups: [...document.querySelectorAll("[data-wb-group-button]")].map((el) => ({
         key: el.getAttribute("data-wb-group-button"), text: el.innerText,
       })),
@@ -608,6 +697,13 @@ function gaugeInPage(mode) {
       box: box(el),
       cost: el.querySelector('[class*="_wb-hist-cost"]')?.textContent ?? "",
       text: el.innerText,
+      pad: parseFloat(getComputedStyle(el).paddingLeft) || 0,
+      type: (() => {
+        const title = el.querySelector('[class*="_wb-hist-title"]');
+        if (title === null) return null;
+        const style = getComputedStyle(title);
+        return { font: style.fontSize, line: style.lineHeight, weight: style.fontWeight };
+      })(),
     }));
     return {
       mode, present: true,
@@ -634,6 +730,8 @@ function gaugeInPage(mode) {
     return {
       mode, present: true,
       sheet: box(sheet), body: bodyBox,
+      closeH: sheet === null ? null : sheet.querySelector("[data-wb-sheet-back]")?.getBoundingClientRect().height ?? null,
+      headH: sheet === null ? null : sheet.querySelector("[class*=_wb-sheet-head]")?.getBoundingClientRect().height ?? null,
       scrollWidth: body.scrollWidth, clientWidth: body.clientWidth,
       children: body.children.length,
       wrapper: wrapper === null ? null : { display: getComputedStyle(wrapper).display, direction: getComputedStyle(wrapper).flexDirection },
@@ -686,7 +784,7 @@ function serve() {
 const STATES = [
   { name: "tasks", width: 390, height: 844, scenario: "normal", drive: null, gauge: "header" },
   { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers", gauge: "providers" },
-  { name: "overview", width: 390, height: 844, scenario: "normal", drive: "overview" },
+  { name: "overview", width: 390, height: 844, scenario: "normal", drive: "overview", gauge: "overview" },
   { name: "patrol", width: 390, height: 844, scenario: "normal", drive: "patrol", gauge: "coverage" },
   { name: "stats", width: 390, height: 844, scenario: "normal", drive: "stats" },
   { name: "history", width: 390, height: 844, scenario: "normal", drive: "history", gauge: "history" },
@@ -717,7 +815,7 @@ const STATES = [
   { name: "rail", width: 390, height: 844, scenario: "sidebar-rail", drive: null, gauge: "sidebar" },
   { name: "desktop-tasks", width: 1440, height: 900, scenario: "normal", desktop: true, drive: null },
   { name: "desktop-providers", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "providers" },
-  { name: "desktop-overview", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "overview" },
+  { name: "desktop-overview", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "overview", gauge: "overview" },
   { name: "desktop-patrol", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "patrol" },
   { name: "desktop-stats", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "stats" },
   { name: "desktop-history", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "history" },
@@ -841,6 +939,8 @@ function assertGauge(state, gauge) {
     assert.equal(gauge.scrollbar, "none", state.name + ": the detail scroller must not show a scrollbar");
     assert.ok(gauge.actH !== null && Math.abs(gauge.actH - 32) <= 0.6,
       state.name + ": primary/secondary detail buttons must be 32px high, got " + gauge.actH);
+    assert.deepEqual(gauge.fieldLines, ["20px"],
+      state.name + ": every Field value resolves to the 13/20 body line, got " + JSON.stringify(gauge.fieldLines));
     assert.equal(gauge.clipped, 0, state.name + ": the closing report must not clip its last line");
     assert.equal(gauge.widthOverflow, 0, state.name + ": the closing report must not overflow horizontally");
     return;
@@ -854,6 +954,16 @@ function assertGauge(state, gauge) {
       state.name + ": a coverage table is narrower than its container");
     return;
   }
+  if (state.gauge === "overview") {
+    assert.equal(gauge.present, true, state.name + ": the overview entry is rendered");
+    assert.ok(Math.abs(gauge.entryH - 36) <= 0.6,
+      state.name + ": the same SectionHeader is 36px on Overview, got " + gauge.entryH);
+    assert.ok(Math.abs(gauge.entryPad - 20) <= 0.6,
+      state.name + ": the Overview SectionHeader keeps the page inset, got " + gauge.entryPad);
+    assert.equal(gauge.entryFont + "/" + gauge.entryLine, "14px/22px",
+      state.name + ": the Overview SectionHeader type is the shared section role");
+    return;
+  }
   if (state.gauge === "header") {
     assert.equal(gauge.present, true, state.name + ": header, tabs, group and row are rendered");
     const chrome = [gauge.lefts.title, gauge.lefts.sub, gauge.lefts.tabs, gauge.lefts.group];
@@ -865,6 +975,12 @@ function assertGauge(state, gauge) {
       state.name + ": filter tabs must be 28px high, got " + gauge.tabH);
     assert.ok(gauge.rowH >= 60 && gauge.rowH <= 64,
       state.name + ": a two-line host row is 62px (8+23+2+21+8), got " + gauge.rowH);
+    assert.ok(gauge.groupH !== null && Math.abs(gauge.groupH - 36) <= 0.6,
+      state.name + ": a section header is 36px, got " + gauge.groupH);
+    assert.ok(gauge.rowPad !== null && Math.abs(gauge.rowPad - 8) <= 0.6,
+      state.name + ": the Row primitive keeps its 8px inset, got " + gauge.rowPad);
+    assert.deepEqual(gauge.rowType, { font: "14px", line: "23px", weight: "500" },
+      state.name + ": the Row title must resolve to the host row type, got " + JSON.stringify(gauge.rowType));
     const pending = gauge.groups.find((g) => g.key === "pending");
     const live = gauge.groups.find((g) => g.key === "live");
     if (pending !== undefined) assert.match(pending.text, /^(Needs review|待你确认)/, state.name + ": the ended-needs group is not called Pending");
@@ -881,6 +997,10 @@ function assertGauge(state, gauge) {
       assert.ok(row.box.x >= gauge.ul.x + gauge.pad - 0.5 && row.box.right <= gauge.ul.right - gauge.pad + 0.5,
         state.name + ": a history row leaves the --wb-pad inset");
       assert.ok(row.box.bottom <= gauge.ul.bottom + 0.5, state.name + ": the last history row is clipped by the list");
+      assert.ok(Math.abs(row.box.h - 62) <= 0.6, state.name + ": a History Row is the same 62px primitive, got " + row.box.h);
+      assert.ok(Math.abs(row.pad - 8) <= 0.6, state.name + ": the History Row keeps the 8px inset, got " + row.pad);
+      assert.deepEqual(row.type, { font: "14px", line: "23px", weight: "500" },
+        state.name + ": the History Row title is the same role, got " + JSON.stringify(row.type));
       assert.match(row.cost, /^[¥$]/, state.name + ": each history cost carries its currency");
       if (/\bdsh\b/.test(row.text)) assert.match(row.cost, /^¥/, state.name + ": dsh history costs are CNY, not $");
       if (/Claude|Codex/.test(row.text)) assert.match(row.cost, /^\$/, state.name + ": non-dsh history costs are USD");
@@ -896,6 +1016,10 @@ function assertGauge(state, gauge) {
     assert.ok(gauge.scrollWidth <= gauge.clientWidth + 1,
       state.name + ": the sheet body must not overflow horizontally (" + gauge.scrollWidth + " > " + gauge.clientWidth + ")");
     assert.equal(gauge.children, 1, state.name + ": the brief body is one column, not two");
+    assert.ok(gauge.closeH !== null && Math.abs(gauge.closeH - 32) <= 0.6,
+      state.name + ": the Sheet close control is the same 32px Button, got " + gauge.closeH);
+    assert.ok(gauge.headH !== null && Math.abs(gauge.headH - 48) <= 0.6,
+      state.name + ": the Sheet head is 48px, got " + gauge.headH);
     assert.deepEqual(gauge.wrapper, { display: "flex", direction: "column" },
       state.name + ": the brief wrapper stacks its content");
     for (const row of gauge.rows) {
@@ -995,6 +1119,21 @@ async function main() {
           assert.equal(rail.alert, true, "rail state keeps the alert !");
         }
         const gauge = state.gauge ? await page.evaluate(gaugeInPage, state.gauge) : null;
+        let hostDiff = null;
+        if (state.name.includes("tasks")) {
+          const sample = await page.evaluate(() => {
+            const row = document.querySelector("[data-wb-task]");
+            if (row === null) return null;
+            const title = row.querySelector('[class*="_wb-row-title"]');
+            const sub = row.querySelector('[class*="_wb-row-sub"]');
+            const age = row.querySelector('[class*="_wb-row-age"]');
+            return { title: title?.textContent ?? "", sub: sub?.textContent ?? "", age: age?.textContent ?? "",
+              box: row.getBoundingClientRect().toJSON() };
+          });
+          if (sample !== null) {
+            hostDiff = await measureHostDiff(context, origin, page.locator("[data-wb-task]").first(), sample, engineName, state.width, state.theme || "light");
+          }
+        }
         let gaugeError = null;
         try {
           assertGauge(state, gauge);
@@ -1014,7 +1153,7 @@ async function main() {
           name: state.name, engine: engineName, width: state.width, height: state.height,
           scenario: state.scenario, theme: state.theme || "light", scrollTop, control: state.control,
           blocks: geometry.blocks.length, failures, allowed: geometry.allowed,
-          gauge, gaugeError, safeArea, rail, errors, screenshot: shot,
+          gauge, hostDiff, gaugeError, safeArea, rail, errors, screenshot: shot,
         };
         results.push(record);
         browserFailures += failures.length;
@@ -1051,6 +1190,52 @@ async function main() {
   }
   const typographyFailures = typographyChecks.filter((check) => !check.ok);
 
+  // Cross-page primitive equality: a Row on Tasks and a Row in History are
+  // the same component, so the measured height/left/line must be identical;
+  // the same for the 32px Button in the detail and the Sheet head, and for
+  // the 36px SectionHeader on Tasks and Overview.
+  const primitiveChecks = [];
+  const near = (a, b) => Math.abs(a - b) <= 0.51;
+  const withSameViewport = (record, mode) => results.find((other) =>
+    other.engine === record.engine && other.width === record.width && other.gauge?.mode === mode);
+  for (const record of results) {
+    if (record.gauge?.mode === "header") {
+      const history = withSameViewport(record, "history");
+      if (history !== undefined && history.gauge.rows.length > 0) {
+        const row = history.gauge.rows[0];
+        primitiveChecks.push({
+          primitive: "Row", pages: ["tasks", "history"], engine: record.engine, width: record.width,
+          values: { tasksH: record.gauge.rowH, historyH: row.box.h, tasksTextX: record.gauge.lefts.row, historyTextX: row.box.x + row.pad },
+          ok: near(record.gauge.rowH, row.box.h) && near(record.gauge.lefts.row, row.box.x + row.pad),
+        });
+        primitiveChecks.push({
+          primitive: "Row type", pages: ["tasks", "history"], engine: record.engine, width: record.width,
+          values: { tasks: record.gauge.rowType, history: row.type },
+          ok: JSON.stringify(record.gauge.rowType) === JSON.stringify(row.type),
+        });
+      }
+      const overview = withSameViewport(record, "overview");
+      if (overview !== undefined) {
+        primitiveChecks.push({
+          primitive: "SectionHeader", pages: ["tasks", "overview"], engine: record.engine, width: record.width,
+          values: { tasksH: record.gauge.groupH, overviewH: overview.gauge.entryH },
+          ok: near(record.gauge.groupH, overview.gauge.entryH),
+        });
+      }
+    }
+    if (record.gauge?.mode === "detail") {
+      const sheet = withSameViewport(record, "brief");
+      if (sheet !== undefined && sheet.gauge.closeH !== null) {
+        primitiveChecks.push({
+          primitive: "Button", pages: ["task detail", "brief sheet"], engine: record.engine, width: record.width,
+          values: { detailH: record.gauge.actH, sheetCloseH: sheet.gauge.closeH },
+          ok: near(record.gauge.actH, sheet.gauge.closeH),
+        });
+      }
+    }
+  }
+  const primitiveFailures = primitiveChecks.filter((check) => !check.ok);
+
   const payload = {
     generatedAt: new Date().toISOString(),
     bundle: bundlePath,
@@ -1067,8 +1252,14 @@ async function main() {
       typographyFailures: typographyFailures.length,
       gaugeChecks: results.filter((record) => record.gauge !== null).length,
       gaugeFailures: gaugeFailures.length,
+      primitiveChecks: primitiveChecks.length,
+      primitiveFailures: primitiveFailures.length,
+      hostDiffs: results.filter((record) => record.hostDiff != null).length,
+      hostDiffFailures: results.filter((record) => record.hostDiff != null && record.hostDiff.pixel.pct > 0.01).length,
     },
     gaugeFailures,
+    primitiveChecks,
+    primitiveFailures,
     results,
     typography: { checks: typographyChecks, failures: typographyFailures, samples: typography },
   };
@@ -1082,7 +1273,20 @@ async function main() {
   }
   console.log("overlaps=" + browserFailures + " gaugeFailures=" + gaugeFailures.length
     + " typographyFailures=" + typographyFailures.length
+    + " primitiveChecks=" + primitiveChecks.length + " primitiveFailures=" + primitiveFailures.length
     + " pageErrors=" + payload.summary.pageErrors + " json=" + outPath);
+  for (const record of results.filter((entry) => entry.hostDiff != null)) {
+    const diff = record.hostDiff;
+    console.log("  HOSTDIFF " + diff.engine + " " + diff.width + "px row "
+      + diff.pixel.left.w + "x" + diff.pixel.left.h + " vs " + diff.pixel.right.w + "x" + diff.pixel.right.h
+      + " changed=" + diff.pixel.changed + "/" + diff.pixel.pixels
+      + " (" + (diff.pixel.pct * 100).toFixed(2) + "%)");
+  }
+  for (const check of primitiveChecks) {
+    console.log("  PRIMITIVE " + check.primitive + " [" + check.pages.join(" <> ") + "] "
+      + check.engine + " " + check.width + "px " + (check.ok ? "OK " : "FAIL ")
+      + JSON.stringify(check.values));
+  }
   if (browserFailures > 0) {
     console.error("\nFAIL: " + browserFailures + " overlapping visible block pair(s)");
     process.exitCode = 1;
@@ -1095,6 +1299,22 @@ async function main() {
   if (typographyFailures.length > 0) {
     console.error("\nFAIL: " + typographyFailures.length + " type role(s) change across states/themes");
     console.error(JSON.stringify(typographyFailures.slice(0, 8), null, 1));
+    process.exitCode = 1;
+  }
+  // Threshold: 1.0% of the row's pixels may differ by more than 24/255 per
+  // channel. The same-content, same-width row currently measures 0 at all
+  // viewports; the allowance exists for platform font rasterisation, and is
+  // far below a one-pixel padding/line-height shift (which moves thousands of
+  // pixels). A geometry change therefore cannot hide inside it.
+  const hostDiffFailures = results.filter((record) => record.hostDiff != null && record.hostDiff.pixel.pct > 0.01);
+  if (hostDiffFailures.length > 0) {
+    console.error("\nFAIL: the Workbench row is more than 1.0% pixels away from the measured host row");
+    console.error(JSON.stringify(hostDiffFailures.map((record) => record.hostDiff), null, 1));
+    process.exitCode = 1;
+  }
+  if (primitiveFailures.length > 0) {
+    console.error("\nFAIL: " + primitiveFailures.length + " primitive(s) differ across pages");
+    console.error(JSON.stringify(primitiveFailures.slice(0, 8), null, 1));
     process.exitCode = 1;
   }
   assert.equal(payload.summary.pageErrors, 0, "no page errors while rendering the states");
