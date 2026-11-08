@@ -521,6 +521,9 @@ export type HistoryRowView = {
     cost: string;
     aria: string;
 };
+/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
+ * Claude and Codex estimates use USD. The number is the host's estimate. */
+export declare function _costUnit(task: Pick<DispatchTask, 'agent' | 'model'>): '¥' | '$';
 /** The ended-task list: frozen result, finished time and cost, newest first (host order). */
 export declare function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[];
 /** The Providers segment: sources in severity order, same-severity rows by label. */
@@ -584,7 +587,8 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
 } | null;
 /** A token count as one cell-sized figure: 1.49B, 625.2M, 12.3k. */
 export declare function compactCount(n: number): string;
-/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+/** A cost in its provider's unit: two decimals, a floor rather than a fake 0.00 for a sub-cent estimate. */
+export declare function moneyText(n: number, unit?: '¥' | '$'): string;
 export declare function usdText(n: number): string;
 /** One agent's totals as the stats card and its chart layer read them. */
 export type StatsAgentView = {

@@ -323,6 +323,7 @@ function readTask(logDir: string, id: string, alive: boolean): DispatchTask {
     lastEvent: event.text,
     lastEventAtMs: event.atMs,
     needs: result.NEEDS ?? '',
+    needsAck: existsSync(join(dir, 'needs-ack.json')),
     stage: result.STAGE ?? '',
     attention: result.ATTENTION ?? '',
     finishedAtMs: alive ? null : epochMs(result.FINISHED_EPOCH),
@@ -707,7 +708,8 @@ export async function readTaskQueue(config: Required<TaskQueueConfig>, deps: Tas
     row.attention === 'person'
     || (row.attention === '' && row.stage !== '' && ['blocked', 'failed', 'timeout', 'quota', 'partial', 'unverified'].includes(row.state))
   const pendingRows = terminal
-    .filter((row) => needsPerson(row) && !childIds.has(row.id) && !existsSync(join(config.logDir, row.id, 'answer.json')))
+    .filter((row) => needsPerson(row) && !childIds.has(row.id) && !existsSync(join(config.logDir, row.id, 'answer.json'))
+      && !existsSync(join(config.logDir, row.id, 'needs-ack.json')))
     .sort((a, b) => (a.finishedAtMs ?? a.at) - (b.finishedAtMs ?? b.at) || a.id.localeCompare(b.id))
   const pending = pendingRows.slice(0, 100).map((row) => readTask(config.logDir, row.id, false))
   let round = ''
@@ -886,7 +888,7 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
 
 /** The actions the chip may run, and how each maps onto the ops entry's arguments. */
 export const QUEUE_ACTIONS = ['cancel', 'priority', 'model', 'choices', 'retry', 'wrapup', 'log',
-  'brief', 'usage', 'deadline', 'attempts', 'resumes'] as const
+  'brief', 'usage', 'deadline', 'attempts', 'resumes', 'ack'] as const
 /** The actions that only read: never deduplicated as a double click, never invalidate the queue read. */
 const READ_ACTIONS: readonly string[] = ['choices', 'log', 'brief', 'usage']
 export type QueueAction = typeof QUEUE_ACTIONS[number]

@@ -255,7 +255,7 @@ const dictionaries = {
 		"workbench.tab.tasks": "任务",
 		"workbench.tab.providers": "提供方",
 		"workbench.tab.overview": "概况",
-		"workbench.sub.tasks": "{n} 待办 · 最早 {age}",
+		"workbench.sub.tasks": "待你确认 {n} · 最早 {age}",
 		"workbench.sub.providers": "{n} 个提供方 · {alerts} 告警",
 		"workbench.sub.providersOne": "{n} 个提供方 · 1 告警",
 		"workbench.sub.overview": "上轮 {time} · {n} 未决",
@@ -276,6 +276,12 @@ const dictionaries = {
 		"workbench.overview.unavailable": "统计读取失败：{message}",
 		"workbench.overview.history": "历史任务",
 		"workbench.overview.historySummary": "{n} 条已结束",
+		"workbench.history.limit": "仅显示宿主最近 5 条已结束任务；更早的运行不在此视图。",
+		"workbench.history.costNote": "花费为 API 目录价估算，不是账单。dsh 为人民币，其他 agent 为美元。",
+		"workbench.history.all": "打开任务队列",
+		"queue.a.dismiss": "已处理",
+		"queue.a.dismissed": "已标记处理",
+		"queue.a.dismissTitle": "关闭这条 NEEDS；只写本地已处理标记，不改任务结果",
 		"workbench.history.empty": "还没有已结束的任务",
 		"workbench.history.rowAria": "{title}，{state}，花费 {cost}",
 		"workbench.provider.state.ok": "正常",
@@ -308,8 +314,8 @@ const dictionaries = {
 		"workbench.group.more": "还有 {n} 条 ›",
 		"workbench.updated": "刚刚更新",
 		"workbench.group.stuck": "卡住 {n}",
-		"workbench.group.live": "进行中 {n}",
-		"workbench.group.pendingOldest": "待你处理 {n} · 最旧 {age}",
+		"workbench.group.live": "活跃 {n}",
+		"workbench.group.pendingOldest": "待你确认 {n} · 最早 {age}",
 		"workbench.groupBy.aria": "任务分组方式",
 		"workbench.groupBy.status": "按状态",
 		"workbench.groupBy.source": "按来源",
@@ -624,6 +630,7 @@ const dictionaries = {
 		"stats.tokens": "token {tokens}",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "免费",
+		"stats.costMixed": "多币种合计",
 		"stats.metric.tasks": "任务",
 		"stats.metric.tokens": "token",
 		"stats.metric.cost": "API 估价",
@@ -910,7 +917,7 @@ const dictionaries = {
 		"workbench.tab.tasks": "Tasks",
 		"workbench.tab.providers": "Providers",
 		"workbench.tab.overview": "Overview",
-		"workbench.sub.tasks": "{n} pending · oldest {age}",
+		"workbench.sub.tasks": "Needs review {n} · oldest {age}",
 		"workbench.sub.providers": "{n} providers · {alerts} alerts",
 		"workbench.sub.providersOne": "{n} providers · 1 alert",
 		"workbench.sub.overview": "last {time} · {n} unresolved",
@@ -931,6 +938,12 @@ const dictionaries = {
 		"workbench.overview.unavailable": "Could not read stats: {message}",
 		"workbench.overview.history": "History",
 		"workbench.overview.historySummary": "{n} ended",
+		"workbench.history.limit": "Only the host's latest 5 ended tasks; older runs are not in this view.",
+		"workbench.history.costNote": "Costs are API list-price estimates, not bills. dsh is CNY; other agents are USD.",
+		"workbench.history.all": "Open task queue",
+		"queue.a.dismiss": "Dismiss",
+		"queue.a.dismissed": "Dismissed",
+		"queue.a.dismissTitle": "Close this NEEDS; writes a local acknowledgement only, never the task result",
 		"workbench.history.empty": "No ended tasks yet",
 		"workbench.history.rowAria": "{title}, {state}, cost {cost}",
 		"workbench.provider.state.ok": "OK",
@@ -963,8 +976,8 @@ const dictionaries = {
 		"workbench.group.more": "{n} more ›",
 		"workbench.updated": "Updated just now",
 		"workbench.group.stuck": "Stuck {n}",
-		"workbench.group.live": "Running {n}",
-		"workbench.group.pendingOldest": "Pending {n} · oldest {age}",
+		"workbench.group.live": "Active {n}",
+		"workbench.group.pendingOldest": "Needs review {n} · oldest {age}",
 		"workbench.groupBy.aria": "Group tasks by",
 		"workbench.groupBy.status": "Status",
 		"workbench.groupBy.source": "Source",
@@ -1279,6 +1292,7 @@ const dictionaries = {
 		"stats.tokens": "{tokens} tokens",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "free",
+		"stats.costMixed": "mixed currencies",
 		"stats.metric.tasks": "Tasks",
 		"stats.metric.tokens": "Tokens",
 		"stats.metric.cost": "API estimate",
@@ -2504,6 +2518,11 @@ function sourceView(source, row, result, t) {
 		queue
 	};
 }
+/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
+* Claude and Codex estimates use USD. The number is the host's estimate. */
+function _costUnit(task) {
+	return task.agent === "dsh" || task.model.startsWith("deepseek") ? "¥" : "$";
+}
 /** Provider rows with their display projection: what every surface of the cell reads. */
 function balanceRows(result, t, now) {
 	return (result?.providers ?? []).map((provider) => ({
@@ -2598,10 +2617,10 @@ function compactCount(n) {
 	if (n >= 1e3) return trim((n / 1e3).toFixed(n >= 1e5 ? 0 : 1)) + "k";
 	return String(n);
 }
-/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
-function usdText(n) {
-	if (!(n > 0)) return "$0";
-	return n < .01 ? "<$0.01" : "$" + n.toFixed(2);
+/** A cost in its provider's unit: two decimals, a floor rather than a fake 0.00 for a sub-cent estimate. */
+function moneyText(n, unit = "$") {
+	if (!(n > 0)) return unit + "0";
+	return n < .01 ? "<" + unit + "0.01" : unit + n.toFixed(2);
 }
 function statOf(counts, name) {
 	return counts.find((count) => count.name === name)?.count ?? 0;
@@ -2609,8 +2628,12 @@ function statOf(counts, name) {
 function statsTokensText(tokens, unknown) {
 	return tokens > 0 || unknown === 0 ? compactCount(tokens) : "—";
 }
-function statsCostText(agent, t) {
-	if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate);
+function statsCostText(agent, t, unit) {
+	const u = unit ?? _costUnit({
+		agent: agent.agent ?? "",
+		model: ""
+	});
+	if (agent.costUsdEstimate > 0) return moneyText(agent.costUsdEstimate, u);
 	if (agent.costFree > 0 && agent.costUnpriced === 0) return t("stats.free");
 	return "—";
 }
@@ -2798,7 +2821,13 @@ function statsView(stats, t) {
 		totals.costFree += raw.costFree;
 	}
 	totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown);
-	totals.costText = statsCostText(totals, t);
+	const paidUnits = new Set(agents.filter((agent) => {
+		return (selected.find((item) => item.agent === agent.agent)?.costUsdEstimate ?? 0) > 0;
+	}).map((agent) => _costUnit({
+		agent: agent.agent,
+		model: ""
+	})));
+	totals.costText = paidUnits.size > 1 ? t("stats.costMixed") : statsCostText(totals, t, [...paidUnits][0]);
 	totals.doneShare = ratio(totals.done, totals.settled);
 	totals.partialShare = ratio(totals.partial, totals.settled);
 	totals.unfinishedShare = ratio(totals.unfinished, totals.settled);

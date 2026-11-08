@@ -709,6 +709,28 @@ def live_task(d: Path, task_id: str, action: str) -> tuple[dict, dict]:
     return meta, result
 
 
+def cmd_ack(args) -> dict:
+    """Dismiss a finished task's NEEDS. Writes only needs-ack.json (time, operator,
+    source); never result.env, the state or the task service. Idempotent."""
+    d = task_dir(args.id)
+    result = read_env(d / "result.env")
+    if result.get("STATE") not in TERMINAL:
+        raise OpsError(3, f"task {args.id} has not ended (state={result.get('STATE') or 'unknown'})")
+    if not (result.get("NEEDS") or "").strip():
+        raise OpsError(3, f"task {args.id} has no NEEDS to dismiss")
+    with TaskLock(d):
+        path = d / "needs-ack.json"
+        if path.exists():
+            return {"ok": True, "id": args.id, "already": True, "message": "already dismissed"}
+        payload = {"at": time.strftime("%Y-%m-%d %H:%M:%S"), "by": args.by or os.environ.get("USER", "") or "unknown",
+                   "source": args.source}
+        tmp = d / f".needs-ack.{os.getpid()}.tmp"
+        tmp.write_text(json.dumps(payload, ensure_ascii=False) + "\n")
+        os.replace(tmp, path)
+        audit(d, args.source, "ack", "dismissed NEEDS")
+        return {"ok": True, "id": args.id, "already": False, "ack": payload, "message": "NEEDS dismissed"}
+
+
 def cmd_priority(args) -> dict:
     d = task_dir(args.id)
     with TaskLock(d):
@@ -1935,6 +1957,10 @@ def parser() -> argparse.ArgumentParser:
     c = sub.add_parser("cancel")
     c.add_argument("id")
     c.set_defaults(fn=cmd_cancel)
+    ack = sub.add_parser("ack")
+    ack.add_argument("id")
+    ack.add_argument("--by", default="", help="operator recorded in needs-ack.json")
+    ack.set_defaults(fn=cmd_ack)
     pr = sub.add_parser("priority")
     pr.add_argument("id")
     pr.add_argument("value")

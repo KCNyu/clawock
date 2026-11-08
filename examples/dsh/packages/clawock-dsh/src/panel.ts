@@ -1193,6 +1193,12 @@ export type HistoryRowView = {
   aria: string
 }
 
+/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
+ * Claude and Codex estimates use USD. The number is the host's estimate. */
+export function _costUnit(task: Pick<DispatchTask, 'agent' | 'model'>): '¥' | '$' {
+  return task.agent === 'dsh' || task.model.startsWith('deepseek') ? '¥' : '$'
+}
+
 /** The ended-task list: frozen result, finished time and cost, newest first (host order). */
 export function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[] {
   const rows = result?.recent ?? []
@@ -1200,7 +1206,7 @@ export function historyRowsView(result: TaskQueueResult | null, t: Translate, no
     const chip = _endedState(task.state, task.outcome, t)
     const cost = _costOf(task)
     const costText = cost === null ? ''
-      : cost.kind === 'usd' ? '$' + (task.costUsd ?? '')
+      : cost.kind === 'usd' ? _costUnit(task) + (task.costUsd ?? '')
         : cost.kind === 'free' ? t('queue.d.costFreeShort') : t('queue.d.costUnpriced')
     const at = task.finishedAtMs ?? task.updatedAtMs
     const meta = [task.agent === '' ? '' : _agentLabel(task.agent), at === null || at === undefined ? '' : agoOf(t, Math.max(0, now - at))]
@@ -1351,10 +1357,14 @@ export function compactCount(n: number): string {
   return String(n)
 }
 
-/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+/** A cost in its provider's unit: two decimals, a floor rather than a fake 0.00 for a sub-cent estimate. */
+export function moneyText(n: number, unit: '¥' | '$' = '$'): string {
+  if (!(n > 0)) return unit + '0'
+  return n < 0.01 ? '<' + unit + '0.01' : unit + n.toFixed(2)
+}
+
 export function usdText(n: number): string {
-  if (!(n > 0)) return '$0'
-  return n < 0.01 ? '<$0.01' : '$' + n.toFixed(2)
+  return moneyText(n, '$')
 }
 
 function statOf(counts: ReadonlyArray<{ name: string; count: number }>, name: string): number {
@@ -1365,8 +1375,10 @@ function statsTokensText(tokens: number, unknown: number): string {
   return tokens > 0 || unknown === 0 ? compactCount(tokens) : '—'
 }
 
-function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
-  if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate)
+function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'> & { agent?: string }, t: Translate,
+  unit?: '¥' | '$'): string {
+  const u = unit ?? _costUnit({ agent: agent.agent ?? '', model: '' })
+  if (agent.costUsdEstimate > 0) return moneyText(agent.costUsdEstimate, u)
   if (agent.costFree > 0 && agent.costUnpriced === 0) return t('stats.free')
   return '—'
 }
@@ -1592,7 +1604,11 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     totals.costFree += raw.costFree
   }
   totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown)
-  totals.costText = statsCostText(totals, t)
+  const paidUnits = new Set(agents.filter((agent) => {
+    const raw = selected.find((item) => item.agent === agent.agent)
+    return (raw?.costUsdEstimate ?? 0) > 0
+  }).map((agent) => _costUnit({ agent: agent.agent, model: '' })))
+  totals.costText = paidUnits.size > 1 ? t('stats.costMixed') : statsCostText(totals, t, [...paidUnits][0])
   totals.doneShare = ratio(totals.done, totals.settled)
   totals.partialShare = ratio(totals.partial, totals.settled)
   totals.unfinishedShare = ratio(totals.unfinished, totals.settled)
@@ -1987,7 +2003,8 @@ export function signalView(tasks: DispatchTask[], t: Translate, now: number): Si
 
 /** Queue sections keep the host's oldest-first order inside each group. */
 export function splitPending(tasks: DispatchTask[]): { stuck: DispatchTask[]; review: DispatchTask[] } {
-  return { stuck: tasks.filter(isStuckTask), review: tasks.filter((task) => !isStuckTask(task)) }
+  const open = tasks.filter((task) => task.needsAck !== true)
+  return { stuck: open.filter(isStuckTask), review: open.filter((task) => !isStuckTask(task)) }
 }
 
 /** A row's second line: the first sentence of NEEDS, one line, bounded. */
