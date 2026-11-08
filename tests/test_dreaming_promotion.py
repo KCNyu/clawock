@@ -253,3 +253,107 @@ def test_multiple_candidates_take_contiguous_orders(tmp_path):
     assert sorted(orders) == [2, 3]
     checked = check_store(workspace, store)
     assert checked.returncode == 0, checked.stderr
+
+
+def test_no_approved_candidates_still_validates_the_projection(tmp_path):
+    store = make_store(tmp_path)
+    workspace = make_workspace(tmp_path, store)
+    memctl, log = memctl_stub(tmp_path)
+    path = workspace / 'MEMORY.md'
+    path.write_text(path.read_text() + '\n## Unreviewed manual addition\n')
+    before = path.read_bytes()
+    proc = run_promote(workspace, store, memctl, log)
+    assert proc.returncode != 0, proc.stdout
+    assert path.read_bytes() == before, 'refusal does not repair user data'
+    assert len(list(store.glob('lessons-dreaming-*.md'))) == 0
+
+
+def test_post_generation_doctor_failure_restores_projection(tmp_path):
+    store = make_store(tmp_path)
+    workspace = make_workspace(tmp_path, store)
+    memctl, log = memctl_stub(tmp_path)
+    memctl.write_text(
+        "import pathlib, sys\n"
+        f"p = pathlib.Path({str(workspace / 'MEMORY.md')!r})\n"
+        "raise SystemExit(1 if sys.argv[1] == 'doctor' and '## Dreaming' in p.read_text() else 0)\n")
+    write_candidate(workspace, 'Read the primary source before trusting a summary.')
+    manifest = workspace / 'ops/host/shared-memory/publish-manifest.json'
+    before = ((workspace / 'MEMORY.md').read_bytes(), manifest.read_bytes())
+    proc = run_promote(workspace, store, memctl, log)
+    assert proc.returncode != 0
+    assert ((workspace / 'MEMORY.md').read_bytes(), manifest.read_bytes()) == before
+
+
+def test_promotion_refuses_a_concurrent_review_writer(tmp_path):
+    import fcntl
+    store = make_store(tmp_path)
+    workspace = make_workspace(tmp_path, store)
+    memctl, log = memctl_stub(tmp_path)
+    write_candidate(workspace, 'Read the primary source before trusting a summary.')
+    with (workspace / 'memory/.dreams/promotion-review.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        proc = run_promote(workspace, store, memctl, log)
+    assert proc.returncode != 0
+    assert 'lock' in proc.stderr.lower()
+    assert not list(store.glob('lessons-dreaming-*.md'))
+
+
+def test_existing_marker_does_not_hide_a_changed_candidate_hash(tmp_path):
+    store = make_store(tmp_path)
+    workspace = make_workspace(tmp_path, store)
+    memctl, log = memctl_stub(tmp_path)
+    write_candidate(workspace, 'Read the primary source before trusting a summary.')
+    first = run_promote(workspace, store, memctl, log)
+    assert first.returncode == 0, first.stderr
+    write_candidate(workspace, 'A different candidate at the same source location.')
+    second = run_promote(workspace, store, memctl, log)
+    assert second.returncode != 0, second.stdout
+    assert 'changed' in second.stderr
+
+
+def test_real_memctl_promotion_and_replay_are_audited(tmp_path):
+    """Exercise the real write owner/audit chain, not the historical memctl stub."""
+    store = make_store(tmp_path)
+    workspace = make_workspace(tmp_path, store)
+    scripts = ROOT / 'ops/host/shared-memory/scripts'
+    memctl = scripts / 'memctl'
+    home = tmp_path / 'home'
+    (home / '.agents').mkdir(parents=True)
+    (home / '.agents/AGENTS.md').write_text('Test guidance\n')
+    (home / '.claude').mkdir()
+    (home / '.claude/settings.json').write_text(json.dumps({'hooks': {
+        'PostToolUse': [{'hooks': [{'command': str(scripts.parent / 'hooks/claude-hook.sh')}]}],
+        'SessionStart': [{'hooks': [{'command': str(scripts.parent / 'hooks/claude-hook.sh')}]}],
+    }}))
+    wiring = tmp_path / 'wiring.json'
+    wiring.write_text(json.dumps({'guidance': str(home / '.agents/AGENTS.md')}))
+    env = {**os.environ, 'HOME': str(home), 'SHARED_MEMORY_DIR': str(store),
+           'SHARED_MEMORY_STATE': str(tmp_path / 'state'), 'SHARED_MEMORY_WIRING': str(wiring),
+           'SHARED_MEMORY_MEMCTL': str(memctl), 'MEMCTL_AGENT': 'test'}
+    init = subprocess.run([sys.executable, str(memctl), 'init'], env=env, capture_output=True, text=True)
+    assert init.returncode == 0, init.stderr
+    write_candidate(workspace, 'Read the primary source before trusting a summary.')
+    first = run_promote(workspace, store, memctl, tmp_path / 'unused.log', env_extra=env)
+    assert first.returncode == 0, first.stderr + first.stdout
+    before = {p.name: p.read_bytes() for p in store.glob('*.md')}
+    ledger = (tmp_path / 'state/ledger.jsonl').read_bytes()
+    second = run_promote(workspace, store, memctl, tmp_path / 'unused.log', env_extra=env)
+    assert second.returncode == 0, second.stderr
+    assert before == {p.name: p.read_bytes() for p in store.glob('*.md')}
+    assert ledger == (tmp_path / 'state/ledger.jsonl').read_bytes()
+    verify = subprocess.run([sys.executable, str(memctl), 'verify'], env=env, capture_output=True, text=True)
+    assert verify.returncode == 0, verify.stdout + verify.stderr
+
+
+def test_promotion_locks_the_shared_store_across_workspaces(tmp_path):
+    import fcntl
+    store = make_store(tmp_path)
+    workspace = make_workspace(tmp_path, store)
+    memctl, log = memctl_stub(tmp_path)
+    write_candidate(workspace, 'Read the primary source before trusting a summary.')
+    with (store / '.dreaming-promotion.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        proc = run_promote(workspace, store, memctl, log)
+    assert proc.returncode != 0
+    assert 'lock' in proc.stderr.lower()
+    assert not list(store.glob('lessons-dreaming-*.md'))
