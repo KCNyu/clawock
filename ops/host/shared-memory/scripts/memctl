@@ -963,6 +963,16 @@ def cmd_index_view(args: list[str]) -> int:
                        if name in current and current[name] != digest)
         missing = sorted(name for name in desired if name not in current)
         extra = sorted(name for name in current if name not in desired)
+        # The manifest is a receipt, not evidence that the indexed files still
+        # exist or contain those bytes. Validate the actual view as well.
+        for name, digest in desired.items():
+            path = output / name
+            if not path.is_file() or path.is_symlink():
+                missing.append(name)
+            elif _sha256(path) != digest:
+                stale.append(name)
+        extra += [path.name for path in output.glob("*.md") if path.name not in desired]
+        stale, missing, extra = sorted(set(stale)), sorted(set(missing)), sorted(set(extra))
         result = {"status": "STALE" if stale or extra or missing else "OK",
                   "output": str(output), "count": len(desired),
                   "stale": stale, "missing": missing, "extra": extra}
@@ -990,7 +1000,7 @@ def cmd_index_view(args: list[str]) -> int:
         target = tmp / page.name
         shutil.copyfile(page, target)
         os.chmod(target, 0o644)
-        topics.append({"file": page.name, "sha256": _sha256(page), "bytes": page.stat().st_size})
+        topics.append({"file": page.name, "sha256": _sha256(target), "bytes": target.stat().st_size})
     manifest = {"generated_at": now(), "source": str(root), "count": len(topics),
                 "limit": limit, "topics": topics}
     (tmp / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
@@ -1384,6 +1394,8 @@ def doctor_checks(deep: bool) -> list[dict]:
     held = sorted(_load_held())
     add("history.repo", history_ready(), str(GIT_DIR))
     if history_ready():
+        rc, out = _run([sys.executable, str(Path(__file__).resolve()), "verify", "--json"])
+        add("history.verify", rc == 0, out.strip() or "verify returned no report")
         dirty = pending_changes()
         stale = [p for _, p in dirty if p not in held and (root / p).exists()
                  and time.time() - (root / p).stat().st_mtime > 1800]

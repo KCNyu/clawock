@@ -920,3 +920,31 @@ def test_forget_refuses_a_referenced_topic(kit):
     proc = kit.run("forget", "feedback-alpha", "--confirm", script=MEMORY_PY)
     assert proc.returncode == 1 and "still referenced" in proc.stderr
     assert (kit.store / "feedback-alpha.md").is_file()
+
+
+def test_doctor_reports_a_schema_valid_direct_write_as_a_failure(kit):
+    path = kit.store / 'feedback-alpha.md'
+    path.write_text(path.read_text() + '\nBypassed the write owner.\n')
+    for snapshotted in (False, True):
+        if snapshotted:
+            kit.ok('snapshot', '--reason', 'direct edit captured by timer')
+        report = json.loads(kit.run('doctor', '--json').stdout)
+        check = next((row for row in report['checks'] if row['id'] == 'history.verify'), None)
+        assert check is not None and check['status'] == 'FAIL', report['fail']
+        assert 'feedback-alpha.md' in check['detail']
+
+
+@pytest.mark.parametrize('damage', ['remove', 'change', 'extra'])
+def test_index_view_checks_the_files_not_only_its_manifest(kit, damage):
+    view = kit.tmp / 'vector-view'
+    kit.ok('index-view', '--output', str(view))
+    copied = view / 'feedback-alpha.md'
+    if damage == 'remove':
+        copied.unlink()
+    elif damage == 'change':
+        copied.write_text('corrupted staging content')
+    else:
+        (view / 'unexpected.md').write_text('unreviewed extra context')
+    proc = kit.run('index-view', '--output', str(view), '--check', '--json')
+    assert proc.returncode == 1, proc.stdout
+    assert json.loads(proc.stdout)['status'] == 'STALE'

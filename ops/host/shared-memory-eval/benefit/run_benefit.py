@@ -8,7 +8,7 @@ Three modes run the same question set:
   search  the note layer reached through `memory.py search` (default top 3).
 
 A positive row is a hit only when the named topic is retrieved *and* the expected
-fact is in that topic. A negative row is a false positive when any topic is
+fact is in the returned recall text. A negative row is a false positive when any topic is
 retrieved. The fixture store is synthetic so the numbers are repeatable and contain
 no private memory; `--store` and `--cases` accept a private pair for a live run.
 
@@ -43,14 +43,23 @@ def load(path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def search(memory_py: str, store: Path, query: str, top: int) -> list[str]:
-    proc = subprocess.run([sys.executable, str(memory_py), "search", query, "--limit", str(top), "--lines", "0"],
-                          env={"SHARED_MEMORY_DIR": str(store), "PATH": "/usr/bin:/bin"},
+def search(memory_py: str, store: Path, query: str, top: int) -> list[dict[str, str]]:
+    proc = subprocess.run([sys.executable, str(memory_py), "search", query, "--limit", str(top), "--lines", "3"],
+                          env={"SHARED_MEMORY_DIR": str(store), "SHARED_MEMORY_RECALL": "0", "PATH": "/usr/bin:/bin"},
                           capture_output=True, text=True, timeout=60)
     if proc.returncode not in (0, 1):
         raise SystemExit(f"search failed for {query!r}: {proc.stderr.strip()[:300]}")
-    return [line.split(" — ")[0].split(" [")[0] for line in proc.stdout.splitlines()
-            if line and not line.startswith(" ")]
+    returned: list[dict[str, str]] = []
+    for line in proc.stdout.splitlines():
+        if not line:
+            continue
+        if line.startswith(" "):
+            if returned:
+                returned[-1]["evidence"] += "\n" + line
+        else:
+            returned.append({"path": line.split(" — ")[0].split(" [")[0], "evidence": line})
+    return returned
+
 
 
 def evaluate(rows: list[dict[str, str]], store: Path, memory_py: str, top: int) -> dict[str, dict]:
@@ -72,19 +81,20 @@ def evaluate(rows: list[dict[str, str]], store: Path, memory_py: str, top: int) 
         if index_hit:
             modes["index"]["hits"] += 1
             modes["index"]["ranks"].append(1)
-        # The note layer needs the expected topic and the fact in that topic.
-        hits = search(memory_py, store, row["question"], top)
+        # Score only what the reader actually receives; never peek at a topic body.
+        returned = search(memory_py, store, row["question"], top)
+        hits = [hit["path"] for hit in returned]
         rank = next((i for i, hit in enumerate(hits, 1) if hit == expected), None)
-        fact_present = rank is not None and fact and fact in (store / expected).read_text(encoding="utf-8").lower()
+        fact_present = rank is not None and fact and fact in returned[rank - 1]["evidence"].lower()
         search_hit = bool(positive and rank is not None and fact_present)
         modes["search"]["rows"].append({"id": row["id"], "mode": "search", "hit": search_hit, "rank": rank,
-                                        "retrieved": hits})
+                                        "retrieved": hits, "evidence": returned})
         if positive:
             if search_hit:
                 modes["search"]["hits"] += 1
                 modes["search"]["ranks"].append(rank)
             else:
-                modes["search"]["misses"].append({"id": row["id"], "rank": rank, "retrieved": hits})
+                modes["search"]["misses"].append({"id": row["id"], "rank": rank, "retrieved": hits, "evidence": returned})
         elif hits:
             modes["search"]["false_positives"] += 1
     for mode in modes.values():

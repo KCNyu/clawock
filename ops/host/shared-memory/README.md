@@ -303,3 +303,8 @@ active digest above its archived full text, and can filter by tag/salience/statu
 searches top-level and `archive/` topics, reads at most 256 query characters and 16 words, and
 reports a score in 0–1.
 
+
+`memctl doctor` includes `history.verify` as a failing check for unreceipted direct
+writes, even before the snapshot timer runs. `index-view --check` checks the real
+staging files as well as the manifest. Public projection generation validates the
+write-time schema and refuses stale public topics before replacing any output.

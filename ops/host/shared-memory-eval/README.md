@@ -35,5 +35,5 @@ A row passes when an expected topic is in the first three results, or, for `-`, 
 lists nothing. `baseline.tsv` is the score of `memory.py` before this directory existed.
 
 [`benefit/`](benefit/README.md) is the complementary, layer-level check: no memory, the
-injected index only, and the note layer. It asks whether a retrieved topic actually carries
+injected index only, and the note layer. It asks whether the returned recall text actually contains
 the expected fact, which the topic-list score above does not.

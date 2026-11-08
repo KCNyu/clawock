@@ -9,7 +9,9 @@
 | `search` | the note layer through `memory.py search` (top 3 by default) | do the notes carry the answer? |
 
 A positive case is a **hit** only when the expected topic is retrieved *and* the
-expected fact is present in that topic. A negative case is a **false positive**
+expected fact is present in the returned description or one of the three returned
+matching lines (each subject to the CLI's display limit). The evaluator does not
+read the retrieved topic from disk to supply an answer the reader never saw. A negative case is a **false positive**
 when the search returns any topic. This is deliberately not a model benchmark:
 it measures whether the memory surface exposes an answer-bearing note, which is
 the part a change to memory can regress.
