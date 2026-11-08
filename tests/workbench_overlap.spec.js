@@ -530,8 +530,10 @@ function gaugeInPage(mode) {
     const pill = actions === null ? null : actions.querySelector('[class*="_tq-pill"]');
     const summaryBox = box(summary);
     const actionsBox = box(actions);
+    const scroller = document.querySelector('[class*="_tq-d-scroll"]');
     return {
       mode, present: true,
+      scrollbar: scroller === null ? null : getComputedStyle(scroller).scrollbarWidth,
       summary: summaryBox,
       actions: actionsBox,
       pill: box(pill),
@@ -565,6 +567,27 @@ function gaugeInPage(mode) {
       sideBySide,
       widthOverflow: Math.max(0, Math.round(cov.scrollWidth - cov.clientWidth)),
       narrowest: blocks.reduce((min, b) => b.box === null ? min : Math.min(min, b.box.w), Infinity),
+    };
+  }
+
+  if (mode === "header") {
+    const q = (sel) => document.querySelector(sel);
+    const title = q('[class*="_wb-title"]');
+    const sub = q('[class*="_wb-sub"]');
+    const tabs = q("[data-wb-tabs]");
+    const group = q('[data-wb-group-button] [class*="_wb-group-title"]');
+    const row = q('[data-wb-task] [class*="_wb-row-title"]');
+    if (title === null || sub === null || tabs === null || group === null || row === null) return { mode, present: false };
+    const subPad = parseFloat(getComputedStyle(sub).paddingLeft) || 0;
+    return {
+      mode, present: true,
+      lefts: {
+        title: title.getBoundingClientRect().x,
+        sub: sub.getBoundingClientRect().x + subPad,
+        tabs: tabs.getBoundingClientRect().x,
+        group: group.getBoundingClientRect().x,
+        row: row.getBoundingClientRect().x,
+      },
     };
   }
 
@@ -633,7 +656,7 @@ function serve() {
 }
 
 const STATES = [
-  { name: "tasks", width: 390, height: 844, scenario: "normal", drive: null },
+  { name: "tasks", width: 390, height: 844, scenario: "normal", drive: null, gauge: "header" },
   { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers", gauge: "providers" },
   { name: "overview", width: 390, height: 844, scenario: "normal", drive: "overview" },
   { name: "patrol", width: 390, height: 844, scenario: "normal", drive: "patrol", gauge: "coverage" },
@@ -645,7 +668,8 @@ const STATES = [
   { name: "empty", width: 390, height: 844, scenario: "empty", drive: "empty" },
   { name: "read-failed", width: 390, height: 844, scenario: "read-failed", drive: "providers" },
   { name: "loading", width: 390, height: 844, scenario: "loading", drive: "providers" },
-  { name: "320-tasks", width: 320, height: 568, scenario: "normal", drive: null },
+  { name: "320-tasks", width: 320, height: 568, scenario: "normal", drive: null, gauge: "header" },
+  { name: "tasks-375", width: 375, height: 667, scenario: "normal", drive: null, gauge: "header" },
   { name: "task-375", width: 375, height: 667, scenario: "normal", drive: "task", gauge: "detail" },
   { name: "patrol-375", width: 375, height: 667, scenario: "normal", drive: "patrol", gauge: "coverage" },
   { name: "providers-375", width: 375, height: 667, scenario: "normal", drive: "providers", gauge: "providers" },
@@ -782,9 +806,10 @@ function assertGauge(state, gauge) {
     if (legacy && !gauge.present) return;
     assert.equal(gauge.present, true, state.name + ": the closing report is rendered");
     assert.ok(gauge.gap !== null && gauge.gap >= 8,
-      state.name + ": the Full log row must clear the closing-report card by 8px (got " + gauge.gap + ")");
+      state.name + ": the log row must clear the closing-report card by 8px (got " + gauge.gap + ")");
     assert.ok(gauge.pillGap !== null && gauge.pillGap >= 8,
-      state.name + ": the Full log pill must clear the closing-report card by 8px (got " + gauge.pillGap + ")");
+      state.name + ": the log pill must clear the closing-report card by 8px (got " + gauge.pillGap + ")");
+    assert.equal(gauge.scrollbar, "none", state.name + ": the detail scroller must not show a scrollbar");
     assert.equal(gauge.clipped, 0, state.name + ": the closing report must not clip its last line");
     assert.equal(gauge.widthOverflow, 0, state.name + ": the closing report must not overflow horizontally");
     return;
@@ -796,6 +821,13 @@ function assertGauge(state, gauge) {
     assert.equal(gauge.widthOverflow, 0, state.name + ": the coverage table must not overflow horizontally");
     assert.ok(gauge.narrowest >= (gauge.cov === null ? 0 : gauge.cov.w) - 2,
       state.name + ": a coverage table is narrower than its container");
+    return;
+  }
+  if (state.gauge === "header") {
+    assert.equal(gauge.present, true, state.name + ": header, tabs, group and row are rendered");
+    const values = Object.values(gauge.lefts);
+    assert.ok(Math.max(...values) - Math.min(...values) <= 0.6,
+      state.name + ": every left edge shares one baseline, got " + JSON.stringify(gauge.lefts));
     return;
   }
   if (state.gauge === "brief") {
@@ -912,6 +944,10 @@ async function main() {
         }
         const shot = path.join(shotsDir, engineName + "-" + state.name + ".png");
         await page.screenshot({ path: shot, fullPage: false });
+        if (state.control === "row-overlap") {
+          assert.ok(geometry.failures.length > 0,
+            state.name + ": the generic intersection scan must report the deliberate row overlap");
+        }
         const failures = state.control === undefined ? geometry.failures : [];
         const record = {
           name: state.name, engine: engineName, width: state.width, height: state.height,
