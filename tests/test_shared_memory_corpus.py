@@ -424,10 +424,10 @@ console.log(JSON.stringify({{calls: calls.length, runtime: calls[0].options.runt
     assert out["calls"] == 1 and out["runtime"] == ["openclaw"]
     for label in ("direct", "group", "channel", "cron", "subagent"):
         assert out["out"][label] == [hit["path"] for hit in hits], label
-    assert out["out"]["keyless"] == ["MEMORY.md"]
+    assert out["out"]["keyless"] == []
 
 
-def test_memory_get_blocks_only_a_keyless_shared_staging_read():
+def test_memory_get_blocks_a_keyless_shared_staging_read():
     path = "../../.openclaw/state/shared-memory-vector/feedback-x.md"
     out = node(f"""
 const payload = {{path: {json.dumps(path)}, text: 'private body', from: 1, lines: 1}};
@@ -484,5 +484,27 @@ console.log(JSON.stringify({{hooks: hooks.map((item) => item.name), mws: mws.len
     assert out["mws"] == 1 and out["hooks"] == ["before_tool_call"]
     for label in ("direct", "group", "channel", "cron", "subagent"):
         assert out["out"][label] == [hit["path"] for hit in hits], label
-    assert out["out"]["keyless"] == ["memory/2026-11-08.md"]
+    assert out["out"]["keyless"] == []
 
+
+
+@pytest.mark.parametrize('shape', ['plain', 'multiple', 'malformed'])
+def test_keyless_middleware_refuses_every_result_shape_without_leaking(shape):
+    out = node(f"""
+const secret = 'PRIVATE_RESULT_SENTINEL';
+const payload = {{results: [{{path: 'shared-memory/x.md', snippet: secret}}]}};
+const shapes = {{
+  plain: {{content: [{{type: 'text', text: secret}}]}},
+  multiple: {{details: payload, content: [{{type:'text',text:JSON.stringify(payload)}}, {{type:'text',text:secret}}]}},
+  malformed: {{details: {{unexpected: secret}}, content: [{{type:'text',text:secret}}]}}
+}};
+const mw = m.createSharedMemoryRecallMiddleware();
+const denied = await mw({{toolName:'memory_search', result:shapes[{json.dumps(shape)}]}}, {{}});
+const allowed = await mw({{toolName:'memory_search', result:shapes[{json.dumps(shape)}]}}, {{sessionKey:{json.dumps(DIRECT)}}});
+console.log(JSON.stringify({{denied, allowed:allowed === undefined}}));
+""")
+    assert out.get('denied'), 'missing key must fail closed even for an unknown result shape'
+    assert out['denied']['result']['isError'] is True
+    assert 'PRIVATE_RESULT_SENTINEL' not in json.dumps(out['denied'])
+    assert out['denied']['result']['details']['error']
+    assert out['allowed'] is True
