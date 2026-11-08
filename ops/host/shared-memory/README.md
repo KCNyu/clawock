@@ -109,6 +109,24 @@ a dispatched task starts with: `codex debug prompt-input`, `opencode api skill.l
 each configured dsh profile (`headless`, `web`) that `dsh --profile P --dump-config` mounts
 instruction loading and filesystem skills without moving their roots.
 
+## Vector staging view (`memctl index-view`)
+
+OpenClaw's `memory_search` indexes only its own workspace plus configured `extraPaths`. This
+version of OpenClaw skips symlinks at the extraPath root and inside its walker, so the view must be
+a **real copy**, not a link farm:
+
+```bash
+memctl index-view                      # ~/.openclaw/state/shared-memory-vector
+memctl index-view --check              # name every file whose hash moved
+memctl index-view --limit 20           # measurement subset
+memctl index-view --print-config       # print the extraPaths snippet; does not edit config
+```
+
+The view contains active top-level topics only (no store index, no `archive/`), copies them as real
+files with a manifest of SHA256 hashes, and swaps the directory atomically. It never writes inside the
+store or the repository. Pointing `agents.defaults.memorySearch.extraPaths` at it is a separate,
+reviewed deployment step (P3); the command does not change OpenClaw config or restart the gateway.
+
 ## The OpenClaw corpus plugin (`openclaw/`)
 
 `openclaw/index.ts` registers a memory corpus supplement through OpenClaw's plugin API

@@ -151,6 +151,28 @@ def test_deleting_a_topic_is_flagged_and_restorable(kit):
     assert "alpha body" in (kit.store / "feedback-alpha.md").read_text()
 
 
+def test_index_view_is_real_files_and_detects_drift(kit):
+    view = kit.tmp / "vector-view"
+    env = {**kit.env, "SHARED_MEMORY_VECTOR_VIEW": str(view)}
+    kit.ok("index-view", script=MEMCTL, env=env)
+    copied = view / "feedback-alpha.md"
+    assert copied.is_file() and not copied.is_symlink()
+    assert not (view / "MEMORY.md").exists()
+    assert not (view / "archive").exists()
+    manifest = json.loads((view / "manifest.json").read_text())
+    assert manifest["count"] == 1 and manifest["topics"][0]["file"] == "feedback-alpha.md"
+    kit.ok("index-view", "--check", script=MEMCTL, env=env)
+    (kit.store / "feedback-alpha.md").write_text(TOPIC.format(slug="feedback-alpha", desc="changed", body="new"))
+    proc = kit.run("index-view", "--check", script=MEMCTL, env=env)
+    assert proc.returncode == 1 and "STALE feedback-alpha.md" in proc.stdout
+    kit.ok("index-view", "--limit", "1", script=MEMCTL, env=env)
+
+
+def test_index_view_refuses_to_write_inside_the_store(kit):
+    proc = kit.run("index-view", "--output", str(kit.store / "view"), script=MEMCTL)
+    assert proc.returncode != 0 and "outside the shared store" in proc.stderr
+
+
 def test_bundle_is_a_valid_backup(kit):
     kit.ok("bundle")
     bundle = next((kit.state / "bundles").glob("history-*.bundle"))

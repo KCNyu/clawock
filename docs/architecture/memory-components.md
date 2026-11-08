@@ -23,7 +23,7 @@ not survive a session as readable context, and nothing in this page changes them
 | Representations | Area indexes, a routing table, redirects, and `[[topic]]` links between notes | `MEMORY.md`, `indexes/MEMORY-*.md`, `indexes/routes.tsv`, `indexes/redirects.tsv` |
 | Retrieval | Literal, rarity-weighted topic search; exact tag/status filters; the assistant's semantic `memory_search` with a read-only supplement over the same store | `memory.py search`; `ops/host/shared-memory/openclaw/index.ts` |
 | Injected context | OpenClaw `MEMORY.md` in direct chats; the shared index for Claude Code sessions in the home directory; payload/skill only in isolated cron and subagent runs | OpenClaw bootstrap; Claude Code auto-memory + SessionStart hook; dispatch payload |
-| Dreaming | 03:00 HKT candidates in private `memory/.dreams/`, 03:20 HKT reviewed promotion into `MEMORY.md` | `ops/host/patch_dreaming_review.py`, `ops/host/review_dreaming.py`, `ops/host/commit_dreaming.sh`; see [`dreaming-review.md`](../operations/dreaming-review.md) |
+| Dreaming | 03:00 HKT candidates in private `memory/.dreams/`, 03:20 HKT reviewed promotion into `MEMORY.md` and the gated `DREAMS.md` append | `ops/host/patch_dreaming_review.py`, `ops/host/review_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh`; see [`dreaming-review.md`](../operations/dreaming-review.md) |
 | Evaluation | Held-out search rows; a three-layer benefit run (no memory / index only / notes) | `ops/host/shared-memory-eval/` |
 
 ## Notes are written once, with their future use attached
@@ -162,5 +162,5 @@ exposes an answer-bearing note, which is the part a memory change can regress.
 | History, audit, wiring checks | `ops/host/shared-memory/scripts/memctl` |
 | Read-only assistant supplement | `ops/host/shared-memory/openclaw/index.ts` |
 | Retrieval and benefit evaluations | `ops/host/shared-memory-eval/` |
-| Dreaming review gate | `ops/host/review_dreaming.py`, `ops/host/commit_dreaming.sh` |
+| Dreaming review gate | `ops/host/review_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh` |
 | Two-store wiring | `ops/host/shared-memory/wiring.json` |

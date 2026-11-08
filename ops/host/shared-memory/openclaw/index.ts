@@ -49,7 +49,7 @@ export function sessionAllowed(sessionKey: string | undefined): boolean {
   return tokens.length === 3 && tokens[0] === "agent" && tokens[2] === "main";
 }
 
-type Topic = { rel: string; name: string; description: string; tags: string; kind?: string; updated?: string; body: string; bodyLine: number; archived: boolean };
+type Topic = { rel: string; name: string; description: string; tags: string; kind?: string; scope?: string; updated?: string; body: string; bodyLine: number; archived: boolean };
 
 function expandHome(path: string): string {
   return path === "~" ? homedir() : path.startsWith("~/") ? join(homedir(), path.slice(2)) : path;
@@ -63,7 +63,7 @@ function parse(rel: string, text: string): Topic {
   const field = (key: string) => new RegExp(`^\\s*${key}:\\s*(.+)$`, "m").exec(head)?.[1]?.trim().replace(/^["']|["']$/g, "");
   return {
     rel, archived, name: field("name") || fallback, description: field("description") ?? "",
-    tags: field("tags") ?? "", kind: field("type"), updated: field("updated"),
+    tags: field("tags") ?? "", kind: field("type"), scope: field("scope"), updated: field("updated"),
     body: match ? text.slice(match[0].length) : text,
     bodyLine: match ? match[0].split("\n").length - 1 : 0,
   };
@@ -182,6 +182,26 @@ export function createSharedMemoryCorpus(options: { root?: string; includeArchiv
     return [...names, ...archived.filter((n) => n.endsWith(".md")).sort().map((n) => `archive/${n}`)];
   }
 
+  // Defensive: exact normalized-snippet duplicates are currently zero, but if a
+  // public rule and a private evidence topic ever repeat the same paragraph, keep
+  // one hit. Prefer the higher score; on a tie prefer investment/persona (the
+  // direct-chat rule) and then the stable path.
+  function dedupeScored<T extends { score: number; path: string; snippet: string; scope?: string }>(rows: T[]): T[] {
+    const best = new Map<string, T>();
+    for (const row of rows) {
+      const key = row.snippet.toLowerCase().replace(/\s+/g, " ").trim().slice(0, 300);
+      const old = best.get(key);
+      if (!old) { best.set(key, row); continue; }
+      const rank = (value: string | undefined) => value === "investment" || value === "persona" ? 0 : 1;
+      const oldRank = rank(old.scope), newRank = rank(row.scope);
+      if (row.score > old.score + 1e-12 || (Math.abs(row.score - old.score) <= 1e-12
+          && (newRank < oldRank || (newRank === oldRank && row.path < old.path)))) {
+        best.set(key, row);
+      }
+    }
+    return [...best.values()].sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
+  }
+
   return {
     async search(params: { query: string; maxResults?: number; agentSessionKey?: string; corpus?: string }) {
       try {
@@ -237,12 +257,13 @@ export function createSharedMemoryCorpus(options: { root?: string; includeArchiv
           const first = Math.max(0, lines.findIndex((l) => pieces.some((p) => l.toLowerCase().includes(p))));
           const snippet = [topic.description, ...lines.slice(Math.max(0, first - 1), first + 3)].filter(Boolean).join("\n").slice(0, MAX_SNIPPET);
           scored.push({
-            corpus: CORPUS, path: PREFIX + topic.rel, title: topic.name, kind: topic.kind, score, snippet,
+            corpus: CORPUS, path: PREFIX + topic.rel, title: topic.name, kind: topic.kind,
+            scope: topic.scope, score, snippet,
             startLine: topic.bodyLine + first + 1, endLine: topic.bodyLine + first + 3, sourceType: CORPUS,
             provenanceLabel: "coding agents' shared memory (read-only)", updatedAt: topic.updated,
           });
         }
-        return scored.sort((a, b) => b.score - a.score || a.path.localeCompare(b.path))
+        return dedupeScored(scored)
           .slice(0, Math.max(1, Math.min(params.maxResults ?? 6, 20)));
       } catch (error) {
         warn(error);
