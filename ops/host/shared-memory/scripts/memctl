@@ -943,8 +943,8 @@ def cmd_index_view(args: list[str]) -> int:
     print_config = _opt(args, "--print-config", flag=True)
     quiet = _opt(args, "--quiet", flag=True)
     root = store_root()
-    if output == root or _within(output, root):
-        die("vector view must live outside the shared store")
+    if _within(output, root) or _within(root, output):
+        die("vector view must live outside the shared store and cannot contain it")
     pages = active_topic_files(root)
     if limit:
         if limit < 0:

@@ -948,3 +948,16 @@ def test_index_view_checks_the_files_not_only_its_manifest(kit, damage):
     proc = kit.run('index-view', '--output', str(view), '--check', '--json')
     assert proc.returncode == 1, proc.stdout
     assert json.loads(proc.stdout)['status'] == 'STALE'
+
+
+@pytest.mark.parametrize('alias', [False, True])
+def test_index_view_refuses_an_ancestor_of_the_store(kit, alias):
+    output = kit.store.parent
+    if alias:
+        output = kit.tmp / 'parent-alias'
+        output.symlink_to(kit.store.parent, target_is_directory=True)
+    before = (kit.store / 'feedback-alpha.md').read_bytes()
+    proc = kit.run('index-view', '--output', str(output))
+    assert proc.returncode != 0, 'an ancestor output would replace and delete the source store'
+    assert 'outside the shared store' in proc.stderr
+    assert (kit.store / 'feedback-alpha.md').read_bytes() == before
