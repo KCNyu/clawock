@@ -33,6 +33,7 @@ the judgement while the author still has the context; nothing infers it afterwar
 
 | Field | Values | Meaning |
 |---|---|---|
+| `scope` | `investment`, `engineering`, `persona`, `memory` (extensible) | Which injection view may use the note. Required, no default. |
 | `salience` | `high`, `normal`, `low` | `high` should change a future session's behaviour and is a replay/consolidation candidate; `normal` is useful context; `low` is niche and stays searchable only. Default `normal`. |
 | `status` | `verified`, `hypothesis`, `stale` | `verified` has its check/test/commit in the body; `hypothesis` is a candidate rule awaiting one; `stale` is superseded but kept for history. Default `hypothesis`. |
 | `tags` | comma-separated, lowercase, at most 16 | Exact facets such as `dispatch`, `dreaming` or `deploy`, written by the author. Optional. |
@@ -47,8 +48,8 @@ author. There is no automatic per-turn extractor: the article's own results show
 fixed "record this" rule can cost more than it saves, and an automatic writer would create a
 second, unaudited store.
 
-`memory.py add|update` writes all four required fields (tags stay optional); an active topic
-missing `salience`, `status`, `publish` or `agent` fails `memory.py doctor`. The 156 existing
+`memory.py add|update` requires `scope` and writes `salience`, `status`, `publish` and `agent`
+(tags stay optional); an active topic missing any of them fails `memory.py doctor`. The 156 existing
 topics predate that rule and are the P2 backfill debt; they are not retrofitted here. Every write
 still lands in `memctl` history outside the store, so a bad tag or status can be restored.
 `memctl verify` names a file changed without a matching write. Use `--tag` as an exact,
@@ -57,6 +58,16 @@ conjunctive filter:
 so it supplements literal and semantic retrieval rather than replacing either. The
 OpenClaw supplement does not implement the CLI filters; it includes tags in its matchable
 text and keeps returning results under the assistant's own `memory_search` ranking.
+
+## Scoped injection
+
+The write-time `scope` selects an injection view, not a separate store: direct chat gets
+`scope in (investment, persona)` with `salience: high`; a worker gets `scope: engineering` with
+`status: verified`; an investment cron gets `scope: investment`. `memory.py inject --audience`
+implements the three policies, and a topic over its byte budget is skipped by name rather than
+truncated. This is what keeps an engineering procedure out of a market brief and the investment
+playbook out of a coding task; the repository's `MEMORY.md` remains one file and keeps its current
+publish path.
 
 ## The learning loop
 

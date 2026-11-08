@@ -29,13 +29,14 @@ an empty store and grows the user's own.
 
 Each topic is one file with Claude Code's auto-memory frontmatter (`name`, `description`,
 `metadata.type`), so Claude keeps loading and writing it natively; the other agents read it
-through the skill. A write also carries `metadata.salience` (`high|normal|low`),
-`metadata.status` (`verified|hypothesis|stale`), `metadata.publish` (`public|private`) and
-`metadata.agent` (who wrote this revision), plus optional comma-separated `metadata.tags`.
-`memory.py add|update` fills all four (defaults: `normal`, `hypothesis`, `private`, the
-invoking agent), and `memory.py doctor` fails an active topic that is missing any of them.
-Nothing is injected beyond the index, and there is no vector store: recall is "open the one
-relevant topic".
+through the skill. A write also carries `metadata.scope`
+(`investment|engineering|persona|memory`, extensible), `metadata.salience`
+(`high|normal|low`), `metadata.status` (`verified|hypothesis|stale`), `metadata.publish`
+(`public|private`) and `metadata.agent` (who wrote this revision), plus optional
+comma-separated `metadata.tags`. `memory.py add|update` requires `scope` (no default) and fills
+the other four (defaults: `normal`, `hypothesis`, `private`, the invoking agent);
+`memory.py doctor` fails an active topic that is missing any of them. Nothing is injected
+beyond the scoped view, and there is no vector store: recall is "open the one relevant topic".
 
 ## Where the store applies: working directory, not agent name
 
@@ -129,6 +130,22 @@ the score it reports differs, because OpenClaw ranks it next to its own corpora.
 
 Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
 `plugins.load.paths` and enable `plugins.entries.shared-memory-corpus`; a gateway restart loads it.
+
+## Scoped injection
+
+`memory.py inject --audience direct|worker|investment-cron` prints the one view that audience
+receives. The policy is exclusive, so the two jobs never share a playbook:
+
+| Audience | Selection | Reader |
+|---|---|---|
+| `direct` | `scope in (investment, persona)` and `salience: high` | OpenClaw direct chat |
+| `worker` | `scope: engineering` and `status: verified` | coding workers at task start |
+| `investment-cron` | `scope: investment` | brief/report/intraday runs |
+
+The view has a byte budget (default 12 KB); a topic that would cross it is skipped and named on
+stderr, never truncated silently. `memory.py search --scope SCOPE` applies the same facet to
+recall. The live OpenClaw paths still read their existing files; switching them to this view is
+P3 in `docs/architecture/agent-memory-unified.md`.
 
 ## Search matching
 

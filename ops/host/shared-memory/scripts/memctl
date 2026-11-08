@@ -62,7 +62,7 @@ BUNDLES = STATE / "bundles"
 HELD = STATE / "held.json"  # files kept out of history because they look like they hold a credential
 MEMORY_PY = Path(os.environ.get("SHARED_MEMORY_PY") or SKILL_DIR / "scripts" / "memory.py")
 HOOK_SCRIPT = SKILL_DIR / "hooks" / "claude-hook.sh"
-PASSTHROUGH = ("read", "search", "index", "add", "update", "archive", "normalize")
+PASSTHROUGH = ("read", "search", "index", "inject", "add", "update", "archive", "normalize")
 EXCLUDES = (".*", "__pycache__/", "*.pyc", "*.tmp", "*.bak*")
 AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh")
 

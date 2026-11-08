@@ -30,8 +30,10 @@ belongs here.
 - [`strategy-plugins.md`](architecture/strategy-plugins.md) — strategies, bars and
   the optimiser as plugins composed by config rows; what a parameter search may conclude.
 - [`memory-components.md`](architecture/memory-components.md) — the two memory stores,
-  their transcript/note/index/dreaming layers, the write-time salience and status fields,
+  their transcript/note/index/dreaming layers, the write-time salience/status/scope fields,
   the learning loop and the evaluations that keep them honest.
+- [`agent-memory-unified.md`](architecture/agent-memory-unified.md) — the target: one shared
+  store with scoped injection and publishing views, and the P0–P4 path to it.
 
 ## Research notes
 
