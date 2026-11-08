@@ -26,7 +26,12 @@ name: {slug}
 description: "{desc}"
 metadata:
   type: feedback
+  scope: engineering
   updated: 2026-10-01
+  salience: normal
+  status: verified
+  publish: private
+  agent: test-agent
 ---
 
 {body}
@@ -53,7 +58,8 @@ def kit(tmp_path):
     store = home / ".claude/projects" / re.sub(r"[^A-Za-z0-9]", "-", str(home)) / "memory"
     (store / "indexes").mkdir(parents=True)
     (store / "archive").mkdir()
-    (store / "MEMORY.md").write_text("# Index\n\n- `indexes/MEMORY-host.md` — host\n")
+    (store / "MEMORY.md").write_text(
+        "# Index\n\n- `indexes/MEMORY-host.md` — host\n- `indexes/MEMORY-tools.md` — tools\n")
     (store / "indexes/MEMORY-host.md").write_text("# Host\n\n- `feedback-alpha.md` — alpha rule\n")
     (store / "indexes/MEMORY-tools.md").write_text("# Tools\n")
     (store / "indexes/redirects.tsv").write_text("# old\tnew\n")
@@ -153,11 +159,32 @@ def test_bundle_is_a_valid_backup(kit):
     assert verify.returncode == 0, verify.stderr
 
 
+def test_verify_names_each_unrecorded_direct_edit(kit):
+    (kit.store / "feedback-alpha.md").write_text(TOPIC.format(slug="feedback-alpha", desc="alpha", body="direct"))
+    proc = kit.run("verify")
+    assert proc.returncode == 1
+    assert "UNRECORDED" in proc.stdout and "feedback-alpha.md" in proc.stdout
+    kit.ok("snapshot")
+    assert kit.ok("verify").stdout.strip().startswith("verify: 0")
+
+
+def test_verify_reports_an_unattributed_snapshot(kit):
+    (kit.store / "feedback-alpha.md").write_text(TOPIC.format(slug="feedback-alpha", desc="alpha", body="timer"))
+    kit.ok("snapshot", "--timer")
+    entries = kit.ledger()
+    assert entries[-1]["agent"] == "unattributed"
+    proc = kit.run("verify")
+    assert proc.returncode == 1 and "UNATTRIBUTED" in proc.stdout and "feedback-alpha.md" in proc.stdout
+    proc = kit.run("verify", "--json")
+    data = json.loads(proc.stdout)
+    assert data["status"] == "BYPASS" and any(item["file"] == "feedback-alpha.md" for item in data["bypasses"])
+
+
 # --- memory.py writes: one format owner, attributed history ---------------------
 
 def test_memory_py_add_is_routed_and_committed_as_the_calling_agent(kit):
     env = {**kit.env, "MEMCTL_AGENT": "codex", "AGENT_DISPATCH_TASK_ID": "task-1"}
-    kit.ok("add", "reference-tool-x", "--summary", "tool x", "--body-file", kit.body("x body"),
+    kit.ok("add", "reference-tool-x", "--scope", "engineering", "--summary", "tool x", "--body-file", kit.body("x body"),
            script=MEMORY_PY, env=env)
     assert "reference-tool-x.md" in (kit.store / "indexes/MEMORY-tools.md").read_text()
     last = kit.ledger()[-1]
@@ -167,7 +194,7 @@ def test_memory_py_add_is_routed_and_committed_as_the_calling_agent(kit):
 
 
 def test_default_route_and_archive_is_recorded_as_a_move(kit):
-    kit.ok("add", "feedback-beta", "--summary", "beta", "--body-file", kit.body("beta"), script=MEMORY_PY)
+    kit.ok("add", "feedback-beta", "--scope", "engineering", "--summary", "beta", "--body-file", kit.body("beta"), script=MEMORY_PY)
     assert "feedback-beta.md" in (kit.store / "indexes/MEMORY-host.md").read_text()
     kit.ok("archive", "--drop-hooks", "feedback-beta", script=MEMORY_PY)
     last = kit.ledger()[-1]
@@ -177,12 +204,12 @@ def test_default_route_and_archive_is_recorded_as_a_move(kit):
 
 def test_store_without_a_routing_table_routes_from_the_main_index(kit):
     (kit.store / "indexes/routes.tsv").unlink()
-    kit.ok("add", "feedback-gamma", "--summary", "gamma", "--body-file", kit.body("g"), script=MEMORY_PY)
+    kit.ok("add", "feedback-gamma", "--scope", "engineering", "--summary", "gamma", "--body-file", kit.body("g"), script=MEMORY_PY)
     assert "feedback-gamma.md" in (kit.store / "MEMORY.md").read_text()
 
 
 def test_add_captures_write_time_salience_status_and_tags(kit):
-    kit.ok("add", "feedback-tagged", "--summary", "tagged rule", "--body-file", kit.body("tagged body"),
+    kit.ok("add", "feedback-tagged", "--scope", "engineering", "--summary", "tagged rule", "--body-file", kit.body("tagged body"),
            "--salience", "high", "--status", "verified", "--tag", "dispatch", "--tag", "review",
            script=MEMORY_PY)
     text = (kit.store / "feedback-tagged.md").read_text()
@@ -194,9 +221,9 @@ def test_add_captures_write_time_salience_status_and_tags(kit):
 
 
 def test_tag_filter_is_conjunctive_and_can_browse_without_a_query(kit):
-    kit.ok("add", "feedback-tag-one", "--summary", "one", "--body-file", kit.body("one"),
+    kit.ok("add", "feedback-tag-one", "--scope", "engineering", "--summary", "one", "--body-file", kit.body("one"),
            "--tag", "dispatch", script=MEMORY_PY)
-    kit.ok("add", "feedback-tag-two", "--summary", "two", "--body-file", kit.body("two"),
+    kit.ok("add", "feedback-tag-two", "--scope", "engineering", "--summary", "two", "--body-file", kit.body("two"),
            "--tag", "dispatch", "--tag", "review", script=MEMORY_PY)
     assert "feedback-tag-one.md" in kit.ok("search", "--tag", "dispatch", script=MEMORY_PY).stdout
     assert "feedback-tag-two.md" in kit.ok("search", "--tag", "dispatch", script=MEMORY_PY).stdout
@@ -207,7 +234,7 @@ def test_tag_filter_is_conjunctive_and_can_browse_without_a_query(kit):
 
 
 def test_update_preserves_tags_and_can_change_salience(kit):
-    kit.ok("add", "feedback-tagged", "--summary", "tagged", "--body-file", kit.body("body"),
+    kit.ok("add", "feedback-tagged", "--scope", "engineering", "--summary", "tagged", "--body-file", kit.body("body"),
            "--salience", "high", "--status", "verified", "--tag", "dispatch", script=MEMORY_PY)
     kit.ok("update", "feedback-tagged", "--salience", "low", "--summary", "tagged again", script=MEMORY_PY)
     text = (kit.store / "feedback-tagged.md").read_text()
@@ -216,8 +243,109 @@ def test_update_preserves_tags_and_can_change_salience(kit):
 
 
 def test_add_defaults_salience_to_normal(kit):
-    kit.ok("add", "feedback-plain", "--summary", "plain", "--body-file", kit.body("plain"), script=MEMORY_PY)
-    assert "  salience: normal" in (kit.store / "feedback-plain.md").read_text()
+    kit.ok("add", "feedback-plain", "--scope", "engineering", "--summary", "plain", "--body-file", kit.body("plain"), script=MEMORY_PY)
+    text = (kit.store / "feedback-plain.md").read_text()
+    assert "  salience: normal" in text
+    assert "  status: hypothesis" in text
+    assert "  publish: private" in text
+    assert "  agent: test-agent" in text
+
+
+def test_add_can_publish_public_and_update_keeps_it(kit):
+    kit.ok("add", "feedback-public", "--scope", "engineering", "--summary", "public rule", "--body-file", kit.body("public body"),
+           "--publish", "public", script=MEMORY_PY)
+    assert "  publish: public" in (kit.store / "feedback-public.md").read_text()
+    kit.ok("update", "feedback-public", "--salience", "high", script=MEMORY_PY)
+    text = (kit.store / "feedback-public.md").read_text()
+    assert "  publish: public" in text and "  salience: high" in text
+
+
+def test_add_refuses_a_topic_without_scope(kit):
+    proc = kit.run("add", "feedback-no-scope", "--summary", "no scope", "--body-file", kit.body("x"),
+                   script=MEMORY_PY)
+    assert proc.returncode != 0 and "scope is required" in proc.stderr
+    assert not (kit.store / "feedback-no-scope.md").exists()
+
+
+def test_update_refuses_a_legacy_topic_without_scope(kit):
+    (kit.store / "feedback-legacy.md").write_text(
+        '---\nname: feedback-legacy\ndescription: "legacy"\nmetadata:\n  type: feedback\n'
+        '  updated: 2026-10-01\n---\n\nlegacy body\n')
+    proc = kit.run("update", "feedback-legacy", "--summary", "v2", script=MEMORY_PY)
+    assert proc.returncode != 0 and "scope is required" in proc.stderr
+
+
+def test_inject_filters_each_audience(kit):
+    kit.ok("add", "feedback-investment-high", "--scope", "investment", "--salience", "high",
+           "--status", "verified", "--summary", "investment high", "--body-file", kit.body("inv high"),
+           script=MEMORY_PY)
+    kit.ok("add", "feedback-investment-normal", "--scope", "investment", "--salience", "normal",
+           "--status", "hypothesis", "--summary", "investment normal", "--body-file", kit.body("inv normal"),
+           script=MEMORY_PY)
+    kit.ok("add", "feedback-persona-high", "--scope", "persona", "--salience", "high",
+           "--status", "verified", "--summary", "persona high", "--body-file", kit.body("persona high"),
+           script=MEMORY_PY)
+    kit.ok("add", "feedback-engineering-verified", "--scope", "engineering", "--status", "verified",
+           "--summary", "engineering verified", "--body-file", kit.body("eng verified"), script=MEMORY_PY)
+    kit.ok("add", "feedback-engineering-hypothesis", "--scope", "engineering", "--status", "hypothesis",
+           "--summary", "engineering hypothesis", "--body-file", kit.body("eng hypothesis"), script=MEMORY_PY)
+    direct = kit.ok("inject", "--audience", "direct", script=MEMORY_PY).stdout
+    assert "## feedback-investment-high" in direct and "## feedback-persona-high" in direct
+    assert "## feedback-investment-normal" not in direct
+    assert "## feedback-engineering-verified" not in direct
+    worker = kit.ok("inject", "--audience", "worker", script=MEMORY_PY).stdout
+    assert "## feedback-engineering-verified" in worker
+    assert "## feedback-engineering-hypothesis" not in worker
+    assert "## feedback-investment-high" not in worker
+    cron = kit.ok("inject", "--audience", "investment-cron", script=MEMORY_PY).stdout
+    assert "## feedback-investment-high" in cron and "## feedback-investment-normal" in cron
+    assert "## feedback-engineering-verified" not in cron
+    assert "## feedback-persona-high" not in cron
+
+
+def test_inject_names_a_topic_it_skips_over_budget(kit):
+    kit.ok("add", "feedback-engineering-big", "--scope", "engineering", "--status", "verified",
+           "--summary", "big", "--body-file", kit.body("x" * 5000), script=MEMORY_PY)
+    proc = kit.ok("inject", "--audience", "worker", "--max-bytes", "100", script=MEMORY_PY)
+    assert "## feedback-engineering-big" not in proc.stdout
+    assert "skipped over the 100B budget" in proc.stderr and "feedback-engineering-big" in proc.stderr
+
+
+def test_search_filters_by_scope(kit):
+    kit.ok("add", "feedback-investment-search", "--scope", "investment", "--summary", "scope probe",
+           "--body-file", kit.body("scope probe body"), script=MEMORY_PY)
+    assert "feedback-investment-search.md" in kit.ok(
+        "search", "scope", "--scope", "investment", script=MEMORY_PY).stdout
+    assert "feedback-investment-search.md" not in kit.run(
+        "search", "scope", "--scope", "engineering", script=MEMORY_PY).stdout
+
+
+def test_update_fills_missing_write_time_fields(kit):
+    (kit.store / "feedback-legacy.md").write_text(
+        '---\nname: feedback-legacy\ndescription: "legacy"\nmetadata:\n  type: feedback\n'
+        '  updated: 2026-10-01\n---\n\nlegacy body\n')
+    kit.ok("update", "feedback-legacy", "--scope", "engineering", "--summary", "legacy v2", script=MEMORY_PY)
+    text = (kit.store / "feedback-legacy.md").read_text()
+    for token in ("  scope: engineering", "  salience: normal", "  status: hypothesis",
+                  "  publish: private", "  agent: test-agent"):
+        assert token in text
+
+
+def test_doctor_fails_when_write_time_fields_are_missing(kit):
+    (kit.store / "feedback-bare.md").write_text(
+        '---\nname: feedback-bare\ndescription: "bare"\nmetadata:\n  type: feedback\n'
+        '  updated: 2026-10-01\n---\n\nbare body\n')
+    proc = kit.run("doctor", script=MEMORY_PY)
+    assert proc.returncode == 1
+    for token in ("missing required metadata", "scope", "salience", "status", "publish", "agent"):
+        assert token in proc.stderr
+
+
+def test_archive_topics_are_exempt_from_the_write_time_schema(kit):
+    (kit.store / "archive/feedback-old.md").write_text(
+        '---\nname: feedback-old\ndescription: "old"\nmetadata:\n  type: feedback\n'
+        '  updated: 2026-10-01\n---\n\nold body\n')
+    assert kit.ok("doctor", script=MEMORY_PY).returncode == 0
 
 
 def test_doctor_flags_invalid_memory_metadata(kit):
@@ -232,7 +360,7 @@ def test_doctor_flags_invalid_memory_metadata(kit):
 
 def test_writes_work_without_history(kit):
     env = {**kit.env, "SHARED_MEMORY_STATE": str(kit.tmp / "no-history")}
-    kit.ok("add", "feedback-delta", "--summary", "d", "--body-file", kit.body("d"), script=MEMORY_PY, env=env)
+    kit.ok("add", "feedback-delta", "--scope", "engineering", "--summary", "d", "--body-file", kit.body("d"), script=MEMORY_PY, env=env)
     assert (kit.store / "feedback-delta.md").exists()
 
 

@@ -8,10 +8,13 @@ Topic format (compatible with Claude Code auto-memory):
     description: "<one-line hook used for recall>"
     metadata:
       type: user | feedback | project | reference
+      scope: investment | engineering | persona | memory
       updated: YYYY-MM-DD
       salience: high | normal | low
       status: verified | hypothesis | stale
       tags: "dispatch, review"
+      publish: public | private
+      agent: <who wrote this revision>
     ---
 
     <body>
@@ -39,6 +42,18 @@ ROUTE_RE = r"(?:(?:archive|indexes)/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\.md"
 TYPES = ("user", "feedback", "project", "reference")
 SALIENCE = ("high", "normal", "low")
 STATUSES = ("verified", "hypothesis", "stale")
+PUBLISH = ("public", "private")
+SCOPES = ("investment", "engineering", "persona", "memory")
+SCOPE_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
+AGENT_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
+AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh")
+REQUIRED_METADATA = ("scope", "salience", "status", "publish", "agent")
+# The audience split is the injection contract; `inject` below is its one implementation.
+INJECT_AUDIENCES = {
+    "direct": {"scopes": ("investment", "persona"), "salience": "high"},
+    "worker": {"scopes": ("engineering",), "status": "verified"},
+    "investment-cron": {"scopes": ("investment",)},
+}
 TAG_RE = re.compile(r"[a-z0-9\u3400-\u4dbf\u4e00-\u9fff][a-z0-9._+\-\u3400-\u4dbf\u4e00-\u9fff]{0,31}")
 MAX_TAGS = 16
 MAIN_INDEX = "MEMORY.md"
@@ -114,6 +129,63 @@ def locked(root: Path):
     lock = (root / ".shared-memory.lock").open("a+", encoding="utf-8")
     fcntl.flock(lock, fcntl.LOCK_EX)
     return lock
+
+
+# --- attribution -----------------------------------------------------------
+
+def _ancestry() -> list[str]:
+    """Command lines of this process's ancestors, nearest first (Linux /proc)."""
+    names, pid = [], os.getppid()
+    for _ in range(16):
+        try:
+            cmd = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+            stat = Path(f"/proc/{pid}/stat").read_text()
+        except OSError:
+            break
+        names.append(cmd[:300])
+        pid = int(stat.rsplit(")", 1)[1].split()[1])
+        if pid <= 1:
+            break
+    return names
+
+
+def agent_of(cmd: str) -> str | None:
+    """The coding agent a process command line belongs to, if any."""
+    words = cmd.split()
+    if not words:
+        return None
+    exe = Path(words[0]).name
+    script = Path(words[1]).name if len(words) > 1 and exe in ("node", "bun", "python3", "python") else ""
+    for agent, marks in (("codex", ("codex",)), ("opencode", ("opencode", ".opencode")), ("dsh", ("dsh",)),
+                         ("claude-code", ("claude",))):
+        if exe in marks or script in marks or any(f"/bin/{m} " in cmd + " " for m in marks):
+            return agent
+    return None
+
+
+def detect_agent() -> str:
+    """The agent writing this revision, from the same markers memctl attributes history with.
+
+    `MEMCTL_AGENT` is the explicit override. OpenClaw's assistant is checked before
+    CLAUDECODE because its claude-cli backend also sets that marker. The last
+    resort is `unattributed`, which is truthful and still satisfies the schema.
+    """
+    override = os.environ.get("MEMCTL_AGENT", "").strip()
+    if override:
+        return override
+    if os.environ.get("OPENCLAW_AGENT") or os.environ.get("OPENCLAW_SESSION_ID"):
+        return "rick"
+    if os.environ.get("CLAUDECODE"):
+        return "claude-code"
+    marker = os.environ.get("AI_AGENT", "").lower()
+    for agent in AGENT_NAMES:
+        if marker.startswith(agent):
+            return agent
+    for cmd in _ancestry():
+        agent = agent_of(cmd)
+        if agent:
+            return agent
+    return "unattributed"
 
 
 # --- frontmatter -----------------------------------------------------------
@@ -216,15 +288,26 @@ def parse_tags(value: str | list[str] | None) -> list[str]:
 def metadata_problems(fields: dict[str, str], meta: dict[str, str]) -> list[str]:
     """Problems with the write-time memory metadata, as doctor/report text."""
     problems: list[str] = []
-    for key, allowed in (("salience", SALIENCE), ("status", STATUSES)):
+    for key, allowed in (("salience", SALIENCE), ("status", STATUSES), ("publish", PUBLISH)):
         value = meta.get(key) or fields.get(key)
         if value and value not in allowed:
             problems.append(f"{key} must be one of {', '.join(allowed)} (got {value!r})")
+    scope = meta.get("scope") or fields.get("scope")
+    if scope and not SCOPE_RE.fullmatch(scope):
+        problems.append(f"scope must be a lowercase identifier (got {scope!r})")
+    agent = meta.get("agent") or fields.get("agent")
+    if agent and not AGENT_RE.fullmatch(agent):
+        problems.append(f"agent must be a lowercase identifier (got {agent!r})")
     try:
         parse_tags(meta.get("tags") or fields.get("tags"))
     except ValueError as exc:
         problems.append(str(exc))
     return problems
+
+
+def missing_metadata(fields: dict[str, str], meta: dict[str, str]) -> list[str]:
+    """Required write-time fields absent from a topic, as doctor text."""
+    return [key for key in REQUIRED_METADATA if not (meta.get(key) or fields.get(key))]
 
 
 # --- indexes ---------------------------------------------------------------
@@ -372,6 +455,59 @@ def word_credit(haystack: str, word: tuple[str, ...], fallback: tuple[str, ...])
     return max((len(piece) for piece in fallback if piece in haystack), default=0) / sum(map(len, word))
 
 
+def cmd_inject(args: argparse.Namespace) -> int:
+    """Print the scoped view one audience receives.
+
+    The audience policy lives in INJECT_AUDIENCES. A topic over the byte budget is
+    skipped and named, never truncated silently; a skipped topic is a migration
+    signal, not a rendering detail.
+    """
+    root = memory_root()
+    policy = INJECT_AUDIENCES[args.audience]
+    skip = {root / name for name in index_files(root)}
+    selected = []
+    for path in sorted(root.glob("*.md")):
+        if path in skip or path.name.startswith("."):
+            continue
+        try:
+            parsed = split_frontmatter(path.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        if not parsed:
+            continue
+        fields, meta, body = parsed
+        scope = meta.get("scope") or fields.get("scope")
+        if scope not in policy["scopes"]:
+            continue
+        if policy.get("salience") and (meta.get("salience") or fields.get("salience")) != policy["salience"]:
+            continue
+        if policy.get("status") and (meta.get("status") or fields.get("status")) != policy["status"]:
+            continue
+        selected.append({"name": path.stem, "description": fields.get("description", ""),
+                         "body": body.strip(), "updated": meta.get("updated") or fields.get("updated", ""),
+                         "salience": meta.get("salience") or fields.get("salience", "normal")})
+    order = {"high": 0, "normal": 1, "low": 2}
+    selected.sort(key=lambda item: item["updated"], reverse=True)
+    selected.sort(key=lambda item: order.get(item["salience"], 1))
+    filters = [f"scope={','.join(policy['scopes'])}"]
+    filters += [f"{key}={value}" for key, value in policy.items() if key != "scopes"]
+    header = f"# Shared memory injection: {args.audience} ({'; '.join(filters)})"
+    lines, used, skipped = [header], len(header.encode("utf-8")), []
+    for item in selected:
+        block = f"\n## {item['name']}\n\n{item['description']}\n\n{item['body']}\n"
+        size = len(block.encode("utf-8"))
+        if used + size > args.max_bytes:
+            skipped.append(item["name"])
+            continue
+        lines.append(block)
+        used += size
+    print("\n".join(lines).rstrip())
+    if skipped:
+        print(f"# inject: {len(skipped)} topic(s) skipped over the {args.max_bytes}B budget: "
+              f"{', '.join(skipped)}", file=sys.stderr)
+    return 0
+
+
 def cmd_search(args: argparse.Namespace) -> int:
     root = memory_root()
     moved = redirects(root)
@@ -391,7 +527,7 @@ def cmd_search(args: argparse.Namespace) -> int:
         tag_filter = parse_tags(args.tag) if args.tag else []
     except ValueError as exc:
         raise SystemExit(str(exc))
-    filtered = bool(tag_filter or args.salience or args.status)
+    filtered = bool(tag_filter or args.salience or args.status or args.scope)
 
     def tags_of(meta: dict[str, str]) -> set[str]:
         try:
@@ -402,14 +538,16 @@ def cmd_search(args: argparse.Namespace) -> int:
     def keep(meta: dict[str, str]) -> bool:
         return (all(tag in tags_of(meta) for tag in tag_filter)
                 and (not args.salience or meta.get("salience") == args.salience)
-                and (not args.status or meta.get("status") == args.status))
+                and (not args.status or meta.get("status") == args.status)
+                and (not args.scope or meta.get("scope") == args.scope))
 
     if filtered:
         docs = [doc for doc in docs if keep(doc[4])]
         shown = " ".join(part for part in (
             f"tag={'+'.join(tag_filter)}" if tag_filter else "",
             f"salience={args.salience}" if args.salience else "",
-            f"status={args.status}" if args.status else "") if part)
+            f"status={args.status}" if args.status else "",
+            f"scope={args.scope}" if args.scope else "") if part)
         print(f"# filters: {shown}", file=sys.stderr)
         if not docs:
             print("# no topic matches the filters", file=sys.stderr)
@@ -573,27 +711,32 @@ def cmd_add(args: argparse.Namespace) -> int:
     return write_topic(root, topic_path(root, args.slug), args.summary, _read_body(args.body_file),
                        args.type, MAIN_INDEX if args.pin else (args.index or default_index(args.slug, root)),
                        create=True, replace=args.replace, salience=getattr(args, "salience", None),
-                       status=getattr(args, "status", None), tags=cli_tags(getattr(args, "tag", None)))
+                       status=getattr(args, "status", None), tags=cli_tags(getattr(args, "tag", None)),
+                       publish=getattr(args, "publish", None), scope=getattr(args, "scope", None))
 
 
 def cmd_update(args: argparse.Namespace) -> int:
     root = memory_root()
     if (args.summary is None and args.body_file is None and args.type is None
-            and getattr(args, "salience", None) is None and getattr(args, "status", None) is None
+            and getattr(args, "scope", None) is None and getattr(args, "salience", None) is None
+            and getattr(args, "status", None) is None and getattr(args, "publish", None) is None
             and not getattr(args, "tag", None)):
-        raise SystemExit("nothing to update: pass --summary, --body-file, --type, --salience, --status and/or --tag")
+        raise SystemExit("nothing to update: pass --summary, --body-file, --type, --scope, "
+                         "--salience, --status, --publish and/or --tag")
     if args.summary is not None and not one_line(args.summary):
         raise SystemExit("summary cannot be empty")
     return write_topic(root, topic_path(root, args.slug), args.summary, _read_body(args.body_file),
                        args.type, default_index(path_slug(args.slug), root), create=False, replace=True,
                        salience=getattr(args, "salience", None), status=getattr(args, "status", None),
-                       tags=cli_tags(getattr(args, "tag", None)))
+                       tags=cli_tags(getattr(args, "tag", None)), publish=getattr(args, "publish", None),
+                       scope=getattr(args, "scope", None))
 
 
 def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str | None,
                 target: str, *, create: bool, replace: bool,
                 salience: str | None = None, status: str | None = None,
-                tags: list[str] | None = None) -> int:
+                tags: list[str] | None = None, publish: str | None = None,
+                scope: str | None = None, agent: str | None = None) -> int:
     if target not in index_files(root):
         raise SystemExit(f"unknown index: {target}")
     body_fields, body_meta, body = new_body or ({}, {}, None)
@@ -626,14 +769,28 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
         if kind not in TYPES:
             raise SystemExit(f"type must be one of {', '.join(TYPES)}")
         meta.update(type=kind, updated=dt.date.today().isoformat())
+        if scope is not None:
+            meta["scope"] = scope
+        if not meta.get("scope"):
+            raise SystemExit(f"scope is required: pass --scope {'|'.join(SCOPES)} (or a new lowercase scope)")
         if salience is not None:
             meta["salience"] = salience
         if status is not None:
             meta["status"] = status
         if tags is not None:
             meta["tags"] = ", ".join(tags)
-        if create and not meta.get("salience"):
-            meta["salience"] = "normal"  # a write-time judgement, not a later inference
+        if publish is not None:
+            meta["publish"] = publish
+        # Every write carries the four fields, including a repair of an old topic.
+        # Defaults are the conservative reading: normal replay priority, an
+        # unverified rule, and no publication outside this machine.
+        if not meta.get("salience"):
+            meta["salience"] = "normal"
+        if not meta.get("status"):
+            meta["status"] = "hypothesis"
+        if not meta.get("publish"):
+            meta["publish"] = "private"
+        meta["agent"] = agent or detect_agent()
         if "tags" in meta:
             try:
                 meta["tags"] = ", ".join(parse_tags(meta["tags"]))
@@ -642,7 +799,8 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
         problems = metadata_problems({}, meta)
         if problems:
             raise SystemExit("; ".join(problems))
-        ordered = {key: meta[key] for key in ("type", "updated", "salience", "status", "tags") if meta.get(key)}
+        ordered = {key: meta[key] for key in
+                   ("type", "updated", "scope", "salience", "status", "tags", "publish", "agent") if meta.get(key)}
         ordered.update((key, value) for key, value in meta.items() if key not in ordered)
         topic = render_topic(path.stem, summary, ordered, body)
 
@@ -864,6 +1022,12 @@ def cmd_doctor(args: argparse.Namespace) -> int:
                 warn("missing description", name)
             if meta.get("type") not in TYPES:
                 warn("missing or invalid metadata.type", name)
+            missing = missing_metadata(fields, meta)
+            if missing and not name.startswith("archive/"):
+                errors.append(f"{name}: missing required metadata: {', '.join(missing)}")
+            scope = meta.get("scope") or fields.get("scope")
+            if scope and scope not in SCOPES and not name.startswith("archive/"):
+                warn("unknown memory scope", f"{name}: {scope}")
             for problem in metadata_problems(fields, meta):
                 warn("invalid memory metadata", f"{name}: {problem}")
         size = len(text.encode("utf-8"))
@@ -926,12 +1090,18 @@ def build_parser() -> argparse.ArgumentParser:
     read.add_argument("topic")
     read.set_defaults(func=cmd_read)
 
+    inject = sub.add_parser("inject", help="print the scoped view a direct chat, worker or investment cron receives")
+    inject.add_argument("--audience", choices=tuple(INJECT_AUDIENCES), required=True)
+    inject.add_argument("--max-bytes", type=int, default=12_000, help="skip a topic that would exceed this budget")
+    inject.set_defaults(func=cmd_inject)
+
     search = sub.add_parser("search", help="rank topics by the query words they contain, rarer words weighing more (archives included, ranked lower)")
     search.add_argument("query", nargs="?", help="query; omit it to list topics selected by --tag/--salience/--status")
     search.add_argument("--exact", action="store_true", help="match the query as one literal phrase")
     search.add_argument("--tag", action="append", metavar="TAG", help="only topics carrying every tag (repeatable)")
     search.add_argument("--salience", choices=SALIENCE, help="only topics written with this salience")
     search.add_argument("--status", choices=STATUSES, help="only topics written with this review status")
+    search.add_argument("--scope", metavar="SCOPE", help="only topics written with this memory domain")
     search.add_argument("--limit", type=int, default=10, help="topics to show")
     search.add_argument("--lines", type=int, default=3, help="matching lines per topic")
     search.set_defaults(func=cmd_search)
@@ -941,8 +1111,10 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--summary", required=True, help="one-line hook; becomes description and index text")
     add.add_argument("--body-file", required=True, help="Markdown file or - for stdin")
     add.add_argument("--type", choices=TYPES)
+    add.add_argument("--scope", metavar="SCOPE", help=f"memory domain; required (known: {', '.join(SCOPES)})")
     add.add_argument("--salience", choices=SALIENCE, help="write-time replay priority (default: normal)")
-    add.add_argument("--status", choices=STATUSES, help="epistemic state of the note")
+    add.add_argument("--status", choices=STATUSES, help="epistemic state of the note (default: hypothesis)")
+    add.add_argument("--publish", choices=PUBLISH, help="public reaches the repo projection; default private")
     add.add_argument("--tag", action="append", metavar="TAG", help="facet to write with the note (repeatable)")
     add.add_argument("--index", help="index for new routes (default: the area index for the slug's prefix)")
     add.add_argument("--pin", action="store_true", help=f"route a new topic from {MAIN_INDEX} (durable conventions only)")
@@ -954,8 +1126,10 @@ def build_parser() -> argparse.ArgumentParser:
     update.add_argument("--summary")
     update.add_argument("--body-file", help="Markdown file or - for stdin")
     update.add_argument("--type", choices=TYPES)
+    update.add_argument("--scope", metavar="SCOPE")
     update.add_argument("--salience", choices=SALIENCE)
     update.add_argument("--status", choices=STATUSES)
+    update.add_argument("--publish", choices=PUBLISH)
     update.add_argument("--tag", action="append", metavar="TAG", help="replace the topic's tags (repeatable)")
     update.set_defaults(func=cmd_update)
 
