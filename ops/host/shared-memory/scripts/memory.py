@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import fcntl
+import hashlib
 import os
 from pathlib import Path
 import fnmatch
@@ -37,6 +38,9 @@ import tempfile
 
 
 DEFAULT_ROOT = Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).expanduser()
+DEFAULT_ROOT_PATH = Path.home() / ".shared-memory"
+DEFAULT_STATE = Path.home() / ".local/state/shared-memory"
+WRITE_RECEIPTS: dict[str, str] = {}
 NEW_SLUG_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 ROUTE_RE = r"(?:(?:archive|indexes)/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\.md"
 TYPES = ("user", "feedback", "project", "reference")
@@ -46,13 +50,14 @@ PUBLISH = ("public", "private")
 SCOPES = ("investment", "engineering", "persona", "memory")
 SCOPE_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
 AGENT_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
-AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh")
+AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh", "rick")
 REQUIRED_METADATA = ("scope", "salience", "status", "publish", "agent")
 # The audience split is the injection contract; `inject` below is its one implementation.
 INJECT_AUDIENCES = {
-    "direct": {"scopes": ("investment", "persona"), "salience": "high"},
+    "direct": {"scopes": ("investment", "persona"), "salience": "high",
+               "exclude_status": ("stale",)},
     "worker": {"scopes": ("engineering",), "status": "verified"},
-    "investment-cron": {"scopes": ("investment",)},
+    "investment-cron": {"scopes": ("investment",), "exclude_status": ("stale",)},
 }
 TAG_RE = re.compile(r"[a-z0-9\u3400-\u4dbf\u4e00-\u9fff][a-z0-9._+\-\u3400-\u4dbf\u4e00-\u9fff]{0,31}")
 MAX_TAGS = 16
@@ -99,6 +104,32 @@ def memory_root() -> Path:
     if not root.is_dir():
         raise SystemExit(f"shared memory directory not found: {root}")
     return root
+
+
+def guard_write_isolation() -> None:
+    """Refuse to write a copied store when its state directory stayed at the live default.
+
+    A throwaway store with the live history is how the 2026-11-08 incident committed a
+    5-file tree over the real store. Read-only commands stay usable on copies.
+    """
+    try:
+        isolated = memory_root().resolve() != DEFAULT_ROOT_PATH.resolve()
+    except OSError:
+        isolated = True
+    if not isolated:
+        return
+    if not os.environ.get("SHARED_MEMORY_STATE"):
+        raise SystemExit("refusing to write: SHARED_MEMORY_STATE must be set when "
+                         "SHARED_MEMORY_DIR is not the default shared store")
+    if Path(os.environ["SHARED_MEMORY_STATE"]).expanduser().resolve() == DEFAULT_STATE.resolve():
+        raise SystemExit("refusing to write: SHARED_MEMORY_STATE is still the live state")
+
+
+def remember_write(path: Path) -> None:
+    try:
+        WRITE_RECEIPTS[str(path.relative_to(memory_root()))] = hashlib.sha256(path.read_bytes()).hexdigest()
+    except (OSError, ValueError):
+        pass
 
 
 def topic_path(root: Path, topic: str) -> Path:
@@ -465,7 +496,7 @@ def cmd_inject(args: argparse.Namespace) -> int:
     root = memory_root()
     policy = INJECT_AUDIENCES[args.audience]
     skip = {root / name for name in index_files(root)}
-    selected = []
+    selected, stale_skipped = [], []
     for path in sorted(root.glob("*.md")):
         if path in skip or path.name.startswith("."):
             continue
@@ -481,10 +512,15 @@ def cmd_inject(args: argparse.Namespace) -> int:
             continue
         if policy.get("salience") and (meta.get("salience") or fields.get("salience")) != policy["salience"]:
             continue
-        if policy.get("status") and (meta.get("status") or fields.get("status")) != policy["status"]:
+        status = meta.get("status") or fields.get("status")
+        if policy.get("status") and status != policy["status"]:
+            continue
+        if status in policy.get("exclude_status", ()):
+            stale_skipped.append(path.stem)
             continue
         selected.append({"name": path.stem, "description": fields.get("description", ""),
                          "body": body.strip(), "updated": meta.get("updated") or fields.get("updated", ""),
+                         "status": status,
                          "salience": meta.get("salience") or fields.get("salience", "normal")})
     order = {"high": 0, "normal": 1, "low": 2}
     selected.sort(key=lambda item: item["updated"], reverse=True)
@@ -502,9 +538,20 @@ def cmd_inject(args: argparse.Namespace) -> int:
         lines.append(block)
         used += size
     print("\n".join(lines).rstrip())
+    if stale_skipped:
+        print(f"# inject: {len(stale_skipped)} stale topic(s) excluded from {args.audience}: "
+              f"{', '.join(stale_skipped)}", file=sys.stderr)
     if skipped:
-        print(f"# inject: {len(skipped)} topic(s) skipped over the {args.max_bytes}B budget: "
-              f"{', '.join(skipped)}", file=sys.stderr)
+        note = (f"# inject: {len(skipped)} topic(s) skipped over the {args.max_bytes}B budget: "
+                f"{', '.join(skipped)}")
+        print(note, file=sys.stderr)
+        print(note)
+    if not selected or skipped and len(skipped) == len(selected):
+        note = (f"# inject: no topic rendered for {args.audience} "
+                f"({'; '.join(filters)}); refusing a silent empty view")
+        print(note, file=sys.stderr)
+        print(note)
+        return 1
     return 0
 
 
@@ -739,6 +786,7 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
                 scope: str | None = None, agent: str | None = None) -> int:
     if target not in index_files(root):
         raise SystemExit(f"unknown index: {target}")
+    guard_write_isolation()
     body_fields, body_meta, body = new_body or ({}, {}, None)
 
     with locked(root):
@@ -805,8 +853,10 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
         topic = render_topic(path.stem, summary, ordered, body)
 
         # Update an existing single-route hook in place; grouped hooks keep their other routes.
+        # A metadata-only repair must not churn every index line with a new date.
         entry = _format_entry(str(path.relative_to(root)), summary)
         route = str(path.relative_to(root))
+        summary_changed = summary != one_line(old_fields.get("description", ""))
         writes: dict[str, list[str]] = {}
         routed = False
         for name in index_files(root):
@@ -815,10 +865,10 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
                 refs = index_refs(line)
                 if route in refs:
                     routed = True
-                    if refs == [route]:
+                    if refs == [route] and summary_changed:
                         lines[i] = entry
                         writes[name] = lines
-                    else:
+                    elif refs != [route]:
                         print(f"note: {route} is in a grouped hook in {name}; update its summary manually", file=sys.stderr)
         if not routed and not route.startswith("archive/"):
             lines = writes.get(target) or (root / target).read_text(encoding="utf-8").splitlines()
@@ -827,8 +877,10 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
             writes[target] = lines
 
         atomic_write(path, topic)
+        remember_write(path)
         for name, lines in writes.items():
             atomic_write(root / name, "\n".join(lines).rstrip() + "\n")
+            remember_write(root / name)
     print(path)
     return 0
 
@@ -836,6 +888,8 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
 def cmd_archive(args: argparse.Namespace) -> int:
     """Move active topics into archive/ (never delete) and repoint index routes."""
     root = memory_root()
+    if not args.dry_run:
+        guard_write_isolation()
     with locked(root):
         plan = []
         for slug in args.slugs:
@@ -926,6 +980,8 @@ def normalize_text(slug: str, text: str, hook: str | None) -> tuple[str, list[st
 
 def cmd_normalize(args: argparse.Namespace) -> int:
     root = memory_root()
+    if args.apply:
+        guard_write_isolation()
     hooks = index_hooks(root)
     changed = skipped = 0
     with locked(root):
@@ -1171,9 +1227,12 @@ def record_history(args: argparse.Namespace) -> None:
     if targets is None or os.environ.get("SHARED_MEMORY_HISTORY") == "0" or not memctl.is_file():
         return
     reason = " ".join([args.command, *targets])[:200]
+    receipts = []
+    for path, digest in sorted(WRITE_RECEIPTS.items()):
+        receipts += ["--wrote", f"{path}={digest}"]
     try:
         proc = subprocess.run([sys.executable, str(memctl), "snapshot", "--if-ready", "--quiet",
-                               "--op", args.command, "--reason", reason],
+                               "--op", args.command, "--reason", reason, *receipts],
                               env={**os.environ, "SHARED_MEMORY_DIR": str(memory_root())},
                               capture_output=True, text=True, timeout=60)
         if proc.returncode:

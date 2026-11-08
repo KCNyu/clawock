@@ -130,7 +130,7 @@ The history lives outside the store (`~/.local/state/shared-memory/history.git`,
 memctl log [<topic>] [-n 20]          # who/when/why/which files
 memctl show <commit>                  # one change in full
 memctl restore <topic> --at <commit>  # bring content back as a new commit (never deletes)
-memctl verify [--since 7]             # name files changed with no matching write; non-zero exit
+memctl verify [--since 7]             # name files with no write receipt or with history tampering; non-zero exit
 memctl doctor [--deep]                # wiring per agent and working directory, store, history
 ```
 

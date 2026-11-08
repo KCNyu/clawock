@@ -165,6 +165,12 @@ def test_verify_names_each_unrecorded_direct_edit(kit):
     assert proc.returncode == 1
     assert "UNRECORDED" in proc.stdout and "feedback-alpha.md" in proc.stdout
     kit.ok("snapshot")
+    # Committing the hand edit under a named agent no longer hides it: there is no memory.py
+    # receipt for this content.
+    proc = kit.run("verify")
+    assert proc.returncode == 1 and "UNRECEIPTED" in proc.stdout and "feedback-alpha.md" in proc.stdout
+    # A real memory.py write of the same file repairs it.
+    kit.ok("update", "feedback-alpha", "--scope", "engineering", "--status", "verified", script=MEMORY_PY)
     assert kit.ok("verify").stdout.strip().startswith("verify: 0")
 
 
@@ -306,9 +312,11 @@ def test_inject_filters_each_audience(kit):
 def test_inject_names_a_topic_it_skips_over_budget(kit):
     kit.ok("add", "feedback-engineering-big", "--scope", "engineering", "--status", "verified",
            "--summary", "big", "--body-file", kit.body("x" * 5000), script=MEMORY_PY)
-    proc = kit.ok("inject", "--audience", "worker", "--max-bytes", "100", script=MEMORY_PY)
+    proc = kit.run("inject", "--audience", "worker", "--max-bytes", "100", script=MEMORY_PY)
+    assert proc.returncode == 1
     assert "## feedback-engineering-big" not in proc.stdout
     assert "skipped over the 100B budget" in proc.stderr and "feedback-engineering-big" in proc.stderr
+    assert "skipped over the 100B budget" in proc.stdout and "no topic rendered" in proc.stdout
 
 
 def test_search_filters_by_scope(kit):
@@ -339,6 +347,8 @@ def test_doctor_fails_when_write_time_fields_are_missing(kit):
     assert proc.returncode == 1
     for token in ("missing required metadata", "scope", "salience", "status", "publish", "agent"):
         assert token in proc.stderr
+    # Mutation guard: dropping the filename from the error must fail this test.
+    assert "feedback-bare.md" in proc.stderr
 
 
 def test_archive_topics_are_exempt_from_the_write_time_schema(kit):
@@ -467,6 +477,83 @@ def test_bash_filter_skips_unrelated_tool_calls(kit):
     proc = subprocess.run([str(HOOK), "post"], input='{"tool_name":"Bash","tool_input":{"command":"ls"}}',
                           text=True, capture_output=True, env=kit.env)
     assert (proc.returncode, proc.stdout) == (0, "")
+
+
+# --- regressions demanded by the 2026-11-08 acceptance -------------------------
+
+def test_verify_catches_a_handwritten_topic_committed_by_a_named_agent(kit):
+    (kit.store / "project-bypass-proof.md").write_text("no frontmatter, no fields\n")
+    kit.ok("snapshot", "--reason", "hand edit committed by dsh", env={**kit.env, "MEMCTL_AGENT": "dsh"})
+    proc = kit.run("verify")
+    assert proc.returncode == 1
+    assert "UNRECEIPTED" in proc.stdout and "project-bypass-proof.md" in proc.stdout
+
+
+def test_verify_reports_a_rewritten_ledger_and_a_ref_reset(kit):
+    kit.ok("add", "feedback-receipted", "--scope", "engineering", "--summary", "receipted",
+           "--body-file", kit.body("receipted body"), script=MEMORY_PY)
+    ledger = kit.state / "ledger.jsonl"
+    lines = ledger.read_text().splitlines()
+    ledger.write_text("\n".join(lines[:-1]) + "\n")
+    proc = kit.run("verify")
+    assert proc.returncode == 1 and "LEDGER REWRITTEN" in proc.stdout
+    # Restore the line, then reset the ref: the anchor/reflog must report it.
+    ledger.write_text("\n".join(lines) + "\n")
+    base = kit.git("rev-parse", "HEAD~1").strip()
+    kit.git("reset", "--hard", base)
+    proc = kit.run("verify")
+    assert proc.returncode == 1 and "HISTORY RESET" in proc.stdout
+
+
+def test_openclaw_memory_add_is_attributed_to_rick_and_verify_is_clean(kit):
+    env = {k: v for k, v in kit.env.items() if k != "MEMCTL_AGENT"}
+    env.update(OPENCLAW_SESSION_ID="openclaw-session", OPENCLAW_AGENT="rick")
+    kit.ok("add", "feedback-rick-note", "--scope", "engineering", "--summary", "rick note",
+           "--body-file", kit.body("rick body"), script=MEMORY_PY, env=env)
+    assert kit.ledger()[-1]["agent"] == "rick"
+    assert "agent: rick" in (kit.store / "feedback-rick-note.md").read_text()
+    assert kit.ok("verify").returncode == 0
+
+
+def test_inject_empty_view_is_loud(kit):
+    proc = kit.run("inject", "--audience", "direct", script=MEMORY_PY)
+    assert proc.returncode == 1
+    assert "no topic rendered for direct" in proc.stderr and "refusing a silent empty view" in proc.stderr
+
+
+def test_inject_excludes_stale_from_direct_and_names_it(kit):
+    kit.ok("add", "feedback-persona-high", "--scope", "persona", "--salience", "high",
+           "--status", "verified", "--summary", "persona", "--body-file", kit.body("persona body"),
+           script=MEMORY_PY)
+    kit.ok("add", "feedback-stale-high", "--scope", "investment", "--salience", "high",
+           "--status", "stale", "--summary", "stale rule", "--body-file", kit.body("stale body"),
+           script=MEMORY_PY)
+    proc = kit.ok("inject", "--audience", "direct", script=MEMORY_PY)
+    assert "## feedback-persona-high" in proc.stdout and "## feedback-stale-high" not in proc.stdout
+    assert "stale topic(s) excluded" in proc.stderr and "feedback-stale-high" in proc.stderr
+
+
+def test_isolated_store_without_an_isolated_state_refuses_to_write(kit):
+    import shutil
+    copy = kit.tmp / "copy-store"
+    shutil.copytree(kit.store, copy)
+    env = {k: v for k, v in kit.env.items() if k not in ("SHARED_MEMORY_DIR", "SHARED_MEMORY_STATE")}
+    env.update(SHARED_MEMORY_DIR=str(copy), MEMCTL_AGENT="dsh")
+    proc = kit.run("snapshot", env=env)
+    assert proc.returncode != 0 and "SHARED_MEMORY_STATE" in proc.stderr
+    proc = kit.run("add", "feedback-refused", "--scope", "engineering", "--summary", "x",
+                   "--body-file", kit.body("x"), script=MEMORY_PY, env=env)
+    assert proc.returncode != 0 and "refusing to write" in proc.stderr
+    assert not (copy / "feedback-refused.md").exists()
+
+
+def test_memctl_refuses_a_history_worktree_that_is_not_the_store(kit):
+    import shutil
+    other = kit.tmp / "other-store"
+    shutil.copytree(kit.store, other)
+    env = {**kit.env, "SHARED_MEMORY_DIR": str(other), "SHARED_MEMORY_STATE": str(kit.state)}
+    proc = kit.run("snapshot", env=env)
+    assert proc.returncode != 0 and "history worktree" in proc.stderr
 
 
 # --- search ----------------------------------------------------------------------

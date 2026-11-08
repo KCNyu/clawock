@@ -84,9 +84,14 @@ Then link each agent's user-level entry points to one guidance file and the skil
   `doctor`; a topic that disappears without moving is flagged `md_deleted`.
 
 `memctl log <topic>`, `memctl show <commit>`, `memctl restore <topic> --at <commit>`;
-`memctl verify` names each file changed without a matching write (an uncommitted edit, or a
-ledger entry attributed to `unattributed`), and exits non-zero when it finds one. The daily
-timer writes a git bundle (14 kept).
+`memctl verify` names each file changed without a matching `memory.py` receipt (an uncommitted
+edit, or a topic committed by `memctl snapshot` even under a named agent), plus history/ledger
+tampering (a ref reset, a rewritten ledger, a tree that disagrees with the recorded tree), and
+exits non-zero when it finds one. The daily timer writes a git bundle (14 kept).
+
+A copied store must be paired with a copied state directory: `memctl` refuses to write when
+`SHARED_MEMORY_DIR` is not the default and `SHARED_MEMORY_STATE` is unset or still the live
+state, and when the history's configured worktree is not that store.
 
 ## Self-check
 
