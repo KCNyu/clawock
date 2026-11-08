@@ -2334,9 +2334,11 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
     button.setAttribute('aria-label', spoken)
     button.setAttribute('title', spoken)
     if (title !== null) {
-      title.textContent = alertCount === ''
-        ? previousText ?? title.textContent
-        : props.t('workbench.labelAlert', { alerts: alertCount })
+      title.textContent = alertCount !== ''
+        ? props.t('workbench.labelAlert', { alerts: alertCount })
+        : view === null || view.badge === ''
+          ? previousText ?? title.textContent
+          : props.t('workbench.labelTasks', { n: view.badge })
     }
     return () => {
       if (previous === null) button.removeAttribute('aria-label')

@@ -3852,6 +3852,9 @@ test("workbench client: one sidebar entry, a neutral count and an explained prov
     "工作台 · 1 个告警");
   assert.equal(zh("workbench.labelAlert", { alerts: zh("workbench.provider.alertCount", { n: 3 }) }),
     "工作台 · 3 个告警");
+  assert.equal(en("workbench.labelTasks", { n: 2 }), "Workbench · 2 pending",
+    "a wide row without a provider alert still says how many tasks are waiting");
+  assert.equal(zh("workbench.labelTasks", { n: 2 }), "工作台 · 2 件待处理");
   const hundred = Array.from({ length: 100 }, (_, i) => task("m" + i, now - i * 1000));
   assert.equal(badgeOf(renderIcon(alert, hundred)).children.join(""), "99+",
     "the rail badge caps at 99+");

@@ -97,15 +97,16 @@ body[data-ds-dark-theme]{--dsw-alias-bg-layer-1:#171a1f;--dsw-alias-bg-base:#0f1
 .wb-stage{height:100%;display:flex}
 .wb-stage > *{flex:1 1 auto;min-width:0}
 .wb-stage > *{flex:1 1 auto;min-width:0}
-/* dsh's sidebar.panellist host, measured on the live desk at 402x874: 36px
-   rows, an 18px glyph slot, a 14px/22px label and a 2px gap. The rail is the
-   same list at 56px with 36px hit boxes and a 12px gap. */
+/* dsh's sidebar.panellist host, measured on the live desk at 390x844 (after
+   the wb-icon change): 36px rows, a 16px glyph slot, a 14px/22px label and a
+   6px glyph-to-label gap. The rail is the same list at 56px with 36px hit
+   boxes and a 12px gap. */
 .host-sidebar{width:264px;min-height:100%;box-sizing:border-box;padding:8px;background:#f7f8fa;font:14px/22px system-ui,-apple-system,"Segoe UI",sans-serif;color:#15171b}
 .host-sidebar.host-rail{width:56px;padding:12px 10px}
 .host-panel-list{display:flex;flex-direction:column;gap:2px}
-.host-panel-row{display:flex;align-items:center;gap:10px;width:100%;height:36px;box-sizing:border-box;margin:0;padding:0 10px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left}
+.host-panel-row{display:flex;align-items:center;gap:6px;width:100%;height:36px;box-sizing:border-box;margin:0;padding:0 10px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;text-align:left}
 .host-panel-row[aria-current=true]{background:rgba(38,49,72,.06)}
-.host-panel-glyph{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+.host-panel-glyph{flex:none;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px}
 .host-panel-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .host-rail .host-panel-list{gap:12px}
 .host-rail .host-panel-row{width:36px;justify-content:center;padding:0}
@@ -209,6 +210,10 @@ const HARNESS_JS = String.raw`
     provider('minimax', 'MiniMax', { totalBalance: '69', windows: [{ label: '周', percent: 69, resetAt: '周四 21:00' }] }, 'stale'),
     provider('opencode', 'OpenCode', { unit: 'pct', totalBalance: '0', windows: [] }, 'fresh', { result: { configured: true, snapshot: { isAvailable: false, unit: 'pct', currency: '', totalBalance: '0', grantedBalance: '', toppedUpBalance: '', asOf: new Date(now - 60000).toISOString(), note: '', windows: [] }, status: 'fresh', low: false, message: null, threshold: 20, refreshMs: 60000 } }),
   ] };
+  const calmBalances = { refreshMs: 60000, providers: [
+    provider('deepseek', 'DeepSeek', { unit: 'money', currency: 'CNY', totalBalance: '109.21', grantedBalance: '0.00', toppedUpBalance: '109.21', windows: [] }),
+    provider('codex', 'Codex', { totalBalance: '100', windows: [{ label: '周', percent: 40, resetAt: '周四 10:00' }] }, 'fresh'),
+  ] };
   const emptyBalances = { refreshMs: 60000, providers: [] };
   const failBalances = { refreshMs: 60000, providers: [] };
   const goodStats = {
@@ -229,7 +234,7 @@ const HARNESS_JS = String.raw`
     if (name === 'toast') return Object.assign({}, goodQueue, { logDir: '' });
     return goodQueue;
   }
-  const balancesFor = (name) => name === 'empty' ? emptyBalances : name === 'read-failed' ? failBalances : goodBalances;
+  const balancesFor = (name) => name === 'empty' ? emptyBalances : name === 'read-failed' ? failBalances : name === 'sidebar-count' ? calmBalances : goodBalances;
   const statsFor = (name) => name === 'empty' ? emptyStats : name === 'read-failed' ? noStats : goodStats;
 
   const never = () => new Promise(() => {});
@@ -322,8 +327,8 @@ const HARNESS_JS = String.raw`
       document.head.appendChild(legacy);
     }
   }
-  if (scenario === 'sidebar' || scenario === 'sidebar-rail' || scenario === 'sidebar-legacy') {
-    mountSidebar(scenario === 'sidebar' ? 'wide' : 'rail');
+  if (scenario === 'sidebar' || scenario === 'sidebar-rail' || scenario === 'sidebar-legacy' || scenario === 'sidebar-count') {
+    mountSidebar(scenario === 'sidebar-rail' || scenario === 'sidebar-legacy' ? 'rail' : 'wide');
   } else {
     mountWorkbench();
   }
@@ -495,6 +500,7 @@ function gaugeInPage(mode) {
       rail: el.getAttribute("data-wb-rail") === "true",
       row: box(el),
       title: box(el.querySelector(".host-panel-title")),
+      titleText: (() => { const t = el.querySelector(".host-panel-title"); return t === null ? null : t.textContent; })(),
       icon: box(el.querySelector("[data-wb-icon]")),
       badge: box(el.querySelector("[data-wb-badge]")),
       alert: box(el.querySelector("[data-wb-rail-alert]")),
@@ -520,6 +526,8 @@ function gaugeInPage(mode) {
       mode, rows, intersections, containment,
       badgeGlyphShare: glyphArea === 0 || workbench.badge === null ? 0 : round(area(workbench.badge, workbench.icon) / glyphArea),
       badgeAlertArea: workbench === null ? 0 : round(area(workbench.badge, workbench.alert)),
+      titleGap: workbench === null || workbench.badge === null || workbench.title === null
+        ? null : round(workbench.title.x - workbench.badge.right),
     };
   }
 
@@ -630,6 +638,7 @@ const STATES = [
   { name: "sidebar", width: 390, height: 844, scenario: "sidebar", drive: null, gauge: "sidebar" },
   { name: "sidebar-375", width: 375, height: 667, scenario: "sidebar", drive: null, gauge: "sidebar" },
   { name: "sidebar-legacy", width: 390, height: 844, scenario: "sidebar-legacy", drive: null, gauge: "sidebar", control: true },
+  { name: "sidebar-count", width: 390, height: 844, scenario: "sidebar-count", drive: null, gauge: "sidebar" },
   { name: "320-sticky", width: 320, height: 568, scenario: "normal", drive: "sticky" },
   { name: "320-providers", width: 320, height: 568, scenario: "normal", drive: "providers" },
   { name: "320-task", width: 320, height: 568, scenario: "normal", drive: "task", gauge: "detail" },
@@ -729,6 +738,22 @@ function assertGauge(state, gauge) {
     assert.ok(gauge.badgeGlyphShare <= 0.4,
       state.name + ": the count badge covers " + Math.round(gauge.badgeGlyphShare * 100) + "% of the glyph (max 40%)");
     assert.equal(gauge.badgeAlertArea, 0, state.name + ": the count badge and the rail alert must not intersect");
+    const workbench = gauge.rows.find((row) => row.name === "workbench");
+    if (workbench !== undefined && workbench.rail === false) {
+      assert.equal(workbench.badge, null,
+        state.name + ": the wide row carries the count in its label, not on the glyph");
+      assert.ok(typeof workbench.titleText === "string" && workbench.titleText.length > 0,
+        state.name + ": the wide row keeps a visible label");
+      if (state.scenario === "sidebar-count") {
+        assert.ok(/4/.test(workbench.titleText) && /待处理/.test(workbench.titleText),
+          state.name + ": a pending-only row names the count in words (got " + workbench.titleText + ")");
+      }
+    }
+    if (workbench !== undefined && workbench.rail === true) {
+      assert.ok(workbench.badge !== null, state.name + ": the rail keeps the count badge");
+      assert.ok(gauge.titleGap === null || gauge.titleGap >= 2,
+        state.name + ": the count badge must leave 2px before the label (got " + gauge.titleGap + ")");
+    }
     return;
   }
   if (state.gauge === "detail") {
