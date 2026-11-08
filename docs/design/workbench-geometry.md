@@ -3,7 +3,8 @@
 The live dsh host draws `sidebar.panellist` rows as 36px buttons (measured
 2026-11-08 at 390x844 and 402x874) with a 16px glyph slot, a 14px/22px
 label and a 6px glyph-to-label gap. The rail is the same list at 56px with
-36px hit boxes and a 12px gap. The Workbench entry is a 16px glyph with no
+36px hit boxes and a 12px gap. The Workbench page uses a 20px content inset (Automation tasks baseline).
+The Workbench entry is a 16px glyph with no
 numeric badge in either state: the count is words in the host's label
 (`Workbench · 1 alert`), and a row with no alert has no suffix. The rail,
 where the host hides the label, keeps only the non-numeric alert mark.
