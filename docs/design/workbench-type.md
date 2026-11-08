@@ -13,18 +13,18 @@ resolved value of the size token; the test asserts it against the CSS root.
 
 | 语义角色 | 字号 token | 字重 token | 行高 token | 字号值 | 用在哪 |
 | --- | --- | --- | --- | --- | --- |
-| 页面标题 | `--fs-xl` | `--fw-semibold` | `--lh-xl` | 15px | `.wb-title`, `.wb-returnbar .wb-back` |
-| 分组标题 | `--fs-md` | `--fw-medium` | `--lh-lg` | 13px | `.wb-group`, `.wb-group-title` |
-| 行标题 | `--fs-lg` | `--fw-medium` | `--lh-lg` | 14px | `.wb-row-title` |
-| 行标题（强调） | `--fs-lg` | `--fw-semibold` | `--lh-lg` | 14px | `.wb-prov-name` |
+| 页面标题 | `--fs-3xl` | `--fw-medium` | `--lh-3xl` | 20px | `.wb-title` |
+| 分组标题 | `--fs-lg` | `--fw-medium` | `--lh-xl` | 14px | `.wb-group`, `.wb-group-title` |
+| 行标题 | `--fs-lg` | `--fw-medium` | `--lh-23` | 14px | `.wb-row-title`, `.wb-hist-title` |
+| 行标题（强调） | `--fs-lg` | `--fw-semibold` | `--lh-23` | 14px | `.tq-d-name` |
 | 主指标 | `--fs-3xl` | `--fw-semibold` | `--lh-2xl` | 20px | `.wb-ov-metric-value` |
 | 次指标 | `--fs-md` | `--fw-medium` | `--lh-lg` | 13px | `.wb-ov-value`, `.wb-headline-value` |
 | 提供方指标 | `--fs-md` | `--fw-bold` | `--lh-lg` | 13px | `.wb-prov-primary` |
-| 说明/meta | `--fs-sm` | `--fw-regular` | `--lh-md` | 12px | `.wb-row-sub`, `.wb-prov-meta`, `.wb-ov-note` |
-| chip | `--fs-xs` | `--fw-medium` | `--lh-md` | 11px | `.wb-ov-chip`, `.wb-prov-stale` |
-| 按钮 | `--fs-lg` | `--fw-medium` | `--lh-lg` | 14px | `.wb-act`, `.wb-empty-link` |
-| tab | `--fs-md` | `--fw-semibold` | `--lh-lg` | 13px | `.wb-tab` |
-| 空态标题 | `--fs-xl` | `--fw-medium` | `--lh-xl` | 15px | `.wb-empty-title` |
+| 说明/meta | `--fs-md` | `--fw-regular` | `--lh-21` | 13px | `.wb-row-sub`, `.wb-hist-meta`, `.wb-ov-note` |
+| chip | `--fs-xs` | `--fw-regular` | `--lh-sm` | 11px | `.wb-ov-chip`, `.tq-tag` |
+| 按钮 | `--fs-md` | `--fw-medium` | `--lh-lg` | 13px | `.wb-act`, `.tq-pill` |
+| tab | `--fs-lg` | `--fw-regular` | `--lh-xl` | 14px | `.wb-tab`, `.wb-groupby-btn` |
+| 空态标题 | `--fs-lg` | `--fw-regular` | `--lh-xl` | 14px | `.wb-empty-title` |
 | 错误文本 | `--fs-sm` | `--fw-regular` | `--lh-md` | 12px | `.wb-notice`, `.wb-providers-error`, `.tq-stats-error-text` |
 | 角标数字 | `--fs-badge` | `--fw-bold` | `--lh-xs` | 9px | `.wb-tab-alert`, `.wb-rail-alert` |
 | 计数角标 | `--fs-micro` | `--fw-semibold` | `--lh-xs` | 10px | `.wb-tab-count` |

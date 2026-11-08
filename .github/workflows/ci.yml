@@ -407,6 +407,10 @@ jobs:
         if: steps.changes.outputs.dsplugin == 'true'
         run: node tests/workbench_typography.spec.js
 
+      - name: Workbench tokens and primitives (measured scale, no raw values)
+        if: steps.changes.outputs.dsplugin == 'true'
+        run: node tests/workbench_tokens.spec.js
+
       # The spec above imports lib/ out of the checkout, where the repo's own
       # node_modules satisfies everything — so it stayed green while #708
       # shipped an undeclared-at-the-install-site `zod` and crash-looped dsh in

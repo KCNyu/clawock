@@ -31,6 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
+import { Button, Card, Chip as WorkbenchChip, EmptyState, Field, Row, SectionHeader, Sheet } from './workbench-primitives.ts'
 import { PROVIDER_JOIN } from './providers.ts'
 import {
   effectsFor, initialWorkbenchState, isLegalWorkbenchAction, reduceWorkbench,
@@ -1398,10 +1399,13 @@ function renderHistoryBody(rows: HistoryRowView[], t: Translate, open: (id: stri
   onTasks: () => void): React.ReactElement {
   if (rows.length === 0) return h('p', { className: cx('wb-ov-note') }, t('workbench.history.empty'))
   const row = (item: HistoryRowView): React.ReactElement => h('li', { key: item.id },
-    h('button', {
-      type: 'button', className: cx('wb-hist-row'), 'data-wb-history': item.id,
-      'data-wb-tone': item.tone, 'aria-label': item.aria,
-      onClick: (event?: { currentTarget?: HTMLElement }) => { open(item.id, event?.currentTarget ?? null) },
+    h(Row, {
+      variant: 'history',
+      attrs: {
+        'data-wb-history': item.id,
+        'data-wb-tone': item.tone, 'aria-label': item.aria,
+        onClick: (event?: { currentTarget?: HTMLElement }) => { open(item.id, event?.currentTarget ?? null) },
+      },
     },
       h('span', { className: cx('wb-hist-main') },
         h('span', { className: cx('wb-hist-title') }, item.title),
@@ -1698,10 +1702,15 @@ export const DETAIL_ACTIONS: Record<string, { kind: ActionKind; home: string }> 
 function actionPill(key: string, label: string, onClick: () => void,
   opts: { disabled?: boolean; title?: string; said?: string; armed?: boolean; kind?: ActionKind } = {}): React.ReactElement {
   const kind = opts.kind ?? DETAIL_ACTIONS[key]?.kind ?? 'write'
-  return h('button', {
-    type: 'button', key, className: cx('tq-pill', kind === 'danger' && 'tq-danger'), 'data-tq-action': key, 'data-tq-kind': kind,
-    'data-armed': opts.armed ? 'true' : undefined, disabled: opts.disabled === true, title: opts.title,
-    'aria-label': opts.said, onClick,
+  return h(Button, {
+    key,
+    pill: true,
+    variant: kind === 'danger' ? 'danger' : 'secondary',
+    attrs: {
+      'data-tq-action': key, 'data-tq-kind': kind,
+      'data-armed': opts.armed ? 'true' : undefined, disabled: opts.disabled === true, title: opts.title,
+      'aria-label': opts.said, onClick,
+    },
   }, key === 'brief' || key === 'log' || key.endsWith('-log') ? renderViewGlyph(key === 'brief' ? 'brief' : 'log') : null, h('span', null, label))
 }
 
@@ -1783,32 +1792,43 @@ function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Transl
   openPath: (path: string) => void, openTextFile: (path: string) => void, live: boolean): React.ReactElement | null {
   if (brief === null) return null
   const kbOf = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
-  return h('div', {
-    className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading'),
+  return h(Card, {
+    attrs: {
+      className: cx('tq-brief'), key: 'brief', 'data-tq-brief': task.id, role: 'group', 'aria-label': t('queue.brief.heading'),
+    },
   },
     h('div', { className: cx('tq-caption') }, t('queue.brief.heading') + ' · ' + t('queue.brief.readOnly')),
-    h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { openPath(brief.path) } },
+    h(Button, { plain: true, attrs: { className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { openPath(brief.path) } } },
       h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kbOf(brief.bytes) })),
       brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kbOf(brief.bytes) })) : null),
-    brief.truncated ? h('button', {
-      type: 'button', className: cx('tq-file'), 'data-tq-brief-full': brief.path,
-      onClick: () => { openTextFile(brief.path) },
+    brief.truncated ? h(Button, {
+      plain: true,
+      attrs: {
+        className: cx('tq-file'), 'data-tq-brief-full': brief.path,
+        onClick: () => { openTextFile(brief.path) },
+      },
     }, h('span', { className: cx('tq-file-name') }, t('queue.brief.openFull'))) : null,
     brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
       : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
         : brief.appends.map((append, index) => h('div', { className: cx('tq-file-item'), key: append.file },
-          h('button', {
-            type: 'button', className: cx('tq-file'), 'data-tq-file': append.path,
-            onClick: () => { openPath(append.path) },
+          h(Button, {
+            plain: true,
+            attrs: {
+              className: cx('tq-file'), 'data-tq-file': append.path,
+              onClick: () => { openPath(append.path) },
+            },
           },
             h('span', { className: cx('tq-file-label') },
               h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file })),
               append.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, append.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
             h('span', { className: cx('tq-tag'), 'data-tq-delivered': append.delivered ? 'true' : 'false' },
               t(append.delivered ? 'queue.brief.delivered' : (append.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending'))),
-          h('button', {
-            type: 'button', className: cx('tq-link', 'tq-file-full'), 'data-tq-append-link': append.file,
-            onClick: () => { openTextFile(append.path) },
+          h(Button, {
+            plain: true,
+            attrs: {
+              className: cx('tq-link', 'tq-file-full'), 'data-tq-append-link': append.file,
+              onClick: () => { openTextFile(append.path) },
+            },
           }, t('queue.brief.openFull')),
           h('details', { className: cx('tq-fold'), 'data-tq-append-full': append.file },
             h('summary', { className: cx('tq-fold-summary') },
@@ -1909,15 +1929,18 @@ type DetailField = {
 
 /** One field on the row grid: dt on the name's edge, dd over took…rest, its control in aside. */
 function renderField(field: DetailField): React.ReactElement {
-  const control = field.control == null || field.control.length === 0 ? null : field.control
-  return h('div', {
-    className: cx('tq-d-field', control !== null && !field.wide && 'tq-d-has-control'), key: field.key, 'data-tq-field': field.key,
-  },
-    h('dt', { className: cx('tq-d-k') }, field.label),
-    h('dd', { className: cx('tq-d-v', field.mono === true && 'tq-mono'), 'data-voice': field.voice }, field.value),
-    field.sub == null || field.sub === '' ? null : h('dd', { className: cx('tq-d-sub') }, field.sub),
-    control === null ? null : h('dd', { className: cx('tq-d-control', field.wide && 'tq-d-control-wide') }, ...control),
-    field.after == null ? null : h('dd', { className: cx('tq-d-after') }, field.after))
+  return h(Field, {
+    key: field.key,
+    label: field.label,
+    value: field.value,
+    sub: field.sub,
+    control: field.control,
+    after: field.after,
+    wide: field.wide,
+    mono: field.mono,
+    voice: field.voice,
+    attrs: { 'data-tq-field': field.key },
+  })
 }
 
 /** A section: its caption (a heading for a screen reader's rotor) and its fields as one description list. */
@@ -1925,7 +1948,7 @@ function renderSection(id: DetailSection, title: string | null, body: Array<Reac
   const present = body.filter((node) => node !== null && node !== undefined && node !== false)
   if (present.length === 0) return null
   return h('div', { className: cx('tq-d-sec'), key: id, 'data-tq-section': id },
-    title === null ? null : h('div', { className: cx('tq-d-sec-title'), role: 'heading', 'aria-level': 3 }, title),
+    title === null ? null : h(SectionHeader, { as: 'div', title }),
     ...present)
 }
 
@@ -2335,20 +2358,22 @@ function WorkbenchGroupHeader(props: {
   buttonRef: (element: HTMLButtonElement | null) => void
   onToggle: () => void
 }): React.ReactElement {
-  return h('button', {
-    type: 'button', className: cx('wb-group'), 'data-wb-group-button': props.id, 'data-wb-tone': props.tone,
-    'aria-expanded': props.open,
-    // The body is always mounted so grid-template-rows can animate; the
-    // closed state removes it from the accessibility tree and interaction.
-    'aria-controls': props.bodyId,
-    ref: props.buttonRef,
-    onClick: props.onToggle,
-  },
-    props.tone === 'danger' ? renderWorkbenchAlert() : null,
-    props.lead ?? null,
-    h('span', { className: cx('wb-group-title') }, props.label),
-    props.summary === undefined || props.summary === '' ? null : h('span', { className: cx('wb-group-summary') }, props.summary),
-    h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, renderWorkbenchChevron()))
+  return h(SectionHeader, {
+    title: props.label,
+    summary: props.summary,
+    tone: props.tone,
+    lead: props.tone === 'danger' ? renderWorkbenchAlert() : props.lead ?? null,
+    chevron: renderWorkbenchChevron(),
+    attrs: {
+      'data-wb-group-button': props.id,
+      'aria-expanded': props.open,
+      // The body is always mounted so grid-template-rows can animate; the
+      // closed state removes it from the accessibility tree and interaction.
+      'aria-controls': props.bodyId,
+      ref: props.buttonRef,
+      onClick: props.onToggle,
+    },
+  })
 }
 
 /**
@@ -2363,14 +2388,12 @@ function WorkbenchEntryHeader(props: {
   buttonRef: (element: HTMLButtonElement | null) => void
   onOpen: () => void
 }): React.ReactElement {
-  return h('button', {
-    type: 'button', className: cx('wb-group'), 'data-wb-group-button': props.id, 'data-wb-tone': 'neutral',
-    ref: props.buttonRef,
-    onClick: props.onOpen,
-  },
-    h('span', { className: cx('wb-group-title') }, props.label),
-    props.summary === undefined || props.summary === '' ? null : h('span', { className: cx('wb-group-summary') }, props.summary),
-    h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, '›'))
+  return h(SectionHeader, {
+    title: props.label,
+    summary: props.summary,
+    chevron: '›',
+    attrs: { 'data-wb-group-button': props.id, ref: props.buttonRef, onClick: props.onOpen },
+  })
 }
 
 /** The panellist icon: a permanent entry; the badge exists only with pending tasks. */
@@ -2476,20 +2499,21 @@ function WorkbenchRow(props: {
 }): React.ReactElement {
   const { task, t } = props
   const sub = firstSentence(task.needs ?? '')
-  return h('button', {
-    type: 'button',
-    ref: props.buttonRef,
-    className: cx('wb-row', props.selected && 'wb-row-on'),
-    'data-wb-task': task.id,
-    'aria-label': t('workbench.rowAria', { title: taskTitle(task), time: waitSpoken(waitedOf(task, props.now), t) }),
-    onClick: props.onOpen,
-    onKeyDown: (event: React.KeyboardEvent) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault(); event.stopPropagation(); props.onOpen(); return
-      }
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault(); event.stopPropagation(); props.onMove(event.key === 'ArrowDown' ? 1 : -1)
-      }
+  return h(Row, {
+    selected: props.selected,
+    attrs: {
+      ref: props.buttonRef,
+      'data-wb-task': task.id,
+      'aria-label': t('workbench.rowAria', { title: taskTitle(task), time: waitSpoken(waitedOf(task, props.now), t) }),
+      onClick: props.onOpen,
+      onKeyDown: (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault(); event.stopPropagation(); props.onOpen(); return
+        }
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault(); event.stopPropagation(); props.onMove(event.key === 'ArrowDown' ? 1 : -1)
+        }
+      },
     },
   },
     h('span', { className: cx('wb-row-main') },
@@ -3285,37 +3309,30 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
               close: closeSheet,
               busy: busy !== null,
             })]
-    return h('div', {
-      className: cx('wb-overlay'), 'data-wb-overlay': 'sheet', 'data-wb-sheet-kind': kind,
-    },
-      h('div', {
-        className: cx('wb-scrim'), 'data-wb-scrim': 'true', 'aria-hidden': 'true',
-        onClick: closeSheet,
-      }),
-      h('div', {
-        className: cx('wb-sheet'), role: 'dialog', 'aria-modal': 'true', 'aria-label': title,
-        'data-wb-sheet': kind,
-      },
-        h('div', { className: cx('wb-sheet-head') },
-          h('span', { className: cx('wb-sheet-title') }, title),
-          h('button', {
-            type: 'button', className: cx('wb-sheet-close'), 'data-wb-sheet-back': 'true',
-            'aria-label': t('queue.a.close'), title: t('queue.a.close'), onClick: closeSheet,
-          }, '×')),
-        h('div', { className: cx('wb-sheet-body', 'pbc', 'tqf') }, ...body)))
+    return h(Sheet, {
+      title,
+      closeLabel: t('queue.a.close'),
+      onClose: closeSheet,
+      attrs: { 'data-wb-sheet-kind': kind, sheet: kind },
+    }, ...body)
   }
   const sheetNode = renderSheet()
 
   const renderQueue = (): React.ReactElement => {
     if (pending.length === 0 && live.length === 0) {
-      return h('div', { className: cx('wb-empty'), 'data-wb-empty': 'true' },
-        h('div', { className: cx('wb-empty-title') }, t('workbench.empty.title')),
-        h('div', { className: cx('wb-empty-body') }, t('workbench.empty.body')),
-        h('div', { className: cx('wb-empty-meta') }, t('workbench.empty.meta', { time: stamp })),
-        h('button', {
-          type: 'button', className: cx('wb-empty-link'), 'data-wb-empty-providers': 'true',
-          onClick: () => { selectTab('providers') },
-        }, t('workbench.tab.providers') + ' ›'))
+      return h(EmptyState, {
+        attrs: { 'data-wb-empty': 'true' },
+        title: t('workbench.empty.title'),
+        body: t('workbench.empty.body'),
+        meta: t('workbench.empty.meta', { time: stamp }),
+        action: h(Button, {
+          plain: true,
+          attrs: {
+            className: cx('wb-empty-link'), 'data-wb-empty-providers': 'true',
+            onClick: () => { selectTab('providers') },
+          },
+        }, t('workbench.tab.providers') + ' ›'),
+      })
     }
     const bodyId = (id: WorkbenchGroup): string => groupId + '-' + id
     const renderRow = (task: DispatchTask): React.ReactElement => h(WorkbenchRow, {
@@ -3493,10 +3510,12 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           h('div', { className: cx('wb-empty-body') }, t('balance.loading')))
       }
       const failed = balances.data.error !== null && !balances.data.loading
-      return h('div', { className: cx('wb-providers-empty'), 'data-wb-providers-empty': 'true' },
-        h('span', { className: cx('wb-empty-glyph'), 'aria-hidden': 'true' }, renderWorkbenchGlyph(24)),
-        h('div', { className: cx('wb-empty-title') }, failed ? t('workbench.provider.readFailed', { message: balances.data.error }) : t('workbench.provider.empty')),
-        failed ? null : h('div', { className: cx('wb-empty-body') }, t('workbench.provider.emptyHint')))
+      return h(EmptyState, {
+        attrs: { className: cx('wb-providers-empty'), 'data-wb-providers-empty': 'true' },
+        glyph: renderWorkbenchGlyph(24),
+        title: failed ? t('workbench.provider.readFailed', { message: balances.data.error }) : t('workbench.provider.empty'),
+        body: failed ? undefined : t('workbench.provider.emptyHint'),
+      })
     }
     return h('div', { className: cx('wb-providers', 'pbc'), role: 'list', 'aria-label': t('workbench.tab.providers'), 'data-wb-providers': 'true' },
       balances.data.error !== null && !balances.data.loading
@@ -3519,43 +3538,46 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   // to keep a Stop that the dispatcher refuses; the UI hid the refusal.
   const canStop = shown !== null && (shownLive || shown.question === true)
   const showPresets = shown !== null && (!shownLive || shown.question === true)
-  const needsBlock = shown === null ? null : h('div', { className: cx('wb-needs-block') },
+  const needsBlock = shown === null ? null : h(Card, { attrs: { className: cx('wb-needs-block') } },
     h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
     shown.needs === undefined || shown.needs.trim() === ''
       ? h('div', { className: cx('wb-needs-empty') }, t('workbench.needs.empty'))
       : h('div', { className: cx('wb-needs') }, ..._richText(shown.needs, 'needs')),
     !shownLive && shown.needs !== undefined && shown.needs.trim() !== '' && shown.needsAck !== true
-      ? h('button', {
-        type: 'button', className: cx('wb-dismiss'), disabled: busy !== null,
-        'data-wb-dismiss': 'true', title: t('queue.a.dismissTitle'),
-        onClick: () => { dismissNeeds(shown) },
+      ? h(Button, {
+        plain: true,
+        attrs: {
+          className: cx('wb-dismiss'), disabled: busy !== null,
+          'data-wb-dismiss': 'true', title: t('queue.a.dismissTitle'),
+          onClick: () => { dismissNeeds(shown) },
+        },
       }, t('queue.a.dismiss'))
       : null,
     showPresets ? h('div', { className: cx('wb-actions') },
-      h('button', {
-        type: 'button', className: cx('wb-act', 'wb-act-primary'),
-        disabled: busy !== null,
-        onClick: () => { act('continue') },
+      h(Button, {
+        variant: 'primary',
+        attrs: { disabled: busy !== null, onClick: () => { act('continue') } },
       }, busy === 'continue' ? t('workbench.busy') : t('workbench.act.continue')),
-      h('button', {
-        type: 'button', className: cx('wb-act', 'wb-act-secondary'),
-        disabled: busy !== null,
-        onClick: () => { act('modify') },
+      h(Button, {
+        variant: 'secondary',
+        attrs: { disabled: busy !== null, onClick: () => { act('modify') } },
       }, busy === 'modify' ? t('workbench.busy') : t('workbench.act.modify')),
       canStop ? h('div', { className: cx('wb-danger') },
-        h('button', {
-          type: 'button', className: cx('wb-act', 'wb-act-danger'),
-          disabled: busy !== null,
-          'data-wb-confirm': confirmStop ? 'true' : undefined,
-          'aria-live': 'polite',
-          onClick: () => { act('stop') },
+        h(Button, {
+          variant: 'danger',
+          attrs: {
+            disabled: busy !== null,
+            'data-wb-confirm': confirmStop ? 'true' : undefined,
+            'aria-live': 'polite',
+            onClick: () => { act('stop') },
+          },
         }, busy === 'stop' ? t('workbench.busy')
           : confirmStop ? t('workbench.act.confirm') : t('workbench.act.stop'))) : null)
       : null,
-    submittedAt === null ? null : h('div', { className: cx('wb-recorded'), role: 'status', 'data-wb-recorded': 'true' },
+    submittedAt === null ? null : h(Card, { attrs: { className: cx('wb-recorded'), role: 'status', 'data-wb-recorded': 'true' } },
       h('span', { className: cx('wb-recorded-line') },
         t('workbench.recorded'), ' · ',
-        h('button', { type: 'button', className: cx('wb-next'), onClick: advance }, t('workbench.next'))),
+        h(Button, { plain: true, attrs: { className: cx('wb-next'), onClick: advance } }, t('workbench.next'))),
       h('span', { className: cx('wb-recorded-time') }, submittedAt)))
   const detail = shown === null
     ? h('div', { className: cx('wb-detail-empty') }, t('workbench.select'))
@@ -3587,15 +3609,15 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           h('span', { className: cx('wb-ov-label') }, t('workbench.overview.lastRound')),
           h('span', { className: cx('wb-ov-value') },
             lastPatrolTime + (lastPatrolTook === '' ? '' : ' · ' + lastPatrolTook),
-            lastPatrolView?.state == null ? null : h('span', {
-              className: cx('wb-ov-chip'), 'data-role': lastPatrolView.state.role,
+            lastPatrolView?.state == null ? null : h(WorkbenchChip, {
+              attrs: { 'data-role': lastPatrolView.state.role },
             }, lastPatrolView.state.text))),
         h('div', { className: cx('wb-ov-row') },
           h('span', { className: cx('wb-ov-label') }, t('workbench.overview.coverage')),
           h('span', { className: cx('wb-ov-value') },
             progress === null ? '—' : [
-              h('span', { className: cx('wb-ov-chip'), key: 'a' }, t('workbench.overview.areaCount', { n: areaCount })),
-              h('span', { className: cx('wb-ov-chip'), key: 'l' }, t('workbench.overview.lensCount', { n: lensCount })),
+              h(WorkbenchChip, { key: 'a' }, t('workbench.overview.areaCount', { n: areaCount })),
+              h(WorkbenchChip, { key: 'l' }, t('workbench.overview.lensCount', { n: lensCount })),
             ])),
         h('div', { className: cx('wb-ov-row') },
           h('span', { className: cx('wb-ov-label') }, t('workbench.overview.unresolved')),
