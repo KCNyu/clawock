@@ -153,6 +153,11 @@ review queue only: no store or `DREAMS.md` write, and no `commit_dreaming.sh` ca
 | P3 | Injection: direct chat, workers and investment crons read their scoped view | `inject --audience` matches the policy; no investment note reaches a worker brief and no engineering note reaches a report |
 | P4 | Single dreaming engine; publish projection generated | 03:20 gate writes topics and regenerates `MEMORY.md`; the repo diff contains only `publish: public` |
 
+P4 is implemented by `ops/host/promote_dreaming.py`: the 03:20 gate reuses the hash-bound review,
+writes each approved conclusion as a new `publish: public` topic with the next contiguous
+`order`, and runs `publish.py --write`. The 14 sections already in `MEMORY.md` remain their
+existing topics; promotion only handles new candidates.
+
 **P3 gate.** Do not wire the injection views while `inject --audience direct` is empty. Every
 direct-chat rule needs an explicit `salience: high` in P2 first; until then `inject` exits 1 and
 prints `refusing a silent empty view` rather than letting P3 replace a hand-written memory with

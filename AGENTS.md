@@ -188,11 +188,12 @@ Handle every open issue on its evidence; there is no issue-count ceiling.
 
 ## Memory
 
-- `MEMORY.md` is the OpenClaw assistant's long-term memory and is tracked. If something
-  must survive the session, write the conclusion there, self-contained.
-- On this host, dreaming writes private candidates and `DREAMS.md` at 03:00 HKT.
-  The 03:20 commit gate moves explicitly reviewed durable conclusions into MEMORY;
-  see `docs/operations/dreaming-review.md`. Leave the `openclaw:dreaming` and
+- `MEMORY.md` is the OpenClaw assistant's long-term memory and is generated from the shared
+  store's `publish: public` topics; do not hand-edit it. A durable conclusion goes to a topic
+  in `~/.shared-memory` through the shared-memory skill, or through the reviewed dreaming gate.
+- On this host, dreaming writes private candidates and `DREAMS.md` at 03:00 HKT. The 03:20
+  gate writes reviewed conclusions as public store topics and regenerates `MEMORY.md`; see
+  `docs/operations/dreaming-review.md`. Leave the `openclaw:dreaming` and
   `openclaw-memory-promotion` markers intact.
 - `memory/*-pre-open.md` and `memory/weekly/` are published briefs, and the plan JSON is
   runtime data. Do not add other prose under `memory/`.

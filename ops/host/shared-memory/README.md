@@ -212,7 +212,12 @@ rather than silently ship.
 
 `MEMORY.md` stays the direct-chat injection source. The projection keeps the exact section text,
 order and separators of the reviewed file, so switching it in does not change what the chat sees.
-`tests/test_memory_publish.py` holds the committed-pair check and the fake-store round trip.
+The 03:20 dreaming gate (`ops/host/promote_dreaming.py`) writes each reviewed conclusion as a
+new `publish: public` topic with the next contiguous `order` and `separator: true`, then runs
+`publish.py --write`; it never appends to the generated file. `tests/test_memory_publish.py`
+holds the committed-pair check and the fake-store round trip, and
+`tests/test_dreaming_promotion.py` covers the promotion, idempotency, unreviewed and rollback
+paths.
 
 ## Recall counter and retirement
 

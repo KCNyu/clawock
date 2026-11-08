@@ -196,6 +196,7 @@ def test_commit_dreaming_keeps_dreams_when_memory_review_fails(tmp_path):
     (ws / 'ops/publish').mkdir(parents=True)
     (ws / 'MEMORY.md').write_text('# Memory\n')
     (ws / 'DREAMS.md').write_text('# Dream Diary\n')
+    (ws / 'ops/host/promote_dreaming.py').write_text('raise SystemExit(1)\n')
     (ws / 'ops/host/review_dreaming.py').write_text('raise SystemExit(1)\n')
     (ws / 'ops/host/review_dreams.py').write_text('raise SystemExit(0)\n')
     (ws / 'ops/publish/safe_push.sh').write_text('#!/bin/bash\nexit 0\n')
@@ -211,6 +212,71 @@ def test_commit_dreaming_keeps_dreams_when_memory_review_fails(tmp_path):
     files = subprocess.run(['git', 'show', '--name-only', '--format=', 'HEAD'], cwd=ws,
                            capture_output=True, text=True, check=True).stdout.split()
     assert files == ['DREAMS.md']
+
+def _git_worktree(tmp_path, files):
+    ws = tmp_path / 'ws'
+    (ws / 'ops/host').mkdir(parents=True)
+    (ws / 'ops/publish').mkdir(parents=True)
+    for name, content in files.items():
+        path = ws / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+    (ws / 'ops/publish/safe_push.sh').write_text('#!/bin/bash\nexit 0\n')
+    (ws / 'ops/host/commit_dreaming.sh').write_text(
+        (ROOT / 'ops/host/commit_dreaming.sh').read_text())
+    subprocess.run(['git', 'init', '-q'], cwd=ws, check=True)
+    subprocess.run(['git', 'config', 'user.name', 'test'], cwd=ws, check=True)
+    subprocess.run(['git', 'config', 'user.email', 'test@example.invalid'], cwd=ws, check=True)
+    return ws
+
+
+def test_commit_dreaming_keeps_memory_when_dreams_review_fails(tmp_path):
+    ws = _git_worktree(tmp_path, {
+        'MEMORY.md': '# Memory\n',
+        'DREAMS.md': '# Dream Diary\n',
+        'ops/host/promote_dreaming.py': (
+            'from pathlib import Path\n'
+            'Path("MEMORY.md").write_text("# Memory\\n\\n## Promoted\\n")\n'),
+        'ops/host/review_dreaming.py': 'raise SystemExit(0)\n',
+        'ops/host/review_dreams.py': 'raise SystemExit(1)\n',
+    })
+    proc = subprocess.run(['bash', str(ws / 'ops/host/commit_dreaming.sh')], cwd=ws,
+                          env={**os.environ, 'DREAMING_WORKSPACE': str(ws)},
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr + proc.stdout
+    files = subprocess.run(['git', 'show', '--name-only', '--format=', 'HEAD'], cwd=ws,
+                           capture_output=True, text=True, check=True).stdout.split()
+    assert files == ['MEMORY.md']
+
+
+def test_commit_dreaming_commits_memory_and_dreams_separately(tmp_path):
+    ws = _git_worktree(tmp_path, {
+        'MEMORY.md': '# Memory\n',
+        'DREAMS.md': '# Dream Diary\n',
+        'ops/host/promote_dreaming.py': (
+            'from pathlib import Path\n'
+            'Path("MEMORY.md").write_text("# Memory\\n\\n## Promoted\\n")\n'),
+        'ops/host/review_dreaming.py': 'raise SystemExit(0)\n',
+        'ops/host/review_dreams.py': (
+            'import sys\n'
+            'from pathlib import Path\n'
+            'if "--check" not in sys.argv:\n'
+            '    Path("DREAMS.md").write_text("# Dream Diary\\n\\n- new diary line\\n")\n'),
+    })
+    proc = subprocess.run(['bash', str(ws / 'ops/host/commit_dreaming.sh')], cwd=ws,
+                          env={**os.environ, 'DREAMING_WORKSPACE': str(ws)},
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr + proc.stdout
+    subjects = subprocess.run(['git', 'log', '--format=%s', '-2'], cwd=ws,
+                              capture_output=True, text=True, check=True).stdout.splitlines()
+    assert len(subjects) == 2
+    newest = subprocess.run(['git', 'show', '--name-only', '--format=', 'HEAD'], cwd=ws,
+                            capture_output=True, text=True, check=True).stdout.split()
+    previous = subprocess.run(['git', 'show', '--name-only', '--format=', 'HEAD~1'], cwd=ws,
+                              capture_output=True, text=True, check=True).stdout.split()
+    assert newest == ['DREAMS.md']
+    assert previous == ['MEMORY.md']
+
 
 def test_patch_executes_with_private_path_and_no_budget_eviction():
     original = (ROOT / 'tests/fixtures/openclaw_promotion.js').read_text()
@@ -346,3 +412,31 @@ def test_near_match_is_human_prose_not_a_generated_receipt():
     text = gate.HEADING + '\n\n' + entry['marker'] + (
         '\n- Rejected candidate; see private review ledger. Human annotation.\n')
     assert gate.clean_rejected_receipts(text) == text
+
+
+def test_commit_dreaming_never_commits_another_writer_staged_file(tmp_path):
+    ws = _git_worktree(tmp_path, {
+        'MEMORY.md': '# Memory\n',
+        'DREAMS.md': '# Dream Diary\n',
+        'OTHER.md': 'another writer\n',
+        'ops/host/promote_dreaming.py': (
+            'from pathlib import Path\n'
+            'Path("MEMORY.md").write_text("# Memory\\n\\n## Promoted\\n")\n'),
+        'ops/host/review_dreaming.py': 'raise SystemExit(0)\n',
+        'ops/host/review_dreams.py': (
+            'import sys\n'
+            'from pathlib import Path\n'
+            'if "--check" not in sys.argv:\n'
+            '    Path("DREAMS.md").write_text("# Dream Diary\\n\\n- new diary line\\n")\n'),
+    })
+    subprocess.run(['git', 'add', 'OTHER.md'], cwd=ws, check=True)
+    proc = subprocess.run(['bash', str(ws / 'ops/host/commit_dreaming.sh')], cwd=ws,
+                          env={**os.environ, 'DREAMING_WORKSPACE': str(ws)},
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr + proc.stdout
+    staged = subprocess.run(['git', 'diff', '--cached', '--name-only'], cwd=ws,
+                            capture_output=True, text=True, check=True).stdout.split()
+    assert staged == ['OTHER.md']
+    committed = subprocess.run(['git', 'log', '--format=', '--name-only', '-2'], cwd=ws,
+                               capture_output=True, text=True, check=True).stdout.split()
+    assert sorted(committed) == ['DREAMS.md', 'MEMORY.md']
