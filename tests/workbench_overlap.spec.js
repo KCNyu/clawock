@@ -250,6 +250,7 @@ const HARNESS_JS = String.raw`
     task(2, { name: 'A-very-long-task-name-that-must-ellipsize-without-crossing-the-age-cell', needs: '检查长标题、百分比、第二行与角标' }),
     task(3, { name: '任务 3', needs: '再做一次' }),
   ];
+  if (scenario === 'field-controls') Object.assign(pending[0], { state: 'waiting', waiting: 'quota', outcome: '', finishedAtMs: null, agent: 'codex', modelUsed: 'gpt-6-astra', modelRequested: 'gpt-6-astra', effortUsed: 'high', needs: '', summary: '' });
   const live = task(9, { id: 'live-1', name: '正在跑的长任务', state: 'running', outcome: '', stage: 'working',
     startedAtMs: now - 120000, finishedAtMs: null, waiting: '', slot: 'dsh-1', position: 1, needs: '等待中' });
   const recent = [task(10, { id: 'recent-1', name: '已结束的任务', finishedAtMs: now - 3600_000 }),
@@ -295,6 +296,7 @@ const HARNESS_JS = String.raw`
   function queueFor(name) {
     if (name === 'empty') return emptyQueue;
     if (name === 'read-failed') return failQueue;
+    if (name === 'field-controls') return Object.assign({}, goodQueue, { active: [pending[0]], pending: [], pendingTotal: 0 });
     if (name === 'toast') return Object.assign({}, goodQueue, { logDir: '' });
     return goodQueue;
   }
@@ -325,7 +327,7 @@ const HARNESS_JS = String.raw`
       runWorkbenchAction: async (action, id) => ({ ok: true, code: 0, action, id, message: '', detail: '' }),
       openFile: () => ({ ok: true }),
       closeWorkbench: () => {},
-      t: mod.createTranslator(mod.dictionaries.zh),
+      t: mod.createTranslator(scenario === 'field-controls' ? mod.dictionaries.en : mod.dictionaries.zh),
     };
   }
   function mountWorkbench() {
@@ -376,7 +378,7 @@ const HARNESS_JS = String.raw`
     document.getElementById('root').appendChild(stage);
     const root = ReactDOM.createRoot(mount);
     root.render(React.createElement(mod.WorkbenchIcon, {
-      size: 16, active: false, t: mod.createTranslator(mod.dictionaries.zh),
+      size: 16, active: false, t: mod.createTranslator(scenario === 'field-controls' ? mod.dictionaries.en : mod.dictionaries.zh),
       cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
       cachedBalances: () => balances, fetchBalances: async () => balances,
       rememberTrigger: () => {},
@@ -504,7 +506,28 @@ function collectInPage(options) {
       failures.push(pair);
     }
   }
+  const clipping = [], truncation = [];
+  for (const { el, rect, selector } of blocks) {
+    if (el.childElementCount !== 0 || !el.textContent.trim()) continue;
+    const style = getComputedStyle(el);
+    // Inline spans have no clientWidth; their parent/field is the measurable box.
+    if (style.display === "inline") continue;
+    if (el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight) continue;
+    const row = { selector, text: el.textContent.slice(0, 80),
+      scroll: [el.scrollWidth, el.scrollHeight], client: [el.clientWidth, el.clientHeight] };
+    // Existing list summaries deliberately abbreviate; the full task/brief is
+    // available through the row. This exception is explicit in every artifact.
+    if (style.textOverflow === "ellipsis" && style.whiteSpace === "nowrap" && el.scrollHeight <= el.clientHeight) {
+      truncation.push({ ...row, reason: "single-line summary; full content opens from the row" });
+    } else if (/(auto|scroll)/.test(style.overflowX + style.overflowY)) {
+      truncation.push({ ...row, reason: "explicit scroll container" });
+    } else {
+      clipping.push(row);
+    }
+  }
+  const horizontalOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth;
   return {
+    clipping, truncation, horizontalOverflow,
     scrollTop,
     blocks: blocks.map(({ el, ...rest }) => rest),
     failures,
@@ -582,6 +605,24 @@ function gaugeInPage(mode) {
       rowHeight: row.row === null ? 0 : round(row.row.h),
     }));
     return { mode, rows, intersections, containment };
+  }
+
+  if (mode === "fields") {
+    return { mode,
+      fields: [...document.querySelectorAll("[data-tq-field]")].filter((el) => box(el) !== null).map((el) => {
+        const label = el.querySelector("dt"), value = el.querySelector("dd");
+        const a = box(label), b = box(value), outer = box(el);
+        const control = box(el.querySelector('[class*="_tq-d-control"]'));
+        const disjoint = control === null || (area(a, control) === 0 && area(b, control) === 0);
+        return { name: el.getAttribute("data-tq-field"), label: a, value: b,
+          separated: a !== null && b !== null && a.right < b.x,
+          disjoint,
+          contained: inside(a, outer) && inside(b, outer),
+          clipped: [label, ...el.querySelectorAll("dd")].filter(Boolean).filter((child) =>
+            child.scrollWidth > child.clientWidth || child.scrollHeight > child.clientHeight
+          ).map((child) => ({text: child.textContent.slice(0, 80), cls: child.className, sw: child.scrollWidth, cw: child.clientWidth, sh: child.scrollHeight, ch: child.clientHeight})) };
+      }),
+    };
   }
 
   if (mode === "detail") {
@@ -782,6 +823,7 @@ function serve() {
 }
 
 const STATES = [
+  ...[320, 375, 390].map((width) => ({ name: "fields-" + width, width, height: width === 320 ? 568 : width === 375 ? 667 : 844, scenario: "field-controls", drive: "task", gauge: "fields" })),
   { name: "tasks", width: 390, height: 844, scenario: "normal", drive: null, gauge: "header" },
   { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers", gauge: "providers" },
   { name: "overview", width: 390, height: 844, scenario: "normal", drive: "overview", gauge: "overview" },
@@ -839,6 +881,24 @@ const STATES = [
   { name: "1280-tasks", width: 1280, height: 800, scenario: "normal", desktop: true, drive: null },
   { name: "1280-providers", width: 1280, height: 800, scenario: "normal", desktop: true, drive: "providers" },
 ];
+
+// Full release gate: each surface in both themes, phones/tablets in both
+// orientations. These are browser simulations; physical keyboard/toolbars are
+// a separate device check. Keep reduced height as an explicit resize case.
+for (const [width, height] of [[320,568],[375,667],[390,844],[420,900],[768,1024],[834,1112],[1280,800],[1440,900]]) {
+  for (const landscape of width < 1000 ? [false, true] : [false]) {
+    const w = landscape ? height : width, h = landscape ? width : height;
+    for (const theme of ["light", "dark"]) {
+      for (const [surface, drive, gauge] of [["tasks",null,"header"], ["providers","providers","providers"],
+        ["overview","overview","overview"], ["history","history","history"], ["task","task","detail"],
+        ["fields","task","fields"], ["sheet","sheet","brief"], ["patrol","patrol","coverage"]]) {
+        STATES.push({ name: `gate-${width}-${landscape ? "landscape" : "portrait"}-${theme}-${surface}`,
+          width: w, height: h, desktop: width >= 1000, theme,
+          scenario: surface === "fields" ? "field-controls" : "normal", drive, gauge });
+      }
+    }
+  }
+}
 
 // Legacy bundles predate stats/history layers and the detail sheet; capture
 // only the states both bundles have, so a before/after comparison is honest.
@@ -926,6 +986,16 @@ function assertGauge(state, gauge) {
       }
     } else {
       assert.ok(workbench.alert !== null, state.name + ": the rail keeps the non-numeric alert mark");
+    }
+    return;
+  }
+  if (state.gauge === "fields") {
+    assert.ok(gauge.fields.length >= 5, "measure real fields, including below the fold");
+    for (const field of gauge.fields) {
+      assert.ok(field.separated, state.name + ": label right must precede value left: " + JSON.stringify(field));
+      assert.ok(field.disjoint, state.name + ": value/control rectangles must not intersect: " + field.name);
+      assert.ok(field.contained, state.name + ": field children stay in their row: " + JSON.stringify(field));
+      assert.deepEqual(field.clipped, [], state.name + ": field text is not clipped: " + field.name);
     }
     return;
   }
@@ -1142,6 +1212,11 @@ async function main() {
           gaugeFailures.push({ state: state.name, engine: engineName, message: error.message });
           console.error("  GAUGE FAIL " + error.message);
         }
+        if (state.control === undefined && (geometry.clipping.length || geometry.horizontalOverflow)) {
+          gaugeFailures.push({ state: state.name, engine: engineName,
+            message: "text/document overflow: " + JSON.stringify({ clipping: geometry.clipping, horizontal: geometry.horizontalOverflow }) });
+          console.error("  CLIP FAIL " + state.name + " " + JSON.stringify(geometry.clipping));
+        }
         const shot = path.join(shotsDir, engineName + "-" + state.name + ".png");
         await page.screenshot({ path: shot, fullPage: false });
         if (state.control === "row-overlap") {
@@ -1154,6 +1229,7 @@ async function main() {
           scenario: state.scenario, theme: state.theme || "light", scrollTop, control: state.control,
           blocks: geometry.blocks.length, failures, allowed: geometry.allowed,
           gauge, hostDiff, gaugeError, safeArea, rail, errors, screenshot: shot,
+          clipping: geometry.clipping, truncation: geometry.truncation, horizontalOverflow: geometry.horizontalOverflow,
         };
         results.push(record);
         browserFailures += failures.length;
@@ -1243,7 +1319,7 @@ async function main() {
     legacy,
     summary: {
       states: results.length,
-      passing: results.filter((record) => record.failures.length === 0).length,
+      passing: results.filter((record) => record.failures.length === 0 && record.gaugeError === null && record.errors.length === 0).length,
       failing: results.filter((record) => record.failures.length > 0).map((record) => record.name),
       overlaps: browserFailures,
       allowedOverlays: results.reduce((sum, record) => sum + record.allowed.length, 0),
