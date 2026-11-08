@@ -10344,7 +10344,7 @@ function splitPending(tasks) {
 }
 /** A row's second line: the first sentence of NEEDS, one line, bounded. */
 function firstSentence(text, max = 120) {
-	const flat = text.replace(/\s+/g, " ").trim();
+	const flat = text.replace(/`([^`]*)`/g, "$1").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\s+/g, " ").trim();
 	if (flat === "") return "";
 	const match = /[。！？!?]|\.(?=\s|$)/.exec(flat);
 	const sentence = match === null ? flat : flat.slice(0, match.index + (match[0] === "." ? 0 : 1));

@@ -2009,7 +2009,7 @@ export function splitPending(tasks: DispatchTask[]): { stuck: DispatchTask[]; re
 
 /** A row's second line: the first sentence of NEEDS, one line, bounded. */
 export function firstSentence(text: string, max = 120): string {
-  const flat = text.replace(/\s+/g, ' ').trim()
+  const flat = text.replace(/`([^`]*)`/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\s+/g, ' ').trim()
   if (flat === '') return ''
   const match = /[。！？!?]|\.(?=\s|$)/.exec(flat)
   const sentence = match === null ? flat : flat.slice(0, match.index + (match[0] === '.' ? 0 : 1))
