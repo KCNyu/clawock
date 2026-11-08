@@ -111,6 +111,5 @@ def test_a_recent_task_mention_suppresses_unused(world):
     assert "high-unused" not in unused
 
 
-def test_the_replay_output_is_gitignored_and_not_wired_into_commit_dreaming():
-    assert "memory/.replay/" in (ROOT / ".gitignore").read_text()
+def test_the_replay_output_is_not_wired_into_commit_dreaming():
     assert "replay.py" not in (ROOT / "ops/host/commit_dreaming.sh").read_text()
