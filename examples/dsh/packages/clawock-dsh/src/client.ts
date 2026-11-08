@@ -1709,15 +1709,23 @@ function renderViewGlyph(key: string): React.ReactElement {
 }
 
 /** A session-independent read of one absolute path. The live dsh `/api/file`
- * route answers 200 text/plain without a conversation, so this is the usable
- * exit when the session-scoped preview cannot open. */
+ * route answers 200 `text/markdown` for `.md` and `text/plain` for `.log`,
+ * both WITHOUT a charset; Safari then decodes UTF-8 Chinese as windows-1252.
+ * Callers therefore fetch the bytes and decode UTF-8 themselves. */
 function fileHref(path: string): string {
   return 'api/file?path=' + encodeURIComponent(path)
 }
 
+/** Read one full file as UTF-8 through dsh's session-free route. */
+export async function _readUtf8(path: string, fetchImpl: typeof fetch = fetch): Promise<string> {
+  const response = await fetchImpl(fileHref(path), { credentials: 'same-origin' })
+  if (!response.ok) throw new Error('HTTP ' + response.status)
+  return new TextDecoder('utf-8').decode(await response.arrayBuffer())
+}
+
 /** The brief's file list and prompt text, shown in the detail sheet (not inline). */
 function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Translate,
-  openPath: (path: string) => void, live: boolean): React.ReactElement | null {
+  openPath: (path: string) => void, openTextFile: (path: string) => void, live: boolean): React.ReactElement | null {
   if (brief === null) return null
   const kbOf = (bytes: number): string => (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)
   return h('div', {
@@ -1727,9 +1735,9 @@ function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Transl
     h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { openPath(brief.path) } },
       h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kbOf(brief.bytes) })),
       brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kbOf(brief.bytes) })) : null),
-    brief.truncated ? h('a', {
-      className: cx('tq-file'), href: fileHref(brief.path), target: '_blank', rel: 'noopener noreferrer',
-      'data-tq-brief-full': brief.path,
+    brief.truncated ? h('button', {
+      type: 'button', className: cx('tq-file'), 'data-tq-brief-full': brief.path,
+      onClick: () => { openTextFile(brief.path) },
     }, h('span', { className: cx('tq-file-name') }, t('queue.brief.openFull'))) : null,
     brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
       : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
@@ -1743,6 +1751,10 @@ function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Transl
               append.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, append.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
             h('span', { className: cx('tq-tag'), 'data-tq-delivered': append.delivered ? 'true' : 'false' },
               t(append.delivered ? 'queue.brief.delivered' : (append.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending'))),
+          h('button', {
+            type: 'button', className: cx('tq-link', 'tq-file-full'), 'data-tq-append-link': append.file,
+            onClick: () => { openTextFile(append.path) },
+          }, t('queue.brief.openFull')),
           h('details', { className: cx('tq-fold'), 'data-tq-append-full': append.file },
             h('summary', { className: cx('tq-fold-summary') },
               foldChevron(),
@@ -1751,11 +1763,7 @@ function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Transl
             append.text?.trim() ? h('pre', {
               className: cx('tq-log'), tabIndex: 0, role: 'region',
               'aria-label': t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file }),
-            }, append.text) : null,
-            h('a', {
-              className: cx('tq-file'), href: fileHref(append.path), target: '_blank', rel: 'noopener noreferrer',
-              'data-tq-append-link': append.file,
-            }, h('span', { className: cx('tq-file-name') }, t('queue.brief.openFull')))))))
+            }, append.text) : null))))
 }
 
 function renderBriefText(task: DispatchTask, brief: BriefView | null, t: Translate): React.ReactElement | null {
@@ -3003,6 +3011,20 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       showToast({ ok: false, text: t('queue.r.failed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
+  const openTextFile = (path: string): void => {
+    if (typeof window === 'undefined') return
+    // Open the tab inside the click gesture; iOS Safari refuses a later
+    // window.open. Decode the bytes ourselves so the tab is UTF-8, not the
+    // charset-less text/plain the host route serves.
+    const win = window.open('', '_blank')
+    if (win !== null) win.opener = null
+    _readUtf8(path).then((text) => {
+      const href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }))
+      if (win !== null) win.location.href = href
+      else window.open(href, '_blank')
+      setTimeout(() => URL.revokeObjectURL(href), 60000)
+    }, () => { if (win !== null) win.close() })
+  }
   const openPath = (path: string): void => {
     const opened = props.openFile === undefined ? { ok: false as const, reason: 'no-service' as const } : props.openFile(path)
     const file = path.slice(path.lastIndexOf('/') + 1)
@@ -3165,13 +3187,15 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         : kind === 'timeline' ? t('queue.timeline.heading')
           : t('queue.d.model')
     const body: React.ReactNode[] = kind === 'brief'
-      ? [renderBriefBlock(shown, brief !== null && brief.id === shown.id ? brief : null, t, openPath, shownLive),
-        renderBriefText(shown, brief !== null && brief.id === shown.id ? brief : null, t)]
+      ? [h('div', { className: cx('tq-brief-sheet') },
+        renderBriefBlock(shown, brief !== null && brief.id === shown.id ? brief : null, t, openPath, openTextFile, shownLive),
+        renderBriefText(shown, brief !== null && brief.id === shown.id ? brief : null, t))]
       : kind === 'log' ? [h('div', { className: cx('tq-log-sheet') },
         logNote === null ? null : h('p', {
           className: cx('tq-note', 'tq-log-note'), 'data-tq-log-note': 'true', role: 'status',
-        }, logNote.text, ' ', h('a', {
-          href: fileHref(logNote.path), target: '_blank', rel: 'noopener noreferrer', 'data-tq-log-full': 'true',
+        }, logNote.text, ' ', h('button', {
+          type: 'button', className: cx('tq-link'), 'data-tq-log-full': 'true',
+          onClick: () => { openTextFile(logNote.path) },
         }, t('queue.a.openFullFile'))),
         renderLogBlock(shown, log, t))]
         : kind === 'timeline' ? [renderTimelineBlock(shown, timeline, t)]

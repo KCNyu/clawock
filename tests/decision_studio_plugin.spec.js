@@ -4791,7 +4791,9 @@ test("workbench client: Full log opens the preview or says why it cannot", async
     assert.match(absent.textOf(note), /80 行/, "the inline view says how much of the log it is");
     const full = absent.find(note, (p) => p["data-tq-log-full"] !== undefined)[0];
     assert.ok(full, "the sheet carries a usable exit to the full file");
-    assert.match(full.props.href, /^api\/file\?path=/, "the exit uses dsh's session-free file route");
+    assert.equal(full.props.href, undefined,
+      "the exit is a button, not a direct link to the charset-less route");
+    assert.equal(typeof full.props.onClick, "function");
 
     // A host with a preview: the native path wins and nothing is said.
     const native = make(() => ({ ok: true }));
@@ -4846,7 +4848,7 @@ test("workbench client: an append shows its full text and a full-file exit", asy
       cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
       closeWorkbench: () => {}, openFile: () => ({ ok: false, reason: "no-session" }),
       runQueueAction: async (action, id) => ({ ok: true, code: 0, action, id, message: "", detail: JSON.stringify({
-        path: "/tmp/tasks/done-1/prompt.md", brief: "prompt body", brief_bytes: 10, truncated: false,
+        path: "/tmp/tasks/done-1/prompt.md", brief: "prompt body", brief_bytes: 50000, truncated: true,
         appends: [{ file: "append-1.md", path: appendPath, stamp: "2026-11-08 10:00", delivered: true,
           bytes: appendText.length, text: appendText, truncated: false }],
       }) }),
@@ -4885,13 +4887,39 @@ test("workbench client: an append shows its full text and a full-file exit", asy
     assert.ok(full, "the append has an inline full-text fold");
     assert.ok(textOf(full).includes("x".repeat(300)),
       "the full append body is rendered, not only the 160-character excerpt");
-    const link = find(full, (p) => p["data-tq-append-link"] !== undefined)[0];
+    const link = find(tree, (p) => p["data-tq-append-link"] !== undefined)[0];
     assert.ok(link, "the append has a full-file exit");
-    assert.match(link.props.href, /^api\/file\?path=/);
-    assert.ok(decodeURIComponent(link.props.href).includes(appendPath));
+    assert.equal(link.props.href, undefined,
+      "the append exit is a button, not a direct link to the charset-less route");
+    assert.equal(typeof link.props.onClick, "function");
+    const briefFull = find(tree, (p) => p["data-tq-brief-full"] !== undefined)[0];
+    assert.ok(briefFull, "a truncated prompt offers the full file");
+    assert.equal(briefFull.props.href, undefined);
+    assert.equal(typeof briefFull.props.onClick, "function");
   } finally {
     disposeReactEffects();
   }
+});
+
+test("workbench client: full-file text is decoded as UTF-8", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const body = new TextEncoder().encode("追加要求：中文\n第二行");
+  let seen = "";
+  const text = await api._readUtf8("/root/logs/task/inbox/append.md", async (url) => {
+    seen = String(url);
+    return new Response(body, { status: 200 });
+  });
+  assert.equal(text, "追加要求：中文\n第二行", "the bytes are decoded as UTF-8, not windows-1252");
+  assert.match(seen, /^api\/file\?path=/);
+  await assert.rejects(
+    api._readUtf8("/nope", async () => new Response("", { status: 500 })),
+    /HTTP 500/,
+  );
 });
 
 test("workbench client: patrol and task are exclusive detail layers", async () => {
