@@ -201,6 +201,11 @@ def agent_of(cmd: str) -> str | None:
                          ("claude-code", ("claude",))):
         if exe in marks or script in marks or any(f"/bin/{m} " in cmd + " " for m in marks):
             return agent
+        # Node CLIs are often launched as `node .../node_modules/<pkg>/bin.js`, where neither
+        # the executable nor the script basename is the agent. Match the package/dir component
+        # instead (`@deepseek-ai/dsh`, `@openai/codex`, `opencode-ai`, `@anthropic-ai/claude-code`).
+        if any(re.search(rf"(?:^|[/@]){re.escape(mark)}(?:[/.-]|$)", cmd) for mark in marks):
+            return agent
     return None
 
 
