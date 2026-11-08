@@ -31,7 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
-import { Button, Card, Chip as WorkbenchChip, EmptyState, Field, Row, SectionHeader, Sheet } from './workbench-primitives.ts'
+import { Button, Card, Chip as WorkbenchChip, EmptyState, Field, Row, SectionHeader, SectionHeading, Sheet } from './workbench-primitives.ts'
 import { PROVIDER_JOIN } from './providers.ts'
 import {
   effectsFor, initialWorkbenchState, isLegalWorkbenchAction, reduceWorkbench,
@@ -1490,7 +1490,7 @@ function renderStatsSeries(series: StatsSeriesView, t: Translate): React.ReactEl
   const notes: React.ReactElement[] = []
   if (series.emptyDays > 0) notes.push(h('div', { key: 'zero', className: cx('tq-stats-chart-note') }, t('stats.chart.zero', { n: series.emptyDays })))
   return h('section', { className: cx('tq-d-sec', 'tq-stats-chart-sec'), 'data-tq-stats-chart': 'true' },
-    h('div', { className: cx('tq-d-sec-title') }, t('stats.chart.title')),
+    h(SectionHeading, { title: t('stats.chart.title') }),
     h('div', { className: cx('tq-stats-chart-sub') }, t('stats.chart.sub')),
     h('div', { className: cx('tq-stats-chart-wrap') },
       h('svg', {
@@ -1948,7 +1948,7 @@ function renderSection(id: DetailSection, title: string | null, body: Array<Reac
   const present = body.filter((node) => node !== null && node !== undefined && node !== false)
   if (present.length === 0) return null
   return h('div', { className: cx('tq-d-sec'), key: id, 'data-tq-section': id },
-    title === null ? null : h(SectionHeader, { as: 'div', title }),
+    title === null ? null : h(SectionHeading, { title }),
     ...present)
 }
 
