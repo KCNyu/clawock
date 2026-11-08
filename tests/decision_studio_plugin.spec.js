@@ -4225,7 +4225,7 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
     "Stats is mutually exclusive with Overview");
   assert.equal(find(statsLayer, (p) => p["data-wb-overview-done"] !== undefined)[0].props["data-wb-overview-done"], "2");
   assert.match(textOf(statsLayer), /1.2M/, "token metric");
-  assert.match(textOf(statsLayer), /\$3.40/, "cost metric");
+  assert.match(textOf(statsLayer), /¥3.40/, "the dsh-only cost metric uses CNY, not $");
   assert.equal(find(statsLayer, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,
     "the old per-provider stacked chart is restored");
   assert.ok(find(statsLayer, (p) => p["data-tq-stats-bar"] !== undefined).length > 0,

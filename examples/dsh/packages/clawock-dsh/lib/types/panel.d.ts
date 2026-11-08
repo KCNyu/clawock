@@ -587,7 +587,8 @@ export declare function recentSection(result: TaskQueueResult | null, t: Transla
 } | null;
 /** A token count as one cell-sized figure: 1.49B, 625.2M, 12.3k. */
 export declare function compactCount(n: number): string;
-/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+/** A cost in its provider's unit: two decimals, a floor rather than a fake 0.00 for a sub-cent estimate. */
+export declare function moneyText(n: number, unit?: '¥' | '$'): string;
 export declare function usdText(n: number): string;
 /** One agent's totals as the stats card and its chart layer read them. */
 export type StatsAgentView = {

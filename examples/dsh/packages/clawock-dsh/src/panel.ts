@@ -1357,10 +1357,14 @@ export function compactCount(n: number): string {
   return String(n)
 }
 
-/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
+/** A cost in its provider's unit: two decimals, a floor rather than a fake 0.00 for a sub-cent estimate. */
+export function moneyText(n: number, unit: '¥' | '$' = '$'): string {
+  if (!(n > 0)) return unit + '0'
+  return n < 0.01 ? '<' + unit + '0.01' : unit + n.toFixed(2)
+}
+
 export function usdText(n: number): string {
-  if (!(n > 0)) return '$0'
-  return n < 0.01 ? '<$0.01' : '$' + n.toFixed(2)
+  return moneyText(n, '$')
 }
 
 function statOf(counts: ReadonlyArray<{ name: string; count: number }>, name: string): number {
@@ -1371,8 +1375,10 @@ function statsTokensText(tokens: number, unknown: number): string {
   return tokens > 0 || unknown === 0 ? compactCount(tokens) : '—'
 }
 
-function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
-  if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate)
+function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'> & { agent?: string }, t: Translate,
+  unit?: '¥' | '$'): string {
+  const u = unit ?? _costUnit({ agent: agent.agent ?? '', model: '' })
+  if (agent.costUsdEstimate > 0) return moneyText(agent.costUsdEstimate, u)
   if (agent.costFree > 0 && agent.costUnpriced === 0) return t('stats.free')
   return '—'
 }
@@ -1598,7 +1604,11 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     totals.costFree += raw.costFree
   }
   totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown)
-  totals.costText = statsCostText(totals, t)
+  const paidUnits = new Set(agents.filter((agent) => {
+    const raw = selected.find((item) => item.agent === agent.agent)
+    return (raw?.costUsdEstimate ?? 0) > 0
+  }).map((agent) => _costUnit({ agent: agent.agent, model: '' })))
+  totals.costText = paidUnits.size > 1 ? t('stats.costMixed') : statsCostText(totals, t, [...paidUnits][0])
   totals.doneShare = ratio(totals.done, totals.settled)
   totals.partialShare = ratio(totals.partial, totals.settled)
   totals.unfinishedShare = ratio(totals.unfinished, totals.settled)

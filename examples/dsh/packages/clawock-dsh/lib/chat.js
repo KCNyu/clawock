@@ -630,6 +630,7 @@ const dictionaries = {
 		"stats.tokens": "token {tokens}",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "免费",
+		"stats.costMixed": "多币种合计",
 		"stats.metric.tasks": "任务",
 		"stats.metric.tokens": "token",
 		"stats.metric.cost": "API 估价",
@@ -1291,6 +1292,7 @@ const dictionaries = {
 		"stats.tokens": "{tokens} tokens",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "free",
+		"stats.costMixed": "mixed currencies",
 		"stats.metric.tasks": "Tasks",
 		"stats.metric.tokens": "Tokens",
 		"stats.metric.cost": "API estimate",
@@ -2516,6 +2518,11 @@ function sourceView(source, row, result, t) {
 		queue
 	};
 }
+/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
+* Claude and Codex estimates use USD. The number is the host's estimate. */
+function _costUnit(task) {
+	return task.agent === "dsh" || task.model.startsWith("deepseek") ? "¥" : "$";
+}
 /** Provider rows with their display projection: what every surface of the cell reads. */
 function balanceRows(result, t, now) {
 	return (result?.providers ?? []).map((provider) => ({
@@ -2610,10 +2617,10 @@ function compactCount(n) {
 	if (n >= 1e3) return trim((n / 1e3).toFixed(n >= 1e5 ? 0 : 1)) + "k";
 	return String(n);
 }
-/** USD as the chip writes it: two decimals, a floor rather than a fake $0.00 for a sub-cent estimate. */
-function usdText(n) {
-	if (!(n > 0)) return "$0";
-	return n < .01 ? "<$0.01" : "$" + n.toFixed(2);
+/** A cost in its provider's unit: two decimals, a floor rather than a fake 0.00 for a sub-cent estimate. */
+function moneyText(n, unit = "$") {
+	if (!(n > 0)) return unit + "0";
+	return n < .01 ? "<" + unit + "0.01" : unit + n.toFixed(2);
 }
 function statOf(counts, name) {
 	return counts.find((count) => count.name === name)?.count ?? 0;
@@ -2621,8 +2628,12 @@ function statOf(counts, name) {
 function statsTokensText(tokens, unknown) {
 	return tokens > 0 || unknown === 0 ? compactCount(tokens) : "—";
 }
-function statsCostText(agent, t) {
-	if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate);
+function statsCostText(agent, t, unit) {
+	const u = unit ?? _costUnit({
+		agent: agent.agent ?? "",
+		model: ""
+	});
+	if (agent.costUsdEstimate > 0) return moneyText(agent.costUsdEstimate, u);
 	if (agent.costFree > 0 && agent.costUnpriced === 0) return t("stats.free");
 	return "—";
 }
@@ -2810,7 +2821,13 @@ function statsView(stats, t) {
 		totals.costFree += raw.costFree;
 	}
 	totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown);
-	totals.costText = statsCostText(totals, t);
+	const paidUnits = new Set(agents.filter((agent) => {
+		return (selected.find((item) => item.agent === agent.agent)?.costUsdEstimate ?? 0) > 0;
+	}).map((agent) => _costUnit({
+		agent: agent.agent,
+		model: ""
+	})));
+	totals.costText = paidUnits.size > 1 ? t("stats.costMixed") : statsCostText(totals, t, [...paidUnits][0]);
 	totals.doneShare = ratio(totals.done, totals.settled);
 	totals.partialShare = ratio(totals.partial, totals.settled);
 	totals.unfinishedShare = ratio(totals.unfinished, totals.settled);
