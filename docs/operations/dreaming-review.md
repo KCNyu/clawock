@@ -85,6 +85,12 @@ archives or approval files. Private storage pruning requires separate review.
 - On the first run it writes `memory/.dreams/dreams-review.json` with every current
   entry marked `grandfathered` and does not rewrite the file. This is a one-time
   migration; legacy prose is not silently classified as reviewed.
+- The 217 unique legacy entries were read and classified on 2026-11-08: 148 were
+  removed as rhetoric, duplicates or material already covered by `MEMORY.md` /
+  `lessons-*` / `incident-*`; 36 were kept for a reusable conclusion, decision basis
+  or incident context; 45 were left in place for operator confirmation because they
+  carry account amounts, cost bases, position sizes or a private name. The private
+  baseline keeps the removed hashes; the remaining entries were not rewritten.
 - A later entry whose hash is not in the baseline is kept only when the
   deterministic contamination rules pass **and** `memory/.dreams/dreams-approvals.json`
   has a receipt for its exact normalized SHA256 (reviewer, rationale, reviewed_on
