@@ -30,8 +30,11 @@ export declare function SectionHeader(props: {
     lead?: React.ReactNode;
     chevron?: React.ReactNode;
     tone?: 'danger' | 'neutral';
-    as?: 'button' | 'div';
     attrs?: Attrs;
+}): React.ReactElement;
+/** A static section label; a header you can press is `SectionHeader`. */
+export declare function SectionHeading(props: {
+    title: React.ReactNode;
 }): React.ReactElement;
 /** One control: 32px, three intents. `pill` is the detail layer's 32px pill. */
 export declare function Button(props: {

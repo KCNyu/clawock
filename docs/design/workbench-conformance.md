@@ -59,7 +59,8 @@ height, padding, radius or type value.
 | Primitive | Canonical class | One value | Used by |
 |---|---|---|---|
 | `Row` | `.wb-row` (`.wb-hist-row` alias) | 62px high, 8px inset, 12px gap, radius 12; title 14/23/500, meta 13/21 | queue, History |
-| `SectionHeader` | `.wb-group` / `.tq-d-sec-title` | 36px band, 14/22/500, chevron right | queue groups, Overview entries, detail section headings |
+| `SectionHeader` | `.wb-group` | 36px band, 14/22/500, chevron right | queue groups, Overview entries |
+| `SectionHeading` | `.tq-d-sec-title` | 11/16/600 label | detail section headings (static, not a control) |
 | `Button` | `.wb-act` / `.tq-pill` | 32px high, 0 12px, radius 16, 13/20; primary / secondary / ghost / danger | needs actions, detail pills, sheet close |
 | `Chip` | `.wb-ov-chip` | 20px high, 0 8px, radius 8, 11/16 | patrol status, counts |
 | `Card` | `.wb-card` / `.tq-d-summary` | raised surface, 12px pad, radius 12 | needs block, recorded ack, closing summary |

@@ -59,18 +59,19 @@ export function SectionHeader(props: {
   lead?: React.ReactNode
   chevron?: React.ReactNode
   tone?: 'danger' | 'neutral'
-  as?: 'button' | 'div'
   attrs?: Attrs
 }): React.ReactElement {
-  if (props.as === 'div') {
-    return h('div', attrsOf({ role: 'heading', 'aria-level': 3, ...(props.attrs ?? {}) }, cx('tq-d-sec-title')), props.title)
-  }
   const tone = props.tone ?? 'neutral'
   return h('button', attrsOf({ type: 'button', 'data-wb-tone': tone, ...(props.attrs ?? {}) }, cx('wb-group')),
     props.lead ?? null,
     h('span', { className: cx('wb-group-title') }, props.title),
     props.summary === undefined || props.summary === '' ? null : h('span', { className: cx('wb-group-summary') }, props.summary),
     h('span', { className: cx('wb-group-chev'), 'aria-hidden': 'true' }, props.chevron ?? null))
+}
+
+/** A static section label; a header you can press is `SectionHeader`. */
+export function SectionHeading(props: { title: React.ReactNode }): React.ReactElement {
+  return h('div', { className: cx('tq-d-sec-title'), role: 'heading', 'aria-level': 3 }, props.title)
 }
 
 /** One control: 32px, three intents. `pill` is the detail layer's 32px pill. */

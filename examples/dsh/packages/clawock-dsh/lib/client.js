@@ -6745,11 +6745,6 @@ function Row(props) {
 }
 /** A disclosure or a navigation header: one 36px band, one chevron. */
 function SectionHeader(props) {
-	if (props.as === "div") return h$1("div", attrsOf({
-		role: "heading",
-		"aria-level": 3,
-		...props.attrs ?? {}
-	}, cx$1("tq-d-sec-title")), props.title);
 	const tone = props.tone ?? "neutral";
 	return h$1("button", attrsOf({
 		type: "button",
@@ -6759,6 +6754,14 @@ function SectionHeader(props) {
 		className: cx$1("wb-group-chev"),
 		"aria-hidden": "true"
 	}, props.chevron ?? null));
+}
+/** A static section label; a header you can press is `SectionHeader`. */
+function SectionHeading(props) {
+	return h$1("div", {
+		className: cx$1("tq-d-sec-title"),
+		role: "heading",
+		"aria-level": 3
+	}, props.title);
 }
 /** One control: 32px, three intents. `pill` is the detail layer's 32px pill. */
 function Button(props) {
@@ -11854,7 +11857,7 @@ function renderStatsSeries(series, t) {
 	return h("section", {
 		className: cx("tq-d-sec", "tq-stats-chart-sec"),
 		"data-tq-stats-chart": "true"
-	}, h("div", { className: cx("tq-d-sec-title") }, t("stats.chart.title")), h("div", { className: cx("tq-stats-chart-sub") }, t("stats.chart.sub")), h("div", { className: cx("tq-stats-chart-wrap") }, h("svg", {
+	}, h(SectionHeading, { title: t("stats.chart.title") }), h("div", { className: cx("tq-stats-chart-sub") }, t("stats.chart.sub")), h("div", { className: cx("tq-stats-chart-wrap") }, h("svg", {
 		className: cx("tq-stats-chart-svg"),
 		viewBox: "0 0 320 172",
 		role: "img",
@@ -12388,10 +12391,7 @@ function renderSection(id, title, body) {
 		className: cx("tq-d-sec"),
 		key: id,
 		"data-tq-section": id
-	}, title === null ? null : h(SectionHeader, {
-		as: "div",
-		title
-	}), ...present);
+	}, title === null ? null : h(SectionHeading, { title }), ...present);
 }
 function renderFields(fields) {
 	const present = fields.filter((field) => field !== null && field.value != null && field.value !== "");

@@ -167,11 +167,11 @@ test("the layer defines every Workbench class the client and primitives use", ()
 test("each primitive is the only place its class is written", () => {
   // The page composes roles; the primitive owns the class mapping. A page
   // that writes `wb-row`/`wb-group`/`tq-d-field` directly has bypassed it.
-  for (const name of ["wb-row", "wb-group", "tq-d-field", "wb-act"]) {
+  for (const name of ["wb-row", "wb-group", "tq-d-field", "tq-d-sec-title", "wb-act"]) {
     const pageUses = [...client.matchAll(new RegExp("'" + name + "'", "g"))].length;
     assert.equal(pageUses, 0, "client.ts names the primitive class " + name + " directly");
   }
-  for (const name of ["Row", "SectionHeader", "Button", "Chip", "Card", "Sheet", "Field", "EmptyState"]) {
+  for (const name of ["Row", "SectionHeader", "SectionHeading", "Button", "Chip", "Card", "Sheet", "Field", "EmptyState"]) {
     assert.match(primitives, new RegExp("export function " + name + "\\b"), "missing primitive " + name);
   }
 });
