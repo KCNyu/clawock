@@ -73,13 +73,13 @@ no second reviewer.
 
 | Field | Values | Notes |
 |---|---|---|
-| `type` | `project`, `decision`, `incident`, `feedback`, `reference`, `rule` | existing |
+| `type` | `user`, `feedback`, `project`, `reference` | existing; `decision-`/`incident-`/`lessons-` prefixes map to `project` |
 | `scope` | `investment`, `engineering`, `persona`, `memory` (extensible) | **required, no default**; selects the injection view |
 | `salience` | `high`, `normal`, `low` | written at write time, never inferred later |
 | `status` | `verified`, `hypothesis`, `stale` | a rule without a check stays `hypothesis` |
 | `tags` | comma-separated, lowercase, ≤16 | exact facets |
 | `publish` | `public`, `private` | **default `private`**; only `public` reaches the repo |
-| `agent` | `rick`, `claude-code`, `codex`, `dsh`, `opencode` | who wrote it |
+| `agent` | `claude-code`, `codex`, `opencode`, `dsh`, `rick`, `unattributed` (any lowercase identifier is accepted) | who wrote it |
 | `updated` | `YYYY-MM-DD` | existing |
 
 `memory.py add|update` writes all five required fields on every call: `scope` has no default (the
@@ -94,10 +94,11 @@ Nothing above matters while `cat > topic.md` works. Enforcement is part of the f
 
 1. `memory.py` stamps `agent` from the invoking environment and writes `scope` / `salience` /
    `status` / `publish` on every `add` and `update`, including a repair of an old topic.
-2. `memctl verify` names every file changed without a matching write: an uncommitted edit, or a
-   ledger entry attributed to `unattributed` (the snapshot timer or a bare shell). It exits non-zero
-   when it finds one. A direct edit later committed by a named agent through `memctl snapshot` is
-   indistinguishable from a normal write; the history still holds it.
+2. `memctl verify` names every file changed without a matching write: an uncommitted edit, a
+   commit whose files carry no `memory.py` receipt hash, or history/ledger tampering (a ref reset,
+   a rewritten ledger, a commit tree that disagrees with the recorded tree). It does not trust the
+   `agent` field, so a hand-written topic committed by a named `memctl snapshot` is still reported.
+   It exits non-zero when it finds one.
 3. `memory.py doctor` fails an active topic missing any of the five fields. The 156 legacy topics are
    expected to fail until P2 backfills them; that failure is the migration debt, not a reason to
    weaken the schema.
@@ -142,8 +143,8 @@ Read-only dry run first; nothing is written until the report is reviewed.
 - **Context bloat.** Injecting the wrong subset buries the rules. Mitigation: the inject view has a
   byte budget, and a note over it is split or demoted, not truncated silently.
 - **Private leakage.** A unified store plus a public repository is the one irreversible failure.
-  Mitigation: `publish` defaults to `private`, the projection only reads `public`, and CI fails on a
-  non-public line appearing in the repository.
+  Mitigation: `publish` defaults to `private` and the projection only reads `public`. A CI check
+  for non-public lines is part of P4, not present today.
 - **Gate overload.** One 03:20 review over every agent's transcripts is more candidates than one
   reviewer can hold. Mitigation: cap per-source candidates per night and keep the review hash-bound,
   so an unreviewed night promotes nothing.

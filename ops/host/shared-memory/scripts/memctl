@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import datetime as dt
 import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -52,19 +53,25 @@ import time
 
 HOME = Path.home()
 SKILL_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_STORE = Path("~/.shared-memory").expanduser()
+DEFAULT_STATE = Path("~/.local/state/shared-memory").expanduser()
 STORE = Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).expanduser()
 STATE = Path(os.environ.get("SHARED_MEMORY_STATE", "~/.local/state/shared-memory")).expanduser()
 WIRING = Path(os.environ.get("SHARED_MEMORY_WIRING") or SKILL_DIR / "wiring.json").expanduser()
 GIT_DIR = STATE / "history.git"
 LEDGER = STATE / "ledger.jsonl"
 STATUS = STATE / "doctor.json"
+HEAD = STATE / "ledger.head.json"
 BUNDLES = STATE / "bundles"
 HELD = STATE / "held.json"  # files kept out of history because they look like they hold a credential
 MEMORY_PY = Path(os.environ.get("SHARED_MEMORY_PY") or SKILL_DIR / "scripts" / "memory.py")
 HOOK_SCRIPT = SKILL_DIR / "hooks" / "claude-hook.sh"
 PASSTHROUGH = ("read", "search", "index", "inject", "add", "update", "archive", "normalize")
 EXCLUDES = (".*", "__pycache__/", "*.pyc", "*.tmp", "*.bak*")
-AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh")
+AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh", "rick")
+# Operations that legitimately change store files without a memory.py receipt: an import,
+# a structural move/restore, the format normalizer, and a Claude hook-captured native edit.
+UNRECEIPTED_OK = {"init", "baseline", "archive", "restore", "normalize", "claude-edit"}
 
 # Credentials never belong in memory. Each pattern is checked on lines a change adds; the
 # OpenClaw corpus plugin redacts with the same list (tests hold the two together).
@@ -149,12 +156,20 @@ def agent_of(cmd: str) -> str | None:
 
 
 def detect_agent() -> dict[str, str]:
-    """Who is writing: explicit override, agent env markers, then the nearest agent process."""
+    """Who is writing: explicit override, agent env markers, then the nearest agent process.
+
+    The marker order is the same as memory.py's detect_agent: OpenClaw's assistant runs on
+    the claude-cli backend, so OPENCLAW_* must win over CLAUDECODE. Keeping the two tables
+    aligned is what stops a legitimate `memory.py add` from looking like a bypass.
+    """
     info: dict[str, str] = {}
     if os.environ.get("AGENT_DISPATCH_TASK_ID"):
         info["dispatch"] = os.environ["AGENT_DISPATCH_TASK_ID"]
     if os.environ.get("MEMCTL_AGENT"):
         info["agent"] = os.environ["MEMCTL_AGENT"]
+        return info
+    if os.environ.get("OPENCLAW_AGENT") or os.environ.get("OPENCLAW_SESSION_ID"):
+        info["agent"] = "rick"
         return info
     if os.environ.get("CLAUDECODE"):
         info["agent"] = "claude-code"
@@ -214,6 +229,36 @@ class StateLock:
 
 def history_ready() -> bool:
     return (GIT_DIR / "HEAD").is_file()
+
+
+def _resolved(path: Path) -> Path:
+    try:
+        return path.resolve()
+    except OSError:
+        return path
+
+
+def guard_state_isolation() -> None:
+    """Refuse to write history/ledger when a copied store points at the live state.
+
+    This is the 2026-11-08 incident: `SHARED_MEMORY_DIR` was a throwaway copy while
+    `SHARED_MEMORY_STATE` stayed at the live default, so a test store was committed into the
+    real history and briefly made HEAD a tree that deleted 314 files. A write now requires the
+    state directory to be isolated together with the store, and the history's configured
+    worktree to be this store.
+    """
+    store = _resolved(STORE)
+    if store != _resolved(DEFAULT_STORE):
+        if not os.environ.get("SHARED_MEMORY_STATE"):
+            die("refusing to write live history: SHARED_MEMORY_STATE must be set when "
+                f"SHARED_MEMORY_DIR is not the default store ({STORE})")
+        if _resolved(STATE) == _resolved(DEFAULT_STATE):
+            die("refusing to write live history: SHARED_MEMORY_STATE is still the live state "
+                f"({STATE}); isolate it with SHARED_MEMORY_DIR")
+    if history_ready():
+        configured = git("config", "--get", "core.worktree", check=False).strip()
+        if configured and _resolved(Path(configured)) != store:
+            die(f"refusing to write: history worktree {configured} != store {store}")
 
 
 def init_history() -> bool:
@@ -280,17 +325,81 @@ def deleted_md(changes: list[tuple[str, str]]) -> list[str]:
     return [p for p in gone if Path(p).name not in arrived]
 
 
+def _entry_hash(entry: dict) -> str:
+    """A stable digest of one ledger entry, excluding the digest itself."""
+    payload = {key: value for key, value in entry.items() if key != "hash"}
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _ledger_lines() -> list[str]:
+    if not LEDGER.is_file():
+        return []
+    return [line for line in LEDGER.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def ensure_ledger_anchor() -> dict:
+    """Pin the pre-upgrade ledger tail once, so a later truncation/rewrite is visible.
+
+    The anchor lives outside the ledger (STATE/ledger.head.json) and is never rewritten to
+    match a shorter ledger. A ledger that existed before this version is blessed as the
+    baseline; entries written afterwards are hash-chained from that baseline.
+    """
+    if HEAD.is_file():
+        try:
+            return json.loads(HEAD.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            pass
+    lines = _ledger_lines()
+    baseline_hash = ""
+    if lines:
+        try:
+            baseline_hash = _entry_hash(json.loads(lines[-1]))
+        except (ValueError, TypeError):
+            baseline_hash = ""
+    anchor = {"baseline_entries": len(lines), "baseline_hash": baseline_hash,
+              "baseline_ts": now(), "last_entries": len(lines),
+              "last_hash": baseline_hash, "last_seq": 0, "last_ts": now()}
+    STATE.mkdir(parents=True, exist_ok=True)
+    tmp = HEAD.with_suffix(".tmp")
+    tmp.write_text(json.dumps(anchor, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, HEAD)
+    return anchor
+
+
 def ledger_append(entry: dict) -> None:
     STATE.mkdir(parents=True, exist_ok=True)
+    anchor = ensure_ledger_anchor()
+    seq = int(anchor.get("last_seq") or 0) + 1
+    entry = {**entry, "seq": seq, "prev": anchor.get("last_hash") or ""}
+    entry["hash"] = _entry_hash(entry)
     line = json.dumps(entry, ensure_ascii=False, sort_keys=True)
     with LEDGER.open("a", encoding="utf-8") as handle:
         handle.write(line + "\n")
         handle.flush()
         os.fsync(handle.fileno())
+    anchor.update(last_entries=seq + int(anchor.get("baseline_entries") or 0),
+                  last_hash=entry["hash"], last_seq=seq, last_ts=entry["ts"])
+    tmp = HEAD.with_suffix(".tmp")
+    tmp.write_text(json.dumps(anchor, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, HEAD)
 
 
-def commit(op: str, reason: str, who: dict[str, str], settle: float = 0.0, extra: dict | None = None) -> dict | None:
-    """Commit pending changes (minus files holding new secrets). Caller holds StateLock."""
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def commit(op: str, reason: str, who: dict[str, str], settle: float = 0.0, extra: dict | None = None,
+           wrote: dict[str, str] | None = None) -> dict | None:
+    """Commit pending changes (minus files holding new secrets). Caller holds StateLock.
+
+    `wrote` is memory.py's receipt for the files it just wrote (relative path -> sha256).
+    A commit that changes a topic without a matching receipt is recorded as `unreceipted`
+    even when a named agent ran the snapshot; `verify` reports those by filename without
+    trusting the agent field.
+    """
     changes = pending_changes(settle)
     held_before = _load_held()
     if not changes:
@@ -324,7 +433,18 @@ def commit(op: str, reason: str, who: dict[str, str], settle: float = 0.0, extra
                 env_extra={"GIT_AUTHOR_NAME": agent, "GIT_AUTHOR_EMAIL": f"{agent}@agents.local",
                            "GIT_COMMITTER_NAME": "memctl", "GIT_COMMITTER_EMAIL": "memctl@agents.local"})
             entry["commit"] = git("rev-parse", "--short=12", "HEAD").strip()
-            entry["files"] = [line.split("\t")[-1] for line in staged.splitlines()]
+            entry["tree"] = git("rev-parse", "HEAD^{tree}").strip()
+            staged_paths = [line.split("\t")[-1] for line in staged.splitlines()]
+            entry["files"] = staged_paths
+            receipts = {p: digest for p, digest in (wrote or {}).items() if p in staged_paths}
+            if receipts:
+                entry["wrote"] = receipts
+            if op not in UNRECEIPTED_OK:
+                unreceipted = [p for p in staged_paths if p.endswith(".md")
+                               and (not (store_root() / p).is_file()
+                                    or receipts.get(p) != file_sha256(store_root() / p))]
+                if unreceipted:
+                    entry["unreceipted"] = unreceipted
     if "commit" not in entry and not newly_held:
         return None
     ledger_append(entry)
@@ -343,6 +463,7 @@ def _load_held() -> dict[str, str]:
 # --- commands --------------------------------------------------------------
 
 def cmd_init(_args: list[str]) -> int:
+    guard_state_isolation()
     with StateLock():
         created = init_history()
         entry = commit("baseline", "import existing shared memory into history", {"agent": "memctl"})
@@ -350,6 +471,17 @@ def cmd_init(_args: list[str]) -> int:
     if entry:
         print(f"baseline commit {entry.get('commit')} ({len(entry.get('files', []))} files)")
     return 0
+
+
+def _opt_all(args: list[str], name: str) -> list[str]:
+    values = []
+    while name in args:
+        i = args.index(name)
+        if i + 1 >= len(args):
+            die(f"{name} needs a value")
+        values.append(args[i + 1])
+        del args[i:i + 2]
+    return values
 
 
 def _opt(args: list[str], name: str, default: str | None = None, flag: bool = False):
@@ -372,6 +504,12 @@ def cmd_snapshot(args: list[str]) -> int:
     settle = float(_opt(args, "--settle", "0"))
     quiet = _opt(args, "--quiet", flag=True)
     if_ready = _opt(args, "--if-ready", flag=True)
+    wrote: dict[str, str] = {}
+    for item in _opt_all(args, "--wrote"):
+        path, sep, digest = item.partition("=")
+        if not sep or not re.fullmatch(r"[A-Za-z0-9_./-]+\.md", path) or ".." in path:
+            die(f"--wrote needs a store-relative .md path and sha256, got {item!r}")
+        wrote[path.removesuffix(".md") + ".md"] = digest
     who = detect_agent()
     if _opt(args, "--timer", flag=True):
         who = {"agent": "unattributed", "via": "snapshot-timer"}
@@ -379,12 +517,13 @@ def cmd_snapshot(args: list[str]) -> int:
         who["via"] = "memory.py"
     if not re.fullmatch(r"[a-z][a-z-]{0,30}", op):
         die("--op is a short lowercase word")
+    guard_state_isolation()
     if not history_ready():
         if if_ready:
             return 0
         die("history not initialised; run `memctl init`")
     with StateLock(timeout=60):
-        entry = commit(op, reason, who, settle=settle)
+        entry = commit(op, reason, who, settle=settle, wrote=wrote)
     if not quiet:
         print(json.dumps(entry, ensure_ascii=False) if entry else "nothing to commit")
     return 0
@@ -439,6 +578,7 @@ def cmd_show(args: list[str]) -> int:
 
 
 def cmd_restore(args: list[str]) -> int:
+    guard_state_isolation()
     at = _opt(args, "--at")
     reason = _opt(args, "--reason", "restore from history")
     if len(args) != 1 or not at:
@@ -461,13 +601,112 @@ def cmd_restore(args: list[str]) -> int:
     return 0
 
 
-def cmd_verify(args: list[str]) -> int:
-    """Report direct store writes that bypass memctl, by filename.
+def _parse_ts(value: str | None) -> float | None:
+    try:
+        return dt.datetime.fromisoformat(value or "").timestamp()
+    except (TypeError, ValueError):
+        return None
 
-    Two signals: a file changed in the work tree with no commit yet, and a ledger
-    entry attributed to `unattributed` (the snapshot timer or a bare shell). A
-    direct edit that is later committed by a named agent through `memctl snapshot`
-    is indistinguishable from a normal write; the history still holds it.
+
+def _changed_paths(commit: str) -> list[str]:
+    out = git("diff-tree", "--root", "--no-commit-id", "--name-status", "-r", commit, check=False)
+    paths = []
+    for line in out.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2:
+            paths.append(parts[-1])
+    return paths
+
+
+def _commit_bytes(commit: str, path: str) -> bytes | None:
+    env = {**os.environ, "GIT_DIR": str(GIT_DIR), "GIT_CONFIG_NOSYSTEM": "1"}
+    proc = subprocess.run(["git", "show", f"{commit}:{path}"], env=env,
+                          capture_output=True, cwd=str(STATE))
+    return proc.stdout if proc.returncode == 0 else None
+
+
+def _reflog_rewrites(anchor: dict) -> list[dict]:
+    """Resets/rewrites newer than the ledger anchor. The anchor is the migration baseline:
+    history before it (including the 2026-11-08 incident) is reported once in the report,
+    not forever by verify. Anything after it must show up here."""
+    started = _parse_ts(anchor.get("baseline_ts"))
+    out = git("reflog", "--date=iso", "--format=%gd%x09%gs", check=False)
+    found = []
+    for line in out.splitlines():
+        selector, _, subject = line.partition("\t")
+        match = re.search(r"@\{([^}]+)\}", selector)
+        when = _parse_ts(match[1] if match else None)
+        if when is None or (started is not None and when < started):
+            continue
+        if re.match(r"(reset|rebase|filter-branch|commit \(amend\))", subject):
+            found.append({"kind": "history-reset", "file": "history.git",
+                          "detail": f"{selector}: {subject}"})
+    return found
+
+
+def _ledger_problems() -> list[dict]:
+    """Verify the hash chain and the external anchor without trusting either side alone."""
+    if not HEAD.is_file():
+        return []
+    try:
+        anchor = json.loads(HEAD.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return [{"kind": "ledger-rewritten", "file": "ledger.head.json", "detail": "unreadable anchor"}]
+    lines = _ledger_lines()
+    baseline = int(anchor.get("baseline_entries") or 0)
+    problems: list[dict] = []
+    if len(lines) < baseline:
+        problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                         "detail": f"{len(lines)} entries < baseline {baseline}"})
+        return problems
+    if baseline:
+        try:
+            first = json.loads(lines[baseline - 1])
+        except (ValueError, TypeError):
+            first = None
+        if first is None or _entry_hash(first) != anchor.get("baseline_hash"):
+            problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                             "detail": f"baseline entry {baseline} no longer matches the anchor"})
+    prev, expected = anchor.get("baseline_hash") or "", 1
+    for index, line in enumerate(lines[baseline:], baseline + 1):
+        try:
+            entry = json.loads(line)
+        except (ValueError, TypeError):
+            problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                             "detail": f"line {index} is not JSON"})
+            prev, expected = "", expected + 1
+            continue
+        if entry.get("seq") != expected:
+            problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                             "detail": f"line {index} seq {entry.get('seq')} != {expected}"})
+        if entry.get("prev") != prev:
+            problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                             "detail": f"line {index} prev does not match the previous hash"})
+        if entry.get("hash") != _entry_hash(entry):
+            problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                             "detail": f"line {index} hash does not match its content"})
+        prev = entry.get("hash") or ""
+        expected += 1
+    if len(lines) != int(anchor.get("last_entries") or 0):
+        problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                         "detail": f"{len(lines)} entries != anchor {anchor.get('last_entries')}"})
+    if prev != (anchor.get("last_hash") or ""):
+        problems.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                         "detail": "last hash does not match the external anchor"})
+    return problems
+
+
+def cmd_verify(args: list[str]) -> int:
+    """Report store changes with no matching memory.py write, by filename.
+
+    Three signals, none of them keyed on the agent name:
+      * a work-tree file with no commit yet;
+      * a commit whose changed .md files have no receipt hash from `memory.py`
+        (`memctl snapshot` of a hand-written file is caught here even when a named
+        agent runs it);
+      * history/ledger tampering: a commit tree or ledger line that disagrees with
+        the recorded hash chain/anchor, a ref reset, or a HEAD that moved without
+        a ledger entry.
     """
     since_days = float(_opt(args, "--since", "7"))
     as_json = _opt(args, "--json", flag=True)
@@ -480,18 +719,88 @@ def cmd_verify(args: list[str]) -> int:
     bypasses: list[dict] = []
     for status, path in pending_changes():
         bypasses.append({"kind": "uncommitted", "file": path, "status": status})
+
+    entries: list[dict] = []
     if LEDGER.is_file():
         for line in LEDGER.read_text(encoding="utf-8").splitlines():
             try:
                 entry = json.loads(line)
-                ts = dt.datetime.fromisoformat(entry["ts"]).timestamp()
-            except (ValueError, KeyError, TypeError):
+            except (ValueError, TypeError):
+                bypasses.append({"kind": "ledger-rewritten", "file": "ledger.jsonl",
+                                 "detail": "a ledger line is not JSON"})
                 continue
-            if ts < cutoff or entry.get("agent") not in (None, "", "unattributed"):
+            ts = _parse_ts(entry.get("ts"))
+            if ts is None or ts < cutoff:
                 continue
-            for path in entry.get("files") or []:
-                bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
-                                 "commit": entry.get("commit"), "op": entry.get("op")})
+            entries.append(entry)
+            if entry.get("agent") in (None, "", "unattributed"):
+                for path in entry.get("files") or []:
+                    bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
+                                     "commit": entry.get("commit"), "op": entry.get("op")})
+
+    # A later receipted write repairs an earlier bypass of the same file. Report the file only
+    # while its latest change is still unreceipted, so verify converges after a repair instead
+    # of staying red for seven days.
+    latest_receipt: dict[str, int] = {}
+    for entry in entries:
+        if entry.get("seq") is None:
+            continue
+        for path, digest in (entry.get("wrote") or {}).items():
+            latest_receipt[path] = max(latest_receipt.get(path, 0), int(entry["seq"]))
+
+    head = git("rev-parse", "HEAD", check=False).strip()
+    for entry in entries:
+        commit = entry.get("commit")
+        if not commit:
+            continue
+        resolved = git("rev-parse", f"{commit}^{{commit}}", check=False).strip()
+        if not resolved:
+            bypasses.append({"kind": "history-reset", "file": "history.git",
+                             "detail": f"ledger commit {commit} is missing"})
+            continue
+        if head and not git_ok("merge-base", "--is-ancestor", resolved, head):
+            bypasses.append({"kind": "history-reset", "file": "history.git",
+                             "detail": f"ledger commit {commit} is not an ancestor of HEAD"})
+        if entry.get("tree"):
+            actual_tree = git("rev-parse", f"{resolved}^{{tree}}", check=False).strip()
+            if actual_tree != entry["tree"]:
+                bypasses.append({"kind": "tree-mismatch", "file": "history.git",
+                                 "detail": f"{commit} tree {actual_tree} != ledger {entry['tree']}"})
+        # Legacy entries predate receipts and the hash chain; only new entries are judged.
+        if entry.get("seq") is None or entry.get("op") in UNRECEIPTED_OK:
+            continue
+        receipts = entry.get("wrote") or {}
+        for path in _changed_paths(resolved):
+            if not path.endswith(".md"):
+                continue
+            expected = receipts.get(path)
+            if expected and hashlib.sha256(_commit_bytes(resolved, path) or b"").hexdigest() == expected:
+                continue
+            if latest_receipt.get(path, 0) > int(entry.get("seq") or 0):
+                continue
+            bypasses.append({"kind": "unreceipted", "file": path, "ts": entry.get("ts"),
+                             "commit": commit, "op": entry.get("op")})
+
+    if LEDGER.is_file():
+        chain = _ledger_problems()
+        bypasses.extend(chain)
+        if HEAD.is_file():
+            try:
+                anchor = json.loads(HEAD.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                anchor = {}
+            bypasses.extend(_reflog_rewrites(anchor))
+    lines = _ledger_lines()
+    if lines:
+        try:
+            last = json.loads(lines[-1])
+        except (ValueError, TypeError):
+            last = {}
+        last_commit = git("rev-parse", f"{last.get('commit', '')}^{{commit}}", check=False).strip()
+        if last_commit and head and last_commit != head:
+            bypasses.append({"kind": "history-head-moved", "file": "history.git",
+                             "detail": f"HEAD {head[:12]} != last ledger commit {last_commit[:12]}"})
+
     if as_json:
         print(json.dumps({"status": "BYPASS" if bypasses else "OK",
                           "since_days": since_days, "bypasses": bypasses}, ensure_ascii=False))
@@ -499,14 +808,19 @@ def cmd_verify(args: list[str]) -> int:
         for item in bypasses:
             if item["kind"] == "uncommitted":
                 print(f"UNRECORDED   {item['file']} ({item['status']}; no memctl commit yet)")
-            else:
+            elif item["kind"] == "unattributed":
                 print(f"UNATTRIBUTED {item['ts']} {item['file']} "
                       f"({item.get('op') or 'snapshot'} {item.get('commit') or '?'})")
+            elif item["kind"] == "unreceipted":
+                print(f"UNRECEIPTED  {item.get('ts')} {item['file']} "
+                      f"({item.get('op') or 'snapshot'} {item.get('commit') or '?'}; no memory.py receipt)")
+            else:
+                print(f"{item['kind'].upper().replace('-', ' '):12} {item.get('file')} ({item.get('detail')})")
         print(f"verify: {len(bypasses)} direct-write signal(s) in the last {since_days:g} day(s)")
     return 1 if bypasses else 0
 
-
 def cmd_bundle(args: list[str]) -> int:
+    guard_state_isolation()
     keep = int(_opt(args, "--keep", "14"))
     if not history_ready():
         die("history not initialised; run `memctl init`")
