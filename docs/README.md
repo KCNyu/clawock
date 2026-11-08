@@ -63,6 +63,8 @@ belongs here.
 - [`workbench-type.md`](design/workbench-type.md) — the Workbench's one type
   table (page/row/metric/meta/chip/button/tab/badge roles), the no-literal
   audit, and the host token gap it declares.
+- [`workbench-conformance.md`](design/workbench-conformance.md) — the host
+  control-by-control comparison, reused tokens, and the remaining gaps.
 - [`workbench-geometry.md`](design/workbench-geometry.md) — the phone sidebar,
   closing-report and patrol-coverage geometry the overlap test pins, with
   before/after captures.
