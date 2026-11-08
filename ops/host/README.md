@@ -194,8 +194,9 @@ existing retry/backoff policy. No availability probe advances the review cursor.
 (format owner), `memctl` (history, audit, wiring self-check), the Claude Code hook and
 `wiring.json`. It carries the mechanism only; the memory itself, its history and ledger stay
 outside the repository. `install_shared_memory.sh` installs it (atomic per file,
-`.before-update`, `--check`, `--rollback`; `--units` renders the two systemd timers) and
-`refresh_live.sh` runs it when the installed copy differs. How it works, which working
+`.before-update`, `--check`, `--rollback`; `--units` renders the systemd timers: snapshot,
+daily bundle/self-check and retirement nominations) and `refresh_live.sh` runs it when the
+installed copy differs. How it works, which working
 directories share the store and which keep their own (an OpenClaw workspace), and what
 `memctl doctor --deep` proves: `shared-memory/README.md`. Tests: `tests/test_shared_memory.py`.
 
@@ -203,8 +204,10 @@ directories share the store and which keep their own (an OpenClaw workspace), an
 
 `shared-memory/openclaw/` is a host OpenClaw plugin (`shared-memory-corpus`) that registers a
 memory corpus supplement, so the assistant's `memory_search corpus=all` / `memory_get` can read
-the coding agents' store without it ever entering the workspace: read-only, direct chats only
-(groups, channels, cron and keyless runs get nothing), redacted, and silent on read errors.
+the coding agents' store without it ever entering the workspace: the store stays read-only,
+direct chats only (groups, channels, cron and keyless runs get nothing), redacted, and silent
+on read errors. Its one write is the private recall counter (`recall.jsonl` under the state
+directory), outside the store.
 OpenClaw's short-term recall records only its own index hits, so dreaming cannot promote these
 notes into the public `MEMORY.md`. Install with `install_memory_corpus_plugin.sh` (`--check`,
 `--rollback`) into `$OPENCLAW_STATE_DIR/extensions/shared-memory-corpus`, add that directory to

@@ -123,6 +123,21 @@ Read-only dry run first; nothing is written until the report is reviewed.
 6. Only after the store is uniform does `MEMORY.md` stop being hand-written and start being generated.
    No path moves are part of that step; the site keeps reading the same files.
 
+## Recall counting and retirement
+
+Every reader appends a private event (`~/.local/state/shared-memory/recall.jsonl`, 0600) with
+the topic slugs, source and time: the OpenClaw supplement's `search` and `get`, `memory.py
+search`, `memory.py read`, and the cron/brief injection view. Queries, snippets and session
+keys are not stored. The supplement still answers if the append fails.
+
+`retire.py` runs on its own 03:47 timer and writes a private candidate report; it never edits
+the store. The only enabled rules are stale age, an optional zero-recall rule (30 days, off
+until the counter covers at least 30 days), `superseded_by`, and exact duplicate bodies.
+`verified`, `publish: public`, `scope: persona|memory`, linked/cited topics and topics
+missing a write-time field are excluded from candidates. `forget` stays manual: `--confirm`,
+a pre-delete snapshot, and a printed `memctl restore` command; `archive` is the default
+recommendation.
+
 ## Phases
 
 | Phase | Change | Acceptance |

@@ -34,4 +34,4 @@ Record the future-use judgement while the context is still present: `add`/`updat
 
 Every change lands in the store's history (outside the store) attributed to the agent that made it: `memory.py` writes hand off to `memctl snapshot`, Claude Code's own edits are caught by its hook, anything else by a timer. `memctl verify` names each file changed without a matching write. `memctl log <topic>` shows who changed what and why; `memctl restore` brings a version back.
 
-For add/update/archive/forget or structural edits, read [maintenance](references/maintenance.md). Keep native frontmatter and index routes valid; run `memory.py doctor` after structural changes. Do not read maintenance instructions just to recall a fact.
+For add/update/archive/forget or structural edits, read [maintenance](references/maintenance.md). `forget` is manual and needs `--confirm`; it snapshots first and prints a `memctl restore` command. Keep native frontmatter and index routes valid; run `memory.py doctor` after structural changes. Do not read maintenance instructions just to recall a fact.

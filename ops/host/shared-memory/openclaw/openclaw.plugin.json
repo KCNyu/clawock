@@ -1,7 +1,7 @@
 {
   "id": "shared-memory-corpus",
   "name": "Shared memory corpus (read-only)",
-  "description": "Lets memory_search (corpus=all) and memory_get read the coding agents' shared Markdown memory, in direct chats only; never writes.",
+  "description": "Lets memory_search (corpus=all) and memory_get read the coding agents' shared Markdown memory, in direct chats only; writes only a private recall counter outside the store.",
   "activation": {
     "onStartup": true
   },

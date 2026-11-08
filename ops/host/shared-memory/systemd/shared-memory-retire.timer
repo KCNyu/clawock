@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly shared agent memory retirement candidates
+
+[Timer]
+OnCalendar=*-*-* 03:47
+AccuracySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

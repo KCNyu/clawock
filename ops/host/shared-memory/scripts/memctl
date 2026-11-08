@@ -20,7 +20,7 @@ Usage:
   memctl init                                  create the history repo and baseline commit
   memctl snapshot [--reason R] [--op OP] [--settle S] [--if-ready] [--timer] [--quiet]
                                                commit pending store changes
-  memctl read|search|index|add|update|archive|normalize ...
+  memctl read|search|index|add|update|archive|forget|normalize ...
                                                run memory.py with the same store
   memctl log [<topic>] [-n N]                  audit history
   memctl show <commit>                         one change in full
@@ -71,12 +71,12 @@ HELD = STATE / "held.json"  # files kept out of history because they look like t
 DEFAULT_VECTOR_VIEW = "~/.openclaw/state/shared-memory-vector"
 MEMORY_PY = Path(os.environ.get("SHARED_MEMORY_PY") or SKILL_DIR / "scripts" / "memory.py")
 HOOK_SCRIPT = SKILL_DIR / "hooks" / "claude-hook.sh"
-PASSTHROUGH = ("read", "search", "index", "inject", "add", "update", "archive", "normalize")
+PASSTHROUGH = ("read", "search", "index", "inject", "add", "update", "archive", "forget", "normalize")
 EXCLUDES = (".*", "__pycache__/", "*.pyc", "*.tmp", "*.bak*")
 AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh", "rick")
 # Operations that legitimately change store files without a memory.py receipt: an import,
 # a structural move/restore, the format normalizer, and a Claude hook-captured native edit.
-UNRECEIPTED_OK = {"init", "baseline", "archive", "restore", "normalize", "claude-edit", "reattribute"}
+UNRECEIPTED_OK = {"init", "baseline", "archive", "restore", "forget", "normalize", "claude-edit", "reattribute"}
 
 # Credentials never belong in memory. Each pattern is checked on lines a change adds; the
 # OpenClaw corpus plugin redacts with the same list (tests hold the two together).

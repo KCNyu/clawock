@@ -1,14 +1,15 @@
-import { readdir, readFile, realpath, stat } from "node:fs/promises";
+import { appendFile, mkdir, readdir, readFile, realpath, stat } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 
 // Read-only view of the coding agents' shared Markdown memory for an OpenClaw assistant.
 // It registers a memory corpus supplement: `memory_search corpus=all` and `memory_get` on a
-// `shared-memory/<topic>.md` path return the store's topics. It never writes: the only
-// filesystem calls are readdir/readFile/stat/realpath. OpenClaw's short-term recall (what
-// dreaming promotes into the assistant's public MEMORY.md) records only its own memory index
-// hits, so nothing returned here is promoted.
+// `shared-memory/<topic>.md` path return the store's topics. It never writes the store: the
+// only store calls are readdir/readFile/stat/realpath. Its one write is a private recall
+// event (`recall.jsonl` under the state directory), best-effort and outside the store.
+// OpenClaw's short-term recall (what dreaming promotes into the assistant's public
+// MEMORY.md) records only its own memory index hits, so nothing returned here is promoted.
 
 export const CORPUS = "shared-memory";
 const PREFIX = `${CORPUS}/`;
@@ -37,6 +38,27 @@ export const SECRET_PATTERNS: RegExp[] = [
 
 export function redact(text: string): string {
   return SECRET_PATTERNS.reduce((out, pattern) => out.replace(pattern, "[REDACTED]"), text);
+}
+
+// One append per returned topic, in the same private file `memory.py` writes. No query,
+// no snippet, no session key. The plugin must still answer a search if this fails.
+export function recallLogPath(): string {
+  const state = process.env.SHARED_MEMORY_STATE || join(homedir(), ".local", "state", "shared-memory");
+  return process.env.SHARED_MEMORY_RECALL_LOG || join(state, "recall.jsonl");
+}
+
+export async function recordRecall(source: string, topics: string[]): Promise<void> {
+  if (["0", "off", "false"].includes((process.env.SHARED_MEMORY_RECALL || "").toLowerCase())) return;
+  const clean = [...new Set(topics
+    .map((topic) => topic.replace(/\.md$/, "").trim())
+    .filter((topic) => topic && !topic.includes("..") && /^[A-Za-z0-9_./-]+$/.test(topic)))];
+  if (!clean.length) return;
+  try {
+    const path = recallLogPath();
+    await mkdir(dirname(path), { recursive: true, mode: 0o700 });
+    await appendFile(path, JSON.stringify({ ts: new Date().toISOString(), source, topics: clean }) + "\n",
+      { mode: 0o600 });
+  } catch {}
 }
 
 // Private notes surface only in a one-to-one chat with the owner: never in a group or a
@@ -388,8 +410,11 @@ export function createSharedMemoryCorpus(options: { root?: string; includeArchiv
             provenanceLabel: "coding agents' shared memory (read-only)", updatedAt: topic.updated,
           });
         }
-        return dedupeScored(scored)
+        const hits = dedupeScored(scored)
           .slice(0, Math.max(1, Math.min(params.maxResults ?? 6, 20)));
+        await recordRecall("openclaw-supplement",
+          hits.map((hit) => hit.path.slice(PREFIX.length).replace(/\.md$/, "")));
+        return hits;
       } catch (error) {
         warn(error);
         return [];
@@ -409,11 +434,13 @@ export function createSharedMemoryCorpus(options: { root?: string; includeArchiv
         const count = Math.max(1, Math.min(Math.floor(params.lineCount ?? DEFAULT_LINES), MAX_LINES));
         const slice = all.slice(from - 1, from - 1 + count);
         const topic = parse(rel, all.join("\n"));
-        return {
+        const result = {
           corpus: CORPUS, path: params.lookup, title: topic.name, kind: topic.kind, content: slice.join("\n"),
           fromLine: from, lineCount: slice.length, sourceType: CORPUS,
           provenanceLabel: "coding agents' shared memory (read-only)", updatedAt: topic.updated,
         };
+        await recordRecall("openclaw-get", [rel.replace(/\.md$/, "")]);
+        return result;
       } catch (error) {
         warn(error);
         return null;

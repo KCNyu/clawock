@@ -809,3 +809,70 @@ def test_reattribute_clears_unattributed_but_not_unreceipted(kit):
     assert "UNATTRIBUTED" not in after.stdout, after.stdout
     assert "UNRECEIPTED" in after.stdout and "feedback-alpha.md" in after.stdout, after.stdout
 
+
+
+# --- recall counter, forget -----------------------------------------------------
+
+RECALL = KIT / "scripts/recall.py"
+
+
+def recall_rows(kit):
+    path = kit.state / "recall.jsonl"
+    if not path.is_file():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def test_search_and_read_append_private_recall_events(kit):
+    kit.ok("search", "alpha", script=MEMORY_PY)
+    kit.ok("read", "feedback-alpha", script=MEMORY_PY)
+    rows = recall_rows(kit)
+    assert any(row["source"] == "python-search" and "feedback-alpha" in row["topics"] for row in rows)
+    assert any(row["source"] == "python-read" and row["topics"] == ["feedback-alpha"] for row in rows)
+    assert all(set(row) == {"ts", "source", "topics"} for row in rows)
+    assert "query" not in (kit.state / "recall.jsonl").read_text()
+    assert oct((kit.state / "recall.jsonl").stat().st_mode & 0o777) == "0o600"
+
+
+def test_inject_records_the_cron_brief_path(kit):
+    kit.ok("add", "feedback-high", "--scope", "investment", "--salience", "high", "--status", "verified",
+           "--summary", "high rule", "--body-file", kit.body("# High\n\nrule"), script=MEMORY_PY)
+    kit.ok("inject", "--audience", "direct", script=MEMORY_PY)
+    kit.ok("inject", "--audience", "investment-cron", script=MEMORY_PY)
+    rows = recall_rows(kit)
+    assert any(row["source"] == "inject-direct" and "feedback-high" in row["topics"] for row in rows)
+    assert any(row["source"] == "cron-brief" and "feedback-high" in row["topics"] for row in rows)
+
+
+def test_recall_stats_has_slug_count_and_last_recalled(kit):
+    kit.ok("search", "alpha", script=MEMORY_PY)
+    kit.ok("stats", "--write", script=RECALL)
+    stats = json.loads((kit.state / "recall-stats.json").read_text())
+    item = stats["topics"]["feedback-alpha"]
+    assert item["count"] >= 1 and item["last_recalled"]
+    assert "python-search" in item["sources"]
+    assert stats["coverage"]["events"] >= 1
+    assert oct((kit.state / "recall-stats.json").stat().st_mode & 0o777) == "0o600"
+
+
+def test_forget_requires_confirm_and_prints_a_restore_command(kit):
+    before = (kit.store / "feedback-alpha.md").read_text()
+    proc = kit.run("forget", "feedback-alpha", script=MEMORY_PY)
+    assert proc.returncode == 2 and "without --confirm" in proc.stderr
+    assert (kit.store / "feedback-alpha.md").is_file()
+    proc = kit.ok("forget", "feedback-alpha", "--confirm", "--reason", "test", script=MEMORY_PY)
+    assert not (kit.store / "feedback-alpha.md").exists()
+    restore = next(line for line in proc.stdout.splitlines() if line.startswith("restore:"))
+    at = restore.split("--at ", 1)[1]
+    kit.ok("verify")
+    kit.ok("restore", "feedback-alpha", "--at", at)
+    assert (kit.store / "feedback-alpha.md").read_text() == before
+
+
+def test_forget_refuses_a_referenced_topic(kit):
+    kit.ok("add", "feedback-beta", "--scope", "engineering", "--status", "verified",
+           "--summary", "beta", "--body-file", kit.body("# Beta\n\nSee [[feedback-alpha]]."),
+           script=MEMORY_PY)
+    proc = kit.run("forget", "feedback-alpha", "--confirm", script=MEMORY_PY)
+    assert proc.returncode == 1 and "still referenced" in proc.stderr
+    assert (kit.store / "feedback-alpha.md").is_file()
