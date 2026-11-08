@@ -22,7 +22,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from memory import split_frontmatter  # noqa: E402  (the format owner sits next to us)
+from memory import metadata_problems, missing_metadata, split_frontmatter  # noqa: E402  (the format owner sits next to us)
 import provenance  # noqa: E402  (public artifacts may not copy private bodies)
 
 HEADER = (
@@ -73,6 +73,14 @@ def load_public_topics(store: Path) -> list[dict]:
         fields, meta, body = parsed
         if (meta.get("publish") or fields.get("publish")) != "public":
             continue
+        problems = metadata_problems(fields, meta)
+        missing = missing_metadata(fields, meta)
+        if missing:
+            problems.append("missing write-time fields: " + ", ".join(missing))
+        if (meta.get("status") or fields.get("status")) == "stale":
+            problems.append("a stale topic cannot enter the public projection")
+        if problems:
+            raise ProjectionError(f"{path.name}: {'; '.join(problems)}")
         raw_order = (meta.get("order") or fields.get("order") or "").strip()
         if not raw_order.isdigit() or int(raw_order) < 1:
             raise ProjectionError(f"{path.name}: publish: public needs an integer metadata.order")

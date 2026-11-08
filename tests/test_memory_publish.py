@@ -143,3 +143,22 @@ def test_the_source_guard_accepts_paraphrase_and_runtime_data_but_not_a_copy(sto
         "brief", private_line, store, allowed_texts=["portfolio: " + private_line])
     with pytest.raises(publish.provenance.ProvenanceError, match="project-private"):
         publish.provenance.assert_public_sources("brief", f"prefix\n{private_line}\n", store)
+
+
+@pytest.mark.parametrize('damage', ['missing-scope', 'invalid-status', 'stale'])
+def test_public_projection_refuses_invalid_source_schema(store, tmp_path, damage):
+    path = store / 'feedback-one.md'
+    text = path.read_text()
+    if damage == 'missing-scope':
+        text = text.replace('  scope: engineering\n', '')
+    else:
+        text = text.replace('status: verified', 'status: ' + ('stale' if damage == 'stale' else 'typo'))
+    path.write_text(text)
+    publish = load_publish()
+    target = tmp_path / 'projection'
+    target.mkdir()
+    (target / 'MEMORY.md').write_text('previous projection')
+    with pytest.raises(publish.ProjectionError):
+        publish.write(target, store, target / 'manifest.json')
+    assert (target / 'MEMORY.md').read_text() == 'previous projection'
+    assert not (target / 'manifest.json').exists()
