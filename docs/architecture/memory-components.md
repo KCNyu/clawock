@@ -1,13 +1,15 @@
 # Agent memory: components and ownership
 
-This host runs two memory systems, on purpose. The OpenClaw assistant keeps its own
-`MEMORY.md`/`DREAMS.md` in its workspace; the coding agents (Claude Code, Codex, dsh and
-OpenCode) share one Markdown store outside every repository. They are never merged:
-`ops/host/shared-memory/wiring.json` marks the workspace as a separate context, and
-`memctl doctor` fails when the coding store is injected there or sits inside it.
+This host runs one Markdown memory store with a generated public projection. The OpenClaw
+assistant keeps `DREAMS.md` as a separately reviewed diary; its `MEMORY.md` is generated from
+the store's `publish: public` topics. The coding agents (Claude Code, Codex, dsh and OpenCode)
+read and write the same store outside every repository. `ops/host/shared-memory/wiring.json`
+still marks the OpenClaw workspace as a separate context: `memctl doctor` fails when the private
+store is injected there or sits inside it, and the projection is a one-way generated file rather
+than a second store.
 
 This page maps the memory components used by an agent to the surface that owns each one
-on this host, and records the boundaries that keep the two stores apart. The vocabulary
+on this host, and records the boundary between the private store and its public projection. The vocabulary
 follows Anthropic's [components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)
 research note: transcripts, memory notes, representations, injected context and dreaming.
 Weights, in-context learning and compaction are explicitly **not** memory here: they do
@@ -22,8 +24,8 @@ not survive a session as readable context, and nothing in this page changes them
 | Write-time judgement | `metadata.salience`, `metadata.status` and `metadata.tags`, written with the note | `memory.py add|update --salience|--status|--tag` |
 | Representations | Area indexes, a routing table, redirects, and `[[topic]]` links between notes | `MEMORY.md`, `indexes/MEMORY-*.md`, `indexes/routes.tsv`, `indexes/redirects.tsv` |
 | Retrieval | Literal, rarity-weighted topic search; exact tag/status filters; the assistant's semantic `memory_search` with a read-only supplement over the same store | `memory.py search`; `ops/host/shared-memory/openclaw/index.ts` |
-| Injected context | OpenClaw `MEMORY.md` in direct chats; the shared index for Claude Code sessions in the home directory; payload/skill only in isolated cron and subagent runs | OpenClaw bootstrap; Claude Code auto-memory + SessionStart hook; dispatch payload |
-| Dreaming | 03:00 HKT candidates in private `memory/.dreams/`, 03:20 HKT reviewed promotion into `MEMORY.md` and the gated `DREAMS.md` append (legacy diary entries reviewed and pruned 2026-11-08) | `ops/host/patch_dreaming_review.py`, `ops/host/review_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh`; see [`dreaming-review.md`](../operations/dreaming-review.md) |
+| Injected context | OpenClaw `MEMORY.md` (generated public projection) in direct chats; the shared index for Claude Code sessions in the home directory; payload/skill only in isolated cron and subagent runs | OpenClaw bootstrap; `publish.py`; Claude Code auto-memory + SessionStart hook; dispatch payload |
+| Dreaming | 03:00 HKT candidates in private `memory/.dreams/`, 03:20 HKT reviewed promotion into public store topics and a regenerated `MEMORY.md`, plus the separately gated `DREAMS.md` append (legacy diary entries reviewed and pruned 2026-11-08) | `ops/host/patch_dreaming_review.py`, `ops/host/review_dreaming.py`, `ops/host/promote_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh`, `ops/host/shared-memory/scripts/publish.py`; see [`dreaming-review.md`](../operations/dreaming-review.md) |
 | Evaluation | Held-out search rows; a three-layer benefit run (no memory / index only / notes) | `ops/host/shared-memory-eval/` |
 
 ## Notes are written once, with their future use attached
@@ -89,20 +91,20 @@ rules that carry evidence. The article's warning against a "record only failures
 why failure topics and verified rules are separate objects: the failure is evidence, the
 rule is what a future session should act on.
 
-## Two stores, one boundary
+## One store, one public projection
 
-| | OpenClaw assistant | Coding agents |
+| | Shared store | OpenClaw public projection |
 |---|---|---|
-| Store | `~/.openclaw/workspace/MEMORY.md` (+ `DREAMS.md`) | `~/.shared-memory` |
-| Written by | The assistant, plus the reviewed dreaming gate | Claude Code, Codex, dsh, OpenCode through the shared-memory skill |
-| Injected | `MEMORY.md` in direct chats | Index only for home-directory Claude sessions; other agents read on demand |
-| Searchable by the other side | Read-only corpus supplement, direct chats only, redacted | Not into the assistant's memory index; never promoted by dreaming |
+| Path | `~/.shared-memory` | `~/.openclaw/workspace/MEMORY.md` |
+| Written by | Claude Code, Codex, dsh and OpenCode through the shared-memory skill; the 03:20 dreaming gate for reviewed public topics | `ops/host/shared-memory/scripts/publish.py --write` only |
+| Injected | Index only for home-directory Claude sessions; other agents read on demand | Direct chat |
+| Readable by the other side | `memory.py search` and the read-only corpus supplement | Generated from `publish: public` topics only; a private topic never appears |
 
-`wiring.json` and `memctl doctor` own the check. The shared store is not copied into the
-workspace, the workspace is not a symlink target, and the plugin's results are not recorded
-by OpenClaw's short-term recall. A note repeated verbatim in a direct chat can still reach
-`DREAMS.md` through the assistant's own transcript; `doctor` warns when a published file
-repeats a shared-store line.
+`wiring.json` and `memctl doctor` own the separation. The private store is not copied into the
+workspace and the workspace is not a symlink target; the public file is generated from
+`publish: public` topics, so a private note cannot reach it by being in the store. The plugin's
+results are not recorded by OpenClaw's short-term recall. A note repeated verbatim in a direct
+chat can still reach `DREAMS.md` through the assistant's own transcript.
 
 Isolated cron and subagent runs do not receive `MEMORY.md`. That is deliberate: a rule such
 a run must obey belongs in the job payload, the skill mode or a postflight gate. Durable
@@ -114,15 +116,16 @@ exist, but the brief still has to carry the rules the run needs.
 
 OpenClaw's dreaming pipeline is the only automatic memory writer. It reads transcripts,
 proposes candidates into ignored `memory/.dreams/`, and the 03:20 gate promotes only
-explicitly reviewed, hash-bound conclusions. High-salience notes in the shared store are
-not candidates for that gate; the two stores stay separate.
+explicitly reviewed, hash-bound conclusions. An approved conclusion becomes a public store
+topic; `publish.py --write` then regenerates `MEMORY.md`. There is no second dreaming job and
+no second reviewer. High-salience notes written by coding agents are not candidates for that
+gate.
 
-The shared store has no dreaming job. It is small, curated at write time, and every change
-is already attributable and restorable through `memctl`; a second background rewriter would
-add a write path without a review need. The area indexes and `[[links]]` are the
-representation layer, and `memory.py doctor` checks that links resolve and every active
-topic has one route. A generated wiki is not warranted at this size; the article's
-350,000-file corpus is a different regime.
+The store is small, curated at write time, and every change is attributable and restorable
+through `memctl`; the dreaming gate adds one reviewed public write path, not a general
+background rewriter. The area indexes and `[[links]]` are the representation layer, and
+`memory.py doctor` checks that links resolve and every active topic has one route. A generated
+wiki is not warranted at this size; the article's 350,000-file corpus is a different regime.
 
 ## Evaluation
 
@@ -147,7 +150,7 @@ exposes an answer-bearing note, which is the part a memory change can regress.
 | Treat in-context learning or compaction as memory | Not adopted | Both are session-local; the article excludes them too. |
 | Per-session automatic note extraction | Not adopted | The write-time judgement is the point; an auto-writer would create noise and a second audit path. |
 | Auto-promote high-salience notes into `MEMORY.md` | Not adopted | The 03:20 review gate stays; salience is input to a reviewer, not an approval. |
-| Inject the assistant's `MEMORY.md` into isolated runs | Not adopted | It would break the two-store boundary and put public assistant prose into coding tasks. |
+| Inject the assistant's `MEMORY.md` into isolated runs | Not adopted | It would put public assistant prose into every coding task. |
 | A generated wiki over the coding store | Not adopted now | The store is small; indexes and links are the representation. Revisit if cross-topic questions outgrow them. |
 | A second transcript index | Not adopted | Native transcripts already exist; a new store would duplicate them and add a service. |
 | Record only failures | Not adopted | The article measures a large loss of the memory benefit; failures are evidence, verified rules are the reusable part. |
@@ -162,5 +165,6 @@ exposes an answer-bearing note, which is the part a memory change can regress.
 | History, audit, wiring checks | `ops/host/shared-memory/scripts/memctl` |
 | Read-only assistant supplement | `ops/host/shared-memory/openclaw/index.ts` |
 | Retrieval and benefit evaluations | `ops/host/shared-memory-eval/` |
-| Dreaming review gate | `ops/host/review_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh` |
-| Two-store wiring | `ops/host/shared-memory/wiring.json` |
+| Dreaming review gate | `ops/host/review_dreaming.py`, `ops/host/promote_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh` |
+| Public projection | `ops/host/shared-memory/scripts/publish.py`, `ops/host/shared-memory/publish-manifest.json` |
+| Workspace/store separation | `ops/host/shared-memory/wiring.json` |

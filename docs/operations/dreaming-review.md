@@ -1,46 +1,53 @@
 # Dreaming promotion review
 
 Automatic scores nominate candidates; they do not verify durable facts. This gate governs the
-OpenClaw workspace's `MEMORY.md` and the appended diary in `DREAMS.md`; the coding agents' shared
-store is a separate memory and is not a candidate source
-([memory components](../architecture/memory-components.md)). The host uses three boundaries:
+OpenClaw workspace's generated `MEMORY.md` and the appended diary in `DREAMS.md`. The coding
+agents' shared store (`~/.shared-memory`) is the source of the public projection: the 03:20 gate
+writes each reviewed conclusion as a `publish: public` topic and then regenerates `MEMORY.md`
+with the projection generator ([memory components](../architecture/memory-components.md)).
 
-- `ops/host/patch_dreaming_review.py` redirects only the promotion writer into
-  ignored `memory/.dreams/promotion-candidates.md`. Pending candidates are not
-  evicted by the upstream MEMORY character budget. The patch validates exact
-  anchors, is idempotent, saves a pre-patch backup, and supports `--check`.
-  `reapply_openclaw_patches.sh` reapplies it after upgrades. An idle gateway must
-  be restarted after installation; checking files alone does not prove activation.
-- `ops/host/commit_dreaming.sh` runs `review_dreaming.py` and `review_dreams.py`
-  before staging, then checks each file independently. A MEMORY review failure
-  leaves `MEMORY.md` uncommitted and still lets a reviewed `DREAMS.md` commit; a
-  DREAMS failure does not block MEMORY. Neither failed file is published.
-- `ops/host/review_dreams.py` reviews the DREAMS diary append against a private
-  baseline. Existing entries are grandfathered once; a new entry must be clean
-  under the same deterministic rules and carry an exact hash-bound receipt, or
-  it is removed from DREAMS and preserved in ignored `dreams-quarantine.jsonl`.
+The host uses one promotion engine with two independent outputs:
 
-A host-only filter would leave unreviewed content in MEMORY between the dreaming
-run and the commit job. A plugin-only filter cannot provide durable review
-receipts and legacy cleanup. The combination closes both gaps without changing
-scores, selection, narrative generation, model routing, or message behavior.
+- `ops/host/patch_dreaming_review.py` redirects only the promotion writer into ignored
+  `memory/.dreams/promotion-candidates.md`. Pending candidates are not evicted by the upstream
+  MEMORY character budget. The patch validates exact anchors, is idempotent, saves a pre-patch
+  backup, and supports `--check`. `reapply_openclaw_patches.sh` reapplies it after upgrades. An
+  idle gateway must be restarted after installation; checking files alone does not prove
+  activation.
+- `ops/host/promote_dreaming.py` applies `review_dreaming.py`'s hash-bound decisions. It writes
+  only approved conclusions as new public store topics, snapshots the store first, requires
+  `memctl verify` and `memctl doctor` to pass, then calls
+  `ops/host/shared-memory/scripts/publish.py --write` to regenerate `MEMORY.md` and
+  `publish-manifest.json`. If generation or its post-check fails, it restores the previous pair
+  and returns non-zero.
+- `ops/host/commit_dreaming.sh` runs the promotion and `review_dreams.py` independently, then
+  commits the projection pair and `DREAMS.md` in separate commits. A MEMORY failure still lets a
+  reviewed DREAMS append commit, and a DREAMS failure does not block a reviewed projection.
+  Neither failed side is published.
+- `ops/host/review_dreams.py` reviews the DREAMS diary append against a private baseline. Existing
+  entries are grandfathered once; a new entry must be clean under the same deterministic rules and
+  carry an exact hash-bound receipt, or it is removed from DREAMS and preserved in ignored
+  `dreams-quarantine.jsonl`.
+
+A host-only filter would leave unreviewed content in MEMORY between the dreaming run and the
+commit job. A plugin-only filter cannot provide durable review receipts and legacy cleanup. The
+combination closes both gaps without changing scores, selection, narrative generation, model
+routing, or message behavior.
 
 ## Review contract
 
 ### MEMORY.md promotions
 
-The deterministic filter rejects front matter, HTML, dated facts, numeric prices
-and position actions, dispatch/session metadata, internal paths, and command-like
-package identifiers. It is deliberately conservative: a decimal in a reusable
-lesson is also held out. This is a screening rule, not semantic verification.
-Rejection takes precedence over any approval receipt. Same-file candidates are
-reported as dependent evidence. Only one reviewed conclusion per source file can
-enter permanent memory, including across later batches; combine a source's
-lessons in that single reviewed conclusion.
+The deterministic filter rejects front matter, HTML, dated facts, numeric prices and position
+actions, dispatch/session metadata, internal paths, and command-like package identifiers. It is
+deliberately conservative: a decimal in a reusable lesson is also held out. This is a screening
+rule, not semantic verification. Rejection takes precedence over any approval receipt. Same-file
+candidates are reported as dependent evidence. Only one reviewed conclusion per source file can
+enter permanent memory, including across later batches; combine a source's lessons in that single
+reviewed conclusion.
 
-All remaining candidates stay pending until a reviewer checks the source and
-writes a receipt in ignored `memory/.dreams/promotion-approvals.json`, keyed by
-the exact promotion key. Fields are:
+All remaining candidates stay pending until a reviewer checks the source and writes a receipt in
+ignored `memory/.dreams/promotion-approvals.json`, keyed by the exact promotion key. Fields are:
 
 ```json
 {
@@ -55,27 +62,49 @@ the exact promotion key. Fields are:
 }
 ```
 
-Receipts expire after 30 days until applied and bind the exact candidate hash.
-They are operator-controlled input, never generated from score or model DONE
-status. This flow does not schedule a new model reviewer. Pending work needs a
-reviewer; absence of a reviewer keeps it private.
+Receipts expire after 30 days until applied and bind the exact candidate hash. They are
+operator-controlled input, never generated from score or model DONE status. This flow does not
+schedule a new model reviewer. Pending work needs a reviewer; absence of a reviewer keeps it
+private.
 
-Approved conclusions go into `## Reviewed Dreaming Memory`, outside the dated
-promotion sections, with source file/line range, review date and SHA256. Only
-approved entries keep public promotion markers. Rejected and pending candidates
-write no public placeholder or marker; their original bytes, markers and decisions
-remain in ignored `review-<hash>.json`. Repeated unchanged batches reuse that
-archive rather than growing MEMORY. Legacy pending inputs remain in
-`legacy-promotion-candidates.md`.
+An approved conclusion becomes one new topic:
 
-The gate removes exact old marker-plus-rejection placeholders from reviewed
-sections and drops sections left empty. It archives the before-image before any
-write, even if no candidates remain. Approved entries and human prose are preserved;
-`--check` rejects unmigrated placeholders. An unsafe promotion source is rejected
-as a candidate instead of aborting the batch; the commit wrapper contains any
-remaining parser failure so DREAMS can still be reviewed and committed. No gateway
-restart is needed for a change to this host-side Python gate. Never publish private
-archives or approval files. Private storage pruning requires separate review.
+- slug `lessons-dreaming-<source-stem>-<start>-<end>`;
+- `publish: public`, the next contiguous integer `order`, and `separator: true`;
+- default write-time fields `scope: memory`, `salience: normal` and `status: verified`, because
+  the receipt does not classify a domain and the public projection is the intended consumer;
+- body start with a heading, then the reviewed marker, the conclusion, and the exact
+  `- Source: <file>:<start>-<end> (reviewed <date>; SHA256 <hash>)` line.
+
+The 14 sections already in `MEMORY.md` correspond to existing public topics and are never
+recreated. Promotion only handles new candidates. The marker is the idempotency key: a repeated
+run sees it in the committed projection or in the store, writes no second topic, and regenerates
+nothing when the projection already contains it. A candidate whose content changes after
+promotion is refused rather than rewritten. Legacy dated promotion sections, if an old runtime
+left one, are copied to the private legacy candidate file before the projection drops them.
+
+`promote_dreaming.py --check` performs the same review and prints the approved/pending/rejected
+decisions and the slugs it would write, without touching the store or the repository.
+
+### Failure behavior
+
+- **Review not approved:** no store write and no projection. Pending and rejected candidates stay
+  private.
+- **Store write fails:** the snapshot or `memory.py add` step is named on stderr; no projection is
+  written, so the injected `MEMORY.md` remains the last usable version.
+- **Store audit fails:** `memctl verify` or `memctl doctor` is named on stderr; no projection is
+  written. The topic remains for a retry after the underlying store issue is fixed.
+- **Projection generation fails:** `publish.py --write` or its `--check --store` post-check is
+  named on stderr; `MEMORY.md` and `publish-manifest.json` are restored byte-for-byte from their
+  before-image. The reviewed topic stays in the store, so the next run retries the projection
+  without another review. The restored file is the previous injectable version, not an empty or
+  partially generated one.
+- **One side fails in `commit_dreaming.sh`:** each side is reviewed and committed separately; the
+  other side still commits and pushes. The failing side is named in the cron log.
+
+No gateway restart is needed for a change to this host-side Python or shell gate. Never publish
+private archives, approval files, or candidate text. Private storage pruning requires separate
+review.
 
 ### DREAMS.md diary append
 
@@ -113,13 +142,27 @@ decision counts and run:
 python3 ops/host/patch_dreaming_review.py --check
 python3 ops/host/review_dreaming.py --workspace /root/.openclaw/workspace --check
 python3 ops/host/review_dreams.py --workspace /root/.openclaw/workspace --check
+python3 ops/host/promote_dreaming.py --workspace /root/.openclaw/workspace --check
+python3 ops/host/shared-memory/scripts/publish.py --check --store ~/.shared-memory
+python3 ~/.agents/skills/shared-memory/scripts/memctl verify --quiet
+python3 ~/.agents/skills/shared-memory/scripts/memctl doctor --quiet
 ```
 
-Inspect the private review ledger for the matching candidate hashes and verify
-that approved text is in the permanent section. An empty batch is not evidence
-of a successful live promotion; verify the next nonempty batch as well. Tests
-support `DREAMING_AUDIT_MEMORY=/path/to/copy/MEMORY.md` for private before/after
-checks without committing raw session metadata as fixtures.
+Inspect the private review ledger for the matching candidate hashes, then verify the approved
+conclusion is in its new public topic and in `MEMORY.md`. An empty batch is not evidence of a
+successful live promotion; verify the next nonempty batch as well. Tests support
+`DREAMING_AUDIT_MEMORY=/path/to/copy/MEMORY.md` for private before/after checks without committing
+raw session metadata as fixtures.
+
+For a failed projection, the error names the failing step and the restored hash. Confirm
+`MEMORY.md` still matches its manifest:
+
+```bash
+python3 ops/host/shared-memory/scripts/publish.py --check
+```
+
+The store topic may already exist; fix the named cause and run the promotion again. It will skip
+the topic write and retry only the projection.
 
 For DREAMS, confirm the first run bootstrapped `dreams-review.json`, then verify a
 new diary entry went to `dreams-quarantine.jsonl` and disappeared from
@@ -147,7 +190,7 @@ entry is only evidence of output, not semantic quality or successful promotion.
 This check does not rewrite the diary, change cron status, retry models, or send
 another notification; it participates in the existing system health report.
 
-When the private candidate file or reviewed-memory section is present, the old
+When the private candidate file or a reviewed promotion topic is present, the old
 brief-age promotion metric is skipped: explicit review may intentionally leave all
 recent briefs unpromoted. Its informational result is not proof that the patch is
 active or that pending candidates have been reviewed. Inspect the private review
