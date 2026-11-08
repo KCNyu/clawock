@@ -1,7 +1,7 @@
 {
   "id": "shared-memory-corpus",
   "name": "Shared memory corpus (read-only)",
-  "description": "Lets memory_search (corpus=all) and memory_get read the coding agents' shared Markdown memory, in direct chats only; writes only a private recall counter outside the store.",
+  "description": "Lets memory_search (corpus=all) and memory_get read the coding agents' shared Markdown memory in every configured session; writes only a private recall counter outside the store.",
   "activation": {
     "onStartup": true
   },
@@ -38,7 +38,7 @@
     },
     "isolateBuiltinIndex": {
       "label": "Isolate built-in recall",
-      "help": "Strip shared-store results from group/channel/cron/subagent sessions after the built-in index merge (default true)."
+      "help": "Keep the shared-store gate on the built-in index merge: any configured session passes, a keyless call is stripped (default true)."
     }
   },
   "contracts": {

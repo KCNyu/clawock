@@ -101,13 +101,6 @@ def test_write_time_tags_are_searchable_in_both_engines(tmp_path):
     assert [h["path"] for h in hits] == ["shared-memory/feedback-tagged.md"]
 
 
-@pytest.mark.parametrize("key", [None, "", "agent:main:openclaw-weixin:group:g-1", "agent:main:telegram:channel:c",
-                                 "agent:main:cron:brief", "agent:main:explicit:abc", "agent:main:subagent:x"])
-def test_groups_channels_cron_and_keyless_sessions_get_nothing(store, key):
-    arg = "undefined" if key is None else json.dumps(key)
-    hits = node(corpus(store, f"await c.search({{query: 'sandbox', agentSessionKey: {arg}, corpus: 'all'}})"))
-    got = node(corpus(store, f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: {arg}}})"))
-    assert hits == [] and got is None
 
 
 def test_main_session_is_direct_and_only_corpus_all_is_answered(store):
@@ -169,12 +162,13 @@ def test_search_and_get_record_topic_slugs_without_the_query(store, tmp_path):
     assert oct((state / "recall.jsonl").stat().st_mode & 0o777) == "0o600"
 
 
-def test_group_sessions_write_no_recall(store, tmp_path):
+def test_cron_sessions_record_their_recall(store, tmp_path):
     state = tmp_path / "state"
-    node(corpus(store, "[await c.search({query: 'sandbox', agentSessionKey: 'agent:main:cron:brief'}), "
-                       "await c.get({lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: 'agent:main:cron:brief'})]"),
+    node(corpus(store, f"[await c.search({{query: 'sandbox', agentSessionKey: '{CRON}'}}), "
+                       f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: '{CRON}'}})]"),
          env={"SHARED_MEMORY_STATE": str(state)})
-    assert not (state / "recall.jsonl").exists()
+    rows = [json.loads(line) for line in (state / "recall.jsonl").read_text().splitlines()]
+    assert {row["source"] for row in rows} == {"openclaw-supplement", "openclaw-get"}
 
 
 def test_redaction_matches_memctl_pattern_for_pattern():
@@ -321,7 +315,35 @@ SUBAGENT = "agent:main:subagent:x"
 DIRECT = "agent:main:openclaw-weixin:direct:peer-1"
 
 
-def test_session_allowed_covers_exactly_the_owner_direct_contexts():
+CONFIGURED_SESSIONS = {
+    "direct": DIRECT,
+    "group": GROUP,
+    "channel": CHANNEL,
+    "cron": CRON,
+    "subagent": SUBAGENT,
+    "main": "agent:main:main",
+    "explicit": "agent:main:explicit:abc",
+}
+
+
+def test_every_configured_session_sees_the_whole_shared_store(store):
+    for label, key in CONFIGURED_SESSIONS.items():
+        hits = node(corpus(store, f"await c.search({{query: 'sandbox', agentSessionKey: {json.dumps(key)}, corpus: 'all'}})"))
+        got = node(corpus(store, f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: {json.dumps(key)}}})"))
+        paths = [hit["path"] for hit in hits]
+        assert paths[0] == "shared-memory/feedback-sandbox.md", label
+        assert "shared-memory/archive/incident-old.md" in paths, label
+        assert got and "The sandbox is off on purpose." in got["content"], label
+
+
+@pytest.mark.parametrize("key", [None, ""])
+def test_keyless_sessions_get_nothing(store, key):
+    arg = "undefined" if key is None else json.dumps(key)
+    hits = node(corpus(store, f"await c.search({{query: 'sandbox', agentSessionKey: {arg}, corpus: 'all'}})"))
+    got = node(corpus(store, f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: {arg}}})"))
+    assert hits == [] and got is None
+
+def test_session_allowed_is_one_predicate_for_every_configured_session():
     out = node(f"""console.log(JSON.stringify({{
   direct: m.sessionAllowed({json.dumps(DIRECT)}),
   main: m.sessionAllowed('agent:main:main'),
@@ -332,12 +354,14 @@ def test_session_allowed_covers_exactly_the_owner_direct_contexts():
   subagent: m.sessionAllowed({json.dumps(SUBAGENT)}),
   explicit: m.sessionAllowed('agent:main:explicit:abc'),
   keyless: m.sessionAllowed(undefined),
+  blank: m.sessionAllowed('   '),
 }}))""")
-    assert out == {"direct": True, "main": True, "dm": True, "group": False, "channel": False,
-                   "cron": False, "subagent": False, "explicit": False, "keyless": False}
+    assert out == {"direct": True, "main": True, "dm": True, "group": True, "channel": True,
+                   "cron": True, "subagent": True, "explicit": True, "keyless": False,
+                   "blank": False}
 
 
-def test_the_reusable_filter_keeps_workspace_hits_and_drops_shared_paths_outside_direct():
+def test_the_reusable_filter_keeps_shared_paths_for_every_configured_session():
     hits = [
         {"path": "../../.openclaw/state/shared-memory-vector/feedback-x.md", "source": "memory", "score": 1},
         {"path": "shared-memory/feedback-y.md", "corpus": "shared-memory", "score": 1},
@@ -360,13 +384,18 @@ out.paths = {{
   other: m.isSharedMemoryRecallPath('../../.openclaw/state/other/feedback-x.md'),
 }};
 console.log(JSON.stringify(out));""")
-    shared = {"../../.openclaw/state/shared-memory-vector/feedback-x.md", "shared-memory/feedback-y.md",
-              "/root/.openclaw/state/shared-memory-vector/feedback-z.md"}
     assert out["direct"] == [hit["path"] for hit in hits]
     for label in ("group", "channel", "cron", "subagent"):
-        assert set(out[label]) == {hit["path"] for hit in hits} - shared, label
+        assert out[label] == [hit["path"] for hit in hits], label
+    assert m_filtered_keyless(hits) == ["memory/2026-11-08.md", "MEMORY.md"]
     assert out["paths"] == {"relative": True, "absolute": True, "supplement": True,
                             "workspace": False, "other": False}
+
+
+def m_filtered_keyless(hits):
+    return node(f"""
+const hits = {json.dumps(hits)};
+console.log(JSON.stringify(m.filterSharedMemoryRecall(hits, undefined).map((hit) => hit.path)));""")
 
 
 def test_tool_result_middleware_filters_the_merged_memory_search_result():
@@ -375,7 +404,8 @@ def test_tool_result_middleware_filters_the_merged_memory_search_result():
         {"path": "shared-memory/feedback-y.md", "corpus": "shared-memory", "score": 1, "snippet": "shared"},
         {"path": "MEMORY.md", "source": "memory", "score": 1, "snippet": "workspace"},
     ]
-    keys = {"direct": DIRECT, "group": GROUP, "channel": CHANNEL, "cron": CRON, "subagent": SUBAGENT}
+    keys = {"direct": DIRECT, "group": GROUP, "channel": CHANNEL, "cron": CRON,
+            "subagent": SUBAGENT, "keyless": ""}
     out = node(f"""
 const payload = {{results: {json.dumps(hits)}}};
 const result = {{content: [{{type: 'text', text: JSON.stringify(payload, null, 2)}}], details: payload}};
@@ -392,12 +422,12 @@ for (const [label, key] of Object.entries({json.dumps(keys)})) {{
 }}
 console.log(JSON.stringify({{calls: calls.length, runtime: calls[0].options.runtimes, out}}));""")
     assert out["calls"] == 1 and out["runtime"] == ["openclaw"]
-    assert out["out"]["direct"] == [hit["path"] for hit in hits]
-    for label in ("group", "channel", "cron", "subagent"):
-        assert out["out"][label] == ["MEMORY.md"], label
+    for label in ("direct", "group", "channel", "cron", "subagent"):
+        assert out["out"][label] == [hit["path"] for hit in hits], label
+    assert out["out"]["keyless"] == ["MEMORY.md"]
 
 
-def test_memory_get_cannot_read_a_shared_staging_path_outside_direct():
+def test_memory_get_blocks_only_a_keyless_shared_staging_read():
     path = "../../.openclaw/state/shared-memory-vector/feedback-x.md"
     out = node(f"""
 const payload = {{path: {json.dumps(path)}, text: 'private body', from: 1, lines: 1}};
@@ -406,16 +436,17 @@ const calls = [];
 register({{pluginConfig: {{}}, logger: {{warn() {{}}}}, registerMemoryCorpusSupplement() {{}},
   registerAgentToolResultMiddleware: (handler) => calls.push(handler)}});
 const mw = calls[0];
-const blocked = await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{sessionKey: {json.dumps(GROUP)}}});
+const blocked = await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{}});
 const allowed = await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{sessionKey: {json.dumps(DIRECT)}}});
+const group = await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{sessionKey: {json.dumps(GROUP)}}});
 console.log(JSON.stringify({{
   blocked: blocked ? blocked.result.details : payload,
   allowed: allowed === undefined,
-  keyless: (await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{}})) ? 'blocked' : 'allowed',
+  group: group === undefined,
 }}));""")
     assert out["blocked"]["text"] == "" and out["blocked"]["disabled"] is True
-    assert "direct chat" in out["blocked"]["error"]
-    assert out["allowed"] is True and out["keyless"] == "blocked"
+    assert "configured session" in out["blocked"]["error"]
+    assert out["allowed"] is True and out["group"] is True
 
 
 def test_the_isolation_switch_can_be_turned_off():
@@ -431,7 +462,8 @@ def test_the_before_tool_call_hook_carries_the_session_key_into_the_middleware()
         {"path": "../../.openclaw/state/shared-memory-vector/feedback-x.md", "source": "memory", "score": 1},
         {"path": "memory/2026-11-08.md", "source": "memory", "score": 1},
     ]
-    keys = {"direct": DIRECT, "group": GROUP, "channel": CHANNEL, "cron": CRON, "subagent": SUBAGENT}
+    keys = {"direct": DIRECT, "group": GROUP, "channel": CHANNEL, "cron": CRON,
+            "subagent": SUBAGENT, "keyless": ""}
     out = node(f"""
 const payload = {{results: {json.dumps(hits)}}};
 const result = {{content: [{{type: 'text', text: JSON.stringify(payload, null, 2)}}], details: payload}};
@@ -450,7 +482,7 @@ for (const [label, key] of Object.entries({json.dumps(keys)})) {{
 }}
 console.log(JSON.stringify({{hooks: hooks.map((item) => item.name), mws: mws.length, out}}));""")
     assert out["mws"] == 1 and out["hooks"] == ["before_tool_call"]
-    assert out["out"]["direct"] == [hit["path"] for hit in hits]
-    for label in ("group", "channel", "cron", "subagent"):
-        assert out["out"][label] == ["memory/2026-11-08.md"], label
+    for label in ("direct", "group", "channel", "cron", "subagent"):
+        assert out["out"][label] == [hit["path"] for hit in hits], label
+    assert out["out"]["keyless"] == ["memory/2026-11-08.md"]
 

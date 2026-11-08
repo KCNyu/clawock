@@ -134,7 +134,7 @@ memctl index-view --print-config       # print the extraPaths snippet; does not 
 The view contains active top-level topics only (no store index, no `archive/`), copies them as real
 files with a manifest of SHA256 hashes, and swaps the directory atomically. It never writes inside the
 store or the repository. Pointing `agents.defaults.memorySearch.extraPaths` at it is a separate,
-reviewed deployment step; install the plugin and verify its direct-only middleware first, because
+reviewed deployment step; install the plugin and verify its session middleware first, because
 the built-in index does not pass through `sessionAllowed` on its own. The command does not change
 OpenClaw config or restart the gateway.
 
@@ -147,13 +147,14 @@ leaves it in place. The assistant's `memory_search` with `corpus=all` and `memor
 is the private recall counter below):
 
 - it only reads files under the configured root, `.md` only, no symlink escapes;
-- it answers direct (one-to-one) sessions only — group, channel, cron and keyless sessions get
-  nothing, so private notes do not surface in a group or in a published brief;
-- the built-in index is held to the same rule. The plugin registers an
+- it answers every configured session — direct, group, channel, cron and subagent — so a
+  scheduled brief or subagent can check the owner's recorded preferences instead of guessing.
+  Only a keyless call gets nothing, because the plugin cannot tell whether it is configured;
+- the built-in index is held to the same predicate. The plugin registers an
   `agentToolResultMiddleware` for the `openclaw` runtime (`contracts.agentToolResultMiddleware`),
   which strips `shared-memory-vector/…` and `shared-memory/…` hits from the merged
-  `memory_search` result and blocks `memory_get` on those paths outside a direct chat. This is
-  what makes `agents.defaults.memorySearch.extraPaths` safe later; the reusable predicate is
+  `memory_search` result and blocks `memory_get` on those paths for a keyless call. This is
+  what makes `agents.defaults.memorySearch.extraPaths` safe; the reusable predicate is
   exported as `sessionAllowed` + `filterSharedMemoryRecall` for any future vector merge layer.
   `isolateBuiltinIndex: false` disables the gate, and `vectorRoot` overrides the staging
   directory (default `~/.openclaw/state/shared-memory-vector`);
@@ -168,8 +169,9 @@ is the private recall counter below):
   (`context.openclaw.no_shared_text`) when a line of the workspace's `public_files` repeats a
   line of the shared store.
 
-The plugin matches queries by the same rules as `memory.py search` (§ Search matching); only
-the score it reports differs, because OpenClaw ranks it next to its own corpora.
+Recall is not publication. `MEMORY.md`, `DREAMS.md` and the pre-open brief may still quote only
+a `publish: public` topic or runtime data; `scripts/provenance.py` fails the generation path when
+an artifact transcribes a private topic's line or paragraph (see § Publish projection).
 
 Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
 `plugins.load.paths` and enable `plugins.entries.shared-memory-corpus`; a gateway restart loads it.
@@ -208,7 +210,9 @@ The generator sorts by `metadata.order` (contiguous `1..N`), writes `MEMORY.md`,
 SHA-256 hashes. `--check` without `--store` validates the committed pair, so CI can run it from a
 clean checkout; with `--store` it also proves the file is not stale. The manifest is what makes
 a hand-added line, an edited paragraph, a deleted section or a `publish: private` section fail
-rather than silently ship.
+rather than silently ship. On the write path (and on `--check --store`) `publish.py` also runs
+`scripts/provenance.py`: a public topic that transcribes a private topic body is rejected, and
+the same guard runs on the rendered brief and the new `DREAMS.md` entry before they are committed.
 
 `MEMORY.md` stays the direct-chat injection source. The projection keeps the exact section text,
 order and separators of the reviewed file, so switching it in does not change what the chat sees.

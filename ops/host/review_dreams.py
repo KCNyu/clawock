@@ -26,8 +26,11 @@ import re
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'shared-memory' / 'scripts'))
 from review_dreaming import reasons  # noqa: E402
+import provenance  # noqa: E402  (private topic bodies may not reach a public file)
 
+DEFAULT_STORE = Path(os.environ.get('SHARED_MEMORY_DIR', '~/.shared-memory')).expanduser()
 DIARY_START = '<!-- openclaw:dreaming:diary:start -->'
 DIARY_END = '<!-- openclaw:dreaming:diary:end -->'
 ENTRY = re.compile(
@@ -124,7 +127,17 @@ def append_quarantine(path: Path, rows) -> int:
     return len(new)
 
 
-def review(workspace: Path, check_only: bool = False) -> int:
+def private_copy_reasons(body: str, store: Path | None) -> list[str]:
+    if store is None:
+        return []
+    try:
+        copies = provenance.find_copies(body, store)
+    except provenance.ProvenanceError as exc:
+        raise ValueError(f'private-topic source check failed: {exc}') from exc
+    return [f"private_topic_copy:{item['topic']}" for item in copies]
+
+
+def review(workspace: Path, check_only: bool = False, store: Path | None = None) -> int:
     dreams_path = workspace / 'DREAMS.md'
     if not dreams_path.is_file():
         print('dreams review: no DREAMS.md')
@@ -158,6 +171,7 @@ def review(workspace: Path, check_only: bool = False) -> int:
             kept.append(entry)
             continue
         why = reasons(entry['body'])
+        why = [*why, *private_copy_reasons(entry['body'], store)]
         receipt = approvals.get(key)
         if not why and valid_receipt(receipt, key):
             ledger_entries[key] = {'date': entry['date'], 'status': 'approved',
@@ -196,7 +210,8 @@ def review(workspace: Path, check_only: bool = False) -> int:
     return 0
 
 
-def approve(workspace: Path, target: str, reviewer: str, rationale: str) -> int:
+def approve(workspace: Path, target: str, reviewer: str, rationale: str,
+            store: Path | None = None) -> int:
     private = workspace / 'memory/.dreams'
     quarantine_path = private / 'dreams-quarantine.jsonl'
     rows = []
@@ -212,6 +227,7 @@ def approve(workspace: Path, target: str, reviewer: str, rationale: str) -> int:
         raise ValueError(f'no quarantined DREAMS entry {target}')
     row = rows[-1]
     why = reasons(row.get('body', row['text']))
+    why = [*why, *private_copy_reasons(row.get('body', row['text']), store)]
     if why:
         raise ValueError(f'entry still matches contamination rules: {", ".join(why)}')
     approvals_path = private / 'dreams-approvals.json'
@@ -250,9 +266,16 @@ def main() -> int:
     parser.add_argument('--approve', metavar='SHA256')
     parser.add_argument('--reviewer')
     parser.add_argument('--rationale')
+    parser.add_argument('--store', type=Path,
+                        help='shared-memory store for the private-body source check '
+                             '(default: $SHARED_MEMORY_DIR or ~/.shared-memory when it exists)')
     parser.add_argument('--list', action='store_true')
     args = parser.parse_args()
     workspace = args.workspace.resolve()
+    store = (args.store.expanduser().resolve() if args.store else
+             (DEFAULT_STORE if DEFAULT_STORE.is_dir() else None))
+    if args.store and not store.is_dir():
+        parser.error(f'shared memory directory not found: {store}')
     if args.list:
         path = workspace / 'memory/.dreams/dreams-quarantine.jsonl'
         if not path.is_file():
@@ -272,16 +295,16 @@ def main() -> int:
         lock = (lock_dir / 'dreams-review.lock').open('a')
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
         try:
-            return approve(workspace, args.approve, args.reviewer, args.rationale)
+            return approve(workspace, args.approve, args.reviewer, args.rationale, store)
         finally:
             fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
     if args.check:
-        return review(workspace, check_only=True)
+        return review(workspace, check_only=True, store=store)
     lock_dir = workspace / 'memory/.dreams'
     lock_dir.mkdir(parents=True, exist_ok=True)
     lock = (lock_dir / 'dreams-review.lock').open('a')
     fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    return review(workspace)
+    return review(workspace, store=store)
 
 
 if __name__ == '__main__':

@@ -31,7 +31,12 @@
         "唯一微信路径",
         "同步 Telegram",
         "禁用 message",
-        "--no-deliver"
+        "--no-deliver",
+        "涉及 kcn 的偏好、纪律或历史决策时，先查共享记忆",
+        "python3 /root/.agents/skills/shared-memory/scripts/memory.py search '<关键词>'",
+        "inject --audience investment-cron",
+        "不要凭常识推断他的看法",
+        "publish: public"
       ],
       "forbidden_substrings": [
         "≤ 800",
@@ -88,7 +93,12 @@
         "同步 Telegram",
         "禁用 message",
         "最终回复只写 postflight 的 status、wechat_sent、telegram_sent、commit_ok",
-        "--no-deliver"
+        "--no-deliver",
+        "涉及 kcn 的偏好、纪律或历史决策时，先查共享记忆",
+        "python3 /root/.agents/skills/shared-memory/scripts/memory.py search '<关键词>'",
+        "inject --audience investment-cron",
+        "不要凭常识推断他的看法",
+        "publish: public"
       ],
       "forbidden_substrings": [
         "≤ 800",
@@ -128,7 +138,12 @@
         "猜错了不许全盘扫描",
         "不需要 kill",
         "绝不要",
-        "message"
+        "message",
+        "涉及 kcn 的偏好、纪律或历史决策时，先查共享记忆",
+        "python3 /root/.agents/skills/shared-memory/scripts/memory.py search '<关键词>'",
+        "inject --audience investment-cron",
+        "不要凭常识推断他的看法",
+        "publish: public"
       ],
       "forbidden_substrings": [
         "唯一投递路径",

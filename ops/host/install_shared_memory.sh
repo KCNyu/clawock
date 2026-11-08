@@ -31,6 +31,7 @@ FILES=(
   scripts/recall.py
   scripts/memory.py
   scripts/memctl
+  scripts/provenance.py
   scripts/publish.py
   scripts/replay.py
   scripts/retire.py

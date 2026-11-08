@@ -42,6 +42,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import review_dreaming as gate  # noqa: E402  (the hash-bound review owner)
 import memory as memory_tool  # noqa: E402  (the topic format owner)
+import provenance  # noqa: E402  (public artifacts may not copy private bodies)
 import publish as projection  # noqa: E402  (the projection owner)
 
 DEFAULT_STORE = Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).expanduser()
@@ -232,6 +233,10 @@ def write_topic(store: Path, memory_py: Path, memctl: Path, entry: dict, receipt
     if path.exists():
         raise PromotionError(f"topic already exists without this candidate's marker: {path.name}")
     body = body_with_metadata(entry, topic_body(entry, receipt), order)
+    try:
+        provenance.assert_public_sources(f"dreaming candidate {entry['key']}", body, store)
+    except provenance.ProvenanceError as exc:
+        raise PromotionError(str(exc)) from exc
     fd, name = tempfile.mkstemp(prefix=".promote-", suffix=".md", dir=str(store))
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
@@ -351,6 +356,13 @@ def main() -> int:
                     f"topic slug collision for {row['key']}: {(store / f'{topic_slug(row)}.md').name}")
             candidates_to_write.append(row)
         candidates_to_write.sort(key=lambda row: row["key"])
+        for row in candidates_to_write:
+            try:
+                provenance.assert_public_sources(
+                    f"dreaming candidate {row['key']}",
+                    body_with_metadata(row, topic_body(row, approvals[row["key"]]), 1), store)
+            except provenance.ProvenanceError as exc:
+                raise PromotionError(str(exc)) from exc
 
         missing = [item for item in existing.values() if item["marker"] not in memory_text]
         legacy_sections = bool(gate.SECTION.search(memory_text))

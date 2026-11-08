@@ -94,6 +94,9 @@ decisions and the slugs it would write, without touching the store or the reposi
   written, so the injected `MEMORY.md` remains the last usable version.
 - **Store audit fails:** `memctl verify` or `memctl doctor` is named on stderr; no projection is
   written. The topic remains for a retry after the underlying store issue is fixed.
+- **Source guard fails:** a candidate, brief or `DREAMS.md` entry transcribes a topic whose
+  metadata is not `publish: public`; the guard names the topic and the artifact is not published.
+  A private line duplicated into a public topic fails too: the public topic is what needs fixing.
 - **Projection generation fails:** `publish.py --write` or its `--check --store` post-check is
   named on stderr; `MEMORY.md` and `publish-manifest.json` are restored byte-for-byte from their
   before-image. The reviewed topic stays in the store, so the next run retries the projection
@@ -141,7 +144,7 @@ decision counts and run:
 ```bash
 python3 ops/host/patch_dreaming_review.py --check
 python3 ops/host/review_dreaming.py --workspace /root/.openclaw/workspace --check
-python3 ops/host/review_dreams.py --workspace /root/.openclaw/workspace --check
+python3 ops/host/review_dreams.py --workspace /root/.openclaw/workspace --check --store ~/.shared-memory
 python3 ops/host/promote_dreaming.py --workspace /root/.openclaw/workspace --check
 python3 ops/host/shared-memory/scripts/publish.py --check --store ~/.shared-memory
 python3 ~/.agents/skills/shared-memory/scripts/memctl verify --quiet

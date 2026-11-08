@@ -61,14 +61,12 @@ export async function recordRecall(source: string, topics: string[]): Promise<vo
   } catch {}
 }
 
-// Private notes surface only in a one-to-one chat with the owner: never in a group or a
-// channel, and never in cron or other keyless runs whose output may be published.
+// The owner and every configured session (direct, group, channel, cron, subagent) may
+// read the shared store. Only a keyless call is refused: without a session key the
+// plugin cannot tell whether the caller is configured, so it fails closed. This one
+// predicate is shared by the corpus supplement and the built-in-index middleware.
 export function sessionAllowed(sessionKey: string | undefined): boolean {
-  if (!sessionKey) return false;
-  const tokens = sessionKey.toLowerCase().split(":").filter(Boolean);
-  if (tokens.some((t) => t === "group" || t === "channel" || t === "cron" || t === "subagent")) return false;
-  if (tokens.includes("direct") || tokens.includes("dm")) return true;
-  return tokens.length === 3 && tokens[0] === "agent" && tokens[2] === "main";
+  return typeof sessionKey === "string" && sessionKey.trim().length > 0;
 }
 
 // The built-in index stores extraPaths files by their path relative to the workspace
@@ -93,8 +91,8 @@ export function isSharedMemoryRecallPath(path: string | undefined, options: Reca
 }
 
 // Reusable at every recall merge point: the corpus supplement, the built-in
-// vector/text hits, and any future index layer. Direct owner sessions keep the
-// results; every other session loses the shared-store paths and keeps its own.
+// vector/text hits, and any future index layer. Any configured session keeps the
+// shared-store results; a keyless call loses them and keeps its own.
 export function filterSharedMemoryRecall<T extends { path?: unknown }>(
   results: T[],
   sessionKey: string | undefined,
@@ -190,7 +188,7 @@ export function createSharedMemoryRecallMiddleware(options: RecallIsolationOptio
         ...payload,
         text: "",
         disabled: true,
-        error: "shared memory is only available in a direct chat with the owner",
+        error: "shared memory is not available without a configured session",
       }),
     };
   };
@@ -458,7 +456,7 @@ export default function register(api: OpenClawPluginApi) {
   }));
   // The middleware is the extraPaths merge-layer gate. It is on by default so a
   // future `agents.defaults.memorySearch.extraPaths` change cannot make the
-  // built-in index return private notes to a group, cron or subagent session.
+  // built-in index return private notes to a keyless session.
   if (config.isolateBuiltinIndex !== false && typeof api.registerAgentToolResultMiddleware === "function") {
     if (typeof api.on === "function") api.on("before_tool_call", createRecallSessionHook());
     api.registerAgentToolResultMiddleware(createSharedMemoryRecallMiddleware({

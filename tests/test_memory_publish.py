@@ -118,3 +118,28 @@ def test_the_committed_projection_and_manifest_are_public_only():
     assert all(section["publish"] == "public" for section in manifest["sections"])
     assert all(section["slug"] == section["slug"].lower() for section in manifest["sections"])
     assert "publish: private" not in text and "publish: public" not in text
+
+
+def test_a_public_section_that_transcribes_a_private_body_is_rejected(store, tmp_path):
+    publish = load_publish()
+    private_line = "The private entry rule says never publish this sentence verbatim."
+    (store / "project-private.md").write_text(
+        topic("project-private", f"## Private\n\n{private_line}", publish="private"))
+    (store / "feedback-one.md").write_text(
+        topic("feedback-one", f"## One\n\n{private_line}"))
+    with pytest.raises(publish.provenance.ProvenanceError, match="copies a private topic body"):
+        publish.write(tmp_path, store, tmp_path / "manifest.json")
+    assert not (tmp_path / "MEMORY.md").exists()
+
+
+def test_the_source_guard_accepts_paraphrase_and_runtime_data_but_not_a_copy(store):
+    publish = load_publish()
+    private_line = "The private entry rule says never publish this sentence verbatim."
+    (store / "project-private.md").write_text(
+        topic("project-private", f"## Private\n\n{private_line}", publish="private"))
+    publish.provenance.assert_public_sources(
+        "brief", "The private entry rule says this sentence is not for publication.", store)
+    publish.provenance.assert_public_sources(
+        "brief", private_line, store, allowed_texts=["portfolio: " + private_line])
+    with pytest.raises(publish.provenance.ProvenanceError, match="project-private"):
+        publish.provenance.assert_public_sources("brief", f"prefix\n{private_line}\n", store)
