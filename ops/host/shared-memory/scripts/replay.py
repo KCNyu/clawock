@@ -28,7 +28,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import recall  # noqa: E402
 from memory import split_frontmatter  # noqa: E402
 
-DEFAULT_WORKSPACE = Path(os.environ.get("CLAWOCK_WORKSPACE", "~/.openclaw/workspace")).expanduser()
 DEFAULT_STATE = Path(os.environ.get("SHARED_MEMORY_STATE", "~/.local/state/shared-memory")).expanduser()
 MAX_PER_KIND = 20
 MIN_BODY_CHARS = 80
@@ -302,7 +301,6 @@ def build_candidates(store: Path, state: Path, now: dt.datetime, days: int,
     }
     return {
         "generated_at": now.isoformat(timespec="seconds"),
-        "workspace": str(DEFAULT_WORKSPACE),
         "store": str(store),
         "window_days": days,
         "sources": collected["sources"],
@@ -361,13 +359,17 @@ def main() -> int:
     parser.add_argument("--store", type=Path,
                         default=Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).expanduser())
     parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
-    parser.add_argument("--workspace", type=Path, default=DEFAULT_WORKSPACE)
+    parser.add_argument("--workspace", type=Path,
+                        default=Path(os.environ["CLAWOCK_WORKSPACE"]).expanduser()
+                        if os.environ.get("CLAWOCK_WORKSPACE") else None)
     parser.add_argument("--out", type=Path, help="default: <workspace>/memory/.replay")
     parser.add_argument("--days", type=int, default=14, help="task/session lookback")
     parser.add_argument("--now", help="ISO timestamp for a reproducible report")
     parser.add_argument("--max-per-kind", type=int, default=MAX_PER_KIND)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+    if args.workspace is None:
+        parser.error("--workspace (or CLAWOCK_WORKSPACE) is required")
     now = now_from(args.now)
     old_state = os.environ.get("SHARED_MEMORY_STATE")
     os.environ["SHARED_MEMORY_STATE"] = str(args.state)
