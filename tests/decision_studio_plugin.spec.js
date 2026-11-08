@@ -3689,6 +3689,7 @@ test("workbench: the signal copy, waits and first sentence are fixed", async () 
     "Workbench, 1 pending, oldest 12 minutes");
 
   assert.equal(api.firstSentence("第一句。第二句。"), "第一句。");
+  assert.equal(api.firstSentence("请审阅 `a.md` 的 **方案**"), "请审阅 a.md 的 方案");
   assert.equal(api.firstSentence("one. two."), "one");
   assert.equal(api.firstSentence("a".repeat(200), 20).endsWith("…"), true);
 });
