@@ -1791,6 +1791,8 @@
   outline:var(--tq-focus-ring);
   outline-offset:-2px
 }.pbc .tq-log-sheet{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column }
+.pbc .tq-log-note{ display:block; margin:0 0 8px; }
+.pbc .tq-file-item{ min-width:0; }
 .pbc .tq-log{
   max-height:220px;
   margin:10px 0 0;

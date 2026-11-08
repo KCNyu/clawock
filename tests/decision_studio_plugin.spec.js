@@ -4788,6 +4788,10 @@ test("workbench client: Full log opens the preview or says why it cannot", async
     const note = absent.find(tree, (p) => p["data-tq-log-note"] !== undefined)[0];
     assert.ok(note, "the reason is repeated where the log sheet covers the detail");
     assert.match(absent.textOf(note), /没有会话/);
+    assert.match(absent.textOf(note), /80 行/, "the inline view says how much of the log it is");
+    const full = absent.find(note, (p) => p["data-tq-log-full"] !== undefined)[0];
+    assert.ok(full, "the sheet carries a usable exit to the full file");
+    assert.match(full.props.href, /^api\/file\?path=/, "the exit uses dsh's session-free file route");
 
     // A host with a preview: the native path wins and nothing is said.
     const native = make(() => ({ ok: true }));
@@ -4802,6 +4806,89 @@ test("workbench client: Full log opens the preview or says why it cannot", async
       "no warning when the preview opened");
     assert.equal(native.find(tree, (p) => p["data-tq-log-note"] !== undefined).length, 0,
       "no log sheet note when the preview opened");
+  } finally {
+    disposeReactEffects();
+  }
+});
+
+test("workbench client: an append shows its full text and a full-file exit", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const task = {
+    id: "done-1", name: "done one", agent: "dsh", model: "deepseek-flash", state: "ok",
+    waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: now - 7200_000, updatedAtMs: now - 60_000, wakeAtMs: null, patrol: false,
+    summary: "", lastEvent: "", lastEventAtMs: null, finishedAtMs: now - 60_000,
+    needs: "review", stage: "person/review", attention: "person", question: false,
+    session: "session-done", runnerApi: 7, deadlineAtMs: null, maxAttempts: 3,
+    quotaResumes: 3, quotaResumesUsed: 0, tokensTotal: 0, tokensIn: 0, tokensCacheW: 0,
+    tokensCacheR: 0, tokensOut: 0, costUsd: "0", notify: [], notified: [], notifyFailed: [],
+    queuedAtMs: now - 7800_000, waitMs: 600_000, priority: 0, protected: false, position: null,
+  };
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 1,
+    running: 0, active: [], recent: [], pending: [task], pendingTotal: 1, logDir: "/tmp/tasks",
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+    ops: { available: true, version: "abc", repoVersion: "abc", api: 7, runnerApi: 7, fairWaitSec: 30, error: "" },
+  };
+  const appendText = "first line\n" + "x".repeat(300);
+  const appendPath = "/tmp/tasks/done-1/inbox/append-1.md";
+  const stub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = () => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+      closeWorkbench: () => {}, openFile: () => ({ ok: false, reason: "no-session" }),
+      runQueueAction: async (action, id) => ({ ok: true, code: 0, action, id, message: "", detail: JSON.stringify({
+        path: "/tmp/tasks/done-1/prompt.md", brief: "prompt body", brief_bytes: 10, truncated: false,
+        appends: [{ file: "append-1.md", path: appendPath, stamp: "2026-11-08 10:00", delivered: true,
+          bytes: appendText.length, text: appendText, truncated: false }],
+      }) }),
+      t: translatorFor(api),
+    });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const textOf = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  };
+  try {
+    let tree = render();
+    find(tree, (p) => p["data-wb-task"] === "done-1")[0].props.onClick();
+    tree = render();
+    find(tree, (p) => p["data-tq-action"] === "brief")[0].props.onClick();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    tree = render();
+    const full = find(tree, (p) => p["data-tq-append-full"] !== undefined)[0];
+    assert.ok(full, "the append has an inline full-text fold");
+    assert.ok(textOf(full).includes("x".repeat(300)),
+      "the full append body is rendered, not only the 160-character excerpt");
+    const link = find(full, (p) => p["data-tq-append-link"] !== undefined)[0];
+    assert.ok(link, "the append has a full-file exit");
+    assert.match(link.props.href, /^api\/file\?path=/);
+    assert.ok(decodeURIComponent(link.props.href).includes(appendPath));
   } finally {
     disposeReactEffects();
   }

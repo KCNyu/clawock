@@ -182,6 +182,19 @@ def test_workbench_contracts_select_the_plugin_lane():
         assert push_scope.classify(["tests/" + name])["code"], name
 
 
+def test_every_plugin_ui_artifact_selects_the_plugin_lane():
+    # The 768/834/1024 geometry contract only protects the desk if the job
+    # runs for the files a UI change actually touches (#3280/#3281 shipped
+    # with manual screenshots because the lane did not fire).
+    for path in (
+        "examples/dsh/packages/clawock-dsh/src/client.ts",
+        "examples/dsh/packages/clawock-dsh/src/styles.module.css",
+        "examples/dsh/packages/clawock-dsh/lib/client.js",
+        "examples/dsh/packages/clawock-dsh/lib/chat.js",
+    ):
+        assert push_scope.classify([path])["dsplugin"], path
+
+
 def test_node_toolchain_change_runs_the_plugin_build():
     lanes = push_scope.classify([".github/actions/clawock-node/action.yml"])
     assert lanes["dsplugin"] and lanes["code"]
