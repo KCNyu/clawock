@@ -3372,6 +3372,10 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         },
       })))
   }
+  // Continue/Modify re-open an ended task on purpose; Stop only means something
+  // while it is alive, or as the resolve of an open question. A done task used
+  // to keep a Stop that the dispatcher refuses; the UI hid the refusal.
+  const canStop = shown !== null && (shownLive || shown.question === true)
   const showPresets = shown !== null && (!shownLive || shown.question === true)
   const needsBlock = shown === null ? null : h('div', { className: cx('wb-needs-block') },
     h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
@@ -3389,7 +3393,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         disabled: busy !== null,
         onClick: () => { act('modify') },
       }, busy === 'modify' ? t('workbench.busy') : t('workbench.act.modify')),
-      h('div', { className: cx('wb-danger') },
+      canStop ? h('div', { className: cx('wb-danger') },
         h('button', {
           type: 'button', className: cx('wb-act', 'wb-act-danger'),
           disabled: busy !== null,
@@ -3397,7 +3401,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
           'aria-live': 'polite',
           onClick: () => { act('stop') },
         }, busy === 'stop' ? t('workbench.busy')
-          : confirmStop ? t('workbench.act.confirm') : t('workbench.act.stop'))))
+          : confirmStop ? t('workbench.act.confirm') : t('workbench.act.stop'))) : null)
       : null,
     submittedAt === null ? null : h('div', { className: cx('wb-recorded'), role: 'status', 'data-wb-recorded': 'true' },
       h('span', { className: cx('wb-recorded-line') },
