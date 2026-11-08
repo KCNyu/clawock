@@ -49,6 +49,106 @@ export function sessionAllowed(sessionKey: string | undefined): boolean {
   return tokens.length === 3 && tokens[0] === "agent" && tokens[2] === "main";
 }
 
+// The built-in index stores extraPaths files by their path relative to the workspace
+// (`../../state/shared-memory-vector/topic.md`); the supplement uses `shared-memory/`.
+// Both spellings name the same private store, so one predicate guards the merge layer.
+const SHARED_INDEX_DIR = "shared-memory-vector";
+
+export type RecallIsolationOptions = { vectorRoot?: string };
+
+function defaultVectorRoot(): string {
+  return join(homedir(), ".openclaw", "state", SHARED_INDEX_DIR);
+}
+
+export function isSharedMemoryRecallPath(path: string | undefined, options: RecallIsolationOptions = {}): boolean {
+  if (!path) return false;
+  const normalized = path.replace(/\\/g, "/").replace(/^\.\//, "");
+  if (normalized === CORPUS || normalized.startsWith(PREFIX)) return true;
+  if (new RegExp(`(?:^|/)${SHARED_INDEX_DIR}(?:/|$)`).test(normalized)) return true;
+  const root = resolve(expandHome(options.vectorRoot || defaultVectorRoot()));
+  const candidate = resolve(expandHome(normalized));
+  return candidate === root || candidate.startsWith(root + sep);
+}
+
+// Reusable at every recall merge point: the corpus supplement, the built-in
+// vector/text hits, and any future index layer. Direct owner sessions keep the
+// results; every other session loses the shared-store paths and keeps its own.
+export function filterSharedMemoryRecall<T extends { path?: unknown }>(
+  results: T[],
+  sessionKey: string | undefined,
+  options: RecallIsolationOptions = {},
+): T[] {
+  if (!Array.isArray(results) || sessionAllowed(sessionKey)) return results;
+  return results.filter((result) => !isSharedMemoryRecallPath(
+    result && typeof result === "object" && typeof result.path === "string" ? result.path : undefined,
+    options,
+  ));
+}
+
+type RecallPayload = Record<string, unknown>;
+
+function readRecallPayload(result: unknown): RecallPayload | null {
+  if (!result || typeof result !== "object") return null;
+  const details = (result as { details?: unknown }).details;
+  if (details && typeof details === "object" && !Array.isArray(details)) return details as RecallPayload;
+  const content = (result as { content?: unknown }).content;
+  if (!Array.isArray(content)) return null;
+  for (const item of content) {
+    if (!item || typeof item !== "object") continue;
+    const entry = item as { type?: unknown; text?: unknown };
+    if (entry.type !== "text" || typeof entry.text !== "string") continue;
+    try {
+      const parsed = JSON.parse(entry.text);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as RecallPayload;
+    } catch {}
+  }
+  return null;
+}
+
+function replaceRecallPayload(result: unknown, payload: RecallPayload): unknown {
+  const base = result && typeof result === "object" ? { ...(result as Record<string, unknown>) } : {};
+  const text = JSON.stringify(payload, null, 2);
+  const content = Array.isArray(base.content) ? [...base.content] : [];
+  const index = content.findIndex((item) => item && typeof item === "object" && (item as { type?: unknown }).type === "text");
+  if (index >= 0) content[index] = { ...(content[index] as Record<string, unknown>), type: "text", text };
+  else content.push({ type: "text", text });
+  return { ...base, content, details: payload };
+}
+
+// OpenClaw's built-in memory hits do not pass through the corpus supplement. This
+// tool-result middleware is the merge-layer seam: it is registered only for the
+// openclaw runtime, sees the real session key, and strips shared-store paths before
+// the model (or a later recall recorder) can use them. `memory_get` is guarded too,
+// because knowing a staging path is enough to read it.
+export function createSharedMemoryRecallMiddleware(options: RecallIsolationOptions = {}) {
+  return async (
+    event: { toolName?: string; args?: Record<string, unknown>; result?: unknown },
+    ctx: { sessionKey?: string },
+  ): Promise<{ result: unknown } | undefined> => {
+    if (sessionAllowed(ctx?.sessionKey)) return undefined;
+    if (event?.toolName !== "memory_search" && event?.toolName !== "memory_get") return undefined;
+    const payload = readRecallPayload(event.result);
+    if (!payload) return undefined;
+    if (event.toolName === "memory_search") {
+      const results = payload.results;
+      if (!Array.isArray(results)) return undefined;
+      const filtered = filterSharedMemoryRecall(results as Array<{ path?: unknown }>, ctx?.sessionKey, options);
+      if (filtered.length === results.length) return undefined;
+      return { result: replaceRecallPayload(event.result, { ...payload, results: filtered }) };
+    }
+    const path = typeof payload.path === "string" ? payload.path : typeof event.args?.path === "string" ? event.args.path : undefined;
+    if (!isSharedMemoryRecallPath(path, options)) return undefined;
+    return {
+      result: replaceRecallPayload(event.result, {
+        ...payload,
+        text: "",
+        disabled: true,
+        error: "shared memory is only available in a direct chat with the owner",
+      }),
+    };
+  };
+}
+
 type Topic = { rel: string; name: string; description: string; tags: string; kind?: string; scope?: string; updated?: string; body: string; bodyLine: number; archived: boolean };
 
 function expandHome(path: string): string {
@@ -304,4 +404,12 @@ export default function register(api: OpenClawPluginApi) {
     includeArchive: config.includeArchive !== false,
     warn: (msg) => api.logger?.warn?.(msg),
   }));
+  // The middleware is the extraPaths merge-layer gate. It is on by default so a
+  // future `agents.defaults.memorySearch.extraPaths` change cannot make the
+  // built-in index return private notes to a group, cron or subagent session.
+  if (config.isolateBuiltinIndex !== false && typeof api.registerAgentToolResultMiddleware === "function") {
+    api.registerAgentToolResultMiddleware(createSharedMemoryRecallMiddleware({
+      vectorRoot: typeof config.vectorRoot === "string" ? config.vectorRoot : undefined,
+    }), { runtimes: ["openclaw"] });
+  }
 }

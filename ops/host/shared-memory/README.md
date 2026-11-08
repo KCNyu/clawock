@@ -125,7 +125,9 @@ memctl index-view --print-config       # print the extraPaths snippet; does not 
 The view contains active top-level topics only (no store index, no `archive/`), copies them as real
 files with a manifest of SHA256 hashes, and swaps the directory atomically. It never writes inside the
 store or the repository. Pointing `agents.defaults.memorySearch.extraPaths` at it is a separate,
-reviewed deployment step (P3); the command does not change OpenClaw config or restart the gateway.
+reviewed deployment step; install the plugin and verify its direct-only middleware first, because
+the built-in index does not pass through `sessionAllowed` on its own. The command does not change
+OpenClaw config or restart the gateway.
 
 ## The OpenClaw corpus plugin (`openclaw/`)
 
@@ -137,6 +139,14 @@ leaves it in place. The assistant's `memory_search` with `corpus=all` and `memor
 - it only reads files under the configured root, `.md` only, no symlink escapes;
 - it answers direct (one-to-one) sessions only — group, channel, cron and keyless sessions get
   nothing, so private notes do not surface in a group or in a published brief;
+- the built-in index is held to the same rule. The plugin registers an
+  `agentToolResultMiddleware` for the `openclaw` runtime (`contracts.agentToolResultMiddleware`),
+  which strips `shared-memory-vector/…` and `shared-memory/…` hits from the merged
+  `memory_search` result and blocks `memory_get` on those paths outside a direct chat. This is
+  what makes `agents.defaults.memorySearch.extraPaths` safe later; the reusable predicate is
+  exported as `sessionAllowed` + `filterSharedMemoryRecall` for any future vector merge layer.
+  `isolateBuiltinIndex: false` disables the gate, and `vectorRoot` overrides the staging
+  directory (default `~/.openclaw/state/shared-memory-vector`);
 - results are redacted with the same credential patterns `memctl` uses;
 - any read error returns no results instead of failing the search;
 - OpenClaw's short-term recall (the source of dreaming's promotions into `MEMORY.md`)
@@ -153,6 +163,8 @@ the score it reports differs, because OpenClaw ranks it next to its own corpora.
 
 Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
 `plugins.load.paths` and enable `plugins.entries.shared-memory-corpus`; a gateway restart loads it.
+The middleware only runs when the plugin is explicitly enabled, so keep
+`plugins.entries.shared-memory-corpus.enabled: true` in `~/.openclaw/openclaw.json`.
 
 ## Scoped injection
 

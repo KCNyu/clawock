@@ -14,6 +14,12 @@
       },
       "includeArchive": {
         "type": "boolean"
+      },
+      "vectorRoot": {
+        "type": "string"
+      },
+      "isolateBuiltinIndex": {
+        "type": "boolean"
       }
     }
   },
@@ -25,6 +31,19 @@
     "includeArchive": {
       "label": "Include archive",
       "help": "Also search archive/ topics, ranked lower (default true)."
+    },
+    "vectorRoot": {
+      "label": "Vector staging view",
+      "help": "Directory of the real-file extraPaths copy (default ~/.openclaw/state/shared-memory-vector)."
+    },
+    "isolateBuiltinIndex": {
+      "label": "Isolate built-in recall",
+      "help": "Strip shared-store results from group/channel/cron/subagent sessions after the built-in index merge (default true)."
     }
+  },
+  "contracts": {
+    "agentToolResultMiddleware": [
+      "openclaw"
+    ]
   }
 }
