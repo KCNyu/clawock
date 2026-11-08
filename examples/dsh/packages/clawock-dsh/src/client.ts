@@ -1563,7 +1563,7 @@ type BriefView = {
   truncated: boolean
   /** The prompt.md text the ops entry already returns (≤48 KB); read in place, no preview needed. */
   text: string
-  appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; dropped?: boolean; bytes: number; text?: string }>
+  appends: Array<{ file: string; path: string; stamp: string; delivered: boolean; dropped?: boolean; bytes: number; text?: string; truncated?: boolean }>
   /** The host half predates `brief` (a dsh restart is pending): only prompt.md can be listed. */
   needsHost: boolean
 }
@@ -1708,6 +1708,13 @@ function renderViewGlyph(key: string): React.ReactElement {
       : h('path', { ...stroke, d: 'M2 3H10M2 6H10M2 9H7' }))
 }
 
+/** A session-independent read of one absolute path. The live dsh `/api/file`
+ * route answers 200 text/plain without a conversation, so this is the usable
+ * exit when the session-scoped preview cannot open. */
+function fileHref(path: string): string {
+  return 'api/file?path=' + encodeURIComponent(path)
+}
+
 /** The brief's file list and prompt text, shown in the detail sheet (not inline). */
 function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Translate,
   openPath: (path: string) => void, live: boolean): React.ReactElement | null {
@@ -1720,17 +1727,35 @@ function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Transl
     h('button', { type: 'button', className: cx('tq-file'), 'data-tq-file': brief.path, onClick: () => { openPath(brief.path) } },
       h('span', { className: cx('tq-file-name') }, brief.needsHost ? 'prompt.md' : t('queue.brief.prompt', { kb: kbOf(brief.bytes) })),
       brief.truncated ? h('span', { className: cx('tq-tag') }, t('queue.brief.big', { kb: kbOf(brief.bytes) })) : null),
+    brief.truncated ? h('a', {
+      className: cx('tq-file'), href: fileHref(brief.path), target: '_blank', rel: 'noopener noreferrer',
+      'data-tq-brief-full': brief.path,
+    }, h('span', { className: cx('tq-file-name') }, t('queue.brief.openFull'))) : null,
     brief.needsHost ? h('div', { className: cx('tq-note') }, t('queue.brief.needsHost'))
       : brief.appends.length === 0 ? h('div', { className: cx('tq-empty') }, t('queue.brief.none'))
-        : brief.appends.map((append, index) => h('button', {
-          type: 'button', key: append.file, className: cx('tq-file'), 'data-tq-file': append.path,
-          onClick: () => { openPath(append.path) },
-        },
-          h('span', { className: cx('tq-file-label') },
-            h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file })),
-            append.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, append.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
-          h('span', { className: cx('tq-tag'), 'data-tq-delivered': append.delivered ? 'true' : 'false' },
-            t(append.delivered ? 'queue.brief.delivered' : (append.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending')))))
+        : brief.appends.map((append, index) => h('div', { className: cx('tq-file-item'), key: append.file },
+          h('button', {
+            type: 'button', className: cx('tq-file'), 'data-tq-file': append.path,
+            onClick: () => { openPath(append.path) },
+          },
+            h('span', { className: cx('tq-file-label') },
+              h('span', { className: cx('tq-file-name') }, t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file })),
+              append.text?.trim() ? h('span', { className: cx('tq-file-excerpt') }, append.text.trim().split('\n').find((line) => line.trim() !== '')?.replace(/^#+\s*/, '').slice(0, 160)) : null),
+            h('span', { className: cx('tq-tag'), 'data-tq-delivered': append.delivered ? 'true' : 'false' },
+              t(append.delivered ? 'queue.brief.delivered' : (append.dropped || !live) ? 'queue.brief.undelivered' : 'queue.brief.pending'))),
+          h('details', { className: cx('tq-fold'), 'data-tq-append-full': append.file },
+            h('summary', { className: cx('tq-fold-summary') },
+              foldChevron(),
+              h('span', { className: cx('tq-fold-label') }, t('queue.brief.appendFull'))),
+            append.truncated ? h('div', { className: cx('tq-note') }, t('queue.brief.appendTruncated')) : null,
+            append.text?.trim() ? h('pre', {
+              className: cx('tq-log'), tabIndex: 0, role: 'region',
+              'aria-label': t('queue.brief.append', { number: index + 1, stamp: append.stamp || append.file }),
+            }, append.text) : null,
+            h('a', {
+              className: cx('tq-file'), href: fileHref(append.path), target: '_blank', rel: 'noopener noreferrer',
+              'data-tq-append-link': append.file,
+            }, h('span', { className: cx('tq-file-name') }, t('queue.brief.openFull')))))))
 }
 
 function renderBriefText(task: DispatchTask, brief: BriefView | null, t: Translate): React.ReactElement | null {
@@ -2545,7 +2570,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const [confirm, setConfirm] = useState<string | null>(null)
   const [picker, setPicker] = useState<ModelPicker | null>(null)
   const [log, setLog] = useState<string[] | null>(null)
-  const [logNote, setLogNote] = useState<string | null>(null)
+  const [logNote, setLogNote] = useState<{ text: string; path: string } | null>(null)
   const [timeline, setTimeline] = useState<TaskTimeline | 'older' | null>(null)
   const [brief, setBrief] = useState<BriefView | null>(null)
   const [readPending, setReadPending] = useState<string | null>(null)
@@ -3038,7 +3063,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       loadLog(task)
       // The log sheet covers the detail's notice; repeat the reason where the
       // reader is looking instead of leaving only a toast behind the panel.
-      setLogNote(message)
+      setLogNote({ text: message, path })
     }
   }
   const openPicker = (task: DispatchTask): void => {
@@ -3145,7 +3170,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       : kind === 'log' ? [h('div', { className: cx('tq-log-sheet') },
         logNote === null ? null : h('p', {
           className: cx('tq-note', 'tq-log-note'), 'data-tq-log-note': 'true', role: 'status',
-        }, logNote),
+        }, logNote.text, ' ', h('a', {
+          href: fileHref(logNote.path), target: '_blank', rel: 'noopener noreferrer', 'data-tq-log-full': 'true',
+        }, t('queue.a.openFullFile'))),
         renderLogBlock(shown, log, t))]
         : kind === 'timeline' ? [renderTimelineBlock(shown, timeline, t)]
           : [picker === null
