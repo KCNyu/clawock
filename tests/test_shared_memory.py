@@ -50,6 +50,18 @@ def load_memctl():
     return module
 
 
+def load_memory_py():
+    loader = importlib.machinery.SourceFileLoader("memory_py", str(MEMORY_PY))
+    spec = importlib.util.spec_from_loader("memory_py", loader)
+    module = importlib.util.module_from_spec(spec)
+    sys.dont_write_bytecode, before = True, sys.dont_write_bytecode
+    try:
+        loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = before
+    return module
+
+
 @pytest.fixture
 def kit(tmp_path):
     """A HOME with a store reached through ~/.shared-memory (Claude's home-project memory),
@@ -435,12 +447,27 @@ def test_writes_work_without_history(kit):
 
 
 def test_attribution_names_the_nearest_agent_process():
-    memctl = load_memctl()
-    assert memctl.agent_of("node /home/u/.nvm/versions/node/v22/bin/dsh --profile headless --json -") == "dsh"
-    assert memctl.agent_of("/usr/local/bin/codex exec --json -c model=x") == "codex"
-    assert memctl.agent_of("opencode run --format json") == "opencode"
-    assert memctl.agent_of("claude -p --output-format json") == "claude-code"
-    assert memctl.agent_of("bash -c python3 memory.py add x") is None
+    for module in (load_memctl(), load_memory_py()):
+        assert module.agent_of("node /home/u/.nvm/versions/node/v22/bin/dsh --profile headless --json -") == "dsh"
+        assert module.agent_of("/usr/local/bin/codex exec --json -c model=x") == "codex"
+        assert module.agent_of("opencode run --format json") == "opencode"
+        assert module.agent_of("claude -p --output-format json") == "claude-code"
+        assert module.agent_of("bash -c python3 memory.py add x") is None
+
+
+def test_attribution_sees_node_wrapped_agent_clis():
+    """Dispatched dsh/codex/opencode/claude run as `node .../node_modules/<pkg>/bin.js`."""
+    cases = {
+        "node /root/.nvm/versions/node/v24/lib/node_modules/@deepseek-ai/dsh/lib/bin.js --profile headless": "dsh",
+        "node /root/.local/lib/node_modules/@openai/codex/bin/codex.js exec": "codex",
+        "node /root/.local/lib/node_modules/opencode-ai/bin/opencode run": "opencode",
+        "node /root/.local/lib/node_modules/@anthropic-ai/claude-code/cli.js -p": "claude-code",
+    }
+    for module in (load_memctl(), load_memory_py()):
+        for cmd, expected in cases.items():
+            assert module.agent_of(cmd) == expected, (module.__name__, cmd)
+        # A project name that merely contains an agent word is not an agent process.
+        assert module.agent_of("node /root/my-claude-project/server.js") is None
 
 
 def test_node_cli_follows_a_wrapper_to_its_package_and_pinned_node(tmp_path, monkeypatch):
@@ -777,6 +804,23 @@ def dispatched_env(kit, agent="dsh", task="task-disp"):
     env = {k: v for k, v in kit.env.items() if k not in ("MEMCTL_AGENT", "AI_AGENT")}
     env.update(AGENT_DISPATCH_TASK_ID=task, AGENT_DISPATCH_AGENT=agent)
     return env
+
+
+def test_dispatched_task_with_only_the_task_id_still_verifies_clean(kit):
+    """The acceptance's `env -i` case: no MEMCTL_AGENT/AGENT_DISPATCH_AGENT, only the task id.
+    The write is receipted, so it must not be reported as UNATTRIBUTED even if the agent field
+    stays unattributed."""
+    env = {k: v for k, v in kit.env.items()
+           if k not in ("MEMCTL_AGENT", "AGENT_DISPATCH_AGENT", "AI_AGENT", "OPENCLAW_AGENT",
+                        "OPENCLAW_SESSION_ID")}
+    env["AGENT_DISPATCH_TASK_ID"] = "task-only"
+    kit.ok("add", "feedback-dispatch-only-id", "--summary", "dispatched", "--body-file",
+           kit.body("dispatched body"), "--scope", "engineering", script=MEMORY_PY, env=env)
+    # The agent field may be dsh (dsh is in the test runner's process ancestry) or
+    # unattributed; either way the receipt must keep verify clean.
+    assert re.search(r"  agent: (?:dsh|unattributed)\n",
+                     (kit.store / "feedback-dispatch-only-id.md").read_text())
+    assert kit.ok("verify").returncode == 0
 
 
 def test_dispatched_task_write_is_attributed_and_verifies_clean(kit):
