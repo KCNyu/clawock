@@ -75,6 +75,18 @@ def test_direct_chat_finds_topics_and_archive_ranks_lower(store):
     assert hits[0]["startLine"] == 9                         # the matching body line, frontmatter counted
 
 
+def test_exact_duplicate_paragraphs_return_one_hit(tmp_path):
+    root = tmp_path / "store"
+    root.mkdir()
+    body = "A durable rule repeated in two topics.\n"
+    for slug, scope in (("feedback-rule", "investment"), ("project-evidence", "engineering")):
+        (root / f"{slug}.md").write_text(
+            f"---\nname: {slug}\ndescription: \"durable rule\"\nmetadata:\n  type: feedback\n"
+            f"  scope: {scope}\n---\n\n{body}")
+    hits = node(corpus(root, f"await c.search({{query: 'durable rule', agentSessionKey: '{DIRECT}'}})"))
+    assert [h["path"] for h in hits] == ["shared-memory/feedback-rule.md"]
+
+
 def test_write_time_tags_are_searchable_in_both_engines(tmp_path):
     root = tmp_path / "store"
     root.mkdir()

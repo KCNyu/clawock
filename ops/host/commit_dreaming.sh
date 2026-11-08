@@ -21,7 +21,7 @@
 # 20min in the same worktree) silently dropped that night's promotion.
 set -euo pipefail
 
-WS=/root/.openclaw/workspace
+WS="${DREAMING_WORKSPACE:-/root/.openclaw/workspace}"
 cd "$WS" || exit 1
 
 # Automated job → commit as the bot, but with `git -c` (per-invocation) NOT
@@ -30,14 +30,39 @@ cd "$WS" || exit 1
 BOT_NAME="github-actions[bot]"
 BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 
-# Refuse publication on parser/review failure. Raw candidates stay private.
-python3 "$WS/ops/host/review_dreaming.py" --workspace "$WS"
-python3 "$WS/ops/host/review_dreaming.py" --workspace "$WS" --check
+# Review the two public files independently. A bad MEMORY candidate must not
+# block the DREAMS commit (and vice versa); the failed file stays uncommitted and
+# visible, never published. Raw candidates stay private.
+MEMORY_OK=1
+DREAMS_OK=1
+if ! python3 "$WS/ops/host/review_dreaming.py" --workspace "$WS"; then
+  echo "$(date -Is) dreaming-commit: MEMORY review failed; MEMORY.md left uncommitted"
+  MEMORY_OK=0
+fi
+if ! python3 "$WS/ops/host/review_dreams.py" --workspace "$WS"; then
+  echo "$(date -Is) dreaming-commit: DREAMS review failed; DREAMS.md left uncommitted"
+  DREAMS_OK=0
+fi
+if [ "$MEMORY_OK" = 1 ] && ! python3 "$WS/ops/host/review_dreaming.py" --workspace "$WS" --check; then
+  echo "$(date -Is) dreaming-commit: MEMORY check failed; MEMORY.md left uncommitted"
+  MEMORY_OK=0
+fi
+if [ "$DREAMS_OK" = 1 ] && ! python3 "$WS/ops/host/review_dreams.py" --workspace "$WS" --check; then
+  echo "$(date -Is) dreaming-commit: DREAMS check failed; DREAMS.md left uncommitted"
+  DREAMS_OK=0
+fi
+FILES=()
+[ "$MEMORY_OK" = 1 ] && FILES+=(MEMORY.md)
+[ "$DREAMS_OK" = 1 ] && FILES+=(DREAMS.md)
+if [ "${#FILES[@]}" -eq 0 ]; then
+  echo "$(date -Is) dreaming-commit: no reviewed file to commit"
+  exit 1
+fi
 
-git add MEMORY.md DREAMS.md \
+git add "${FILES[@]}" \
   || { echo "$(date -Is) dreaming-commit: git add 失败(疑似 index.lock 撞车)"; exit 1; }
 if git diff --cached --quiet; then
-  echo "$(date -Is) dreaming-commit: MEMORY/DREAMS 无变化,跳过"
+  echo "$(date -Is) dreaming-commit: 已审阅文件无变化,跳过 (${FILES[*]})"
   exit 0
 fi
 

@@ -29,6 +29,8 @@ Usage:
                                                wiring + store + history self-check
   memctl bundle [--keep N]                     write a git bundle backup of the history
   memctl verify [--since DAYS] [--json]        report store changes with no matching memctl write
+  memctl index-view [--output DIR] [--limit N] [--check] [--json] [--print-config]
+                                               build the real-file vector staging view (never symlinks)
   memctl hook claude-post | claude-start       Claude Code hook handlers (stdin JSON)
 
 Environment: SHARED_MEMORY_DIR (store, default ~/.shared-memory), SHARED_MEMORY_STATE
@@ -64,6 +66,7 @@ STATUS = STATE / "doctor.json"
 HEAD = STATE / "ledger.head.json"
 BUNDLES = STATE / "bundles"
 HELD = STATE / "held.json"  # files kept out of history because they look like they hold a credential
+DEFAULT_VECTOR_VIEW = "~/.openclaw/state/shared-memory-vector"
 MEMORY_PY = Path(os.environ.get("SHARED_MEMORY_PY") or SKILL_DIR / "scripts" / "memory.py")
 HOOK_SCRIPT = SKILL_DIR / "hooks" / "claude-hook.sh"
 PASSTHROUGH = ("read", "search", "index", "inject", "add", "update", "archive", "normalize")
@@ -819,6 +822,102 @@ def cmd_verify(args: list[str]) -> int:
         print(f"verify: {len(bypasses)} direct-write signal(s) in the last {since_days:g} day(s)")
     return 1 if bypasses else 0
 
+def vector_view_path() -> Path:
+    return Path(os.environ.get("SHARED_MEMORY_VECTOR_VIEW") or DEFAULT_VECTOR_VIEW).expanduser()
+
+
+def active_topic_files(root: Path) -> list[Path]:
+    """Top-level topics only; the store index and archive are not vector-view inputs."""
+    return sorted(p for p in root.glob("*.md") if p.name != "MEMORY.md" and not p.name.startswith("."))
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def cmd_index_view(args: list[str]) -> int:
+    """Build a real-file copy of the active store for OpenClaw's extraPaths.
+
+    OpenClaw 2026.7.1-2 skips symlinks at the extraPath root and inside the walk,
+    so the view is a real copy. It is atomic (temp directory + rename), excludes
+    the store index and archive, and never writes inside the store or the repo.
+    """
+    output = Path(_opt(args, "--output", str(vector_view_path()))).expanduser()
+    limit = int(_opt(args, "--limit", "0"))
+    check = _opt(args, "--check", flag=True)
+    as_json = _opt(args, "--json", flag=True)
+    print_config = _opt(args, "--print-config", flag=True)
+    quiet = _opt(args, "--quiet", flag=True)
+    root = store_root()
+    if output == root or _within(output, root):
+        die("vector view must live outside the shared store")
+    pages = active_topic_files(root)
+    if limit:
+        if limit < 0:
+            die("--limit must be non-negative")
+        pages = pages[:limit]
+    desired = {page.name: _sha256(page) for page in pages}
+    manifest_path = output / "manifest.json"
+    current: dict[str, str] = {}
+    if manifest_path.is_file():
+        try:
+            current = {row["file"]: row["sha256"] for row in json.loads(manifest_path.read_text())["topics"]}
+        except (OSError, ValueError, KeyError, TypeError):
+            current = {}
+    if check:
+        stale = sorted(name for name, digest in desired.items()
+                       if name in current and current[name] != digest)
+        missing = sorted(name for name in desired if name not in current)
+        extra = sorted(name for name in current if name not in desired)
+        result = {"status": "STALE" if stale or extra or missing else "OK",
+                  "output": str(output), "count": len(desired),
+                  "stale": stale, "missing": missing, "extra": extra}
+        if as_json:
+            print(json.dumps(result, ensure_ascii=False))
+        elif not quiet:
+            for name in stale:
+                print(f"STALE {name}")
+            for name in missing:
+                print(f"MISSING {name}")
+            for name in extra:
+                print(f"EXTRA {name}")
+            print(f"index-view: {result['status']} ({len(desired)} topics at {output})")
+        return 1 if result["status"] == "STALE" else 0
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    tmp = output.with_name(f".{output.name}.tmp-{os.getpid()}")
+    old = output.with_name(f".{output.name}.old-{os.getpid()}")
+    for path in (tmp, old):
+        if path.exists():
+            shutil.rmtree(path)
+    tmp.mkdir(mode=0o700)
+    topics = []
+    for page in pages:
+        target = tmp / page.name
+        shutil.copyfile(page, target)
+        os.chmod(target, 0o644)
+        topics.append({"file": page.name, "sha256": _sha256(page), "bytes": page.stat().st_size})
+    manifest = {"generated_at": now(), "source": str(root), "count": len(topics),
+                "limit": limit, "topics": topics}
+    (tmp / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
+    os.chmod(tmp / "manifest.json", 0o600)
+    if output.exists():
+        os.replace(output, old)
+    os.replace(tmp, output)
+    if old.exists():
+        shutil.rmtree(old)
+    if print_config:
+        print(json.dumps({"agents": {"defaults": {"memorySearch": {"extraPaths": [str(output)]}}}}))
+    if as_json:
+        print(json.dumps({"status": "OK", "output": str(output), "count": len(topics),
+                          "manifest": str(output / "manifest.json")}, ensure_ascii=False))
+    elif not quiet:
+        print(f"index-view: {len(topics)} real files at {output}")
+        if print_config:
+            print(f"extraPaths: {output}")
+    return 0
+
+
 def cmd_bundle(args: list[str]) -> int:
     guard_state_isolation()
     keep = int(_opt(args, "--keep", "14"))
@@ -1363,7 +1462,7 @@ def main(argv: list[str]) -> int:
         return cmd_passthrough(argv)
     table = {"init": cmd_init, "snapshot": cmd_snapshot, "log": cmd_log, "show": cmd_show,
              "restore": cmd_restore, "bundle": cmd_bundle, "verify": cmd_verify,
-             "doctor": cmd_doctor, "hook": cmd_hook}
+             "index-view": cmd_index_view, "doctor": cmd_doctor, "hook": cmd_hook}
     if cmd not in table:
         die(f"unknown command {cmd!r}; see `memctl --help`")
     return table[cmd](rest)

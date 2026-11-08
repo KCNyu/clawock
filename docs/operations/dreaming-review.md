@@ -1,9 +1,9 @@
 # Dreaming promotion review
 
 Automatic scores nominate candidates; they do not verify durable facts. This gate governs the
-OpenClaw workspace's `MEMORY.md`; the coding agents' shared store is a separate memory and is
-not a candidate source ([memory components](../architecture/memory-components.md)). The host
-uses two boundaries:
+OpenClaw workspace's `MEMORY.md` and the appended diary in `DREAMS.md`; the coding agents' shared
+store is a separate memory and is not a candidate source
+([memory components](../architecture/memory-components.md)). The host uses three boundaries:
 
 - `ops/host/patch_dreaming_review.py` redirects only the promotion writer into
   ignored `memory/.dreams/promotion-candidates.md`. Pending candidates are not
@@ -11,10 +11,14 @@ uses two boundaries:
   anchors, is idempotent, saves a pre-patch backup, and supports `--check`.
   `reapply_openclaw_patches.sh` reapplies it after upgrades. An idle gateway must
   be restarted after installation; checking files alone does not prove activation.
-- `ops/host/commit_dreaming.sh` runs `review_dreaming.py` before staging. Unknown
-  structures or invalid receipts fail the commit. Legacy dated promotion sections
-  are quarantined first, then removed through the same review logic. Unrelated
-  MEMORY sections and DREAMS markers are untouched.
+- `ops/host/commit_dreaming.sh` runs `review_dreaming.py` and `review_dreams.py`
+  before staging, then checks each file independently. A MEMORY review failure
+  leaves `MEMORY.md` uncommitted and still lets a reviewed `DREAMS.md` commit; a
+  DREAMS failure does not block MEMORY. Neither failed file is published.
+- `ops/host/review_dreams.py` reviews the DREAMS diary append against a private
+  baseline. Existing entries are grandfathered once; a new entry must be clean
+  under the same deterministic rules and carry an exact hash-bound receipt, or
+  it is removed from DREAMS and preserved in ignored `dreams-quarantine.jsonl`.
 
 A host-only filter would leave unreviewed content in MEMORY between the dreaming
 run and the commit job. A plugin-only filter cannot provide durable review
@@ -22,6 +26,8 @@ receipts and legacy cleanup. The combination closes both gaps without changing
 scores, selection, narrative generation, model routing, or message behavior.
 
 ## Review contract
+
+### MEMORY.md promotions
 
 The deterministic filter rejects front matter, HTML, dated facts, numeric prices
 and position actions, dispatch/session metadata, internal paths, and command-like
@@ -65,10 +71,30 @@ archive rather than growing MEMORY. Legacy pending inputs remain in
 The gate removes exact old marker-plus-rejection placeholders from reviewed
 sections and drops sections left empty. It archives the before-image before any
 write, even if no candidates remain. Approved entries and human prose are preserved;
-`--check` rejects unmigrated placeholders. The 03:20 job uses this same migration,
-so old and future rejected batches cannot repopulate injected memory. No gateway
+`--check` rejects unmigrated placeholders. An unsafe promotion source is rejected
+as a candidate instead of aborting the batch; the commit wrapper contains any
+remaining parser failure so DREAMS can still be reviewed and committed. No gateway
 restart is needed for a change to this host-side Python gate. Never publish private
 archives or approval files. Private storage pruning requires separate review.
+
+### DREAMS.md diary append
+
+`DREAMS.md` is tracked and published, so its raw narrative is a public memory path.
+`review_dreams.py` parses the entries inside the dreaming diary markers:
+
+- On the first run it writes `memory/.dreams/dreams-review.json` with every current
+  entry marked `grandfathered` and does not rewrite the file. This is a one-time
+  migration; legacy prose is not silently classified as reviewed.
+- A later entry whose hash is not in the baseline is kept only when the
+  deterministic contamination rules pass **and** `memory/.dreams/dreams-approvals.json`
+  has a receipt for its exact normalized SHA256 (reviewer, rationale, reviewed_on
+  within 30 days, durable). Otherwise it is removed from `DREAMS.md` and appended
+  to ignored `memory/.dreams/dreams-quarantine.jsonl` with the reason.
+- `review_dreams.py --list` prints quarantined hashes. An operator can inspect the
+  text and run `review_dreams.py --approve <sha256> --reviewer ... --rationale ...`;
+  the next review records it as approved. A contaminated entry cannot be approved.
+- `--check` fails if the baseline is missing, if DREAMS contains an unreviewed
+  entry, or if a quarantined entry is present. No path, marker or site input moves.
 
 ## Verification and recovery
 
@@ -80,6 +106,7 @@ decision counts and run:
 ```bash
 python3 ops/host/patch_dreaming_review.py --check
 python3 ops/host/review_dreaming.py --workspace /root/.openclaw/workspace --check
+python3 ops/host/review_dreams.py --workspace /root/.openclaw/workspace --check
 ```
 
 Inspect the private review ledger for the matching candidate hashes and verify
@@ -87,6 +114,11 @@ that approved text is in the permanent section. An empty batch is not evidence
 of a successful live promotion; verify the next nonempty batch as well. Tests
 support `DREAMING_AUDIT_MEMORY=/path/to/copy/MEMORY.md` for private before/after
 checks without committing raw session metadata as fixtures.
+
+For DREAMS, confirm the first run bootstrapped `dreams-review.json`, then verify a
+new diary entry went to `dreams-quarantine.jsonl` and disappeared from
+`DREAMS.md`; `--list` names it. After an approval, `--check` must pass and the
+entry must reappear only through the explicit `--approve` path.
 
 For an incident, preserve the private ledger and stop the dreaming commit job
 before investigating. Restore the changed bundle from its

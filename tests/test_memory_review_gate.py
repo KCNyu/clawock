@@ -21,6 +21,7 @@ def load(name):
 
 
 gate = load('review_dreaming')
+dreams = load('review_dreams')
 patch = load('patch_dreaming_review')
 
 
@@ -118,6 +119,98 @@ def test_unknown_structure_is_not_silently_removed():
     with pytest.raises(ValueError, match='structure'):
         gate.review(candidate('Good.') + '\nUnrelated human paragraph.\n')
 
+
+
+def diary(*entries):
+    body = '\n\n---\n\n'.join(
+        f'*November {i + 1}, 2026 at 3:00 AM GMT+8*\n\n{text}' for i, text in enumerate(entries))
+    return ('# Dream Diary\n\n<!-- openclaw:dreaming:diary:start -->\n\n---\n\n'
+            + body + '\n\n<!-- openclaw:dreaming:diary:end -->\n')
+
+
+def test_dreams_bootstrap_grandfathers_existing_bytes(tmp_path):
+    original = diary('Old entry with a price 123.4.', 'Old second entry.')
+    path = tmp_path / 'DREAMS.md'
+    path.write_text(original)
+    command = [sys.executable, str(ROOT / 'ops/host/review_dreams.py'), '--workspace', str(tmp_path)]
+    subprocess.run(command, check=True, capture_output=True)
+    assert path.read_text() == original
+    ledger = json.loads((tmp_path / 'memory/.dreams/dreams-review.json').read_text())
+    assert len(ledger['entries']) == 2
+    assert {row['status'] for row in ledger['entries'].values()} == {'grandfathered'}
+    subprocess.run(command + ['--check'], check=True, capture_output=True)
+
+
+def test_dreams_new_entry_is_quarantined_until_a_hash_bound_receipt(tmp_path):
+    path = tmp_path / 'DREAMS.md'
+    path.write_text(diary('Old entry.'))
+    command = [sys.executable, str(ROOT / 'ops/host/review_dreams.py'), '--workspace', str(tmp_path)]
+    subprocess.run(command, check=True, capture_output=True)
+    text = path.read_text().replace(
+        '<!-- openclaw:dreaming:diary:end -->',
+        '*November 9, 2026 at 3:00 AM GMT+8*\n\nA clean new entry.\n\n'
+        '<!-- openclaw:dreaming:diary:end -->')
+    path.write_text(text)
+    subprocess.run(command, check=True, capture_output=True)
+    assert 'A clean new entry.' not in path.read_text()
+    rows = [json.loads(line) for line in
+            (tmp_path / 'memory/.dreams/dreams-quarantine.jsonl').read_text().splitlines()]
+    assert rows[-1]['reasons'] == ['unreviewed']
+    subprocess.run(command + ['--check'], check=True, capture_output=True)
+    subprocess.run(command + ['--approve', rows[-1]['sha256'], '--reviewer', 'test',
+                              '--rationale', 'checked no transient data'],
+                   check=True, capture_output=True)
+    subprocess.run(command, check=True, capture_output=True)
+    assert 'A clean new entry.' in path.read_text()
+    subprocess.run(command + ['--check'], check=True, capture_output=True)
+
+
+def test_dreams_contaminated_entry_cannot_be_approved(tmp_path):
+    path = tmp_path / 'DREAMS.md'
+    path.write_text(diary('Old entry.'))
+    command = [sys.executable, str(ROOT / 'ops/host/review_dreams.py'), '--workspace', str(tmp_path)]
+    subprocess.run(command, check=True, capture_output=True)
+    path.write_text(path.read_text().replace(
+        '<!-- openclaw:dreaming:diary:end -->',
+        '*November 9, 2026 at 3:00 AM GMT+8*\n\n今天在 191.7 卖出 40 股。\n\n'
+        '<!-- openclaw:dreaming:diary:end -->'))
+    subprocess.run(command, check=True, capture_output=True)
+    row = json.loads((tmp_path / 'memory/.dreams/dreams-quarantine.jsonl').read_text().splitlines()[-1])
+    assert 'price_or_position' in row['reasons'] or 'dated_fact' in row['reasons']
+    failed = subprocess.run(command + ['--approve', row['sha256'], '--reviewer', 'test',
+                                       '--rationale', 'bad'], capture_output=True, text=True)
+    assert failed.returncode != 0
+    assert 'contamination' in failed.stderr
+
+
+def test_unsafe_promotion_source_is_rejected_without_raising():
+    raw = candidate('A reusable lesson.').replace('memory/example.md', '../outside.md')
+    clean, rows = gate.review('# Memory\n', raw)
+    assert clean == '# Memory\n'
+    assert rows[0]['decision'] == 'rejected' and 'unsafe_source' in rows[0]['reasons']
+
+
+def test_commit_dreaming_keeps_dreams_when_memory_review_fails(tmp_path):
+    ws = tmp_path / 'ws'
+    (ws / 'ops/host').mkdir(parents=True)
+    (ws / 'ops/publish').mkdir(parents=True)
+    (ws / 'MEMORY.md').write_text('# Memory\n')
+    (ws / 'DREAMS.md').write_text('# Dream Diary\n')
+    (ws / 'ops/host/review_dreaming.py').write_text('raise SystemExit(1)\n')
+    (ws / 'ops/host/review_dreams.py').write_text('raise SystemExit(0)\n')
+    (ws / 'ops/publish/safe_push.sh').write_text('#!/bin/bash\nexit 0\n')
+    (ws / 'ops/host/commit_dreaming.sh').write_text(
+        (ROOT / 'ops/host/commit_dreaming.sh').read_text())
+    subprocess.run(['git', 'init', '-q'], cwd=ws, check=True)
+    subprocess.run(['git', 'config', 'user.name', 'test'], cwd=ws, check=True)
+    subprocess.run(['git', 'config', 'user.email', 'test@example.invalid'], cwd=ws, check=True)
+    proc = subprocess.run(['bash', str(ws / 'ops/host/commit_dreaming.sh')], cwd=ws,
+                          env={**os.environ, 'DREAMING_WORKSPACE': str(ws)},
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr + proc.stdout
+    files = subprocess.run(['git', 'show', '--name-only', '--format=', 'HEAD'], cwd=ws,
+                           capture_output=True, text=True, check=True).stdout.split()
+    assert files == ['DREAMS.md']
 
 def test_patch_executes_with_private_path_and_no_budget_eviction():
     original = (ROOT / 'tests/fixtures/openclaw_promotion.js').read_text()

@@ -51,8 +51,13 @@ def reasons(text):
     return [name for name, pattern in RULES.items() if re.search(pattern, text, re.I)]
 
 
-def extract(text):
-    """Remove only dated promotion sections. Reject unknown structure, don't eat prose."""
+def extract(text, strict=True):
+    """Remove only dated promotion sections. Reject unknown structure, don't eat prose.
+
+    `strict=False` keeps an unsafe-source entry as a rejected record instead of
+    raising, so the commit wrapper can quarantine it and still process DREAMS.md.
+    Unknown structure still raises; the wrapper contains that failure per file.
+    """
     entries, spans = [], []
     for section in SECTION.finditer(text):
         end = re.search(r'^## ', text[section.end():], re.M)
@@ -67,10 +72,12 @@ def extract(text):
                 raise ValueError('unknown promotion entry structure')
             content = re.sub(r' \[score=[^\n]*\]$', '', raw[2:])
             source = match[2]
-            if not re.fullmatch(r'memory/[\w./-]+\.md', source) or '..' in Path(source).parts:
+            unsafe = not re.fullmatch(r'memory/[\w./-]+\.md', source) or '..' in Path(source).parts
+            if unsafe and strict:
                 raise ValueError('unsafe promotion source')
             entries.append(dict(key=match[1], source=source, marker=match[0], text=content,
-                                sha256=digest(content)))
+                                sha256=digest(content),
+                                **({'invalid': 'unsafe promotion source'} if unsafe else {})))
         spans.append((section.start(), stop))
     for start, stop in reversed(spans):
         text = text[:start] + text[stop:]
@@ -87,8 +94,8 @@ def validate_batch(text):
 
 
 def review(memory, candidates='', approvals=None):
-    base, legacy = extract(clean_rejected_receipts(memory))
-    _, queued = extract(candidates)
+    base, legacy = extract(clean_rejected_receipts(memory), strict=False)
+    _, queued = extract(candidates, strict=False)
     entries = {}
     for entry in legacy + queued:
         old = entries.get(entry['key'])
@@ -104,6 +111,8 @@ def review(memory, candidates='', approvals=None):
         if entry['marker'] in base:
             continue
         why = reasons(entry['text'])
+        if entry.get('invalid'):
+            why.append('unsafe_source')
         receipt = approvals.get(key)
         status = 'rejected' if why else 'pending'
         if counts[entry['source']] > 1:
