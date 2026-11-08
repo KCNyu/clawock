@@ -206,6 +206,8 @@ def detect_agent() -> str:
         return override
     if os.environ.get("OPENCLAW_AGENT") or os.environ.get("OPENCLAW_SESSION_ID"):
         return "rick"
+    if os.environ.get("DSH_SESSION_ID") or os.environ.get("DSH_PROFILE") or os.environ.get("DSH_HOME"):
+        return "dsh"
     if os.environ.get("CLAUDECODE"):
         return "claude-code"
     marker = os.environ.get("AI_AGENT", "").lower()

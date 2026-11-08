@@ -179,7 +179,8 @@ console.log(JSON.stringify({{n: calls.length, keys: Object.keys(calls[0]).sort()
 def test_manifest_loads_at_startup_and_ships_no_host_paths():
     manifest = json.loads(MANIFEST.read_text())
     assert manifest["id"] == "shared-memory-corpus" and manifest["activation"]["onStartup"] is True
-    assert set(manifest["configSchema"]["properties"]) == {"root", "includeArchive"}
+    assert set(manifest["configSchema"]["properties"]) == {"root", "includeArchive", "vectorRoot", "isolateBuiltinIndex"}
+    assert manifest["contracts"] == {"agentToolResultMiddleware": ["openclaw"]}
     for path in (PLUGIN, MANIFEST):
         assert not re.search(r"/root\b|/home/\w+|kcn", path.read_text()), path
 
@@ -283,3 +284,118 @@ def test_the_plugin_keeps_the_topics_memory_py_lists(tmp_path):
             assert "reference-disk-cleanup.md" in listed
         if query == "主机内存不够很慢":
             assert hits and hits[0]["path"] == "shared-memory/lessons-host-ops.md"
+
+# --- built-in recall isolation: the merge-layer seam, not just the supplement ---------
+
+GROUP = "agent:main:openclaw-weixin:group:g-1"
+CHANNEL = "agent:main:telegram:channel:c"
+CRON = "agent:main:cron:brief"
+SUBAGENT = "agent:main:subagent:x"
+DIRECT = "agent:main:openclaw-weixin:direct:peer-1"
+
+
+def test_session_allowed_covers_exactly_the_owner_direct_contexts():
+    out = node(f"""console.log(JSON.stringify({{
+  direct: m.sessionAllowed({json.dumps(DIRECT)}),
+  main: m.sessionAllowed('agent:main:main'),
+  dm: m.sessionAllowed('agent:main:telegram:dm:peer-1'),
+  group: m.sessionAllowed({json.dumps(GROUP)}),
+  channel: m.sessionAllowed({json.dumps(CHANNEL)}),
+  cron: m.sessionAllowed({json.dumps(CRON)}),
+  subagent: m.sessionAllowed({json.dumps(SUBAGENT)}),
+  explicit: m.sessionAllowed('agent:main:explicit:abc'),
+  keyless: m.sessionAllowed(undefined),
+}}))""")
+    assert out == {"direct": True, "main": True, "dm": True, "group": False, "channel": False,
+                   "cron": False, "subagent": False, "explicit": False, "keyless": False}
+
+
+def test_the_reusable_filter_keeps_workspace_hits_and_drops_shared_paths_outside_direct():
+    hits = [
+        {"path": "../../.openclaw/state/shared-memory-vector/feedback-x.md", "source": "memory", "score": 1},
+        {"path": "shared-memory/feedback-y.md", "corpus": "shared-memory", "score": 1},
+        {"path": "/root/.openclaw/state/shared-memory-vector/feedback-z.md", "source": "memory", "score": 1},
+        {"path": "memory/2026-11-08.md", "source": "memory", "score": 1},
+        {"path": "MEMORY.md", "source": "memory", "score": 1},
+    ]
+    keys = {"direct": DIRECT, "group": GROUP, "channel": CHANNEL, "cron": CRON, "subagent": SUBAGENT}
+    out = node(f"""
+const hits = {json.dumps(hits)};
+const out = {{}};
+for (const [label, key] of Object.entries({json.dumps(keys)})) {{
+  out[label] = m.filterSharedMemoryRecall(hits, key).map((hit) => hit.path);
+}}
+out.paths = {{
+  relative: m.isSharedMemoryRecallPath('../../.openclaw/state/shared-memory-vector/feedback-x.md'),
+  absolute: m.isSharedMemoryRecallPath('/root/.openclaw/state/shared-memory-vector/feedback-x.md'),
+  supplement: m.isSharedMemoryRecallPath('shared-memory/feedback-x.md'),
+  workspace: m.isSharedMemoryRecallPath('memory/2026-11-08.md'),
+  other: m.isSharedMemoryRecallPath('../../.openclaw/state/other/feedback-x.md'),
+}};
+console.log(JSON.stringify(out));""")
+    shared = {"../../.openclaw/state/shared-memory-vector/feedback-x.md", "shared-memory/feedback-y.md",
+              "/root/.openclaw/state/shared-memory-vector/feedback-z.md"}
+    assert out["direct"] == [hit["path"] for hit in hits]
+    for label in ("group", "channel", "cron", "subagent"):
+        assert set(out[label]) == {hit["path"] for hit in hits} - shared, label
+    assert out["paths"] == {"relative": True, "absolute": True, "supplement": True,
+                            "workspace": False, "other": False}
+
+
+def test_tool_result_middleware_filters_the_merged_memory_search_result():
+    hits = [
+        {"path": "../../.openclaw/state/shared-memory-vector/feedback-x.md", "source": "memory", "score": 1, "snippet": "shared"},
+        {"path": "shared-memory/feedback-y.md", "corpus": "shared-memory", "score": 1, "snippet": "shared"},
+        {"path": "MEMORY.md", "source": "memory", "score": 1, "snippet": "workspace"},
+    ]
+    keys = {"direct": DIRECT, "group": GROUP, "channel": CHANNEL, "cron": CRON, "subagent": SUBAGENT}
+    out = node(f"""
+const payload = {{results: {json.dumps(hits)}}};
+const result = {{content: [{{type: 'text', text: JSON.stringify(payload, null, 2)}}], details: payload}};
+const calls = [];
+register({{pluginConfig: {{vectorRoot: '/root/.openclaw/state/shared-memory-vector'}},
+  logger: {{warn() {{}}}}, registerMemoryCorpusSupplement() {{}},
+  registerAgentToolResultMiddleware: (handler, options) => calls.push({{handler, options}})}});
+const mw = calls[0].handler;
+const out = {{}};
+for (const [label, key] of Object.entries({json.dumps(keys)})) {{
+  const changed = await mw({{toolName: 'memory_search', result}}, {{sessionKey: key}});
+  const next = changed ? changed.result.details : payload;
+  out[label] = next.results.map((hit) => hit.path);
+}}
+console.log(JSON.stringify({{calls: calls.length, runtime: calls[0].options.runtimes, out}}));""")
+    assert out["calls"] == 1 and out["runtime"] == ["openclaw"]
+    assert out["out"]["direct"] == [hit["path"] for hit in hits]
+    for label in ("group", "channel", "cron", "subagent"):
+        assert out["out"][label] == ["MEMORY.md"], label
+
+
+def test_memory_get_cannot_read_a_shared_staging_path_outside_direct():
+    path = "../../.openclaw/state/shared-memory-vector/feedback-x.md"
+    out = node(f"""
+const payload = {{path: {json.dumps(path)}, text: 'private body', from: 1, lines: 1}};
+const result = {{content: [{{type: 'text', text: JSON.stringify(payload, null, 2)}}], details: payload}};
+const calls = [];
+register({{pluginConfig: {{}}, logger: {{warn() {{}}}}, registerMemoryCorpusSupplement() {{}},
+  registerAgentToolResultMiddleware: (handler) => calls.push(handler)}});
+const mw = calls[0];
+const blocked = await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{sessionKey: {json.dumps(GROUP)}}});
+const allowed = await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{sessionKey: {json.dumps(DIRECT)}}});
+console.log(JSON.stringify({{
+  blocked: blocked ? blocked.result.details : payload,
+  allowed: allowed === undefined,
+  keyless: (await mw({{toolName: 'memory_get', result, args: {{path}}}}, {{}})) ? 'blocked' : 'allowed',
+}}));""")
+    assert out["blocked"]["text"] == "" and out["blocked"]["disabled"] is True
+    assert "direct chat" in out["blocked"]["error"]
+    assert out["allowed"] is True and out["keyless"] == "blocked"
+
+
+def test_the_isolation_switch_can_be_turned_off():
+    out = node("""
+const calls = [];
+register({pluginConfig: {isolateBuiltinIndex: false}, logger: {warn() {}},
+  registerMemoryCorpusSupplement() {}, registerAgentToolResultMiddleware: () => calls.push(1)});
+console.log(JSON.stringify({calls: calls.length}));""")
+    assert out == {"calls": 0}
+

@@ -174,6 +174,9 @@ def detect_agent() -> dict[str, str]:
     if os.environ.get("OPENCLAW_AGENT") or os.environ.get("OPENCLAW_SESSION_ID"):
         info["agent"] = "rick"
         return info
+    if os.environ.get("DSH_SESSION_ID") or os.environ.get("DSH_PROFILE") or os.environ.get("DSH_HOME"):
+        info["agent"] = "dsh"
+        return info
     if os.environ.get("CLAUDECODE"):
         info["agent"] = "claude-code"
         if os.environ.get("CLAUDE_CODE_SESSION_ID"):
@@ -724,6 +727,7 @@ def cmd_verify(args: list[str]) -> int:
         bypasses.append({"kind": "uncommitted", "file": path, "status": status})
 
     entries: list[dict] = []
+    unattributed: list[tuple[dict, str]] = []
     if LEDGER.is_file():
         for line in LEDGER.read_text(encoding="utf-8").splitlines():
             try:
@@ -738,18 +742,25 @@ def cmd_verify(args: list[str]) -> int:
             entries.append(entry)
             if entry.get("agent") in (None, "", "unattributed"):
                 for path in entry.get("files") or []:
-                    bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
-                                     "commit": entry.get("commit"), "op": entry.get("op")})
+                    unattributed.append((entry, path))
 
     # A later receipted write repairs an earlier bypass of the same file. Report the file only
     # while its latest change is still unreceipted, so verify converges after a repair instead
-    # of staying red for seven days.
+    # of staying red for seven days. The same rule applies to an unattributed write: a real
+    # `memory.py` receipt later in the ledger is the repair, while an unattributed write with no
+    # later receipt is still reported.
     latest_receipt: dict[str, int] = {}
     for entry in entries:
         if entry.get("seq") is None:
             continue
         for path, digest in (entry.get("wrote") or {}).items():
             latest_receipt[path] = max(latest_receipt.get(path, 0), int(entry["seq"]))
+
+    for entry, path in unattributed:
+        if entry.get("seq") is not None and latest_receipt.get(path, 0) > int(entry.get("seq") or 0):
+            continue
+        bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
+                         "commit": entry.get("commit"), "op": entry.get("op")})
 
     head = git("rev-parse", "HEAD", check=False).strip()
     for entry in entries:

@@ -700,3 +700,25 @@ def test_rerendering_units_keeps_cli_directories_the_installed_unit_had(tmp_path
     assert proc.returncode == 0, proc.stderr
     path = re.search(r"^Environment=PATH=(.+)$", (units / "shared-memory-daily.service").read_text(), re.M).group(1)
     assert "/opt/agents/bin" in path.split(":")
+
+# --- attribution and verify convergence ---------------------------------------
+
+def test_memory_py_recognises_the_dsh_session_marker(kit):
+    env = {k: v for k, v in kit.env.items() if k not in ("MEMCTL_AGENT", "AI_AGENT")}
+    env.update(DSH_SESSION_ID="session-1", DSH_PROFILE="headless", DSH_HOME=str(kit.home / ".dsh"))
+    kit.ok("add", "feedback-dsh", "--summary", "dsh writes", "--body-file", kit.body("dsh body"),
+           "--scope", "engineering", script=MEMORY_PY, env=env)
+    assert "agent: dsh" in (kit.store / "feedback-dsh.md").read_text()
+    assert kit.ledger()[-1]["agent"] == "dsh"
+
+
+def test_a_later_receipt_repairs_an_unattributed_snapshot(kit):
+    (kit.store / "feedback-alpha.md").write_text(
+        TOPIC.format(slug="feedback-alpha", desc="alpha", body="hand edited"))
+    kit.ok("snapshot", "--timer", "--reason", "periodic")
+    before = kit.run("verify")
+    assert before.returncode == 1 and "UNATTRIBUTED" in before.stdout
+    kit.ok("update", "feedback-alpha", "--scope", "engineering", "--salience", "high", script=MEMORY_PY)
+    after = kit.ok("verify")
+    assert after.stdout.strip().startswith("verify: 0"), after.stdout
+
