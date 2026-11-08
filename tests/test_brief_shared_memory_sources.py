@@ -47,3 +47,13 @@ def test_an_absent_store_has_nothing_to_copy(tmp_path, monkeypatch):
     monkeypatch.setenv("SHARED_MEMORY_DIR", str(tmp_path / "missing"))
     monkeypatch.setattr(postflight, "WS", tmp_path)
     assert postflight.validate_shared_memory_sources(path, "2026-11-08") == []
+
+
+def test_a_legacy_topic_without_frontmatter_is_private_by_default(tmp_path, monkeypatch):
+    store = store_with_private(tmp_path)
+    (store / 'project-private.md').write_text('# Legacy private note\n\n' + PRIVATE + '\n')
+    path = brief_holding(tmp_path, f'# 盘前\n\n{PRIVATE}\n')
+    monkeypatch.setenv('SHARED_MEMORY_DIR', str(store))
+    monkeypatch.setattr(postflight, 'WS', tmp_path)
+    issues = postflight.validate_shared_memory_sources(path, '2026-11-08')
+    assert any('private topic' in issue and 'project-private' in issue for issue in issues)

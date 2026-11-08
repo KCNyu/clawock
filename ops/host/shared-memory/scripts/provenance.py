@@ -89,10 +89,12 @@ def _topic_rows(store: Path) -> list[tuple[str, bool, str]]:
         if path.name == "MEMORY.md":
             continue
         try:
-            parsed = split_frontmatter(path.read_text(encoding="utf-8"))
+            text = path.read_text(encoding="utf-8")
+            parsed = split_frontmatter(text)
         except (OSError, ValueError) as exc:
             raise ProvenanceError(f"{path.name}: {exc}") from exc
         if parsed is None:
+            rows.append((path.stem, False, text))
             continue
         fields, meta, body = parsed
         rows.append((path.stem, _published(fields, meta), body))

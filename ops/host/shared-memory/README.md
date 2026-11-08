@@ -152,8 +152,8 @@ is the private recall counter below):
   Only a keyless call gets nothing, because the plugin cannot tell whether it is configured;
 - the built-in index is held to the same predicate. The plugin registers an
   `agentToolResultMiddleware` for the `openclaw` runtime (`contracts.agentToolResultMiddleware`),
-  which strips `shared-memory-vector/…` and `shared-memory/…` hits from the merged
-  `memory_search` result and blocks `memory_get` on those paths for a keyless call. This is
+  which refuses the entire `memory_search` / `memory_get` result for a keyless call,
+  including unknown result shapes and every text block, with an explicit error. This is
   what makes `agents.defaults.memorySearch.extraPaths` safe; the reusable predicate is
   exported as `sessionAllowed` + `filterSharedMemoryRecall` for any future vector merge layer.
   `isolateBuiltinIndex: false` disables the gate, and `vectorRoot` overrides the staging

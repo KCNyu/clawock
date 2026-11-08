@@ -105,39 +105,9 @@ export function filterSharedMemoryRecall<T extends { path?: unknown }>(
   ));
 }
 
-type RecallPayload = Record<string, unknown>;
-
-function readRecallPayload(result: unknown): RecallPayload | null {
-  if (!result || typeof result !== "object") return null;
-  const details = (result as { details?: unknown }).details;
-  if (details && typeof details === "object" && !Array.isArray(details)) return details as RecallPayload;
-  const content = (result as { content?: unknown }).content;
-  if (!Array.isArray(content)) return null;
-  for (const item of content) {
-    if (!item || typeof item !== "object") continue;
-    const entry = item as { type?: unknown; text?: unknown };
-    if (entry.type !== "text" || typeof entry.text !== "string") continue;
-    try {
-      const parsed = JSON.parse(entry.text);
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as RecallPayload;
-    } catch {}
-  }
-  return null;
-}
-
-function replaceRecallPayload(result: unknown, payload: RecallPayload): unknown {
-  const base = result && typeof result === "object" ? { ...(result as Record<string, unknown>) } : {};
-  const text = JSON.stringify(payload, null, 2);
-  const content = Array.isArray(base.content) ? [...base.content] : [];
-  const index = content.findIndex((item) => item && typeof item === "object" && (item as { type?: unknown }).type === "text");
-  if (index >= 0) content[index] = { ...(content[index] as Record<string, unknown>), type: "text", text };
-  else content.push({ type: "text", text });
-  return { ...base, content, details: payload };
-}
-
 // OpenClaw's built-in memory hits do not pass through the corpus supplement. This
 // tool-result middleware is the merge-layer seam: it is registered only for the
-// openclaw runtime, sees the real session key, and strips shared-store paths before
+// openclaw runtime, sees the real session key, and refuses keyless results before
 // the model (or a later recall recorder) can use them. `memory_get` is guarded too,
 // because knowing a staging path is enough to read it.
 const recallSessionKeys = new Map<string, string>();
@@ -163,7 +133,7 @@ export function createRecallSessionHook() {
   };
 }
 
-export function createSharedMemoryRecallMiddleware(options: RecallIsolationOptions = {}) {
+export function createSharedMemoryRecallMiddleware(_options: RecallIsolationOptions = {}) {
   return async (
     event: { toolName?: string; toolCallId?: string; args?: Record<string, unknown>; result?: unknown },
     ctx: { sessionKey?: string },
@@ -172,25 +142,18 @@ export function createSharedMemoryRecallMiddleware(options: RecallIsolationOptio
     if (event?.toolCallId) recallSessionKeys.delete(event.toolCallId);
     if (sessionAllowed(sessionKey)) return undefined;
     if (event?.toolName !== "memory_search" && event?.toolName !== "memory_get") return undefined;
-    const payload = readRecallPayload(event.result);
-    if (!payload) return undefined;
-    if (event.toolName === "memory_search") {
-      const results = payload.results;
-      if (!Array.isArray(results)) return undefined;
-      const filtered = filterSharedMemoryRecall(results as Array<{ path?: unknown }>, sessionKey, options);
-      if (filtered.length === results.length) return undefined;
-      return { result: replaceRecallPayload(event.result, { ...payload, results: filtered }) };
-    }
-    const path = typeof payload.path === "string" ? payload.path : typeof event.args?.path === "string" ? event.args.path : undefined;
-    if (!isSharedMemoryRecallPath(path, options)) return undefined;
-    return {
-      result: replaceRecallPayload(event.result, {
-        ...payload,
-        text: "",
-        disabled: true,
-        error: "shared memory is not available without a configured session",
-      }),
+    // Without a session identity no part of a memory result is authorized.
+    // Rebuild every response channel: retaining a second text block or an
+    // unrecognized details shape would leak the very content being denied.
+    const payload = {
+      results: [], text: "", disabled: true,
+      error: "memory recall is not available without a configured session",
     };
+    return { result: {
+      isError: true,
+      content: [{ type: "text", text: JSON.stringify(payload) }],
+      details: payload,
+    } };
   };
 }
 
