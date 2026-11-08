@@ -2334,11 +2334,9 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
     button.setAttribute('aria-label', spoken)
     button.setAttribute('title', spoken)
     if (title !== null) {
-      title.textContent = alertCount !== ''
-        ? props.t('workbench.labelAlert', { alerts: alertCount })
-        : view === null || view.badge === ''
-          ? previousText ?? title.textContent
-          : props.t('workbench.labelTasks', { n: view.badge })
+      title.textContent = alertCount === ''
+        ? previousText ?? title.textContent
+        : props.t('workbench.labelAlert', { alerts: alertCount })
     }
     return () => {
       if (previous === null) button.removeAttribute('aria-label')
@@ -2362,15 +2360,6 @@ export function WorkbenchIcon(props: WorkbenchIconProps): React.ReactElement {
     },
   },
     renderWorkbenchGlyph(props.size),
-    view === null
-      ? null
-      : h('span', {
-        className: cx('wb-badge'),
-        'data-wb-badge': 'true',
-        'data-wb-tone': view.tone,
-        'aria-hidden': 'true',
-        'aria-live': 'polite',
-      }, view.badge),
     alertNames === '' ? null : h('span', {
       className: cx('wb-rail-alert'), 'data-wb-rail-alert': 'true', 'aria-hidden': 'true', title: alertLabel ?? '',
     }, '!'))

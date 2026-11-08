@@ -16,11 +16,11 @@
  * All exceptions are written to the JSON and the summary table with a reason.
  *
  * On top of that scan, an explicit geometry contract names the pairs the
- * 2026-11-08 screenshots broke: adjacent sidebar rows and the glyph/count/alert
- * boxes inside the host's 36px row, the closing-report card vs its Full log
- * row, and the patrol coverage tables (one column on a phone). The
- * `sidebar-legacy` state replays the pre-fix badge geometry as a negative
- * control, so the detector cannot quietly stop seeing the defect.
+ * 2026-11-08 screenshots broke: adjacent sidebar rows and the label/alert
+ * boxes inside the host's 36px row (with no numeric badge on the glyph), the
+ * closing-report card vs its Full log row, and the patrol coverage tables
+ * (one column on a phone). The wide row keeps the count in the host label;
+ * the rail keeps only the non-numeric alert mark.
  *
  * It also records computed font-size/line-height/weight for the provider rows
  * in normal / near-limit / alert / stale / free / unknown states and in both
@@ -234,7 +234,7 @@ const HARNESS_JS = String.raw`
     if (name === 'toast') return Object.assign({}, goodQueue, { logDir: '' });
     return goodQueue;
   }
-  const balancesFor = (name) => name === 'empty' ? emptyBalances : name === 'read-failed' ? failBalances : name === 'sidebar-count' ? calmBalances : goodBalances;
+  const balancesFor = (name) => name === 'empty' ? emptyBalances : name === 'read-failed' ? failBalances : name === 'sidebar-quiet' ? calmBalances : goodBalances;
   const statsFor = (name) => name === 'empty' ? emptyStats : name === 'read-failed' ? noStats : goodStats;
 
   const never = () => new Promise(() => {});
@@ -317,18 +317,9 @@ const HARNESS_JS = String.raw`
       cachedBalances: () => balances, fetchBalances: async () => balances,
       rememberTrigger: () => {},
     }));
-    if (scenario === 'sidebar-legacy') {
-      // The pre-fix geometry, kept as a negative control: the detector must
-      // still see the old 16px badge and the old bottom-right alert.
-      const legacy = document.createElement('style');
-      legacy.textContent = '[class*="_wb-badge"]{top:-5px!important;right:-2px!important;min-width:16px!important;max-width:22px!important;height:16px!important;padding:0 2px!important;border-radius:8px!important;line-height:16px!important;box-shadow:none!important}'
-        + '[data-wb-rail=true] [class*="_wb-badge"]{top:0!important;right:-6px!important}'
-        + '[class*="_wb-rail-alert"]{bottom:0!important;right:-5px!important;left:auto!important}';
-      document.head.appendChild(legacy);
-    }
   }
-  if (scenario === 'sidebar' || scenario === 'sidebar-rail' || scenario === 'sidebar-legacy' || scenario === 'sidebar-count') {
-    mountSidebar(scenario === 'sidebar-rail' || scenario === 'sidebar-legacy' ? 'rail' : 'wide');
+  if (scenario === 'sidebar' || scenario === 'sidebar-rail' || scenario === 'sidebar-quiet') {
+    mountSidebar(scenario === 'sidebar-rail' ? 'rail' : 'wide');
   } else {
     mountWorkbench();
   }
@@ -502,7 +493,7 @@ function gaugeInPage(mode) {
       title: box(el.querySelector(".host-panel-title")),
       titleText: (() => { const t = el.querySelector(".host-panel-title"); return t === null ? null : t.textContent; })(),
       icon: box(el.querySelector("[data-wb-icon]")),
-      badge: box(el.querySelector("[data-wb-badge]")),
+      badgeNodes: el.querySelectorAll("[data-wb-badge]").length,
       alert: box(el.querySelector("[data-wb-rail-alert]")),
     }));
     const intersections = [];
@@ -516,19 +507,10 @@ function gaugeInPage(mode) {
       name: row.name,
       titleInside: row.title === null || inside(row.title, row.row),
       iconInside: row.icon === null || inside(row.icon, row.row),
-      badgeInside: row.badge === null || inside(row.badge, row.row),
       alertInside: row.alert === null || inside(row.alert, row.row),
       rowHeight: row.row === null ? 0 : round(row.row.h),
     }));
-    const workbench = rows.find((row) => row.name === "workbench") || null;
-    const glyphArea = workbench !== null && workbench.icon !== null ? workbench.icon.w * workbench.icon.h : 0;
-    return {
-      mode, rows, intersections, containment,
-      badgeGlyphShare: glyphArea === 0 || workbench.badge === null ? 0 : round(area(workbench.badge, workbench.icon) / glyphArea),
-      badgeAlertArea: workbench === null ? 0 : round(area(workbench.badge, workbench.alert)),
-      titleGap: workbench === null || workbench.badge === null || workbench.title === null
-        ? null : round(workbench.title.x - workbench.badge.right),
-    };
+    return { mode, rows, intersections, containment };
   }
 
   if (mode === "detail") {
@@ -637,8 +619,7 @@ const STATES = [
   { name: "providers-375", width: 375, height: 667, scenario: "normal", drive: "providers", gauge: "providers" },
   { name: "sidebar", width: 390, height: 844, scenario: "sidebar", drive: null, gauge: "sidebar" },
   { name: "sidebar-375", width: 375, height: 667, scenario: "sidebar", drive: null, gauge: "sidebar" },
-  { name: "sidebar-legacy", width: 390, height: 844, scenario: "sidebar-legacy", drive: null, gauge: "sidebar", control: true },
-  { name: "sidebar-count", width: 390, height: 844, scenario: "sidebar-count", drive: null, gauge: "sidebar" },
+  { name: "sidebar-quiet", width: 390, height: 844, scenario: "sidebar-quiet", drive: null, gauge: "sidebar" },
   { name: "320-sticky", width: 320, height: 568, scenario: "normal", drive: "sticky" },
   { name: "320-providers", width: 320, height: 568, scenario: "normal", drive: "providers" },
   { name: "320-task", width: 320, height: 568, scenario: "normal", drive: "task", gauge: "detail" },
@@ -723,36 +704,25 @@ function assertGauge(state, gauge) {
       assert.equal(row.rowHeight, 36, state.name + ": " + row.name + " keeps the host's 36px row");
       assert.ok(row.titleInside, state.name + ": " + row.name + " label leaves its row");
       assert.ok(row.iconInside, state.name + ": " + row.name + " glyph leaves its row");
-      assert.ok(row.badgeInside, state.name + ": " + row.name + " badge leaves its row");
       assert.ok(row.alertInside, state.name + ": " + row.name + " alert leaves its row");
     }
-    if (state.control) {
-      // Negative control: the pre-fix geometry must be caught, otherwise the
-      // positive assertions above could be vacuous.
-      assert.ok(gauge.badgeGlyphShare > 0.4 || gauge.badgeAlertArea > 0,
-        state.name + ": the legacy badge geometry is no longer detected (share="
-        + gauge.badgeGlyphShare + " alertArea=" + gauge.badgeAlertArea + ")");
-      console.log("  CONTROL legacy badge detected: glyphShare=" + gauge.badgeGlyphShare + " alertArea=" + gauge.badgeAlertArea);
-      return;
-    }
-    assert.ok(gauge.badgeGlyphShare <= 0.4,
-      state.name + ": the count badge covers " + Math.round(gauge.badgeGlyphShare * 100) + "% of the glyph (max 40%)");
-    assert.equal(gauge.badgeAlertArea, 0, state.name + ": the count badge and the rail alert must not intersect");
     const workbench = gauge.rows.find((row) => row.name === "workbench");
-    if (workbench !== undefined && workbench.rail === false) {
-      assert.equal(workbench.badge, null,
-        state.name + ": the wide row carries the count in its label, not on the glyph");
+    if (workbench === undefined) return;
+    assert.equal(workbench.badgeNodes, 0,
+      state.name + ": the row has no numeric badge node; the count is words in the host label");
+    if (workbench.rail === false) {
       assert.ok(typeof workbench.titleText === "string" && workbench.titleText.length > 0,
         state.name + ": the wide row keeps a visible label");
-      if (state.scenario === "sidebar-count") {
-        assert.ok(/4/.test(workbench.titleText) && /待处理/.test(workbench.titleText),
-          state.name + ": a pending-only row names the count in words (got " + workbench.titleText + ")");
+      if (state.scenario === "sidebar") {
+        assert.ok(/告警/.test(workbench.titleText),
+          state.name + ": an alert is written into the label (got " + workbench.titleText + ")");
       }
-    }
-    if (workbench !== undefined && workbench.rail === true) {
-      assert.ok(workbench.badge !== null, state.name + ": the rail keeps the count badge");
-      assert.ok(gauge.titleGap === null || gauge.titleGap >= 2,
-        state.name + ": the count badge must leave 2px before the label (got " + gauge.titleGap + ")");
+      if (state.scenario === "sidebar-quiet") {
+        assert.doesNotMatch(workbench.titleText, /告警|alert/,
+          state.name + ": zero alerts add no suffix (got " + workbench.titleText + ")");
+      }
+    } else {
+      assert.ok(workbench.alert !== null, state.name + ": the rail keeps the non-numeric alert mark");
     }
     return;
   }
@@ -857,20 +827,10 @@ async function main() {
           rail = await page.evaluate(() => {
             const badge = document.querySelector("[data-wb-badge]");
             const alert = document.querySelector("[data-wb-rail-alert]");
-            if (badge === null || alert === null) return { badge: badge !== null, alert: alert !== null };
-            const a = badge.getBoundingClientRect(), b = alert.getBoundingClientRect();
-            const x = Math.max(a.left, b.left), y = Math.max(a.top, b.top);
-            const x2 = Math.min(a.right, b.right), y2 = Math.min(a.bottom, b.bottom);
-            return {
-              badge: true, alert: true,
-              badgeRect: { x: a.x, y: a.y, w: a.width, h: a.height },
-              alertRect: { x: b.x, y: b.y, w: b.width, h: b.height },
-              area: Math.max(0, x2 - x) * Math.max(0, y2 - y),
-            };
+            return { badge: badge !== null, alert: alert !== null };
           });
-          assert.equal(rail.badge, true, "rail state mounts the count badge");
-          assert.equal(rail.alert, true, "rail state mounts the alert !");
-          assert.equal(rail.area, 0, "rail state: the count badge and the alert ! must not intersect");
+          assert.equal(rail.badge, false, "rail state has no numeric badge");
+          assert.equal(rail.alert, true, "rail state keeps the alert !");
         }
         const gauge = state.gauge ? await page.evaluate(gaugeInPage, state.gauge) : null;
         let gaugeError = null;
@@ -883,10 +843,10 @@ async function main() {
         }
         const shot = path.join(shotsDir, engineName + "-" + state.name + ".png");
         await page.screenshot({ path: shot, fullPage: false });
-        const failures = state.control ? [] : geometry.failures;
+        const failures = geometry.failures;
         const record = {
           name: state.name, engine: engineName, width: state.width, height: state.height,
-          scenario: state.scenario, theme: state.theme || "light", scrollTop, control: state.control === true,
+          scenario: state.scenario, theme: state.theme || "light", scrollTop,
           blocks: geometry.blocks.length, failures, allowed: geometry.allowed,
           gauge, gaugeError, safeArea, rail, errors, screenshot: shot,
         };
