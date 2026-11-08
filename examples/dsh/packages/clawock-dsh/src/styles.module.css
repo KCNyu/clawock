@@ -1790,7 +1790,8 @@
 }.pbc .tq-field select:focus-visible{
   outline:var(--tq-focus-ring);
   outline-offset:-2px
-}.pbc .tq-log{
+}.pbc .tq-log-sheet{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column }
+.pbc .tq-log{
   max-height:220px;
   margin:10px 0 0;
   padding:8px 10px;

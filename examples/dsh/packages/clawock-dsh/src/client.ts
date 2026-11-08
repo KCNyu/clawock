@@ -3142,12 +3142,11 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     const body: React.ReactNode[] = kind === 'brief'
       ? [renderBriefBlock(shown, brief !== null && brief.id === shown.id ? brief : null, t, openPath, shownLive),
         renderBriefText(shown, brief !== null && brief.id === shown.id ? brief : null, t)]
-      : kind === 'log' ? [
+      : kind === 'log' ? [h('div', { className: cx('tq-log-sheet') },
         logNote === null ? null : h('p', {
           className: cx('tq-note', 'tq-log-note'), 'data-tq-log-note': 'true', role: 'status',
         }, logNote),
-        renderLogBlock(shown, log, t),
-      ]
+        renderLogBlock(shown, log, t))]
         : kind === 'timeline' ? [renderTimelineBlock(shown, timeline, t)]
           : [picker === null
             ? h('div', { className: cx('tq-empty') }, t('queue.a.reading'))
