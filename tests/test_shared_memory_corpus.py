@@ -171,8 +171,8 @@ def test_search_and_get_record_topic_slugs_without_the_query(store, tmp_path):
 
 def test_group_sessions_write_no_recall(store, tmp_path):
     state = tmp_path / "state"
-    node(corpus(store, f"[await c.search({{query: 'sandbox', agentSessionKey: 'agent:main:cron:brief'}}), "
-                       f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: 'agent:main:cron:brief'}})]"),
+    node(corpus(store, "[await c.search({query: 'sandbox', agentSessionKey: 'agent:main:cron:brief'}), "
+                       "await c.get({lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: 'agent:main:cron:brief'})]"),
          env={"SHARED_MEMORY_STATE": str(state)})
     assert not (state / "recall.jsonl").exists()
 
