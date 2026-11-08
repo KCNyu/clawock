@@ -3675,9 +3675,9 @@ test("workbench: the signal copy, waits and first sentence are fixed", async () 
   assert.equal(en("signal.rowLabel", { n: "7", time: "5 days" }), "Workbench, 7 pending, oldest 5 days");
   assert.equal(en("workbench.close"), "Close workbench and return to the conversation");
   assert.equal(en("workbench.group.stuck", { n: "1" }), "Stuck 1");
-  assert.equal(en("workbench.group.pendingOldest", { n: "6", age: "5d" }), "Pending 6 · oldest 5d");
-  assert.equal(en("workbench.group.live", { n: "4" }), "Running 4");
-  assert.equal(t("workbench.group.pendingOldest", { n: "6", age: "5d" }), "待你处理 6 · 最旧 5d");
+  assert.equal(en("workbench.group.pendingOldest", { n: "6", age: "5d" }), "Needs review 6 · oldest 5d");
+  assert.equal(en("workbench.group.live", { n: "4" }), "Active 4");
+  assert.equal(t("workbench.group.pendingOldest", { n: "6", age: "5d" }), "待你确认 6 · 最早 5d");
   assert.equal(t("workbench.close"), "关闭工作台，返回会话");
   assert.equal(en("workbench.rowAria", { title: "T", time: "5 days" }), "T, waited 5 days");
   assert.equal(en("time.minuteOne", { n: "1" }), "1 minute");
@@ -4810,6 +4810,23 @@ test("workbench client: Full log opens the preview or says why it cannot", async
     assert.ok(ordinaryFull, "the plain Log entry also links the full file");
     assert.equal(typeof ordinaryFull.props.onClick, "function");
     assert.deepEqual(absent.calls, [["log", "done-1"], ["log", "done-1"]]);
+
+    // Dismiss the done task's NEEDS: one ack write, then back to the queue.
+    absent.find(tree, (p) => p["data-wb-sheet-back"] !== undefined)[0].props.onClick();
+    tree = absent.render();
+    const backToQueue = absent.find(tree, (p) => p["data-wb-back"] !== undefined)[0];
+    if (backToQueue !== undefined) { backToQueue.props.onClick(); tree = absent.render(); }
+    absent.find(tree, (p) => p["data-wb-task"] === "done-1")[0].props.onClick();
+    tree = absent.render();
+    const dismiss = absent.find(tree, (p) => p["data-wb-dismiss"] !== undefined)[0];
+    assert.ok(dismiss, "an ended task with NEEDS offers Dismiss");
+    dismiss.props.onClick();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    tree = absent.render();
+    assert.ok(absent.calls.some((call) => call[0] === "ack" && call[1] === "done-1"),
+      "Dismiss writes the local ack through the queue runner");
+    assert.equal(absent.find(tree, (p) => p["data-tq-detail"] !== undefined).length, 0,
+      "a successful Dismiss leaves the detail");
 
     // A host with a preview: the native path wins and nothing is said.
     const native = make(() => ({ ok: true }));

@@ -2116,7 +2116,8 @@
 }.wb-detail-tq{ flex:1; min-height:0; display:flex; flex-direction:column; }
 .wb-detail-tq > .tq-detail{ flex:1 1 auto; min-height:0; }
 .wb-needs-block{ padding:0 0 10px; border-bottom:1px solid var(--wb-hair); margin-bottom:10px; }
-.wb-needs-block .wb-actions{ margin-top:14px; }
+.wb-needs-block .wb-dismiss{ margin-top:8px; padding:6px 0; border:0; background:transparent; color:var(--wb-ink-2); font:inherit; font-size:var(--fs-sm); text-decoration:underline; cursor:pointer; }
+.wb-actions{ margin-top:14px; }
 .wb-needs-block .wb-recorded{ margin-top:14px; }
 /* Focus view *//* Focus view */.wb-returnbar{
   flex:none; display:flex; align-items:center; height:44px; padding:0 12px;
@@ -2193,10 +2194,10 @@
 .wb-ov-round-when, .wb-ov-round-took{ white-space:nowrap; text-align:right; color:var(--wb-ink-3); font-variant-numeric:tabular-nums; }
 .wb-ov-foot{ margin:16px var(--wb-pad) 0; font-size:var(--fs-sm); line-height:var(--lh-md); color:var(--wb-ink-3); word-break:normal; overflow-wrap:break-word; }
 .wb-ov-foot-bad{ color:var(--wb-warn); }
-.wb-hist{ margin:0; padding:0 var(--wb-pad); list-style:none; }
+.wb-hist{ margin:0; padding:0 var(--wb-pad) 8px; list-style:none; }
 .wb-hist-row{
   display:grid; grid-template-columns:minmax(0,1fr) auto auto; column-gap:10px;
-  align-items:baseline; width:100%; min-height:44px; box-sizing:border-box; padding:8px 0;
+  align-items:baseline; width:100%; min-height:44px; box-sizing:border-box; padding:8px;
   border:0; border-bottom:1px solid var(--wb-hair); background:transparent;
   color:var(--wb-ink); font:inherit; text-align:left; cursor:pointer; word-break:normal; overflow-wrap:break-word;
 }
@@ -2208,6 +2209,8 @@
 .wb-hist-state{ white-space:nowrap; font-size:var(--fs-sm); line-height:var(--lh-sm); color:var(--wb-ink-2); }
 .wb-hist-state[data-role=fail]{ color:var(--wb-bad); }
 .wb-hist-state[data-role=partial]{ color:var(--wb-warn); }
+.wb-hist-foot{ padding:12px var(--wb-pad) 24px; }
+.wb-hist-all{ margin-top:8px; padding:8px 0; border:0; background:transparent; color:var(--wb-ink); font:inherit; font-size:var(--fs-md); font-weight:var(--fw-medium); text-decoration:underline; cursor:pointer; }
 .wb-hist-cost{ white-space:nowrap; text-align:right; font-size:var(--fs-sm); line-height:var(--lh-sm); color:var(--wb-ink-2); font-variant-numeric:tabular-nums; }
 
 /* Coverage: block headings at 11/600, body 13, notes 12 tertiary; one column. */

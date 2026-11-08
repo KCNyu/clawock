@@ -39,7 +39,7 @@ import {
 } from './workbench.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, panelNotices, opsFooter, _queueHeadline, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, historyRowsView, _fmtTokens, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView, type HistoryRowView } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, _costUnit, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, panelNotices, opsFooter, _queueHeadline, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, historyRowsView, _fmtTokens, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView, type HistoryRowView } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 export { _fmtTokens } from './panel.ts'
 // Pure projections, re-exported so the spec can pin the fixed signal copy and
@@ -1394,7 +1394,8 @@ function renderStatsBody(stats: StatsView, t: Translate): React.ReactElement {
 }
 
 /** The history fold: one button per ended task; the detail it opens is the Tasks detail. */
-function renderHistoryBody(rows: HistoryRowView[], t: Translate, open: (id: string, element: HTMLElement | null) => void): React.ReactElement {
+function renderHistoryBody(rows: HistoryRowView[], t: Translate, open: (id: string, element: HTMLElement | null) => void,
+  onTasks: () => void): React.ReactElement {
   if (rows.length === 0) return h('p', { className: cx('wb-ov-note') }, t('workbench.history.empty'))
   const row = (item: HistoryRowView): React.ReactElement => h('li', { key: item.id },
     h('button', {
@@ -1407,7 +1408,12 @@ function renderHistoryBody(rows: HistoryRowView[], t: Translate, open: (id: stri
         item.meta === '' ? null : h('span', { className: cx('wb-hist-meta') }, item.meta)),
       h('span', { className: cx('wb-hist-state'), 'data-role': item.stateRole }, item.stateText),
       item.cost === '' ? null : h('span', { className: cx('wb-hist-cost') }, item.cost)))
-  return h('ul', { className: cx('wb-hist') }, ...rows.map(row))
+  return h('div', { className: cx('wb-hist-wrap') },
+    h('ul', { className: cx('wb-hist') }, ...rows.map(row)),
+    h('div', { className: cx('wb-hist-foot') },
+      h('p', { className: cx('wb-ov-note') }, t('workbench.history.limit')),
+      h('p', { className: cx('wb-ov-note') }, t('workbench.history.costNote')),
+      h('button', { type: 'button', className: cx('wb-hist-all'), onClick: onTasks }, t('workbench.history.all'))))
 }
 
 type StatsBarCounts = { done: number; partial: number; unfinished: number; live: number }
@@ -2050,7 +2056,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     task.stalls ? { key: 'stalls', label: t('queue.d.stalls'), value: t('queue.d.stallsValue', { n: task.stalls }), voice: 'warn' } : null,
     cost === null ? null : {
       key: 'cost', label: t('queue.d.cost'),
-      value: cost.kind === 'usd' ? '$' + (task.costUsd ?? '') : cost.kind === 'free' ? t('queue.d.costFreeShort') : '—',
+      value: cost.kind === 'usd' ? _costUnit(task) + (task.costUsd ?? '') : cost.kind === 'free' ? t('queue.d.costFreeShort') : '—',
       sub: (cost.kind === 'usd' ? t('queue.d.costEstimate') : cost.kind === 'free' ? t('queue.d.costFree') : t('queue.d.costUnpriced'))
         + (live ? ' · ' + t('queue.d.costLive') : ''),
     },
@@ -2469,7 +2475,7 @@ function WorkbenchRow(props: {
   onMove: (delta: number) => void
 }): React.ReactElement {
   const { task, t } = props
-  const sub = firstSentence(task.needs ?? '') || t('workbench.needs.empty')
+  const sub = firstSentence(task.needs ?? '')
   return h('button', {
     type: 'button',
     ref: props.buttonRef,
@@ -3047,6 +3053,24 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const needsHost = (answer: QueueActionResult): boolean => !answer.ok && /unknown action/.test(answer.message)
   const runAction = props.runQueueAction
   const writable = runAction !== undefined && result?.ops?.available === true
+  const dismissNeeds = (task: DispatchTask): void => {
+    if (runAction === undefined || busy !== null) return
+    setBusy('ack:' + task.id)
+    clearToast()
+    runAction('ack', task.id, '').then((answer) => {
+      setBusy(null)
+      if (!answer.ok) {
+        showToast({ ok: false, text: _describeAction(answer, t) })
+        return
+      }
+      showToast({ ok: true, text: t('queue.a.dismissed') })
+      navigate({ type: 'BACK' })
+      queue.refresh()
+    }, (error: unknown) => {
+      setBusy(null)
+      showToast({ ok: false, text: t('queue.r.failed', { message: error instanceof Error ? error.message : String(error) }) })
+    })
+  }
   const queueAct = (action: string, task: DispatchTask, arg = ''): void => {
     if (runAction === undefined || busy !== null) return
     setBusy(action + ':' + task.id)
@@ -3500,6 +3524,13 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     shown.needs === undefined || shown.needs.trim() === ''
       ? h('div', { className: cx('wb-needs-empty') }, t('workbench.needs.empty'))
       : h('div', { className: cx('wb-needs') }, ..._richText(shown.needs, 'needs')),
+    !shownLive && shown.needs !== undefined && shown.needs.trim() !== '' && shown.needsAck !== true
+      ? h('button', {
+        type: 'button', className: cx('wb-dismiss'), disabled: busy !== null,
+        'data-wb-dismiss': 'true', title: t('queue.a.dismissTitle'),
+        onClick: () => { dismissNeeds(shown) },
+      }, t('queue.a.dismiss'))
+      : null,
     showPresets ? h('div', { className: cx('wb-actions') },
       h('button', {
         type: 'button', className: cx('wb-act', 'wb-act-primary'),
@@ -3614,7 +3645,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹'), t('workbench.back.overview'))),
     h('div', {
       className: cx('wb-view', 'pbc'), 'data-wb-scroll': 'true', 'data-wb-history-layer': 'true',
-    }, h('div', { className: cx('wb-ov') }, renderHistoryBody(historyRows, t, openHistoryRow))), sheetNode)
+    }, h('div', { className: cx('wb-ov') }, renderHistoryBody(historyRows, t, openHistoryRow, () => { navigate({ type: 'TAB', tab: 'tasks' }) }))), sheetNode)
 
   if (view === 'patrol') return renderPatrolLayer()
   if (view === 'stats') return renderStatsLayer()

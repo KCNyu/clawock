@@ -521,6 +521,9 @@ export type HistoryRowView = {
     cost: string;
     aria: string;
 };
+/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
+ * Claude and Codex estimates use USD. The number is the host's estimate. */
+export declare function _costUnit(task: Pick<DispatchTask, 'agent' | 'model'>): '¥' | '$';
 /** The ended-task list: frozen result, finished time and cost, newest first (host order). */
 export declare function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[];
 /** The Providers segment: sources in severity order, same-severity rows by label. */

@@ -343,6 +343,7 @@ function readTask(logDir, id, alive) {
 		lastEvent: event.text,
 		lastEventAtMs: event.atMs,
 		needs: result.NEEDS ?? "",
+		needsAck: existsSync(join(dir, "needs-ack.json")),
 		stage: result.STAGE ?? "",
 		attention: result.ATTENTION ?? "",
 		finishedAtMs: alive ? null : epochMs(result.FINISHED_EPOCH),
@@ -855,7 +856,7 @@ async function readTaskQueue(config, deps) {
 		"partial",
 		"unverified"
 	].includes(row.state);
-	const pendingRows = terminal.filter((row) => needsPerson(row) && !childIds.has(row.id) && !existsSync(join(config.logDir, row.id, "answer.json"))).sort((a, b) => (a.finishedAtMs ?? a.at) - (b.finishedAtMs ?? b.at) || a.id.localeCompare(b.id));
+	const pendingRows = terminal.filter((row) => needsPerson(row) && !childIds.has(row.id) && !existsSync(join(config.logDir, row.id, "answer.json")) && !existsSync(join(config.logDir, row.id, "needs-ack.json"))).sort((a, b) => (a.finishedAtMs ?? a.at) - (b.finishedAtMs ?? b.at) || a.id.localeCompare(b.id));
 	const pending = pendingRows.slice(0, 100).map((row) => readTask(config.logDir, row.id, false));
 	let round = "";
 	try {
@@ -1079,7 +1080,8 @@ const QUEUE_ACTIONS = [
 	"usage",
 	"deadline",
 	"attempts",
-	"resumes"
+	"resumes",
+	"ack"
 ];
 /** The actions that only read: never deduplicated as a double click, never invalidate the queue read. */
 const READ_ACTIONS = [

@@ -288,6 +288,8 @@ export interface DispatchTask {
     lastEventAtMs: number | null;
     /** The agent's own NEEDS line from its final report (≤300 chars); '' when it did not report one. */
     needs?: string;
+    /** A local needs-ack.json exists: the NEEDS is dismissed and no longer counts as pending. */
+    needsAck?: boolean;
     /** working/queued, working, person/review, person/blocked, idle or ended. */
     stage?: string;
     /** person, none or unknown: the runner's recorded attention fact. */

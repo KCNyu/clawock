@@ -223,6 +223,29 @@ def test_cancel_of_a_queued_task_is_cheap_audited_and_idempotent(q):
     assert q.calls.read_text().count("stop ") == 1
 
 
+def test_ack_writes_only_the_local_marker_and_is_idempotent(q):
+    d = q.task("needs-task", result="STATE=ok\nOUTCOME=DONE\nNEEDS=请审核 P1\n", active=False)
+    before = (d / "result.env").read_text()
+    code, out = q.run("--source", "ui", "ack", "needs-task", "--by", "kcn")
+    assert code == 0 and out["ok"] is True and out["already"] is False
+    ack = json.loads((d / "needs-ack.json").read_text())
+    assert ack["by"] == "kcn" and ack["source"] == "ui" and ack["at"]
+    assert (d / "result.env").read_text() == before, "ack never edits the task result"
+    assert "action=ack" in (d / "audit.log").read_text()
+    code, out = q.run("ack", "needs-task")
+    assert code == 0 and out["already"] is True
+    assert (d / "needs-ack.json").read_text().count("kcn") == 1
+
+
+def test_ack_refuses_a_live_task_or_one_without_needs(q):
+    q.task("live-task", result="STATE=running\nNEEDS=x\n")
+    code, out = q.run("ack", "live-task")
+    assert code == 3 and "has not ended" in out["error"]
+    q.task("no-needs", result="STATE=ok\nOUTCOME=DONE\n", active=False)
+    code, out = q.run("ack", "no-needs")
+    assert code == 3 and "no NEEDS" in out["error"]
+
+
 def test_cancel_of_a_running_task_reports_the_session_to_resume(q):
     q.task("busy-task", result="STATE=running\nATTEMPTS=1\nSLOT=claude-1\n", session="abc-123")
     code, out = q.run("cancel", "busy-task")

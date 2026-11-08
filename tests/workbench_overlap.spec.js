@@ -588,6 +588,26 @@ function gaugeInPage(mode) {
         group: group.getBoundingClientRect().x,
         row: row.getBoundingClientRect().x,
       },
+      groups: [...document.querySelectorAll("[data-wb-group-button]")].map((el) => ({
+        key: el.getAttribute("data-wb-group-button"), text: el.innerText,
+      })),
+    };
+  }
+
+  if (mode === "history") {
+    const ul = document.querySelector('[data-wb-history-layer] [class*="_wb-hist"]');
+    if (ul === null) return { mode, present: false };
+    const rows = [...ul.querySelectorAll("[class*=_wb-hist-row]")].map((el) => ({
+      box: box(el),
+      cost: el.querySelector('[class*="_wb-hist-cost"]')?.textContent ?? "",
+      text: el.innerText,
+    }));
+    return {
+      mode, present: true,
+      ul: box(ul), pad: parseFloat(getComputedStyle(ul).paddingLeft) || 0,
+      scrollWidth: ul.scrollWidth, clientWidth: ul.clientWidth,
+      rows,
+      foot: document.querySelector('[class*="_wb-hist-foot"]')?.innerText ?? "",
     };
   }
 
@@ -661,7 +681,7 @@ const STATES = [
   { name: "overview", width: 390, height: 844, scenario: "normal", drive: "overview" },
   { name: "patrol", width: 390, height: 844, scenario: "normal", drive: "patrol", gauge: "coverage" },
   { name: "stats", width: 390, height: 844, scenario: "normal", drive: "stats" },
-  { name: "history", width: 390, height: 844, scenario: "normal", drive: "history" },
+  { name: "history", width: 390, height: 844, scenario: "normal", drive: "history", gauge: "history" },
   { name: "task", width: 390, height: 844, scenario: "normal", drive: "task", gauge: "detail" },
   { name: "sheet", width: 390, height: 844, scenario: "normal", drive: "sheet", gauge: "brief" },
   { name: "toast", width: 390, height: 844, scenario: "toast", drive: "toast" },
@@ -671,6 +691,7 @@ const STATES = [
   { name: "320-tasks", width: 320, height: 568, scenario: "normal", drive: null, gauge: "header" },
   { name: "tasks-375", width: 375, height: 667, scenario: "normal", drive: null, gauge: "header" },
   { name: "task-375", width: 375, height: 667, scenario: "normal", drive: "task", gauge: "detail" },
+  { name: "history-375", width: 375, height: 667, scenario: "normal", drive: "history", gauge: "history" },
   { name: "patrol-375", width: 375, height: 667, scenario: "normal", drive: "patrol", gauge: "coverage" },
   { name: "providers-375", width: 375, height: 667, scenario: "normal", drive: "providers", gauge: "providers" },
   { name: "sidebar", width: 390, height: 844, scenario: "sidebar", drive: null, gauge: "sidebar" },
@@ -828,6 +849,28 @@ function assertGauge(state, gauge) {
     const values = Object.values(gauge.lefts);
     assert.ok(Math.max(...values) - Math.min(...values) <= 0.6,
       state.name + ": every left edge shares one baseline, got " + JSON.stringify(gauge.lefts));
+    const pending = gauge.groups.find((g) => g.key === "pending");
+    const live = gauge.groups.find((g) => g.key === "live");
+    if (pending !== undefined) assert.match(pending.text, /^(Needs review|待你确认)/, state.name + ": the ended-needs group is not called Pending");
+    if (live !== undefined) assert.match(live.text, /^(Active|活跃)/, state.name + ": the active group does not claim every task is running");
+    return;
+  }
+  if (state.gauge === "history") {
+    assert.equal(gauge.present, true, state.name + ": the history list is rendered");
+    assert.ok(gauge.scrollWidth <= gauge.clientWidth + 1,
+      state.name + ": history must not scroll horizontally (" + gauge.scrollWidth + " > " + gauge.clientWidth + ")");
+    assert.ok(gauge.rows.length > 0, state.name + ": history rows are rendered");
+    for (const row of gauge.rows) {
+      assert.ok(row.box !== null, state.name + ": a history row is visible");
+      assert.ok(row.box.x >= gauge.ul.x + gauge.pad - 0.5 && row.box.right <= gauge.ul.right - gauge.pad + 0.5,
+        state.name + ": a history row leaves the --wb-pad inset");
+      assert.ok(row.box.bottom <= gauge.ul.bottom + 0.5, state.name + ": the last history row is clipped by the list");
+      assert.match(row.cost, /^[¥$]/, state.name + ": each history cost carries its currency");
+      if (/\bdsh\b/.test(row.text)) assert.match(row.cost, /^¥/, state.name + ": dsh history costs are CNY, not $");
+      if (/Claude|Codex/.test(row.text)) assert.match(row.cost, /^\$/, state.name + ": non-dsh history costs are USD");
+    }
+    assert.match(gauge.foot, /最近 5 条|latest 5/i, state.name + ": the list says it is the latest five");
+    assert.match(gauge.foot, /打开任务队列|Open task queue/i, state.name + ": the list has an entry to the queue");
     return;
   }
   if (state.gauge === "brief") {

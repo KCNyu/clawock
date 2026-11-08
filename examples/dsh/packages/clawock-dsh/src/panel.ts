@@ -1193,6 +1193,12 @@ export type HistoryRowView = {
   aria: string
 }
 
+/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
+ * Claude and Codex estimates use USD. The number is the host's estimate. */
+export function _costUnit(task: Pick<DispatchTask, 'agent' | 'model'>): '¥' | '$' {
+  return task.agent === 'dsh' || task.model.startsWith('deepseek') ? '¥' : '$'
+}
+
 /** The ended-task list: frozen result, finished time and cost, newest first (host order). */
 export function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[] {
   const rows = result?.recent ?? []
@@ -1200,7 +1206,7 @@ export function historyRowsView(result: TaskQueueResult | null, t: Translate, no
     const chip = _endedState(task.state, task.outcome, t)
     const cost = _costOf(task)
     const costText = cost === null ? ''
-      : cost.kind === 'usd' ? '$' + (task.costUsd ?? '')
+      : cost.kind === 'usd' ? _costUnit(task) + (task.costUsd ?? '')
         : cost.kind === 'free' ? t('queue.d.costFreeShort') : t('queue.d.costUnpriced')
     const at = task.finishedAtMs ?? task.updatedAtMs
     const meta = [task.agent === '' ? '' : _agentLabel(task.agent), at === null || at === undefined ? '' : agoOf(t, Math.max(0, now - at))]
@@ -1987,7 +1993,8 @@ export function signalView(tasks: DispatchTask[], t: Translate, now: number): Si
 
 /** Queue sections keep the host's oldest-first order inside each group. */
 export function splitPending(tasks: DispatchTask[]): { stuck: DispatchTask[]; review: DispatchTask[] } {
-  return { stuck: tasks.filter(isStuckTask), review: tasks.filter((task) => !isStuckTask(task)) }
+  const open = tasks.filter((task) => task.needsAck !== true)
+  return { stuck: open.filter(isStuckTask), review: open.filter((task) => !isStuckTask(task)) }
 }
 
 /** A row's second line: the first sentence of NEEDS, one line, bounded. */
