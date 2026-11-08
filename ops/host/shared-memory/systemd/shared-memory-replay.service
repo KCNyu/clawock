@@ -1,0 +1,9 @@
+[Unit]
+Description=Shared agent memory: write consolidation candidates (review only, never edits)
+
+[Service]
+Type=oneshot
+Environment=HOME=@HOME@
+ExecStart=/usr/bin/python3 @SKILL_DIR@/scripts/replay.py --workspace @HOME@/.openclaw/workspace
+Nice=10
+IOSchedulingClass=idle

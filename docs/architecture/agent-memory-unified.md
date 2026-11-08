@@ -138,6 +138,11 @@ missing a write-time field are excluded from candidates. `forget` stays manual: 
 a pre-delete snapshot, and a printed `memctl restore` command; `archive` is the default
 recommendation.
 
+A second 04:02 job (`replay.py`) reads the store, `memctl`'s ledger and recent task/session
+text, and writes duplicate, contradiction and long-unused high-salience candidates to the
+private `memory/.replay/` directory (gitignored, a sibling of `memory/.dreams/`). It is a
+review queue only: no store or `DREAMS.md` write, and no `commit_dreaming.sh` call.
+
 ## Phases
 
 | Phase | Change | Acceptance |

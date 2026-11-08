@@ -32,6 +32,7 @@ FILES=(
   scripts/memory.py
   scripts/memctl
   scripts/publish.py
+  scripts/replay.py
   scripts/retire.py
   hooks/claude-hook.sh
   agents/openai.yaml
@@ -48,6 +49,8 @@ UNITS=(
   shared-memory-daily.timer
   shared-memory-retire.service
   shared-memory-retire.timer
+  shared-memory-replay.service
+  shared-memory-replay.timer
 )
 LAST="$DEST_DIR/.install-shared-memory.last"
 
@@ -148,7 +151,7 @@ if [ "${1:-}" = "--units" ]; then
   done
   if [ "$reload" = 1 ] && [ "$UNIT_DIR" = /etc/systemd/system ]; then
     systemctl daemon-reload
-    systemctl enable --now shared-memory-snapshot.timer shared-memory-daily.timer shared-memory-retire.timer
+    systemctl enable --now shared-memory-snapshot.timer shared-memory-daily.timer shared-memory-retire.timer shared-memory-replay.timer
   fi
 fi
 echo "first install on a host: $DEST_DIR/scripts/memctl init (history), then memctl doctor"

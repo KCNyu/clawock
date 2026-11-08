@@ -195,7 +195,7 @@ existing retry/backoff policy. No availability probe advances the review cursor.
 `wiring.json`. It carries the mechanism only; the memory itself, its history and ledger stay
 outside the repository. `install_shared_memory.sh` installs it (atomic per file,
 `.before-update`, `--check`, `--rollback`; `--units` renders the systemd timers: snapshot,
-daily bundle/self-check and retirement nominations) and `refresh_live.sh` runs it when the
+daily bundle/self-check, retirement nominations and replay candidates) and `refresh_live.sh` runs it when the
 installed copy differs. How it works, which working
 directories share the store and which keep their own (an OpenClaw workspace), and what
 `memctl doctor --deep` proves: `shared-memory/README.md`. Tests: `tests/test_shared_memory.py`.
