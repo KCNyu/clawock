@@ -76,8 +76,11 @@ Then link each agent's user-level entry points to one guidance file and the skil
 (`~/.local/state/shared-memory/history.git`, no remote) and an append-only `ledger.jsonl`:
 
 - `memory.py add|update|archive|normalize` hands each finished write to `memctl snapshot`,
-  which commits it with the calling agent as author (from `CLAUDECODE`, `AI_AGENT` or the
-  nearest agent process) and the dispatch task id as a trailer.
+  which commits it with the calling agent as author (from `MEMCTL_AGENT`,
+  `AGENT_DISPATCH_AGENT`, `CLAUDECODE`, `AI_AGENT` or the nearest agent process) and the
+  dispatch task id as a trailer. `run-agent.sh` exports `MEMCTL_AGENT`/`AGENT_DISPATCH_AGENT`
+  from the task's agent, so a dispatched task's legitimate write is attributed, not
+  `unattributed`.
 - Claude Code's own file edits are committed by the PostToolUse hook with the session id.
 - Anything else is committed by the snapshot timer as `unattributed`.
 - A file whose new lines look like a credential is never committed and is reported by
@@ -87,7 +90,10 @@ Then link each agent's user-level entry points to one guidance file and the skil
 `memctl verify` names each file changed without a matching `memory.py` receipt (an uncommitted
 edit, or a topic committed by `memctl snapshot` even under a named agent), plus history/ledger
 tampering (a ref reset, a rewritten ledger, a tree that disagrees with the recorded tree), and
-exits non-zero when it finds one. The daily timer writes a git bundle (14 kept).
+exits non-zero when it finds one. An old `unattributed` entry can be corrected without editing
+or deleting the ledger: `memctl reattribute --agent <id> [<topic>...]` appends a correction and
+`verify` then treats the earlier entry as attributed; a hand-written file still reports
+`UNRECEIPTED`. The daily timer writes a git bundle (14 kept).
 
 A copied store must be paired with a copied state directory: `memctl` refuses to write when
 `SHARED_MEMORY_DIR` is not the default and `SHARED_MEMORY_STATE` is unset or still the live

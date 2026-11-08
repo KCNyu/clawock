@@ -57,6 +57,10 @@ export IS_SANDBOX=1
 # this is set: verify-wait-codex handed its own `sleep 150` to a new task and reported DONE
 # (2026-09-15).
 export AGENT_DISPATCH_TASK_ID="$ID"
+# The dispatched agent's identity. The task id alone was not enough: memory.py fell through
+# to `unattributed`, so a legitimate write looked like a bypass to `memctl verify`.
+export AGENT_DISPATCH_AGENT="${AGENT:-}"
+export MEMCTL_AGENT="${AGENT:-}"
 export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1    # a headless run ends when the model stops
 # No `claude --bg`, `claude agents` or on-demand daemon from inside a task, whatever its agent.
 # claude 2.1.303 has no daemon service: the first client starts it in its own cgroup, and every

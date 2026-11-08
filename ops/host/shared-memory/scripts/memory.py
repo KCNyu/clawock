@@ -201,7 +201,7 @@ def detect_agent() -> str:
     CLAUDECODE because its claude-cli backend also sets that marker. The last
     resort is `unattributed`, which is truthful and still satisfies the schema.
     """
-    override = os.environ.get("MEMCTL_AGENT", "").strip()
+    override = (os.environ.get("MEMCTL_AGENT") or os.environ.get("AGENT_DISPATCH_AGENT") or "").strip()
     if override:
         return override
     if os.environ.get("OPENCLAW_AGENT") or os.environ.get("OPENCLAW_SESSION_ID"):

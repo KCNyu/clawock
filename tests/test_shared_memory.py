@@ -361,16 +361,54 @@ def test_update_fills_missing_write_time_fields(kit):
         assert token in text
 
 
-def test_doctor_fails_when_write_time_fields_are_missing(kit):
+def add_bare_topic(kit):
     (kit.store / "feedback-bare.md").write_text(
         '---\nname: feedback-bare\ndescription: "bare"\nmetadata:\n  type: feedback\n'
         '  updated: 2026-10-01\n---\n\nbare body\n')
-    proc = kit.run("doctor", script=MEMORY_PY)
+    # Route it so the only error is the missing-metadata one; `topic not indexed` would be a
+    # second line that contains the filename and could satisfy a loose substring assertion.
+    index = kit.store / "indexes/MEMORY-host.md"
+    index.write_text(index.read_text().rstrip("\n") + "\n- `feedback-bare.md` — bare rule\n")
+
+
+def named_missing_line(stderr):
+    return [line for line in stderr.splitlines()
+            if "missing required metadata" in line and "feedback-bare.md" in line]
+
+
+def assert_named_missing_metadata(proc):
     assert proc.returncode == 1
     for token in ("missing required metadata", "scope", "salience", "status", "publish", "agent"):
         assert token in proc.stderr
-    # Mutation guard: dropping the filename from the error must fail this test.
-    assert "feedback-bare.md" in proc.stderr
+    assert "topic not indexed: feedback-bare.md" not in proc.stderr
+    # The filename must be on the missing-metadata line itself, not any other stderr line.
+    lines = named_missing_line(proc.stderr)
+    assert len(lines) == 1, proc.stderr
+    assert "feedback-bare.md" in lines[0] and "missing required metadata" in lines[0]
+
+
+def test_doctor_fails_when_write_time_fields_are_missing(kit):
+    add_bare_topic(kit)
+    assert_named_missing_metadata(kit.run("doctor", script=MEMORY_PY))
+
+
+def test_doctor_filename_assertion_fails_on_a_mutant_without_the_filename(kit, tmp_path):
+    """Mutation guard: drop `{name}: ` from the error and the same assertion must go red."""
+    add_bare_topic(kit)
+    real = kit.run("doctor", script=MEMORY_PY)
+    assert named_missing_line(real.stderr)
+    source = MEMORY_PY.read_text()
+    mutant = source.replace('errors.append(f"{name}: missing required metadata: {',
+                            'errors.append(f"missing required metadata: {')
+    assert mutant != source
+    mutant_path = tmp_path / "memory-mutant.py"
+    mutant_path.write_text(mutant)
+    proc = kit.run("doctor", script=mutant_path)
+    assert proc.returncode == 1
+    assert named_missing_line(proc.stderr) == []
+    # The production assertion must reject the mutant, not just the helper's result.
+    with pytest.raises(AssertionError):
+        assert_named_missing_metadata(proc)
 
 
 def test_archive_topics_are_exempt_from_the_write_time_schema(kit):
@@ -732,4 +770,42 @@ def test_an_earlier_receipt_repairs_a_later_unattributed_snapshot_of_the_same_co
     kit.ok("snapshot", "--timer", "--reason", "restore receipted content")
     after = kit.ok("verify")
     assert after.stdout.strip().startswith("verify: 0"), after.stdout
+
+# --- dispatch attribution and ledger repair ----------------------------------
+
+def dispatched_env(kit, agent="dsh", task="task-disp"):
+    env = {k: v for k, v in kit.env.items() if k not in ("MEMCTL_AGENT", "AI_AGENT")}
+    env.update(AGENT_DISPATCH_TASK_ID=task, AGENT_DISPATCH_AGENT=agent)
+    return env
+
+
+def test_dispatched_task_write_is_attributed_and_verifies_clean(kit):
+    env = dispatched_env(kit)
+    kit.ok("add", "feedback-dispatch", "--summary", "dispatched", "--body-file",
+           kit.body("dispatched body"), "--scope", "engineering", script=MEMORY_PY, env=env)
+    assert "agent: dsh" in (kit.store / "feedback-dispatch.md").read_text()
+    last = kit.ledger()[-1]
+    assert (last["agent"], last["dispatch"]) == ("dsh", "task-disp")
+    assert kit.ok("verify").returncode == 0
+
+
+def test_hand_written_file_in_a_dispatched_task_is_still_unreceipted(kit):
+    (kit.store / "feedback-hand.md").write_text(
+        TOPIC.format(slug="feedback-hand", desc="hand", body="hand written"))
+    kit.ok("snapshot", "--reason", "hand edit", env=dispatched_env(kit))
+    proc = kit.run("verify")
+    assert proc.returncode == 1
+    assert "UNRECEIPTED" in proc.stdout and "feedback-hand.md" in proc.stdout
+
+
+def test_reattribute_clears_unattributed_but_not_unreceipted(kit):
+    (kit.store / "feedback-alpha.md").write_text(
+        TOPIC.format(slug="feedback-alpha", desc="alpha", body="hand edited"))
+    kit.ok("snapshot", "--timer", "--reason", "periodic")
+    before = kit.run("verify")
+    assert "UNATTRIBUTED" in before.stdout and "UNRECEIPTED" in before.stdout
+    kit.ok("reattribute", "--agent", "dsh", "--reason", "repair", "feedback-alpha.md")
+    after = kit.run("verify")
+    assert "UNATTRIBUTED" not in after.stdout, after.stdout
+    assert "UNRECEIPTED" in after.stdout and "feedback-alpha.md" in after.stdout, after.stdout
 

@@ -25,6 +25,8 @@ Usage:
   memctl log [<topic>] [-n N]                  audit history
   memctl show <commit>                         one change in full
   memctl restore <topic> --at <commit>         bring back a topic's content (never deletes)
+  memctl reattribute [--agent A] [--reason R] [<topic>...]
+                                               append a correction for unattributed ledger entries
   memctl doctor [--deep] [--json] [--write-status] [--quiet]
                                                wiring + store + history self-check
   memctl bundle [--keep N]                     write a git bundle backup of the history
@@ -74,7 +76,7 @@ EXCLUDES = (".*", "__pycache__/", "*.pyc", "*.tmp", "*.bak*")
 AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh", "rick")
 # Operations that legitimately change store files without a memory.py receipt: an import,
 # a structural move/restore, the format normalizer, and a Claude hook-captured native edit.
-UNRECEIPTED_OK = {"init", "baseline", "archive", "restore", "normalize", "claude-edit"}
+UNRECEIPTED_OK = {"init", "baseline", "archive", "restore", "normalize", "claude-edit", "reattribute"}
 
 # Credentials never belong in memory. Each pattern is checked on lines a change adds; the
 # OpenClaw corpus plugin redacts with the same list (tests hold the two together).
@@ -168,8 +170,9 @@ def detect_agent() -> dict[str, str]:
     info: dict[str, str] = {}
     if os.environ.get("AGENT_DISPATCH_TASK_ID"):
         info["dispatch"] = os.environ["AGENT_DISPATCH_TASK_ID"]
-    if os.environ.get("MEMCTL_AGENT"):
-        info["agent"] = os.environ["MEMCTL_AGENT"]
+    override = os.environ.get("MEMCTL_AGENT") or os.environ.get("AGENT_DISPATCH_AGENT")
+    if override:
+        info["agent"] = override
         return info
     if os.environ.get("OPENCLAW_AGENT") or os.environ.get("OPENCLAW_SESSION_ID"):
         info["agent"] = "rick"
@@ -374,7 +377,7 @@ def ensure_ledger_anchor() -> dict:
     return anchor
 
 
-def ledger_append(entry: dict) -> None:
+def ledger_append(entry: dict) -> dict:
     STATE.mkdir(parents=True, exist_ok=True)
     anchor = ensure_ledger_anchor()
     seq = int(anchor.get("last_seq") or 0) + 1
@@ -391,6 +394,7 @@ def ledger_append(entry: dict) -> None:
     tmp.write_text(json.dumps(anchor, ensure_ascii=False, sort_keys=True), encoding="utf-8")
     os.chmod(tmp, 0o600)
     os.replace(tmp, HEAD)
+    return entry
 
 
 def file_sha256(path: Path) -> str:
@@ -607,6 +611,60 @@ def cmd_restore(args: list[str]) -> int:
     return 0
 
 
+def cmd_reattribute(args: list[str]) -> int:
+    """Append a correction entry for ledger writes attributed to `unattributed`.
+
+    The ledger stays append-only: the original lines are untouched, and `verify` accepts a
+    later reattribution for the same path. No store file is changed.
+    """
+    guard_state_isolation()
+    agent = (_opt(args, "--agent") or detect_agent().get("agent") or "unattributed").strip()
+    reason = _opt(args, "--reason", "correct unattributed ledger attribution")
+    paths = [p for p in args if not p.startswith("-")]
+    if not history_ready():
+        die("history not initialised; run `memctl init`")
+    with StateLock(timeout=60):
+        entries: list[dict] = []
+        for line in _ledger_lines():
+            try:
+                entries.append(json.loads(line))
+            except ValueError:
+                die("ledger contains a non-JSON line; repair it before reattributing")
+        latest: dict[str, dict] = {}
+        for entry in entries:
+            changed = (list(entry.get("files") or []) + list((entry.get("wrote") or {}))
+                       + list(entry.get("targets") or []))
+            for path in dict.fromkeys(changed):
+                latest[path] = entry
+        if paths:
+            targets = []
+            for path in paths:
+                path = path.removeprefix("./")
+                if path.startswith("archive/") or ".." in Path(path).parts or not path.endswith(".md"):
+                    die(f"reattribute needs an active store-relative .md path, got {path!r}")
+                if not (store_root() / path).is_file():
+                    die(f"topic not found: {path}")
+                targets.append(path)
+        else:
+            targets = [path for path, entry in latest.items()
+                       if path.endswith(".md") and not path.startswith("archive/")
+                       and (store_root() / path).is_file()
+                       and entry.get("agent") in (None, "", "unattributed")]
+        targets = list(dict.fromkeys(targets))
+        todo = [path for path in targets
+                if latest.get(path, {}).get("agent") in (None, "", "unattributed")]
+        if not todo:
+            print("nothing to reattribute")
+            return 0
+        entry = {"ts": now(), "op": "reattribute", "reason": reason[:300], "agent": agent,
+                 "via": "memctl", "targets": todo,
+                 "commit": git("rev-parse", "--short=12", "HEAD").strip(),
+                 "tree": git("rev-parse", "HEAD^{tree}").strip()}
+        entry = ledger_append(entry)
+    print(f"reattribute: {len(todo)} topic(s) -> {agent} (ledger seq {entry['seq']}, no files changed)")
+    return 0
+
+
 def _parse_ts(value: str | None) -> float | None:
     try:
         return dt.datetime.fromisoformat(value or "").timestamp()
@@ -730,6 +788,7 @@ def cmd_verify(args: list[str]) -> int:
     unattributed: list[tuple[dict, str]] = []
     receipt_hashes: dict[str, set[str]] = {}
     latest_change: dict[str, dict] = {}
+    reattributed: dict[str, int] = {}
     if LEDGER.is_file():
         for line in LEDGER.read_text(encoding="utf-8").splitlines():
             try:
@@ -744,6 +803,9 @@ def cmd_verify(args: list[str]) -> int:
             entries.append(entry)
             for path, digest in (entry.get("wrote") or {}).items():
                 receipt_hashes.setdefault(path, set()).add(digest)
+            if entry.get("op") == "reattribute":
+                for path in entry.get("targets") or []:
+                    reattributed[path] = max(reattributed.get(path, 0), int(entry.get("seq") or 0))
             for path in entry.get("files") or []:
                 latest_change[path] = entry
                 if entry.get("agent") in (None, "", "unattributed"):
@@ -754,6 +816,8 @@ def cmd_verify(args: list[str]) -> int:
     # unattributed snapshot that restored that content. The hash comparison, not the agent name,
     # decides; an untouched hand edit is still reported.
     for entry, path in unattributed:
+        if reattributed.get(path, 0) > int(entry.get("seq") or 0):
+            continue
         if latest_change.get(path) is not entry:
             continue
         commit = entry.get("commit")
@@ -765,6 +829,9 @@ def cmd_verify(args: list[str]) -> int:
         if not resolved:
             continue  # the history-reset signal below names the missing commit
         content_hash = hashlib.sha256(_commit_bytes(resolved, path) or b"").hexdigest()
+        receipts = entry.get("wrote") or {}
+        if path in receipts and content_hash == receipts[path]:
+            continue
         if content_hash in receipt_hashes.get(path, set()):
             continue
         bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
@@ -1483,7 +1550,7 @@ def main(argv: list[str]) -> int:
     if cmd in PASSTHROUGH:
         return cmd_passthrough(argv)
     table = {"init": cmd_init, "snapshot": cmd_snapshot, "log": cmd_log, "show": cmd_show,
-             "restore": cmd_restore, "bundle": cmd_bundle, "verify": cmd_verify,
+             "restore": cmd_restore, "reattribute": cmd_reattribute, "bundle": cmd_bundle, "verify": cmd_verify,
              "index-view": cmd_index_view, "doctor": cmd_doctor, "hook": cmd_hook}
     if cmd not in table:
         die(f"unknown command {cmd!r}; see `memctl --help`")
