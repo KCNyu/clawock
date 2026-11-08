@@ -12896,6 +12896,7 @@ function WorkbenchPage(props) {
 	const [confirm, setConfirm] = useState(null);
 	const [picker, setPicker] = useState(null);
 	const [log, setLog] = useState(null);
+	const [logNote, setLogNote] = useState(null);
 	const [timeline, setTimeline] = useState(null);
 	const [brief, setBrief] = useState(null);
 	const [readPending, setReadPending] = useState(null);
@@ -13217,6 +13218,7 @@ function WorkbenchPage(props) {
 		setConfirmStop(false);
 		setPicker(null);
 		setLog(null);
+		setLogNote(null);
 		setTimeline(null);
 		setBrief(null);
 		setReadPending(null);
@@ -13247,6 +13249,7 @@ function WorkbenchPage(props) {
 		activeDetail.current = null;
 		setPicker(null);
 		setLog(null);
+		setLogNote(null);
 		setTimeline(null);
 		setBrief(null);
 		setReadPending(null);
@@ -13522,6 +13525,7 @@ function WorkbenchPage(props) {
 				text: message
 			});
 			loadLog(task);
+			setLogNote(message);
 		}
 	};
 	const openPicker = (task) => {
@@ -13565,6 +13569,7 @@ function WorkbenchPage(props) {
 	const loadLog = (task) => {
 		if (runAction === void 0) return;
 		setConfirm(null);
+		setLogNote(null);
 		const request = detailRequest.current;
 		setPicker(null);
 		setReadPending("log");
@@ -13667,7 +13672,11 @@ function WorkbenchPage(props) {
 		const kind = nav.sheet;
 		if (kind === null || shown === null) return null;
 		const title = kind === "brief" ? t("queue.brief.heading") : kind === "log" ? t("queue.a.log") : kind === "timeline" ? t("queue.timeline.heading") : t("queue.d.model");
-		const body = kind === "brief" ? [renderBriefBlock(shown, brief !== null && brief.id === shown.id ? brief : null, t, openPath, shownLive), renderBriefText(shown, brief !== null && brief.id === shown.id ? brief : null, t)] : kind === "log" ? [renderLogBlock(shown, log, t)] : kind === "timeline" ? [renderTimelineBlock(shown, timeline, t)] : [picker === null ? h("div", { className: cx("tq-empty") }, t("queue.a.reading")) : renderPickerBlock(shown, picker, t, {
+		const body = kind === "brief" ? [renderBriefBlock(shown, brief !== null && brief.id === shown.id ? brief : null, t, openPath, shownLive), renderBriefText(shown, brief !== null && brief.id === shown.id ? brief : null, t)] : kind === "log" ? [logNote === null ? null : h("p", {
+			className: cx("tq-note", "tq-log-note"),
+			"data-tq-log-note": "true",
+			role: "status"
+		}, logNote), renderLogBlock(shown, log, t)] : kind === "timeline" ? [renderTimelineBlock(shown, timeline, t)] : [picker === null ? h("div", { className: cx("tq-empty") }, t("queue.a.reading")) : renderPickerBlock(shown, picker, t, {
 			setPicker,
 			save: (model, effort) => {
 				closeSheet();

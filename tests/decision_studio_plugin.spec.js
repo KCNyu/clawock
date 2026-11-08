@@ -4785,6 +4785,9 @@ test("workbench client: Full log opens the preview or says why it cannot", async
     assert.match(absent.textOf(toast), /内联/);
     assert.doesNotMatch(absent.textOf(toast), /先进入任意会话|open any conversation/,
       "no instruction that cannot be followed on this page");
+    const note = absent.find(tree, (p) => p["data-tq-log-note"] !== undefined)[0];
+    assert.ok(note, "the reason is repeated where the log sheet covers the detail");
+    assert.match(absent.textOf(note), /没有会话/);
 
     // A host with a preview: the native path wins and nothing is said.
     const native = make(() => ({ ok: true }));
@@ -4797,6 +4800,8 @@ test("workbench client: Full log opens the preview or says why it cannot", async
     assert.deepEqual(native.calls, [], "no inline fallback when the preview opened");
     assert.equal(native.find(tree, (p) => p["data-wb-toast"] !== undefined).length, 0,
       "no warning when the preview opened");
+    assert.equal(native.find(tree, (p) => p["data-tq-log-note"] !== undefined).length, 0,
+      "no log sheet note when the preview opened");
   } finally {
     disposeReactEffects();
   }
