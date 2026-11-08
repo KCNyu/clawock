@@ -27,6 +27,7 @@ import argparse
 from collections import Counter
 from datetime import date
 import hashlib
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -279,7 +280,7 @@ def restore_bytes(path: Path, content: bytes | None) -> None:
     os.replace(tmp, path)
 
 
-def regenerate(repo: Path, store: Path, publish_py: Path, manifest: Path) -> None:
+def regenerate(repo: Path, store: Path, publish_py: Path, manifest: Path, memctl: Path) -> None:
     memory_path = repo / "MEMORY.md"
     before_memory = memory_path.read_bytes()
     before_manifest = manifest.read_bytes() if manifest.is_file() else None
@@ -290,6 +291,10 @@ def regenerate(repo: Path, store: Path, publish_py: Path, manifest: Path) -> Non
         run([sys.executable, str(publish_py), "--check", "--repo", str(repo),
              "--store", str(store), "--manifest", str(manifest)],
             env=memctl_env(store), what="publish.py --check --store")
+        run([sys.executable, str(memctl), "verify", "--quiet"], env=memctl_env(store),
+            what="memctl verify after regeneration")
+        run([sys.executable, str(memctl), "doctor", "--quiet"], env=memctl_env(store),
+            what="memctl doctor after regeneration")
     except (PromotionError, OSError) as exc:
         try:
             restore_bytes(memory_path, before_memory)
@@ -327,13 +332,32 @@ def main() -> int:
     publish_py = (args.publish_script or SCRIPTS / "publish.py").resolve()
     manifest = workspace / projection.MANIFEST_REL
 
+    lock = None
+    store_lock = None
     try:
+        if not args.check:
+            store_lock = (store / ".dreaming-promotion.lock").open("a")
+            try:
+                fcntl.flock(store_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise PromotionError("shared-store promotion lock is held; retry after the other writer") from exc
+            lock_dir = workspace / "memory/.dreams"
+            lock_dir.mkdir(parents=True, exist_ok=True)
+            lock = (lock_dir / "promotion-review.lock").open("a")
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise PromotionError("promotion review lock is held; retry after the other writer") from exc
         memory_text, candidates, approvals, legacy = load_inputs(workspace)
         if gate.HEADING in memory_text:
             raise PromotionError(
                 "MEMORY.md still carries the legacy '## Reviewed Dreaming Memory' section; "
                 "move its reviewed entries to public store topics before promotion")
         existing = existing_promotions(store)
+        for candidate in gate.extract(candidates, strict=False)[1]:
+            old = existing.get(candidate["key"])
+            if old and old["sha256"] != candidate["sha256"]:
+                raise PromotionError(f"candidate {candidate['key']} changed after promotion")
         base = memory_text.rstrip("\n") + "\n\n" + review_context(existing) + "\n"
         try:
             _, report = gate.review(base, candidates, approvals)
@@ -382,6 +406,9 @@ def main() -> int:
             return 0
 
         if not should_publish:
+            # No new candidate is not permission to stage an arbitrary hand edit.
+            if projection.check(workspace, store, manifest):
+                raise PromotionError("public projection validation failed")
             print(f"promote_dreaming: no approved candidates; no store write, no projection generated "
                   f"(pending={summary['pending']}, rejected={summary['rejected']})")
             return 0
@@ -406,11 +433,13 @@ def main() -> int:
                 what="memctl doctor after the store write")
 
         if should_publish:
-            regenerate(workspace, store, publish_py, manifest)
+            # A prior failed attempt may already have written its topic. Audit
+            # that retry path too, before exposing its projection.
             run([sys.executable, str(memctl), "verify", "--quiet"], env=memctl_env(store),
-                what="memctl verify after regeneration")
+                what="memctl verify before regeneration")
             run([sys.executable, str(memctl), "doctor", "--quiet"], env=memctl_env(store),
-                what="memctl doctor after regeneration")
+                what="memctl doctor before regeneration")
+            regenerate(workspace, store, publish_py, manifest, memctl)
 
         sections = len(json.loads(manifest.read_text(encoding="utf-8"))["sections"]) if should_publish else 0
         print(json.dumps({"decisions": summary,
@@ -422,6 +451,11 @@ def main() -> int:
             json.JSONDecodeError) as exc:
         print(f"promote_dreaming: {exc}", file=sys.stderr)
         return 1
+    finally:
+        if lock is not None:
+            lock.close()
+        if store_lock is not None:
+            store_lock.close()
 
 
 if __name__ == "__main__":

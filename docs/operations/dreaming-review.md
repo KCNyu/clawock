@@ -198,3 +198,10 @@ brief-age promotion metric is skipped: explicit review may intentionally leave a
 recent briefs unpromoted. Its informational result is not proof that the patch is
 active or that pending candidates have been reviewed. Inspect the private review
 receipts as described above; narrative health and promotion approval are separate.
+
+Promotion takes both a store lock (shared across workspaces) and the legacy review
+lock before reading candidates. A changed candidate at an already-promoted marker
+is refused. No-candidate runs still validate the public projection against its
+manifest and store; they cannot authorize a hand-edited MEMORY.md. The generation
+transaction restores both output files on a post-generation verify/doctor failure
+as well as a generator failure. Reviewed store topics remain for an audited retry.
