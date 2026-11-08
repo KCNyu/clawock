@@ -960,13 +960,12 @@ function createWorkbenchActionRunner(config = {}, deps = {}) {
 				settled = true;
 				const lines = (stdout + "\n" + stderr).split("\n").map((line) => line.trim()).filter((line) => line !== "");
 				const text = lines[lines.length - 1] ?? "";
-				const already = action === "stop" && /already ended|already cancelled/i.test(stdout + " " + stderr);
 				resolve({
-					ok: code === 0 || already,
-					code: already && code !== 0 ? 0 : code,
+					ok: code === 0,
+					code,
 					action,
 					id,
-					message: already ? "already ended" : text,
+					message: text,
 					detail: stdout.trim()
 				});
 			};

@@ -3755,6 +3755,36 @@ test("workbench host: the three presets run the existing dispatcher commands", a
   assert.match(tq.workbenchCommand("stop", "../bad", plain), /not a task id/);
 });
 
+test("workbench host: a refused stop surfaces the ops reason instead of success", async () => {
+  const { EventEmitter } = require("node:events");
+  const tq = await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href);
+  const run = (code, stderr) => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.stdin = { end() {} };
+    child.kill = () => {};
+    const runner = tq.createWorkbenchActionRunner(
+      { dispatchScriptPath: process.execPath, logDir: path.join(os.tmpdir(), "no-such-workbench-log") },
+      { spawn: () => {
+        setImmediate(() => {
+          if (stderr !== "") child.stderr.emit("data", Buffer.from(stderr + "\n"));
+          child.emit("close", code);
+        });
+        return child;
+      } },
+    );
+    return runner("stop", "done-1");
+  };
+  const refused = await run(3, "task done-1 has already ended (state=ok)");
+  assert.equal(refused.ok, false, "already ended is a failure, not a recorded stop");
+  assert.equal(refused.code, 3);
+  assert.match(refused.message, /already ended \(state=ok\)/,
+    "the dispatcher's real reason survives the runner");
+  const ok = await run(0, "");
+  assert.equal(ok.ok, true, "a real cancel still reports success");
+});
+
 test("workbench client: one sidebar entry, a neutral count and an explained provider alert", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
@@ -4562,6 +4592,9 @@ test("workbench client: the old task-detail capabilities are all reachable in pl
   assert.match(text(tree), /0\.12|12k|Tokens/i, "cost and tokens are shown");
   assert.match(text(tree), /微信|WeChat|weixin/i, "the notification channel is shown");
   assert.equal(find(tree, (p) => p["data-tq-field"] === "tokens").length, 1);
+  const stopButton = (page) => find(page, (p) => typeof p.className === "string" && p.className.includes("wb-act-danger"));
+  assert.equal(stopButton(tree).length, 0,
+    "the presets are for a needs-you task; a running task has no Stop here");
 
   // Ended task: the history row opens the same detail, with its result and retry.
   find(render(), (p) => p["data-wb-back"] !== undefined)[0].props.onClick();
@@ -4577,8 +4610,94 @@ test("workbench client: the old task-detail capabilities are all reachable in pl
   assert.ok(find(tree, (p) => p["data-tq-detail"] === "done-1")[0], "history -> the same task detail");
   assert.ok(find(tree, (p) => p["data-tq-section"] === "summary")[0], "the closing result is restored");
   assert.ok(find(tree, (p) => p["data-tq-action"] === "retry")[0], "an ended task can be retried");
+  assert.equal(stopButton(tree).length, 0, "an ended task has no dead Stop");
+  assert.equal(find(tree, (p) => p["data-tq-action"] === "cancel").length, 0,
+    "an ended task has no cancel write");
   assert.match(text(tree), /shipped half/, "the frozen result is printed");
   assert.equal(calls.length, 0, "opening a detail writes nothing");
+  } finally {
+    disposeReactEffects();
+  }
+});
+
+test("workbench client: a refused Stop shows the dispatcher's reason", async () => {
+  const loaded = await loadClient();
+  const now = Date.now();
+  const task = {
+    id: "q-done", name: "done with an open question", agent: "dsh", model: "deepseek-flash",
+    state: "ok", waiting: "", slot: "", attempts: 1, outcome: "DONE",
+    startedAtMs: now - 7200_000, updatedAtMs: now - 60_000, wakeAtMs: null, patrol: false,
+    summary: "", lastEvent: "", lastEventAtMs: null, finishedAtMs: now - 60_000,
+    needs: "answer the question", stage: "person/review", attention: "person",
+    question: true, questionRecommend: 0, session: "session-q", runnerApi: 7,
+    deadlineAtMs: null, maxAttempts: 3, quotaResumes: 3, quotaResumesUsed: 0,
+    tokensTotal: 0, tokensIn: 0, tokensCacheW: 0, tokensCacheR: 0, tokensOut: 0,
+    costUsd: "0", notify: [], notified: [], notifyFailed: [], queuedAtMs: now - 7800_000,
+    waitMs: 600_000, priority: 0, protected: false, position: null,
+  };
+  const queue = {
+    available: true, status: "fresh", message: null, asOf: "", refreshMs: 15000, maxRunning: 1,
+    running: 0, active: [], recent: [], pending: [task], pendingTotal: 1,
+    patrol: { service: "active", phase: "waiting", round: "", detail: "", untilMs: null, rounds: [] },
+    ops: { available: true, version: "abc", repoVersion: "abc", api: 7, runnerApi: 7, fairWaitSec: 30, error: "" },
+  };
+  const calls = [];
+  const stub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return stub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const render = () => {
+    stub._resetCursor();
+    return api.WorkbenchPage({
+      cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
+      cachedBalances: () => QUIET_BALANCES, fetchBalances: async () => QUIET_BALANCES,
+      closeWorkbench: () => {},
+      runWorkbenchAction: async (action, id) => {
+        calls.push(action);
+        return { ok: false, code: 3, action, id, message: "task q-done has already ended (state=ok)", detail: "" };
+      },
+      t: translatorFor(api),
+    });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const textOf = (tree) => {
+    const parts = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { parts.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return parts.join(" ").replace(/\s+/g, " ").trim();
+  };
+  try {
+    let tree = render();
+    find(tree, (p) => p["data-wb-task"] === "q-done")[0].props.onClick();
+    tree = render();
+    const stop = () => find(tree, (p) => typeof p.className === "string" && p.className.includes("wb-act-danger"))[0];
+    assert.ok(stop(), "a terminal task with an open question still has the resolve Stop");
+    stop().props.onClick();
+    tree = render();
+    stop().props.onClick();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    tree = render();
+    assert.deepEqual(calls, ["stop"], "one stop request is sent");
+    const toast = find(tree, (p) => p["data-wb-toast"] !== undefined)[0];
+    assert.ok(toast, "the refusal is shown, not swallowed");
+    assert.match(textOf(toast), /already ended \(state=ok\)/,
+      "the UI shows the dispatcher's real reason");
   } finally {
     disposeReactEffects();
   }

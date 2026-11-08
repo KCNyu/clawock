@@ -13967,6 +13967,7 @@ function WorkbenchPage(props) {
 			}
 		})));
 	};
+	const canStop = shown !== null && (shownLive || shown.question === true);
 	const showPresets = shown !== null && (!shownLive || shown.question === true);
 	const needsBlock = shown === null ? null : h("div", { className: cx("wb-needs-block") }, h("div", { className: cx("wb-needs-label") }, t("workbench.needs")), shown.needs === void 0 || shown.needs.trim() === "" ? h("div", { className: cx("wb-needs-empty") }, t("workbench.needs.empty")) : h("p", { className: cx("wb-needs") }, shown.needs), showPresets ? h("div", { className: cx("wb-actions") }, h("button", {
 		type: "button",
@@ -13982,7 +13983,7 @@ function WorkbenchPage(props) {
 		onClick: () => {
 			act("modify");
 		}
-	}, busy === "modify" ? t("workbench.busy") : t("workbench.act.modify")), h("div", { className: cx("wb-danger") }, h("button", {
+	}, busy === "modify" ? t("workbench.busy") : t("workbench.act.modify")), canStop ? h("div", { className: cx("wb-danger") }, h("button", {
 		type: "button",
 		className: cx("wb-act", "wb-act-danger"),
 		disabled: busy !== null,
@@ -13991,7 +13992,7 @@ function WorkbenchPage(props) {
 		onClick: () => {
 			act("stop");
 		}
-	}, busy === "stop" ? t("workbench.busy") : confirmStop ? t("workbench.act.confirm") : t("workbench.act.stop")))) : null, submittedAt === null ? null : h("div", {
+	}, busy === "stop" ? t("workbench.busy") : confirmStop ? t("workbench.act.confirm") : t("workbench.act.stop"))) : null) : null, submittedAt === null ? null : h("div", {
 		className: cx("wb-recorded"),
 		role: "status",
 		"data-wb-recorded": "true"

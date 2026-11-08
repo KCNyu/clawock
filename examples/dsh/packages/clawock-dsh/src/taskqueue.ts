@@ -758,8 +758,8 @@ export function workbenchCommand(
       : { args: ['append', id], stdin: WORKBENCH_MODIFY_TEXT + '\n' }
   }
   // Terminating a question resolves it without resuming; anything else is the
-  // dispatcher's own stop. An ended task that cancel refuses is already in the
-  // requested state, so the runner reports that as recorded (below).
+  // dispatcher's own stop. A stop on an ended task is refused by the ops entry;
+  // that refusal is a failure with its real reason, never a silent success.
   return question.open
     ? { args: ['answer', id, '--resolve'], stdin: '' }
     : { args: ['cancel', id], stdin: '' }
@@ -796,14 +796,7 @@ export function createWorkbenchActionRunner(
         settled = true
         const lines = (stdout + '\n' + stderr).split('\n').map((line) => line.trim()).filter((line) => line !== '')
         const text = lines[lines.length - 1] ?? ''
-        const already = action === 'stop' && /already ended|already cancelled/i.test(stdout + ' ' + stderr)
-        resolve({
-          ok: code === 0 || already,
-          code: already && code !== 0 ? 0 : code,
-          action, id,
-          message: already ? 'already ended' : text,
-          detail: stdout.trim(),
-        })
+        resolve({ ok: code === 0, code, action, id, message: text, detail: stdout.trim() })
       }
       const child = run(script, command.args, { cwd: homedir(), env: process.env })
       const timer = setTimeout(() => {
