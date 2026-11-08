@@ -29,10 +29,13 @@ an empty store and grows the user's own.
 
 Each topic is one file with Claude Code's auto-memory frontmatter (`name`, `description`,
 `metadata.type`), so Claude keeps loading and writing it natively; the other agents read it
-through the skill. A note may also carry the write-time judgement `metadata.salience`
-(`high|normal|low`), `metadata.status` (`verified|hypothesis|stale`) and `metadata.tags`
-(comma-separated facets). Nothing is injected beyond the index, and there is no vector store:
-recall is "open the one relevant topic".
+through the skill. A write also carries `metadata.salience` (`high|normal|low`),
+`metadata.status` (`verified|hypothesis|stale`), `metadata.publish` (`public|private`) and
+`metadata.agent` (who wrote this revision), plus optional comma-separated `metadata.tags`.
+`memory.py add|update` fills all four (defaults: `normal`, `hypothesis`, `private`, the
+invoking agent), and `memory.py doctor` fails an active topic that is missing any of them.
+Nothing is injected beyond the index, and there is no vector store: recall is "open the one
+relevant topic".
 
 ## Where the store applies: working directory, not agent name
 
@@ -79,7 +82,9 @@ Then link each agent's user-level entry points to one guidance file and the skil
 - A file whose new lines look like a credential is never committed and is reported by
   `doctor`; a topic that disappears without moving is flagged `md_deleted`.
 
-`memctl log <topic>`, `memctl show <commit>`, `memctl restore <topic> --at <commit>`; the daily
+`memctl log <topic>`, `memctl show <commit>`, `memctl restore <topic> --at <commit>`;
+`memctl verify` names each file changed without a matching write (an uncommitted edit, or a
+ledger entry attributed to `unattributed`), and exits non-zero when it finds one. The daily
 timer writes a git bundle (14 kept).
 
 ## Self-check
@@ -88,7 +93,8 @@ timer writes a git bundle (14 kept).
 store links, Codex's native memories off, the Claude hook), every context in `wiring.json`
 (which index a Claude session there gets; for a separate-memory context, that the shared index
 is not injected and the store is not inside it), the store's own `memory.py doctor`, history,
-backups, timers and audit flags.
+backups, timers and audit flags. The store check fails while an active topic lacks one of the
+four write-time fields; archived topics are exempt.
 
 `--deep` adds discovery through each agent's real entry point, without calling a model, from
 every shared context and in two environments — the interactive one and the bare `HOME` + `PATH`

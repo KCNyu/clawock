@@ -16,6 +16,8 @@ metadata:
   salience: high | normal | low
   status: verified | hypothesis | stale
   tags: "dispatch, review"
+  publish: public | private
+  agent: claude-code
 ---
 
 <body>
@@ -33,9 +35,11 @@ Write the future-use judgement at the same time, while you still know why the no
 
 | Field | Values | Meaning |
 |---|---|---|
-| `salience` | `high`, `normal`, `low` | `high` should change a future session's behaviour and is a replay/consolidation candidate; `normal` is useful context; `low` is niche or one-off and stays searchable only. `add` defaults to `normal`. |
-| `status` | `verified`, `hypothesis`, `stale` | `verified` has the check/test/commit in the body; `hypothesis` is a candidate rule awaiting that check; `stale` is superseded but kept for its history. |
-| `tags` | comma-separated, lowercase, ≤16 | Exact retrieval facets (`dispatch`, `dreaming`, `deploy`) written by the author, never inferred after the fact. |
+| `salience` | `high`, `normal`, `low` | `high` should change a future session's behaviour and is a replay/consolidation candidate; `normal` is useful context; `low` is niche or one-off and stays searchable only. Default `normal`. |
+| `status` | `verified`, `hypothesis`, `stale` | `verified` has the check/test/commit in the body; `hypothesis` is a candidate rule awaiting that check; `stale` is superseded but kept for its history. Default `hypothesis`. |
+| `tags` | comma-separated, lowercase, ≤16 | Exact retrieval facets (`dispatch`, `dreaming`, `deploy`) written by the author, never inferred after the fact. Optional. |
+| `publish` | `public`, `private` | `public` may reach the public repository projection; `private` never does. Default `private`. |
+| `agent` | lowercase identifier | Who wrote this revision, stamped from the invoking environment; `MEMCTL_AGENT` overrides it. |
 
 Tags are facets, not a replacement for search words: put the words people will type in the `description` as before. A tag is also matched as text; `--tag` is the exact, conjunctive filter.
 
@@ -54,15 +58,15 @@ Names are lowercase and hyphenated and start with a type prefix (`add` refuses o
 
 ```bash
 python3 $M add <slug> --summary '<compact hook>' --body-file <markdown-file> [--type feedback] \
-  [--salience high] [--status verified] [--tag dispatch] [--tag review]
+  [--salience high] [--status verified] [--publish private] [--tag dispatch] [--tag review]
 python3 $M update <slug> [--summary '<hook>'] [--body-file <file>] [--type <type>] \
-  [--salience low] [--status stale] [--tag deploy]
+  [--salience low] [--status stale] [--publish public] [--tag deploy]
 python3 $M search '<terms>' [--tag dispatch] [--salience high] [--status verified]
 python3 $M search --tag dispatch            # list the tagged topics, no query
 ```
 
 - `add` writes the frontmatter and routes a new topic from the first line of `indexes/routes.tsv` whose glob matches the slug (`<glob><TAB><index>`, for example `incident-clawock-*	indexes/MEMORY-clawock-incidents.md`, with a final `*` line as the default; without that file new topics are routed from `MEMORY.md`; `--index` overrides). Use `--pin` only for durable conventions that belong in `MEMORY.md` (≤8KB); `--replace` only after reading the existing topic.
-- `update` keeps whatever you do not pass (body, summary, type, other metadata) and rewrites the topic's single-route index line.
+- `update` keeps whatever you do not pass (body, summary, type, other metadata) and rewrites the topic's single-route index line. Both commands fill a missing `salience`/`status`/`publish` and stamp `agent`, so repairing an old topic also migrates its schema.
 - Writes are atomic per file under a shared lock (not a multi-file transaction). A hook that groups several topics is left alone; adjust its text by hand.
 - After a write, `memory.py` asks `memctl snapshot` to commit it to the store's history, attributed to the calling agent (and to the dispatch task when `AGENT_DISPATCH_TASK_ID` is set). Do not turn this off: the history is how the next agent learns who changed what.
 - Direct edits (for example with Claude Code's Write/Edit tools) are fine if they keep the frontmatter above and update the matching index line in the same change.
@@ -100,7 +104,8 @@ python3 $M archive --drop-hooks <slug>...   # move to archive/, drop index lines
 ## Validate
 
 ```bash
-python3 $M doctor              # errors: dead routes, duplicate routes, unrouted active topics, bad redirects
+python3 $M doctor              # errors: dead routes, duplicate routes, unrouted active topics, bad redirects,
+                               #         an active topic missing salience/status/publish/agent
 python3 $M doctor --verbose    # warnings: size budgets, frontmatter, permissions, dead topic links, names without a type prefix
 python3 $M normalize           # dry run of frontmatter repairs; --apply to write
 ```
@@ -115,6 +120,7 @@ The history lives outside the store (`~/.local/state/shared-memory/history.git`,
 memctl log [<topic>] [-n 20]          # who/when/why/which files
 memctl show <commit>                  # one change in full
 memctl restore <topic> --at <commit>  # bring content back as a new commit (never deletes)
+memctl verify [--since 7]             # name files changed with no matching write; non-zero exit
 memctl doctor [--deep]                # wiring per agent and working directory, store, history
 ```
 

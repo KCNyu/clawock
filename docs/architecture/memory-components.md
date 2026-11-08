@@ -33,9 +33,11 @@ the judgement while the author still has the context; nothing infers it afterwar
 
 | Field | Values | Meaning |
 |---|---|---|
-| `salience` | `high`, `normal`, `low` | `high` should change a future session's behaviour and is a replay/consolidation candidate; `normal` is useful context; `low` is niche and stays searchable only. `add` defaults to `normal`. |
-| `status` | `verified`, `hypothesis`, `stale` | `verified` has its check/test/commit in the body; `hypothesis` is a candidate rule awaiting one; `stale` is superseded but kept for history. |
-| `tags` | comma-separated, lowercase, at most 16 | Exact facets such as `dispatch`, `dreaming` or `deploy`, written by the author. |
+| `salience` | `high`, `normal`, `low` | `high` should change a future session's behaviour and is a replay/consolidation candidate; `normal` is useful context; `low` is niche and stays searchable only. Default `normal`. |
+| `status` | `verified`, `hypothesis`, `stale` | `verified` has its check/test/commit in the body; `hypothesis` is a candidate rule awaiting one; `stale` is superseded but kept for history. Default `hypothesis`. |
+| `tags` | comma-separated, lowercase, at most 16 | Exact facets such as `dispatch`, `dreaming` or `deploy`, written by the author. Optional. |
+| `publish` | `public`, `private` | `public` may reach the repository projection; `private` never does. Default `private`. |
+| `agent` | lowercase identifier | Who wrote this revision, stamped from the invoking environment. |
 
 Notes are written when an agent records a durable conclusion: at the end of a task or while
 repairing a topic, not on every turn. Granularity is one topic per concept with dated
@@ -45,9 +47,12 @@ author. There is no automatic per-turn extractor: the article's own results show
 fixed "record this" rule can cost more than it saves, and an automatic writer would create a
 second, unaudited store.
 
-The fields are optional on old topics; they are not retrofitted in bulk. `memory.py doctor`
-reports invalid values, and every write still lands in `memctl` history outside the store,
-so a bad tag or status can be restored. Use `--tag` as an exact, conjunctive filter:
+`memory.py add|update` writes all four required fields (tags stay optional); an active topic
+missing `salience`, `status`, `publish` or `agent` fails `memory.py doctor`. The 156 existing
+topics predate that rule and are the P2 backfill debt; they are not retrofitted here. Every write
+still lands in `memctl` history outside the store, so a bad tag or status can be restored.
+`memctl verify` names a file changed without a matching write. Use `--tag` as an exact,
+conjunctive filter:
 `search --tag dispatch --tag review`. A tag also matches as ordinary text in both engines,
 so it supplements literal and semantic retrieval rather than replacing either. The
 OpenClaw supplement does not implement the CLI filters; it includes tags in its matchable

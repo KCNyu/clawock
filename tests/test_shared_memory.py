@@ -27,6 +27,10 @@ description: "{desc}"
 metadata:
   type: feedback
   updated: 2026-10-01
+  salience: normal
+  status: verified
+  publish: private
+  agent: test-agent
 ---
 
 {body}
@@ -53,7 +57,8 @@ def kit(tmp_path):
     store = home / ".claude/projects" / re.sub(r"[^A-Za-z0-9]", "-", str(home)) / "memory"
     (store / "indexes").mkdir(parents=True)
     (store / "archive").mkdir()
-    (store / "MEMORY.md").write_text("# Index\n\n- `indexes/MEMORY-host.md` — host\n")
+    (store / "MEMORY.md").write_text(
+        "# Index\n\n- `indexes/MEMORY-host.md` — host\n- `indexes/MEMORY-tools.md` — tools\n")
     (store / "indexes/MEMORY-host.md").write_text("# Host\n\n- `feedback-alpha.md` — alpha rule\n")
     (store / "indexes/MEMORY-tools.md").write_text("# Tools\n")
     (store / "indexes/redirects.tsv").write_text("# old\tnew\n")
@@ -153,6 +158,27 @@ def test_bundle_is_a_valid_backup(kit):
     assert verify.returncode == 0, verify.stderr
 
 
+def test_verify_names_each_unrecorded_direct_edit(kit):
+    (kit.store / "feedback-alpha.md").write_text(TOPIC.format(slug="feedback-alpha", desc="alpha", body="direct"))
+    proc = kit.run("verify")
+    assert proc.returncode == 1
+    assert "UNRECORDED" in proc.stdout and "feedback-alpha.md" in proc.stdout
+    kit.ok("snapshot")
+    assert kit.ok("verify").stdout.strip().startswith("verify: 0")
+
+
+def test_verify_reports_an_unattributed_snapshot(kit):
+    (kit.store / "feedback-alpha.md").write_text(TOPIC.format(slug="feedback-alpha", desc="alpha", body="timer"))
+    kit.ok("snapshot", "--timer")
+    entries = kit.ledger()
+    assert entries[-1]["agent"] == "unattributed"
+    proc = kit.run("verify")
+    assert proc.returncode == 1 and "UNATTRIBUTED" in proc.stdout and "feedback-alpha.md" in proc.stdout
+    proc = kit.run("verify", "--json")
+    data = json.loads(proc.stdout)
+    assert data["status"] == "BYPASS" and any(item["file"] == "feedback-alpha.md" for item in data["bypasses"])
+
+
 # --- memory.py writes: one format owner, attributed history ---------------------
 
 def test_memory_py_add_is_routed_and_committed_as_the_calling_agent(kit):
@@ -217,7 +243,47 @@ def test_update_preserves_tags_and_can_change_salience(kit):
 
 def test_add_defaults_salience_to_normal(kit):
     kit.ok("add", "feedback-plain", "--summary", "plain", "--body-file", kit.body("plain"), script=MEMORY_PY)
-    assert "  salience: normal" in (kit.store / "feedback-plain.md").read_text()
+    text = (kit.store / "feedback-plain.md").read_text()
+    assert "  salience: normal" in text
+    assert "  status: hypothesis" in text
+    assert "  publish: private" in text
+    assert "  agent: test-agent" in text
+
+
+def test_add_can_publish_public_and_update_keeps_it(kit):
+    kit.ok("add", "feedback-public", "--summary", "public rule", "--body-file", kit.body("public body"),
+           "--publish", "public", script=MEMORY_PY)
+    assert "  publish: public" in (kit.store / "feedback-public.md").read_text()
+    kit.ok("update", "feedback-public", "--salience", "high", script=MEMORY_PY)
+    text = (kit.store / "feedback-public.md").read_text()
+    assert "  publish: public" in text and "  salience: high" in text
+
+
+def test_update_fills_missing_write_time_fields(kit):
+    (kit.store / "feedback-legacy.md").write_text(
+        '---\nname: feedback-legacy\ndescription: "legacy"\nmetadata:\n  type: feedback\n'
+        '  updated: 2026-10-01\n---\n\nlegacy body\n')
+    kit.ok("update", "feedback-legacy", "--summary", "legacy v2", script=MEMORY_PY)
+    text = (kit.store / "feedback-legacy.md").read_text()
+    for token in ("  salience: normal", "  status: hypothesis", "  publish: private", "  agent: test-agent"):
+        assert token in text
+
+
+def test_doctor_fails_when_write_time_fields_are_missing(kit):
+    (kit.store / "feedback-bare.md").write_text(
+        '---\nname: feedback-bare\ndescription: "bare"\nmetadata:\n  type: feedback\n'
+        '  updated: 2026-10-01\n---\n\nbare body\n')
+    proc = kit.run("doctor", script=MEMORY_PY)
+    assert proc.returncode == 1
+    for token in ("missing required metadata", "salience", "status", "publish", "agent"):
+        assert token in proc.stderr
+
+
+def test_archive_topics_are_exempt_from_the_write_time_schema(kit):
+    (kit.store / "archive/feedback-old.md").write_text(
+        '---\nname: feedback-old\ndescription: "old"\nmetadata:\n  type: feedback\n'
+        '  updated: 2026-10-01\n---\n\nold body\n')
+    assert kit.ok("doctor", script=MEMORY_PY).returncode == 0
 
 
 def test_doctor_flags_invalid_memory_metadata(kit):

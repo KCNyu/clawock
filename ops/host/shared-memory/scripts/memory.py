@@ -12,6 +12,8 @@ Topic format (compatible with Claude Code auto-memory):
       salience: high | normal | low
       status: verified | hypothesis | stale
       tags: "dispatch, review"
+      publish: public | private
+      agent: <who wrote this revision>
     ---
 
     <body>
@@ -39,6 +41,10 @@ ROUTE_RE = r"(?:(?:archive|indexes)/)?[a-zA-Z0-9][a-zA-Z0-9_.-]*\.md"
 TYPES = ("user", "feedback", "project", "reference")
 SALIENCE = ("high", "normal", "low")
 STATUSES = ("verified", "hypothesis", "stale")
+PUBLISH = ("public", "private")
+AGENT_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
+AGENT_NAMES = ("claude-code", "codex", "opencode", "dsh")
+REQUIRED_METADATA = ("salience", "status", "publish", "agent")
 TAG_RE = re.compile(r"[a-z0-9\u3400-\u4dbf\u4e00-\u9fff][a-z0-9._+\-\u3400-\u4dbf\u4e00-\u9fff]{0,31}")
 MAX_TAGS = 16
 MAIN_INDEX = "MEMORY.md"
@@ -114,6 +120,63 @@ def locked(root: Path):
     lock = (root / ".shared-memory.lock").open("a+", encoding="utf-8")
     fcntl.flock(lock, fcntl.LOCK_EX)
     return lock
+
+
+# --- attribution -----------------------------------------------------------
+
+def _ancestry() -> list[str]:
+    """Command lines of this process's ancestors, nearest first (Linux /proc)."""
+    names, pid = [], os.getppid()
+    for _ in range(16):
+        try:
+            cmd = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+            stat = Path(f"/proc/{pid}/stat").read_text()
+        except OSError:
+            break
+        names.append(cmd[:300])
+        pid = int(stat.rsplit(")", 1)[1].split()[1])
+        if pid <= 1:
+            break
+    return names
+
+
+def agent_of(cmd: str) -> str | None:
+    """The coding agent a process command line belongs to, if any."""
+    words = cmd.split()
+    if not words:
+        return None
+    exe = Path(words[0]).name
+    script = Path(words[1]).name if len(words) > 1 and exe in ("node", "bun", "python3", "python") else ""
+    for agent, marks in (("codex", ("codex",)), ("opencode", ("opencode", ".opencode")), ("dsh", ("dsh",)),
+                         ("claude-code", ("claude",))):
+        if exe in marks or script in marks or any(f"/bin/{m} " in cmd + " " for m in marks):
+            return agent
+    return None
+
+
+def detect_agent() -> str:
+    """The agent writing this revision, from the same markers memctl attributes history with.
+
+    `MEMCTL_AGENT` is the explicit override. OpenClaw's assistant is checked before
+    CLAUDECODE because its claude-cli backend also sets that marker. The last
+    resort is `unattributed`, which is truthful and still satisfies the schema.
+    """
+    override = os.environ.get("MEMCTL_AGENT", "").strip()
+    if override:
+        return override
+    if os.environ.get("OPENCLAW_AGENT") or os.environ.get("OPENCLAW_SESSION_ID"):
+        return "rick"
+    if os.environ.get("CLAUDECODE"):
+        return "claude-code"
+    marker = os.environ.get("AI_AGENT", "").lower()
+    for agent in AGENT_NAMES:
+        if marker.startswith(agent):
+            return agent
+    for cmd in _ancestry():
+        agent = agent_of(cmd)
+        if agent:
+            return agent
+    return "unattributed"
 
 
 # --- frontmatter -----------------------------------------------------------
@@ -216,15 +279,23 @@ def parse_tags(value: str | list[str] | None) -> list[str]:
 def metadata_problems(fields: dict[str, str], meta: dict[str, str]) -> list[str]:
     """Problems with the write-time memory metadata, as doctor/report text."""
     problems: list[str] = []
-    for key, allowed in (("salience", SALIENCE), ("status", STATUSES)):
+    for key, allowed in (("salience", SALIENCE), ("status", STATUSES), ("publish", PUBLISH)):
         value = meta.get(key) or fields.get(key)
         if value and value not in allowed:
             problems.append(f"{key} must be one of {', '.join(allowed)} (got {value!r})")
+    agent = meta.get("agent") or fields.get("agent")
+    if agent and not AGENT_RE.fullmatch(agent):
+        problems.append(f"agent must be a lowercase identifier (got {agent!r})")
     try:
         parse_tags(meta.get("tags") or fields.get("tags"))
     except ValueError as exc:
         problems.append(str(exc))
     return problems
+
+
+def missing_metadata(fields: dict[str, str], meta: dict[str, str]) -> list[str]:
+    """Required write-time fields absent from a topic, as doctor text."""
+    return [key for key in REQUIRED_METADATA if not (meta.get(key) or fields.get(key))]
 
 
 # --- indexes ---------------------------------------------------------------
@@ -573,27 +644,29 @@ def cmd_add(args: argparse.Namespace) -> int:
     return write_topic(root, topic_path(root, args.slug), args.summary, _read_body(args.body_file),
                        args.type, MAIN_INDEX if args.pin else (args.index or default_index(args.slug, root)),
                        create=True, replace=args.replace, salience=getattr(args, "salience", None),
-                       status=getattr(args, "status", None), tags=cli_tags(getattr(args, "tag", None)))
+                       status=getattr(args, "status", None), tags=cli_tags(getattr(args, "tag", None)),
+                       publish=getattr(args, "publish", None))
 
 
 def cmd_update(args: argparse.Namespace) -> int:
     root = memory_root()
     if (args.summary is None and args.body_file is None and args.type is None
             and getattr(args, "salience", None) is None and getattr(args, "status", None) is None
-            and not getattr(args, "tag", None)):
-        raise SystemExit("nothing to update: pass --summary, --body-file, --type, --salience, --status and/or --tag")
+            and getattr(args, "publish", None) is None and not getattr(args, "tag", None)):
+        raise SystemExit("nothing to update: pass --summary, --body-file, --type, --salience, --status, --publish and/or --tag")
     if args.summary is not None and not one_line(args.summary):
         raise SystemExit("summary cannot be empty")
     return write_topic(root, topic_path(root, args.slug), args.summary, _read_body(args.body_file),
                        args.type, default_index(path_slug(args.slug), root), create=False, replace=True,
                        salience=getattr(args, "salience", None), status=getattr(args, "status", None),
-                       tags=cli_tags(getattr(args, "tag", None)))
+                       tags=cli_tags(getattr(args, "tag", None)), publish=getattr(args, "publish", None))
 
 
 def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str | None,
                 target: str, *, create: bool, replace: bool,
                 salience: str | None = None, status: str | None = None,
-                tags: list[str] | None = None) -> int:
+                tags: list[str] | None = None, publish: str | None = None,
+                agent: str | None = None) -> int:
     if target not in index_files(root):
         raise SystemExit(f"unknown index: {target}")
     body_fields, body_meta, body = new_body or ({}, {}, None)
@@ -632,8 +705,18 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
             meta["status"] = status
         if tags is not None:
             meta["tags"] = ", ".join(tags)
-        if create and not meta.get("salience"):
-            meta["salience"] = "normal"  # a write-time judgement, not a later inference
+        if publish is not None:
+            meta["publish"] = publish
+        # Every write carries the four fields, including a repair of an old topic.
+        # Defaults are the conservative reading: normal replay priority, an
+        # unverified rule, and no publication outside this machine.
+        if not meta.get("salience"):
+            meta["salience"] = "normal"
+        if not meta.get("status"):
+            meta["status"] = "hypothesis"
+        if not meta.get("publish"):
+            meta["publish"] = "private"
+        meta["agent"] = agent or detect_agent()
         if "tags" in meta:
             try:
                 meta["tags"] = ", ".join(parse_tags(meta["tags"]))
@@ -642,7 +725,8 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
         problems = metadata_problems({}, meta)
         if problems:
             raise SystemExit("; ".join(problems))
-        ordered = {key: meta[key] for key in ("type", "updated", "salience", "status", "tags") if meta.get(key)}
+        ordered = {key: meta[key] for key in
+                   ("type", "updated", "salience", "status", "tags", "publish", "agent") if meta.get(key)}
         ordered.update((key, value) for key, value in meta.items() if key not in ordered)
         topic = render_topic(path.stem, summary, ordered, body)
 
@@ -864,6 +948,9 @@ def cmd_doctor(args: argparse.Namespace) -> int:
                 warn("missing description", name)
             if meta.get("type") not in TYPES:
                 warn("missing or invalid metadata.type", name)
+            missing = missing_metadata(fields, meta)
+            if missing and not name.startswith("archive/"):
+                errors.append(f"{name}: missing required metadata: {', '.join(missing)}")
             for problem in metadata_problems(fields, meta):
                 warn("invalid memory metadata", f"{name}: {problem}")
         size = len(text.encode("utf-8"))
@@ -942,7 +1029,8 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--body-file", required=True, help="Markdown file or - for stdin")
     add.add_argument("--type", choices=TYPES)
     add.add_argument("--salience", choices=SALIENCE, help="write-time replay priority (default: normal)")
-    add.add_argument("--status", choices=STATUSES, help="epistemic state of the note")
+    add.add_argument("--status", choices=STATUSES, help="epistemic state of the note (default: hypothesis)")
+    add.add_argument("--publish", choices=PUBLISH, help="public reaches the repo projection; default private")
     add.add_argument("--tag", action="append", metavar="TAG", help="facet to write with the note (repeatable)")
     add.add_argument("--index", help="index for new routes (default: the area index for the slug's prefix)")
     add.add_argument("--pin", action="store_true", help=f"route a new topic from {MAIN_INDEX} (durable conventions only)")
@@ -956,6 +1044,7 @@ def build_parser() -> argparse.ArgumentParser:
     update.add_argument("--type", choices=TYPES)
     update.add_argument("--salience", choices=SALIENCE)
     update.add_argument("--status", choices=STATUSES)
+    update.add_argument("--publish", choices=PUBLISH)
     update.add_argument("--tag", action="append", metavar="TAG", help="replace the topic's tags (repeatable)")
     update.set_defaults(func=cmd_update)
 

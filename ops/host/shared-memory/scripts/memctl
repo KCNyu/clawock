@@ -28,6 +28,7 @@ Usage:
   memctl doctor [--deep] [--json] [--write-status] [--quiet]
                                                wiring + store + history self-check
   memctl bundle [--keep N]                     write a git bundle backup of the history
+  memctl verify [--since DAYS] [--json]        report store changes with no matching memctl write
   memctl hook claude-post | claude-start       Claude Code hook handlers (stdin JSON)
 
 Environment: SHARED_MEMORY_DIR (store, default ~/.shared-memory), SHARED_MEMORY_STATE
@@ -458,6 +459,51 @@ def cmd_restore(args: list[str]) -> int:
     print(f"restored {rel} from {at}" + (f" as {entry['commit']}" if entry else " (already identical)"))
     print("note: index routes are not changed by restore; run `memory.py doctor`.", file=sys.stderr)
     return 0
+
+
+def cmd_verify(args: list[str]) -> int:
+    """Report direct store writes that bypass memctl, by filename.
+
+    Two signals: a file changed in the work tree with no commit yet, and a ledger
+    entry attributed to `unattributed` (the snapshot timer or a bare shell). A
+    direct edit that is later committed by a named agent through `memctl snapshot`
+    is indistinguishable from a normal write; the history still holds it.
+    """
+    since_days = float(_opt(args, "--since", "7"))
+    as_json = _opt(args, "--json", flag=True)
+    quiet = _opt(args, "--quiet", flag=True)
+    if since_days <= 0:
+        die("--since must be a positive number of days")
+    if not history_ready():
+        die("history not initialised; run `memctl init`")
+    cutoff = time.time() - since_days * 86400
+    bypasses: list[dict] = []
+    for status, path in pending_changes():
+        bypasses.append({"kind": "uncommitted", "file": path, "status": status})
+    if LEDGER.is_file():
+        for line in LEDGER.read_text(encoding="utf-8").splitlines():
+            try:
+                entry = json.loads(line)
+                ts = dt.datetime.fromisoformat(entry["ts"]).timestamp()
+            except (ValueError, KeyError, TypeError):
+                continue
+            if ts < cutoff or entry.get("agent") not in (None, "", "unattributed"):
+                continue
+            for path in entry.get("files") or []:
+                bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
+                                 "commit": entry.get("commit"), "op": entry.get("op")})
+    if as_json:
+        print(json.dumps({"status": "BYPASS" if bypasses else "OK",
+                          "since_days": since_days, "bypasses": bypasses}, ensure_ascii=False))
+    elif not quiet:
+        for item in bypasses:
+            if item["kind"] == "uncommitted":
+                print(f"UNRECORDED   {item['file']} ({item['status']}; no memctl commit yet)")
+            else:
+                print(f"UNATTRIBUTED {item['ts']} {item['file']} "
+                      f"({item.get('op') or 'snapshot'} {item.get('commit') or '?'})")
+        print(f"verify: {len(bypasses)} direct-write signal(s) in the last {since_days:g} day(s)")
+    return 1 if bypasses else 0
 
 
 def cmd_bundle(args: list[str]) -> int:
@@ -1002,7 +1048,8 @@ def main(argv: list[str]) -> int:
     if cmd in PASSTHROUGH:
         return cmd_passthrough(argv)
     table = {"init": cmd_init, "snapshot": cmd_snapshot, "log": cmd_log, "show": cmd_show,
-             "restore": cmd_restore, "bundle": cmd_bundle, "doctor": cmd_doctor, "hook": cmd_hook}
+             "restore": cmd_restore, "bundle": cmd_bundle, "verify": cmd_verify,
+             "doctor": cmd_doctor, "hook": cmd_hook}
     if cmd not in table:
         die(f"unknown command {cmd!r}; see `memctl --help`")
     return table[cmd](rest)

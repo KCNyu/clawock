@@ -12,12 +12,14 @@ was and why it existed; this one is where the system is going.
 
 The two-store design failed in practice, not in theory:
 
-- The shared store has 157 topics. Its change history (`memctl log`) ends **2026-10-19 02:23**,
-  written by `claude-code`. No other agent ever appears in it.
-- The newest note (`project-dsh-deployment.md`, 2026-11-06 23:37) has **no `memctl` commit**: it was
-  written by editing the file directly, so it has no author and no restorable history.
-- The write-time schema landed 2026-11-08 01:38. Since then `salience` / `status` / `tags` are
-  **0/157** — nothing has been written through `memory.py` at all.
+- The shared store has **156 active topics** (157 `.md` files counting the index) and 149 archived
+  topics. `memctl log` has five entries; the latest is **2026-11-06 23:37 by `dsh`**, a `memory.py
+  update` of `project-dsh-deployment.md`. The earlier claim that this note had no history does not
+  survive verification: the direct-edit risk is real, but this file is not evidence of it.
+- The write-time schema landed 2026-11-08 01:38. All 156 active topics still have
+  `salience` / `status` / `tags` empty, and `publish` / `agent` did not exist. The latest write did
+  go through `memory.py`; it still wrote none of the new fields because `update` had no required
+  schema. That is the gap P0 closes.
 - Recall is split. `memory_search corpus=all` reads the shared store only in direct chats, and the
   assistant's own `MEMORY.md` never reaches a coding agent.
 
@@ -58,26 +60,33 @@ no second reviewer.
 | `agent` | `rick`, `claude-code`, `codex`, `dsh`, `opencode` | who wrote it |
 | `updated` | `YYYY-MM-DD` | existing |
 
-`memory.py add|update` writes all of them. A note missing `salience`, `status` or `publish` fails
-`memory.py doctor`.
+`memory.py add|update` fills all of them on every write: `salience` defaults to `normal`, `status`
+to `hypothesis`, `publish` to `private`, and `agent` is stamped from the invoking environment
+(`MEMCTL_AGENT` overrides it). An active note missing any of the four fails `memory.py doctor`;
+archived topics are exempt because they are history, not a write target.
 
 ## Closing the write path
 
 Nothing above matters while `cat > topic.md` works. Enforcement is part of the first phase:
 
-1. `memory.py` stamps `agent` from the invoking environment and refuses a write without `salience`
-   and `publish`.
-2. A store-side check (inotify watcher or a periodic `memctl verify`) flags any topic whose content
-   changed without a matching `memctl` commit, and names the file.
-3. The repository's pre-commit hook keeps refusing coding-agent notes under `memory/*.md`; that rule
+1. `memory.py` stamps `agent` from the invoking environment and writes `salience` / `status` /
+   `publish` on every `add` and `update`, including a repair of an old topic.
+2. `memctl verify` names every file changed without a matching write: an uncommitted edit, or a
+   ledger entry attributed to `unattributed` (the snapshot timer or a bare shell). It exits non-zero
+   when it finds one. A direct edit later committed by a named agent through `memctl snapshot` is
+   indistinguishable from a normal write; the history still holds it.
+3. `memory.py doctor` fails an active topic missing any of the four fields. The 156 legacy topics are
+   expected to fail until P2 backfills them; that failure is the migration debt, not a reason to
+   weaken the schema.
+4. The repository's pre-commit hook keeps refusing coding-agent notes under `memory/*.md`; that rule
    does not relax because the store moved.
 
 ## Migration
 
 Read-only dry run first; nothing is written until the report is reviewed.
 
-1. Inventory the 157 topics and every `MEMORY.md` section; produce a merge plan with the topics that
-   would be created, merged, or archived.
+1. Inventory the 156 active topics (plus the index and archive) and every `MEMORY.md` section;
+   produce a merge plan with the topics that would be created, merged, or archived.
 2. Conflict rule: investment and position rules take the `MEMORY.md` wording; operations, deployment
    and dispatch facts take the shared-store wording. Both keep their dates and their evidence.
 3. Classify `publish`: everything currently in the public `MEMORY.md` starts `public`; every
@@ -90,7 +99,7 @@ Read-only dry run first; nothing is written until the report is reviewed.
 
 | Phase | Change | Acceptance |
 |---|---|---|
-| P0 | Write path closed: schema required, direct edits detected | `memory.py doctor` fails on a missing field; a direct edit is reported by name |
+| P0 | Write path closed: schema required, direct edits detected | `memory.py doctor` fails on a missing field; `memctl verify` reports a direct edit by name |
 | P1 | Migration dry run: inventory, conflicts, `publish` classification | report only, zero writes, reviewed by kcn |
 | P2 | Backfill + merge; `MEMORY.md` sections become topics | every current `MEMORY.md` line resolves to one topic or is listed as dropped with a reason |
 | P3 | Injection: direct chat and workers read the unified store | a worker's brief can cite `search --salience high` output; no private note reaches the repo |
