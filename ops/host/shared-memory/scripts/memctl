@@ -728,6 +728,8 @@ def cmd_verify(args: list[str]) -> int:
 
     entries: list[dict] = []
     unattributed: list[tuple[dict, str]] = []
+    receipt_hashes: dict[str, set[str]] = {}
+    latest_change: dict[str, dict] = {}
     if LEDGER.is_file():
         for line in LEDGER.read_text(encoding="utf-8").splitlines():
             try:
@@ -740,27 +742,33 @@ def cmd_verify(args: list[str]) -> int:
             if ts is None or ts < cutoff:
                 continue
             entries.append(entry)
-            if entry.get("agent") in (None, "", "unattributed"):
-                for path in entry.get("files") or []:
+            for path, digest in (entry.get("wrote") or {}).items():
+                receipt_hashes.setdefault(path, set()).add(digest)
+            for path in entry.get("files") or []:
+                latest_change[path] = entry
+                if entry.get("agent") in (None, "", "unattributed"):
                     unattributed.append((entry, path))
 
-    # A later receipted write repairs an earlier bypass of the same file. Report the file only
-    # while its latest change is still unreceipted, so verify converges after a repair instead
-    # of staying red for seven days. The same rule applies to an unattributed write: a real
-    # `memory.py` receipt later in the ledger is the repair, while an unattributed write with no
-    # later receipt is still reported.
-    latest_receipt: dict[str, int] = {}
-    for entry in entries:
-        if entry.get("seq") is None:
-            continue
-        for path, digest in (entry.get("wrote") or {}).items():
-            latest_receipt[path] = max(latest_receipt.get(path, 0), int(entry["seq"]))
-
+    # Report a file only while its latest change is still unreceipted: a later receipted write
+    # repairs an earlier bypass, and an earlier receipt for the same content repairs a later
+    # unattributed snapshot that restored that content. The hash comparison, not the agent name,
+    # decides; an untouched hand edit is still reported.
     for entry, path in unattributed:
-        if entry.get("seq") is not None and latest_receipt.get(path, 0) > int(entry.get("seq") or 0):
+        if latest_change.get(path) is not entry:
+            continue
+        commit = entry.get("commit")
+        if not commit:
+            bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
+                             "commit": commit, "op": entry.get("op")})
+            continue
+        resolved = git("rev-parse", f"{commit}^{{commit}}", check=False).strip()
+        if not resolved:
+            continue  # the history-reset signal below names the missing commit
+        content_hash = hashlib.sha256(_commit_bytes(resolved, path) or b"").hexdigest()
+        if content_hash in receipt_hashes.get(path, set()):
             continue
         bypasses.append({"kind": "unattributed", "file": path, "ts": entry.get("ts"),
-                         "commit": entry.get("commit"), "op": entry.get("op")})
+                         "commit": commit, "op": entry.get("op")})
 
     head = git("rev-parse", "HEAD", check=False).strip()
     for entry in entries:
@@ -787,10 +795,13 @@ def cmd_verify(args: list[str]) -> int:
         for path in _changed_paths(resolved):
             if not path.endswith(".md"):
                 continue
+            content_hash = hashlib.sha256(_commit_bytes(resolved, path) or b"").hexdigest()
             expected = receipts.get(path)
-            if expected and hashlib.sha256(_commit_bytes(resolved, path) or b"").hexdigest() == expected:
+            if expected and content_hash == expected:
                 continue
-            if latest_receipt.get(path, 0) > int(entry.get("seq") or 0):
+            if latest_change.get(path) is not entry:
+                continue
+            if content_hash in receipt_hashes.get(path, set()):
                 continue
             bypasses.append({"kind": "unreceipted", "file": path, "ts": entry.get("ts"),
                              "commit": commit, "op": entry.get("op")})

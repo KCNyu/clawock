@@ -722,3 +722,14 @@ def test_a_later_receipt_repairs_an_unattributed_snapshot(kit):
     after = kit.ok("verify")
     assert after.stdout.strip().startswith("verify: 0"), after.stdout
 
+def test_an_earlier_receipt_repairs_a_later_unattributed_snapshot_of_the_same_content(kit):
+    kit.ok("update", "feedback-alpha", "--scope", "engineering", "--salience", "high", script=MEMORY_PY)
+    receipted = (kit.store / "feedback-alpha.md").read_bytes()
+    (kit.store / "feedback-alpha.md").write_text(
+        TOPIC.format(slug="feedback-alpha", desc="alpha", body="hand edited"))
+    kit.ok("snapshot", "--timer", "--reason", "hand edit")
+    (kit.store / "feedback-alpha.md").write_bytes(receipted)
+    kit.ok("snapshot", "--timer", "--reason", "restore receipted content")
+    after = kit.ok("verify")
+    assert after.stdout.strip().startswith("verify: 0"), after.stdout
+
