@@ -1,73 +1,101 @@
 # Workbench host conformance (2026-11-08)
 
-kcn's review: "这个也是没对齐一样 而且ui也不符合dsh的". This page records
-what was measured against the host, what is reused, and what is still a
-plugin-owned surface rather than a host component. It is deliberately a
-gap table, not a claim that the page is pixel-identical to dsh.
+kcn's review: "你让参考dsh原生那个automation tasks那个plugin来实现吧
+我觉得css完全可以重新做啥的？"
 
-Measured on the live host (dsh 0.2.2-rc.1, 390x844 and 375x667) from the
-DOM, 2026-11-08 13:4x CST. The dsh components live inside
-`dsh-client-ui-*` bundles and are not exported to plugin slots; a plugin
-receives slots and the host CSS custom properties, not the host's React
-components. That is the constraint behind the "not reused" rows.
+This page records the **measured** host reference, the new Workbench
+baseline, what matches, and what is still intentionally different. The
+reference is dsh's Automation tasks plugin
+(`dsh-client-ui-schedule/lib/client.js`); its CSS is inline in the bundle
+(`TaskManagerPage.module.css`), and the values below were also read back
+from the live DOM with `getComputedStyle` at 390x844.
 
-## Left baseline (fixed)
+## Measured host (Automation tasks)
 
-`--wb-pad` is the one inset: 16px at 375/390, 12px below 360.
+![Automation tasks, the reference](workbench-host-reference-390.png)
 
-| Element | left at 390 | left at 375 | left at 320 |
+| Host element | Measured value |
+|---|---|
+| Page content | `padding: 0 20px 48px` at <=767px; width 960px max |
+| Page heading | `padding-top: 28px; margin-bottom: 24px`; h1 **20px / 28px / 500**; left **20px** |
+| Header action "New" | 32px high, padding 0 12px, radius 16px, 13px/20px, primary black |
+| Filter tabs (Enabled/Paused/Ended/All) | 28px high, padding 0 10px, radius 14px, 14px/22px; selected background `--dsw-alias-interactive-bg-hover`; gap 12px |
+| Search field | 36px high, radius 12px, 0.5px border, 14px input |
+| List row | padding **8px**, gap 12px, radius **12px**, no divider; list gap **2px**; row title **14px/23px/500**; summary **13px/21px**, tertiary |
+| Empty | centered, padding 48px 20px, 14px/22px tertiary; action 44px high |
+| Detail pane | border-left .5px, gutter 24px, 14px/1.6 body |
+
+## New Workbench baseline
+
+The Workbench CSS now uses the same page rhythm (a single superseding
+"Automation tasks baseline" block at the end of `styles.module.css`):
+
+| Workbench element | New value | Host value | Status |
 |---|---|---|---|
-| Title "Workbench" | 16 | 16 | 12 |
-| Subtitle | 16 | 16 | 12 |
-| Tab frame | 16 | 16 | 12 |
-| Group title | 16 | 16 | 12 |
-| Row title | 16 | 16 | 12 |
+| Page inset `--wb-pad` | **20px** | 20px | matched |
+| Title | **20px/28px/500**, left 20 | 20/28/500, left 20 | matched |
+| Subtitle | 14px/22px, tertiary, left 20 | (host has no subtitle) | host rhythm |
+| Tabs (Tasks/Providers/Overview) | **28px high, 0 10px, radius 14, 14/22**, selected hover fill, gap 12 | filter tabs 28/14/10/14 | matched visual; view tabs, not status filters |
+| Count in tab | inline `4` at 14px, no chip | host tabs have no count | intentional difference |
+| Status/Source grouping | 28px filter pill, radius 14, selected fill | host filter tabs | matched visual |
+| Group header | 36px, 14/22/500, no border, chevron right | (host list has no group) | host rhythm |
+| Task row | padding **8**, gap 12, radius **12**, no divider, 2px gap; title **14/23/500**; meta **13/21** | identical | matched |
+| Row left text | 28px (20 + 8px padding) | 28px | matched |
+| Primary/secondary buttons | **32px high, radius 16, 13/20** | 32/16/13/20 | matched |
+| Detail pills | 28px, radius 14, 13/21 | 28px filter height | matched |
+| Empty | centered 48px 20px, 14/22 tertiary, action 44px | identical | matched |
+| Provider alert | 6px red dot | host alert dot | matched shape |
+| History rows | 8px padding, radius 12, no divider, 2px gap | identical list rhythm | matched |
+| Search field | none | 36px field | **difference** (Workbench has no search surface) |
+| Detail body | 13/21, gutter 20px | 14/1.6, gutter 24px | close, not identical |
+| Providers data table | name/meta + 3px bar | no host analogue | custom data surface |
 
-The `header` geometry gauge asserts max-min <= 0.6px at all three widths.
-The host's own **Open sidebar** control above the page is left where dsh
-draws it (it has the panel-left icon and `aria-label="Open sidebar"`); it
-is not a plugin leftover.
+Colours use the host aliases (`--dsw-alias-label-primary`,
+`--dsw-alias-label-tertiary`, `--dsw-alias-interactive-bg-hover`,
+`--dsw-alias-border-l4`), so light/dark follow dsh. The only host controls
+not reused are the React components themselves: dsh does not export the
+Automation tasks React components to plugin slots. The CSS above is a
+measured clone, not a wrapper around a host component.
 
-## Control-by-control
+## Left edges (measured)
 
-| Page control | Host reference | Host measurement | This page | Status |
-|---|---|---|---|---|
-| Page title/subtitle | dsh panel header / section label | 14px/22px, 12-16px inset | same inset and `--fs-*`/`--lh-*` tokens | matched |
-| Segmented Tasks/Providers/Overview | dsh sidebar panel rows (only exported analogue) | 36px high, 12px radius, 14px | 44px high, 10px radius, 14px | **not matched** — a host `segmented` component is not exported; the page keeps its own three-segment control |
-| Count badge ("1") | dsh neutral count pill | 18px, `--dsw-*` fill | 18px neutral pill | matched shape/token |
-| Status / Source | dsh Automation tasks filter | host menu/select bound to host state | two-value grouping toggle | **not matched** — this is "group by", not a filter; a select would have to own the grouping state |
-| Group header (Active/Needs review) | dsh section label | 14px medium, 36-40px row | 44px row, 14px medium | close; row height remains 4-8px taller |
-| Task row | dsh task list (no plugin-accessible row component) | two-line 72px in the live page | two-line 72px, 8px inner padding | structurally matched, not a host component |
-| Red provider alert | dsh alert dot | non-numeric red dot | red `!` circle (not a number) | shape differs; semantics (non-numeric alert) matches |
-| Detail primary/secondary buttons | dsh "New session" button | 38px high, 12px radius, 14px | 44px high, 8px radius, 14px | **not matched** — queued for a follow-up |
-| Detail pills (Brief/Log/Timeline) | dsh tag/chip | 28-32px, 12px radius | 28px, 8px radius | close; radius differs |
+`--wb-pad` is 20px at 390/375/320 (the host's mobile content inset). Page
+chrome starts at 20; row text starts at 28 because the host row itself has
+8px padding. The `header` gauge asserts:
 
-## What is genuinely reused
+```text
+390: title 20 · subtitle 20 · tabs 20 · group 20 · row 28
+375: title 20 · subtitle 20 · tabs 20 · group 20 · row 28
+320: title 20 · subtitle 20 · tabs 20 · group 20 · row 28
+```
 
-- Host CSS custom properties for type (`--fs-*`, `--lh-*`, `--fw-*`), radii
-  (`--dsw-radius-*`), focus rings, and state fills.
-- The host `sidebar.panellist` row, the host `Open sidebar`/back surfaces,
-  and the host's slot lifecycle (no second navigation chrome is drawn).
-- Host colors for body ink, hairline borders and the hover/press fills; the
-  plugin does not define a second palette.
+Earlier the page had 44/16/12 baselines; that is gone.
 
-## Remaining work (honest)
+## Screenshots
 
-A true B-level conformance needs one of:
+| Width | Home | History | Detail |
+|---|---|---|---|
+| 390 | ![](workbench-conformance-390.png) | ![](workbench-conformance-history-390.png) | ![](workbench-conformance-detail-390.png) |
+| 375 | ![](workbench-conformance-375.png) | (same layout, row text 28) | (same layout) |
+| 320 | ![](workbench-conformance-320.png) | (same) | (same) |
 
-1. dsh exports its segmented control, filter menu, section-label and button
-   primitives to plugin slots (then reuse them directly), or
-2. kcn accepts a token/measurement clone of those primitives, implemented
-   in the plugin (larger than a pixel pass; owns hover/focus/disabled states).
+## What is still different
 
-Until then the page keeps the host's type/color/radius tokens and the one
-left baseline, but the segmented control, filter toggle, row height and
-primary/secondary button height differ from the host's. The screenshots in
-the task report show the current state at 390/375; the before images are
-kcn's inbound screenshots.
+1. No search field (the Workbench has no search data flow; adding one
+   would be a new feature, not CSS).
+2. The tab count is inline text; Automation's tabs carry no count.
+3. Detail body is 13/21 with a 20px gutter vs the host detail's 14/1.6
+   with 24px; the Workbench detail is a full-page focus layer, and the
+   tighter reading line is retained for the long closing reports.
+4. Provider rows are a data table (name, balance, bar) with no direct
+   host analogue; they follow the same row radius/padding/type.
+
+The functional contracts from the 2026-11-08 fixes remain: UTF-8
+fetch+TextDecoder+blob previews, single-column brief, History ¥/$ and
+"latest 5", Dismiss ack, rendered Markdown, the G1 generic-scan negative
+control, the G2 Log note, and the G3 doc correction.
 
 ## Related
 
-- [`workbench-geometry.md`](workbench-geometry.md) — the phone overlap and
-  left-baseline contracts.
-- [`workbench-type.md`](workbench-type.md) — the type roles and tokens.
+- [`workbench-geometry.md`](workbench-geometry.md)
+- [`workbench-type.md`](workbench-type.md)

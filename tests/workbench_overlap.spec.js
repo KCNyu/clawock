@@ -534,6 +534,11 @@ function gaugeInPage(mode) {
     return {
       mode, present: true,
       scrollbar: scroller === null ? null : getComputedStyle(scroller).scrollbarWidth,
+      actH: (() => {
+        const el = [...document.querySelectorAll("[data-tq-detail] button")].find((button) =>
+          [...button.classList].some((name) => /_wb-act$/.test(name)));
+        return el === undefined ? null : el.getBoundingClientRect().height;
+      })(),
       summary: summaryBox,
       actions: actionsBox,
       pill: box(pill),
@@ -588,6 +593,8 @@ function gaugeInPage(mode) {
         group: group.getBoundingClientRect().x,
         row: row.getBoundingClientRect().x,
       },
+      tabH: document.querySelector("[role=tab]")?.getBoundingClientRect().height ?? null,
+      rowH: document.querySelector('[data-wb-task]')?.getBoundingClientRect().height ?? null,
       groups: [...document.querySelectorAll("[data-wb-group-button]")].map((el) => ({
         key: el.getAttribute("data-wb-group-button"), text: el.innerText,
       })),
@@ -608,6 +615,7 @@ function gaugeInPage(mode) {
       scrollWidth: ul.scrollWidth, clientWidth: ul.clientWidth,
       rows,
       foot: document.querySelector('[class*="_wb-hist-foot"]')?.innerText ?? "",
+      footX: (() => { const el = document.querySelector('[class*="_wb-hist-foot"] p'); return el === null ? null : el.getBoundingClientRect().x; })(),
     };
   }
 
@@ -831,6 +839,8 @@ function assertGauge(state, gauge) {
     assert.ok(gauge.pillGap !== null && gauge.pillGap >= 8,
       state.name + ": the log pill must clear the closing-report card by 8px (got " + gauge.pillGap + ")");
     assert.equal(gauge.scrollbar, "none", state.name + ": the detail scroller must not show a scrollbar");
+    assert.ok(gauge.actH !== null && Math.abs(gauge.actH - 32) <= 0.6,
+      state.name + ": primary/secondary detail buttons must be 32px high, got " + gauge.actH);
     assert.equal(gauge.clipped, 0, state.name + ": the closing report must not clip its last line");
     assert.equal(gauge.widthOverflow, 0, state.name + ": the closing report must not overflow horizontally");
     return;
@@ -846,9 +856,15 @@ function assertGauge(state, gauge) {
   }
   if (state.gauge === "header") {
     assert.equal(gauge.present, true, state.name + ": header, tabs, group and row are rendered");
-    const values = Object.values(gauge.lefts);
-    assert.ok(Math.max(...values) - Math.min(...values) <= 0.6,
-      state.name + ": every left edge shares one baseline, got " + JSON.stringify(gauge.lefts));
+    const chrome = [gauge.lefts.title, gauge.lefts.sub, gauge.lefts.tabs, gauge.lefts.group];
+    assert.ok(Math.max(...chrome) - Math.min(...chrome) <= 0.6,
+      state.name + ": the page chrome shares one --wb-pad baseline, got " + JSON.stringify(gauge.lefts));
+    assert.ok(Math.abs(gauge.lefts.row - (gauge.lefts.title + 8)) <= 0.6,
+      state.name + ": row text sits 8px inside the host row, got " + JSON.stringify(gauge.lefts));
+    assert.ok(gauge.tabH !== null && Math.abs(gauge.tabH - 28) <= 0.6,
+      state.name + ": filter tabs must be 28px high, got " + gauge.tabH);
+    assert.ok(gauge.rowH >= 60 && gauge.rowH <= 64,
+      state.name + ": a two-line host row is 62px (8+23+2+21+8), got " + gauge.rowH);
     const pending = gauge.groups.find((g) => g.key === "pending");
     const live = gauge.groups.find((g) => g.key === "live");
     if (pending !== undefined) assert.match(pending.text, /^(Needs review|待你确认)/, state.name + ": the ended-needs group is not called Pending");
@@ -869,6 +885,8 @@ function assertGauge(state, gauge) {
       if (/\bdsh\b/.test(row.text)) assert.match(row.cost, /^¥/, state.name + ": dsh history costs are CNY, not $");
       if (/Claude|Codex/.test(row.text)) assert.match(row.cost, /^\$/, state.name + ": non-dsh history costs are USD");
     }
+    assert.ok(gauge.footX !== null && Math.abs(gauge.footX - (gauge.ul.x + gauge.pad)) <= 0.6,
+      state.name + ": the history footer shares the list inset, got " + gauge.footX);
     assert.match(gauge.foot, /最近 5 条|latest 5/i, state.name + ": the list says it is the latest five");
     assert.match(gauge.foot, /打开任务队列|Open task queue/i, state.name + ": the list has an entry to the queue");
     return;
