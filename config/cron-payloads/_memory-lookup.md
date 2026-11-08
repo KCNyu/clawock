@@ -1,0 +1,1 @@
+**涉及 kcn 的偏好、纪律或历史决策时，先查共享记忆**：写判断或取舍前先跑 `python3 /root/.agents/skills/shared-memory/scripts/memory.py search '<关键词>'`（或 OpenClaw `memory_search corpus=all`）；需要整块投资视图时跑 `python3 /root/.agents/skills/shared-memory/scripts/memory.py inject --audience investment-cron`。不要凭常识推断他的看法，查到的规则仍要按本次 context / portfolio 数据判断。发布物只引用 `publish: public` topic 或运行数据，不整段搬运 private topic 正文。

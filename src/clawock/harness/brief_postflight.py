@@ -880,11 +880,47 @@ def validate_markdown(path, context=None):
     return issues
 
 
+def validate_shared_memory_sources(path, today=None):
+    """Reject a brief that transcribes a private shared-memory topic.
+
+    The brief may quote a `publish: public` topic or runtime data (portfolio,
+    plan, preflight context). The provenance guard fails closed on an exact
+    private-topic line/paragraph. A missing store means there is no private
+    corpus to copy, so the check is skipped; a store with no guard is an error.
+    """
+    if not path.exists():
+        return []  # validate_markdown already reports the missing product
+    store = Path(os.environ.get('SHARED_MEMORY_DIR', '~/.shared-memory')).expanduser()
+    if not store.is_dir():
+        return []
+    guard = _CHECKOUT / 'ops/host/shared-memory/scripts/provenance.py'
+    if not guard.is_file():
+        return ['pre-open.md 来源校验缺失（critical）: ops/host/shared-memory/scripts/provenance.py']
+    allowed = [WS / 'portfolio.json']
+    if today:
+        allowed += [WS / 'memory' / f'{today}-plan.json',
+                    WS / 'memory' / '.tmp' / f'brief-context-{today}.json']
+    command = [sys.executable, str(guard), '--artifact', str(path), '--store', str(store)]
+    for item in allowed:
+        if item.is_file():
+            command += ['--allow', str(item)]
+    try:
+        proc = subprocess.run(command, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return [f'pre-open.md 来源校验失败（critical）: {exc}']
+    if proc.returncode == 0:
+        return []
+    detail = (proc.stderr or proc.stdout).strip().replace('provenance: ', '')
+    detail = detail.splitlines()[-1] if detail else f'exit {proc.returncode}'
+    return [f'pre-open.md 引用了 private topic 正文（critical）: {detail}']
+
+
 CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id', '敷衍词',
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
     'book inputs invalid', 'book totals mismatch:',
     '仓位支配度不符',
+    '引用了 private topic',
 ]  # table mismatch, cross-generation output and placeholder prose are critical
 
 
@@ -1631,6 +1667,7 @@ def main(argv=None):
 
     readability = assess_brief_readability(md_path)
     issues += validate_markdown(md_path, context=context)
+    issues += validate_shared_memory_sources(md_path, today)
     issues += readability_issues(readability)
     validation_path = (
         _InMemoryPlanPath(plan_path, normalized_plan)

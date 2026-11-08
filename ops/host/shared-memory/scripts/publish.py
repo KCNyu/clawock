@@ -23,6 +23,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from memory import split_frontmatter  # noqa: E402  (the format owner sits next to us)
+import provenance  # noqa: E402  (public artifacts may not copy private bodies)
 
 HEADER = (
     "# MEMORY.md - Rick's Long-Term Memory\n"
@@ -208,6 +209,12 @@ def check(repo: Path, store: Path | None, manifest_path: Path) -> int:
             return 1
         expected = render(topics)
         expected_manifest = build_manifest(expected, topics)
+        try:
+            provenance.assert_public_sources("MEMORY.md", text, store)
+            provenance.assert_public_sources("the generated MEMORY.md projection", expected, store)
+        except provenance.ProvenanceError as exc:
+            print(f"publish: {exc}", file=sys.stderr)
+            errors.append(str(exc))
         if expected != text:
             print("publish: MEMORY.md differs from the store projection:", file=sys.stderr)
             sys.stderr.writelines(unified_diff(
@@ -228,6 +235,7 @@ def check(repo: Path, store: Path | None, manifest_path: Path) -> int:
 def write(repo: Path, store: Path, manifest_path: Path) -> int:
     topics = load_public_topics(store)
     text = render(topics)
+    provenance.assert_public_sources("the generated MEMORY.md projection", text, store)
     manifest = build_manifest(text, topics)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     for path, content in ((repo / "MEMORY.md", text),
@@ -257,7 +265,7 @@ def main() -> int:
         if args.write:
             return write(args.repo, args.store, manifest)
         return check(args.repo, args.store if args.check_store else None, manifest)
-    except ProjectionError as exc:
+    except (ProjectionError, provenance.ProvenanceError) as exc:
         print(f"publish: {exc}", file=sys.stderr)
         return 1
 

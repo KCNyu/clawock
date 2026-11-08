@@ -205,8 +205,8 @@ directories share the store and which keep their own (an OpenClaw workspace), an
 `shared-memory/openclaw/` is a host OpenClaw plugin (`shared-memory-corpus`) that registers a
 memory corpus supplement, so the assistant's `memory_search corpus=all` / `memory_get` can read
 the coding agents' store without it ever entering the workspace: the store stays read-only,
-direct chats only (groups, channels, cron and keyless runs get nothing), redacted, and silent
-on read errors. Its one write is the private recall counter (`recall.jsonl` under the state
+available to every configured session (direct, group, channel, cron, subagent; only a keyless
+call gets nothing), redacted, and silent on read errors. Its one write is the private recall counter (`recall.jsonl` under the state
 directory), outside the store.
 OpenClaw's short-term recall records only its own index hits, so dreaming cannot promote these
 notes into the public `MEMORY.md`. Install with `install_memory_corpus_plugin.sh` (`--check`,

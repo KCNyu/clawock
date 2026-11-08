@@ -47,11 +47,11 @@ export MEMCTL_AGENT="${MEMCTL_AGENT:-rick}"
 # visible, never published. Raw candidates stay private.
 MEMORY_OK=1
 DREAMS_OK=1
-if ! python3 "$WS/ops/host/review_dreams.py" --workspace "$WS"; then
+if ! python3 "$WS/ops/host/review_dreams.py" --workspace "$WS" --store "$STORE"; then
   echo "$(date -Is) dreaming-commit: DREAMS review failed; DREAMS.md left uncommitted"
   DREAMS_OK=0
 fi
-if [ "$DREAMS_OK" = 1 ] && ! python3 "$WS/ops/host/review_dreams.py" --workspace "$WS" --check; then
+if [ "$DREAMS_OK" = 1 ] && ! python3 "$WS/ops/host/review_dreams.py" --workspace "$WS" --store "$STORE" --check; then
   echo "$(date -Is) dreaming-commit: DREAMS check failed; DREAMS.md left uncommitted"
   DREAMS_OK=0
 fi

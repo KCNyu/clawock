@@ -20,8 +20,9 @@ The two-store design failed in practice, not in theory:
   `salience` / `status` / `tags` empty, and `publish` / `agent` did not exist. The latest write did
   go through `memory.py`; it still wrote none of the new fields because `update` had no required
   schema. That is the gap P0 closes.
-- Recall is split. `memory_search corpus=all` reads the shared store only in direct chats, and the
-  assistant's own `MEMORY.md` never reaches a coding agent.
+- Recall is split by writer, not by reader: `memory_search corpus=all` reads the shared store in
+  every configured session (direct, group, channel, cron, subagent), while the assistant's own
+  `MEMORY.md` never reaches a coding agent.
 
 A store that is not written through its own tool is not a memory system; it is a folder. Unifying
 without closing the write path would only produce a larger version of the same problem.

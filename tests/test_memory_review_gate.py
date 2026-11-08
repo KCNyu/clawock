@@ -440,3 +440,46 @@ def test_commit_dreaming_never_commits_another_writer_staged_file(tmp_path):
     committed = subprocess.run(['git', 'log', '--format=', '--name-only', '-2'], cwd=ws,
                                capture_output=True, text=True, check=True).stdout.split()
     assert sorted(committed) == ['DREAMS.md', 'MEMORY.md']
+
+
+def private_store(tmp_path):
+    store = tmp_path / 'store'
+    store.mkdir()
+    (store / 'project-private.md').write_text(
+        '---\nname: project-private\ndescription: "private evidence"\nmetadata:\n'
+        '  type: project\n  scope: engineering\n  publish: private\n---\n\n'
+        'The private evidence line says this exact sentence is not for publication.\n')
+    return store
+
+
+def test_dreams_new_entry_copying_a_private_topic_is_quarantined(tmp_path):
+    store = private_store(tmp_path)
+    path = tmp_path / 'DREAMS.md'
+    path.write_text(diary('Old entry.'))
+    command = [sys.executable, str(ROOT / 'ops/host/review_dreams.py'),
+               '--workspace', str(tmp_path), '--store', str(store)]
+    subprocess.run(command, check=True, capture_output=True)
+    path.write_text(path.read_text().replace(
+        '<!-- openclaw:dreaming:diary:end -->',
+        '*November 9, 2026 at 3:00 AM GMT+8*\n\nThe private evidence line says this exact '
+        'sentence is not for publication.\n\n<!-- openclaw:dreaming:diary:end -->'))
+    subprocess.run(command, check=True, capture_output=True)
+    assert 'private evidence line' not in path.read_text()
+    row = json.loads((tmp_path / 'memory/.dreams/dreams-quarantine.jsonl').read_text().splitlines()[-1])
+    assert 'private_topic_copy:project-private' in row['reasons']
+    failed = subprocess.run(command + ['--approve', row['sha256'], '--reviewer', 'test',
+                                       '--rationale', 'it is only a rule'], capture_output=True, text=True)
+    assert failed.returncode != 0
+    assert 'private_topic_copy:project-private' in failed.stderr
+
+
+def test_grandfathered_dreams_bytes_are_not_rewritten_by_the_source_check(tmp_path):
+    store = private_store(tmp_path)
+    original = diary('The private evidence line says this exact sentence is not for publication.')
+    path = tmp_path / 'DREAMS.md'
+    path.write_text(original)
+    command = [sys.executable, str(ROOT / 'ops/host/review_dreams.py'),
+               '--workspace', str(tmp_path), '--store', str(store)]
+    subprocess.run(command, check=True, capture_output=True)
+    assert path.read_text() == original
+    subprocess.run(command + ['--check'], check=True, capture_output=True)
