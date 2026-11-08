@@ -568,6 +568,29 @@ function gaugeInPage(mode) {
     };
   }
 
+  if (mode === "brief") {
+    const body = document.querySelector('[data-wb-sheet="brief"] [class*="_wb-sheet-body"]');
+    const sheet = document.querySelector('[data-wb-sheet="brief"]');
+    if (body === null) return { mode, present: false };
+    const bodyBox = box(body);
+    const list = document.querySelector("[data-tq-brief]");
+    const rows = list === null ? [] : [...list.querySelectorAll('button[data-tq-file], [data-tq-append-full], [data-tq-append-link], [data-tq-brief-full]')].map((el) => ({
+      kind: el.getAttribute("data-tq-append-full") ? "append" : el.getAttribute("data-tq-append-link") ? "append-full" : el.getAttribute("data-tq-brief-full") ? "brief-full" : "file",
+      box: box(el),
+    }));
+    const wrapper = body.firstElementChild;
+    const appendFull = [...list?.querySelectorAll("[data-tq-append-link]") ?? []].map((el) => box(el));
+    return {
+      mode, present: true,
+      sheet: box(sheet), body: bodyBox,
+      scrollWidth: body.scrollWidth, clientWidth: body.clientWidth,
+      children: body.children.length,
+      wrapper: wrapper === null ? null : { display: getComputedStyle(wrapper).display, direction: getComputedStyle(wrapper).flexDirection },
+      rows,
+      lastFullBottom: appendFull.length === 0 ? null : Math.max(...appendFull.map((r) => r === null ? 0 : r.bottom)),
+    };
+  }
+
   if (mode === "providers") {
     const rows = [...document.querySelectorAll('[data-wb-provider]')].map((el) => ({
       key: el.getAttribute('data-wb-provider'),
@@ -617,7 +640,7 @@ const STATES = [
   { name: "stats", width: 390, height: 844, scenario: "normal", drive: "stats" },
   { name: "history", width: 390, height: 844, scenario: "normal", drive: "history" },
   { name: "task", width: 390, height: 844, scenario: "normal", drive: "task", gauge: "detail" },
-  { name: "sheet", width: 390, height: 844, scenario: "normal", drive: "sheet" },
+  { name: "sheet", width: 390, height: 844, scenario: "normal", drive: "sheet", gauge: "brief" },
   { name: "toast", width: 390, height: 844, scenario: "toast", drive: "toast" },
   { name: "empty", width: 390, height: 844, scenario: "empty", drive: "empty" },
   { name: "read-failed", width: 390, height: 844, scenario: "read-failed", drive: "providers" },
@@ -633,7 +656,8 @@ const STATES = [
   { name: "320-sticky", width: 320, height: 568, scenario: "normal", drive: "sticky" },
   { name: "320-providers", width: 320, height: 568, scenario: "normal", drive: "providers" },
   { name: "320-task", width: 320, height: 568, scenario: "normal", drive: "task", gauge: "detail" },
-  { name: "320-sheet", width: 320, height: 568, scenario: "normal", drive: "sheet" },
+  { name: "320-sheet", width: 320, height: 568, scenario: "normal", drive: "sheet", gauge: "brief" },
+  { name: "sheet-375", width: 375, height: 667, scenario: "normal", drive: "sheet", gauge: "brief" },
   { name: "keyboard", width: 390, height: 420, scenario: "normal", drive: "task-bottom" },
   { name: "dark-tasks", width: 390, height: 844, scenario: "normal", theme: "dark", drive: null },
   { name: "dark-providers", width: 390, height: 844, scenario: "normal", theme: "dark", drive: "providers" },
@@ -772,6 +796,23 @@ function assertGauge(state, gauge) {
     assert.equal(gauge.widthOverflow, 0, state.name + ": the coverage table must not overflow horizontally");
     assert.ok(gauge.narrowest >= (gauge.cov === null ? 0 : gauge.cov.w) - 2,
       state.name + ": a coverage table is narrower than its container");
+    return;
+  }
+  if (state.gauge === "brief") {
+    assert.equal(gauge.present, true, state.name + ": the brief sheet is rendered");
+    assert.ok(gauge.scrollWidth <= gauge.clientWidth + 1,
+      state.name + ": the sheet body must not overflow horizontally (" + gauge.scrollWidth + " > " + gauge.clientWidth + ")");
+    assert.equal(gauge.children, 1, state.name + ": the brief body is one column, not two");
+    assert.deepEqual(gauge.wrapper, { display: "flex", direction: "column" },
+      state.name + ": the brief wrapper stacks its content");
+    for (const row of gauge.rows) {
+      assert.ok(row.box !== null, state.name + ": a brief row is visible");
+      assert.ok(row.box.x >= gauge.body.x - 0.5 && row.box.right <= gauge.body.right + 0.5,
+        state.name + ": " + row.kind + " leaves the sheet body");
+    }
+    assert.ok(gauge.lastFullBottom !== null && gauge.lastFullBottom <= gauge.body.bottom + 0.5,
+      state.name + ": Open full file must be inside the visible sheet body (bottom "
+      + gauge.lastFullBottom + " > " + gauge.body.bottom + ")");
     return;
   }
   if (state.gauge === "providers") {

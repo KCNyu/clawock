@@ -1491,7 +1491,7 @@
 }.pbc .tq-chip-text{ min-width:0 }.pbc .tq-role-glyph{ display:block; flex:none }.pbc .tq-chip[data-role="run"]{ background:var(--tq-chip-run-fill); color:var(--tq-run) }.pbc .tq-chip[data-role="queue"]{ border-color:var(--tq-run); background:transparent; color:var(--tq-run) }.pbc .tq-chip:is([data-role="sleep"], [data-role="partial"]){ background:var(--tq-chip-warn-fill); color:var(--tq-text-warn) }.pbc .tq-chip:is([data-role="wait"], [data-role="fallback"]){ border-color:var(--tq-wait); background:transparent; color:var(--tq-text-warn) }.pbc .tq-chip[data-role="fail"]{ background:var(--tq-chip-bad-fill); color:var(--tq-text-bad) }.pbc .tq-chip[data-role="done"]{ background:var(--tq-chip-fill); color:var(--tq-ink-2) }.pbc .tq-chip[data-role="off"]{ border-color:var(--tq-chip-edge); background:transparent; color:var(--tq-ink-3) }/* Not recorded: dashed, no fill — the one place the tertiary grey is still the voice. */.pbc .tq-chip[data-role="unknown"]{ border-style:dashed; border-color:var(--tq-pill-border); background:transparent; color:var(--tq-ink-3) }/* The fold control. One native <details>, immediate opening, no height animation: the raw
    supervisor log inside a task detail. The patrol history is one list and the coverage is a
    page, so this is the only fold left in the panel. The summary is a hairline capsule with the
-   chevron leading; the body fades in, the layout is immediate. */.pbc .tq-fold{ margin:4px 0 2px var(--tq-main-inset) }.pbc .tq-fold-summary{
+   chevron leading; the body fades in, the layout is immediate. */.pbc .tq-fold{ margin:4px 0 2px var(--tq-main-inset) }.pbc .tq-fold:not([open]) > :not(summary){ display:none }.pbc .tq-fold-summary{
   position:relative;
   box-sizing:border-box;
   list-style:none;
@@ -1791,6 +1791,9 @@
   outline:var(--tq-focus-ring);
   outline-offset:-2px
 }.pbc .tq-log-sheet{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column }
+.pbc .tq-brief-sheet{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column }
+.pbc .tq-link{ margin:0; padding:0; border:0; background:transparent; color:inherit; font:inherit; text-decoration:underline; cursor:pointer }
+.pbc .tq-file-full{ align-self:flex-start; margin:2px 0 6px }
 .pbc .tq-log-note{ display:block; margin:0 0 8px; }
 .pbc .tq-file-item{ min-width:0; }
 .pbc .tq-log{
