@@ -32,6 +32,10 @@ SPCH 持续加仓摊本，直到 SPCX 正股出现实质性反弹，或解禁落
 
 ### 委派 coding agent
 
+**严禁在 chat 会话里直接写代码。**（kcn 2026-11-08）代码、脚本、skill、配置、仓库文档一律派给
+coding agent（他点名谁就派谁；没点名用默认 agent），我只在 chat 里做判断、查状态、写 brief、
+验收结论。包括「顺手改一行」「先写个设计文档」这种小活，也不在 chat 里做。
+
 kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主。
 
 - 他的原话逐字放进 brief，作为唯一需求来源。不改写、不摘要、不扩写。
@@ -138,15 +142,15 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - cron 运行状态在 SQLite。`~/.openclaw/cron/jobs.json` 是迁移 fallback，不是真值。
 - 查 cron / dreaming：`openclaw cron list --json`。
 - coding agent 额度随时变，派发前先查，不要信 MEMORY.md 里的旧记录：
-  `cd /root/tools/agent-dispatch && node quota.mjs codex`（或 `claude`）。
+  按本机运维文档里的 quota 命令查 codex / claude 额度（不在这里写死路径）。
 - 额度耗尽不等于收尾：runner 默认 `--quota-resumes 3`，额度窗口重置后（codex 5h 窗约
   13:54 HKT）在同一会话自动续跑并重放上下文。派发授权仍要一次写全（含合并/部署），
   但「worker 直接交白卷」只发生在续跑次数用完时。
 - codex `gpt-6-astra` + high 是额度老虎：2026-10-21 一次 6 条 issue 的 sweep 15 分钟烧完
-  整个 5h 窗（6.95M tokens，约 $11.6）。默认的 `gpt-6.1-sol`/medium 慢而省；派 astra 前
+  整个 5h 窗（token 与金额随时变，不写死）。默认的 `gpt-6.1-sol`/medium 慢而省；派 astra 前
   先估算要几个额度窗口。
 - 跨调度源的 HKT 时间线：`bash ops/host/check_crons.sh --timeline`。
-- 查 gateway：`curl http://127.0.0.1:18789/health`。
+- 查 gateway：走 gateway 的本地 health 端点（地址见本机运维配置）。
 - cron contract 是 `config/cron-schedules.json`，它驱动 DST 同步、payload / watchdog 校验
   和生成的 `docs/operations/cron-schedules.md`。
 
@@ -171,7 +175,7 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 - 微信卡片样式（`clawock.harness.chat_card`）的覆盖面是**两市场 × 三档位**：港股和美股各自的
   开盘报告 / 盘中盯盘 / 收盘报告，外加盘前简报卡。2026-10-19 起统一由 chat_card 渲染
   （PR #3092 抽出公共渲染器）。加新卡片段或改排版时，港股要单独验：港股是 HKD 数字
-  （`浮盈 -61,313 (-53.5%)`，无 `$`），标题时区是 HKT，美股 risk 行的「杠杆ETF敞口」港股没有。
+  （`浮盈 -NN,NNN (-NN.N%)` 这类占位，无 `$`），标题时区是 HKT，美股 risk 行的「杠杆ETF敞口」港股没有。
 - **微信不渲染 markdown 标题**（插件 `openclaw-weixin` 的 markdown filter 只透传 `**粗体**`，
   `##` 原样显示且不加粗）。所以卡片第一行是整行 `**…**`，不是 `## …`（PR #3103）。
   散文只加粗段落标签（情绪面/技术面/操作建议/风险提示各自一行），正文不粗；整段粗体是噪音

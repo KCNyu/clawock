@@ -27,8 +27,10 @@ FILES=(
   README.md
   wiring.json
   references/maintenance.md
+  publish-manifest.json
   scripts/memory.py
   scripts/memctl
+  scripts/publish.py
   hooks/claude-hook.sh
   agents/openai.yaml
 )

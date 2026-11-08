@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "generated_by": "ops/host/shared-memory/scripts/publish.py",
+  "header_lines": 4,
+  "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
+  "content_sha256": "9da714f64c4bed06afa8e17af222af8265f0a0d0b785fa7399ee9a3da1ef60d6",
+  "bytes": 12866,
+  "sections": [
+    {
+      "slug": "feedback-investment-preferences",
+      "order": 1,
+      "publish": "public",
+      "separator": false,
+      "heading": "## 用户偏好",
+      "lines": 11,
+      "sha256": "ceaca716476daf113d8e4e534f597ded568f2d6e8307fd3569c7868f57eb4369"
+    },
+    {
+      "slug": "feedback-spch-policy",
+      "order": 2,
+      "publish": "public",
+      "separator": false,
+      "heading": "### SPCH 无限子弹流",
+      "lines": 9,
+      "sha256": "cd4df1cb17b04fa2c18d32f76a3db2b015b2ba9fbe45285414ad614f06448905"
+    },
+    {
+      "slug": "reference-investment-question-workflow",
+      "order": 3,
+      "publish": "public",
+      "separator": false,
+      "heading": "### 投资问题工作流",
+      "lines": 4,
+      "sha256": "f115f102c00b690cb0cd3f89435cead68024b71f59b43ba4fe333df971714041"
+    },
+    {
+      "slug": "feedback-delegation-brief",
+      "order": 4,
+      "publish": "public",
+      "separator": false,
+      "heading": "### 委派 coding agent",
+      "lines": 15,
+      "sha256": "735565db2871006a790f12c9189f16f8b2f2469b807610a5c2d7a7b92da953e9"
+    },
+    {
+      "slug": "feedback-portfolio-data-rules",
+      "order": 5,
+      "publish": "public",
+      "separator": true,
+      "heading": "## 数据规则（本文件是唯一权威）",
+      "lines": 42,
+      "sha256": "3b115537d073984059c235ccd419489a9a1f53273d814e22eae396917255df24"
+    },
+    {
+      "slug": "reference-market-data-commands",
+      "order": 6,
+      "publish": "public",
+      "separator": true,
+      "heading": "## 取数：先用命令，再考虑 curl",
+      "lines": 7,
+      "sha256": "7e68906b8c52eb7921d059a5054717c6eb8fa49633f714e0cde2638f21c0afd4"
+    },
+    {
+      "slug": "reference-market-timezone",
+      "order": 7,
+      "publish": "public",
+      "separator": true,
+      "heading": "## 时区",
+      "lines": 7,
+      "sha256": "75882092e7a496fe977c9444ea6cae0256726e060ce1b2a89c23e1c55d46552d"
+    },
+    {
+      "slug": "feedback-release-versioning",
+      "order": 8,
+      "publish": "public",
+      "separator": true,
+      "heading": "## 发版版本号",
+      "lines": 15,
+      "sha256": "c3056d9e2716d9058e63560a89d206555bbc197ccd5fa1467e4a80f9dc5af41d"
+    },
+    {
+      "slug": "reference-market-linkages",
+      "order": 9,
+      "publish": "public",
+      "separator": false,
+      "heading": "## 关键市场联动",
+      "lines": 5,
+      "sha256": "95c938246fa8ce75be890eb9eddfbb9f54a879d76de2a35b627fcef4f57fd5e6"
+    },
+    {
+      "slug": "project-openclaw-operations",
+      "order": 10,
+      "publish": "public",
+      "separator": true,
+      "heading": "## OpenClaw 运维",
+      "lines": 16,
+      "sha256": "10fd754413098aabe7f5698104932c7e54c1362d4cef3e4ec599f0e43ec6bd79"
+    },
+    {
+      "slug": "project-openclaw-model-policy",
+      "order": 11,
+      "publish": "public",
+      "separator": false,
+      "heading": "### 模型与 thinking（2026-10-20 起）",
+      "lines": 11,
+      "sha256": "38f2c9e51e4377765882f35a857f92923314cc7fb014aea0ad082984ca365c83"
+    },
+    {
+      "slug": "project-openclaw-brief-delivery",
+      "order": 12,
+      "publish": "public",
+      "separator": false,
+      "heading": "### 简报投递：微信只发紧凑卡 + 链接",
+      "lines": 17,
+      "sha256": "eaa79009f60cefcbcf21d43be36632f4b399a370467b8674f3d1d32cbe839391"
+    },
+    {
+      "slug": "feedback-report-validation-redlines",
+      "order": 13,
+      "publish": "public",
+      "separator": true,
+      "heading": "### 报告散文的校验红线（2026-10-27 港股午后实测）",
+      "lines": 8,
+      "sha256": "7be0f5da4dbef1aa5d37cd0580504e336797affb8603cacaa4c3ffa13a0bac72"
+    },
+    {
+      "slug": "project-dreaming-review",
+      "order": 14,
+      "publish": "public",
+      "separator": true,
+      "heading": "## Dreaming 审阅",
+      "lines": 5,
+      "sha256": "f664a418ffe8c651e03f1bed6d493102f87bccc5d7b5367cc74cae952ed0d842"
+    }
+  ]
+}

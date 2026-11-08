@@ -143,8 +143,9 @@ Read-only dry run first; nothing is written until the report is reviewed.
 - **Context bloat.** Injecting the wrong subset buries the rules. Mitigation: the inject view has a
   byte budget, and a note over it is split or demoted, not truncated silently.
 - **Private leakage.** A unified store plus a public repository is the one irreversible failure.
-  Mitigation: `publish` defaults to `private` and the projection only reads `public`. A CI check
-  for non-public lines is part of P4, not present today.
+  Mitigation: `publish` defaults to `private` and the projection only reads `public`. The generated
+  `MEMORY.md` and its hash manifest are checked by `tests/test_memory_publish.py`; a hand-added or
+  non-public section fails CI.
 - **Gate overload.** One 03:20 review over every agent's transcripts is more candidates than one
   reviewer can hold. Mitigation: cap per-source candidates per night and keep the review hash-bound,
   so an unreviewed night promotes nothing.
