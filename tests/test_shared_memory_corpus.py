@@ -37,10 +37,10 @@ SAMPLES = [
 ]
 
 
-def node(script):
+def node(script, env=None):
     proc = subprocess.run(["node", "--experimental-strip-types", "--no-warnings", "--input-type=module", "-e",
                            f"import register, * as m from {json.dumps(PLUGIN.as_uri())};\n" + script],
-                          capture_output=True, text=True, timeout=60)
+                          capture_output=True, text=True, timeout=60, env={**os.environ, **(env or {})})
     assert proc.returncode == 0, proc.stderr
     return json.loads(proc.stdout.strip().splitlines()[-1])
 
@@ -138,16 +138,43 @@ def test_a_missing_or_broken_store_returns_nothing_instead_of_failing(tmp_path, 
     assert out["h"] >= 1
 
 
-def test_it_never_writes(store):
+def test_it_never_writes_the_store_and_only_appends_the_recall_log(store, tmp_path):
     before = {p: (p.stat().st_mtime_ns, p.read_bytes()) for p in store.rglob("*") if p.is_file()}
+    state = tmp_path / "state"
     node(corpus(store, f"[await c.search({{query: 'sandbox', agentSessionKey: '{DIRECT}'}}), "
-                       f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: '{DIRECT}'}})]"))
+                       f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: '{DIRECT}'}})]"),
+         env={"SHARED_MEMORY_STATE": str(state)})
     after = {p: (p.stat().st_mtime_ns, p.read_bytes()) for p in store.rglob("*") if p.is_file()}
     assert before == after
+    rows = [json.loads(line) for line in (state / "recall.jsonl").read_text().splitlines()]
+    assert {row["source"] for row in rows} == {"openclaw-supplement", "openclaw-get"}
+    assert all("sandbox" not in json.dumps(row) or "feedback-sandbox" in json.dumps(row) for row in rows)
     source = PLUGIN.read_text()
     imported = re.search(r'import \{([^}]*)\} from "node:fs/promises"', source).group(1)
-    assert {name.strip() for name in imported.split(",")} == {"readdir", "readFile", "realpath", "stat"}
-    assert not re.search(r"writeFile|appendFile|createWriteStream|unlink|rename|mkdir|rmSync|copyFile|require\(|\bfs\.", source)
+    assert {name.strip() for name in imported.split(",")} == {"appendFile", "mkdir", "readdir", "readFile", "realpath", "stat"}
+    assert not re.search(r"writeFile|createWriteStream|unlink|rename|rmSync|copyFile|require\(|\bfs\.", source)
+    assert "/root" not in source
+
+
+def test_search_and_get_record_topic_slugs_without_the_query(store, tmp_path):
+    state = tmp_path / "state"
+    node(corpus(store, f"await c.search({{query: 'sandbox', agentSessionKey: '{DIRECT}'}})"),
+         env={"SHARED_MEMORY_STATE": str(state)})
+    node(corpus(store, f"await c.get({{lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: '{DIRECT}'}})"),
+         env={"SHARED_MEMORY_STATE": str(state)})
+    rows = [json.loads(line) for line in (state / "recall.jsonl").read_text().splitlines()]
+    assert rows[0]["source"] == "openclaw-supplement" and "feedback-sandbox" in rows[0]["topics"]
+    assert rows[1]["source"] == "openclaw-get" and rows[1]["topics"] == ["feedback-sandbox"]
+    assert all(set(row) == {"ts", "source", "topics"} for row in rows)
+    assert oct((state / "recall.jsonl").stat().st_mode & 0o777) == "0o600"
+
+
+def test_group_sessions_write_no_recall(store, tmp_path):
+    state = tmp_path / "state"
+    node(corpus(store, "[await c.search({query: 'sandbox', agentSessionKey: 'agent:main:cron:brief'}), "
+                       "await c.get({lookup: 'shared-memory/feedback-sandbox.md', agentSessionKey: 'agent:main:cron:brief'})]"),
+         env={"SHARED_MEMORY_STATE": str(state)})
+    assert not (state / "recall.jsonl").exists()
 
 
 def test_redaction_matches_memctl_pattern_for_pattern():

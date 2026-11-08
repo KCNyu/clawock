@@ -10,9 +10,11 @@ an empty store and grows the user's own.
 | `SKILL.md`, `references/maintenance.md` | the skill each agent loads: when to recall, what to record, how to maintain |
 | `scripts/memory.py` | format owner: read, search, add/update/archive, index routing, `doctor` (stdlib only) |
 | `scripts/memctl` | history, audit and wiring checks around the store (stdlib only; PyYAML optional for the dsh profile check) |
+| `scripts/recall.py` | private recall counter (`recall.jsonl`, `recall-stats.json`) shared by `memory.py` and the OpenClaw supplement |
+| `scripts/retire.py` | nightly nomination report: stale, unused, superseded and duplicate topics; never edits the store |
 | `hooks/claude-hook.sh` | Claude Code `PostToolUse` / `SessionStart` hook |
 | `wiring.json` | where each agent looks, and which working directories share the store |
-| `systemd/` | two timers: a 10-minute snapshot and a daily bundle + deep self-check |
+| `systemd/` | three timers: a 10-minute snapshot, a daily bundle + deep self-check, and the 03:47 retirement nomination report |
 | `openclaw/` | read-only corpus plugin that lets an OpenClaw assistant search the store (see below) |
 
 ## Layout of a store
@@ -140,7 +142,8 @@ OpenClaw config or restart the gateway.
 `openclaw/index.ts` registers a memory corpus supplement through OpenClaw's plugin API
 (`registerMemoryCorpusSupplement`), loaded from outside OpenClaw's own install so an upgrade
 leaves it in place. The assistant's `memory_search` with `corpus=all` and `memory_get` on a
-`shared-memory/<topic>.md` path then return the store's topics, read-only:
+`shared-memory/<topic>.md` path then return the store's topics, read-only (the only write
+is the private recall counter below):
 
 - it only reads files under the configured root, `.md` only, no symlink escapes;
 - it answers direct (one-to-one) sessions only — group, channel, cron and keyless sessions get
@@ -209,6 +212,35 @@ rather than silently ship.
 `MEMORY.md` stays the direct-chat injection source. The projection keeps the exact section text,
 order and separators of the reviewed file, so switching it in does not change what the chat sees.
 `tests/test_memory_publish.py` holds the committed-pair check and the fake-store round trip.
+
+## Recall counter and retirement
+
+Recall is counted in one private append-only file, never in the store or the repository:
+
+```
+~/.local/state/shared-memory/recall.jsonl   0600
+{"ts":"...","source":"openclaw-supplement","topics":["feedback-x"]}
+```
+
+Sources are the OpenClaw supplement (`search` and `get`), `memory.py search`,
+`memory.py read`, and the cron/brief injection view (`inject --audience investment-cron`
+records `cron-brief`). Only topic slugs are written: no query, no snippet, no session
+key. The supplement appends best-effort and still answers when the counter is
+unavailable. `scripts/recall.py stats --write` derives `recall-stats.json`
+(`count`, `last_recalled`, per-source counts).
+
+`scripts/retire.py` runs nightly at 03:47 from a separate timer and writes
+`retirement-candidates.json` / `.md` in the state directory. It **nominates only** and
+never edits, archives or deletes a topic. Rules: `status: stale` older than 90 days, an
+optional zero-recall rule (30 days, ships **off** until the counter has at least 30 days
+of coverage), `superseded_by`, and exact duplicate bodies. A topic is never a candidate
+when it is `verified`, `publish: public`, `scope: persona|memory`, linked/cited by
+another topic or an index, or missing a write-time field.
+
+`memory.py forget <slug> --confirm` is manual only. It refuses a referenced topic,
+takes a snapshot first, removes the file and its single index route, records `op=forget`,
+and prints `memctl restore <slug> --at <commit>`. `archive` remains the recommended
+action for reviewed stale content.
 
 ## Search matching
 

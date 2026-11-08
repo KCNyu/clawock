@@ -101,7 +101,7 @@ python3 $M archive --drop-hooks <slug>...   # move to archive/, drop index lines
 ```
 
   Archiving never deletes. `archive/` is search-only and needs no index route. Label archived handoffs non-operative.
-- When the user asks to forget something, remove the topic and its index entry. When correcting, keep only the corrected version and note supersession only if it prevents a likely future mistake. Search references before moving or deleting. Do not claim product-private history or service-side data was deleted; this skill controls only the shared Markdown store.
+- When the user asks to forget something, use `python3 $M forget <slug> --confirm --reason "..."`. It refuses a topic still linked from another topic or a grouped index hook, takes a snapshot first, removes the file and its single index route, records `op=forget`, and prints the `memctl restore` command. `archive` is the safer default for reviewed stale content. When correcting, keep only the corrected version and note supersession only if it prevents a likely future mistake. Do not claim product-private history or service-side data was deleted; this skill controls only the shared Markdown store.
 
 ## Validate
 

@@ -26,6 +26,7 @@ import argparse
 import datetime as dt
 import fcntl
 import hashlib
+import json
 import os
 from pathlib import Path
 import fnmatch
@@ -35,6 +36,15 @@ import stat
 import subprocess
 import sys
 import tempfile
+
+# The private recall counter sits next to this script in the installed skill. Keep memory.py
+# importable when an older install has not copied recall.py yet: counting is best-effort.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+try:
+    from recall import record as record_recall  # noqa: E402
+except ImportError:  # pragma: no cover - only a partially installed skill
+    def record_recall(source: str, topics) -> bool:
+        return False
 
 
 DEFAULT_ROOT = Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).expanduser()
@@ -396,6 +406,18 @@ def cmd_index(args: argparse.Namespace) -> int:
     return 0
 
 
+def _recall(source: str, paths) -> None:
+    """Best-effort append to the private counter; a read must never fail because of it."""
+    try:
+        root = memory_root()
+        names = [str(path.relative_to(root)).removesuffix(".md") if isinstance(path, Path)
+                 else str(path).removesuffix(".md") for path in paths]
+        names = [name for name in names if name != "MEMORY" and not name.startswith("indexes/")]
+        record_recall(source, names)
+    except Exception:
+        return
+
+
 def cmd_read(args: argparse.Namespace) -> int:
     root = memory_root()
     path = topic_path(root, args.topic)
@@ -409,6 +431,7 @@ def cmd_read(args: argparse.Namespace) -> int:
     if not path.is_file():
         raise SystemExit(f"memory topic not found: {path.name}")
     print(path.read_text(encoding="utf-8"), end="")
+    _recall("python-read", [path])
     return 0
 
 
@@ -530,7 +553,7 @@ def cmd_inject(args: argparse.Namespace) -> int:
     filters = [f"scope={','.join(policy['scopes'])}"]
     filters += [f"{key}={value}" for key, value in policy.items() if key != "scopes"]
     header = f"# Shared memory injection: {args.audience} ({'; '.join(filters)})"
-    lines, used, skipped = [header], len(header.encode("utf-8")), []
+    lines, used, skipped, rendered = [header], len(header.encode("utf-8")), [], []
     for item in selected:
         block = f"\n## {item['name']}\n\n{item['description']}\n\n{item['body']}\n"
         size = len(block.encode("utf-8"))
@@ -539,7 +562,11 @@ def cmd_inject(args: argparse.Namespace) -> int:
             continue
         lines.append(block)
         used += size
+        rendered.append(item["name"])
     print("\n".join(lines).rstrip())
+    if rendered:
+        source = "cron-brief" if args.audience == "investment-cron" else f"inject-{args.audience}"
+        _recall(source, rendered)
     if stale_skipped:
         print(f"# inject: {len(stale_skipped)} stale topic(s) excluded from {args.audience}: "
               f"{', '.join(stale_skipped)}", file=sys.stderr)
@@ -606,9 +633,10 @@ def cmd_search(args: argparse.Namespace) -> int:
         if not filtered:
             raise SystemExit("query or a metadata filter is required")
         order = {"high": 0, "normal": 1, "low": 2}
-        for rel, _, description, _, meta in sorted(
-                docs, key=lambda doc: (order.get(doc[4].get("salience", "normal"), 1), doc[0])):
+        listed = sorted(docs, key=lambda doc: (order.get(doc[4].get("salience", "normal"), 1), doc[0]))
+        for rel, _, description, _, meta in listed:
             print(f"{rel} — {one_line(description)[:160]}")
+        _recall("python-search", [rel for rel, *_ in listed])
         return 0
 
     frequencies: dict[str, int] = {}
@@ -705,11 +733,13 @@ def cmd_search(args: argparse.Namespace) -> int:
     # Topics containing every word come first, then partial matches.
     results = sorted(by_rel.values(), key=lambda item: (item[4] < 1 - 1e-9, -item[0], item[1]))
 
-    for score, rel, description, lines, _, marker in results[: args.limit]:
+    shown = results[: args.limit]
+    for score, rel, description, lines, _, marker in shown:
         suffix = f" — {one_line(description)[:160]}" if description else ""
         print(f"{rel}{marker}{suffix}")
         for _, number, line in sorted(lines, key=lambda item: (-item[0], item[1]))[: args.lines]:
             print(f"  {number}: {line.strip()[:200]}")
+    _recall("python-search", [rel for _, rel, *_ in shown])
     if len(results) > args.limit:
         print(f"# {len(results) - args.limit} more topics; refine the query or raise --limit", file=sys.stderr)
     return 0 if results else 1
@@ -884,6 +914,107 @@ def write_topic(root: Path, path: Path, summary: str | None, new_body, kind: str
             atomic_write(root / name, "\n".join(lines).rstrip() + "\n")
             remember_write(root / name)
     print(path)
+    return 0
+
+
+def _forget_references(root: Path, slug: str) -> list[str]:
+    """References that make forgetting unsafe: links from other topics, grouped index
+    hooks, redirects and literal routes. The topic's own single-route hook is not one."""
+    refs: list[str] = []
+    route = f"{slug}.md"
+    for path in sorted(root.glob("*.md")):
+        if path.name == MAIN_INDEX or path.stem == slug:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if f"[[{slug}]]" in text:
+            refs.append(f"{path.name}: [[{slug}]]")
+        elif f"`{route}`" in text:
+            refs.append(f"{path.name}: `{route}`")
+    for name in index_files(root):
+        for line in (root / name).read_text(encoding="utf-8").splitlines():
+            routes = index_refs(line)
+            if route in routes and len(routes) > 1:
+                refs.append(f"{name}: grouped hook {line.strip()[:100]}")
+    for name in ("routes.tsv", "redirects.tsv"):
+        path = root / "indexes" / name
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip() and not line.startswith("#") and slug in line:
+                refs.append(f"indexes/{name}: {line.strip()[:100]}")
+    return refs
+
+
+def _memctl_path() -> Path:
+    return Path(os.environ.get("SHARED_MEMORY_MEMCTL") or Path(__file__).with_name("memctl"))
+
+
+def _history_head() -> str | None:
+    state = Path(os.environ.get("SHARED_MEMORY_STATE", "~/.local/state/shared-memory")).expanduser()
+    git_dir = state / "history.git"
+    if not (git_dir / "HEAD").is_file():
+        return None
+    proc = subprocess.run(["git", f"--git-dir={git_dir}", "rev-parse", "HEAD"],
+                          text=True, capture_output=True)
+    return proc.stdout.strip() if proc.returncode == 0 and proc.stdout.strip() else None
+
+
+def cmd_forget(args: argparse.Namespace) -> int:
+    """Remove one topic after a human confirmation; history keeps the body and a restore hint."""
+    root = memory_root()
+    path = topic_path(root, args.slug)
+    if path.parent != root or not path.is_file():
+        raise SystemExit(f"only an active top-level topic can be forgotten: {path.name}")
+    slug = path.stem
+    refs = _forget_references(root, slug)
+    if refs:
+        print(f"refusing to forget {slug}: still referenced", file=sys.stderr)
+        for ref in refs:
+            print(f"  {ref}", file=sys.stderr)
+        return 1
+    if not args.confirm:
+        print(f"refusing to forget {slug} without --confirm", file=sys.stderr)
+        print(f"would remove {path} and its single index route; `memctl restore {slug}` can bring it back",
+              file=sys.stderr)
+        return 2
+    memctl = _memctl_path()
+    if not memctl.is_file():
+        raise SystemExit(f"memctl not found next to memory.py ({memctl}); refusing without a snapshot")
+    env = {**os.environ, "SHARED_MEMORY_DIR": str(root)}
+    before = subprocess.run([sys.executable, str(memctl), "snapshot", "--reason", f"pre-forget {slug}"],
+                            env=env, text=True, capture_output=True)
+    if before.returncode:
+        raise SystemExit(f"pre-forget snapshot failed: {before.stderr.strip()[:300]}")
+    restore_at = _history_head()
+    if not restore_at:
+        raise SystemExit("history is not initialized; refusing to forget without a restore point")
+    route = f"{slug}.md"
+    for name in index_files(root):
+        for line in (root / name).read_text(encoding="utf-8").splitlines():
+            routes = index_refs(line)
+            if route in routes and len(routes) > 1:
+                raise SystemExit(f"cannot forget {slug}: grouped index hook in {name}; edit it first")
+    path.unlink()
+    for name in index_files(root):
+        index_path = root / name
+        lines = index_path.read_text(encoding="utf-8").splitlines()
+        kept = [line for line in lines if index_refs(line) != [route]]
+        if len(kept) != len(lines):
+            atomic_write(index_path, "\n".join(kept).rstrip() + "\n")
+    after = subprocess.run([sys.executable, str(memctl), "snapshot", "--op", "forget",
+                            "--reason", f"forget {slug}: {args.reason}"],
+                           env=env, text=True, capture_output=True)
+    if after.returncode:
+        print(f"warning: topic removed but the forget snapshot failed: {after.stderr.strip()[:300]}",
+              file=sys.stderr)
+        print(f"history: unknown (pre-forget HEAD {restore_at})", file=sys.stderr)
+    else:
+        try:
+            entry = json.loads(after.stdout.strip() or "{}")
+        except ValueError:
+            entry = {}
+        print(f"history: {entry.get('commit') or _history_head() or 'unknown'}")
+    print(f"restore: {sys.executable} {memctl} restore {slug} --at {restore_at}")
     return 0
 
 
@@ -1190,6 +1321,12 @@ def build_parser() -> argparse.ArgumentParser:
     update.add_argument("--publish", choices=PUBLISH)
     update.add_argument("--tag", action="append", metavar="TAG", help="replace the topic's tags (repeatable)")
     update.set_defaults(func=cmd_update)
+
+    forget = sub.add_parser("forget", help="remove one topic after an explicit confirmation (history keeps it)")
+    forget.add_argument("slug")
+    forget.add_argument("--confirm", action="store_true", help="required; without it nothing is removed")
+    forget.add_argument("--reason", default="requested by the operator")
+    forget.set_defaults(func=cmd_forget)
 
     archive = sub.add_parser("archive", help="move topics into archive/ (no deletion) and repoint index routes")
     archive.add_argument("slugs", nargs="+")

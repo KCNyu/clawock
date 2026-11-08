@@ -1,0 +1,9 @@
+[Unit]
+Description=Shared agent memory: nominate retirement candidates (report only, never edits)
+
+[Service]
+Type=oneshot
+Environment=HOME=@HOME@
+ExecStart=/usr/bin/python3 @SKILL_DIR@/scripts/retire.py
+Nice=10
+IOSchedulingClass=idle
