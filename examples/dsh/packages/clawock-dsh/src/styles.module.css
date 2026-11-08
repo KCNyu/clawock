@@ -2018,20 +2018,14 @@
   line-height:var(--lh-lg);
 }body[data-ds-dark-theme] .wb{
   --wb-bad:#FA716A;
-}/* The panellist icon: a 16px glyph with a compact ink badge. The live host's
-   rail button is 36px, so the badge and the alert are anchored to the glyph's
-   own 16px box, not to the host wrapper: a 16px badge there covered the glyph
-   and the bottom-right alert sat on top of it (2026-11-08 screenshots). */.wb-icon{
+}/* The panellist icon: a 16px glyph. Counts are words in the host's own label
+   ("Workbench · 1 alert"), never a numeric badge on the glyph: the 2026-11-08
+   screenshots showed the same "1" twice and the chip covered the icon. The
+   rail keeps only a non-numeric alert mark because the host hides the label
+   there. */.wb-icon{
   position:relative; display:inline-flex; flex:none; align-items:center; justify-content:center;
   color:var(--dsw-alias-label-primary);
-}.wb-icon-on{ color:var(--dsw-alias-label-primary); }[data-wb-rail=true] .wb-icon{ position:relative; }.wb-badge{
-  position:absolute; top:-4px; right:-6px; box-sizing:border-box; display:none; align-items:center; justify-content:center;
-  min-width:14px; max-width:20px; height:14px; padding:0 3px; border-radius:7px; overflow:hidden; white-space:nowrap;
-  background:var(--dsw-alias-label-primary); color:var(--dsw-alias-label-primary-inverted);
-  box-shadow:0 0 0 1.5px var(--dsw-alias-bg-layer-1, #fff);
-  font-size:var(--fs-badge); line-height:var(--lh-xs); font-weight:var(--fw-bold); text-align:center;
-  font-variant-numeric:tabular-nums; pointer-events:none;
-}[data-wb-rail=true] .wb-badge{ display:flex; }.wb-badge[data-wb-tone=danger]{ background:var(--dsw-alias-state-error-primary); color:#fff; }/* Alerts are words in the host's own label ("Workbench · 1 alert"); the
+}.wb-icon-on{ color:var(--dsw-alias-label-primary); }[data-wb-rail=true] .wb-icon{ position:relative; }/* Alerts are words in the host's own label ("Workbench · 1 alert"); the
    plugin never paints a colour-only dot here. *//* Page shell. The pad is the one width-driven value (12 under 360, 16 at
    and above it); everything else is the same DOM/CSS at both widths. */.wb{ --wb-pad:12px; }@media (min-width:360px){.wb{ --wb-pad:16px; }}.wb-head{ flex:none; border-bottom:1px solid var(--wb-hair); }.wb-head-row{ display:flex; align-items:center; gap:8px; height:44px; padding:0 var(--wb-pad); box-sizing:border-box; }.wb-back{
   flex:none; width:28px; height:28px; margin-left:-8px; padding:0; border:0; border-radius:var(--dsw-radius-sm, 6px);

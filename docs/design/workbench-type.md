@@ -26,7 +26,7 @@ resolved value of the size token; the test asserts it against the CSS root.
 | tab | `--fs-md` | `--fw-semibold` | `--lh-lg` | 13px | `.wb-tab` |
 | 空态标题 | `--fs-xl` | `--fw-medium` | `--lh-xl` | 15px | `.wb-empty-title` |
 | 错误文本 | `--fs-sm` | `--fw-regular` | `--lh-md` | 12px | `.wb-notice`, `.wb-providers-error`, `.tq-stats-error-text` |
-| 角标数字 | `--fs-badge` | `--fw-bold` | `--lh-xs` | 9px | `.wb-badge`, `.wb-tab-alert`, `.wb-rail-alert` |
+| 角标数字 | `--fs-badge` | `--fw-bold` | `--lh-xs` | 9px | `.wb-tab-alert`, `.wb-rail-alert` |
 | 计数角标 | `--fs-micro` | `--fw-semibold` | `--lh-xs` | 10px | `.wb-tab-count` |
 | 字段标签 | `--fs-xs` | `--fw-semibold` | `--lh-sm` | 11px | `.wb-needs-label`, `.wb-ov-sec-title` |
 | 详情正文 | `--fs-md` | `--fw-regular` | `--lh-lg` | 13px | `.tq-d-v`, `.tq-d-k` |

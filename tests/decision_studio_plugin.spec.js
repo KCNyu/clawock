@@ -3831,9 +3831,7 @@ test("workbench client: one sidebar entry, a neutral count and an explained prov
   };
   const badgeOf = (tree) => find(tree, (p) => p["data-wb-badge"] === "true")[0];
   const danger = renderIcon(alert, [task("s", now - 2 * 86400_000, { stage: "person/blocked", state: "quota" })]);
-  const badge = badgeOf(danger);
-  assert.ok(badge, "pending tasks still show the count");
-  assert.equal(badge.props["data-wb-tone"], "neutral", "the count badge is never red");
+  assert.equal(badgeOf(danger), undefined, "the row paints no numeric badge; the count is in the label");
   assert.equal(find(danger, (p) => p["data-wb-provider-alert"] !== undefined)[0].props["data-wb-provider-alert"], "Codex",
     "only the alert provider names the alert");
   assert.equal(find(danger, (p) => p["data-wb-provider-alert"] !== undefined)[0].props["aria-label"], undefined,
@@ -3852,14 +3850,11 @@ test("workbench client: one sidebar entry, a neutral count and an explained prov
     "工作台 · 1 个告警");
   assert.equal(zh("workbench.labelAlert", { alerts: zh("workbench.provider.alertCount", { n: 3 }) }),
     "工作台 · 3 个告警");
-  assert.equal(en("workbench.labelTasks", { n: 2 }), "Workbench · 2 pending",
-    "a wide row without a provider alert still says how many tasks are waiting");
-  assert.equal(zh("workbench.labelTasks", { n: 2 }), "工作台 · 2 件待处理");
   const hundred = Array.from({ length: 100 }, (_, i) => task("m" + i, now - i * 1000));
-  assert.equal(badgeOf(renderIcon(alert, hundred)).children.join(""), "99+",
-    "the rail badge caps at 99+");
-  assert.equal(badgeOf(renderIcon(BALANCES_OK, [task("r", now - 60_000)])).children.join(""), "1",
-    "the count is still stuck + pending");
+  assert.equal(badgeOf(renderIcon(alert, hundred)), undefined,
+    "no badge at 100 pending either; the host label carries the count");
+  assert.equal(badgeOf(renderIcon(BALANCES_OK, [task("r", now - 60_000)])), undefined,
+    "a pending count is not duplicated on the glyph");
   assert.equal(badgeOf(renderIcon(BALANCES_OK, [])), undefined, "zero pending renders no badge");
   // The sidebar entry must not print a provider number: the label says the count, nothing more.
   assert.doesNotMatch(JSON.stringify(renderIcon(alert, [])), /123\.9|5h|week/,
