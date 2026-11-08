@@ -4686,6 +4686,8 @@ test("workbench client: a refused Stop shows the dispatcher's reason", async () 
     let tree = render();
     find(tree, (p) => p["data-wb-task"] === "q-done")[0].props.onClick();
     tree = render();
+    assert.doesNotMatch(textOf(tree), /Execution complete|Task: complete/,
+      "a DONE chip is not repeated as a second execution line");
     const stop = () => find(tree, (p) => typeof p.className === "string" && p.className.includes("wb-act-danger"))[0];
     assert.ok(stop(), "a terminal task with an open question still has the resolve Stop");
     stop().props.onClick();
@@ -4794,6 +4796,20 @@ test("workbench client: Full log opens the preview or says why it cannot", async
     assert.equal(full.props.href, undefined,
       "the exit is a button, not a direct link to the charset-less route");
     assert.equal(typeof full.props.onClick, "function");
+
+    // The ordinary Log pill must carry the same note + full-file exit.
+    absent.find(tree, (p) => p["data-wb-sheet-back"] !== undefined)[0].props.onClick();
+    tree = absent.render();
+    absent.find(tree, (p) => p["data-tq-action"] === "log")[0].props.onClick();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    tree = absent.render();
+    const ordinaryNote = absent.find(tree, (p) => p["data-tq-log-note"] !== undefined)[0];
+    assert.ok(ordinaryNote, "the plain Log entry also explains the inline truncation");
+    assert.match(absent.textOf(ordinaryNote), /80 行/);
+    const ordinaryFull = absent.find(ordinaryNote, (p) => p["data-tq-log-full"] !== undefined)[0];
+    assert.ok(ordinaryFull, "the plain Log entry also links the full file");
+    assert.equal(typeof ordinaryFull.props.onClick, "function");
+    assert.deepEqual(absent.calls, [["log", "done-1"], ["log", "done-1"]]);
 
     // A host with a preview: the native path wins and nothing is said.
     const native = make(() => ({ ok: true }));
@@ -4920,6 +4936,23 @@ test("workbench client: full-file text is decoded as UTF-8", async () => {
     api._readUtf8("/nope", async () => new Response("", { status: 500 })),
     /HTTP 500/,
   );
+});
+
+test("workbench client: needs and summary render minimal Markdown", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const nodes = api._richText("- one `x`\n- **two**\n\nplain **end**", "k");
+  assert.equal(nodes[0].type, "ul", "a dash line becomes a list");
+  assert.equal(nodes[0].children.length, 2);
+  const flat = JSON.stringify(nodes);
+  assert.match(flat, /"type":"code"/, "inline code is rendered as <code>");
+  assert.match(flat, /"type":"strong"/, "bold is rendered as <strong>");
+  assert.doesNotMatch(flat, /`/, "backticks are not left in the text");
+  assert.equal(nodes[1].type, "p");
 });
 
 test("workbench client: patrol and task are exclusive detail layers", async () => {

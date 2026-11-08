@@ -261,6 +261,10 @@ export declare const DETAIL_ACTIONS: Record<string, {
 }>;
 /** Read one full file as UTF-8 through dsh's session-free route. */
 export declare function _readUtf8(path: string, fetchImpl?: typeof fetch): Promise<string>;
+/** Minimal Markdown for the two prose surfaces (needs and closing report):
+ * inline code/bold, `-`/numbered lists, paragraphs, line breaks. React escapes
+ * every text node, so this never injects markup. */
+export declare function _richText(text: string, keyPrefix: string): React.ReactNode[];
 /** What one action's answer says, in the reader's words (the ops entry's own message otherwise). */
 export declare function _describeAction(result: QueueActionResult, t: Translate): string;
 /** The panellist icon: a permanent entry; the badge exists only with pending tasks. */

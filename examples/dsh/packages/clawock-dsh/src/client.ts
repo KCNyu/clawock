@@ -1723,6 +1723,55 @@ export async function _readUtf8(path: string, fetchImpl: typeof fetch = fetch): 
   return new TextDecoder('utf-8').decode(await response.arrayBuffer())
 }
 
+/** Minimal Markdown for the two prose surfaces (needs and closing report):
+ * inline code/bold, `-`/numbered lists, paragraphs, line breaks. React escapes
+ * every text node, so this never injects markup. */
+export function _richText(text: string, keyPrefix: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = []
+  const inline = (line: string, key: string): React.ReactNode[] => {
+    const out: React.ReactNode[] = []
+    line.split(/(`[^`]+`|\*\*[^*]+\*\*)/g).forEach((part, index) => {
+      if (part === '') return
+      if (part.length > 1 && part.startsWith('`') && part.endsWith('`')) out.push(h('code', { key: key + '-' + index }, part.slice(1, -1)))
+      else if (part.length > 4 && part.startsWith('**') && part.endsWith('**')) out.push(h('strong', { key: key + '-' + index }, part.slice(2, -2)))
+      else out.push(part)
+    })
+    return out
+  }
+  let paragraph: string[] = []
+  let list: { kind: 'ul' | 'ol'; items: string[] } | null = null
+  const flushParagraph = (): void => {
+    if (paragraph.length === 0) return
+    const key = keyPrefix + '-p' + nodes.length
+    nodes.push(h('p', { key }, ...inline(paragraph.join(' '), key)))
+    paragraph = []
+  }
+  const flushList = (): void => {
+    if (list === null) return
+    const key = keyPrefix + '-l' + nodes.length
+    nodes.push(h(list.kind, { key }, ...list.items.map((item, index) => h('li', { key: key + '-' + index }, ...inline(item, key + '-' + index)))))
+    list = null
+  }
+  for (const raw of text.replace(/\r\n/g, '\n').split('\n')) {
+    const line = raw.trimEnd()
+    if (line.trim() === '') { flushParagraph(); flushList(); continue }
+    const unordered = /^\s*[-*]\s+(.*)$/.exec(line)
+    const ordered = /^\s*\d+[.)]\s+(.*)$/.exec(line)
+    if (unordered !== null || ordered !== null) {
+      flushParagraph()
+      const kind = unordered !== null ? 'ul' : 'ol'
+      if (list !== null && list.kind !== kind) flushList()
+      if (list === null) list = { kind, items: [] }
+      list.items.push((unordered ?? ordered)?.[1] ?? '')
+      continue
+    }
+    flushList()
+    paragraph.push(line.trim())
+  }
+  flushParagraph(); flushList()
+  return nodes
+}
+
 /** The brief's file list and prompt text, shown in the detail sheet (not inline). */
 function renderBriefBlock(task: DispatchTask, brief: BriefView | null, t: Translate,
   openPath: (path: string) => void, openTextFile: (path: string) => void, live: boolean): React.ReactElement | null {
@@ -2060,11 +2109,11 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
       h('span', { className: cx('tq-lead'), 'aria-hidden': 'true' }, renderAgentGlyph(task.agent)),
       h('span', { className: cx('tq-d-name'), role: 'heading', 'aria-level': 2, tabIndex: -1, ref: extras.titleRef }, task.name),
       renderChip(chip, { slot: 'status' }),
-      status.text === chip.text ? null : h('div', {
+      status.text === chip.text || (!live && task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === '')) ? null : h('div', {
         className: cx('tq-d-status'), 'data-balance-state': status.tone, title: live ? undefined : t('queue.statusLegend'),
       }, status.text)),
     summary: live || !task.summary ? null : renderSection('summary', t('queue.d.summary'), [
-      h('div', { className: cx('tq-d-summary'), key: 'summary' }, task.summary),
+      h('div', { className: cx('tq-d-summary'), key: 'summary' }, ..._richText(task.summary, 'summary')),
       h('div', { className: cx('tq-actions'), key: 'summary-log' },
         actionPill('summary-log', t('queue.a.fullLog'), () => { ui.openFullLog(task) }, { title: t('queue.a.fullLogTitle') })),
     ]),
@@ -3082,10 +3131,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         : opened.reason === 'no-service' ? t('queue.a.logNoService')
           : t('queue.a.logPreviewFailed', { message: opened.message ?? '' })
       showToast({ ok: false, text: message })
-      loadLog(task)
       // The log sheet covers the detail's notice; repeat the reason where the
       // reader is looking instead of leaving only a toast behind the panel.
-      setLogNote({ text: message, path })
+      loadLog(task, { text: message, path })
     }
   }
   const openPicker = (task: DispatchTask): void => {
@@ -3113,7 +3161,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       showToast({ ok: false, text: t('queue.a.readFailed', { message: error instanceof Error ? error.message : String(error) }) })
     })
   }
-  const loadLog = (task: DispatchTask): void => {
+  const loadLog = (task: DispatchTask, note?: { text: string; path: string }): void => {
     if (runAction === undefined) return
     setConfirm(null)
     setLogNote(null)
@@ -3126,6 +3174,9 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       let lines: string[] = []
       try { lines = (JSON.parse(answer.detail || '{}') as { lines?: string[] }).lines ?? [] } catch { lines = [] }
       setLog(answer.ok ? lines : [answer.message])
+      const logDir = result?.logDir
+      const logPath = logDir ? logDir.replace(/\/+$/, '') + '/' + task.id + '/run.log' : ''
+      setLogNote(note ?? (logPath === '' ? null : { text: t('queue.a.logInline80'), path: logPath }))
       navigate({ type: 'OPEN_SHEET', sheet: 'log' })
     }, (error: unknown) => {
       if (request !== detailRequest.current || activeDetail.current !== task.id) return
@@ -3448,7 +3499,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     h('div', { className: cx('wb-needs-label') }, t('workbench.needs')),
     shown.needs === undefined || shown.needs.trim() === ''
       ? h('div', { className: cx('wb-needs-empty') }, t('workbench.needs.empty'))
-      : h('p', { className: cx('wb-needs') }, shown.needs),
+      : h('div', { className: cx('wb-needs') }, ..._richText(shown.needs, 'needs')),
     showPresets ? h('div', { className: cx('wb-actions') },
       h('button', {
         type: 'button', className: cx('wb-act', 'wb-act-primary'),
@@ -3628,11 +3679,6 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   return h('div', { className: cx('wb'), 'data-wb': 'true', 'data-wb-view': 'queue', 'data-wb-tab': tab },
     h('header', { className: cx('wb-head') },
       h('div', { className: cx('wb-head-row') },
-        h('button', {
-          type: 'button', className: cx('wb-back'), 'data-wb-close': 'true',
-          'aria-label': t('workbench.close'), title: t('workbench.close'),
-          onClick: () => { props.closeWorkbench() },
-        }, h('span', { className: cx('wb-back-chev'), 'aria-hidden': 'true' }, '‹')),
         h('h1', { className: cx('wb-title') }, t('workbench.title')),
         h('span', { className: cx('wb-updated'), 'aria-live': 'polite' }, updated ? t('workbench.updated') : ''),
         h('button', {
