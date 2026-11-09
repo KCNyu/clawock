@@ -251,6 +251,14 @@ const HARNESS_JS = String.raw`
     task(3, { name: '任务 3', needs: '再做一次' }),
   ];
   if (scenario === 'field-controls') Object.assign(pending[0], { state: 'waiting', waiting: 'quota', outcome: '', finishedAtMs: null, agent: 'codex', modelUsed: 'gpt-6-astra', modelRequested: 'gpt-6-astra', effortUsed: 'high', needs: '', summary: '' });
+  if (scenario.startsWith('wrap-')) Object.assign(pending[0], {
+    name: scenario === 'wrap-cjk' ? '工作台换行与布局深度审查任务' : scenario === 'wrap-word' ? 'WorkbenchReadabilityAudit' : 'dsh-pr-review',
+    agent: 'codex', state: 'ok', outcome: 'PARTIAL',
+    needs: '检查 Safari 工具栏、软键盘、安全区及横竖屏。',
+    modelUsed: 'provider/model-with-a-long-identifier-without-spaces',
+    session: 'https://example.invalid/tasks/averylongunbrokensegment012345678901234567890123456789',
+    summary: 'Closing report 中英混排：\nhttps://example.invalid/tasks/averylongunbrokensegment012345678901234567890123456789\n/root/scratch/workbench-layout/averylongunbrokensegment012345678901234567890/report.md',
+  });
   const live = task(9, { id: 'live-1', name: '正在跑的长任务', state: 'running', outcome: '', stage: 'working',
     startedAtMs: now - 120000, finishedAtMs: null, waiting: '', slot: 'dsh-1', position: 1, needs: '等待中' });
   const recent = [task(10, { id: 'recent-1', name: '已结束的任务', finishedAtMs: now - 3600_000 }),
@@ -327,7 +335,7 @@ const HARNESS_JS = String.raw`
       runWorkbenchAction: async (action, id) => ({ ok: true, code: 0, action, id, message: '', detail: '' }),
       openFile: () => ({ ok: true }),
       closeWorkbench: () => {},
-      t: mod.createTranslator(scenario === 'field-controls' ? mod.dictionaries.en : mod.dictionaries.zh),
+      t: mod.createTranslator((scenario === 'field-controls' || scenario.startsWith('wrap-')) ? mod.dictionaries.en : mod.dictionaries.zh),
     };
   }
   function mountWorkbench() {
@@ -378,7 +386,7 @@ const HARNESS_JS = String.raw`
     document.getElementById('root').appendChild(stage);
     const root = ReactDOM.createRoot(mount);
     root.render(React.createElement(mod.WorkbenchIcon, {
-      size: 16, active: false, t: mod.createTranslator(scenario === 'field-controls' ? mod.dictionaries.en : mod.dictionaries.zh),
+      size: 16, active: false, t: mod.createTranslator((scenario === 'field-controls' || scenario.startsWith('wrap-')) ? mod.dictionaries.en : mod.dictionaries.zh),
       cachedTaskQueue: () => queue, fetchTaskQueue: async () => queue,
       cachedBalances: () => balances, fetchBalances: async () => balances,
       rememberTrigger: () => {},
@@ -592,6 +600,49 @@ function gaugeInPage(mode) {
     inner.x >= outer.x - 0.5 && inner.y >= outer.y - 0.5 &&
     inner.right <= outer.right + 0.5 && inner.bottom <= outer.bottom + 0.5;
   const round = (n) => Math.round(n * 100) / 100;
+
+  if (mode === "wrapping") {
+    const one = (name) => document.querySelector('[class*="_' + name + '"]');
+    const hero = one("tq-d-hero"), title = one("tq-d-name"), lead = hero?.querySelector('[class*="_tq-lead"]');
+    const chip = hero?.querySelector('[class*="_tq-chip"]'), status = one("tq-d-status");
+    const a = box(title), b = box(chip), c = box(status), outer = box(hero), icon = box(lead?.querySelector('svg') ?? lead);
+    const line = parseFloat(getComputedStyle(title).lineHeight);
+    const rows = (el) => {
+      const result = new Map(), walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        const text = walker.currentNode;
+        for (let i = 0; i < text.length; i++) {
+          if (!text.data[i].trim()) continue;
+          const range = document.createRange(); range.setStart(text, i); range.setEnd(text, i + 1);
+          const r = range.getBoundingClientRect();
+          const key = Math.round(r.y); result.set(key, (result.get(key) ?? 0) + 1);
+        }
+      }
+      return [...result.values()];
+    };
+    const fields = [...document.querySelectorAll('[data-tq-field]')].filter((el) => box(el.querySelector('dd')) !== null).map((el) => {
+      const value = el.querySelector('dd'), control = el.querySelector('[class*="_tq-d-control"]');
+      return { name: el.dataset.tqField, value: box(value), control: box(control), text: value?.textContent,
+        wordBreak: value && getComputedStyle(value).wordBreak, chars: value && rows(value) };
+    });
+    const prose = one('tq-d-summary');
+    const checks = [
+      ['title-lines', a.h / line <= 2, a.h / line],
+      ['title-share', a.w / outer.w >= 0.60, round(a.w / outer.w)],
+      ['title-chip-disjoint', a.right <= b.x && area(a,b) === 0, {title:a,chip:b}],
+      ['title-icon-center', Math.abs(icon.y + icon.h / 2 - a.y - a.h / 2) <= 1, round(Math.abs(icon.y + icon.h / 2 - a.y - a.h / 2))],
+      ['status-own-line', c.y >= Math.max(a.bottom,b.bottom), {title:a,status:c}],
+      ['title-readable-lines', rows(title).slice(0,-1).every((n) => n >= 6), rows(title)],
+      ['prose-readable-width', box(prose).w >= outer.w * .85, box(prose).w],
+      ['field-readable-width', fields.some((f) => f.control) && fields.every((f) => !f.text || f.value.w >= Math.min(160, outer.w * .6)), fields.map((f) => [f.name,round(f.value.w)])],
+      ['code-natural-breaks', fields.every((f) => f.wordBreak !== 'break-all'), fields.map((f) => [f.name,f.wordBreak])],
+      ['url-readable-lines', fields.some((f) => f.name === 'session') && fields.filter((f) => f.name === 'session').every((f) => f.chars.slice(0,-1).every((n) => n >= 8)), fields.filter((f) => f.name === 'session').map((f) => f.chars)],
+      ['chip-one-line', b.h <= 24, b.h],
+      ['controls-one-line', [...document.querySelectorAll('[class*="_tq-pill"]')].every((el) =>
+        getComputedStyle(el).whiteSpace === 'nowrap' && el.scrollWidth <= el.clientWidth), null],
+    ].map(([rule,ok,value]) => ({rule,ok,value}));
+    return {mode, checks, title: title.textContent, titleBox:a, heroBox:outer, fields};
+  }
 
   if (mode === "sidebar") {
     const rows = [...document.querySelectorAll("[data-wb-sidebar-row]")].map((el) => ({
@@ -916,6 +967,20 @@ for (const [width, height] of [[320,568],[375,667],[390,844],[420,900],[768,1024
   }
 }
 
+// Content, not just viewport, is a layout axis. The partial sentence was
+// absent from the DONE fixture that previously passed the complete matrix.
+for (const [width,height] of [[320,568],[375,667],[390,844],[420,900],[768,1024],[834,1112],[1280,800],[1440,900]]) {
+  for (const landscape of width < 1000 ? [false,true] : [false]) {
+    for (const theme of ['light','dark']) {
+      for (const content of ['partial','word','cjk']) STATES.push({
+        name: `wrap-${width}-${landscape ? 'landscape' : 'portrait'}-${theme}-${content}`,
+        width: landscape ? height : width, height: landscape ? width : height,
+        desktop: width >= 1000, theme, scenario: 'wrap-' + content, drive: 'task', gauge: 'wrapping',
+      });
+    }
+  }
+}
+
 // Legacy bundles predate stats/history layers and the detail sheet; capture
 // only the states both bundles have, so a before/after comparison is honest.
 const LEGACY_STATES = new Set(["tasks", "providers", "overview", "task", "rail", "desktop-tasks", "desktop-providers", "desktop-overview", "desktop-task", "1280-tasks", "1280-providers"]);
@@ -1003,6 +1068,11 @@ function assertGauge(state, gauge) {
     } else {
       assert.ok(workbench.alert !== null, state.name + ": the rail keeps the non-numeric alert mark");
     }
+    return;
+  }
+  if (state.gauge === "wrapping") {
+    for (const check of gauge.checks) console.log('  WRAP ' + state.name + ' ' + check.rule + ' ' + (check.ok ? 'PASS' : 'FAIL') + ' ' + JSON.stringify(check.value));
+    assert.deepEqual(gauge.checks.filter((c) => !c.ok).map((c) => c.rule), [], state.name + ': readable layout');
     return;
   }
   if (state.gauge === "fields") {
@@ -1175,6 +1245,11 @@ async function main() {
         await page.waitForTimeout(120);
         if (state.drive) await drive(page, state.drive);
         await page.waitForTimeout(120);
+        if (state.gauge === "wrapping") {
+          // Open the real disclosure so URL/path and the Full log control
+          // cannot disappear from the reading-width check below the fold.
+          await page.locator('[data-tq-fold="raw"]').evaluate((el) => { el.open = true; });
+        }
         if (state.gauge === "brief") {
           // The body is an explicit scroller. Test that the bottom action can
           // be brought fully into view on a short landscape viewport.
