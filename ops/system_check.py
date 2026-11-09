@@ -2060,6 +2060,8 @@ def _dreaming_quarantine_for(day):
         entries = json.loads((WS / DREAMING_REVIEW).read_text()).get('entries', {})
     except (OSError, ValueError, AttributeError):
         return []
+    if not isinstance(entries, dict):
+        return []
     held = []
     for entry in entries.values():
         if not isinstance(entry, dict) or entry.get('status') != 'quarantined':
@@ -2069,6 +2071,8 @@ def _dreaming_quarantine_for(day):
             continue
         if date(int(match.group(3)), months[match.group(1)], int(match.group(2))) != day:
             continue
+        if not isinstance(entry.get('reasons', []), list):
+            entry = {**entry, 'reasons': []}
         held.append(entry)
     return held
 
