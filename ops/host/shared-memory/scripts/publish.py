@@ -16,10 +16,12 @@ from __future__ import annotations
 import argparse
 from difflib import unified_diff
 import hashlib
+import fcntl
 import json
 import os
 from pathlib import Path
 import sys
+import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from memory import metadata_problems, missing_metadata, split_frontmatter  # noqa: E402  (the format owner sits next to us)
@@ -240,20 +242,54 @@ def check(repo: Path, store: Path | None, manifest_path: Path) -> int:
     return 0
 
 
+def _replace_bytes(path: Path, content: bytes) -> None:
+    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(name, path)
+    finally:
+        Path(name).unlink(missing_ok=True)
+
+
 def write(repo: Path, store: Path, manifest_path: Path) -> int:
-    topics = load_public_topics(store)
-    text = render(topics)
-    provenance.assert_public_sources("the generated MEMORY.md projection", text, store)
-    manifest = build_manifest(text, topics)
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    for path, content in ((repo / "MEMORY.md", text),
-                          (manifest_path, json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")):
-        tmp = path.with_name(f".{path.name}.tmp")
-        tmp.write_text(content, encoding="utf-8")
-        os.replace(tmp, path)
-    print(f"publish: wrote {repo / 'MEMORY.md'} ({len(manifest['sections'])} sections, "
-          f"{manifest['bytes']} bytes) and {manifest_path}")
-    return check(repo, store, manifest_path)
+    # A single lock covers both output files and the post-check. The promotion
+    # entry point has its own outer lock; standalone generation needs this too.
+    lock_dir = repo / "memory/.dreams"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    with (lock_dir / "projection.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ProjectionError("projection writer is already running; retry later") from exc
+        topics = load_public_topics(store)
+        text = render(topics)
+        provenance.assert_public_sources("the generated MEMORY.md projection", text, store)
+        manifest = build_manifest(text, topics)
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        outputs = ((repo / "MEMORY.md", text),
+                   (manifest_path, json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"))
+        before = {path: path.read_bytes() if path.exists() else None for path, _ in outputs}
+        try:
+            for path, content in outputs:
+                _replace_bytes(path, content.encode("utf-8"))
+            if check(repo, store, manifest_path):
+                raise ProjectionError("generated projection failed validation")
+        except (OSError, ProjectionError, ValueError) as exc:
+            try:
+                for path, content in before.items():
+                    if content is None:
+                        path.unlink(missing_ok=True)
+                    else:
+                        _replace_bytes(path, content)
+            except OSError as rollback:
+                raise ProjectionError(f"{exc}; restoring previous projection failed: {rollback}") from exc
+            raise ProjectionError(f"{exc}; restored previous MEMORY.md and manifest") from exc
+        print(f"publish: wrote {repo / 'MEMORY.md'} ({len(manifest['sections'])} sections, "
+              f"{manifest['bytes']} bytes) and {manifest_path}")
+        return 0
 
 
 def main() -> int:

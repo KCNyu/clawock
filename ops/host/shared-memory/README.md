@@ -308,3 +308,10 @@ reports a score in 0–1.
 writes, even before the snapshot timer runs. `index-view --check` checks the real
 staging files as well as the manifest. Public projection generation validates the
 write-time schema and refuses stale public topics before replacing any output.
+
+Standalone `publish.py --write` serializes writers with a private projection lock.
+A replacement or validation failure restores both previous output files and returns an
+error; the two renames are not a globally atomic filesystem transaction (a process kill
+may leave a mismatched pair, which `--check` refuses). The old `review_dreaming.py`
+write CLI refuses workspaces with a projection manifest; their writer is
+`promote_dreaming.py`. Legacy unprojected workspaces retain the migration entry.

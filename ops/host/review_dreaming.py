@@ -172,6 +172,8 @@ def main():
     parser.add_argument('--check', action='store_true', help='audit MEMORY without writing')
     args = parser.parse_args()
     ws = args.workspace.resolve()
+    if not args.check and (ws / 'ops/host/shared-memory/publish-manifest.json').exists():
+        raise SystemExit('generated MEMORY.md is read-only here; use promote_dreaming.py')
     lock_dir = ws / 'memory/.dreams'
     if not args.check:
         lock_dir.mkdir(parents=True, exist_ok=True)
