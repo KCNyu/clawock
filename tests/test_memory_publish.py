@@ -162,3 +162,42 @@ def test_public_projection_refuses_invalid_source_schema(store, tmp_path, damage
         publish.write(target, store, target / 'manifest.json')
     assert (target / 'MEMORY.md').read_text() == 'previous projection'
     assert not (target / 'manifest.json').exists()
+
+
+@pytest.mark.parametrize('failure', ['manifest-replace', 'post-check', 'locked'])
+def test_projection_failure_preserves_the_previous_pair(store, tmp_path, monkeypatch, failure):
+    import fcntl
+
+    publish = load_publish()
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+    manifest = repo / 'manifest.json'
+    memory = repo / 'MEMORY.md'
+    memory.write_bytes(b'previous memory\n')
+    manifest.write_bytes(b'previous manifest\n')
+    before = (memory.read_bytes(), manifest.read_bytes())
+    real_replace = publish.os.replace
+    if failure == 'manifest-replace':
+        failed = False
+
+        def fail_once(src, dst):
+            nonlocal failed
+            if Path(dst) == manifest and not failed:
+                failed = True
+                raise OSError('simulated manifest replacement failure')
+            return real_replace(src, dst)
+
+        monkeypatch.setattr(publish.os, 'replace', fail_once)
+    elif failure == 'post-check':
+        monkeypatch.setattr(publish, 'check', lambda *args: 1)
+    lock_dir = repo / 'memory/.dreams'
+    lock_dir.mkdir(parents=True)
+    with (lock_dir / 'projection.lock').open('a') as lock:
+        if failure == 'locked':
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try:
+            result = publish.write(repo, store, manifest)
+        except (publish.ProjectionError, OSError):
+            result = 1
+        assert result != 0, 'generation failure or concurrent publisher must fail closed'
+        assert (memory.read_bytes(), manifest.read_bytes()) == before

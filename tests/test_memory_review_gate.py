@@ -483,3 +483,17 @@ def test_grandfathered_dreams_bytes_are_not_rewritten_by_the_source_check(tmp_pa
     subprocess.run(command, check=True, capture_output=True)
     assert path.read_text() == original
     subprocess.run(command + ['--check'], check=True, capture_output=True)
+
+
+def test_legacy_writer_refuses_a_generated_projection(tmp_path):
+    memory = tmp_path / 'MEMORY.md'
+    memory.write_text('# Original projection\n')
+    manifest = tmp_path / 'ops/host/shared-memory/publish-manifest.json'
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text('{}')
+    before = memory.read_bytes()
+    result = subprocess.run([sys.executable, str(ROOT / 'ops/host/review_dreaming.py'),
+                             '--workspace', str(tmp_path)], capture_output=True, text=True)
+    assert result.returncode != 0
+    assert 'promote_dreaming.py' in result.stderr
+    assert memory.read_bytes() == before
