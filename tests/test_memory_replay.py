@@ -55,6 +55,9 @@ def world(tmp_path):
     state.mkdir()
     (state / "recall.jsonl").write_text(json.dumps(
         {"ts": "2026-11-01T00:00:00+08:00", "source": "python-search", "topics": ["high-used"]}) + "\n")
+    with (state / "recall.jsonl").open("a") as stream:
+        for stamp in ("2026-10-01T00:00:00+08:00", NOW):
+            stream.write(json.dumps({"ts": stamp, "source": "python-search", "topics": ["high-used"]}) + "\n")
     tasks = tmp_path / "tasks"
     tasks.mkdir()
     (tasks / "result.env").write_text("TASK=one\nRESULT=ok\nNOTE=high-used\n")
@@ -113,3 +116,16 @@ def test_a_recent_task_mention_suppresses_unused(world):
 
 def test_the_replay_output_is_not_wired_into_commit_dreaming():
     assert "replay.py" not in (ROOT / "ops/host/commit_dreaming.sh").read_text()
+
+
+@pytest.mark.parametrize("coverage", ["empty", "short"])
+def test_insufficient_recall_history_is_not_evidence_of_unused_memory(world, coverage):
+    store, workspace, state, tasks, env = world
+    rows = [] if coverage == "empty" else [
+        {"ts": "2026-11-01T00:00:00+08:00", "source": "python-search", "topics": ["high-used"]},
+        {"ts": NOW, "source": "python-search", "topics": ["high-used"]},
+    ]
+    (state / "recall.jsonl").write_text("".join(json.dumps(row) + "\n" for row in rows))
+    report, _ = run(world)
+    assert not [row for row in report["candidates"] if row["kind"] == "unused-high-salience"]
+    assert report["counts"]["duplicate-merge"] >= 1
