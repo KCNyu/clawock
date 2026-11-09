@@ -54,7 +54,14 @@ function declarations(text) {
     .replace(/@supports[^{]*\{/g, "@supports {");
 }
 
-const body = declarations(layer);
+// The offset belongs to the complete stylesheet, not the sliced layer.
+const body = declarations(css);
+test("the token scanner covers the layer and rejects injected literals", () => {
+  assert.ok(body.includes(".wb"), "scanner must inspect real Workbench rules");
+  const mutated = declarations(css + "\n.wb-probe { padding: 17px; color: #abc; }");
+  assert.match(mutated, /17px/);
+  assert.match(mutated, /#abc/);
+});
 const rawPx = [...body.matchAll(/(?<![\w.-])(?:\d+(?:\.\d+)?|\.\d+)px\b/g)].map((m) => m[0]);
 const rawHex = [...body.matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((m) => m[0]);
 

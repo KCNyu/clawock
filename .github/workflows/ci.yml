@@ -634,6 +634,22 @@ jobs:
           set -euo pipefail
           cd examples/dsh/packages/clawock-dsh
           npm ci --include=dev --no-audit --no-fund
+      - name: Capture the base bundle against the same regression assertions
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          WORKBENCH_OUT: ${{ runner.temp }}/workbench-before.json
+          WORKBENCH_SHOTS: ${{ runner.temp }}/workbench-before-shots
+          WORKBENCH_STATES: fields-320,fields-375,fields-390
+        run: |
+          git fetch --depth=1 origin "$BASE_SHA"
+          git show "$BASE_SHA:examples/dsh/packages/clawock-dsh/lib/client.js" > "$RUNNER_TEMP/workbench-before-client.js"
+          export WORKBENCH_BUNDLE="$RUNNER_TEMP/workbench-before-client.js"
+          if node tests/workbench_overlap.spec.js > "$RUNNER_TEMP/workbench-before.log" 2>&1; then
+            echo 'Base bundle passes the current regression assertions.'
+          else
+            echo 'Base bundle fails; evidence saved in workbench-before.log.'
+          fi
       - name: Workbench overlap + computed type contract
         env:
           WORKBENCH_OUT: ${{ runner.temp }}/workbench-overlap.json
@@ -647,6 +663,9 @@ jobs:
           path: |
             ${{ runner.temp }}/workbench-overlap.json
             ${{ runner.temp }}/workbench-overlap-shots
+            ${{ runner.temp }}/workbench-before.json
+            ${{ runner.temp }}/workbench-before.log
+            ${{ runner.temp }}/workbench-before-shots
           if-no-files-found: warn
 
   browser-tests:

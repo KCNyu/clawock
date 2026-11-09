@@ -3711,7 +3711,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       alerts.length === 0 ? null : h('span', {
         className: cx('wb-tab-alert'), 'data-wb-tab-alert': 'true', 'aria-hidden': 'true',
         title: alertNames,
-      }, '!')),
+      })),
     h('button', {
       type: 'button', role: 'tab', id: tabId('overview'), className: cx('wb-tab', tab === 'overview' && 'wb-tab-on'),
       'aria-selected': tab === 'overview', 'aria-controls': panelId, tabIndex: tab === 'overview' ? 0 : -1,
