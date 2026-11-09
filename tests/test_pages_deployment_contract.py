@@ -641,3 +641,35 @@ def test_every_tracked_file_staging_publishes_triggers_a_pages_build(tmp_path, m
         filters = [_github_path_filter(p) for p in triggers[event]["paths"]]
         silent = [path for path in tracked if not any(f.match(path) for f in filters)]
         assert not silent, f"pages.yml {event} paths never fire for staged {silent}"
+
+
+def test_moved_markdown_url_survives_jekyll_and_links_to_the_published_owner(tmp_path):
+    source = tmp_path / "repo"
+    docs = source / "docs"
+    docs.mkdir(parents=True)
+    (docs / "old.md").write_text(
+        "---\ntitle: moved\n---\n\n# Moved\n\n[Owner](owner.md#contract)\n")
+    (docs / "owner.md").write_text("---\ntitle: owner\n---\n# Contract\n")
+    output = tmp_path / "artifact"
+    (output / "docs").mkdir(parents=True)
+    (output / "docs/old.html").write_text("rendered migration page")
+    contract = {"artifact_include": ["docs/*"], "repository_only": []}
+
+    assert prepare_pages_artifact.preserve_moved_markdown(output, source, contract) == ["docs/old.md"]
+    assert (output / "docs/old.md").read_text() == "# Moved\n\n[Owner](owner.html#contract)\n"
+    assert (output / "docs/old.html").read_text() == "rendered migration page"
+
+
+@pytest.mark.parametrize("published,blocked", [(False, []), (True, ["docs/old.md"])])
+def test_raw_migration_pointer_cannot_bypass_the_pages_allowlist(tmp_path, published, blocked):
+    source = tmp_path / "repo"
+    (source / "docs").mkdir(parents=True)
+    (source / "docs/old.md").write_text("---\ntitle: moved\n---\n\n# Moved\n")
+    output = tmp_path / "artifact"
+    (output / "docs").mkdir(parents=True)
+    if published:
+        (output / "docs/old.html").write_text("rendered")
+    contract = {"artifact_include": ["docs/*"], "repository_only": blocked}
+
+    assert prepare_pages_artifact.preserve_moved_markdown(output, source, contract) == []
+    assert not (output / "docs/old.md").exists()

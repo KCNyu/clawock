@@ -90,6 +90,8 @@ belongs here.
 ## Moved pages
 
 Old paths stay reachable; each stub points at the document that owns the subject now.
+`ops/pages/prepare_pages_artifact.py` retains the old raw Markdown URL alongside
+the rendered migration page, with links adjusted to the published owner.
 
 - [`design/task-chip-patrol.md`](design/task-chip-patrol.md) → [`design/task-chip.md`](design/task-chip.md)
 - [`design/task-chip-stats.md`](design/task-chip-stats.md) → [`design/task-chip.md`](design/task-chip.md)
