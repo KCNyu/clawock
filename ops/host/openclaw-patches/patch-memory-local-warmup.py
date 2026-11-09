@@ -25,6 +25,9 @@ import subprocess
 import sys
 
 HOST = Path(__file__).resolve().parent
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / 'src'))
 sys.path.insert(0, str(HOST.parent))
 
 from patch_dreaming_fallbacks import replace_once  # noqa: E402
