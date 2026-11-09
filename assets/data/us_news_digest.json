@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T15:51:44.448754+00:00",
+  "generated_at": "2026-11-09T22:47:51.725023+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: Neutron 一级 forward dome 已完成制造与固化；财报将聚焦 Neutron 时间表、Iridium 收购及 Space Systems，期权隐含财报波动最高达 30.25%。  \n  **对 kcn 持仓：** 持有的是 **RKLX（2x 杠杆 ETF）**，2x 会同时放大 Neutron 进展与财报失望带来的波动。\n- **SPCX**: SpaceX 较 6 月 IPO 时下跌 22%、近一月跌约 20%；高盛认为其太空业务的颠覆性低于市场担忧，但暂无新增基本面催化。  \n  **对 kcn 持仓：** 持有的是 **SPCH（2x 杠杆 ETF）**，2x 将放大当前回撤及后续反弹，适合优先控制仓位波动。\n- **CRCL**: Coinbase 获 OCC 最终批准联邦信托牌照，可将机构加密托管业务纳入联邦监管；Circle、Ripple 已被标题并列提及，但摘要只明确 Coinbase 事项。  \n  **对 kcn 持仓：** 这是同业监管进展而非 Circle 新增利好，机构托管竞争对 CRCL 中性略负，不应误读为 CRCL 自身获批。\n- **CRCL**: Coinbase 财报后累计下跌 16%并触及 52 周低点，弱季度、比特币下滑及安全事件压制加密市场风险偏好。  \n  **对 kcn 持仓：** 对 CRCL 属板块情绪负读数，并非 Circle 自身业绩或财务指引。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: Neutron 制造取得实质进展，但财报及最高 30.25%的隐含波动构成近期二元事件。\n- **SPCX**: 股价较 IPO 高点回撤逾两成；高盛偏正面判断只能缓冲情绪，尚缺新增订单或经营数据支撑。\n- **CRCL**: 本轮新增信息主要来自 Coinbase 的监管获批及市场走弱，缺少 CRCL 自身财报、订单或 guidance 催化。\n\n### 风险 watch (若有)\n- **RKLB / RKLX**: 财报可能更新 Neutron 延后、Iridium 收购及 Space Systems 展望；2x ETF 将放大潜在跳空。\n- **CRCL**: OCC 牌照提升 Coinbase 机构托管能力；Coinbase 弱势表现、比特币下跌及安全事件构成加密板块风险，但尚非 CRCL 自身指引。\n- **SPCX / SPCH**: IPO 后回撤 20%—22%显示高波动仍未消退，2x ETF 放大回撤及反弹。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: Q3 2026 营收同比增长 72.7% 至 $267.8M、创纪录，GAAP 每股亏损 $0.12 好于预期，并录得正经营现金流。  \n  - **Implication**: kcn 通过 **RKLX** 持有；RKLX 的 **2x 杠杆**将放大业绩超预期的上涨，也会放大业绩回撤。\n- **RKLB**: 积压订单升至 $1.2B、环比增 52%；Q4 营收指引中值 $280M，较共识高 5.1%；Neutron Q3 获逾 $515M 合同、任务积压达 16 次，基础发射价升至 $70M。  \n  - **Implication**: **RKLX 2x** 将放大订单与指引带来的估值重定价，但合同转收入及发射进度是关键变量。\n- **SPCX**: SpaceX 拟在得州 Starbase 建设约 $24B 数据中心、燃气电厂及超级计算设施。  \n  - **Implication**: kcn 通过 **SPCH** 持有；AI 基础设施叙事利好将被 **2x 杠杆**放大，但项目尚属计划，融资与落地不及预期时回撤也会放大。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: 财报、订单积压与 Neutron 定价三项催化共振，方向明确偏多。\n- **SPCX**: $24B Starbase 计划强化 AI 算力与能源基础设施预期，但暂无已落实融资或建设承诺信息。\n\n### 风险 watch (若有)\n- **RKLB**: GAAP 仍亏损；Q4 指引、Neutron 首次发射及 16 次任务积压转化存在执行风险，RKLX 的 2x 单日杠杆会同步放大。\n- **SPCX**: $24B 项目仍为拟议方案，融资、审批、燃气及数据中心建设执行风险较高，SPCH 的 2x 杠杆会放大波动。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -60,76 +60,76 @@
     ],
     "RKLB": [
       {
-        "headline": "SpaceX Cratered 20% in The Last Month: This Wall Street Pro Predicts 500% Returns at Today’s Price",
-        "datetime": 1794231932,
+        "headline": "Rocket Lab (NASDAQ:RKLB) reports bullish Q3 2026, guides for strong sales next quarter",
+        "datetime": 1794260949,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4f0085a8234334b61ab4928bd471e6b5801f350d1012fa22087f88d0ca7edee6"
+        "url": "https://finnhub.io/api/news?id=a94ebdb02d410d326b5b685ab89f7ae7534674a0ddbd0e43ba03e99a688a31a4"
       },
       {
-        "headline": "US Stock Market Today: S&P 500 Futures Nudge Higher On Jobs Strength Fed Uncertainty",
-        "datetime": 1794229775,
+        "headline": "Rocket Lab Lands Over $515M in Neutron Launch Deals from Constellation Operators in Q3",
+        "datetime": 1794258360,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b4133e9c6cce8313fd82eeee4318d3236ccbbcb7bfca234a09c3502986924842"
+        "url": "https://finnhub.io/api/news?id=946c68841a817cfb3a6688816fb83f3969e4747d2e91b001722516ca8ec325ff"
       },
       {
-        "headline": "Rocket Lab Earnings Loom: Here’s What Investors Need to Know",
-        "datetime": 1794220323,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0f415b15baa0b3ab9c098472ede0658e6c5e260053df7bec6273413b4e6e9057"
-      },
-      {
-        "headline": "Nebius Could Swing $6.56 Billion After Earnings",
-        "datetime": 1794207606,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6c4207eb6ab347da6d62ce8efd38069e99229a85a09c761a0cc13915566ceaf1"
-      },
-      {
-        "headline": "RKLB Stock Climbs Overnight Ahead Of Earnings — Bulls Bet Neutron Delay Is Priced In Amid Fresh Progress",
-        "datetime": 1794201594,
+        "headline": "Rocket Lab Announces Third Quarter 2026 Financial Results: Posts Record Revenue, $1.2 Billion or 52% Sequential Quarterly Backlog Growth, Positive GAAP Operating Cash Flow, and Guides to Record Revenu",
+        "datetime": 1794258300,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=df1fdc95fa4a3da7b997af9bb5608f07fbd49e3ac984c68614a2afebe5698187"
+        "url": "https://finnhub.io/api/news?id=a01ba05a67fe1ff1fdd603a15e38a18464e278695cda07269902c9a8c6765af9"
+      },
+      {
+        "headline": "SpaceX, Rocket Lab blast higher as NASA hands out $10 billion in moon base awards",
+        "datetime": 1794242600,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a3da02a12367e0b8d5d85cb2d7c5520147da0b3cfe5b51e87f6279c582886f14"
+      },
+      {
+        "headline": "AST SpaceMobile Soars 16% on Rakuten Japan Satellite Joint Venture: “A Key Pillar”",
+        "datetime": 1794242218,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=266b360aa8aeaff01883ea34b5b29b2a1e7f3e52e41827474197f49a2d3fac0d"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX Cratered 20% in The Last Month: This Wall Street Pro Predicts 500% Returns at Today’s Price",
-        "datetime": 1794231932,
+        "headline": "SPCX Stock Rises As SpaceX Advances $24B Texas Data Center And Gas Plant Plans",
+        "datetime": 1794260807,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4f0085a8234334b61ab4928bd471e6b5801f350d1012fa22087f88d0ca7edee6"
+        "url": "https://finnhub.io/api/news?id=0fa6513a9c895604a4628ad4e9f0ecf56f0e0c5825b7c98ae7bb913ecd3ecd0c"
       },
       {
-        "headline": "Here's What Must Happen for SpaceX Stock to Rebound",
-        "datetime": 1794231720,
+        "headline": "AST SpaceMobile Provides Business Update and Third Quarter 2026 Results",
+        "datetime": 1794259800,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5b92507a1a7491248fccef6b67e2fddc00d0d5769e78affb840c90b9fb4427a9"
+        "url": "https://finnhub.io/api/news?id=6af6e44c33b8b1ebd801979722a537f28e22e670e8a2e329dd78b3f06f463e75"
       },
       {
-        "headline": "Goldman Sachs Delivers Surprising Take on SpaceX Stock",
-        "datetime": 1794231219,
+        "headline": "SpaceX Wants to Rule Wireless. Buying a Phone Carrier Is the Fastest Shortcut.",
+        "datetime": 1794258780,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e9797c30006af3a01dbbf38dc80eb526691efacf724a8f2b909eeb329e5376c1"
+        "url": "https://finnhub.io/api/news?id=4f83fbf20baa1c41f1980b216b4538bbfd417223518a48ec85e364dd165e6df6"
       },
       {
-        "headline": "Alphabet Makes $548 Million In Major Tech Stock, Keeps Massive SpaceX Stake",
-        "datetime": 1794231014,
+        "headline": "AST SpaceMobile Is Down 55% in 2026: Is It Time to Sell, or Load Up?",
+        "datetime": 1794258383,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=855f04fbbc9548b572911a1358296cb2147c765da3ebbe8fccfe3fa284fefada"
+        "url": "https://finnhub.io/api/news?id=652af932d6b6463dd659923bda61d267c36bc4ea859784d5393127eaf9beb6ca"
       },
       {
-        "headline": "Elon Musk Sets Massive 2032 Chipmaking Target for Tesla, SpaceX",
-        "datetime": 1794230779,
+        "headline": "Sector Update: Tech Stocks Gain Late Afternoon",
+        "datetime": 1794257921,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0096216fbf2d7d3b624318eb680fe707d04eb6b6da191c816df7347064c0979f"
+        "url": "https://finnhub.io/api/news?id=54c1be7a35ba1f0f33e29a4b81b0701521aa1e2ecf42f3c5b07866fb39ea0343"
       }
     ]
   },
