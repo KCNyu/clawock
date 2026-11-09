@@ -31,7 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
-import { Button, Card, Chip as WorkbenchChip, EmptyState, Field, Row, SectionHeader, SectionHeading, Sheet } from './workbench-primitives.ts'
+import { Button, Card, Chip as WorkbenchChip, DetailTitle, EmptyState, Field, Row, SectionHeader, SectionHeading, Sheet } from './workbench-primitives.ts'
 import { PROVIDER_JOIN } from './providers.ts'
 import {
   effectsFor, initialWorkbenchState, isLegalWorkbenchAction, reduceWorkbench,
@@ -2136,7 +2136,8 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
   const sections: Record<DetailSection, React.ReactElement | null> = {
     status: h('div', { className: cx('tq-d-sec', 'tq-d-hero'), key: 'status', 'data-tq-section': 'status' },
       h('span', { className: cx('tq-lead'), 'aria-hidden': 'true' }, renderAgentGlyph(task.agent)),
-      h('span', { className: cx('tq-d-name'), role: 'heading', 'aria-level': 2, tabIndex: -1, ref: extras.titleRef }, task.name),
+      h(DetailTitle, { key: task.id, text: task.name, titleRef: extras.titleRef,
+        moreLabel: t('workbench.title.more'), lessLabel: t('workbench.title.less') }),
       renderChip(chip, { slot: 'status' }),
       status.text === chip.text || (!live && task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === '')) ? null : h('div', {
         className: cx('tq-d-status'), 'data-balance-state': status.tone, title: live ? undefined : t('queue.statusLegend'),

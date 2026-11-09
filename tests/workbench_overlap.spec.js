@@ -252,7 +252,7 @@ const HARNESS_JS = String.raw`
   ];
   if (scenario === 'field-controls') Object.assign(pending[0], { state: 'waiting', waiting: 'quota', outcome: '', finishedAtMs: null, agent: 'codex', modelUsed: 'gpt-6-astra', modelRequested: 'gpt-6-astra', effortUsed: 'high', needs: '', summary: '' });
   if (scenario.startsWith('wrap-')) Object.assign(pending[0], {
-    name: scenario === 'wrap-cjk' ? '工作台换行与布局深度审查任务' : scenario === 'wrap-word' ? 'WorkbenchReadabilityAudit' : 'dsh-pr-review',
+    name: scenario === 'wrap-long' ? 'dsh-Workbench-超长标题-ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyz-0123456789'.repeat(3) : scenario === 'wrap-cjk' ? '工作台换行与布局深度审查任务' : scenario === 'wrap-word' ? 'WorkbenchReadabilityAudit' : 'dsh-pr-review',
     agent: 'codex', state: 'ok', outcome: 'PARTIAL',
     needs: '检查 Safari 工具栏、软键盘、安全区及横竖屏。',
     modelUsed: 'provider/model-with-a-long-identifier-without-spaces',
@@ -527,6 +527,8 @@ function collectInPage(options) {
     // available through the row. This exception is explicit in every artifact.
     if (style.textOverflow === "ellipsis" && style.whiteSpace === "nowrap" && el.scrollHeight <= el.clientHeight) {
       truncation.push({ ...row, reason: "single-line summary; full content opens from the row" });
+    } else if (el.matches('[data-wb-title-expanded="false"]') && el.parentElement.querySelector('[data-wb-title-toggle][aria-expanded="false"]')) {
+      truncation.push({ ...row, reason: "two-line heading; visible keyboard/touch disclosure opens full name" });
     } else if (/(auto|scroll)/.test(style.overflowX + style.overflowY)) {
       truncation.push({ ...row, reason: "explicit scroll container" });
     } else {
@@ -972,7 +974,7 @@ for (const [width, height] of [[320,568],[375,667],[390,844],[420,900],[768,1024
 for (const [width,height] of [[320,568],[375,667],[390,844],[420,900],[768,1024],[834,1112],[1280,800],[1440,900]]) {
   for (const landscape of width < 1000 ? [false,true] : [false]) {
     for (const theme of ['light','dark']) {
-      for (const content of ['partial','word','cjk']) STATES.push({
+      for (const content of ['partial','word','cjk','long']) STATES.push({
         name: `wrap-${width}-${landscape ? 'landscape' : 'portrait'}-${theme}-${content}`,
         width: landscape ? height : width, height: landscape ? width : height,
         desktop: width >= 1000, theme, scenario: 'wrap-' + content, drive: 'task', gauge: 'wrapping',
@@ -1243,6 +1245,13 @@ async function main() {
           throw error;
         }
         await page.waitForTimeout(120);
+        let rowReading = null;
+        if (state.gauge === "wrapping") rowReading = await page.locator('[data-wb-task]').first().evaluate((el) => {
+          const title = el.querySelector('[class*="_wb-row-title"]'), sub = el.querySelector('[class*="_wb-row-sub"]');
+          return {title: title.textContent, policies: [title, sub].filter(Boolean).map((node) => {
+            const css = getComputedStyle(node); return [css.whiteSpace, css.textOverflow];
+          })};
+        });
         if (state.drive) await drive(page, state.drive);
         await page.waitForTimeout(120);
         if (state.gauge === "wrapping") {
@@ -1309,6 +1318,55 @@ async function main() {
           assert.equal(rail.alert, true, "rail state keeps the alert !");
         }
         const gauge = state.gauge ? await page.evaluate(gaugeInPage, state.gauge) : null;
+        if (state.gauge === "wrapping") {
+          gauge.checks.push({rule: 'row-opens-full-text', ok: rowReading.title === gauge.title && rowReading.policies.every(([space, overflow]) => space === 'nowrap' && overflow === 'ellipsis'), value: rowReading.policies});
+          if (state.scenario === 'wrap-long') {
+            const toggle = page.locator('[data-wb-title-toggle]');
+            const present = await toggle.count() === 1;
+            gauge.checks.push({rule: 'long-title-disclosure', ok: present, value: present});
+            if (present) {
+              await toggle.focus(); await page.keyboard.press('Enter');
+              const expanded = await page.locator('[data-wb-title-expanded]').evaluate((el) => ({
+                expanded: el.dataset.wbTitleExpanded, clipped: el.scrollHeight > el.clientHeight + 1,
+                lines: el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight),
+                text: el.textContent,
+              }));
+              gauge.checks.push({rule: 'keyboard-opens-whole-title', ok: expanded.expanded === 'true' && !expanded.clipped && expanded.lines > 2 && expanded.text === rowReading.title, value: expanded.lines});
+              await page.keyboard.press('Space');
+              const collapsed = await page.locator('[data-wb-title-expanded]').getAttribute('data-wb-title-expanded');
+              gauge.checks.push({rule: 'keyboard-collapses-title', ok: collapsed === 'false', value: collapsed});
+              // Restore scroll after keyboard focus; the geometry snapshot above
+              // measured the initial viewport, so screenshots must show it too.
+              await page.locator('[class*="_tq-d-scroll"]').evaluate((el) => { el.scrollTop = 0; });
+            }
+          }
+        }
+        if (state.name === 'wrap-375-portrait-dark-partial') {
+          // Prove the invariants which already passed on the incident bundle
+          // are real detectors too. Each isolated mutation must be rejected;
+          // do not pretend these were original screenshot defects.
+          const probes = [
+            ['title-lines', '[class*="_tq-d-name"]{width:25px!important;-webkit-line-clamp:unset!important}'],
+            ['title-share', '[class*="_tq-d-name"]{width:25px!important}'],
+            ['title-chip-disjoint', '[class*="_tq-d-hero"]>[class*="_tq-chip"]{grid-area:1/2!important;justify-self:start!important}'],
+            ['title-icon-center', '[class*="_tq-d-hero"]>[class*="_tq-lead"]{transform:translateY(3px)!important}'],
+            ['status-own-line', '[class*="_tq-d-status"]{grid-area:1/2!important}'],
+            ['title-readable-lines', '[class*="_tq-d-name"]{width:15px!important}'],
+            ['prose-readable-width', '[class*="_tq-d-summary"]{width:25px!important}'],
+            ['field-readable-width', '[data-tq-field]>dd{width:25px!important}'],
+            ['code-natural-breaks', '[data-tq-field]>dd{word-break:break-all!important}'],
+            ['url-readable-lines', '[data-tq-field="session"]>dd{width:15px!important}'],
+            ['chip-one-line', '[class*="_tq-d-hero"]>[class*="_tq-chip"]{height:80px!important}'],
+            ['controls-one-line', '[class*="_tq-pill"]{white-space:normal!important}'],
+          ];
+          for (const [rule, css] of probes) {
+            const style = await page.addStyleTag({ content: css });
+            const mutated = await page.evaluate(gaugeInPage, 'wrapping');
+            await style.evaluate((el) => el.remove());
+            gauge.checks.push({rule: 'negative-control:' + rule,
+              ok: mutated.checks.find((check) => check.rule === rule)?.ok === false, value: 'isolated CSS mutation'});
+          }
+        }
         let hostDiff = null;
         if (state.name.includes("tasks")) {
           const sample = await page.evaluate(() => {

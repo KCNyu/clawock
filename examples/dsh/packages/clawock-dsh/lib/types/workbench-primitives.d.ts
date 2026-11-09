@@ -83,3 +83,13 @@ export declare function EmptyState(props: {
     action?: React.ReactNode;
     attrs?: Attrs;
 }): React.ReactElement;
+/** A two-line detail title with a keyboard/touch disclosure for the full name.
+ * Keep the heading itself (and its focus ref) stable; only add a sibling action
+ * when actual rendered geometry overflows, including after a pane resize.
+ */
+export declare function DetailTitle(props: {
+    text: string;
+    moreLabel: string;
+    lessLabel: string;
+    titleRef?: React.Ref<HTMLElement>;
+}): React.ReactElement;
