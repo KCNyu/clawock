@@ -1367,6 +1367,19 @@ export function usdText(n: number): string {
   return moneyText(n, '$')
 }
 
+/**
+ * The mixed-provider total has to fit the 72px phone metric cell at 320px, where
+ * even 14px WebKit overflows a two-decimal amount by a few pixels. Keep at most
+ * five glyphs; the exact cents stay in the cell's title.
+ */
+function mixedUsdText(n: number): string {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M'
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K'
+  if (n >= 100) return '$' + String(Math.round(n))
+  if (n >= 10) return '$' + n.toFixed(1)
+  return usdText(n)
+}
+
 function statOf(counts: ReadonlyArray<{ name: string; count: number }>, name: string): number {
   return counts.find((count) => count.name === name)?.count ?? 0
 }
@@ -1616,7 +1629,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   // USD equivalent; dividing the displayed ¥ by an FX rate would convert an
   // already-USD number a second time and understate dsh by ~6.7x. One
   // provider keeps its own display unit, as before.
-  totals.costText = paidUnits.size > 1 ? '≈' + usdText(totals.costUsdEstimate) : statsCostText(totals, t, [...paidUnits][0])
+  totals.costText = paidUnits.size > 1 ? mixedUsdText(totals.costUsdEstimate) : statsCostText(totals, t, [...paidUnits][0])
   totals.costTitle = paidUnits.size > 1 ? t('stats.costUsdEquivalent', { cost: usdText(totals.costUsdEstimate) }) : ''
   totals.doneShare = ratio(totals.done, totals.settled)
   totals.partialShare = ratio(totals.partial, totals.settled)

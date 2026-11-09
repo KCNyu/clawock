@@ -1131,10 +1131,10 @@ function assertGauge(state, gauge) {
   if (state.gauge === "stats-cost") {
     console.log('  STATS-COST ' + state.name + ' ' + JSON.stringify(gauge));
     assert.ok(gauge.present, state.name + ": the cost metric is rendered");
-    assert.equal(gauge.text, "≈$100.86", state.name + ": mixed units sum in USD, not a currency label");
+    assert.equal(gauge.text, "$101", state.name + ": mixed units sum in USD, not a currency label");
     assert.ok(gauge.scrollWidth <= gauge.width,
       state.name + ": the cost cell shows the whole amount (scrollWidth " + gauge.scrollWidth + " > " + gauge.width + ")");
-    assert.match(gauge.title, /USD 等值/, state.name + ": the cell says the total is a USD equivalent");
+    assert.match(gauge.title, /≈ \$100\.86 · USD 等值/, state.name + ": the title carries the exact USD equivalent");
     assert.doesNotMatch(gauge.layerText, /多币种|mixed currencies/, state.name + ": no mixed-currency fallback");
     const dsh = gauge.rows.find((row) => row.includes("dsh")) ?? "";
     const codex = gauge.rows.find((row) => row.includes("Codex")) ?? "";

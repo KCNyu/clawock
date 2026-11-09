@@ -110,8 +110,8 @@ later task continuing the same session is not double-counted.
 - **`free`** is counted apart (the opencode free pool).
 - **`COST_USD` is an API list-price estimate**, not subscription quota spent.
 - **A mixed-provider total is USD**: the per-provider rows keep their display
-  unit, while the card's total sums the canonical USD estimates and reads
-  `≈$100.86` (never `多币种合计`). `costUsdEstimate`/`COST_USD` are already USD;
+  unit, while the card's total sums the canonical USD estimates and reads a
+  compact amount (e.g. `$101`; exact `≈ $100.86` in its title; never `多币种合计`). `costUsdEstimate`/`COST_USD` are already USD;
   the `¥` on a dsh row is a display unit, not a second-conversion input.
 - **Patrol is excluded by default**; the window says `全部（含巡检）` when it is
   included.

@@ -4282,9 +4282,9 @@ test("workbench client: a mixed-provider stats total is one USD amount, not mixe
   const stats = { available: true, error: "", since: null, days: 7, patrolIncluded: false, asOf: "",
     agents: [agent("dsh", 14.07), agent("codex", 86.79)], daily: {} };
   const mixed = api.statsView(stats, t);
-  assert.equal(mixed.totals.costText, "≈$100.86",
+  assert.equal(mixed.totals.costText, "$101",
     "each COST_USD is already USD; the mixed total is their sum, not a currency label");
-  assert.match(mixed.totals.costTitle, /USD 等值/);
+  assert.match(mixed.totals.costTitle, /≈ \$100\.86 · USD 等值/);
   assert.doesNotMatch(mixed.headline, /多币种/);
   assert.doesNotMatch(mixed.summaryLine, /多币种/);
   // One provider keeps the unit it had before this change: no needless $/¥ switch.
