@@ -2104,6 +2104,7 @@
   --wb-badge: 14px;
   --wb-field-gap: 8px;
   --wb-field-row: minmax(0, 1fr) minmax(0, 2fr) auto;
+  --wb-title-lines: 2;
   --wb-heading-row: var(--wb-icon) minmax(0, 1fr) max-content;
   --wb-readable-word: normal;
   --wb-readable-wrap: anywhere;
@@ -2555,3 +2556,21 @@ body[data-ds-dark-theme] .wb {
   .wb .tq-d-field { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
   .wb .tq-d-field > .tq-d-control { grid-area: 3 / 2 / 4 / -1; justify-content: flex-start; }
 }
+
+/* DetailTitle adds a disclosure only when the rendered name exceeds this
+   budget. The full text stays in the heading and in its accessible name. */
+.wb .wb-reading-title[data-wb-title-expanded=false] {
+  display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--wb-title-lines); overflow: hidden;
+}
+.wb .wb-title-toggle {
+  grid-area: 3 / 2 / 4 / -1; justify-self: start;
+  min-height: var(--wb-btn-h); padding: 0; border: 0; background: transparent;
+  color: var(--wb-text-2); font: inherit; font-size: var(--wb-font-meta);
+  line-height: var(--wb-line-meta); text-decoration: underline; cursor: pointer;
+}
+
+/* An unspaced task identifier is not prose: fill the readable title column
+   instead of stranding a short hyphen segment before a long Latin run.
+   This applies only to DetailTitle; URLs, paths and prose keep natural breaks. */
+.wb .wb-reading-title[data-wb-title-identifier=true] { word-break: break-all; }

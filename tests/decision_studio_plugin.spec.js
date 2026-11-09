@@ -271,6 +271,13 @@ function makeReactStub() {
         },
       ];
     },
+    useLayoutEffect(fn) {
+      reactEffectCleanups.push(fn()); // no DOM refs: measurement is browser-tested
+    },
+    useImperativeHandle(ref, create) {
+      if (typeof ref === "function") ref(create());
+      else if (ref) ref.current = create();
+    },
     useEffect(fn) {
       reactEffectCleanups.push(fn()); // runs like a mount; cleanup is collected
     },

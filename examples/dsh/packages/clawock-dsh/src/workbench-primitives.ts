@@ -196,3 +196,43 @@ export function EmptyState(props: {
     props.meta === undefined ? null : h('div', { className: cx('wb-empty-meta') }, props.meta),
     props.action === undefined ? null : props.action)
 }
+
+/** A two-line detail title with a keyboard/touch disclosure for the full name.
+ * Keep the heading itself (and its focus ref) stable; only add a sibling action
+ * when actual rendered geometry overflows, including after a pane resize.
+ */
+export function DetailTitle(props: {
+  text: string
+  moreLabel: string
+  lessLabel: string
+  titleRef?: React.Ref<HTMLElement>
+}): React.ReactElement {
+  const title = React.useRef<HTMLSpanElement>(null)
+  const [expanded, setExpanded] = React.useState(false)
+  const [overflows, setOverflows] = React.useState(false)
+  const id = React.useId()
+  React.useImperativeHandle(props.titleRef, () => title.current as HTMLSpanElement, [])
+  React.useLayoutEffect(() => {
+    const el = title.current
+    if (el === null) return
+    const measure = (): void => {
+      const line = Number.parseFloat(getComputedStyle(el).lineHeight)
+      setOverflows(el.scrollHeight > line * 2 + 1)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => { observer.disconnect() }
+  }, [props.text, expanded])
+  return h(React.Fragment, null,
+    h('span', {
+      className: cx('tq-d-name', 'wb-reading-title'), role: 'heading', 'aria-level': 2,
+      tabIndex: -1, ref: title, id, 'data-wb-title-expanded': expanded,
+      'data-wb-title-identifier': !/\s/u.test(props.text),
+    }, props.text),
+    overflows ? h('button', {
+      type: 'button', className: cx('wb-title-toggle'), 'data-wb-title-toggle': 'true',
+      'aria-expanded': expanded, 'aria-controls': id,
+      onClick: () => { setExpanded((value) => !value) },
+    }, expanded ? props.lessLabel : props.moreLabel) : null)
+}
