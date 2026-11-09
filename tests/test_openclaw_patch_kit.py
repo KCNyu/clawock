@@ -212,13 +212,35 @@ def test_rollback_refuses_to_overwrite_later_edits(tmp_path, installation):
 
 def test_all_adapters_are_tracked_and_cannot_default_to_the_live_package():
     data = kit.load_manifest(kit.DEFAULT_MANIFEST)
-    assert len(data['patches']) == 13
+    assert len(data['patches']) == 14
     for patch in data['patches']:
         source = HOST / patch['script']
         assert source.is_file()
         if source.suffix == '.sh':
             assert '${CLAWOCK_PATCH_STAGE:?' in source.read_text()
             subprocess.run(['bash', '-n', str(source)], check=True)
+
+
+def test_memory_warmup_patch_is_idempotent(tmp_path, installation):
+    """A gateway restart pays the local model load; warm it at startup instead."""
+    entry = installation / 'dist' / 'extensions' / 'memory-core' / 'index.js'
+    entry.parent.mkdir(parents=True)
+    entry.write_text('''function register(api) {
+		api.registerMemoryCapability({});
+}
+''')
+
+    report, old, new = plan(tmp_path, installation, ['memory-local-warmup'])
+    changed = 'extensions/memory-core/index.js'
+    assert report['changes'] == [changed]
+    assert 'clawock-memory-local-warmup-v1' in new[changed].decode()
+    assert 'memory-local-warmup' in new[changed].decode()
+
+    kit.commit(installation, report, old, new, tmp_path / 'state')
+    stage = tmp_path / 'stage2'
+    stage.mkdir()
+    replay, _, _ = kit.prepare(installation, tmp_path / 'manifest.json', stage)
+    assert replay['changes'] == []
 
 
 def test_vector_patch_is_idempotent_after_it_is_applied(tmp_path, installation):
