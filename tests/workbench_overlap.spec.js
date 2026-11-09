@@ -1109,7 +1109,9 @@ function assertGauge(state, gauge) {
   }
   if (state.gauge === "error-prose") {
     console.log('  ERROR-PROSE ' + state.name + ' ' + JSON.stringify(gauge));
-    assert.ok(gauge.present && gauge.text.includes('https://example.invalid/'), state.name + ': actual upstream diagnostic is rendered');
+    assert.ok(gauge.present, state.name + ': diagnostic is rendered');
+    assert.equal(gauge.text, '额度读取失败：https://example.invalid/' + 'unbrokentoken'.repeat(20),
+      state.name + ': complete fixture diagnostic is preserved');
     assert.equal(gauge.clipped, false, state.name + ': error URL must not clip');
     assert.ok(gauge.wraps && gauge.width >= gauge.container * .7, state.name + ': diagnostic keeps a readable wrapping column');
     return;
