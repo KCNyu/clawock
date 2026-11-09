@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-05T20:24:28.800580+00:00",
+  "generated_at": "2026-11-09T15:51:44.448754+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: 据报道，Anthropic 签下 SpaceX 算力协议，三年合同价值“最高”$45B（约 $1.25B/月）。\n  - **Implication（kcn 持有 SPCH）**: 潜在收入能见度显著提升，方向利多；SPCH 为 2x 杠杆 ETF，会放大约 2 倍的单日波动，宜分批参与、不追高。\n- **CRCL**: Q3 营收 $865M、EPS $0.84 均超预期，但裁员 5%、股价跌 1.6%；四家机构将目标价下调至 $86–$103。\n  - **Implication（kcn 的 CRCL 仓位）**: “业绩 beat、降本裁员、估值下修”组合偏空，不宜因超预期加仓，优先控制仓位并等待降本兑现。\n- **SPCX**: SpaceX 的 6GW 亚利桑那 AI 项目面临日益强烈的社区反弹。\n  - **Implication（kcn 持有 SPCH）**: 存在审批与项目执行风险；SPCH 的 2x 杠杆会放大延期或舆情造成的回撤，应限制追仓。\n- **RKLB**: 过去 48h 未见 RKLB 新合同、财报或监管催化，报道主要是 10 月跌 15% 的历史复盘及同业比较；SpaceX 跌 9% 仅构成板块情绪传导。\n  - **Implication（kcn 持有 RKLX）**: 不应把同业波动当作 RKLB 基本面恶化；RKLX 为 2x ETF，会放大 sympathy selling，暂不据此调仓。\n- **SPCX**: SpaceX 股价在 AI/芯片抛售中跌 9%，逾半 Q3 收入来自 AI 算力；China Renaissance 首评 Buy、目标价 $194.20，但估值已具 Apple 级别特征。\n  - **Implication（kcn 持有 SPCH）**: 基本面催化与高估值去风险并存，短期波动仍高；2x SPCH 会同步放大反弹和回撤，不宜追反弹。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: 超预期财报未能抵消 5% 裁员及集中下调目标价的影响，短期偏空。\n- **RKLB**: 无有效新增公司级催化，现有信息不改变 RKLX 仓位判断。\n- **SPCX**: $45B 潜在算力合同利多，但被 6GW 项目反弹、高估值及股价下跌部分抵消，整体高波动。\n\n### 风险 watch (若有)\n- **CRCL**: 裁员及目标价全面下调显示成本与执行预期恶化。\n- **SPCX**: “最高 $45B”不等同保证收入；6GW 项目面临社区/审批风险，AI 基建收入集中度与估值风险上升。\n- **杠杆 ETF**: RKLX 与 SPCH 均为 2x，消息方向和日内波动均会被放大。\n- 本批未披露明确监管处罚、大股东减持、失败合约或正式业绩指引。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB**: Neutron 一级 forward dome 已完成制造与固化；财报将聚焦 Neutron 时间表、Iridium 收购及 Space Systems，期权隐含财报波动最高达 30.25%。  \n  **对 kcn 持仓：** 持有的是 **RKLX（2x 杠杆 ETF）**，2x 会同时放大 Neutron 进展与财报失望带来的波动。\n- **SPCX**: SpaceX 较 6 月 IPO 时下跌 22%、近一月跌约 20%；高盛认为其太空业务的颠覆性低于市场担忧，但暂无新增基本面催化。  \n  **对 kcn 持仓：** 持有的是 **SPCH（2x 杠杆 ETF）**，2x 将放大当前回撤及后续反弹，适合优先控制仓位波动。\n- **CRCL**: Coinbase 获 OCC 最终批准联邦信托牌照，可将机构加密托管业务纳入联邦监管；Circle、Ripple 已被标题并列提及，但摘要只明确 Coinbase 事项。  \n  **对 kcn 持仓：** 这是同业监管进展而非 Circle 新增利好，机构托管竞争对 CRCL 中性略负，不应误读为 CRCL 自身获批。\n- **CRCL**: Coinbase 财报后累计下跌 16%并触及 52 周低点，弱季度、比特币下滑及安全事件压制加密市场风险偏好。  \n  **对 kcn 持仓：** 对 CRCL 属板块情绪负读数，并非 Circle 自身业绩或财务指引。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: Neutron 制造取得实质进展，但财报及最高 30.25%的隐含波动构成近期二元事件。\n- **SPCX**: 股价较 IPO 高点回撤逾两成；高盛偏正面判断只能缓冲情绪，尚缺新增订单或经营数据支撑。\n- **CRCL**: 本轮新增信息主要来自 Coinbase 的监管获批及市场走弱，缺少 CRCL 自身财报、订单或 guidance 催化。\n\n### 风险 watch (若有)\n- **RKLB / RKLX**: 财报可能更新 Neutron 延后、Iridium 收购及 Space Systems 展望；2x ETF 将放大潜在跳空。\n- **CRCL**: OCC 牌照提升 Coinbase 机构托管能力；Coinbase 弱势表现、比特币下跌及安全事件构成加密板块风险，但尚非 CRCL 自身指引。\n- **SPCX / SPCH**: IPO 后回撤 20%—22%显示高波动仍未消退，2x ETF 放大回撤及反弹。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Susquehanna Maintains Neutral on Circle Internet Group, Lowers Price Target to $86",
-        "datetime": 1793870378,
-        "source": "Benzinga",
+        "headline": "Coinbase Joins Circle, Ripple With Final OCC Approval for Federal Trust Bank Charter",
+        "datetime": 1794225036,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c5d966c8f8f7ba2f3ecb8e61a4b439388b7b0373caa95e78fa4204e339cc7f6c"
+        "url": "https://finnhub.io/api/news?id=8460535fca6bfe7f56e1cc77ca37a144bf889c47f66ed7258a506fe83d017957"
       },
       {
-        "headline": "Keefe, Bruyette & Woods Maintains Market Perform on Circle Internet Group, Lowers Price Target to $90",
-        "datetime": 1793868742,
+        "headline": "Dole Posts Downbeat Q3 Results, Joins NVIDIA And Other Big Stocks Moving Lower In Monday’s Pre-Market Session",
+        "datetime": 1794214999,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c9c663a8902976fdd3836d021c79c8e0f39f6d7533458c8044af68f33844c282"
+        "url": "https://finnhub.io/api/news?id=abf328ea641d35c230f79059e09f7ca6106229ee4690ea5499b0b18129cb4c05"
       },
       {
-        "headline": "These Analysts Slash Their Forecasts On Circle Internet Group After Q3 Results",
-        "datetime": 1793866078,
+        "headline": "Anthropic IPO Reality Check: What Recent Listings Suggest for ANT Stock",
+        "datetime": 1794155407,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=25a4c601672509170c6825f1b97976edbca14b5065bd9ed9c8e050d9fdcc836f"
+        "url": "https://finnhub.io/api/news?id=1b8e549c186c7485fb6ddca4716d34b2d05ce3afc4ea4ed1061a5219f6139cb1"
       },
       {
-        "headline": "Needham Maintains Buy on Circle Internet Group, Lowers Price Target to $103",
-        "datetime": 1793865527,
-        "source": "Benzinga",
+        "headline": "3 Stocks Investors Watch When Demand For U.S. Dollar Safety Rises",
+        "datetime": 1794143344,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a035d362df1a5e02c700272764932edc5180bba805d087167d3ce7f038438442"
+        "url": "https://finnhub.io/api/news?id=b99cf528e715f2cba2ca7de288888cac9ff108c0648054fa3c7dbafa8d7caa6a"
       },
       {
-        "headline": "HC Wainwright & Co. Maintains Buy on Circle Internet Group, Lowers Price Target to $100",
-        "datetime": 1793862612,
-        "source": "Benzinga",
+        "headline": "Coinbase Just Hit a New 52-Week Low After Losing 16% Since Earnings. Is the Selling Overdone?",
+        "datetime": 1794110633,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7083fab48e231b7be6cfd90a37b8a58886c98f58108b1c74ca146355440ac36f"
+        "url": "https://finnhub.io/api/news?id=0840ae9e673468d275cf661c431d0ec40e95cc192377d59df634d6667a2a3126"
       }
     ],
     "RKLB": [
       {
-        "headline": "SpaceX Sinks 9% as AI Stocks Crater: “Absolute Slaughter”",
-        "datetime": 1793902411,
+        "headline": "SpaceX Cratered 20% in The Last Month: This Wall Street Pro Predicts 500% Returns at Today’s Price",
+        "datetime": 1794231932,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e7776650213fcccb9d5d929c4614f543cc6b844cd8c5133e5364274deabe2793"
+        "url": "https://finnhub.io/api/news?id=4f0085a8234334b61ab4928bd471e6b5801f350d1012fa22087f88d0ca7edee6"
       },
       {
-        "headline": "Better Space Stock: Rocket Lab vs. AST SpaceMobile (Hint: It Comes Down to Dilution)",
-        "datetime": 1793892900,
+        "headline": "US Stock Market Today: S&P 500 Futures Nudge Higher On Jobs Strength Fed Uncertainty",
+        "datetime": 1794229775,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9dbf2aeda32cab3533ba0ecedec0c8181a99fcdff2bb308cb0b95f9507d3b175"
+        "url": "https://finnhub.io/api/news?id=b4133e9c6cce8313fd82eeee4318d3236ccbbcb7bfca234a09c3502986924842"
       },
       {
-        "headline": "SpaceX vs. Rocket Lab vs. AST SpaceMobile: 3 Space Stocks Compared on the Only Numbers That Matter",
-        "datetime": 1793888400,
-        "source": "Yahoo",
+        "headline": "Rocket Lab Earnings Loom: Here’s What Investors Need to Know",
+        "datetime": 1794220323,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=77b9c902496ab9cae7e60acef61bad727a2273e25ef151b2ccde891d59d6796f"
+        "url": "https://finnhub.io/api/news?id=0f415b15baa0b3ab9c098472ede0658e6c5e260053df7bec6273413b4e6e9057"
       },
       {
-        "headline": "Ducommun (DCO) Q3 Earnings and Revenues Top Estimates",
-        "datetime": 1793878502,
-        "source": "Yahoo",
+        "headline": "Nebius Could Swing $6.56 Billion After Earnings",
+        "datetime": 1794207606,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9d440fa4e920e8d6bdab71850df613385c0ff9764f72ec7002f78daf41e53244"
+        "url": "https://finnhub.io/api/news?id=6c4207eb6ab347da6d62ce8efd38069e99229a85a09c761a0cc13915566ceaf1"
       },
       {
-        "headline": "Why Rocket Lab Stock Plunged 15% in October and Why Its Decline Might Be Short-Lived",
-        "datetime": 1793866202,
+        "headline": "RKLB Stock Climbs Overnight Ahead Of Earnings — Bulls Bet Neutron Delay Is Priced In Amid Fresh Progress",
+        "datetime": 1794201594,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2e512781e89df72916f78120d1bba9927f5740e036b021f53b2ff54452fcc0e6"
+        "url": "https://finnhub.io/api/news?id=df1fdc95fa4a3da7b997af9bb5608f07fbd49e3ac984c68614a2afebe5698187"
       }
     ],
     "SPCX": [
       {
-        "headline": "Elon Musk’s AI Rival Agreed to Pay Him $1.25 Billion a Month.",
-        "datetime": 1793908500,
+        "headline": "SpaceX Cratered 20% in The Last Month: This Wall Street Pro Predicts 500% Returns at Today’s Price",
+        "datetime": 1794231932,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=96c18d366a9d8a00370798806dda2349a358b827f4cee80f66bd1a79303ecc6e"
+        "url": "https://finnhub.io/api/news?id=4f0085a8234334b61ab4928bd471e6b5801f350d1012fa22087f88d0ca7edee6"
       },
       {
-        "headline": "SpaceX Stock Tumbles. A 6-Gigawatt AI Data Center Is Drawing Backlash",
-        "datetime": 1793907177,
+        "headline": "Here's What Must Happen for SpaceX Stock to Rebound",
+        "datetime": 1794231720,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8a9ad58bb0439faa04534dfdcdd423cccb164a13c055476361f8e4f8b7c1623b"
+        "url": "https://finnhub.io/api/news?id=5b92507a1a7491248fccef6b67e2fddc00d0d5769e78affb840c90b9fb4427a9"
       },
       {
-        "headline": "SpaceX Stock Is Still Falling. It Trades At Apple’s Valuation.",
-        "datetime": 1793906940,
+        "headline": "Goldman Sachs Delivers Surprising Take on SpaceX Stock",
+        "datetime": 1794231219,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=48156ee18f765962ec49ad55aa4e83d0b33dfd686657ae74cfa16e36f84c62ee"
+        "url": "https://finnhub.io/api/news?id=e9797c30006af3a01dbbf38dc80eb526691efacf724a8f2b909eeb329e5376c1"
       },
       {
-        "headline": "What Anthropic's IPO could mean for Amazon and Google",
-        "datetime": 1793906836,
+        "headline": "Alphabet Makes $548 Million In Major Tech Stock, Keeps Massive SpaceX Stake",
+        "datetime": 1794231014,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4a3288879460fa5242aa18651c12c0e205ca24b98ede26b30e9f48364fdd0cc4"
+        "url": "https://finnhub.io/api/news?id=855f04fbbc9548b572911a1358296cb2147c765da3ebbe8fccfe3fa284fefada"
       },
       {
-        "headline": "Here's What a $10,000 Investment in Anthropic Could Be Worth by 2030",
-        "datetime": 1793905500,
+        "headline": "Elon Musk Sets Massive 2032 Chipmaking Target for Tesla, SpaceX",
+        "datetime": 1794230779,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=54ceed67acad8052d42decc9ceac62fb098cb59277cb2f5ac1ddffd2b1ac67e6"
+        "url": "https://finnhub.io/api/news?id=0096216fbf2d7d3b624318eb680fe707d04eb6b6da191c816df7347064c0979f"
       }
     ]
   },
