@@ -7890,7 +7890,7 @@ const dictionaries = {
 		"stats.tokens": "token {tokens}",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "免费",
-		"stats.costMixed": "多币种合计",
+		"stats.costUsdEquivalent": "≈ {cost} · USD 等值（各 provider 的 API 估算均按 USD 计价；目录价估算，不是实际扣费）",
 		"stats.metric.tasks": "任务",
 		"stats.metric.tokens": "token",
 		"stats.metric.cost": "API 估价",
@@ -8554,7 +8554,7 @@ const dictionaries = {
 		"stats.tokens": "{tokens} tokens",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "free",
-		"stats.costMixed": "mixed currencies",
+		"stats.costUsdEquivalent": "≈ {cost} · USD equivalent (each provider estimate is priced in USD; API list price, not billed)",
 		"stats.metric.tasks": "Tasks",
 		"stats.metric.tokens": "Tokens",
 		"stats.metric.cost": "API estimate",
@@ -9994,6 +9994,21 @@ function moneyText(n, unit = "$") {
 	if (!(n > 0)) return unit + "0";
 	return n < .01 ? "<" + unit + "0.01" : unit + n.toFixed(2);
 }
+function usdText(n) {
+	return moneyText(n, "$");
+}
+/**
+* The mixed-provider total has to fit the 72px phone metric cell at 320px, where
+* even 14px WebKit overflows a two-decimal amount by a few pixels. Keep at most
+* five glyphs; the exact cents stay in the cell's title.
+*/
+function mixedUsdText(n) {
+	if (n >= 1e6) return "$" + (n / 1e6).toFixed(1) + "M";
+	if (n >= 1e3) return "$" + (n / 1e3).toFixed(1) + "K";
+	if (n >= 100) return "$" + String(Math.round(n));
+	if (n >= 10) return "$" + n.toFixed(1);
+	return usdText(n);
+}
 function statOf(counts, name) {
 	return counts.find((count) => count.name === name)?.count ?? 0;
 }
@@ -10119,7 +10134,8 @@ function statsView(stats, t) {
 		tokensUnknown: 0,
 		costUsdEstimate: 0,
 		costUnpriced: 0,
-		costFree: 0
+		costFree: 0,
+		costTitle: ""
 	};
 	if (!stats.available) return {
 		title,
@@ -10199,7 +10215,8 @@ function statsView(stats, t) {
 		agent: agent.agent,
 		model: ""
 	})));
-	totals.costText = paidUnits.size > 1 ? t("stats.costMixed") : statsCostText(totals, t, [...paidUnits][0]);
+	totals.costText = paidUnits.size > 1 ? mixedUsdText(totals.costUsdEstimate) : statsCostText(totals, t, [...paidUnits][0]);
+	totals.costTitle = paidUnits.size > 1 ? t("stats.costUsdEquivalent", { cost: usdText(totals.costUsdEstimate) }) : "";
 	totals.doneShare = ratio(totals.done, totals.settled);
 	totals.partialShare = ratio(totals.partial, totals.settled);
 	totals.unfinishedShare = ratio(totals.unfinished, totals.settled);
@@ -14301,7 +14318,10 @@ function WorkbenchPage(props) {
 	const statsTop = h("div", { className: cx("wb-ov-stats") }, h("div", { className: cx("wb-ov-metrics") }, ...metrics.map(([label, value], at) => h("div", {
 		className: cx("wb-ov-metric"),
 		key: "m" + at
-	}, h("span", { className: cx("wb-ov-metric-label") }, label), h("span", { className: cx("wb-ov-metric-value") }, value)))), h("div", {
+	}, h("span", { className: cx("wb-ov-metric-label") }, label), h("span", {
+		className: cx("wb-ov-metric-value"),
+		title: at === 2 && totals?.costTitle ? totals.costTitle : void 0
+	}, value)))), h("div", {
 		className: cx("wb-ov-done"),
 		"data-wb-overview-done": String(doneN)
 	}, h("div", { className: cx("wb-ov-done-bar") }, h("span", {

@@ -654,6 +654,17 @@ function gaugeInPage(mode) {
       clipped: node !== null && node.scrollWidth > node.clientWidth,
       wraps: node !== null && box(node).h / parseFloat(getComputedStyle(node).lineHeight) > 1};
   }
+  if (mode === "stats-cost") {
+    const values = [...document.querySelectorAll('[class*="_wb-ov-metric-value"]')];
+    const node = values[2] ?? null, layer = document.querySelector('[data-wb-stats-layer]');
+    const style = node === null ? null : getComputedStyle(node);
+    return { mode, present: node !== null, text: (node?.textContent ?? '').trim(),
+      width: node?.clientWidth ?? null, scrollWidth: node?.scrollWidth ?? null,
+      fontSize: style?.fontSize ?? null, ellipsis: style?.textOverflow ?? null,
+      title: node?.getAttribute('title') ?? null,
+      rows: [...document.querySelectorAll('[data-tq-stats-token]')].map((el) => (el.innerText || '').replace(/\s+/g, ' ').trim()),
+      layerText: layer?.innerText ?? '' };
+  }
   if (mode === "sidebar") {
     const rows = [...document.querySelectorAll("[data-wb-sidebar-row]")].map((el) => ({
       name: el.getAttribute("data-wb-sidebar-row"),
@@ -905,7 +916,8 @@ const STATES = [
   { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers", gauge: "providers" },
   { name: "overview", width: 390, height: 844, scenario: "normal", drive: "overview", gauge: "overview" },
   { name: "patrol", width: 390, height: 844, scenario: "normal", drive: "patrol", gauge: "coverage" },
-  { name: "stats", width: 390, height: 844, scenario: "normal", drive: "stats" },
+  { name: "stats", width: 390, height: 844, scenario: "normal", drive: "stats", gauge: "stats-cost" },
+  ...[320, 375, 420].map((width) => ({ name: "stats-" + width, width, height: width === 320 ? 568 : 844, scenario: "normal", drive: "stats", gauge: "stats-cost" })),
   { name: "history", width: 390, height: 844, scenario: "normal", drive: "history", gauge: "history" },
   { name: "task", width: 390, height: 844, scenario: "normal", drive: "task", gauge: "detail" },
   { name: "sheet", width: 390, height: 844, scenario: "normal", drive: "sheet", gauge: "brief" },
@@ -1114,6 +1126,20 @@ function assertGauge(state, gauge) {
       state.name + ': complete fixture diagnostic is preserved');
     assert.equal(gauge.clipped, false, state.name + ': error URL must not clip');
     assert.ok(gauge.wraps && gauge.width >= gauge.container * .7, state.name + ': diagnostic keeps a readable wrapping column');
+    return;
+  }
+  if (state.gauge === "stats-cost") {
+    console.log('  STATS-COST ' + state.name + ' ' + JSON.stringify(gauge));
+    assert.ok(gauge.present, state.name + ": the cost metric is rendered");
+    assert.equal(gauge.text, "$101", state.name + ": mixed units sum in USD, not a currency label");
+    assert.ok(gauge.scrollWidth <= gauge.width,
+      state.name + ": the cost cell shows the whole amount (scrollWidth " + gauge.scrollWidth + " > " + gauge.width + ")");
+    assert.match(gauge.title, /≈ \$100\.86 · USD 等值/, state.name + ": the title carries the exact USD equivalent");
+    assert.doesNotMatch(gauge.layerText, /多币种|mixed currencies/, state.name + ": no mixed-currency fallback");
+    const dsh = gauge.rows.find((row) => row.includes("dsh")) ?? "";
+    const codex = gauge.rows.find((row) => row.includes("Codex")) ?? "";
+    assert.match(dsh, /¥14\.07/, state.name + ": the dsh detail row keeps its own unit");
+    assert.match(codex, /\$86\.79/, state.name + ": the codex detail row keeps its own unit");
     return;
   }
   if (state.gauge === "fields") {
