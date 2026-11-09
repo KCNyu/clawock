@@ -3453,7 +3453,10 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     h('div', { className: cx('wb-ov-metrics') },
       ...metrics.map(([label, value], at) => h('div', { className: cx('wb-ov-metric'), key: 'm' + at },
         h('span', { className: cx('wb-ov-metric-label') }, label),
-        h('span', { className: cx('wb-ov-metric-value') }, value)))),
+        h('span', {
+          className: cx('wb-ov-metric-value', at === 2 && 'wb-ov-metric-value-cost'),
+          title: at === 2 && totals?.costTitle ? totals.costTitle : undefined,
+        }, value)))),
     h('div', { className: cx('wb-ov-done'), 'data-wb-overview-done': String(doneN) },
       h('div', { className: cx('wb-ov-done-bar') },
         h('span', { className: cx('wb-ov-done-fill'), style: { width: (settledN > 0 ? doneN / settledN * 100 : 0) + '%' } }),

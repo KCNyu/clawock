@@ -1416,6 +1416,8 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
   costUsdEstimate: number
   costUnpriced: number
   costFree: number
+  /** The tooltip that says a mixed-provider total is a USD equivalent; '' for one unit. */
+  costTitle: string
 }
 
 /**
@@ -1555,7 +1557,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     tokens: 0, tokensUnknown: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
   }
   const zeroTotals: StatsTotalsView = {
-    ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0,
+    ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0, costTitle: '',
   }
   if (!stats.available) {
     return {
@@ -1608,7 +1610,14 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     const raw = selected.find((item) => item.agent === agent.agent)
     return (raw?.costUsdEstimate ?? 0) > 0
   }).map((agent) => _costUnit({ agent: agent.agent, model: '' })))
-  totals.costText = paidUnits.size > 1 ? t('stats.costMixed') : statsCostText(totals, t, [...paidUnits][0])
+  // Every provider's costUsdEstimate is already USD (task_queue_ops.py's
+  // estimate_usd over the USD price table), and #3303 only changed dsh's
+  // *display* unit to ¥. Summing the canonical USD estimates is therefore the
+  // USD equivalent; dividing the displayed ¥ by an FX rate would convert an
+  // already-USD number a second time and understate dsh by ~6.7x. One
+  // provider keeps its own display unit, as before.
+  totals.costText = paidUnits.size > 1 ? '≈' + usdText(totals.costUsdEstimate) : statsCostText(totals, t, [...paidUnits][0])
+  totals.costTitle = paidUnits.size > 1 ? t('stats.costUsdEquivalent', { cost: usdText(totals.costUsdEstimate) }) : ''
   totals.doneShare = ratio(totals.done, totals.settled)
   totals.partialShare = ratio(totals.partial, totals.settled)
   totals.unfinishedShare = ratio(totals.unfinished, totals.settled)

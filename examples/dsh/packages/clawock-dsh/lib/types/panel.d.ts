@@ -620,6 +620,8 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
     costUsdEstimate: number;
     costUnpriced: number;
     costFree: number;
+    /** The tooltip that says a mixed-provider total is a USD equivalent; '' for one unit. */
+    costTitle: string;
 };
 /**
  * The stats surface's one view: the card's three readings, its completion bar, and the

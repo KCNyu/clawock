@@ -4268,6 +4268,34 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
   disposeReactEffects();
 });
 
+test("workbench client: a mixed-provider stats total is one USD amount, not mixed currencies", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const t = translatorFor(api);
+  const agent = (name, cost) => ({ agent: name, tasks: 1, live: 0, states: [],
+    outcomes: [{ name: "DONE", count: 1 }], tokensTotal: 1000, tokensUnknown: 0,
+    costUsdEstimate: cost, costUnpriced: 0, costFree: 0 });
+  const stats = { available: true, error: "", since: null, days: 7, patrolIncluded: false, asOf: "",
+    agents: [agent("dsh", 14.07), agent("codex", 86.79)], daily: {} };
+  const mixed = api.statsView(stats, t);
+  assert.equal(mixed.totals.costText, "≈$100.86",
+    "each COST_USD is already USD; the mixed total is their sum, not a currency label");
+  assert.match(mixed.totals.costTitle, /USD 等值/);
+  assert.doesNotMatch(mixed.headline, /多币种/);
+  assert.doesNotMatch(mixed.summaryLine, /多币种/);
+  // One provider keeps the unit it had before this change: no needless $/¥ switch.
+  const dshOnly = api.statsView({ ...stats, agents: [agent("dsh", 14.07)] }, t);
+  assert.equal(dshOnly.totals.costText, "¥14.07");
+  assert.equal(dshOnly.totals.costTitle, "", "a single unit needs no conversion note");
+  // Nothing priced: still the old free/unpriced wording, never a fake $0.
+  const free = api.statsView({ ...stats, agents: [{ ...agent("dsh", 0), costFree: 1 }] }, t);
+  assert.equal(free.totals.costText, "免费");
+});
+
 test("workbench client: Overview copy is pinned in Chinese", async () => {
   const loaded = await loadClient();
   const now = Date.now();

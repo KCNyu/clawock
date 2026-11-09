@@ -2462,6 +2462,14 @@ body[data-ds-dark-theme] .wb {
 .wb-ov-metric:first-child { padding-left: 0; border-left: 0; }
 .wb-ov-metric-label { overflow: hidden; color: var(--wb-text-3); font-size: var(--wb-font-small); line-height: var(--wb-line-small); text-overflow: ellipsis; white-space: nowrap; }
 .wb-ov-metric-value { overflow: hidden; color: var(--wb-text-1); font-size: var(--wb-font-title); line-height: var(--wb-line-title); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+
+/* The cost cell reads "≈$100.86" while its two siblings stay short. At 320px
+   the equal thirds leave 72px for the value, so shrink only this one below the
+   phone breakpoint instead of hiding the currency or the cents behind an
+   ellipsis. */
+@media (width<=374px) {
+  .wb .wb-ov-metric-value-cost { font-size: var(--wb-font-ui); line-height: var(--wb-line-ui); }
+}
 .wb-ov-done { box-sizing: border-box; height: var(--wb-group-h); padding-top: var(--wb-space-2); }
 .wb-ov-done-bar { display: flex; height: var(--wb-space-2); overflow: hidden; border-radius: var(--wb-space-1); background: var(--wb-line-1); }
 .wb-ov-done-fill { display: block; height: 100%; background: var(--wb-accent); }
