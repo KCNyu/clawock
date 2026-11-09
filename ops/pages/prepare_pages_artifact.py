@@ -78,7 +78,7 @@ def preserve_moved_markdown(output_dir: Path, source_root: Path, contract: dict)
         if not (output_dir / relative.with_suffix(".html")).is_file():
             continue
         name = relative.as_posix()
-        if (not any(fnmatch.fnmatch(name, p) for p in contract["artifact_include"])
+        if (not any(source in source_root.glob(p) for p in contract["artifact_include"])
                 or any(fnmatch.fnmatch(name, p) for p in contract["repository_only"])):
             continue
         destination = output_dir / relative

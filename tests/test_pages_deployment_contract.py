@@ -653,7 +653,8 @@ def test_moved_markdown_url_survives_jekyll_and_links_to_the_published_owner(tmp
     output = tmp_path / "artifact"
     (output / "docs").mkdir(parents=True)
     (output / "docs/old.html").write_text("rendered migration page")
-    contract = {"artifact_include": ["docs/*"], "repository_only": []}
+    # Use the production recursive glob: Path.glob includes root docs too.
+    contract = {"artifact_include": ["docs/**/*"], "repository_only": []}
 
     assert prepare_pages_artifact.preserve_moved_markdown(output, source, contract) == ["docs/old.md"]
     assert (output / "docs/old.md").read_text() == "# Moved\n\n[Owner](owner.html#contract)\n"
