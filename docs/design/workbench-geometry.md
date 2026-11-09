@@ -73,3 +73,8 @@ route; it is not permission to shrink a reading column to a few characters.
 
 Browser geometry is regression evidence, not physical Safari verification.
 Real device toolbar/keyboard/safe-area transitions still need a device capture.
+
+EmptyState titles, bodies and meta share the prose wrapping tokens: an upstream
+provider failure can include a long URL/path in its title. The error-url matrix
+asserts that the complete diagnostic wraps within the reading surface, including
+when there are no provider rows to supply a full-content route.

@@ -640,7 +640,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           WORKBENCH_OUT: ${{ runner.temp }}/workbench-before.json
           WORKBENCH_SHOTS: ${{ runner.temp }}/workbench-before-shots
-          WORKBENCH_STATES: fields-320,fields-375,fields-390,wrap-320-portrait-light-partial,wrap-375-portrait-dark-partial,wrap-390-portrait-light-word,wrap-390-portrait-light-cjk,wrap-375-portrait-dark-long
+          WORKBENCH_STATES: fields-320,fields-375,fields-390,wrap-320-portrait-light-partial,wrap-375-portrait-dark-partial,wrap-390-portrait-light-word,wrap-390-portrait-light-cjk,wrap-375-portrait-dark-long,error-url-320,error-url-393
         run: |
           git fetch --depth=1 origin "$BASE_SHA"
           git show "$BASE_SHA:examples/dsh/packages/clawock-dsh/lib/client.js" > "$RUNNER_TEMP/workbench-before-client.js"
