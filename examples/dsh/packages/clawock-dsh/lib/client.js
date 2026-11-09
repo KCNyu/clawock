@@ -7890,7 +7890,8 @@ const dictionaries = {
 		"stats.tokens": "token {tokens}",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "免费",
-		"stats.costUsdEquivalent": "≈ {cost} · USD 等值（各 provider 的 API 估算均按 USD 计价；目录价估算，不是实际扣费）",
+		"stats.costUsdNote": "≈ {cost} · USD 计价（API 目录价估算，不是实际扣费）",
+		"stats.costZero": "{cost} · 已知零花费：任务有 token/花费记录且 COST_USD=0.00（不是缺数据）",
 		"stats.metric.tasks": "任务",
 		"stats.metric.tokens": "token",
 		"stats.metric.cost": "API 估价",
@@ -8554,7 +8555,8 @@ const dictionaries = {
 		"stats.tokens": "{tokens} tokens",
 		"stats.costEstimate": "API {cost}",
 		"stats.free": "free",
-		"stats.costUsdEquivalent": "≈ {cost} · USD equivalent (each provider estimate is priced in USD; API list price, not billed)",
+		"stats.costUsdNote": "≈ {cost} · priced in USD (API list-price estimate, not billed)",
+		"stats.costZero": "{cost} · known zero: the task has a token/cost record with COST_USD=0.00 (not missing data)",
 		"stats.metric.tasks": "Tasks",
 		"stats.metric.tokens": "Tokens",
 		"stats.metric.cost": "API estimate",
@@ -9903,17 +9905,12 @@ function _fmtTokens(n) {
 	if (n < 1e6) return (n / 1e3).toFixed(n < 1e4 ? 1 : 0) + "k";
 	return (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + "M";
 }
-/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
-* Claude and Codex estimates use USD. The number is the host's estimate. */
-function _costUnit(task) {
-	return task.agent === "dsh" || task.model.startsWith("deepseek") ? "¥" : "$";
-}
 /** The ended-task list: frozen result, finished time and cost, newest first (host order). */
 function historyRowsView(result, t, now) {
 	return (result?.recent ?? []).map((task) => {
 		const chip = _endedState(task.state, task.outcome, t);
 		const cost = _costOf(task);
-		const costText = cost === null ? "" : cost.kind === "usd" ? _costUnit(task) + (task.costUsd ?? "") : cost.kind === "free" ? t("queue.d.costFreeShort") : t("queue.d.costUnpriced");
+		const costText = cost === null ? "" : cost.kind === "usd" ? "$" + (task.costUsd ?? "") : cost.kind === "free" ? t("queue.d.costFreeShort") : t("queue.d.costUnpriced");
 		const at = task.finishedAtMs ?? task.updatedAtMs;
 		const meta = [task.agent === "" ? "" : _agentLabel(task.agent), at === null || at === void 0 ? "" : agoOf(t, Math.max(0, now - at))].filter((part) => part !== "").join(" · ");
 		return {
@@ -9998,11 +9995,11 @@ function usdText(n) {
 	return moneyText(n, "$");
 }
 /**
-* The mixed-provider total has to fit the 72px phone metric cell at 320px, where
-* even 14px WebKit overflows a two-decimal amount by a few pixels. Keep at most
-* five glyphs; the exact cents stay in the cell's title.
+* The card total has to fit the 72px phone metric cell at 320px, where even
+* 14px WebKit overflows a two-decimal amount by a few pixels. Keep at most five
+* glyphs; the exact cents stay in the cell's title.
 */
-function mixedUsdText(n) {
+function statsTotalText(n) {
 	if (n >= 1e6) return "$" + (n / 1e6).toFixed(1) + "M";
 	if (n >= 1e3) return "$" + (n / 1e3).toFixed(1) + "K";
 	if (n >= 100) return "$" + String(Math.round(n));
@@ -10015,14 +10012,26 @@ function statOf(counts, name) {
 function statsTokensText(tokens, unknown) {
 	return tokens > 0 || unknown === 0 ? compactCount(tokens) : "—";
 }
-function statsCostText(agent, t, unit) {
-	const u = unit ?? _costUnit({
-		agent: agent.agent ?? "",
-		model: ""
-	});
-	if (agent.costUsdEstimate > 0) return moneyText(agent.costUsdEstimate, u);
-	if (agent.costFree > 0 && agent.costUnpriced === 0) return t("stats.free");
-	return "—";
+/**
+* Every API cost estimate is USD: task_queue_ops.py's estimate_usd prices tokens
+* with the USD list-price table, so the figure and the `$` come from one source.
+* A dsh *balance* is CNY and stays ¥; it is a different quantity from this
+* estimate, never a conversion input.
+*
+* A known zero is printed as `$0` (a cancelled task with COST_USD=0.00 is
+* not missing data); `—` is reserved for a task whose model has no price row.
+*/
+function statsCostText(agent, t) {
+	if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate);
+	if (agent.costUnpriced > 0) return "—";
+	if (agent.costFree > 0) return t("stats.free");
+	return usdText(0);
+}
+function statsCostTitle(agent, t) {
+	if (agent.costUsdEstimate > 0) return t("stats.costUsdNote", { cost: usdText(agent.costUsdEstimate) });
+	if (agent.costUnpriced > 0) return t("queue.d.costUnpriced");
+	if (agent.costFree > 0) return t("queue.d.costFree");
+	return t("stats.costZero", { cost: usdText(0) });
 }
 const ratio = (part, whole) => whole > 0 ? Math.max(0, Math.min(1, part / whole)) : 0;
 /** The host chart's categorical palette, in the design system's series order. */
@@ -10126,6 +10135,7 @@ function statsView(stats, t) {
 		tokensUnknown: 0,
 		tokensText: "0",
 		costText: "—",
+		costTitle: "",
 		share: 0,
 		doneShare: 0,
 		partialShare: 0,
@@ -10135,6 +10145,7 @@ function statsView(stats, t) {
 		costUsdEstimate: 0,
 		costUnpriced: 0,
 		costFree: 0,
+		costCellText: "—",
 		costTitle: ""
 	};
 	if (!stats.available) return {
@@ -10184,6 +10195,7 @@ function statsView(stats, t) {
 			tokensUnknown: agent.tokensUnknown,
 			tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
 			costText: statsCostText(agent, t),
+			costTitle: statsCostTitle(agent, t),
 			share: 0,
 			doneShare: ratio(done, settled),
 			partialShare: ratio(partial, settled),
@@ -10209,14 +10221,9 @@ function statsView(stats, t) {
 		totals.costFree += raw.costFree;
 	}
 	totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown);
-	const paidUnits = new Set(agents.filter((agent) => {
-		return (selected.find((item) => item.agent === agent.agent)?.costUsdEstimate ?? 0) > 0;
-	}).map((agent) => _costUnit({
-		agent: agent.agent,
-		model: ""
-	})));
-	totals.costText = paidUnits.size > 1 ? mixedUsdText(totals.costUsdEstimate) : statsCostText(totals, t, [...paidUnits][0]);
-	totals.costTitle = paidUnits.size > 1 ? t("stats.costUsdEquivalent", { cost: usdText(totals.costUsdEstimate) }) : "";
+	totals.costText = statsCostText(totals, t);
+	totals.costCellText = totals.costUsdEstimate > 0 ? statsTotalText(totals.costUsdEstimate) : totals.costText;
+	totals.costTitle = statsCostTitle(totals, t);
 	totals.doneShare = ratio(totals.done, totals.settled);
 	totals.partialShare = ratio(totals.partial, totals.settled);
 	totals.unfinishedShare = ratio(totals.unfinished, totals.settled);
@@ -10229,12 +10236,12 @@ function statsView(stats, t) {
 			window,
 			t("stats.tasks", { n: totals.tasks }),
 			t("stats.tokens", { tokens: totals.tokensText }),
-			t("stats.costEstimate", { cost: totals.costText })
+			t("stats.costEstimate", { cost: totals.costCellText })
 		].join(" · "),
 		summaryLine: [
 			t("stats.tasks", { n: totals.tasks }),
 			t("stats.tokens", { tokens: totals.tokensText }),
-			t("stats.costEstimate", { cost: totals.costText })
+			t("stats.costEstimate", { cost: totals.costCellText })
 		].join(" · "),
 		agents,
 		totals,
@@ -11816,7 +11823,10 @@ function renderStatsBody(stats, t) {
 		className: cx("tq-stats-row"),
 		"data-tq-stats-token": agent.agent,
 		key: "t-" + agent.agent
-	}, h("div", { className: cx("tq-stats-row-head") }, h("span", { className: cx("tq-stats-agent") }, renderAgentGlyph(agent.agent, 14), h("span", { className: cx("tq-stats-agent-name") }, agent.label)), h("span", { className: cx("tq-stats-numbers") }, agent.tokensText + " · " + agent.costText)), h("div", { className: cx("tq-stats-track") }, h("div", {
+	}, h("div", { className: cx("tq-stats-row-head") }, h("span", { className: cx("tq-stats-agent") }, renderAgentGlyph(agent.agent, 14), h("span", { className: cx("tq-stats-agent-name") }, agent.label)), h("span", {
+		className: cx("tq-stats-numbers"),
+		title: agent.costTitle || void 0
+	}, agent.tokensText + " · " + agent.costText)), h("div", { className: cx("tq-stats-track") }, h("div", {
 		className: cx("tq-stats-fill"),
 		style: { width: Math.round(agent.share * 100) + "%" }
 	})));
@@ -12696,7 +12706,7 @@ function renderTaskDetail(found, t, now, ui, notice, extras = {}) {
 		cost === null ? null : {
 			key: "cost",
 			label: t("queue.d.cost"),
-			value: cost.kind === "usd" ? _costUnit(task) + (task.costUsd ?? "") : cost.kind === "free" ? t("queue.d.costFreeShort") : "—",
+			value: cost.kind === "usd" ? "$" + (task.costUsd ?? "") : cost.kind === "free" ? t("queue.d.costFreeShort") : "—",
 			sub: (cost.kind === "usd" ? t("queue.d.costEstimate") : cost.kind === "free" ? t("queue.d.costFree") : t("queue.d.costUnpriced")) + (live ? " · " + t("queue.d.costLive") : "")
 		},
 		task.tokensTotal == null ? null : {
@@ -14309,7 +14319,7 @@ function WorkbenchPage(props) {
 	const metrics = [
 		[t("stats.metric.tasks"), totals === null ? "—" : String(totals.tasks)],
 		[t("stats.metric.tokens"), totals === null ? "—" : totals.tokensText],
-		[t("stats.metric.cost"), totals === null ? "—" : totals.costText]
+		[t("stats.metric.cost"), totals === null ? "—" : totals.costCellText]
 	];
 	const doneN = totals?.done ?? 0;
 	const unfinishedN = totals === null ? 0 : Math.max(0, totals.settled - totals.done);

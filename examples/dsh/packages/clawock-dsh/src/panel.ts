@@ -1193,12 +1193,6 @@ export type HistoryRowView = {
   aria: string
 }
 
-/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
- * Claude and Codex estimates use USD. The number is the host's estimate. */
-export function _costUnit(task: Pick<DispatchTask, 'agent' | 'model'>): '¥' | '$' {
-  return task.agent === 'dsh' || task.model.startsWith('deepseek') ? '¥' : '$'
-}
-
 /** The ended-task list: frozen result, finished time and cost, newest first (host order). */
 export function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[] {
   const rows = result?.recent ?? []
@@ -1206,7 +1200,7 @@ export function historyRowsView(result: TaskQueueResult | null, t: Translate, no
     const chip = _endedState(task.state, task.outcome, t)
     const cost = _costOf(task)
     const costText = cost === null ? ''
-      : cost.kind === 'usd' ? _costUnit(task) + (task.costUsd ?? '')
+      : cost.kind === 'usd' ? '$' + (task.costUsd ?? '')
         : cost.kind === 'free' ? t('queue.d.costFreeShort') : t('queue.d.costUnpriced')
     const at = task.finishedAtMs ?? task.updatedAtMs
     const meta = [task.agent === '' ? '' : _agentLabel(task.agent), at === null || at === undefined ? '' : agoOf(t, Math.max(0, now - at))]
@@ -1368,11 +1362,11 @@ export function usdText(n: number): string {
 }
 
 /**
- * The mixed-provider total has to fit the 72px phone metric cell at 320px, where
- * even 14px WebKit overflows a two-decimal amount by a few pixels. Keep at most
- * five glyphs; the exact cents stay in the cell's title.
+ * The card total has to fit the 72px phone metric cell at 320px, where even
+ * 14px WebKit overflows a two-decimal amount by a few pixels. Keep at most five
+ * glyphs; the exact cents stay in the cell's title.
  */
-function mixedUsdText(n: number): string {
+function statsTotalText(n: number): string {
   if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M'
   if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K'
   if (n >= 100) return '$' + String(Math.round(n))
@@ -1388,12 +1382,27 @@ function statsTokensText(tokens: number, unknown: number): string {
   return tokens > 0 || unknown === 0 ? compactCount(tokens) : '—'
 }
 
-function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'> & { agent?: string }, t: Translate,
-  unit?: '¥' | '$'): string {
-  const u = unit ?? _costUnit({ agent: agent.agent ?? '', model: '' })
-  if (agent.costUsdEstimate > 0) return moneyText(agent.costUsdEstimate, u)
-  if (agent.costFree > 0 && agent.costUnpriced === 0) return t('stats.free')
-  return '—'
+/**
+ * Every API cost estimate is USD: task_queue_ops.py's estimate_usd prices tokens
+ * with the USD list-price table, so the figure and the `$` come from one source.
+ * A dsh *balance* is CNY and stays ¥; it is a different quantity from this
+ * estimate, never a conversion input.
+ *
+ * A known zero is printed as `$0` (a cancelled task with COST_USD=0.00 is
+ * not missing data); `—` is reserved for a task whose model has no price row.
+ */
+function statsCostText(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
+  if (agent.costUsdEstimate > 0) return usdText(agent.costUsdEstimate)
+  if (agent.costUnpriced > 0) return '—'
+  if (agent.costFree > 0) return t('stats.free')
+  return usdText(0)
+}
+
+function statsCostTitle(agent: Pick<AgentStats, 'costUsdEstimate' | 'costUnpriced' | 'costFree'>, t: Translate): string {
+  if (agent.costUsdEstimate > 0) return t('stats.costUsdNote', { cost: usdText(agent.costUsdEstimate) })
+  if (agent.costUnpriced > 0) return t('queue.d.costUnpriced')
+  if (agent.costFree > 0) return t('queue.d.costFree')
+  return t('stats.costZero', { cost: usdText(0) })
 }
 
 const ratio = (part: number, whole: number): number => (whole > 0 ? Math.max(0, Math.min(1, part / whole)) : 0)
@@ -1416,6 +1425,8 @@ export type StatsAgentView = {
   tokensUnknown: number
   tokensText: string
   costText: string
+  /** Why the cost cell reads what it does: USD estimate, free, unpriced or known zero. */
+  costTitle: string
   /** Token length against the largest agent, 0..1 (the token bar's fill). */
   share: number
   doneShare: number
@@ -1429,7 +1440,9 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
   costUsdEstimate: number
   costUnpriced: number
   costFree: number
-  /** The tooltip that says a mixed-provider total is a USD equivalent; '' for one unit. */
+  /** The compact USD total for the 72px phone metric cell; `costText` stays exact for text. */
+  costCellText: string
+  /** Why the cell reads what it does: USD estimate, free, unpriced or known zero. */
   costTitle: string
 }
 
@@ -1567,10 +1580,11 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
   const window = stats.patrolIncluded ? t('stats.window.patrol', { window: baseWindow }) : baseWindow
   const zeroAgent: StatsAgentView = {
     agent: '', label: '', tasks: 0, settled: 0, done: 0, partial: 0, unfinished: 0, live: 0,
-    tokens: 0, tokensUnknown: 0, tokensText: '0', costText: '—', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
+    tokens: 0, tokensUnknown: 0, tokensText: '0', costText: '—', costTitle: '', share: 0, doneShare: 0, partialShare: 0, unfinishedShare: 0, liveShare: 0,
   }
   const zeroTotals: StatsTotalsView = {
-    ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0, costTitle: '',
+    ...zeroAgent, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0,
+    costCellText: '—', costTitle: '',
   }
   if (!stats.available) {
     return {
@@ -1596,7 +1610,7 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     return {
       agent: agent.agent, label: _agentLabel(agent.agent), tasks, settled, done, partial, unfinished, live,
       tokens: agent.tokensTotal, tokensUnknown: agent.tokensUnknown, tokensText: statsTokensText(agent.tokensTotal, agent.tokensUnknown),
-      costText: statsCostText(agent, t), share: 0,
+      costText: statsCostText(agent, t), costTitle: statsCostTitle(agent, t), share: 0,
       doneShare: ratio(done, settled), partialShare: ratio(partial, settled),
       unfinishedShare: ratio(unfinished, settled), liveShare: ratio(live, tasks),
     }
@@ -1619,18 +1633,9 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     totals.costFree += raw.costFree
   }
   totals.tokensText = statsTokensText(totals.tokens, totals.tokensUnknown)
-  const paidUnits = new Set(agents.filter((agent) => {
-    const raw = selected.find((item) => item.agent === agent.agent)
-    return (raw?.costUsdEstimate ?? 0) > 0
-  }).map((agent) => _costUnit({ agent: agent.agent, model: '' })))
-  // Every provider's costUsdEstimate is already USD (task_queue_ops.py's
-  // estimate_usd over the USD price table), and #3303 only changed dsh's
-  // *display* unit to ¥. Summing the canonical USD estimates is therefore the
-  // USD equivalent; dividing the displayed ¥ by an FX rate would convert an
-  // already-USD number a second time and understate dsh by ~6.7x. One
-  // provider keeps its own display unit, as before.
-  totals.costText = paidUnits.size > 1 ? mixedUsdText(totals.costUsdEstimate) : statsCostText(totals, t, [...paidUnits][0])
-  totals.costTitle = paidUnits.size > 1 ? t('stats.costUsdEquivalent', { cost: usdText(totals.costUsdEstimate) }) : ''
+  totals.costText = statsCostText(totals, t)
+  totals.costCellText = totals.costUsdEstimate > 0 ? statsTotalText(totals.costUsdEstimate) : totals.costText
+  totals.costTitle = statsCostTitle(totals, t)
   totals.doneShare = ratio(totals.done, totals.settled)
   totals.partialShare = ratio(totals.partial, totals.settled)
   totals.unfinishedShare = ratio(totals.unfinished, totals.settled)
@@ -1639,11 +1644,11 @@ export function statsView(stats: TaskStats | null | undefined, t: Translate): St
     window,
     t('stats.tasks', { n: totals.tasks }),
     t('stats.tokens', { tokens: totals.tokensText }),
-    t('stats.costEstimate', { cost: totals.costText }),
+    t('stats.costEstimate', { cost: totals.costCellText }),
   ].join(' · ')
   return {
     title, cardTitle, window, headline,
-    summaryLine: [t('stats.tasks', { n: totals.tasks }), t('stats.tokens', { tokens: totals.tokensText }), t('stats.costEstimate', { cost: totals.costText })].join(' · '),
+    summaryLine: [t('stats.tasks', { n: totals.tasks }), t('stats.tokens', { tokens: totals.tokensText }), t('stats.costEstimate', { cost: totals.costCellText })].join(' · '),
     agents, totals, maxTokens, series: statsSeries(stats, agents), empty: '',
     footnote: t('stats.note.cost'),
   }
