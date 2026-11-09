@@ -604,6 +604,17 @@ material file", and makes the material a reviewer can audit afterwards. It does 
 model that chooses to follow text inside a material file; that remains a prompt-injection
 risk outside the wrapper's control.
 
+## Design provenance
+
+The dsh-superagent prototype contributed the explicit mandate and wait-derived
+stage concepts. Local ownership remains `mandate.py`, `run-agent.sh` and
+`task_queue_ops.py`; its attention-based silence policy was not adopted. Local
+completion notification and wake rules are defined below. There is no additional
+web panel, deployment database, generalized event router or executor merge policy:
+the task chip, systemd queue and repository rules already own those responsibilities.
+Original investigation: [#3231](https://github.com/KCNyu/clawock/pull/3231);
+notification correction: [#3237](https://github.com/KCNyu/clawock/pull/3237).
+
 ## Mandate
 
 Every task `dispatch.sh` creates gets `<task dir>/mandate.json` before its unit starts. It is

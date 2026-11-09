@@ -46,178 +46,6 @@ card 定义的首次日排程与当前时间之间，且通过原有 coverage va
 只由 harness postflight（含远端 brief fallback 复用同一 postflight）和 host 上加锁的
 `ops/publish/publish_dashboard.sh` 发布。
 
-## 推荐工作流
-
-### 1. 回答投资问题
-按顺序读取：
-1. `MEMORY.md`
-2. `portfolio.json`（`shares` 直接给出活跃 / 已清仓）
-3. 拉最新价格后再分析
-
-### 2. 更新价格
-```bash
-clawock analyze-us   # 美股
-clawock analyze-hk   # 港股
-```
-
-### 3. 快速查看持仓
-```bash
-clawock analyze-hk
-clawock analyze-us
-```
-
----
-
-## 数据源清单（当前约定）
-
-### 港股 fallback 链（脚本实现，2026-05-18 加 Eastmoney HK 双源对账）
-1. **腾讯财经** `qt.gtimg.cn/q=r_hkXXXXX` — 主源，覆盖最全
-2. **东方财富 HK** `push2.eastmoney.com/.../ulist.np/get` (secid prefix 116) — 独立第二源，跟 Tencent **并行抓取**做交叉校验：当两源都成功时，c/pc 偏差 > 1% 会落到持仓 `quote_divergence`、来源标签标明分歧，并由 integrity 报 `QUOTE_DIVERGENCE` WARN + stdout 提示，作为 stale-data 漂移的 trip-wire
-3. **stooq.com** CSV — 同日 OHLCV，新 IPO 无覆盖；prev_close 用 open 近似（低置信度）
-4. **yfinance** — 经常被限速，最后兜底
-
-
-### 美股 & 港股脚本（推荐用法）
-
-```bash
-clawock analyze-us   # 美股完整分析（RSI/MA/新闻/信号）
-clawock analyze-hk   # 港股完整分析（恒指/恒科/P&L/信号）
-# 共通 flag：--no-news(省Finnhub配额) --no-fetch(用缓存价) ；hk 另有 --dry-run
-clawock us-quotes     # 仅刷美股价格
-```
-
-### 美股 fallback 链
-
-**脚本内部 provider 顺序：**
-1. **Nasdaq API** `api.nasdaq.com/api/quote/{TICKER}/info?assetclass=stocks|etf` — 无需 key，JSON，覆盖股票和 ETF ✅
-2. **东方财富** `push2.eastmoney.com` — 批量 JSON，无需 key，`105.{TICKER}`（NASDAQ）/ `106.{TICKER}`（NYSE）
-3. **Finnhub** — 需 `FINNHUB_API_KEY`
-4. **Yahoo v8 API** `query1.finance.yahoo.com/v8/finance/chart/{TICKER}` — 无需 key，偶有限速
-5. **yfinance** 库 — 无需 key，偶有限速
-6. **Alpha Vantage** — 需 `ALPHA_VANTAGE_API_KEY`，慢（免费 25次/天）
-7. **Polygon** — 需 `POLYGON_API_KEY`，返回前一日收盘价
-
-**Claude 直接 web_fetch 时的顺序：**
-1. CNBC `cnbc.com/quotes/{TICKER}` — 网页，快速可靠
-2. 东方财富、Finnhub、Yahoo Finance
-
-### 货币 / FX
-
-铁律：**HKD + USD 不能直接相加** — 详见 `MEMORY.md § 数据规则 § 2`。
-
-工具：
-- `clawock fx --json` → `{"rate": 7.83, "source": "Frankfurter", ...}`
-- 换算：`clawock fx --convert 10000 HKD USD`
-- fallback：Frankfurter → ExchangeRate-API Open → Yahoo HKD=X；4h 本地缓存
-
-### 美股基本面 / SEC filings
-`clawock filings {TICKER}` — SEC EDGAR 免费无 key：10-K/10-Q/8-K、`--financials`(XBRL 关键概念)、`--form4`(insider)、`--13f`、`--json`。速率 8/sec；非美股票返回 "CIK not found"；**纯基本面补充，不替代 `clawock us-quotes` 抓价**。完整参数表+注意事项 → `docs/reference/commands.md`。
-
-### 港股/美股基本面(中文) — 东财 datacenter
-`clawock fundamentals {CODE}` — 无 key，**填港股财报空白**：`--indicators`(GMAININDICATOR ROE/EPS/毛利率/资产负债率，美+港) / `--statements income|balance|cashflow`(中文科目行) / `--json`。美股数字以 SEC 为准、此为中文速查。datacenter-web+searchapi 子域实测稳；**资金流 `clawock fundflow`(push2his)本机 IP 被封暂不可用**。
-
-### 说明
-
-数据/缓存铁律 → 见 `MEMORY.md § 数据规则`。本节只补充 TOOLS-specific 实现细节：
-
-- `prev_close` 由 Polygon 历史收盘接口独立获取（带日期戳）。常规回退链：Polygon 历史 → API pc 字段（不同于当前价）→ 从 API dp% 反推（绝对值 > 0.01%）→ 保留现有（正数、不同于当前价，且 `prev_close_date` 精确等于行情所属时段的上一交易日）→ 当前价作为前收。没有「3 天内」的宽松窗口。
-- 盘后若 Polygon 返回的是本交易日正式收盘价，先据此校正当前价，再重建前收：优先保留日期精确等于上一交易日的现有正数前收，其次从 API dp% 反推；两者都不可用时保留本日收盘价作为前收（当日变动为 0）。
-- `prev_close_date` 字段同步写入 portfolio.json，可验证前收来自哪个交易日
-- 报价质量拆成三个互不替代的字段，而不是一个「不完整」布尔：
-  - `quote_incomplete_prev_close`：回退链没能给出日期匹配的前收（包括最后一步 `pc = c` 的占位），**场次涨跌不可算**；有前收时即使日内区间缺失也不置这一位。
-  - `quote_incomplete_range`：provider 这次没给日内 high/low（或给的是更早场次的 print），持仓里的 `day_high/day_low` 只由本地累积器和采样价推得，**不能当官方区间读**；它不影响现价相对前收的涨跌。
-  - `quote_stale_asof`：价格本身是更早场次的 print（所有 provider 都失败时的最后回退），当日涨跌和区间都不可信。
-  - `quote_incomplete` 仍保留为三者的聚合位，供旧数据/旧读者使用。`session_change_pct()` 只被 `quote_incomplete_prev_close` / `quote_stale_asof` 否决；`STALE_PRICE` 仍对三种缺口逐条报警，措辞分开。
-- Nasdaq `/info` 的 `keyStats.dayrange`（低 - 高）作为日内区间来源；缺失或无效仍标区间缺口，不用现价制造 OHLC。无需另拼无场次时间戳的 `/summary`；开盘价缺失时仍保留原采样口径。US 保留已有前收时同时验证质量标志与场次日期，旧聚合缺口、占位前收、旧 print 不会因再次刷新变成可信基准。前收仍由既有回退链解析，并由 `PREV_CLOSE_SESSION` 对 canonical bar 复核。
-- 脚本跑完后 `today_change` 字段即可直接信任，无需换算；面板「场次涨跌」不是这个字段，它走 `session_change_pct()` 的报价口径。
-
----
-
-## 当前持仓
-
-**Single source of truth：`portfolio.json`**（不在此重复，避免漂移）
-
-已清仓名单同样从 `portfolio.json` 读（`shares == 0`）；集中度看 `assets/data/risk.json`。
-
----
-
-## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/commands.md`）
-
-**模型自取的观测与计算（#2843）**：`clawock tool observations --arg ticker=T --arg kind=bars|factors|events`(规则结论底下的原始日线/因子逐项测量/全部事件,测量与规则意见分开给) · `clawock tool compute --arg 'expression=…'`(模型自定义特征在日线上受限求值,返回数值+可重放回执;postflight 数字来源闸认本次运行内的回执)。契约见 `docs/architecture/decision-architecture.md`。
-
-**数据抓取/分析**：`clawock us-quotes`(美股7路fallback,写回portfolio) · `clawock analyze-us`(刷价+RSI/MA+新闻+信号) · `clawock analyze-hk`(腾讯+东财双源对账→stooq/yf兜底) · `clawock benchmark`(SPY/HSI/HSTECH 日线) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `influencer-scan.yml`(KCNyu 定时 8 源影响力雷达: Trump 原帖/ARK 调仓/港美人物报道) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
-
-**研究生命周期（手动/事件驱动，产物即真源）**：`clawock entry-gate`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `clawock earnings`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `clawock thesis`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `clawock provenance`(数字两源+Decimal 精算,准出闸) · `clawock research`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI) · `ops/host/cron_token_audit.py`(每 cron 最新一跑的 token 量 vs **同 provider** 滚动中位数,跨 provider 比是假的;只进 daily health不告警不改 exit code) · `clawock plan-context`(08:03 简报还没成交的决策→report/intraday preflight 的 `plan_context`;真源是 `decisions.jsonl` 不是 plan 文件,因为执行状态只写回账本;永不抛异常) · `clawock mover-evidence`(盘中异动票的一手催化探针:SEC/港交所公告分钟级,券商研报与 7×24 只作 supporting;有预算上限、失败降级、不碰 Tavily;filing 三级分流 `config/filing-triage.json`、基金看穿到标的、美股停牌 feed)
-
-**Harness（三明治：preflight 确定性 → LLM 合成 → postflight 校验+commit）**
-实现装在 `clawock` 里，**入口只有 CLI**，仓库里没有第二套 instance harness。
-- brief：`clawock brief preflight` / `clawock brief postflight`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动刷完整 dashboard generation 并 push）
-- 报告 Mode 6：`clawock report preflight --market {hk|us} --phase {open|mid|pm|close}` / `clawock report postflight …`
-- 盘中 Mode 7：`clawock intraday preflight --market {hk|us}` / `clawock intraday postflight …`（每个 context 可用的 slot 都提交并推送 `portfolio.json` + 当天快照 + build status；dashboard 输入未变时跳过重建，逐 slot heartbeat 必发布）
-- 共通：preflight 出 `raw_wechat_block`(harness 在发送时拼装,LLM 只写散文、不要抄,见 #1279) + `anomalies`(必提≥1票) + `plan_context`(08:03 未成交决策,散文必须对账；带股数的条目由 harness 印成「📋 未成交计划」行,散文不重述股数)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
-
-**Dashboard/发布**：KCNyu 三类 postflight 自动刷新完整 generation；host 补发入口 `ops/publish/publish_dashboard.sh` · `clawock dashboard-outputs`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `ops/publish/safe_push.sh`(唯一 push 路径,rebase.autoStash 容脏树)
-
-**LLM-free Telegram 兜底哨兵（系统 crontab，非 openclaw cron）**
-- report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，两路分开判：Telegram marker 缺失或失败时补投 Telegram；本 slot marker 明确记录微信失败（`sent_ok=false`）时补发微信一次，再失败就 Telegram 告警。marker 缺失/过期/对不上 slot 时不重发 WeChat，也不猜 run summary。
-- `.tmp/*-sent-*.json` + slot key 做幂等，避免长 turn / cron retry 双发。
-
-**其它正式入口**：`clawock mark-followed`(标 `decisions.jsonl` 的 execution.status) · `clawock audit-resettle`(默认只审计结算变化，`--write` 才落账) · `clawock integrity`(资金/行情完整性闸) · `clawock validate-sidecar`(发布产物结构闸) · `clawock evidence`(由实测产物重建证据与反证页) · `clawock news-evidence`(公告/新闻/日历去重、到期与确认图) · `clawock reconcile`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。远端 LLM 自动化装成 `clawock-news-digest` / `-weekly-review` / `-influencer-scan` / `-brief-fallback`，只由 GitHub Actions workflow 调用，不是 OpenClaw 工具。**完整命令与内部 job 索引 → `docs/reference/commands.md`**。
-
-### Cron map
-
-任务身份（港股午后快报保留禁用身份、由 host crontab 触发）、各 watchdog 的 crontab 条目（含 brief 的投递兜底与 miss-detector 两条）、EDT/EST 两季表达式和 harness 映射只在
-[`config/cron-schedules.json`](../../config/cron-schedules.json) 维护；人读表由
-[`docs/operations/cron-schedules.md`](../operations/cron-schedules.md) 自动生成。每日 06:20 HKT 的同步器按
-`America/New_York` 自动调整美股 live cron + watchdog；system check 同时校验 schedule、
-payload 语义和 crontab。Mode 7 的逐 slot 结果发布到 `assets/data/cron-heartbeats.json`。
-
-Watchdog 当前动作日志是 `logs/watchdog.jsonl`（`ts` / `tag` / `action` / `reason`）；
-`logs/watchdog.cron.log` 是旧 stdout 留档，其 mtime 不能证明 watchdog 停跑。
-排查同时核 host crontab、对应 slot 的 delivery marker 与 workflow outcome，
-不要把有日志等同于已送达。
-
-## Skill 安装顺序（重要）
-
-见 `docs/operations/skills-store-policy.md`。**先 `skillhub`（cn-optimized）再 `clawhub`（公开 registry）兜底**：
-
-```bash
-skillhub search <kw>         # 第一选择
-skillhub install <slug>      # cn-optimized 源
-# 不可用 / 无匹配 / 限流时 →
-clawhub search <kw>
-clawhub install <slug>
-```
-
-安装前列出 source / version / risk signal 给用户确认。
-
-## 情绪面数据源速查
-
-按市场和重要性顺序：
-
-### 美股
-1. **Finnhub news** —— `clawock analyze-us` 默认拉取，主英文媒体 + 关键词情绪打分
-2. **Web 搜索（DeepSeek + Tavily 并发）** —— 新闻 + X/Twitter trending（`clawock web-search "{TICKER} sentiment" --days 3 --bucket report`）；两源各自限额见下文「Web 搜索 provider」：DeepSeek 随时可用，Tavily 侧仅开/收盘报告或盘中真事件，盘中常规盯盘不烧 Tavily
-3. **Reddit JSON**（无需 auth）—— r/wallstreetbets（散户动量）+ r/stocks（理性）：
-   ```bash
-   curl -sH "User-Agent: openclaw/1.0" "https://www.reddit.com/r/wallstreetbets/search.json?q={TICKER}&restrict_sr=1&sort=new&limit=25"
-   ```
-4. **scrapling** —— 上述源失败或要评论级深度
-
-### 港股
-1. **Finnhub news** —— 港股覆盖稀疏但能拿到 Reuters/Bloomberg/SCMP
-2. **中文 web 搜索（DeepSeek + Tavily 并发）** —— 主要中文媒体 + 政策（`clawock web-search "{中文名} 港股" --days 3 --bucket report`）
-3. **雪球 HK 评论区**（scrapling StealthyFetcher）—— `https://xueqiu.com/S/HK{TICKER}`，港股散户情绪核心
-4. **富途牛牛社区**（scrapling）—— `https://www.futunn.com/stock/{TICKER}-HK`
-5. **南向资金 净流入**（`clawock web-search --providers deepseek` 搜当日）—— 港股大盘情绪锚
-
-### 跨市场宏观情绪
-- VIX（美股恐慌指数）—— web 搜索或脚本扩展
-- HIBOR（港元流动性）—— web 搜索，HIBOR 升 = 港股估值压力
-- 美债收益率 —— 影响成长股估值
-
----
-
 ## Web 搜索 provider
 
 DeepSeek Search 与 Tavily 是**并列**的两个 web 搜索源（kcn 2026-10-18：并发一起用，谁都不是谁的备份，也不退役）。
@@ -255,7 +83,14 @@ Tavily 用 `TAVILY_API_KEY`（OpenClaw `env`）。
 **计费时间点**：DeepSeek 官方说明，在 DeepSeek Harness / Claude Code / Codex 中使用 DeepSeek API 时由服务端工具调用产生的 Search/Fetch
 目前不计费，**自北京时间 2026-11-01 00:00 起按次收费**。本仓库的直连调用（上表）本来就是按次计费；11-01 之后 dsh 等 agent 会话里的服务端搜索也开始计费。
 
-## 维护建议
-- 交易发生后：记录 `holdings[].trades[]` + broker 真值叶子，跑 `clawock reconcile`
-- 规则变化后：更新 `MEMORY.md`
-- 脚本数据源变化后：同步更新 `TOOLS.md` 与 `MEMORY.md`
+## Task routes
+
+- Commands and arguments: [generated command reference](commands.md), or
+  `clawock COMMAND --help`.
+- Provider coverage, quote quality and failure semantics: [data coverage](data-coverage.md).
+- Lifecycle and delivery: [harness](../architecture/harness.md); intraday-specific
+  rules: [intraday agent](../architecture/intraday-agent.md).
+- Schedule and watchdog mapping: [generated cron contract](../operations/cron-schedules.md).
+- Skill installation: [registry policy](../operations/skills-store-policy.md).
+- Trades: record broker truth and `holdings[].trades[]`, then `clawock reconcile`.
+  Holdings and closed names are read from `portfolio.json`, never copied here.

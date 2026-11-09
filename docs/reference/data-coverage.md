@@ -94,3 +94,16 @@ These private commands are opt-in and write no `assets/data` output. Cache files
 live in `.cache/private-market-data/` with mode 0600 and a 24-hour TTL; failed
 refreshes never masquerade as successful cached reads. Do not copy their results
 into public artifacts without the relevant redistribution permission.
+
+## Quote quality and previous close
+
+- `prev_close` 由 Polygon 历史收盘接口独立获取（带日期戳）。常规回退链：Polygon 历史 → API pc 字段（不同于当前价）→ 从 API dp% 反推（绝对值 > 0.01%）→ 保留现有（正数、不同于当前价，且 `prev_close_date` 精确等于行情所属时段的上一交易日）→ 当前价作为前收。没有「3 天内」的宽松窗口。
+- 盘后若 Polygon 返回的是本交易日正式收盘价，先据此校正当前价，再重建前收：优先保留日期精确等于上一交易日的现有正数前收，其次从 API dp% 反推；两者都不可用时保留本日收盘价作为前收（当日变动为 0）。
+- `prev_close_date` 字段同步写入 portfolio.json，可验证前收来自哪个交易日
+- 报价质量拆成三个互不替代的字段，而不是一个「不完整」布尔：
+  - `quote_incomplete_prev_close`：回退链没能给出日期匹配的前收（包括最后一步 `pc = c` 的占位），**场次涨跌不可算**；有前收时即使日内区间缺失也不置这一位。
+  - `quote_incomplete_range`：provider 这次没给日内 high/low（或给的是更早场次的 print），持仓里的 `day_high/day_low` 只由本地累积器和采样价推得，**不能当官方区间读**；它不影响现价相对前收的涨跌。
+  - `quote_stale_asof`：价格本身是更早场次的 print（所有 provider 都失败时的最后回退），当日涨跌和区间都不可信。
+  - `quote_incomplete` 仍保留为三者的聚合位，供旧数据/旧读者使用。`session_change_pct()` 只被 `quote_incomplete_prev_close` / `quote_stale_asof` 否决；`STALE_PRICE` 仍对三种缺口逐条报警，措辞分开。
+- Nasdaq `/info` 的 `keyStats.dayrange`（低 - 高）作为日内区间来源；缺失或无效仍标区间缺口，不用现价制造 OHLC。无需另拼无场次时间戳的 `/summary`；开盘价缺失时仍保留原采样口径。US 保留已有前收时同时验证质量标志与场次日期，旧聚合缺口、占位前收、旧 print 不会因再次刷新变成可信基准。前收仍由既有回退链解析，并由 `PREV_CLOSE_SESSION` 对 canonical bar 复核。
+- 脚本跑完后 `today_change` 字段即可直接信任，无需换算；面板「场次涨跌」不是这个字段，它走 `session_change_pct()` 的报价口径。
