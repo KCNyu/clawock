@@ -1111,9 +1111,25 @@ def shared_text_in(cwd: Path, names: list[str], min_chars: int = 40) -> list[str
     """`file:line -> topic` for every line of `cwd`'s listed files that repeats a shared topic line."""
     if not names or not STORE.is_dir():
         return []
+    # The projection deliberately repeats public topics. Keep the diagnostic
+    # focused on private/legacy/invalid topics after the public-store migration.
+    sys.path.insert(0, str(SKILL_DIR / "scripts"))
+    from memory import metadata_problems, missing_metadata, split_frontmatter
+
     shared: dict[str, str] = {}
     for topic in [*STORE.glob("*.md"), *STORE.glob("archive/*.md")]:
-        for line in topic.read_text(encoding="utf-8", errors="replace").splitlines():
+        text = topic.read_text(encoding="utf-8", errors="replace")
+        try:
+            parsed = split_frontmatter(text)
+        except ValueError:
+            parsed = None
+        if parsed:
+            fields, meta, _ = parsed
+            if ((meta.get("publish") or fields.get("publish")) == "public"
+                    and (meta.get("status") or fields.get("status")) != "stale"
+                    and not missing_metadata(fields, meta) and not metadata_problems(fields, meta)):
+                continue
+        for line in text.splitlines():
             key = _norm_line(line)
             if len(key) >= min_chars:
                 shared.setdefault(key, topic.name)

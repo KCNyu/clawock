@@ -961,3 +961,12 @@ def test_index_view_refuses_an_ancestor_of_the_store(kit, alias):
     assert proc.returncode != 0, 'an ancestor output would replace and delete the source store'
     assert 'outside the shared store' in proc.stderr
     assert (kit.store / 'feedback-alpha.md').read_bytes() == before
+
+
+def test_doctor_does_not_warn_about_an_explicit_public_projection(kit):
+    body = '- This deliberately public rule may appear in the generated assistant memory.'
+    kit.ok('update', 'feedback-alpha', '--body-file', kit.body(body), '--publish', 'public')
+    (kit.workspace / 'MEMORY.md').write_text('# Memory\n\n' + body + '\n')
+    assert doctor(kit)['context.openclaw.no_shared_text']['status'] == 'OK'
+    kit.ok('update', 'feedback-alpha', '--publish', 'private')
+    assert doctor(kit)['context.openclaw.no_shared_text']['status'] == 'WARN'
