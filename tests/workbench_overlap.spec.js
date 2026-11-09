@@ -1154,8 +1154,8 @@ async function main() {
       for (const state of engineStates) {
         const context = await browser.newContext({
           viewport: { width: state.width, height: state.height },
-          isMobile: engineName === "webkit" && state.width < 768,
-          hasTouch: engineName === "webkit" && state.width < 768,
+          isMobile: engineName === "webkit",
+          hasTouch: engineName === "webkit",
           deviceScaleFactor: 1,
           locale: "zh-CN",
           colorScheme: state.theme === "dark" ? "dark" : "light",
