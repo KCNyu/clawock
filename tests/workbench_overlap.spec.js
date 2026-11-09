@@ -9,7 +9,7 @@
  * real React root at a real viewport, collects every visible interactive block,
  * row, group header, tab, badge, sheet, toast, sticky control and text block,
  * and intersects their clipped getBoundingClientRect boxes. Any pair over
- * 0.5px² fails unless it is one of the documented exceptions:
+ * 0px² fails unless it is one of the documented exceptions:
  *   - an ancestor/descendant pair (a container is not a "block");
  *   - the explicit z-axis overlay (sheet over the page, toast over the page);
  *   - the sticky tab bar over already-scrolled content (scrollTop > 0).
@@ -488,7 +488,7 @@ function collectInPage(options) {
       const x2 = Math.min(a.rect.x + a.rect.w, b.rect.x + b.rect.w);
       const y2 = Math.min(a.rect.y + a.rect.h, b.rect.y + b.rect.h);
       const area = Math.max(0, x2 - x) * Math.max(0, y2 - y);
-      if (area <= 0.5) continue;
+      if (area <= 0) continue;
       const pair = {
         a: a.selector, b: b.selector, area: Number(area.toFixed(2)),
         rects: { a: { x: a.rect.x, y: a.rect.y, w: a.rect.w, h: a.rect.h }, b: { x: b.rect.x, y: b.rect.y, w: b.rect.w, h: b.rect.h } },
@@ -608,7 +608,7 @@ function gaugeInPage(mode) {
     for (let i = 0; i < rows.length; i += 1) {
       for (let j = i + 1; j < rows.length; j += 1) {
         const overlap = area(rows[i].row, rows[j].row);
-        if (overlap > 0.5) intersections.push({ a: rows[i].name, b: rows[j].name, area: round(overlap) });
+        if (overlap > 0) intersections.push({ a: rows[i].name, b: rows[j].name, area: round(overlap) });
       }
     }
     const containment = rows.map((row) => ({
@@ -685,7 +685,7 @@ function gaugeInPage(mode) {
     for (let i = 1; i < blocks.length; i += 1) {
       const prev = blocks[i - 1].box, next = blocks[i].box;
       if (prev === null || next === null) continue;
-      if (next.y < prev.bottom - 0.5) sideBySide.push({ a: blocks[i - 1].kind, b: blocks[i].kind, dy: round(next.y - prev.bottom) });
+      if (next.y < prev.bottom) sideBySide.push({ a: blocks[i - 1].kind, b: blocks[i].kind, dy: round(next.y - prev.bottom) });
     }
     return {
       mode, present: true,
@@ -809,7 +809,7 @@ function gaugeInPage(mode) {
     for (const row of rows) {
       for (const [a, b] of [["name", "primary"], ["name", "secondary"], ["primary", "secondary"], ["metaLeft", "metaRight"]]) {
         const overlap = area(row[a], row[b]);
-        if (overlap > 0.5) collisions.push({ key: row.key, a, b, area: round(overlap) });
+        if (overlap > 0) collisions.push({ key: row.key, a, b, area: round(overlap) });
       }
     }
     return { mode, present: rows.length > 0, rows, collisions };
