@@ -3,24 +3,19 @@
 本文是 `ops/host/sqlite_maintenance.py` 的运行说明。脚本只处理 OpenClaw 的
 两个 SQLite 库，不碰 `portfolio.json`、`memory/` 或任何投资语义。
 
-## 结论：本机该做什么、按什么顺序
+## Maintenance boundary
 
-| 顺序 | 项目 | 本机是否做 | 收益 | 风险 / 边界 |
-|---|---|---|---|---|
-| 1 | 主索引离线 `wal_checkpoint(TRUNCATE)` + `auto_vacuum=INCREMENTAL` + `VACUUM` | 做，首次后按季度 | 回收 freelist 与页跳读；本机首次约 −28.5 MiB、freelist 7,256 → 0 页 | gateway 停 1–2 分钟；VACUUM 需要约 2× 库大小的临时空间；失败自动回滚到备份 |
-| 2 | 共享状态库 `wal_checkpoint(TRUNCATE)` | 做，每次 | 截掉 WAL，库大小不变 | 只 checkpoint，不 VACUUM；12 个空闲页不值得重写 73.7 MiB。若将来 freelist 变大再单独评估 |
-| 3 | KNN oversample 8 → 1 的 dist 补丁 | 做，首次后由 patch kit 在升级后重放 | 热召回约 140 → 120 ms；其中 sqlite-vec KNN 约 39 → 25 ms | 一行常量；多模型索引仍由现有 underfill widening 兜底；质量不变（理由在补丁脚本头部） |
-| 4 | 季度/按需执行 | 做 | 04:17 HKT，1/4/7/10 月 1 日；用 `openclaw cron` 的 command job | command job 用 `systemd-run` 脱离 gateway cgroup，否则“停 gateway”会把任务自己杀掉 |
+The main index uses offline checkpoint and compaction; subsequent runs use
+incremental vacuum unless `--full` is requested. The state store is checkpointed
+only. KNN oversampling is owned by the manifest's
+`ops/host/openclaw-patches/patch-vector-knn-oversample.sh`, which retains the
+model-filter underfill widening. Apply it through the
+[patch kit](openclaw-patch-kit.md), not directly against installed bundles.
 
-先 compaction 再谈查询侧优化：维护前热召回中位数 347.7 ms，其中 sqlite-vec
-KNN 占 242.6 ms；同一份代码、同一个查询集在 VACUUM 后降到 139.9 ms / 39.1 ms。
-大头是 freelist 造成的向量表页跳读，不是算力不够。
-
-**不要做**：不升级 OpenClaw（2026.7.1-2 没有 `--session-sqlite` /
-`state-sqlite compact`）；不把 `journal_size_limit` 当成持久设置（它是连接级的，
-重连读回 -1）；不改 embedding 模型或 768 维；不引入 Elasticsearch 或任何常驻大内存
-组件；不把 embedding 线程从 1 调大（node-llama-cpp 在本机多线程路径有已知死锁，
-补丁注释记录了 2026-07-08 的根因）。
+Keep the embedding model, dimension and thread settings independent of database
+maintenance. `journal_size_limit` is connection-local and does not fix a reader
+blocking checkpoints. Measurements and top-k comparisons for a particular host
+belong in the implementing PR, not in a general latency or quality promise.
 
 ## 脚本
 
@@ -76,17 +71,15 @@ curl -sS http://127.0.0.1:18789/health
 状态库同理（备份文件名 `openclaw.sqlite`）。补丁回滚用
 `python3 ops/host/manage_openclaw_patches.py rollback --receipt <receipt.json>`。
 
-## 召回性能边界
+## Recall diagnosis
 
-维护和补丁之后，热召回在百毫秒级（本机五个查询的中位数约 120 ms），
-不是 7–9 秒；后者是 gateway 重启或长时间空闲后的**第一次**召回：provider 初始化
-加首次 embedding 就要 3–5 秒，再加上模型加载和冷页缓存。1.9 GB 内存、无 GPU、
-`threads: 1` 是当前下限，这个冷启成本不是回归。
-
-KNN 补丁只改 `VECTOR_KNN_OVERSAMPLE_FACTOR` 8 → 1；`searchVector` 在模型过滤后
-不足 `limit` 时本来就会扩到 `MAX_VECTOR_KNN_K`，多取的行永远不会被 `LIMIT`
-用到。单模型索引上 k=40 与 k=320 的 top-10 完全相同，因此这一行不改召回质量。
-补丁在 OpenClaw 升级时会被覆盖，必须由 patch kit 重放。
+Compare cold and warm searches separately. A cold call includes provider/model
+initialization and first embedding; warm calls still include query embedding,
+vector KNN/join, keyword lookup and hybrid merge. A successful sqlite-vec path
+does not deserialize every stored JSON vector; that slower path is a fallback
+when vector initialization fails. Inspect which path ran before attributing cost.
+Database maintenance does not establish a fixed latency or unchanged top-k result
+for every installation. Use the saved receipts and measurements for that host.
 
 ## 定时执行
 

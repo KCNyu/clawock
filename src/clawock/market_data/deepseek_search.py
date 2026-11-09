@@ -1,6 +1,6 @@
 """DeepSeek Search / Fetch: web search any harness or model may call.
 
-Source access only (docs/reference/tool-operations.md § DeepSeek Search/Fetch):
+Source access only (docs/reference/data-coverage.md § Web 搜索 provider):
 `search()` and `fetch()` are one request each to DeepSeek's own index and
 fetcher, answering normalised rows — or raising `SearchError`, so a caller can
 say the search did not run instead of printing an empty list as "no news".

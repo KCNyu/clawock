@@ -107,3 +107,48 @@ into public artifacts without the relevant redistribution permission.
   - `quote_incomplete` 仍保留为三者的聚合位，供旧数据/旧读者使用。`session_change_pct()` 只被 `quote_incomplete_prev_close` / `quote_stale_asof` 否决；`STALE_PRICE` 仍对三种缺口逐条报警，措辞分开。
 - Nasdaq `/info` 的 `keyStats.dayrange`（低 - 高）作为日内区间来源；缺失或无效仍标区间缺口，不用现价制造 OHLC。无需另拼无场次时间戳的 `/summary`；开盘价缺失时仍保留原采样口径。US 保留已有前收时同时验证质量标志与场次日期，旧聚合缺口、占位前收、旧 print 不会因再次刷新变成可信基准。前收仍由既有回退链解析，并由 `PREV_CLOSE_SESSION` 对 canonical bar 复核。
 - 脚本跑完后 `today_change` 字段即可直接信任，无需换算；面板「场次涨跌」不是这个字段，它走 `session_change_pct()` 的报价口径。
+
+## SEC access
+
+`market_data/filings.py` uses SEC submissions and company-facts APIs. Configure
+a real identifying contact through `SEC_USER_AGENT`; no API key is required.
+The client throttles to eight requests per second, below SEC's ten-request limit,
+and caches ticker-to-CIK mappings for seven days. A missing CIK is unavailable
+coverage, not an issuer with no filings. This source does not replace quotes.
+
+## Web 搜索 provider
+
+DeepSeek Search 与 Tavily 是**并列**的两个 web 搜索源（kcn 2026-10-18：并发一起用，谁都不是谁的备份，也不退役）。
+`clawock web-search`（`clawock.evidence.web_search`）一次查询**同时**问两边，输出按 provider 分节、各自带 `status`；
+一个源 `unavailable`/`empty` 只描述它自己，不改变另一个源的结果。代码里没有「A 失败才问 B」的分支：
+`web_search.search_all` 对每个 provider 各起一个并发调用，结果按 provider 存放，合并时每行保留 `provider`。
+
+| provider | 接入 | 限额 | 节流在哪里 |
+|---|---|---|---|
+| DeepSeek Search/Fetch | `market_data/deepseek_search.py`，`POST https://api.deepseek.com/v1/tools/search`、`/v1/tools/fetch`，Bearer 同 DeepSeek chat key | 无 credits 预算；**账号级 QPS：Search 5、Fetch 5**（与 key 无关，与模型并发独立；Fetch 另有按目标域名的 QPS）；¥5 / 1000 次**成功**请求（Search 结果为空、Fetch 无正文不计费） | 本机所有进程共用一把文件锁限速（`~/.cache/clawock/deepseek-search/<endpoint>.json`，每秒 ≤5 次起跑）；408/429/5xx 在调用方 deadline 内最多重试 3 次，400/401/402/403/404/413 不重试（官方规则） |
+| Tavily | `skills/tavily-search/scripts/search.mjs` / `extract.mjs` | 免费档 **1000 credits/月**全局共享，按 bucket 切：brief 300 / report 280 / intraday 120 / research 100 / extract 80 / default 60 | 脚本自己的 credit 账本（`/root/.openclaw/tavily-credit-ledger.json`，预留式扣费，超额 exit 0 返回 unavailable）+ 各调用方的调用策略 |
+
+**各入口的调用策略（按 provider 分别定）**
+
+| 入口 | DeepSeek | Tavily |
+|---|---|---|
+| 盘中 Tier 2 `live_sources`（盘中 / 简报 / 报告共用） | `deepseek_search` 源：每档每个发行人/指数主题一次（`after:` 限窗口，20 分钟 TTL），单次 ≤12 个请求 | 不接（每档每票会烧掉 intraday 桶） |
+| 盘中 Tier 3 `anomaly_search`（只在有异动时） | 每只异动票每档刷新一次（25 分钟 TTL） | 每只异动票**每个交易日一次**，`--bucket intraday`；120 credits/月 ÷（22 天 × 2 市场）≈ 每市场每天 2–3 只 |
+| 简报 Step 3 板块全景、`tavily_resolution_queue` | 同一条 `clawock web-search` 里并发；同行/催化可另跑 `--providers deepseek` | 每个去重 theme 一次 + 队列事件，`--bucket brief` |
+| 人工对话 / 开收盘报告 / swarm review | 随时可用 | 开收盘或真事件，`--bucket report` / `research` |
+| 盘中 cron 模型自己补查 | `--providers deepseek` | 禁止 |
+
+**取 key**：`DEEPSEEK_API_KEY` 环境变量（OpenClaw 配置的 `env` 段导出给 cron 与会话）→ `/root/.dsh/.credentials.yaml` 的 `refs.DEEPSEEK_API_KEY`
+（`CLAWOCK_DSH_CREDENTIALS` 可改路径）。两处同值；key 不进日志与卡片。
+Tavily 用 `TAVILY_API_KEY`（OpenClaw `env`）。
+
+**结果怎么读**：DeepSeek 的 `date` 只有日精度时落在北京时间 00:00（UTC 16:00），归一化为 `filed_date`，卡片写「今日发布、时刻未知」而不是盘中实时；
+`date` 为 null 的结果在 live sources 里丢弃（无法判新旧）。`authority`(0–4，−1 未知) 与 `rerank_score`(0–3) 原样保留在行上，
+**不**直接当作分级：券商行情页常被打 3 分。分级只看站点（`live_sources.host_grade`：交易所/监管 = primary，Reuters/财新/证券时报/东财等 = authoritative，股吧等论坛 = soft），
+行情页/个股概览页（标题只有名称+代码，或含「股价、新闻」「Stock Price, Quote」）丢弃。
+
+**覆盖边界**：DeepSeek 搜的是它自己的索引。雪球、富途、微信公众号这类 JS 渲染或反爬页面，搜索最多给索引摘要，`--fetch` 常返回 404；
+不能因为接了搜索就算覆盖了这些源，拿不到要明说缺口。
+
+**计费**：直连 Search/Fetch 按成功请求计费；自北京时间 2026-11-01 起，
+agent 会话中的服务端 Search/Fetch 也按次计费。空搜索/无正文 Fetch 的规则见上表。
