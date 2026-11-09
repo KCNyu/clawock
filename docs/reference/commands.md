@@ -198,6 +198,15 @@ Lifecycle boundaries, context/generation IDs and delivery ownership live in
 Provider coverage, credentials and missing-data semantics live in
 [data coverage](data-coverage.md) and [tool operations](tool-operations.md).
 
+### Generation-bound postflight calls
+
+The model writes prose to a file; the harness assembles the data block. Both
+calls require the preflight's context ID, so a different generation cannot be
+silently combined with that prose:
+
+- **`clawock report postflight --market {hk|us} --phase {open|mid|pm|close} --context-id ID --text-file PATH`**
+- **`clawock intraday postflight --market {hk|us} --context-id ID --text-file PATH`**
+
 ### Arguments and operational boundaries
 
 The installed parser owns syntax and defaults: use `clawock COMMAND --help`,
