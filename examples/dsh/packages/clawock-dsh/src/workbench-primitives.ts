@@ -129,6 +129,20 @@ export function Sheet(props: {
     h('div', {
       className: cx('wb-sheet'), role: 'dialog', 'aria-modal': 'true', 'aria-label': props.title,
       ...(sheet === '' ? {} : { 'data-wb-sheet': sheet }),
+      onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key !== 'Tab') return
+        const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]',
+        )).filter((el) => el.tabIndex >= 0 && el.getClientRects().length > 0)
+        const first = controls[0]
+        const last = controls[controls.length - 1]
+        if (first === undefined || last === undefined) { event.preventDefault(); return }
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault(); last.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first.focus()
+        }
+      },
     },
       h('div', { className: cx('wb-sheet-head') },
         h('span', { className: cx('wb-sheet-title') }, props.title),

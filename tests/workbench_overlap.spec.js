@@ -837,6 +837,8 @@ function serve() {
 }
 
 const STATES = [
+  { name: "a11y-sheet", width: 1280, height: 900, desktop: true, scenario: "normal", drive: "sheet", keyboard: "sheet" },
+  ...["stats", "history"].map((layer) => ({ name: "a11y-" + layer, width: 390, height: 844, scenario: "normal", drive: layer, keyboard: "escape" })),
   ...[320, 375, 390].map((width) => ({ name: "fields-" + width, width, height: width === 320 ? 568 : width === 375 ? 667 : 844, scenario: "field-controls", drive: "task", gauge: "fields" })),
   { name: "tasks", width: 390, height: 844, scenario: "normal", drive: null, gauge: "header" },
   { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers", gauge: "providers" },
@@ -1177,6 +1179,30 @@ async function main() {
           // The body is an explicit scroller. Test that the bottom action can
           // be brought fully into view on a short landscape viewport.
           await page.locator('[data-wb-sheet] [class*="_wb-sheet-body"]').evaluate((el) => { el.scrollTop = el.scrollHeight; });
+        }
+        if (state.keyboard) {
+          const inside = () => page.evaluate(() => document.activeElement?.closest('[data-wb-sheet]') !== null);
+          const failures = [];
+          if (state.keyboard === "sheet") {
+            const close = page.locator('[data-wb-sheet-back]');
+            await close.focus();
+            await page.keyboard.press('ArrowDown');
+            if (!await inside()) failures.push('sheet ArrowDown moved focus to the background task list');
+            await close.focus();
+            await page.keyboard.press('Shift+Tab');
+            if (!await inside()) failures.push('sheet Shift+Tab escaped the modal');
+            const controls = page.locator('[data-wb-sheet] button:not([disabled]), [data-wb-sheet] a[href]');
+            await controls.last().focus();
+            await page.keyboard.press('Tab');
+            if (!await inside()) failures.push('sheet Tab escaped the modal');
+          } else {
+            await page.keyboard.press('Escape');
+            if (await page.locator('[data-wb-overview]').count() !== 1) failures.push('Escape did not return to Overview');
+          }
+          if (failures.length) {
+            gaugeFailures.push({ state: state.name, engine: engineName, message: failures.join('; ') });
+            console.error('KEYBOARD FAIL ' + state.name + ': ' + failures.join('; '));
+          }
         }
         const scrollTop = await scrollTopOf(page);
         const geometry = await page.evaluate(collectInPage, { scrollTop });
