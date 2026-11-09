@@ -1,15 +1,15 @@
 {
   "available": true,
-  "as_of": "2026-10-30",
+  "as_of": "2026-11-06",
   "window_days": 7,
-  "impressions": 0,
+  "impressions": 3,
   "clicks": 0,
-  "impressions_28d": 27,
-  "position": null,
+  "impressions_28d": 28,
+  "position": 2.0,
   "pages_with_impressions": 1,
-  "url_count": 148,
+  "url_count": 151,
   "queries_reported": 3,
   "top_query": "tencent29209",
   "sitemap_fetched": null,
-  "readings": 10
+  "readings": 11
 }

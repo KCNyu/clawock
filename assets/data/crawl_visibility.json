@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-02T16:29:29Z",
+  "generated_at": "2026-11-09T16:47:05Z",
   "site": "https://kcnyu.github.io/clawock/",
   "note": "windows are fixed-length and end on the last complete day, so consecutive snapshots do not overlap and may be compared directly. `days_with_data` below `days` means GSC had not filled the tail.",
   "snapshots": [
@@ -1729,6 +1729,167 @@
         },
         {
           "date": "2026-10-30",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-11-06",
+      "captured_at": "2026-11-09T16:47:05Z",
+      "windows": {
+        "7": {
+          "start": "2026-10-31",
+          "end": "2026-11-06",
+          "days": 7,
+          "complete": true,
+          "days_with_data": 7,
+          "impressions": 3,
+          "clicks": 0,
+          "position": 2.0
+        },
+        "28": {
+          "start": "2026-10-10",
+          "end": "2026-11-06",
+          "days": 28,
+          "complete": true,
+          "days_with_data": 28,
+          "impressions": 28,
+          "clicks": 0,
+          "position": 6.39
+        }
+      },
+      "queries": {
+        "reported": 3,
+        "top": [
+          {
+            "query": "tencent29209",
+            "impressions": 14,
+            "clicks": 0,
+            "position": 8.36
+          },
+          {
+            "query": "tencent67551",
+            "impressions": 6,
+            "clicks": 0,
+            "position": 3.5
+          },
+          {
+            "query": "tencent28420",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 9.33
+          }
+        ]
+      },
+      "pages_with_impressions": 1,
+      "published_urls": 151,
+      "sitemap": {
+        "path": "https://kcnyu.github.io/clawock/sitemap.xml",
+        "lastSubmitted": "2026-08-16T13:59:14.645Z",
+        "lastDownloaded": null,
+        "isPending": true,
+        "errors": "0"
+      },
+      "coverage": {
+        "/": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "lastCrawlTime": "2026-08-26T04:17:40Z"
+        },
+        "briefs.html": {
+          "verdict": "NEUTRAL",
+          "coverageState": "URL is unknown to Google",
+          "lastCrawlTime": null
+        },
+        "faq.html": {
+          "verdict": "NEUTRAL",
+          "coverageState": "URL is unknown to Google",
+          "lastCrawlTime": null
+        }
+      },
+      "daily": [
+        {
+          "date": "2026-10-24",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-10-25",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-10-26",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-10-27",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-10-28",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-10-29",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-10-30",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-10-31",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-01",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-02",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-03",
+          "impressions": 2,
+          "clicks": 0,
+          "position": 2.5
+        },
+        {
+          "date": "2026-11-04",
+          "impressions": 1,
+          "clicks": 0,
+          "position": 1
+        },
+        {
+          "date": "2026-11-05",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-06",
           "impressions": 0,
           "clicks": 0,
           "position": 0
