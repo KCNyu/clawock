@@ -109,10 +109,12 @@ later task continuing the same session is not double-counted.
 - **Cost unpriced** is a model with no price row; its cell is `—`, not `$0`.
 - **`free`** is counted apart (the opencode free pool).
 - **`COST_USD` is an API list-price estimate**, not subscription quota spent.
-- **A mixed-provider total is USD**: the per-provider rows keep their display
-  unit, while the card's total sums the canonical USD estimates and reads a
-  compact amount (e.g. `$101`; exact `≈ $100.86` in its title; never `多币种合计`). `costUsdEstimate`/`COST_USD` are already USD;
-  the `¥` on a dsh row is a display unit, not a second-conversion input.
+- **Every API cost estimate is USD**: `COST_USD`/`costUsdEstimate` come from the
+  USD list-price table, so the provider rows, History and the card's total all
+  print `$` from the same number. A provider *balance* can still be CNY (dsh's
+  `¥`), but that is a different quantity, not a conversion input for this
+  estimate. A known zero reads `$0`; `—` means the model has no price row,
+  and `免费` is the opencode free pool.
 - **Patrol is excluded by default**; the window says `全部（含巡检）` when it is
   included.
 

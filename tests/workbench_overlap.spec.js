@@ -294,7 +294,8 @@ const HARNESS_JS = String.raw`
     agents: [
       { agent: 'dsh', tasks: 37, live: 1, tokensTotal: 1207549203, tokensUnknown: 6, costUsdEstimate: 14.07, costUnpriced: 6, costFree: 0, outcomes: [{ name: 'DONE', count: 28 }, { name: '-', count: 7 }, { name: 'PARTIAL', count: 1 }], states: [] },
       { agent: 'codex', tasks: 12, live: 0, tokensTotal: 73557977, tokensUnknown: 0, costUsdEstimate: 86.79, costUnpriced: 0, costFree: 0, outcomes: [{ name: 'DONE', count: 9 }, { name: '-', count: 2 }, { name: 'PARTIAL', count: 1 }], states: [] },
-      { agent: 'claude', tasks: 0, live: 0, tokensTotal: 0, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0, outcomes: [], states: [] },
+      // A real cancelled Claude task: TOKENS_TOTAL=0 and COST_USD=0.00, not a missing record.
+      { agent: 'claude', tasks: 1, live: 0, tokensTotal: 0, tokensUnknown: 0, costUsdEstimate: 0, costUnpriced: 0, costFree: 0, outcomes: [{ name: '-', count: 1 }], states: [{ name: 'cancelled', count: 1 }] },
     ],
     daily: {},
   };
@@ -663,6 +664,10 @@ function gaugeInPage(mode) {
       fontSize: style?.fontSize ?? null, ellipsis: style?.textOverflow ?? null,
       title: node?.getAttribute('title') ?? null,
       rows: [...document.querySelectorAll('[data-tq-stats-token]')].map((el) => (el.innerText || '').replace(/\s+/g, ' ').trim()),
+      titles: Object.fromEntries([...document.querySelectorAll('[data-tq-stats-token]')].map((el) => [
+        el.getAttribute('data-tq-stats-token'),
+        el.querySelector('[class*="_tq-stats-numbers"]')?.getAttribute('title') ?? null,
+      ])),
       layerText: layer?.innerText ?? '' };
   }
   if (mode === "sidebar") {
@@ -1134,12 +1139,21 @@ function assertGauge(state, gauge) {
     assert.equal(gauge.text, "$101", state.name + ": mixed units sum in USD, not a currency label");
     assert.ok(gauge.scrollWidth <= gauge.width,
       state.name + ": the cost cell shows the whole amount (scrollWidth " + gauge.scrollWidth + " > " + gauge.width + ")");
-    assert.match(gauge.title, /≈ \$100\.86 · USD 等值/, state.name + ": the title carries the exact USD equivalent");
+    assert.match(gauge.title, /≈ \$100\.86 · USD 计价/, state.name + ": the title carries the exact USD estimate");
     assert.doesNotMatch(gauge.layerText, /多币种|mixed currencies/, state.name + ": no mixed-currency fallback");
     const dsh = gauge.rows.find((row) => row.includes("dsh")) ?? "";
     const codex = gauge.rows.find((row) => row.includes("Codex")) ?? "";
-    assert.match(dsh, /¥14\.07/, state.name + ": the dsh detail row keeps its own unit");
-    assert.match(codex, /\$86\.79/, state.name + ": the codex detail row keeps its own unit");
+    const claude = gauge.rows.find((row) => row.includes("Claude")) ?? "";
+    assert.match(dsh, /\$14\.07/, state.name + ": the dsh row's amount and $ come from the same USD estimate");
+    assert.match(codex, /\$86\.79/, state.name + ": the codex row is USD");
+    assert.match(claude, /0 · \$0\b/, state.name + ": a cancelled zero-token task is a known $0, not a dash");
+    assert.doesNotMatch(gauge.layerText, /¥/, state.name + ": no USD estimate is printed with a CNY sign");
+    assert.match(gauge.titles.dsh, /USD 计价/, state.name + ": the dsh row says its estimate is USD");
+    assert.match(gauge.titles.claude, /不是缺数据/, state.name + ": the zero says it is a known record, not a missing one");
+    const rowSum = [14.07, 86.79].reduce((sum, n) => sum + n, 0);
+    const cell = Number(gauge.text.replace(/[^0-9.]/g, ""));
+    assert.ok(Math.abs(cell - rowSum) / rowSum < 0.005,
+      state.name + ": total USD within 0.5% of the row sum (" + cell + " vs " + rowSum + ")");
     return;
   }
   if (state.gauge === "fields") {
@@ -1224,9 +1238,7 @@ function assertGauge(state, gauge) {
       assert.ok(Math.abs(row.pad - 8) <= 0.6, state.name + ": the History Row keeps the 8px inset, got " + row.pad);
       assert.deepEqual(row.type, { font: "14px", line: "23px", weight: "500" },
         state.name + ": the History Row title is the same role, got " + JSON.stringify(row.type));
-      assert.match(row.cost, /^[¥$]/, state.name + ": each history cost carries its currency");
-      if (/\bdsh\b/.test(row.text)) assert.match(row.cost, /^¥/, state.name + ": dsh history costs are CNY, not $");
-      if (/Claude|Codex/.test(row.text)) assert.match(row.cost, /^\$/, state.name + ": non-dsh history costs are USD");
+      assert.match(row.cost, /^\$/, state.name + ": every history cost is the USD estimate");
     }
     assert.ok(gauge.footX !== null && Math.abs(gauge.footX - (gauge.ul.x + gauge.pad)) <= 0.6,
       state.name + ": the history footer shares the list inset, got " + gauge.footX);

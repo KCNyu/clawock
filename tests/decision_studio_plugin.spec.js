@@ -4233,7 +4233,7 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
     "Stats is mutually exclusive with Overview");
   assert.equal(find(statsLayer, (p) => p["data-wb-overview-done"] !== undefined)[0].props["data-wb-overview-done"], "2");
   assert.match(textOf(statsLayer), /1.2M/, "token metric");
-  assert.match(textOf(statsLayer), /¥3.40/, "the dsh-only cost metric uses CNY, not $");
+  assert.match(textOf(statsLayer), /\$3.40/, "the dsh-only cost metric uses the estimate's USD unit");
   assert.equal(find(statsLayer, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,
     "the old per-provider stacked chart is restored");
   assert.ok(find(statsLayer, (p) => p["data-tq-stats-bar"] !== undefined).length > 0,
@@ -4268,7 +4268,7 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
   disposeReactEffects();
 });
 
-test("workbench client: a mixed-provider stats total is one USD amount, not mixed currencies", async () => {
+test("workbench client: every API cost estimate is USD, and the total is the sum of its rows", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
@@ -4276,24 +4276,48 @@ test("workbench client: a mixed-provider stats total is one USD amount, not mixe
     throw new Error(`unexpected require: ${s}`);
   });
   const t = translatorFor(api);
-  const agent = (name, cost) => ({ agent: name, tasks: 1, live: 0, states: [],
+  const agent = (name, cost, extra = {}) => ({ agent: name, tasks: 1, live: 0, states: [],
     outcomes: [{ name: "DONE", count: 1 }], tokensTotal: 1000, tokensUnknown: 0,
-    costUsdEstimate: cost, costUnpriced: 0, costFree: 0 });
-  const stats = { available: true, error: "", since: null, days: 7, patrolIncluded: false, asOf: "",
-    agents: [agent("dsh", 14.07), agent("codex", 86.79)], daily: {} };
+    costUsdEstimate: cost, costUnpriced: 0, costFree: 0, ...extra });
+  const base = { available: true, error: "", since: null, days: 7, patrolIncluded: false, asOf: "", daily: {} };
+  const stats = { ...base, agents: [agent("dsh", 14.07), agent("codex", 86.79)] };
   const mixed = api.statsView(stats, t);
-  assert.equal(mixed.totals.costText, "$101",
-    "each COST_USD is already USD; the mixed total is their sum, not a currency label");
-  assert.match(mixed.totals.costTitle, /≈ \$100\.86 · USD 等值/);
-  assert.doesNotMatch(mixed.headline, /多币种/);
-  assert.doesNotMatch(mixed.summaryLine, /多币种/);
-  // One provider keeps the unit it had before this change: no needless $/¥ switch.
-  const dshOnly = api.statsView({ ...stats, agents: [agent("dsh", 14.07)] }, t);
-  assert.equal(dshOnly.totals.costText, "¥14.07");
-  assert.equal(dshOnly.totals.costTitle, "", "a single unit needs no conversion note");
-  // Nothing priced: still the old free/unpriced wording, never a fake $0.
-  const free = api.statsView({ ...stats, agents: [{ ...agent("dsh", 0), costFree: 1 }] }, t);
-  assert.equal(free.totals.costText, "免费");
+  // The row numbers and their `$` come from the same USD estimate.
+  assert.equal(mixed.agents.find((a) => a.agent === "dsh").costText, "$14.07");
+  assert.equal(mixed.agents.find((a) => a.agent === "codex").costText, "$86.79");
+  assert.match(mixed.agents.find((a) => a.agent === "dsh").costTitle, /≈ \$14\.07 · USD 计价/);
+  assert.equal(mixed.totals.costText, "$100.86", "the exact total is the USD sum of the rows");
+  assert.equal(mixed.totals.costCellText, "$101", "the phone cell gets the compact form of the same sum");
+  assert.match(mixed.totals.costTitle, /≈ \$100\.86 · USD 计价/);
+  assert.doesNotMatch(mixed.headline, /多币种|mixed currencies/);
+  const rowSum = mixed.agents.reduce((sum, a) => sum + Number(a.costText.replace(/[^0-9.]/g, "")), 0);
+  const exact = Number(mixed.totals.costText.replace(/[^0-9.]/g, ""));
+  assert.ok(Math.abs(rowSum - exact) / exact < 0.005, "total USD is within 0.5% of the row sum");
+  // The number kcn's screenshot showed: 100.16 + 19.51 = 119.67, all USD.
+  const live = api.statsView({ ...base, agents: [agent("dsh", 19.51), agent("codex", 100.16)] }, t);
+  assert.equal(live.totals.costText, "$119.67");
+  assert.equal(live.totals.costCellText, "$120");
+  const liveSum = live.agents.reduce((sum, a) => sum + Number(a.costText.replace(/[^0-9.]/g, "")), 0);
+  assert.ok(Math.abs(liveSum - 119.67) / 119.67 < 0.005);
+  assert.ok(Math.abs(120 - liveSum) / liveSum < 0.005, "the rounded cell is within 0.5% of the row sum");
+  // One provider is still USD; there is no CNY estimate to switch to.
+  const dshOnly = api.statsView({ ...base, agents: [agent("dsh", 14.07)] }, t);
+  assert.equal(dshOnly.totals.costText, "$14.07");
+  assert.equal(dshOnly.totals.costCellText, "$14.1");
+  assert.match(dshOnly.totals.costTitle, /≈ \$14\.07 · USD 计价/);
+  // A cancelled task with a zero record is a known zero, not a missing amount.
+  const zero = api.statsView({ ...base, agents: [{ ...agent("claude", 0), outcomes: [{ name: "-", count: 1 }], tokensTotal: 0, states: [{ name: "cancelled", count: 1 }] }] }, t);
+  assert.equal(zero.agents[0].costText, "$0");
+  assert.equal(zero.totals.costText, "$0");
+  assert.match(zero.agents[0].costTitle, /不是缺数据/);
+  // Only an unpriced model gets the dash; it is not the same fact as $0.00.
+  const unpriced = api.statsView({ ...base, agents: [{ ...agent("dsh", 0), costUnpriced: 1 }] }, t);
+  assert.equal(unpriced.agents[0].costText, "—");
+  assert.match(unpriced.agents[0].costTitle, /没有价目/);
+  const free = api.statsView({ ...base, agents: [{ ...agent("dsh", 0), costFree: 1 }] }, t);
+  assert.equal(free.agents[0].costText, "免费");
+  assert.match(free.agents[0].costTitle, /免费池/);
+  disposeReactEffects();
 });
 
 test("workbench client: Overview copy is pinned in Chinese", async () => {

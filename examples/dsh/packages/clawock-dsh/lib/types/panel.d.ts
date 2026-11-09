@@ -521,9 +521,6 @@ export type HistoryRowView = {
     cost: string;
     aria: string;
 };
-/** The provider's billing unit: DeepSeek/dsh bills in CNY (the balance is ¥);
- * Claude and Codex estimates use USD. The number is the host's estimate. */
-export declare function _costUnit(task: Pick<DispatchTask, 'agent' | 'model'>): '¥' | '$';
 /** The ended-task list: frozen result, finished time and cost, newest first (host order). */
 export declare function historyRowsView(result: TaskQueueResult | null, t: Translate, now: number): HistoryRowView[];
 /** The Providers segment: sources in severity order, same-severity rows by label. */
@@ -608,6 +605,8 @@ export type StatsAgentView = {
     tokensUnknown: number;
     tokensText: string;
     costText: string;
+    /** Why the cost cell reads what it does: USD estimate, free, unpriced or known zero. */
+    costTitle: string;
     /** Token length against the largest agent, 0..1 (the token bar's fill). */
     share: number;
     doneShare: number;
@@ -620,7 +619,9 @@ export type StatsTotalsView = Omit<StatsAgentView, 'agent' | 'label' | 'share'> 
     costUsdEstimate: number;
     costUnpriced: number;
     costFree: number;
-    /** The tooltip that says a mixed-provider total is a USD equivalent; '' for one unit. */
+    /** The compact USD total for the 72px phone metric cell; `costText` stays exact for text. */
+    costCellText: string;
+    /** Why the cell reads what it does: USD estimate, free, unpriced or known zero. */
     costTitle: string;
 };
 /**

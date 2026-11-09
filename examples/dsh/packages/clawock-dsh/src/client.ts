@@ -40,7 +40,7 @@ import {
 } from './workbench.ts'
 import type { BalancesResult, DispatchTask, EnrichedTrade, QueueActionResult, T1VerdictKind, TaskQueueResult, TaskStats, TraceDecision, TraceT1, TracesResult } from './types.ts'
 import { LOCALE_NS, dictionaries, resetStampOf, windowsOf, type Translate } from './copy.ts'
-import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, _costUnit, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, panelNotices, opsFooter, _queueHeadline, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, historyRowsView, _fmtTokens, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView, type HistoryRowView } from './panel.ts'
+import { _slotOf, _slotLanes, durationOf, agoOf, _taskStatus, executionText, reportText, endedTone, _agentLabel, _modelView, modelLine, _notifyState, notifyChannels, STATE_ROLES, _endedState, FACT_ORDER, ROW_KINDS, _taskState, reorderable, _panelSources, _poolPosition, _costOf, sourceView, balanceRows, agentWindows, allowanceDetail, panelModel, panelNotices, opsFooter, _queueHeadline, statsView, patrolSection, compactCount, MINUS, signalView, workbenchCounts, providerAlerts, providerRowsView, historyRowsView, _fmtTokens, waitShort, waitLong, waitSpoken, waitedOf, isStuckTask, splitPending, firstSentence, taskTitle, type BalanceTone, type StatsView, type BalanceRow, type SlotLane, type ReceiptState, type StateRole, type SlotChip, type Fact, type RowLead, type RowView, type PanelSource, type AllowanceDetail, type PanelGroup, type PanelModel, type PatrolRhythm, type CoverageView, type StatsSeriesView, type ProviderRowView, type HistoryRowView } from './panel.ts'
 export { LOCALE_NS, type Translate, dictionaries, createTranslator, windowLabelOf, resetStampOf, windowsOf } from './copy.ts'
 export { _fmtTokens } from './panel.ts'
 // Pure projections, re-exported so the spec can pin the fixed signal copy and
@@ -1364,7 +1364,7 @@ function renderStatsBody(stats: StatsView, t: Translate): React.ReactElement {
     h('div', { className: cx('tq-stats-row-head') },
       h('span', { className: cx('tq-stats-agent') }, renderAgentGlyph(agent.agent, 14),
         h('span', { className: cx('tq-stats-agent-name') }, agent.label)),
-      h('span', { className: cx('tq-stats-numbers') }, agent.tokensText + ' · ' + agent.costText)),
+      h('span', { className: cx('tq-stats-numbers'), title: agent.costTitle || undefined }, agent.tokensText + ' · ' + agent.costText)),
     h('div', { className: cx('tq-stats-track') },
       h('div', { className: cx('tq-stats-fill'), style: { width: Math.round(agent.share * 100) + '%' } })))
   const doneRow = (agent: StatsView['agents'][number]): React.ReactElement => h('div', {
@@ -2079,7 +2079,7 @@ function renderTaskDetail(found: { task: DispatchTask; live: boolean }, t: Trans
     task.stalls ? { key: 'stalls', label: t('queue.d.stalls'), value: t('queue.d.stallsValue', { n: task.stalls }), voice: 'warn' } : null,
     cost === null ? null : {
       key: 'cost', label: t('queue.d.cost'),
-      value: cost.kind === 'usd' ? _costUnit(task) + (task.costUsd ?? '') : cost.kind === 'free' ? t('queue.d.costFreeShort') : '—',
+      value: cost.kind === 'usd' ? '$' + (task.costUsd ?? '') : cost.kind === 'free' ? t('queue.d.costFreeShort') : '—',
       sub: (cost.kind === 'usd' ? t('queue.d.costEstimate') : cost.kind === 'free' ? t('queue.d.costFree') : t('queue.d.costUnpriced'))
         + (live ? ' · ' + t('queue.d.costLive') : ''),
     },
@@ -3440,7 +3440,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
   const metrics: Array<[string, string]> = [
     [t('stats.metric.tasks'), totals === null ? '—' : String(totals.tasks)],
     [t('stats.metric.tokens'), totals === null ? '—' : totals.tokensText],
-    [t('stats.metric.cost'), totals === null ? '—' : totals.costText],
+    [t('stats.metric.cost'), totals === null ? '—' : totals.costCellText],
   ]
   const doneN = totals?.done ?? 0
   const unfinishedN = totals === null ? 0 : Math.max(0, totals.settled - totals.done)
