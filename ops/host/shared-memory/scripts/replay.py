@@ -271,7 +271,12 @@ def build_candidates(store: Path, state: Path, now: dt.datetime, days: int,
             })
 
     unused: list[dict] = []
+    # Missing observations are not evidence of thirty days without use. Match
+    # the retirement report's conservative history floor before nominating.
+    usage_observed = stats["coverage"]["days"] >= 30
     for slug, topic in sorted(topics.items()):
+        if not usage_observed:
+            continue
         if (topic["meta"].get("salience") or "") != "high":
             continue
         updated = parse_day(topic["meta"].get("updated"))

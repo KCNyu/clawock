@@ -315,3 +315,7 @@ error; the two renames are not a globally atomic filesystem transaction (a proce
 may leave a mismatched pair, which `--check` refuses). The old `review_dreaming.py`
 write CLI refuses workspaces with a projection manifest; their writer is
 `promote_dreaming.py`. Legacy unprojected workspaces retain the migration entry.
+
+Replay requires at least 30 days of observed recall history before emitting an
+`unused-high-salience` candidate. An absent or newly installed counter is unknown
+usage, not evidence of disuse; duplicate and contradiction candidates remain available.
