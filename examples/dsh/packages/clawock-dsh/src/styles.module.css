@@ -2569,3 +2569,8 @@ body[data-ds-dark-theme] .wb {
   color: var(--wb-text-2); font: inherit; font-size: var(--wb-font-meta);
   line-height: var(--wb-line-meta); text-decoration: underline; cursor: pointer;
 }
+
+/* An unspaced task identifier is not prose: fill the readable title column
+   instead of stranding a short hyphen segment before a long Latin run.
+   This applies only to DetailTitle; URLs, paths and prose keep natural breaks. */
+.wb .wb-reading-title[data-wb-title-identifier=true] { word-break: break-all; }

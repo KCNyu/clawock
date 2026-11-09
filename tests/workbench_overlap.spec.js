@@ -252,7 +252,7 @@ const HARNESS_JS = String.raw`
   ];
   if (scenario === 'field-controls') Object.assign(pending[0], { state: 'waiting', waiting: 'quota', outcome: '', finishedAtMs: null, agent: 'codex', modelUsed: 'gpt-6-astra', modelRequested: 'gpt-6-astra', effortUsed: 'high', needs: '', summary: '' });
   if (scenario.startsWith('wrap-')) Object.assign(pending[0], {
-    name: scenario === 'wrap-long' ? 'dsh-Workbench-超长标题-ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyz-0123456789'.repeat(3) : scenario === 'wrap-cjk' ? '工作台换行与布局深度审查任务' : scenario === 'wrap-word' ? 'WorkbenchReadabilityAudit' : 'dsh-pr-review',
+    name: scenario === 'wrap-prose' ? 'Review the Workbench task details and verify readable titles across phone and tablet layouts' : scenario === 'wrap-cjk-full' ? '逐项检查任务详情中的标题状态说明正文按钮与完整标题展开行为在横竖屏下是否仍然清楚可读' : scenario === 'wrap-long' ? 'dsh-Workbench-超长标题-ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyz-0123456789'.repeat(3) : scenario === 'wrap-cjk' ? '工作台换行与布局深度审查任务' : scenario === 'wrap-word' ? 'WorkbenchReadabilityAudit' : 'dsh-pr-review',
     agent: 'codex', state: 'ok', outcome: 'PARTIAL',
     needs: '检查 Safari 工具栏、软键盘、安全区及横竖屏。',
     modelUsed: 'provider/model-with-a-long-identifier-without-spaces',
@@ -635,6 +635,7 @@ function gaugeInPage(mode) {
       ['title-icon-center', Math.abs(icon.y + icon.h / 2 - a.y - a.h / 2) <= 1, round(Math.abs(icon.y + icon.h / 2 - a.y - a.h / 2))],
       ['status-own-line', c.y >= Math.max(a.bottom,b.bottom), {title:a,status:c}],
       ['title-readable-lines', rows(title).slice(0,-1).every((n) => n >= 6), rows(title)],
+      ['title-break-policy', /\s/u.test(title.textContent) ? getComputedStyle(title).wordBreak === 'normal' : true, getComputedStyle(title).wordBreak],
       ['prose-readable-width', box(prose).w >= outer.w * .85, box(prose).w],
       ['field-readable-width', fields.some((f) => f.control) && fields.every((f) => !f.text || f.value.w >= Math.min(160, outer.w * .6)), fields.map((f) => [f.name,round(f.value.w)])],
       ['code-natural-breaks', fields.every((f) => f.wordBreak !== 'break-all'), fields.map((f) => [f.name,f.wordBreak])],
@@ -983,6 +984,21 @@ for (const [width,height] of [[320,568],[375,667],[390,844],[420,900],[768,1024]
   }
 }
 
+// The reported real task name, against the deployed width fix (including 393px).
+for (const width of [320,375,390,393]) STATES.push({
+  name: 'incident-' + width, width, height: 844, theme: 'dark',
+  scenario: 'wrap-partial', drive: 'task', gauge: 'wrapping',
+});
+
+// Meaningful prose and unspaced CJK supplement (not replace) the adversarial
+// mixed identifier. Keep the short-line regression assertion unchanged.
+for (const content of ['prose','cjk-full']) {
+  for (const width of [320,393]) STATES.push({
+    name: 'reading-' + width + '-' + content, width, height: 844, theme: 'dark',
+    scenario: 'wrap-' + content, drive: 'task', gauge: 'wrapping',
+  });
+}
+
 // Legacy bundles predate stats/history layers and the detail sheet; capture
 // only the states both bundles have, so a before/after comparison is honest.
 const LEGACY_STATES = new Set(["tasks", "providers", "overview", "task", "rail", "desktop-tasks", "desktop-providers", "desktop-overview", "desktop-task", "1280-tasks", "1280-providers"]);
@@ -1320,7 +1336,7 @@ async function main() {
         const gauge = state.gauge ? await page.evaluate(gaugeInPage, state.gauge) : null;
         if (state.gauge === "wrapping") {
           gauge.checks.push({rule: 'row-opens-full-text', ok: rowReading.title === gauge.title && rowReading.policies.every(([space, overflow]) => space === 'nowrap' && overflow === 'ellipsis'), value: rowReading.policies});
-          if (state.scenario === 'wrap-long') {
+          if (['wrap-long','wrap-prose','wrap-cjk-full'].includes(state.scenario)) {
             const toggle = page.locator('[data-wb-title-toggle]');
             const present = await toggle.count() === 1;
             gauge.checks.push({rule: 'long-title-disclosure', ok: present, value: present});

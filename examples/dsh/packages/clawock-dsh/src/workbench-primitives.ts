@@ -228,6 +228,7 @@ export function DetailTitle(props: {
     h('span', {
       className: cx('tq-d-name', 'wb-reading-title'), role: 'heading', 'aria-level': 2,
       tabIndex: -1, ref: title, id, 'data-wb-title-expanded': expanded,
+      'data-wb-title-identifier': !/\s/u.test(props.text),
     }, props.text),
     overflows ? h('button', {
       type: 'button', className: cx('wb-title-toggle'), 'data-wb-title-toggle': 'true',
