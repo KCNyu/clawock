@@ -1,69 +1,74 @@
 {
   "vix": {
     "symbol": "^VIX",
-    "price": 25.64,
-    "prev": 28.18,
-    "change_pct": -9.01,
+    "price": 19.92,
+    "prev": 25.64,
+    "change_pct": -22.31,
     "source": "yahoo",
-    "as_of": 1793999701
+    "as_of": 1794258901
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.859,
-    "prev": 4.837,
-    "change_pct": 0.45,
+    "price": 4.864,
+    "prev": 4.859,
+    "change_pct": 0.1,
     "source": "yahoo",
-    "as_of": 1793995196,
-    "yield_pct": 4.859
+    "as_of": 1794254393,
+    "yield_pct": 4.864
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.239,
+    "price": 101.679,
     "prev": 102.298,
-    "change_pct": -0.06,
+    "change_pct": -0.61,
     "source": "yahoo",
-    "as_of": 1794179421
+    "as_of": 1794265499
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24481.86,
-    "prev": 24796.98,
-    "change_pct": -1.27,
+    "price": 24448.95,
+    "prev": 24481.86,
+    "change_pct": -0.13,
     "source": "tencent",
-    "as_of": "2026-11-06"
+    "as_of": "2026-11-09"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4078.23,
-    "prev": 4154.29,
-    "change_pct": -1.83,
+    "price": 4040.73,
+    "prev": 4078.23,
+    "change_pct": -0.92,
     "source": "tencent",
-    "as_of": "2026-11-06"
+    "as_of": "2026-11-09"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7376.86,
-    "prev": 7353.73,
-    "change_pct": 0.31,
+    "price": 7549.94,
+    "prev": 7376.86,
+    "change_pct": 2.35,
     "source": "tencent",
-    "as_of": "2026-11-06"
+    "as_of": "2026-11-09"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 24579.42,
-    "prev": 24315.0,
-    "change_pct": 1.09,
+    "price": 25253.14,
+    "prev": 24579.42,
+    "change_pct": 2.74,
     "source": "tencent",
-    "as_of": "2026-11-06"
+    "as_of": "2026-11-09"
   },
   "fear_greed": {
-    "score": 22.1,
-    "rating": "extreme fear",
-    "prev_close": 19.9,
-    "prev_1_week": 26.3,
-    "as_of": "2026-11-06T23:59:54+00:00"
+    "score": 31.7,
+    "rating": "fear",
+    "prev_close": 22.1,
+    "prev_1_week": 19.4,
+    "as_of": "2026-11-09T23:00:45+00:00"
   },
   "fed_press": [
+    {
+      "date": "2026-11-09",
+      "title": "Federal Reserve Board announces approval of two applications by Mutual Federal Bancorp, MHC, and MFB Bancorp, Inc.",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20261109a.htm"
+    },
     {
       "date": "2026-11-05",
       "title": "Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc",
@@ -72,84 +77,59 @@
   ],
   "treasury_curve": {
     "source": "us_treasury",
-    "as_of": "2026-11-06",
+    "as_of": "2026-11-09",
     "status": "ok",
-    "age_days": 2,
+    "age_days": 0,
     "unit": "percent",
     "frequency": "daily_par_yield",
     "yields": {
-      "1m": 4.02,
-      "1.5m": 4.07,
-      "2m": 4.15,
-      "3m": 4.19,
-      "4m": 4.19,
-      "6m": 4.23,
-      "1y": 4.33,
-      "2y": 4.51,
-      "3y": 4.59,
-      "5y": 4.64,
-      "7y": 4.74,
-      "10y": 4.86,
+      "1m": 4.04,
+      "1.5m": 4.13,
+      "2m": 4.19,
+      "3m": 4.24,
+      "4m": 4.2,
+      "6m": 4.26,
+      "1y": 4.38,
+      "2y": 4.56,
+      "3y": 4.58,
+      "5y": 4.67,
+      "7y": 4.76,
+      "10y": 4.88,
       "20y": 5.29,
       "30y": 5.26
     },
     "missing_maturities": [],
-    "spread_10y_2y_bps": 35.0,
-    "spread_10y_3m_bps": 67.0,
+    "spread_10y_2y_bps": 32.0,
+    "spread_10y_3m_bps": 64.0,
     "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
   },
   "volatility": {
-    "vix": {
-      "symbol": "VIX",
-      "price": 25.64,
-      "prev": 28.18,
-      "change_pct": -9.01,
-      "source": "cboe",
-      "as_of": "2026-11-06",
-      "previous_as_of": "2026-11-05",
-      "frequency": "daily_close",
-      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
-    },
+    "vix": null,
     "vix9d": {
       "symbol": "VIX9D",
-      "price": 27.18,
-      "prev": 32.66,
-      "change_pct": -16.78,
+      "price": 19.88,
+      "prev": 27.18,
+      "change_pct": -26.86,
       "source": "cboe",
-      "as_of": "2026-11-06",
-      "previous_as_of": "2026-11-05",
+      "as_of": "2026-11-09",
+      "previous_as_of": "2026-11-06",
       "frequency": "daily_close",
       "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
     },
     "vix3m": {
       "symbol": "VIX3M",
-      "price": 24.6,
-      "prev": 25.55,
-      "change_pct": -3.72,
+      "price": 20.85,
+      "prev": 24.6,
+      "change_pct": -15.24,
       "source": "cboe",
-      "as_of": "2026-11-06",
-      "previous_as_of": "2026-11-05",
+      "as_of": "2026-11-09",
+      "previous_as_of": "2026-11-06",
       "frequency": "daily_close",
       "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
     },
-    "skew": {
-      "symbol": "SKEW",
-      "price": 153.55,
-      "prev": 149.37,
-      "change_pct": 2.8,
-      "source": "cboe",
-      "as_of": "2026-11-06",
-      "previous_as_of": "2026-11-05",
-      "frequency": "daily_close",
-      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv"
-    }
+    "skew": null
   },
-  "volatility_term_structure": {
-    "vix_to_vix3m": 1.0423,
-    "as_of": "2026-11-06",
-    "source": "cboe",
-    "frequency": "daily_close"
-  },
+  "volatility_term_structure": null,
   "coverage": {
     "vix": "ok",
     "treasury_10y": "ok",
@@ -160,8 +140,8 @@
     "nasdaq": "ok",
     "vix9d": "ok",
     "vix3m": "ok",
-    "skew": "ok",
+    "skew": "unavailable",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-11-08T23:20:25.804640+00:00"
+  "generated_at": "2026-11-09T23:20:26.500090+00:00"
 }
