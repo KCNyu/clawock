@@ -739,7 +739,7 @@ jobs:
   validate:
     # Required context: neither failed/skipped dependencies nor a missing shard
     # may turn the aggregate green. Floors apply to combined coverage only.
-    needs: [scope, checks, unit-tests, browser-tests]
+    needs: [scope, checks, unit-tests, browser-tests, workbench-overlap]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -754,11 +754,14 @@ jobs:
           UNIT: ${{ needs.unit-tests.result }}
           UI: ${{ needs.scope.outputs.ui }}
           BROWSER: ${{ needs.browser-tests.result }}
+          DSPLUGIN: ${{ needs.scope.outputs.dsplugin }}
+          WORKBENCH: ${{ needs.workbench-overlap.result }}
         run: |
           test "$SCOPE" = success
           test "$CHECKS" = success
           if [ "$CODE" = true ]; then test "$UNIT" = success; fi
           if [ "$UI" = true ]; then test "$BROWSER" = success; fi
+          if [ "$DSPLUGIN" = true ]; then test "$WORKBENCH" = success; fi
       - uses: actions/checkout@v7
         if: needs.scope.outputs.code == 'true'
       - name: Set up clawock (Python)

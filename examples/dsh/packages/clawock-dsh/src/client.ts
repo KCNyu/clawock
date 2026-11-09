@@ -2995,7 +2995,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
       if (event.key === 'Escape') {
         if (nav.sheet !== null) { event.preventDefault(); closeSheet(); return }
         if (confirmStop) { event.preventDefault(); setConfirmStop(false); return }
-        if (view === 'patrol') { event.preventDefault(); closePatrol(); return }
+        if (view === 'patrol' || view === 'stats' || view === 'history') { event.preventDefault(); closePatrol(); return }
         if (!desktop && view === 'focus') { event.preventDefault(); back(); return }
         const target = event.target instanceof HTMLElement ? event.target.closest('[data-wb-group]') : null
         const focused = target?.getAttribute('data-wb-group')
@@ -3005,7 +3005,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
         toggleGroup(focused)
         return
       }
-      if (!desktop || tab !== 'tasks' || typing(event.target)) return
+      if (nav.sheet !== null || !desktop || tab !== 'tasks' || typing(event.target)) return
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         const index = rendered.findIndex((task) => task.id === selected)
         const delta = event.key === 'ArrowDown' ? 1 : -1

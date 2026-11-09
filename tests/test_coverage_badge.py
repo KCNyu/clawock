@@ -250,7 +250,7 @@ def test_the_coverage_plugin_is_installed_where_it_is_used():
                 if step.get('with', {}).get('install') == '.[test]']
     assert len(installs) == 1, 'each shard installs the test extra once'
     assert installs[0]['uses'] == './.github/actions/clawock-python'
-    assert jobs['validate']['needs'] == ['scope', 'checks', 'unit-tests', 'browser-tests']
+    assert jobs['validate']['needs'] == ['scope', 'checks', 'unit-tests', 'browser-tests', 'workbench-overlap']
 
     extras = tomllib.load(open(ROOT / 'pyproject.toml', 'rb'))[
         'project']['optional-dependencies']

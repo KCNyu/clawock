@@ -272,3 +272,20 @@ def test_the_shallow_jobs_fetch_the_range_they_classify():
         body = text.split(f"\n  {job}:\n", 1)[1].split("\n  analyze:", 1)[0]
         body = body.split("\n  portable-workflow:\n", 1)[0]
         assert "push_scope.py --fetch-missing" in body, job
+
+
+@pytest.mark.parametrize('workbench', ['failure', 'cancelled', 'skipped', 'success'])
+def test_required_validate_context_enforces_workbench_geometry(workbench):
+    import os
+
+    text = (ROOT / '.github/workflows/ci.yml').read_text()
+    block = text.split('  validate:\n', 1)[1].split('      - uses: actions/checkout', 1)[0]
+    script = block.split('        run: |\n', 1)[1]
+    script = '\n'.join(line[10:] for line in script.splitlines())
+    proc = subprocess.run(['bash', '-e', '-c', script], env={**os.environ,
+        'SCOPE': 'success', 'CHECKS': 'success', 'CODE': 'false', 'UI': 'false',
+        'DSPLUGIN': 'true', 'WORKBENCH': workbench}, capture_output=True, text=True)
+    assert (proc.returncode == 0) is (workbench == 'success')
+    needs = next(line for line in block.splitlines() if line.strip().startswith('needs:'))
+    assert 'workbench-overlap' in needs, 'required validate must wait for the geometry job'
+    assert 'WORKBENCH: ${{ needs.workbench-overlap.result }}' in block

@@ -9,7 +9,7 @@
  * real React root at a real viewport, collects every visible interactive block,
  * row, group header, tab, badge, sheet, toast, sticky control and text block,
  * and intersects their clipped getBoundingClientRect boxes. Any pair over
- * 0.5px² fails unless it is one of the documented exceptions:
+ * 0px² fails unless it is one of the documented exceptions:
  *   - an ancestor/descendant pair (a container is not a "block");
  *   - the explicit z-axis overlay (sheet over the page, toast over the page);
  *   - the sticky tab bar over already-scrolled content (scrollTop > 0).
@@ -488,7 +488,7 @@ function collectInPage(options) {
       const x2 = Math.min(a.rect.x + a.rect.w, b.rect.x + b.rect.w);
       const y2 = Math.min(a.rect.y + a.rect.h, b.rect.y + b.rect.h);
       const area = Math.max(0, x2 - x) * Math.max(0, y2 - y);
-      if (area <= 0.5) continue;
+      if (area <= 0) continue;
       const pair = {
         a: a.selector, b: b.selector, area: Number(area.toFixed(2)),
         rects: { a: { x: a.rect.x, y: a.rect.y, w: a.rect.w, h: a.rect.h }, b: { x: b.rect.x, y: b.rect.y, w: b.rect.w, h: b.rect.h } },
@@ -608,7 +608,7 @@ function gaugeInPage(mode) {
     for (let i = 0; i < rows.length; i += 1) {
       for (let j = i + 1; j < rows.length; j += 1) {
         const overlap = area(rows[i].row, rows[j].row);
-        if (overlap > 0.5) intersections.push({ a: rows[i].name, b: rows[j].name, area: round(overlap) });
+        if (overlap > 0) intersections.push({ a: rows[i].name, b: rows[j].name, area: round(overlap) });
       }
     }
     const containment = rows.map((row) => ({
@@ -685,7 +685,7 @@ function gaugeInPage(mode) {
     for (let i = 1; i < blocks.length; i += 1) {
       const prev = blocks[i - 1].box, next = blocks[i].box;
       if (prev === null || next === null) continue;
-      if (next.y < prev.bottom - 0.5) sideBySide.push({ a: blocks[i - 1].kind, b: blocks[i].kind, dy: round(next.y - prev.bottom) });
+      if (next.y < prev.bottom) sideBySide.push({ a: blocks[i - 1].kind, b: blocks[i].kind, dy: round(next.y - prev.bottom) });
     }
     return {
       mode, present: true,
@@ -809,7 +809,7 @@ function gaugeInPage(mode) {
     for (const row of rows) {
       for (const [a, b] of [["name", "primary"], ["name", "secondary"], ["primary", "secondary"], ["metaLeft", "metaRight"]]) {
         const overlap = area(row[a], row[b]);
-        if (overlap > 0.5) collisions.push({ key: row.key, a, b, area: round(overlap) });
+        if (overlap > 0) collisions.push({ key: row.key, a, b, area: round(overlap) });
       }
     }
     return { mode, present: rows.length > 0, rows, collisions };
@@ -837,6 +837,8 @@ function serve() {
 }
 
 const STATES = [
+  { name: "a11y-sheet", width: 1280, height: 900, desktop: true, scenario: "normal", drive: "sheet", keyboard: "sheet" },
+  ...["stats", "history"].map((layer) => ({ name: "a11y-" + layer, width: 390, height: 844, scenario: "normal", drive: layer, keyboard: "escape" })),
   ...[320, 375, 390].map((width) => ({ name: "fields-" + width, width, height: width === 320 ? 568 : width === 375 ? 667 : 844, scenario: "field-controls", drive: "task", gauge: "fields" })),
   { name: "tasks", width: 390, height: 844, scenario: "normal", drive: null, gauge: "header" },
   { name: "providers", width: 390, height: 844, scenario: "normal", drive: "providers", gauge: "providers" },
@@ -1152,8 +1154,8 @@ async function main() {
       for (const state of engineStates) {
         const context = await browser.newContext({
           viewport: { width: state.width, height: state.height },
-          isMobile: engineName === "webkit" && state.width < 768,
-          hasTouch: engineName === "webkit" && state.width < 768,
+          isMobile: engineName === "webkit",
+          hasTouch: engineName === "webkit",
           deviceScaleFactor: 1,
           locale: "zh-CN",
           colorScheme: state.theme === "dark" ? "dark" : "light",
@@ -1177,6 +1179,30 @@ async function main() {
           // The body is an explicit scroller. Test that the bottom action can
           // be brought fully into view on a short landscape viewport.
           await page.locator('[data-wb-sheet] [class*="_wb-sheet-body"]').evaluate((el) => { el.scrollTop = el.scrollHeight; });
+        }
+        if (state.keyboard) {
+          const inside = () => page.evaluate(() => document.activeElement?.closest('[data-wb-sheet]') !== null);
+          const failures = [];
+          if (state.keyboard === "sheet") {
+            const close = page.locator('[data-wb-sheet-back]');
+            await close.focus();
+            await page.keyboard.press('ArrowDown');
+            if (!await inside()) failures.push('sheet ArrowDown moved focus to the background task list');
+            await close.focus();
+            await page.keyboard.press('Shift+Tab');
+            if (!await inside()) failures.push('sheet Shift+Tab escaped the modal');
+            const controls = page.locator('[data-wb-sheet] button:not([disabled]), [data-wb-sheet] a[href]');
+            await controls.last().focus();
+            await page.keyboard.press('Tab');
+            if (!await inside()) failures.push('sheet Tab escaped the modal');
+          } else {
+            await page.keyboard.press('Escape');
+            if (await page.locator('[data-wb-overview]').count() !== 1) failures.push('Escape did not return to Overview');
+          }
+          if (failures.length) {
+            gaugeFailures.push({ state: state.name, engine: engineName, message: failures.join('; ') });
+            console.error('KEYBOARD FAIL ' + state.name + ': ' + failures.join('; '));
+          }
         }
         const scrollTop = await scrollTopOf(page);
         const geometry = await page.evaluate(collectInPage, { scrollTop });
