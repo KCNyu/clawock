@@ -278,6 +278,16 @@ def test_commit_dreaming_commits_memory_and_dreams_separately(tmp_path):
     assert previous == ['MEMORY.md']
 
 
+def test_patch_report_names_the_private_file():
+    """The deep-sleep report must not claim MEMORY.md when it writes .dreams/."""
+    original = patch.OLD_REPORT_BLOCK
+    modified = patch.patch_report(original)
+    assert patch.REPORT_MARKER in modified
+    assert patch.NEW_REPORT_LINE in modified
+    assert patch.OLD_REPORT_LINE not in modified
+    assert patch.patch_report(modified) == modified
+
+
 def test_patch_executes_with_private_path_and_no_budget_eviction():
     original = (ROOT / 'tests/fixtures/openclaw_promotion.js').read_text()
     modified = patch.patch(original)

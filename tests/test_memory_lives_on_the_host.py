@@ -231,6 +231,22 @@ def test_the_published_brief_is_not_a_memory_orphan(system_check, live):
     assert severity == system_check.OK, message
 
 
+def test_a_day_log_is_not_a_memory_orphan(system_check, live):
+    """`memory/YYYY-MM-DD[-HHMM].md` is raw recall material, not a topic.
+
+    The compaction flush writes these every day; the search index embeds them,
+    but MEMORY.md is a durable-topic index, not a log. Counting them as orphans
+    made the check report 29-30 files every night and buried the real one.
+    """
+    (live / "MEMORY.md").write_text("- [rules](memory/rules.md) — x\n", encoding="utf-8")
+    (live / "memory" / "rules.md").write_text("linked\n", encoding="utf-8")
+    for name in ("2026-11-08.md", "2026-11-08-1741.md", "2026-11-09.md"):
+        (live / "memory" / name).write_text("compaction flush\n", encoding="utf-8")
+
+    name, severity, message = _curation(system_check)
+    assert severity == system_check.OK, message
+
+
 def test_wiki_style_links_count_as_links(system_check, live):
     """The shared-memory store links with [[name]]; the same index may too."""
     (live / "MEMORY.md").write_text("see [[rules]] for X\n", encoding="utf-8")

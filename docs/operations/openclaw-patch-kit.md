@@ -9,9 +9,14 @@ two existing host-extension installers. Gateway restart remains a separate step.
 
 `openclaw-patches/manifest.json` owns ordered patch IDs, adapter paths, target
 selectors and required postconditions. The eleven shell adapters live beside it;
-`patch_dreaming_fallbacks.py` and `patch_dreaming_review.py` are the two existing
-Python adapters. `patch-vector-knn-oversample.sh` is the memory-recall KNN fix;
-its measured rationale and the 8 → 1 argument are in the adapter's header. A target selector must resolve to exactly one bundle. Shared
+`patch_dreaming_fallbacks.py`, `patch_dreaming_review.py` and
+`patch-memory-local-warmup.py` are the three Python adapters.
+`patch-vector-knn-oversample.sh` is the memory-recall KNN fix; its measured
+rationale and the 8 → 1 argument are in the adapter's header.
+`patch-memory-local-warmup.py` probes the local embedding provider 5s after
+gateway start, so the first recall after a restart takes the warm path instead
+of paying the 300MB GGUF load (measured 27s cold vs 0.5-5.5s warm on this box).
+A target selector must resolve to exactly one bundle. Shared
 bundles are copied once, and adapters see earlier staged edits in manifest order.
 Required markers are checked on each named target, including all three dreaming
 race forwarding hops; a marker in an unrelated bundle is insufficient.

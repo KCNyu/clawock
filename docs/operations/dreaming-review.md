@@ -10,9 +10,12 @@ The host uses one promotion engine with two independent outputs:
 
 - `ops/host/patch_dreaming_review.py` redirects only the promotion writer into ignored
   `memory/.dreams/promotion-candidates.md`. Pending candidates are not evicted by the upstream
-  MEMORY character budget. The patch validates exact anchors, is idempotent, saves a pre-patch
-  backup, and supports `--check`. `reapply_openclaw_patches.sh` reapplies it after upgrades. An
-  idle gateway must be restarted after installation; checking files alone does not prove
+  MEMORY character budget. The same adapter rewrites the deep-sleep report line so it names that
+  private file instead of claiming the candidates went into `MEMORY.md`; the stock line is
+  misleading even when the private writer is active. The patch validates exact anchors, is
+  idempotent, saves a pre-patch backup, and supports `--check`. `reapply_openclaw_patches.sh`
+  reapplies it after upgrades; `system_check.py` reports a missing half under `memory index`.
+  An idle gateway must be restarted after installation; checking files alone does not prove
   activation.
 - `ops/host/promote_dreaming.py` applies `review_dreaming.py`'s hash-bound decisions. It writes
   only approved conclusions as new public store topics, snapshots the store first, requires

@@ -184,6 +184,13 @@
             "promotion-candidates.md",
             "budgetChars: Number.MAX_SAFE_INTEGER"
           ]
+        },
+        {
+          "selector": "candidate(s) for durable promotion",
+          "required": [
+            "memory/.dreams/promotion-candidates.md (pending review)",
+            "clawock-dreaming-review-v1"
+          ]
         }
       ]
     },
@@ -196,6 +203,20 @@
           "required": [
             "clawock-vector-knn-oversample-v1",
             "const VECTOR_KNN_OVERSAMPLE_FACTOR = 1;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "memory-local-warmup",
+      "script": "openclaw-patches/patch-memory-local-warmup.py",
+      "targets": [
+        {
+          "path": "extensions/memory-core/index.js",
+          "required": [
+            "clawock-memory-local-warmup-v1",
+            "probeEmbeddingAvailability",
+            "memory-local-warmup"
           ]
         }
       ]

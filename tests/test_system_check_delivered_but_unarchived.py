@@ -260,6 +260,48 @@ def test_dreaming_checks_latest_artifact_not_cron_status(system_check, workspace
     assert detail in result.checks[0][2]
 
 
+def test_a_quarantined_day_does_not_report_a_stale_diary(system_check, workspace):
+    """A day held back by the review gate publishes nothing on purpose.
+
+    On 2026-11-09 all three narratives were quarantined (one unreviewed, two
+    price_or_position), so DREAMS.md had no 11-09 body. The old check called
+    that "stale diary" even though dreaming ran and the gate did its job.
+    """
+    import json
+    from datetime import datetime, timezone
+    diary = workspace / 'DREAMS.md'
+    diary.write_text('<!-- openclaw:dreaming:diary:start -->\n---\n\n'
+                     '*November 8, 2026 at 3:00 AM GMT+8*\n\nA narrative\n'
+                     '<!-- openclaw:dreaming:diary:end -->')
+    private = workspace / 'memory' / '.dreams'
+    private.mkdir(parents=True)
+    (private / 'dreams-review.json').write_text(json.dumps({'version': 1, 'entries': {
+        'a': {'date': 'November 9, 2026 at 3:00 AM GMT+8', 'status': 'quarantined',
+              'reasons': ['unreviewed']},
+        'b': {'date': 'November 9, 2026 at 3:00 AM GMT+8', 'status': 'quarantined',
+              'reasons': ['price_or_position']},
+    }}))
+    result = system_check.Result()
+    system_check.check_dreaming_narrative(
+        result, now=datetime(2026, 11, 9, 19, tzinfo=timezone.utc))
+    assert result.checks[0][1] == system_check.OK
+    assert '2 entries quarantined' in result.checks[0][2]
+    assert 'price_or_position' in result.checks[0][2]
+
+
+def test_a_day_without_a_quarantine_receipt_still_reports_stale(system_check, workspace):
+    from datetime import datetime, timezone
+    (workspace / 'DREAMS.md').write_text(
+        '<!-- openclaw:dreaming:diary:start -->\n---\n\n'
+        '*November 8, 2026 at 3:00 AM GMT+8*\n\nA narrative\n'
+        '<!-- openclaw:dreaming:diary:end -->')
+    result = system_check.Result()
+    system_check.check_dreaming_narrative(
+        result, now=datetime(2026, 11, 9, 19, tzinfo=timezone.utc))
+    assert result.checks[0][1] == system_check.WARNING
+    assert 'stale diary' in result.checks[0][2]
+
+
 def test_dreaming_missing_marker_and_pre_run_grace(system_check, workspace):
     from datetime import datetime, timezone
     diary = workspace / 'DREAMS.md'

@@ -22,6 +22,13 @@ OLD_BUDGET = 'budgetChars: typeof options.memoryFileMaxChars === "number" && Num
 OLD_WRITE = 'await fs.writeFile(memoryPath, `${header}${withTrailingNewline(baseMemory)}${section}`, "utf-8");'
 NEW_WRITE = 'await fs.writeFile(memoryPath, `${header}${withTrailingNewline(baseMemory)}${section}`, { encoding: "utf-8", mode: 0o600 });'
 NEW_BUDGET = 'budgetChars: Number.MAX_SAFE_INTEGER // retain pending candidates until review'
+REPORT_MARKER = '// clawock-dreaming-review-v1: the report names the private review file, not MEMORY.md.'
+OLD_REPORT_LINE = 'reportLines.push(`- Promoted ${applied.applied} candidate(s) into MEMORY.md.`);'
+NEW_REPORT_LINE = ('reportLines.push(`- Promoted ${applied.applied} candidate(s) into '
+                   'memory/.dreams/promotion-candidates.md (pending review).`);')
+OLD_REPORT_BLOCK = '\t\t\ttotalApplied += applied.applied;\n\t\t\t' + OLD_REPORT_LINE
+NEW_REPORT_BLOCK = ('\t\t\ttotalApplied += applied.applied;\n\t\t\t' + REPORT_MARKER
+                    + '\n\t\t\t' + NEW_REPORT_LINE)
 
 
 def patch(text):
@@ -31,6 +38,15 @@ def patch(text):
         return text
     return replace_once(replace_once(replace_once(text, OLD_PATH, NEW_PATH),
                                      OLD_BUDGET, NEW_BUDGET), OLD_WRITE, NEW_WRITE)
+
+
+def patch_report(text):
+    """Name the file the promotion actually writes, on every upgrade."""
+    if REPORT_MARKER in text:
+        if NEW_REPORT_LINE not in text or OLD_REPORT_LINE in text:
+            raise ValueError('incomplete dreaming report patch')
+        return text
+    return replace_once(text, OLD_REPORT_BLOCK, NEW_REPORT_BLOCK)
 
 
 def main():
@@ -48,13 +64,20 @@ def main():
              if 'async function applyShortTermPromotions(options)' in p.read_text()]
     if len(paths) != 1:
         raise ValueError('expected one promotion bundle')
-    path = paths[0]
-    old = path.read_text()
-    new = patch(old)
-    if args.check and old != new:
-        raise ValueError('dreaming review patch not installed')
-    subprocess.run(['node', '--input-type=module', '--check'], input=new, text=True, check=True)
-    if new != old:
+    report_paths = [p for p in args.dist.glob('dreaming-*.js')
+                    if OLD_REPORT_LINE in p.read_text() or NEW_REPORT_LINE in p.read_text()]
+    if len(report_paths) != 1:
+        raise ValueError('expected one dreaming report bundle')
+    edits = [(paths[0], patch(paths[0].read_text())),
+             (report_paths[0], patch_report(report_paths[0].read_text()))]
+    for path, new in edits:
+        if args.check and new != path.read_text():
+            raise ValueError(f'dreaming review patch not installed: {path.name}')
+        subprocess.run(['node', '--input-type=module', '--check'], input=new, text=True, check=True)
+    for path, new in edits:
+        old = path.read_text()
+        if new == old:
+            continue
         backup = path.with_name(path.name + '.before-dreaming-review')
         if not backup.exists():
             backup.write_text(old)
@@ -62,7 +85,7 @@ def main():
         tmp.write_text(new)
         tmp.chmod(path.stat().st_mode & 0o777)
         tmp.replace(path)
-    print(f'{MARKER}: verified; gateway not restarted')
+    print(f'{MARKER}: promotion path and report target verified; gateway not restarted')
 
 
 if __name__ == '__main__':

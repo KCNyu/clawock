@@ -1924,6 +1924,10 @@ def _memory_index_patch_gaps():
         gaps.append('threads:1 embedding patch missing (local embedding can deadlock)')
     if contains('tools-*.js', 'MEMORY_SEARCH_TOOL_TIMEOUT_MS = 15e3;'):
         gaps.append('memory_search deadline back to stock 15s (this box needs ~27s cold)')
+    if not contains('short-term-promotion-*.js', 'clawock-dreaming-review-v1'):
+        gaps.append('dreaming-review patch missing: automatic promotions would write MEMORY.md')
+    if not contains('dreaming-*.js', 'memory/.dreams/promotion-candidates.md (pending review)'):
+        gaps.append('dreaming promotion report still names MEMORY.md instead of the private review file')
     return gaps
 
 
@@ -1996,6 +2000,9 @@ def check_memory_index(r):
               f'reindex {age:.0f}h ago{churn_note}')
 
 
+DAILY_MEMORY_NOTE_RE = re.compile(r'\d{4}-\d{2}-\d{2}(?:-\d{4})?\.md')
+
+
 def _memory_curation_gaps():
     """Compare the memory index against the topic files on disk.
 
@@ -2021,6 +2028,12 @@ def _memory_curation_gaps():
         # site, not by MEMORY.md.
         if path.name.endswith('-pre-open.md'):
             continue
+        # Compaction/session logs (`YYYY-MM-DD.md`, `YYYY-MM-DD-HHMM.md`) are
+        # raw recall material, embedded by the search index. MEMORY.md indexes
+        # durable topics, not a log of every day; counting these as orphans
+        # buries the one real unlinked topic under thirty days of transcript.
+        if DAILY_MEMORY_NOTE_RE.fullmatch(path.name):
+            continue
         on_disk.add(f'memory/{path.name}')
 
     orphans = sorted(on_disk - linked)
@@ -2030,6 +2043,38 @@ def _memory_curation_gaps():
 
 
 DREAMING_PLACEHOLDER = 'A memory trace surfaced, but details were unavailable in this run.'
+DREAMING_REVIEW = 'memory/.dreams/dreams-review.json'
+
+
+def _dreaming_quarantine_for(day):
+    """Narratives the review gate held back for `day`, with their reasons.
+
+    The gate is the source of truth for what was published. Only an explicit
+    quarantine receipt for that day suppresses the stale-diary warning; a
+    dreaming run that never produced anything leaves no receipt and still
+    reports.
+    """
+    months = {name: i for i, name in enumerate(
+        'January February March April May June July August September October November December'.split(), 1)}
+    try:
+        entries = json.loads((WS / DREAMING_REVIEW).read_text()).get('entries', {})
+    except (OSError, ValueError, AttributeError):
+        return []
+    if not isinstance(entries, dict):
+        return []
+    held = []
+    for entry in entries.values():
+        if not isinstance(entry, dict) or entry.get('status') != 'quarantined':
+            continue
+        match = re.match(r'([A-Za-z]+) (\d{1,2}), (\d{4})', str(entry.get('date', '')))
+        if not match or match.group(1) not in months:
+            continue
+        if date(int(match.group(3)), months[match.group(1)], int(match.group(2))) != day:
+            continue
+        if not isinstance(entry.get('reasons', []), list):
+            entry = {**entry, 'reasons': []}
+        held.append(entry)
+    return held
 
 
 def check_dreaming_narrative(r, *, now=None):
@@ -2073,6 +2118,17 @@ def check_dreaming_narrative(r, *, now=None):
         missing = sum(not body or body == DREAMING_PLACEHOLDER for body in bodies)
         problems = []
         if latest < expected:
+            # A day whose only narratives were held back by the review gate
+            # publishes no diary body on purpose. Calling that "stale" reports
+            # a policy decision as a failure; a run that produced nothing has
+            # no quarantine receipt and still warns.
+            held = _dreaming_quarantine_for(expected)
+            if held:
+                reasons = sorted({reason for entry in held for reason in entry.get('reasons', [])})
+                r.add('dreaming narrative', OK,
+                      f'no published body for {expected}: {len(held)} entries quarantined '
+                      f'by the review gate ({", ".join(reasons) or "no reason recorded"})')
+                return
             problems.append(f'stale diary: latest {latest}, expected {expected}')
         if latest > local.date():
             problems.append(f'future diary date {latest}')

@@ -73,6 +73,11 @@ def box(tmp_path, sc, monkeypatch):
     dist.mkdir(parents=True)
     (dist / "embeddings-aaa.js").write_text("const o = { threads: 1, batchSize: 512 };")
     (dist / "tools-bbb.js").write_text("const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 60000;")
+    (dist / "short-term-promotion-ccc.js").write_text(
+        "// clawock-dreaming-review-v1: private candidates\n")
+    (dist / "dreaming-ddd.js").write_text(
+        "reportLines.push(`- Promoted N candidate(s) into "
+        "memory/.dreams/promotion-candidates.md (pending review).`);\n")
 
     log = workspace / "logs" / "memory_index.log"
     stamp = (datetime.now().astimezone() - timedelta(hours=3)).isoformat(timespec="seconds")
@@ -161,6 +166,23 @@ def test_wiped_threads_patch_is_reported(sc, box):
     severity, message = _run(sc)
     assert severity == sc.WARNING
     assert "threads:1" in message
+
+
+def test_wiped_dreaming_review_patch_is_reported(sc, box):
+    """An upgrade restores the stock MEMORY.md write path; audit names it."""
+    (box["dist"] / "short-term-promotion-ccc.js").write_text("// stock promote path\n")
+    severity, message = _run(sc)
+    assert severity == sc.WARNING
+    assert "dreaming-review patch missing" in message
+
+
+def test_wrong_promotion_report_target_is_reported(sc, box):
+    """The report must name the private review file, not MEMORY.md (#dreaming)."""
+    (box["dist"] / "dreaming-ddd.js").write_text(
+        "reportLines.push(`- Promoted N candidate(s) into MEMORY.md.`);\n")
+    severity, message = _run(sc)
+    assert severity == sc.WARNING
+    assert "promotion report still names MEMORY.md" in message
 
 
 def test_stalled_nightly_reindex_is_reported(sc, box):
