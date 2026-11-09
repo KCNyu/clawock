@@ -44,7 +44,7 @@ def test_combined_gate_requires_every_shard_and_original_floors():
     assert jobs['unit-tests']['strategy']['matrix']['shard'] == [0, 1, 2, 3]
     assert jobs['unit-tests']['strategy']['fail-fast'] is False
     gate = jobs['validate']
-    assert set(gate['needs']) == {'scope', 'checks', 'unit-tests', 'browser-tests'}
+    assert set(gate['needs']) == {'scope', 'checks', 'unit-tests', 'browser-tests', 'workbench-overlap'}
     steps = {s.get('name'): s for s in gate['steps']}
     assert 'test "$UNIT" = success' in steps['Require all selected lanes']['run']
     combine = steps['Coverage floors']['run']
