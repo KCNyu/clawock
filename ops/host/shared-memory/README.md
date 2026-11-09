@@ -167,7 +167,8 @@ is the private recall counter below):
   note the assistant *repeats* in a direct chat can reach `DREAMS.md` / `MEMORY.md`. The
   assistant is told to answer with conclusions, not quotes, and `memctl doctor` warns
   (`context.openclaw.no_shared_text`) when a line of the workspace's `public_files` repeats a
-  line of the shared store.
+  line of a private, legacy, invalid or stale topic in the shared store. Valid non-stale
+  `publish: public` topics are intentionally allowed in the generated projection.
 
 Recall is not publication. `MEMORY.md`, `DREAMS.md` and the pre-open brief may still quote only
 a `publish: public` topic or runtime data; `scripts/provenance.py` fails the generation path when
