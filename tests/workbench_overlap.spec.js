@@ -321,12 +321,12 @@ const HARNESS_JS = String.raw`
 
   let queue = queueFor(scenario), balances = balancesFor(scenario), stats = statsFor(scenario);
   function props() {
-    const fail = scenario === 'read-failed', loading = scenario === 'loading';
+    const fail = scenario.startsWith('read-failed'), loading = scenario === 'loading';
     return {
       cachedTaskQueue: () => fail || loading ? null : queue,
       fetchTaskQueue: () => loading ? never() : fail ? Promise.reject(new Error('taskQueue read failed: fixture')) : Promise.resolve(queue),
       cachedBalances: () => fail || loading ? null : balances,
-      fetchBalances: () => loading ? never() : fail ? Promise.reject(new Error('balances read failed: fixture')) : Promise.resolve(balances),
+      fetchBalances: () => loading ? never() : fail ? Promise.reject(new Error(scenario === 'read-failed-long' ? 'https://example.invalid/' + 'unbrokentoken'.repeat(20) : 'balances read failed: fixture')) : Promise.resolve(balances),
       fetchTaskStats: () => loading ? never() : fail ? Promise.reject(new Error('taskStats read failed: fixture')) : Promise.resolve(stats),
       runQueueAction: async (action, id, arg) => {
         if (scenario === 'toast' && action === 'brief') return { ok: false, code: 1, action, id, message: 'brief read failed: fixture', detail: '' };
@@ -647,6 +647,13 @@ function gaugeInPage(mode) {
     return {mode, checks, title: title.textContent, titleBox:a, heroBox:outer, fields};
   }
 
+  if (mode === "error-prose") {
+    const node = document.querySelector('[class*="_wb-empty-title"]'), outer = node?.parentElement;
+    return {mode, present: node !== null, text: node?.textContent,
+      width: box(node)?.w, container: box(outer)?.w,
+      clipped: node !== null && node.scrollWidth > node.clientWidth,
+      wraps: node !== null && box(node).h / parseFloat(getComputedStyle(node).lineHeight) > 1};
+  }
   if (mode === "sidebar") {
     const rows = [...document.querySelectorAll("[data-wb-sidebar-row]")].map((el) => ({
       name: el.getAttribute("data-wb-sidebar-row"),
@@ -999,6 +1006,13 @@ for (const content of ['prose','cjk-full']) {
   });
 }
 
+// An upstream failure can contain an unbroken URL: the empty-state title is
+// the only copy of that diagnostic, so it must wrap rather than clip.
+for (const width of [320,393,834,1280]) STATES.push({
+  name: 'error-url-' + width, width, height: 844, desktop: width >= 1000, theme: 'dark',
+  scenario: 'read-failed-long', drive: 'providers', gauge: 'error-prose',
+});
+
 // Legacy bundles predate stats/history layers and the detail sheet; capture
 // only the states both bundles have, so a before/after comparison is honest.
 const LEGACY_STATES = new Set(["tasks", "providers", "overview", "task", "rail", "desktop-tasks", "desktop-providers", "desktop-overview", "desktop-task", "1280-tasks", "1280-providers"]);
@@ -1091,6 +1105,15 @@ function assertGauge(state, gauge) {
   if (state.gauge === "wrapping") {
     for (const check of gauge.checks) console.log('  WRAP ' + state.name + ' ' + check.rule + ' ' + (check.ok ? 'PASS' : 'FAIL') + ' ' + JSON.stringify(check.value));
     assert.deepEqual(gauge.checks.filter((c) => !c.ok).map((c) => c.rule), [], state.name + ': readable layout');
+    return;
+  }
+  if (state.gauge === "error-prose") {
+    console.log('  ERROR-PROSE ' + state.name + ' ' + JSON.stringify(gauge));
+    assert.ok(gauge.present, state.name + ': diagnostic is rendered');
+    assert.equal(gauge.text, '额度读取失败：https://example.invalid/' + 'unbrokentoken'.repeat(20),
+      state.name + ': complete fixture diagnostic is preserved');
+    assert.equal(gauge.clipped, false, state.name + ': error URL must not clip');
+    assert.ok(gauge.wraps && gauge.width >= gauge.container * .7, state.name + ': diagnostic keeps a readable wrapping column');
     return;
   }
   if (state.gauge === "fields") {

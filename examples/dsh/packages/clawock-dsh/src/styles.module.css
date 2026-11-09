@@ -2574,3 +2574,10 @@ body[data-ds-dark-theme] .wb {
    instead of stranding a short hyphen segment before a long Latin run.
    This applies only to DetailTitle; URLs, paths and prose keep natural breaks. */
 .wb .wb-reading-title[data-wb-title-identifier=true] { word-break: break-all; }
+
+/* EmptyState can carry an upstream diagnostic, not just fixed product copy.
+   The only copy of a URL/path must remain readable inside its own surface. */
+.wb :is(.wb-empty-title, .wb-empty-body, .wb-empty-meta) {
+  word-break: var(--wb-readable-word);
+  overflow-wrap: var(--wb-readable-wrap);
+}
