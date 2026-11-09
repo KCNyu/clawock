@@ -248,7 +248,7 @@ Their call policies differ because their limits do: Tavily's `intraday` bucket
 is 120 credits a month (one query every slot would be ~400), so it stays
 trigger-only and cached per ticker per session; DeepSeek has no credit budget,
 only the account-wide 5 QPS that `market_data.deepseek_search` gates for the
-whole host. Limits and the per-entry table: `docs/reference/tool-operations.md`
+whole host. Limits and the per-entry table: `docs/reference/data-coverage.md`
 § Web 搜索 provider.
 
 **Tier 2 sources.** The module is harness-neutral (the brief and the report
@@ -358,12 +358,9 @@ those values; the model chooses the formula and quotes the result with its meani
 This does not waive the existing source, generation or next-trigger price checks.
 
 
-Research extension: [intraday strategy research](intraday-research-workflow.md#the-reversion-kernel-packet-and-configuration)
-is a separate research-only replay service and design for broader LLM judgment.
-It has no preflight/postflight reader and changes no live status in the table
-above. Choosing formulas through existing compute receipts stays within the
-contract; model arithmetic, live strategy activation and rendering changes do
-not become authorized by a research replay.
+Research replay, historical-card readers and conditional recommendation
+boundaries are owned by [intraday research workflow](intraday-research-workflow.md).
+Compute receipts do not authorize live strategy activation or model arithmetic.
 
 ### Historical strategy research
 

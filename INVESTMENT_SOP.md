@@ -41,7 +41,7 @@ repeated here.
 |---|---|
 | Trade filled | `portfolio.json` |
 | Strategy or standing preference changed | `MEMORY.md` |
-| Data source or fallback order changed | `MEMORY.md` + `docs/reference/tool-operations.md` |
+| Data source or fallback order changed | `MEMORY.md` + `docs/reference/data-coverage.md` |
 | Skill output format changed | the mode section in `skills/<name>/SKILL.md`; cron follows it |
 
 Keep holdings, ticker lists and amounts out of `MEMORY.md`. `portfolio.json` is the only

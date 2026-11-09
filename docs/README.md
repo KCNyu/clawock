@@ -35,24 +35,14 @@ belongs here.
 - [`agent-memory-unified.md`](architecture/agent-memory-unified.md) — the target: one shared
   store with scoped injection and publishing views, and the P0–P4 path to it.
 
-## Research notes
-
-- [`dsh-superagent-adoption.md`](research/dsh-superagent-adoption.md) — what the external
-  dsh-superagent prototype's Mandate, stage and notification ideas mean for dispatch, what
-  was adopted where, and what explicitly does not transfer. Runtime fields and
-  notification rules are owned by `architecture/task-queue.md`.
-
 ## Product surfaces
 
 - [`how-the-desk-works.md`](how-the-desk-works.md) — the detail behind the README:
-  information layers, what each run reads, decision gates, grading rules, what was
-  tested and failed, the twelve code-enforced rules ([中文](how-the-desk-works.zh.md)).
+  information layers, what each run reads, decision gates, grading rules, evaluation boundaries and code-enforced rules ([中文](how-the-desk-works.zh.md)).
 - [`decision-map.md`](decision-map.md) — the Decision Map board in Reflect: how
   to read coverage and snapshot age, the payload, and where it runs.
 - [`decision-mind-ledger.md`](decision-mind-ledger.md) — the decision-mind
   ledger schema written by `clawock record`.
-- [`influencer-radar.md`](influencer-radar.md) — the eight watched sources, how
-  hits are linked to holdings, and a worked hit/miss example (moved out of the READMEs).
 - [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
 - [`data-coverage.md`](reference/data-coverage.md) — data surfaces, independent sources, failure behavior and remaining gaps.
 - [`data-health.md`](design/data-health.md) — the Data Health card's structure,
@@ -92,21 +82,24 @@ belongs here.
 
 ## Reference
 
-- [`commands.md`](reference/commands.md) — the generated command inventory plus
-  the hand-written harness detail (`scripts.md` is a moved-page stub pointing here).
-- [`tool-operations.md`](reference/tool-operations.md) — per-task tool detail;
-  routing lives in the root `TOOLS.md`.
+- [`commands.md`](reference/commands.md) — the generated command inventory and operational boundaries (`scripts.md` is a moved-page stub pointing here).
+- [`tool-operations.md`](reference/tool-operations.md) — publishing and scheduler operations; provider and search policies live in `data-coverage.md`.
 - [`product-profile-operations.md`](reference/product-profile-operations.md) —
   what belongs to the product, profiles, operations and runtime state.
 
 ## Moved pages
 
 Old paths stay reachable; each stub points at the document that owns the subject now.
+`ops/pages/prepare_pages_artifact.py` retains the old raw Markdown URL alongside
+the rendered migration page, with links adjusted to the published owner.
 
 - [`design/task-chip-patrol.md`](design/task-chip-patrol.md) → [`design/task-chip.md`](design/task-chip.md)
 - [`design/task-chip-stats.md`](design/task-chip-stats.md) → [`design/task-chip.md`](design/task-chip.md)
 - [`design/intraday-strategy-research.md`](design/intraday-strategy-research.md) → [`architecture/intraday-research-workflow.md`](architecture/intraday-research-workflow.md)
 - [`operations/memory-recall-performance.md`](operations/memory-recall-performance.md) → [`operations/sqlite-maintenance.md`](operations/sqlite-maintenance.md)
+
+- [`influencer-radar.md`](influencer-radar.md) → [`how-the-desk-works.md`](how-the-desk-works.md#influencer-radar)
+- [`research/dsh-superagent-adoption.md`](research/dsh-superagent-adoption.md) → [`architecture/task-queue.md`](architecture/task-queue.md#design-provenance)
 
 ## Legal
 
@@ -144,7 +137,7 @@ OpenClaw workspace contract. They remain at their required runtime paths until
 an adjacent context-parity canary proves a supported alternative. Website files
 have no such constraint and therefore live under `site/`.
 
-- [持仓外候选发现](architecture/stock-discovery.md)：免费全市场筛选、研究交接与参考实现。
+- [持仓外候选发现](architecture/stock-discovery.md)：免费全市场筛选、研究交接与授权边界。
 
 ## Intraday research
 

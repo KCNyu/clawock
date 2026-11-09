@@ -6,11 +6,11 @@ from pathlib import Path
 from clawock.scheduling import BRIEF_SLOT_HKT
 
 ROOT = Path(__file__).resolve().parents[1]
+# Generated cron expressions are checked by test_generate_cron_docs; reference
+# pages link to that owner rather than repeating clock strings.
 SURFACES = (
     'src/clawock/decision/plans.py',
     'config/information-layers.json',
-    'docs/reference/commands.md',
-    'docs/reference/tool-operations.md',
     'docs/operations/research-cadence.md',
 )
 

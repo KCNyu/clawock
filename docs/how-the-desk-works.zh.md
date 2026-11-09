@@ -33,7 +33,7 @@
 
 ### 热点捕获:影响者雷达
 
-每个交易日两次,扫描特朗普、马斯克、Cathie Wood / ARK、Serenity、段永平、洪灏、Michael Burry、Pelosi 八个公开来源(滚动 48 小时),LLM 过滤后关联到真实持仓:谁说了什么、碰没碰你的仓,盘前简报里直接可见;落空也照实记空。来源、各源配额与一次命中/落空的实例见 [docs/influencer-radar.md](influencer-radar.md)。
+每个交易日两次,扫描特朗普、马斯克、Cathie Wood / ARK、Serenity、段永平、洪灏、Michael Burry、Pelosi 八个公开来源(滚动 48 小时),LLM 过滤后关联到真实持仓:谁说了什么、碰没碰你的仓,盘前简报里直接可见;落空也照实记空。来源类别、各源配额和失败语义见[影响者雷达](how-the-desk-works.md#influencer-radar)。
 
 ## 怎么做决策
 

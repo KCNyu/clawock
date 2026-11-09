@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
+import re
 import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -63,6 +64,41 @@ def reconcile_sitemap(output_dir: Path, site_url: str) -> int:
     tree.write(sitemap, encoding="utf-8", xml_declaration=True)
     return removed
 
+
+
+def preserve_moved_markdown(output_dir: Path, source_root: Path, contract: dict) -> list[str]:
+    """Keep old raw Markdown URLs alongside Jekyll's rendered migration pages."""
+    added = []
+    for source in sorted((source_root / "docs").rglob("*.md")):
+        relative = source.relative_to(source_root)
+        text = source.read_text(encoding="utf-8")
+        if not text.startswith("---\n") or "\n# Moved" not in text:
+            continue
+        # Only augment a document the allowlisted artifact already publishes.
+        if not (output_dir / relative.with_suffix(".html")).is_file():
+            continue
+        name = relative.as_posix()
+        if (not any(fnmatch.fnmatch(name, p) for p in contract["artifact_include"])
+                or any(fnmatch.fnmatch(name, p) for p in contract["repository_only"])):
+            continue
+        destination = output_dir / relative
+        if destination.exists():
+            continue
+
+        def published_link(match):
+            link = urlsplit(match.group(1))
+            if link.scheme or link.netloc or not link.path.endswith(".md"):
+                return match.group(0)
+            owner = (source.parent / link.path).resolve()
+            owner.relative_to(source_root.resolve())
+            if owner.is_file() and owner.read_text(encoding="utf-8").startswith("---\n"):
+                link = link._replace(path=str(Path(link.path).with_suffix(".html")))
+            return "](" + link.geturl() + ")"
+
+        body = text.split("\n---\n", 1)[1].lstrip()
+        destination.write_text(re.sub(r"\]\(([^)]+)\)", published_link, body), encoding="utf-8")
+        added.append(name)
+    return added
 
 
 def rendered_pages(source_root: Path = ROOT) -> dict[str, str]:
@@ -155,6 +191,7 @@ def prepare(
             shutil.copy2(source, destination)
             copied.append(relative.as_posix())
 
+    copied.extend(preserve_moved_markdown(output_dir, source_root, contract))
     removed_sitemap_urls = reconcile_sitemap(output_dir, contract["site_url"])
 
     missing_pages = [

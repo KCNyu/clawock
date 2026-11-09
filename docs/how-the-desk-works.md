@@ -63,12 +63,20 @@ The catalyst probe is the narrow, time-sensitive one: it fires **only for names 
 
 ### Influencer radar
 
-Twice every trading day, eight public sources — Trump, Musk, Cathie Wood / ARK,
-Serenity, 段永平, 洪灏, Michael Burry, Pelosi — are scanned over a 48-hour window,
-filtered by an LLM and linked to actual holdings, so the pre-open brief already
-says who said what and whether it touches the book; misses are published as
-misses. Sources, per-source budgets and a worked hit/miss example:
-[docs/influencer-radar.md](https://github.com/KCNyu/clawock/blob/master/docs/influencer-radar.md).
+Eight sources are scanned twice per trading day over a rolling 48-hour window:
+Trump (first-party Truth Social), Musk (news proxy), Cathie Wood / ARK (published
+daily trades), Serenity (public Substack), 段永平, 洪灏, Michael Burry and Pelosi
+(media/disclosure proxies). Per-source candidate budgets prevent a loud feed from
+crowding out the rest. Each item retains source type and age; delayed disclosures
+are not current trades.
+
+`automation/influencer.py` owns the source roster and budgets. Its LLM filter
+extracts stance and relevance; code links scored items to holdings and sectors.
+Failed sources can retain prior scored items within the window, while a successful
+empty scan stays empty. Filter failure retains prior scored items rather than
+publishing unscored candidates. The dashboard and brief consume the same feed.
+Schedule and invocation are owned by the workflow and generated
+[command reference](reference/commands.md).
 
 ## How it decides
 

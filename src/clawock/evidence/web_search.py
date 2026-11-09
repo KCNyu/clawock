@@ -1,6 +1,6 @@
 """Web search through DeepSeek and Tavily side by side.
 
-docs/reference/tool-operations.md § Web search providers. kcn 2026-10-18: the
+docs/reference/data-coverage.md § Web search providers. kcn 2026-10-18: the
 two are parallel sources used together — neither is the other's backup and
 neither is retired. One call asks every provider it names **at the same time**;
 each answers on its own `{status, reason?, items}` and its rows carry
