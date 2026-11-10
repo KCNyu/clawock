@@ -173,6 +173,8 @@ is the private recall counter below):
 Recall is not publication. `MEMORY.md`, `DREAMS.md` and the pre-open brief may still quote only
 a `publish: public` topic or runtime data; `scripts/provenance.py` fails the generation path when
 an artifact transcribes a private topic's line or paragraph (see § Publish projection).
+Pure Markdown table delimiter rows are formatting, so they are excluded as standalone
+private units; headers, data rows and paragraphs containing real text remain checked.
 
 Install with `ops/host/install_memory_corpus_plugin.sh`, add the directory to
 `plugins.load.paths` and enable `plugins.entries.shared-memory-corpus`; a gateway restart loads it.
