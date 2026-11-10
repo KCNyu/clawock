@@ -1,0 +1,147 @@
+{
+  "vix": {
+    "symbol": "^VIX",
+    "price": 19.46,
+    "prev": 19.92,
+    "change_pct": -2.31,
+    "source": "yahoo",
+    "as_of": 1794345301
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 4.983,
+    "prev": 4.864,
+    "change_pct": 2.45,
+    "source": "yahoo",
+    "as_of": 1794340794,
+    "yield_pct": 4.983
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 102.217,
+    "prev": 101.653,
+    "change_pct": 0.55,
+    "source": "yahoo",
+    "as_of": 1794351899
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 24557.04,
+    "prev": 24448.95,
+    "change_pct": 0.44,
+    "source": "tencent",
+    "as_of": "2026-11-10"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 4084.45,
+    "prev": 4040.73,
+    "change_pct": 1.08,
+    "source": "tencent",
+    "as_of": "2026-11-10"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7520.93,
+    "prev": 7549.94,
+    "change_pct": -0.38,
+    "source": "tencent",
+    "as_of": "2026-11-10"
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 25065.87,
+    "prev": 25253.14,
+    "change_pct": -0.74,
+    "source": "tencent",
+    "as_of": "2026-11-10"
+  },
+  "fear_greed": {
+    "score": 33.5,
+    "rating": "fear",
+    "prev_close": 31.7,
+    "prev_1_week": 23.5,
+    "as_of": "2026-11-10T23:02:36+00:00"
+  },
+  "fed_press": [
+    {
+      "date": "2026-11-09",
+      "title": "Federal Reserve Board announces approval of two applications by Mutual Federal Bancorp, MHC, and MFB Bancorp, Inc.",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20261109a.htm"
+    },
+    {
+      "date": "2026-11-05",
+      "title": "Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261105a.htm"
+    }
+  ],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-11-10",
+    "status": "ok",
+    "age_days": 0,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.05,
+      "1.5m": 4.16,
+      "2m": 4.21,
+      "3m": 4.3,
+      "4m": 4.28,
+      "6m": 4.38,
+      "1y": 4.56,
+      "2y": 4.73,
+      "3y": 4.74,
+      "5y": 4.81,
+      "7y": 4.89,
+      "10y": 4.98,
+      "20y": 5.39,
+      "30y": 5.35
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 25.0,
+    "spread_10y_3m_bps": 68.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
+  "volatility": {
+    "vix": null,
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 18.54,
+      "prev": 19.88,
+      "change_pct": -6.74,
+      "source": "cboe",
+      "as_of": "2026-11-10",
+      "previous_as_of": "2026-11-09",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 20.64,
+      "prev": 20.85,
+      "change_pct": -1.01,
+      "source": "cboe",
+      "as_of": "2026-11-10",
+      "previous_as_of": "2026-11-09",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": null
+  },
+  "volatility_term_structure": null,
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "unavailable",
+    "treasury_curve": "ok"
+  },
+  "generated_at": "2026-11-10T23:20:22.620499+00:00"
+}
