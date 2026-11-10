@@ -201,3 +201,38 @@ def test_projection_failure_preserves_the_previous_pair(store, tmp_path, monkeyp
             result = 1
         assert result != 0, 'generation failure or concurrent publisher must fail closed'
         assert (memory.read_bytes(), manifest.read_bytes()) == before
+
+
+@pytest.mark.parametrize("separator", [
+    "|---|---|---|---|---|---|",  # 25 chars: the original false positive
+    "| :--- | ---: | :---: | " + "-" * 60 + " |",
+    ":--- | ---: | :---: | " + "-" * 60,
+    "|" + "-" * 60 + "|",
+])
+def test_table_delimiters_are_not_private_body_units(store, separator):
+    guard = load_publish().provenance
+    (store / "project-private.md").write_text(
+        topic("project-private", separator + "\n" + separator, publish="private"))
+    assert guard.find_copies(separator + "\n" + separator, store) == []
+
+
+@pytest.mark.parametrize("private", [
+    "| Internal heading with private meaning | Other column |",
+    "| Private account instructions must stay on this machine | withheld |",
+    "|---|---|---|secret|---|---|",
+    "|---|---|---|---|---|---| trailing private explanation",
+    "Sensitive internal instructions kept in a private engineering note.",
+    "------------------------------",  # not a table delimiter
+    "a" * 24,  # retain the exact line-length boundary
+    "| short private header |\n|---|---|---|---|---|---|\n| short private cell |",
+    "short private words\nmore private words\nadditional private words",
+])
+def test_table_delimiter_filter_keeps_real_private_units_blocked(store, private):
+    guard = load_publish().provenance
+    separator = "|---|---|---|---|---|---|"
+    (store / "project-private.md").write_text(topic(
+        "project-private", separator + "\n" + private, publish="private"))
+    # Copy the content without its delimiter as well as with it: neither may pass.
+    for artifact in (private, separator + "\n" + private):
+        with pytest.raises(guard.ProvenanceError, match="project-private"):
+            guard.assert_public_sources("brief", artifact, store)

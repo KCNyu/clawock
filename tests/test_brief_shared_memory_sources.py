@@ -57,3 +57,17 @@ def test_a_legacy_topic_without_frontmatter_is_private_by_default(tmp_path, monk
     monkeypatch.setattr(postflight, 'WS', tmp_path)
     issues = postflight.validate_shared_memory_sources(path, '2026-11-08')
     assert any('private topic' in issue and 'project-private' in issue for issue in issues)
+
+
+def test_rendered_table_separator_passes_without_runtime_exemption(tmp_path, monkeypatch):
+    store = store_with_private(tmp_path)
+    separator = "|---|---|---|---|---|---|"
+    with (store / "project-private.md").open("a") as stream:
+        stream.write("\n" + separator + "\n")
+    path = brief_holding(tmp_path, "# 盘前\n\n" + separator + "\n")
+    monkeypatch.setenv("SHARED_MEMORY_DIR", str(store))
+    monkeypatch.setattr(postflight, "WS", tmp_path)
+    assert postflight.validate_shared_memory_sources(path, "2026-11-08") == []
+    path.write_text(separator + "\n" + PRIVATE)
+    issues = postflight.validate_shared_memory_sources(path, "2026-11-08")
+    assert postflight.categorize(issues) == "fail"

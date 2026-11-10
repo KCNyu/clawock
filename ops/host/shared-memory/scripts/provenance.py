@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 from pathlib import Path
 import sys
 
@@ -61,11 +62,19 @@ def _normalise(text: str) -> str:
     return " ".join(text.split()).casefold()
 
 
+def _is_table_separator(line: str) -> bool:
+    """Only Markdown delimiter rows, never headers, cells or other punctuation."""
+    if "|" not in line:
+        return False
+    cells = line.strip().removeprefix("|").removesuffix("|").split("|")
+    return bool(cells) and all(re.fullmatch(r"\s*:?-{3,}:?\s*", cell) for cell in cells)
+
+
 def _lines(body: str) -> list[str]:
     rows = []
     for raw in body.splitlines():
         line = _normalise(_strip_markdown(raw))
-        if line:
+        if line and not _is_table_separator(line):
             rows.append(line)
     return rows
 
@@ -74,7 +83,10 @@ def _paragraphs(body: str) -> list[str]:
     rows = []
     for block in body.split("\n\n"):
         lines = [_strip_markdown(line) for line in block.splitlines()]
-        line = _normalise(" ".join(part for part in lines if part))
+        lines = [part for part in lines if part]
+        if lines and all(_is_table_separator(part) for part in lines):
+            continue
+        line = _normalise(" ".join(lines))
         if line:
             rows.append(line)
     return rows
