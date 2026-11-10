@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T23:22:58.004816+00:00",
+  "generated_at": "2026-11-10T23:22:58.646172+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -27,9 +27,9 @@
       "ticker": "CRCL",
       "name": "Circle Internet Group Inc-A",
       "region": "us_stocks",
-      "reddit_mentions_7d": 0,
+      "reddit_mentions_7d": null,
       "reddit_posts": [],
-      "reddit_status": "ok",
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "CRCL",
@@ -37,40 +37,40 @@
       ],
       "google_news_en": [
         {
-          "title": "Circle(CRCL.US) Officer Sells US$4.26 Million in Common Stock",
-          "source": "Moomoo",
-          "published": "Mon, 09 Nov 2026 22:04:04 GMT",
-          "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOaVZWNnVrTDBxLUkyNEN5c1dOeW9rTVRYajhLcW9TU29YMjd2U1lwQWtBZDRyZ0d6M1hLOXRFRDFIQ0N0cHhmeXFOUGRDVDM2SkloMXo5aURuSDBXT3B0UXlwVVdoRFlvMTgweG50aTZKZU9IN3lKek9tU0N0c2VVbGFKUUVnWUYtUVZuOE05Zk1yQktlaXhSYmlwSDN3QQ?oc=5"
-        },
-        {
-          "title": "Circle (CRCL) Stock Lags A Stronger Q3 Earnings Report",
+          "title": "CRCL Stock Layoffs: What to Know About the Latest Circle Job Cuts",
           "source": "Yahoo Finance",
-          "published": "Thu, 05 Nov 2026 00:15:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNNWV3UHZaNDI4cExZMlNBS3p5ME5QeGkwbmN3Q2R5SHhiVEdJZ0N5OGt1QmVSM2dvWkZ0cEtWb2luSWhySjM0dlJOQ0hEa3dPZzVxaGVZMDNHM3IzT3RxSzc3cGdYejFCUzg1TjAxQnluSmphOTI3QzhON3p0U1lTYXB1RGxVWFRrRzBNYUd2bS0xWlNKX3lHSFJaWVk?oc=5"
+          "published": "Thu, 05 Nov 2026 18:51:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNZUtCeGpfQ0I3N1o2STJIY2dUbl9vblNkR192UnpVcXBIdnQ3d0M3SmdDcUdfTHpiWlpsWUsteVhkN0dxVXlfQjJjSFpYVmtQYkRyQnB1dnBjeWdLSWJBNUY0WDZYY1M4RWNTMVd4UTdLc2pjMzZYb2Qtc3pCeWlabEdZOGVESVV5SlhETzVadWxSeXhqaHZYRC1wYw?oc=5"
         },
         {
-          "title": "Trusts sell 3,032 Circle (CRCL) shares under a preset trading plan.",
+          "title": "CRCL Stock Outlook After US Core Inflation Hits Highest Since January 2025",
+          "source": "Cryptonews.net",
+          "published": "Tue, 10 Nov 2026 17:14:42 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE5PUTZsQTFMQVpqZDRMeVVRSmdWdkJPaVhGRDdoRG15R2QyX3R1czJISFA5NXZkZ3M0LWUzTThPZ2JQTEpiSnZraWlXcnNBY1d1dFZmVURSQ2lRQkU?oc=5"
+        },
+        {
+          "title": "CRCL Stock Outlook After US Core Inflation Hits Highest Since January 2025",
+          "source": "CoinGape",
+          "published": "Tue, 10 Nov 2026 15:58:10 GMT",
+          "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQX1VGT3BQTU5rX2lPclpINmtHVkJuQVAxMGFmY2pGdUlwTWQ4QVBJMWtnU3l5SVMzUlZnUXNLRGdDYlIwTEZ1U0NjY1ZSMGtQTUNTcjdTdDFydUw5c2t4TnJXa2xHNnBocUVUNUxZb1djQUlRZTI5cEhUMWZQS19qaFpVT2tESFFPSzQtY3hqM3ZxZnFPRVpGZlBSdzA2cjRpOG9MYzQzSQ?oc=5"
+        },
+        {
+          "title": "An officer sells 26,668 Circle Internet Group (CRCL) shares at $66.09 each under a trading plan.",
           "source": "Stock Titan",
-          "published": "Mon, 09 Nov 2026 21:57:11 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOSndsX3ZSeW5aN0pWcmVkUUl6Tm9QYzRoeHNHN1JpZ1dIMUx0VHBDZTZXLVB1eFBMcnVqSXR6VEY1bTFoQjNkcG9nZTB1TmR3VWtDcGQ0WFNhUTkwTE9hczRZLXV2Wl90a1d5NGNzbGpXeHBVX1Myc1ZsY056ZG9sbUhXcFpnc0xSYlFVM1ctRmNTUkREZDluOEVVRzc1RHdMR3M4LVhtOHdyWkFVRUZtTWFBUmxCU0RmUURj?oc=5"
+          "published": "Tue, 10 Nov 2026 21:51:32 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNSVNBbDlSeVFYMVN3bFdGbmV6SXUwSG9WOVFBdzdEVURoOXVMaFJtejBPc2IxRWdoM0s1dnJyWXVtTS13TzBDb3ZXckQzTF8wM083Y0RnUEFjRGZ4WEJVSG1SYURweUF6U1lkMEZtYlVUeWVPdUw0T3MwdWl2RTZhOTNWbWEwMXdybTZRWjNyX0RSMFQ2ZVNpdXlFdU9JV0xLN0tvVE80ekxJallqTE9ONDBZZXA2X0pORC1v?oc=5"
         },
         {
-          "title": "Circle Internet Group (NYSE:CRCL) CEO Sells 56,205 Shares of Company Stock",
+          "title": "Circle Internet Group (NYSE:CRCL) Stock: Insider Nikhil Chandhok Sells 26,668 Shares",
           "source": "MarketBeat",
-          "published": "Mon, 09 Nov 2026 22:47:35 GMT",
-          "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxPRHZJTFROcDlCRF9SMFJsNERqdkxWU19IXzduWUVaY0RsQzVlSGQ3SUVrLUJEX0dyZ2RNeTllV3BSNlhtRkdjWkNDZ1NoTVlibDRsOE5mdTZiZnNkYnNoMW82U0dIRHl0ZlhxRmhvYkFpbDJmWFdXaXlmTURRRWstME5Qam1FRE1sR3FYYXEwSjBrRV9zaG4xTzJ3cF9Ba0VPRFk1RDVtX0E5UlNsRzh0NlpoTVlJN0RDejdDMElNT05TbWloanF1R3J5dTJ3UQ?oc=5"
+          "published": "Tue, 10 Nov 2026 22:33:50 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxQU3dfSVI5QU9VX3pWRlU4X0txN3NrSkZqSW1yaElfYnlLZXJtNFE5UEVQYmlZcGpQanlKZGd1LWYyd0NiZnN0RDBpTlBjSTA5UUVYQVZNbVF2bWVKRU5aU3RpRkhGSUk4ZjVzeFozWWQzdURMODVLNXJTOHVwMzVRT3F6N2M0MVV5UW9DLXRBN1d3Uk5ZMHVjZVoyQW92cnR6R0pHQVFqRTF5UVcwZ3R4THJCRnA1X1Y3VUUtNkN4bEg1MlpvV1ZYY1REcDlENlk1aWlFYTNxT0FoUQ?oc=5"
         },
         {
           "title": "Apple, Meta reject OKX–ICE tokenized stock plans, leaving crypto firms as the ones to watch",
           "source": "CoinDesk",
           "published": "Fri, 06 Nov 2026 20:09:18 GMT",
           "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPbFdQRy1WbjNxQk90c1ZBTlpxY3o5QUhKQXF3TndFY0d5WTVYUkFEczhsdktBenRkXzdudFZ5dTUyNk5nbUlWbklnTnFidmNyRUo1ZVBTTmhoVU5HOUZTQVFKdHVHWUVRcGJuMVZleWJtZkdndlZ5VmdDTEw3b0oySDNJVlh3ZlBXdHN2dXNyNDI3QW1UNnpHZWFOZTdnSFpMMV9QeWlBcnFPQ3NZaU1SMWtYMEpZWXBwOExmWUtvaWtmVzRQSWN5Wl9BYnY?oc=5"
-        },
-        {
-          "title": "CRCL Stock Outlook as Compass Point Raises Price Target After Earnings Beat",
-          "source": "CoinGape",
-          "published": "Thu, 05 Nov 2026 20:51:22 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQMXM1MTRrLUVnRmliV2Z0X3VuX3RkM0VCanhLSGZOR0J5UGdNQVhwSFlOWV9iV2JSeWlsQ24zUGxaNWZxb3gzNmlDWmwxZkVacXFmbEEzelFDaGhYT1FWczVpejlhVllSRml2SVZ0RHFRMG5KM3N3QVQtdmpOdjdVWWJselBpZnJqYWRZdmwxOUd0dnRpWTVRNFBvcnhKQ0t0YVB6cmw0YjE?oc=5"
         }
       ],
       "google_news_zh": []
@@ -79,46 +79,9 @@
       "ticker": "RKLX",
       "name": "Defiance Daily Target 2X Long R",
       "region": "us_stocks",
-      "reddit_mentions_7d": 11,
-      "reddit_posts": [
-        {
-          "sub": "Spacstocks",
-          "title": "Rocket Lab Announces Third Quarter 2026 Financial Results: Posts Record Revenue, $1.2 Billion or 52% Sequential Quarterly Backlog Growth, Positive GAAP Operating Cash Flow, and Guides to Record Revenu",
-          "url": "https://www.reddit.com/r/Spacstocks/comments/1xs6znw/rocket_lab_announces_third_quarter_2026_financial/",
-          "created": "2026-11-09T23:13:37+00:00"
-        },
-        {
-          "sub": "Spacstocks",
-          "title": "Rocket Lab Lands Over $515M in Neutron Launch Deals from Constellation Operators in Q3 - RKLB",
-          "url": "https://www.reddit.com/r/Spacstocks/comments/1xs672x/rocket_lab_lands_over_515m_in_neutron_launch/",
-          "created": "2026-11-09T22:42:19+00:00"
-        },
-        {
-          "sub": "MarketFluxHub",
-          "title": "The Trade Desk Posts Massive Q3 Beat as Rocket Lab, Onto Innovation and Occidental Also Impress",
-          "url": "https://www.reddit.com/r/MarketFluxHub/comments/1xs61ba/the_trade_desk_posts_massive_q3_beat_as_rocket/",
-          "created": "2026-11-09T22:35:50+00:00"
-        },
-        {
-          "sub": "RKLBInvestors",
-          "title": "$RKLB (Rocket Lab) Recent Price Action - Technical Traders Perspective",
-          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xs5rf5/rklb_rocket_lab_recent_price_action_technical/",
-          "created": "2026-11-09T22:24:31+00:00"
-        },
-        {
-          "sub": "wallstreetbets",
-          "title": "Rocket Lab 3rd Q Results: Record Revenue, $1.2 Billion Backlog Growth, Positive GAAP Operating Cash Flow, Guides Record Revenue in Q4 2026",
-          "url": "https://www.reddit.com/r/wallstreetbets/comments/1xs5j87/rocket_lab_3rd_q_results_record_revenue_12/",
-          "created": "2026-11-09T22:15:32+00:00"
-        },
-        {
-          "sub": "RKLBInvestors",
-          "title": "$RKLB & $ASTS both report earnings after-hours. Which do you think will perform better?",
-          "url": "https://www.reddit.com/r/RKLBInvestors/comments/1xs583o/rklb_asts_both_report_earnings_afterhours_which/",
-          "created": "2026-11-09T22:03:17+00:00"
-        }
-      ],
-      "reddit_status": "ok",
+      "reddit_mentions_7d": null,
+      "reddit_posts": [],
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "RKLB",
@@ -168,28 +131,9 @@
       "ticker": "SPCX",
       "name": "SpaceX",
       "region": "us_stocks",
-      "reddit_mentions_7d": 3,
-      "reddit_posts": [
-        {
-          "sub": "ValueInvesting",
-          "title": "AI bubble or not, there will be winners and losers. I scored 16 AI stocks on how well they'd survive a capex slowdown, roast my scores",
-          "url": "https://www.reddit.com/r/ValueInvesting/comments/1xs4x3k/ai_bubble_or_not_there_will_be_winners_and_losers/",
-          "created": "2026-11-09T21:51:16+00:00"
-        },
-        {
-          "sub": "stockstobuytoday",
-          "title": "🟢 Market closed green: $HRTX led the charge today. Who made money?",
-          "url": "https://www.reddit.com/r/stockstobuytoday/comments/1xs3lau/market_closed_green_hrtx_led_the_charge_today_who/",
-          "created": "2026-11-09T21:00:02+00:00"
-        },
-        {
-          "sub": "NowInFinance",
-          "title": "SpaceX is proposing a $24 billion data center and gas plant in Texas",
-          "url": "https://www.reddit.com/r/NowInFinance/comments/1xs3cjt/spacex_is_proposing_a_24_billion_data_center_and/",
-          "created": "2026-11-09T20:50:35+00:00"
-        }
-      ],
-      "reddit_status": "ok",
+      "reddit_mentions_7d": null,
+      "reddit_posts": [],
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "SPCX",
@@ -197,40 +141,40 @@
       ],
       "google_news_en": [
         {
-          "title": "Prediction: $500 a Month Invested in SpaceX Stock Will Be Worth This Much by Year-End 2030",
+          "title": "SPCX or AAPL: One Stock Is Worth Buying, the Other Is a Clear Sell, Says Investor",
+          "source": "TipRanks",
+          "published": "Tue, 10 Nov 2026 19:18:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQVFFNeEFZTWVSV3pIdS1XQzFPWUZWczNWMEhJakU3SU9BTnFwR0k0NVROcDNSUjdUWkwzV0tZTmNUSkc1S1BTN2hNdEFHVWNvUm1nSHhsSEhiRVpSX1Y3SkxPVlBqMS15OGZ3RWFWaldDd1pIZ01XZnlBeVZNSk8tWjVKSTlmbUtGcFI3ejVIMnYyTlBVRDNsY0ExdjNJUQ?oc=5"
+        },
+        {
+          "title": "SPCX Stock Logs 2-Day Winning Streak: Barclays Calls T-Mobile 'Cleanest' Fit For Potential SpaceX Buyout",
           "source": "Yahoo Finance",
-          "published": "Mon, 09 Nov 2026 17:09:35 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPYnNnU0ZHcWFtaHlPRlR1ZzNnNlFaVTVrUlJYc3pfcjU4b3UxbUcyMTB2SXdhMFotY2tVMzY3WE5SbmFlUGYxMFR1UjNzRHg0Q3Z1RldaTG1WWmVPZTY4bllkbkRYZEtncEdadXVFYXBxSWZFQm9rT3dZWnBMeFdVU3ZoVGdzY0NhU0hmd25EY0prTkJsdmNLbkZMQ1ViRWpEbG1v?oc=5"
+          "published": "Tue, 10 Nov 2026 04:26:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPQWl3aXJyYmx1UkNoNE50enhTcm1NSzR5SkpYdGpEa2FhRXJIcktNX3RpU042NERPMm1jSF8yZ1NfdVBVQU92MjZUaGRkaV9uNnRvYUVYT3g0ajJLWllTU0tlUFlHbUxMUkdhdjlxRHlqX2puNGFrRkFPcF96Q2N1ckRxWmtRQXVOazB6OG5NTQ?oc=5"
         },
         {
-          "title": "Why is Space Exploration Technologies stock rallying today?",
-          "source": "Investing.com",
-          "published": "Mon, 09 Nov 2026 15:23:19 GMT",
-          "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOeF8tdk5WbzV1QnNJU0dQY0tIRERNX2ZOZjNES21BbTR2M0lwSlVKQVd5WlVHb2pxMUF1ZmZLMWZNWG1BV0VuS3R0b21VancxbThrdkhkVlJGajNFWjhaUHY5MUdOa3VqeVBVZ1dNdDVyUWZPZzZ1Qzc5WEpoaVkyZWVUeldpRWZuWjBvNlI4OTYwRWdaQlZFSGJfUEVJQ1Y5OXItTzQzRVJPV202OHNHS1J4UmZnZDBEc0lvSQ?oc=5"
+          "title": "Prediction: Here's How Much SpaceX Will Be Worth by the End of 2027",
+          "source": "The Motley Fool",
+          "published": "Tue, 10 Nov 2026 12:41:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQa2tvaFF1eHJpSEFJS1l6ZVdFdkhMRG5vSkpHZHE4aXA1YUpHeUdjWFVncGJ2VFYzUGFILXI5ck9VaUJHYjJqM0lHTkZBWUw5VXpkbDVUMEtLbzZnMkpFb19VZEs2bFJCbFFaOUFGbFVGZks1dVVWS0xfOV94NUxVVC1QMjJfMWd2Q1pKYm1jY24?oc=5"
         },
         {
-          "title": "Goldman Sachs Delivers Surprising Take on SpaceX Stock",
-          "source": "TradingView",
-          "published": "Mon, 09 Nov 2026 13:33:39 GMT",
-          "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPTHNSREtRNmtVdTZWcllxMGI1Z0FlekpXRGluZGhJT01fMGV4UTZQQ1ZNRUdVYmU2M0o4TzU2Q1RTbFhCMWJIRHVsZ3Rab015bURuSURNZVQxQXNXeFlNNFdJMVhlLUZuZFlNam9aVlJ0TUpxWWxJZVJ3b1R1Rm45VjRBTHByUVg3LWd3SE5lVk1SZ1NWSkZZQXlhckJoYy1WeGRjY1ZKeDZlT2RobWswYk5KSWE?oc=5"
+          "title": "How much SPCX stock does SpaceX CEO Elon Musk actually own?",
+          "source": "TheStreet",
+          "published": "Sun, 08 Nov 2026 21:42:41 GMT",
+          "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1NMmZ6cm9LMkJuNVFTWndlTlBFbWFsU19XeDBqOGlzUUdqUFRObzViRUpvQldiMHR4dFUxZV9FUHd2WEZDS2ZJclJUNDdhbVlDTUJVUjd4RUVsTFE4dldiQnluQnc5SVUxbnBzYWE0UFJTNjQ?oc=5"
         },
         {
-          "title": "SpaceX Lessors Look To Sell $40 Bil AI Deal. ARK Buys The Dip On SPCX Stock.",
-          "source": "Investor's Business Daily",
-          "published": "Thu, 05 Nov 2026 21:39:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxNWGJXUGZWcjh1MWNNeFNGZmRPTHF6bVBzOGx5NHFVQlVOUnFFMVZLbEV3Ul93cF9yUElSUUNVd1NhektWMU5VcEdCUmhJQms5dGxZRlBwSFRPODBIRXVLWV96QTg2VklRTk96QlpZNXZpTF9Vck05SjlxSnliVjFPcDFrTDk4OHF4Sk92b09LX1RZVjZ3d2ZVOVdYc1dIV1lxLXBEbDBydjVaVUR4VXZ1cHZQWVVjTmoydU5KeU9nZHE?oc=5"
+          "title": "SpaceX (SPCX) Lands $45 Billion AI Deal As New Contracts Recast Its Growth Story",
+          "source": "Yahoo Finance",
+          "published": "Sun, 08 Nov 2026 22:06:38 GMT",
+          "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPdTQ3MGdxOWVJeWtRSXZzUDNib0JvRWxiVm9haXFBczdHX0lGYk43WXRUVVhMeERWcG00Q0lBTmRMWkZqbGx6VzV6OEM4TTFLcm1IQmtXUFkwUFJRVGhVOEZNaW9RWGMwekhGdWxHVng4WHFLeTJCZjB4VVZJRWwxSkZERkdLNUxYaXRfelMxWVdLdTUxTjRF?oc=5"
         },
         {
-          "title": "Why SpaceX Stock Popped on Monday",
-          "source": "The Globe and Mail",
-          "published": "Mon, 09 Nov 2026 18:25:41 GMT",
-          "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPc3NfOXp4UEtGaWFpOE0wcW9JdHVJYm1vb3dIX0xCRkNTWGJoOXhaeEFnX0xGSDZ2MndYRjJSTGRMNU1oYU5IeUV5TXh3WUlzNlpyOHhvOHUzM3lSSTZ2bVRYOWpjTkZPR0J4d0dNcFpFaEZKRThKRDJvcHQ5T2hraS12OHNTa0hqWV9rYndhdHB4SXhqQ25Wa2VhOUx4MUN0NFFfOUE0M3J2RHVPcERWMHVzbldPcVBCOGdfNg?oc=5"
-        },
-        {
-          "title": "SpaceX Stock Can Get a Lift From the Anthropic IPO, but SPCX Remains Unappealing",
-          "source": "Barchart.com",
-          "published": "Wed, 04 Nov 2026 19:12:11 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPUmZ3VnNuMUZ5VVB3R1FGaU8zQVF5dmhPWW5rT0EwM3Z3UlF6VFg5Q2MyeW9xMWVudDFVQ2xHWjRxLTl4WFRoN2hHLXpyUjE0bkdrdVA5VXRBbjVvM0N1eW9LQ1kyY3FjNnl6UU15THJ5QUI2TWFzM1QtVmRRd0hsY3ppYlRzNTRWWkFfWV9JMk8ybzVmS1BxS1YtM0NadHV2S2pBNWNkeVFzSWlFSmJqWXZxYUsxTmlIN2t3bTVpaF8?oc=5"
+          "title": "Elon Musk Just Gave the Top End of His SpaceX Revenue Forecast About a 2% Chance. His Best Guess Sits at the Bottom End.",
+          "source": "Yahoo Finance",
+          "published": "Tue, 10 Nov 2026 00:55:49 GMT",
+          "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOcG5XeDR2MW1LVG44R0F4QVBqak9yNVo0T1lEa3FsRV9WOUJUSW9hdWptTXpCMTdsdUl1cm1Vb3B3Z1dvNTRvQkpEVndFdHZlWWJxbWdOZWpEU0J2YXR3R19TX3F6a0R5OWZ0QVVoWTV4MDhBZUMxakNRbW02c01Ma2FOMFJHLXl5STJHLTJrcTNyQQ?oc=5"
         }
       ],
       "google_news_zh": []
@@ -239,28 +183,9 @@
       "ticker": "SPCH",
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "region": "us_stocks",
-      "reddit_mentions_7d": 3,
-      "reddit_posts": [
-        {
-          "sub": "ValueInvesting",
-          "title": "AI bubble or not, there will be winners and losers. I scored 16 AI stocks on how well they'd survive a capex slowdown, roast my scores",
-          "url": "https://www.reddit.com/r/ValueInvesting/comments/1xs4x3k/ai_bubble_or_not_there_will_be_winners_and_losers/",
-          "created": "2026-11-09T21:51:16+00:00"
-        },
-        {
-          "sub": "stockstobuytoday",
-          "title": "🟢 Market closed green: $HRTX led the charge today. Who made money?",
-          "url": "https://www.reddit.com/r/stockstobuytoday/comments/1xs3lau/market_closed_green_hrtx_led_the_charge_today_who/",
-          "created": "2026-11-09T21:00:02+00:00"
-        },
-        {
-          "sub": "NowInFinance",
-          "title": "SpaceX is proposing a $24 billion data center and gas plant in Texas",
-          "url": "https://www.reddit.com/r/NowInFinance/comments/1xs3cjt/spacex_is_proposing_a_24_billion_data_center_and/",
-          "created": "2026-11-09T20:50:35+00:00"
-        }
-      ],
-      "reddit_status": "ok",
+      "reddit_mentions_7d": null,
+      "reddit_posts": [],
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "SPCX",
@@ -298,7 +223,7 @@
           "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE1selFNR0YxN1lzUXl3OU1jUWY0V3NwNXBZczJERnIyUm91ek4wQWU1X1ZDM2RrVHhNUVRPbGhFS0JvMEZRY0o1alFFM2ZXMkRNQjRuQnpwcw?oc=5"
         },
         {
-          "title": "Leverage Shares 2X Long SPCX Daily ETF (SPCH) stock price, news, quote and history - Yahoo Finance",
+          "title": "Leverage Shares 2X Long SPCX Daily ETF (SPCH) stock price, news, quote and history",
           "source": "Yahoo Finance Singapore",
           "published": "Sun, 14 Jun 2026 18:37:32 GMT",
           "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE9FTy1BS1p3VU9vMDktUUFRS1NEMWg0Q1BIbURJanhseXY5aXpleTM0MXRyRDFLY2l1MTFDOEprUTFzSmIyeW41UjdEMmJ5VV9VNUZfSnpscGhudjQ1aXhWNGx3?oc=5"
@@ -310,9 +235,9 @@
       "ticker": "00100",
       "name": "MINIMAX-W",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 0,
+      "reddit_mentions_7d": null,
       "reddit_posts": [],
-      "reddit_status": "ok",
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "MINIMAX"
@@ -337,24 +262,24 @@
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE94XzU4eU8zOFVLSjBWdHltdTB6ZHkwMXRHMjk2Z3otSFctTlhXcFRlRlI1YXlHTFpqcmRrWHAxYWFxb1hjVFpYaHJjUElfQzN5eXNIeHFR?oc=5"
         },
         {
-          "title": "HK Stock Market Movements | Large Model Concept Stocks Rally in Afternoon Session; JPMorgan Notes Market Excessive Pessimism Toward Domestic AI Models, Maintains Bullish Outlook on Sector",
+          "title": "MINIMAX-W (00100) Analyst Ratings, Stock Forecast and Price Target",
           "source": "Moomoo",
-          "published": "Wed, 04 Nov 2026 07:03:20 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPcV9NVUVFMkl1MGo1aGIwLXJNaVNJbXptUVRRUzlFRHJwSXJaQWtwMlRTUVB0QTFSS1pkM1dSeGZXeURRWEt5TF9Fc2FHU0tPeGNyN25SYzVpb01jRE9jTk54WU5ONExPMjhtRTFiYVhaN0RxZlJUaW1MRDhTUWFFanFvcjdRZTAzVWE5dE5VN3hCQ0l1TC1hdnIwSU1RX0JWVXFwZU9YRkM?oc=5"
+          "published": "Fri, 06 Nov 2026 08:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMipAJBVV95cUxOSi03OGhORTk4Vndxb2lVdy04LTJpakh5N0ExdjFkUW04UUlxSXhyZVJpRi0wang5T285WkxzV2RBOTFsNTBSZW1feldpdWZvUHNaeDQ5QmJKeXNhSEZfTzBYaW1DMW9mM1hoY0dteFQxZzJhRGRWNXdmbHVuelJfdXlMNUwzUlVzYWRxTWVCV0JCV0hheDFYMzEwM0trbWdTR2JLYVVnZUd2dEZpWjUydjhBZ1VVM1BSa2s5RVQ3VXdTZkFmbERuS0lRNzAtSmhIcldHODdQNmw5UG5hN212aWRCTEZwZ2dKUzFtUFF6LXF4RXJyZnBlT2MzRTFxY29ONFJpZXA3aWhsRlE5Y0RLbl9qdURWUW45NmJiSWdJZlFuY3dj?oc=5"
         }
       ],
       "google_news_zh": [
         {
-          "title": "MINIMAX-W (00100)討論區- 股票評論- 股吧交流社區",
-          "source": "Moomoo",
-          "published": "Sat, 07 Nov 2026 12:56:08 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1VclJIelgyd2xTa1VLZDRMQ2g2U0o2dURBTnBPY1hJWDA2d09IZGpmTm1MMF9wNVNpS2pUeGxkaTAzdUxjOUI4SndxdjFwWlk3aUg4RjRlOWRpeXNkYlQ0VEpR?oc=5"
+          "title": "《大行》大摩：中國CIO下半年調查見IT預算回升應用層料成AI下一階段最大受益者降MINIMAX(00100.HK)及智譜(02513.HK)目標價",
+          "source": "Yahoo 財經",
+          "published": "Tue, 10 Nov 2026 07:09:31 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiyANBVV95cUxNU1RWaTl3ZnFzTkJQWVNxRHNrMXBKMGVPSm9tQU9FeTV3MnIxeENwLU1ZN2twNEt5OHdYaFljSm14OTJfdjRMLTRlbUYtU1pnWDRINXUySV92bWVzNmpUV0F1S2lFWTY3T0pDeWh3ZkJ5Uk1hZVVJMjRzdVNqek5OMlJLMDY4dEJFcjRiS2R1aVlXMV9uN28yRldtNmxSS1dDRVByRkpaTkJMSHQ4S2hDVDkwRnZINFRVbkVITi1qYVpqOU56SlY3ZDl3U0FqM2FKUTVBYlF0Q0ZJWXhCTGdhTFVpbElkRm1wc2hKRGZSZWxDdmctbjRQRkxfN2lkUFRlVC10RF9SMVZiaHB6VFZ2dk51eF85V2JxTXZTUXVOdkVKSk5pZVU3WHhnV2QyMWlpTl9sNmJuNlNtV2lrNnVyOWZGRDRXZi1MVFNZRTNUOGlmNUI5NWIzb04tOXVkWDV5TUtOaFdhV3ByT3VNWUt4ZDQzSUFjZWplZDBjdEtnSjNsc1dLOG9CNG5lcWZSNW91MjdoNzI5WGtTQ3RaNGxGM3JIN2ZEQTI1MXM4cWF1b3V2aV9yZEZhbnQ4N2J2SVN0V3VpYWtZejA?oc=5"
         },
         {
-          "title": "MINIMAX-W(00100) 其他-業務發展最新情況",
-          "source": "信報網站",
-          "published": "Fri, 23 Oct 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE8yYzFGUFpIZG16clgzUHJfbHppeURrZ0IyRXkzZE9pSHVkcExOX0N5YmgySnkza3RpWnRkb2dkZENVaUloUVBWQm05SFRaZHNqLUU5bURaWHM5S3l0T2VJdzJmbFRQQQ?oc=5"
+          "title": "MiniMax開源H3 Image：4K圖像生成僅10秒，支持多達16張參考圖，首週五折優惠",
+          "source": "富途牛牛",
+          "published": "Tue, 10 Nov 2026 18:34:57 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPdFNVX3F3YVZqSVFrbENjbkp6NnRQaTBRdkZKMDZFakVlVDlRbldPODdkZ2dmejJvMG9ieVplempLT0ZyZHJKWEdsRFczdFB4TEF5eVBLX0FOdVhGSWMzaUVkZnZrZHBiVEIzenpWbzYydkZpc1BUOU5MeDIxamY5ZUpiazJRUlZsdW1KVEdROFNsVGVHS2VmbXpFWUdkR2lBcEE?oc=5"
         },
         {
           "title": "0100 MINIMAX-W技術分析｜移動平均線與技術指標解讀",
@@ -363,7 +288,13 @@
           "url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE9SU0ZEQ1l3VGU1SW5WTjVvMkdBdmVTUFdHTm5nU0J0Vml4dTFjU01oS1cxajZGWTdkR2MwRjJmMWw1UGRDUFY5MnM3Yw?oc=5"
         },
         {
-          "title": "0100.HK 港股報價| MINIMAX-W | MINIMAX-W | 香港即時股票股價",
+          "title": "MINIMAX-W(00100) 其他-業務發展最新情況",
+          "source": "信報網站",
+          "published": "Fri, 23 Oct 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE8yYzFGUFpIZG16clgzUHJfbHppeURrZ0IyRXkzZE9pSHVkcExOX0N5YmgySnkza3RpWnRkb2dkZENVaUloUVBWQm05SFRaZHNqLUU5bURaWHM5S3l0T2VJdzJmbFRQQQ?oc=5"
+        },
+        {
+          "title": "00100 MINIMAX-W",
           "source": "etnet 經濟通",
           "published": "Tue, 06 Jan 2026 17:26:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9HSU5Ydzh0TkNzZC1qWkNCTTlUOUN0REJLaTBMclNveXFJb2ZELTJEcXJYb3hENjZZam1EVlJJSjk4OVVRTlJFdnFfTGtxSGtIRmpFUFZsZkg0VDVpak9mQXRUbDVWYnE4N2pWSjBUUG85ZWhIallKUg?oc=5"
@@ -373,12 +304,6 @@
           "source": "財華網",
           "published": "Mon, 13 Jul 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE0xcGdJcThUdUJ1bnZ6Y3VVb2x4cTRZUXRPMTVRYkhMSHNKSkFiSnpJb3d1eDIxdDFKX0E5SFoxVmF1RlJ1cGg1d2RHTGpYQ3ZudG5qOWI4YnJXekxCbHFyLWF4QnprcHJDVlNFRWQxN25PUjdmMGpZRQ?oc=5"
-        },
-        {
-          "title": "MINIMAX-W(00100.HK)：朱華星辭任獨立非執行董事",
-          "source": "TradingView",
-          "published": "Fri, 21 Aug 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE5zSHBiVnRINkZ6T04tRmFMd2p0T1VySExnY3V0d2FRTGlCdWhTdi0xT0s4ckJYUTJ5cmNNQ2RBLWstNzRUU3hXY2ZHZURvQnQwaWxSem9ibmVuSWZTY2E4cXY2NW1WS0RhdGc?oc=5"
         }
       ]
     },
@@ -386,9 +311,9 @@
       "ticker": "02208",
       "name": "金风科技",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 0,
+      "reddit_mentions_7d": null,
       "reddit_posts": [],
-      "reddit_status": "ok",
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "金风科技"
@@ -407,25 +332,19 @@
           "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9yOGxiRExQZUwzQ21ISm50QW1TaTZNQzdfalE3VFlNQmh1SmpQVjU2VzlVYzU2VjZFWWFZMTdYZ1FBWTV6bGx5YmsteExQRDZINGxxN3l3?oc=5"
         },
         {
-          "title": "Inequality in infrastructure access and its association with health disparities",
-          "source": "Nature",
-          "published": "Thu, 22 May 2025 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE1SSHNzLWtmbkVZSHZIM2JsdXd4dzdrYUxIS01xbXJBTnNxaGJIb2pGaFhZeVlfXzIxUzNDTmVPVzZLbldUX0oyQ09rZ01qcmo2WVhFcGp3YmRMdUNodlZN?oc=5"
-        },
-        {
           "title": "Zhitong HK Stock Short Position Statistics | October 23",
           "source": "Moomoo",
           "published": "Fri, 23 Oct 2026 10:30:03 GMT",
           "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxNTnkzNWFmWjhvd2xrZHRMSXpncWwzY1BtMFRhR0NrQ0lxUndkZndlWU9iZElWVXQzVWo5SXJILTdKNVlBMG16UlNNQ0ZQdWFqaWhGWDd4M2FWTy1pYm9JSWNYV2tocjNYNHdjZVg5bXZsUFJBRzNvWHN6VkpEZFNSZG01VFNKMEtoclFNYXdYOFIzVGhaajBsNFV0MFRjUQ?oc=5"
+        },
+        {
+          "title": "China's Goldwind Science & Technology Spends CNY 325 Million on A-Share Buyback, Adding 1.69 Million Shares in October",
+          "source": "finance.biggo.com",
+          "published": "Mon, 02 Nov 2026 08:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE9jNy1WNnFZMjZKbzhFSFVpdTROM29RbUM1ekpEd2FLdlg4aU90Q3p1Z3dtN2NiMjg4YXlPcFZnODBySEFGVnd6UVRwVU5mNTRnbzA1ZnRUNDlsS0xxRHFJeWZxR1MtMlhHS0poS0FJLUxyVllyM1E?oc=5"
         }
       ],
       "google_news_zh": [
-        {
-          "title": "金風科技：關於2026年度第三期綠色科技創新債券發行結果的公告",
-          "source": "Moomoo",
-          "published": "Fri, 06 Nov 2026 08:34:53 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNbzJYRzNJckpYV24xNFF2S3I3TTRubi1yVFpkVS04a1ZwTHR0SlVfNmJHNkJabzBfdzJoT09KRndVYXVzNFFNa0lZOTFaemVHLUN6MlZGSDA1cWJ0VWVNZ3BmaFUtb2lkazhwNkVodE9ZRU4wZEFSOFp1SU9sSzl6bG5Nb0thajQ0MjF4R2RpbnRBR3BvbUdtTGZiM1M5X19PVzZGaFNiQkNidGV3ZHRTdDZJa1kyd3lG?oc=5"
-        },
         {
           "title": "金風科技風機價量齊升可留意",
           "source": "巴士的報",
@@ -455,6 +374,12 @@
           "source": "星島頭條",
           "published": "Wed, 01 Apr 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi_AJBVV95cUxNTWF0UkVFWExKOGdyajdydGtFdFNua2ZqQnB1QWJZaF90MGgtNVQxMThRQXlsUW16TUVXNzBKdWJrTGlPdkU0ZlBSakdndlI2a0s1aXpUSld4ZTJ3dGMzVjZxRVRMTGs5Q29EeG5OVlFXU0EtUTdzRDYtVzc2OEduUk1STkVfODRFVy1jVGx5LXZiUmIyeWNCaDA0djFpb2pIM2FBV3UwSWRwZzE3NnJEcHA5ZFd6UVVpM1Uxc0ZCV2FfZ2RQbE02WHVtZmVpNU55cXoxWFVrOFlRSE01amVJS1k5RGJYQTJoUS1zbU5oT3laUkVpN1RUeHBzMGUzdXRlZlEtSUFCTkFIX1Z4V0NyYW5SVk1NLWNBbzJEUXM2OEFESjhoazFDXzBIWDBoLUpPcFRJdUgxLXhuQzNBQ0dDQldvT3dOLVQ4UUljTENGd0tFMG5XRWNrRWVOZkxEb1FrWHNuVUV6MElNdnlGLS1JMjVmUXlXNzN2dWVocw?oc=5"
+        },
+        {
+          "title": "中方回應歐盟調查金風科技 敦促歐方停止濫用單邊經貿工具",
+          "source": "香港01",
+          "published": "Wed, 04 Feb 2026 08:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMirwNBVV95cUxOLWdlMFhPeHhUdDdNZ0d4ekc0YWNLRmFVUUFoVFBVZkZvSTh1M2JlSzhvWGpsNTJiamg2V2RJbjhOTXltQ2ZBTkQ3Tko2LUxubC1kc0dEUWl0MkdGWHduYTdpbmJqVm9QVHhHOEl1VHhTejBIZFRrTmNBN2FFOE0wY2x5VmlqVkVVTHVidEl0N0hlUEZiQlpVRFhMX0s2VDdqR3hBTm83SjRGTmVrYkZPcHlpeWt1bXZYcDFGYTdOVXJ1bnFYbEJjWlgzSGJVdm5tblU3RDAxVGdDVUduV1dhWVlaSUJDRkQ0SzRGdUNSeHlSTHdtdU9nU0RqTXZaUnRrVE8tdEUyTUkzSnlkZE92QkYzamJEYWF0S3lHMWR1RkxlUGVCZ19mdFR2ZnRDTXlfa2FKb01Ici1lZ21VUXZLeGZmYlBXNTFUS1VsSjZqNHhiMEw2RHYtZWtleklsU3JhUFcyM3l6RjJKZXc2ZG0zRXFsd3N5Qy1SX3BsNXZ2dEtGUkd1Zm9mUTltcVZKRjhNd2Z3NDBMcnJNOHN6R3BxRG8tY2FwYUZpUHdVSl9Jdw?oc=5"
         }
       ]
     },
@@ -462,9 +387,9 @@
       "ticker": "03032",
       "name": "恒生科技ETF",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 0,
+      "reddit_mentions_7d": null,
       "reddit_posts": [],
-      "reddit_status": "ok",
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "HSTECH",
@@ -528,10 +453,10 @@
           "url": "https://news.google.com/rss/articles/CBMi6wJBVV95cUxNTWZQTkdJZy0wSml4S2hNYnRZN2VaaWJmWnRhcXNtYl8wa0ZNRkNZTDdFcTBYR0E5YVNfTU5sZTJ2d1NldmppSHJ1a1dqZ1IwbGtiX1ZlQi10V2tlY2J1NVU0cDk2cFF2SFdYd0twREVWX3FzeVdyNjFIOTk4Rk9FdzdlTzl3M1BwaUc0Y2V4YlFqVlhncXh1NTllOTYydFVSc1hpRzdVYlpPdTNuMnpQck8xSUNKZ3dPMUQzM0dxMjNxZUkxa0xpU0QwdVJpVHhwUHhENDVDMGdzay0yTHNtMVNwVDR4QXlNMm9wT1JJckpBek9YTTc4VEFxdmdELVp2MkZ3NDNvUHR4TzlheFZ0QnR5Mi1QRjI5RURCVlUtNDUzLWIwbjZEbXlYX2I3dllIV0ZScXJVVXJqNFZEdGFWMVpmcFJyNVBxNUxRdC1RZ0lBVnNyeDlhLVIxanRlLWw1alM0QkRpLWlQTU0?oc=5"
         },
         {
-          "title": "港股科技ETF有新選擇港交所科技100、科指、生科如何分工？",
-          "source": "BusinessFocus",
-          "published": "Sun, 28 Jun 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMimgJBVV95cUxNd1lBdnZYY0hnSHMtZ1VlM21SNDNhbVUzd3UybzBuOVpPNzhQUDdUWE1tcmNJSVZpMER6a1hmSFcwQjdnSmlDVTlSeFYyanpRVF8xSDNVMnVWdk1iT2tQS251cklBb3J5eExpTjZpUFA1bW43SV9kbmhrWnRSU0hLaXdNV0pCZS1NaTN6X1IwSTJzTmpEak0yYVhnbTdpSV9GWTRteklfM0EwQWpxOGJncEpTWDlLVWNTQzd2SmZjMmkySnRlQ25oT0YyczcyRVJVWUIxbzQ0c21GcFhfNlFPQjRrZE1RQXpSejhMeVo0dlNiTlp3WjdGbnlBLVdPcDZIWGk1MVREQi15cDhIWl9CQWg1b09ibkpMOWc?oc=5"
+          "title": "ETF異動 | 資金輪動恒科指數大漲超5% 恒生科技ETF南方(520570)高效配置港股科技龍頭",
+          "source": "Moomoo",
+          "published": "Thu, 05 Nov 2026 03:28:14 GMT",
+          "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNSmNZLWE5UlkxR3FWOHlVaE0tZXphazlCSW9fMXQzYlVESzNja1ozdHRyQjU1LU5TUXA0djNrNFpZcjRaQjVZb2hpYWRHR29aZWhla3poZ0xYN19VeWw1TzNabTlRNVY3MFFrZ2dKS0I0TXNfbWhGekdMZkFJcnBSYTFCQUxxNUtQc1ljNm1oY3F2eTFlU0w2aEZ1ajctVTVyT0pYTFh2UnBrdFBUOHYw?oc=5"
         }
       ]
     },
@@ -539,9 +464,9 @@
       "ticker": "07226",
       "name": "XL二南方恒科",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 0,
+      "reddit_mentions_7d": null,
       "reddit_posts": [],
-      "reddit_status": "ok",
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "HSTECH",
@@ -577,8 +502,8 @@
         {
           "title": "槓桿及反向產品的交易資料",
           "source": "信報網站",
-          "published": "Sat, 07 Nov 2026 07:55:16 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxOY0Z1RkpxbWxodVlNLUwtcWNMZEoyb2xiVGRMYU5Lc0txUTJzWV9HSDFjaEVTMmV2dGx2YnhOLUNJbWg5c2V3eVN0MWF2Mmh2UUQxVE1qak1VaEZ4ZTJ3bEZyd1dvblk5RklzRWdyLVRlOEQ5N01mQnJ5Z3k2ckh2aEVvMFJ3QXYxUUFjRE4yV2dVd1FSV2M5aVI1RWdmRzM0NDFONlFYNDNIVmRCdjRMM181OE9CUDd1QUQ0cXhwb3l5R1dvaE5yNnlLOEw4ajE2dTQ0RGR2QnhybHZjbDhNOE9PZmtRZHdRa2EwMDFsZTdCc1Qt?oc=5"
+          "published": "Tue, 10 Nov 2026 05:25:56 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxQWV9aNzBTekF6U204Y1F1M1EyQ2ZUdEhzUkpBckpObkd2NHNXNUVpTV9za2xwZ0dTM2gtN2JMckVIcllHZ2F2Q0gtMllNeFpsZ3V3ODhRUHNaWnR3MW5JQVViTko5Z0tzVDdlSW55WlJUM0kySGkzRWhIaDMzSHdmZW54NGxLakFEdGIwSUR5NEd1ZEszajQ0bWpYY19RTVJZLTdIZlQ4bU9ObVl2RVZKSUtKQkZjUVk3dHpNM0RRNkZGalBWMkpaeXpsTFFpUHpBcXVSLUw4RFBtbk9NNF9wdy1Jb29jc1NjQXZEaExvM1R1cEYy?oc=5"
         },
         {
           "title": "盤中速報 - 恆生科技指數上漲155.99點至4663.03點，漲幅3.46%",
@@ -599,16 +524,16 @@
           "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE9INnZVcDZTRUtLU3ZtYWNBTGhYRUxCbjRLN2hVNmtXQjNiajJGYjM3OGFPalNhZ1R3cHNSWHVUSEVpTU9kSlVwNXZhQzZXejZQdFl4eFJSTHA4UFM2azlzV0tMWUNzNUtFX2RaMWVGQTU?oc=5"
         },
         {
-          "title": "槓桿及反向產品的交易資料",
-          "source": "信報網站",
-          "published": "Tue, 03 Nov 2026 17:53:35 GMT",
-          "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxOLUlhSlhHSEptT1BpU3hha2ZVWXR2cUx6d1RGS1pNMlNMam5HdWtCcXRyVWtnaC0xYmUxeVRuOHhzQzRMYmFvNTdiYkNqNVJQYkhDN2ppMjB5YjRXRkxXRkNXM0dFaGhFa3N6U0ZaZ3dOVXZoVHg3UkJ2TXJxcXJwbXN0VjlueVJTRWdCcFJYalVNcFZkQ3hnZUVkMkZLZ3lreTNVWThhQVhGcDJxSW9vVC10LXJUbGkxbWpLVUdqS05ESW04SHZvSE5pQlk5QkpLckhQQVUwdHByTUZnekxDbnZCRVU4bmloUGJQNU9RWTVzY2dR?oc=5"
-        },
-        {
           "title": "香港股市、港股行情",
           "source": "鉅亨網",
           "published": "Fri, 26 May 2023 16:03:23 GMT",
           "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE1lbG5fYTk5bmFsMmdVSjhuSV9PT3hGTU9nYlo4bFpuQ3FCaDVrb0ZFQjAyd2Njd1A4aWZ4c3pCLXM5X1JXMVprQU1vZHJXVkw4bHFB?oc=5"
+        },
+        {
+          "title": "槓桿及反向產品的交易資料",
+          "source": "信報網站",
+          "published": "Fri, 30 Oct 2026 13:01:24 GMT",
+          "url": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxOM2FTc0l3U0tVb05vblc0QWFhZGlyT1k4YmFwbFpoSFNiVURGY1dRR01JckhVbG5MTUtCaXByRjhBRWl6X0p6a3kxeEJ0eXRzY3hjSHZsZm1XbGdsaGJ1WElnU0VUbHpPXzA2dE5xWVlPOEJoZE9aMnY4a1ZwN2xMWDZlTExlenVCMU00T0I2d0lJUlloQnkteVNjYVR1bTlWNE9id214aTF0TVUtUE1mVnJVWlFoY3hRVU5yT2QtWlVkUHVRdmlrT1ZIQnMtTHRnVHdkckltN1pldUpyWFJXU2lDaEQtOTVETVAybGM5aWE3UQ?oc=5"
         }
       ]
     },
@@ -616,9 +541,9 @@
       "ticker": "03033",
       "name": "南方恒生科技",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 0,
+      "reddit_mentions_7d": null,
       "reddit_posts": [],
-      "reddit_status": "ok",
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "HSTECH",
@@ -670,12 +595,6 @@
           "url": "https://news.google.com/rss/articles/CBMioAJBVV95cUxOUktHaW5aSFZaM0NqeF9kMmhvM2ZOaG9YNzNqUGtCUWV3TUg0ZnFxN2FhdHVYcUJpYW5ndFIxbldqTF9MQlFpeEVDMGNMUVktV1VFY3R0NlZrREJSX0U5bldZME95SjBoMVMtX01XOUJkakR3VU9DcTBZUy1TYmR5WHRLMC1ULV93WHVRdmprSjlONzY1VHZjeWxsVGNKd2w4X1hvMDI1cmFfenNlTzRxOEZLQjl5MnF2b3BPVnBoNTBhVENJVXRkb3J3d0cyMW03cUh2STdlVEtfNUhzdkJuZjktRG9QekVZSlFoS0w0ZEhlUzJMR190am53MjBHUjVwYU5IZjlzczQ1NU5jVGwwOGhoVHcwS0JTeWxXWHlid1M?oc=5"
         },
         {
-          "title": "資金動向 | 北水爆買港股超234億港元，加倉盈富基金、南方恒生科技",
-          "source": "TradingView",
-          "published": "Tue, 03 Nov 2026 10:30:01 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTFBNUTdrU3cwZ3lUSDAwWmJhdWt0QzNkajNmN0dtOVZaR3o3ZWxZTGlUYzg5M1pvMGVSbDZYQkJqeUNSOWdpNHE3UDJuMEt4OThuNVNRYzZ2aGFqdFBIamlTUVF5RE1WQ2dLbHc?oc=5"
-        },
-        {
           "title": "北水增持碧桂園 減持南方恆生科技 (07:56) - 20260810 - 即時財經新聞",
           "source": "明報財經網",
           "published": "Mon, 10 Aug 2026 07:00:00 GMT",
@@ -686,6 +605,12 @@
           "source": "Syfe",
           "published": "Wed, 10 Sep 2025 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxQSzhTQmU4dzU2MDBhNzZxTzNRZk5PVXljSWo2eE9tYnRaUGlJckZYb3BGb1FhUjhFM0dmTVRQLV9ZclJYS3hkaW1BN2hKOGNFSmVQRkZnU3FTUVVmV1djNFRMZlNkRUlfZW1ibEVna2xhdDlYQ1V1RThNMUszaS1QUmFsdC1jMkV3c2haSUMyMmJIMVhReDEtdVlVb0FySWNpV1hoVFBNT2pRdkdLbXotR2stNkpYVzlqMHNVUnVkV1EzVUgxTExWS2NB?oc=5"
+        },
+        {
+          "title": "03033 南方恒生科技 - ETF - etnet 經濟通 Mobile|香港新聞財經資訊和生活平台",
+          "source": "etnet 經濟通",
+          "published": "Tue, 21 Feb 2023 21:55:53 GMT",
+          "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE82SS1PZlRzZjZKV1hWRm14WFczanp4WWh3UFQ0b2h5d3hIOUdOVF80ci1PMXNXSEVtRkptcFp1d2Q0RUFyQWwxOWhxSUdrTEpZdXZFT1UyM0s1YmhTWktrN3NuNzloLTEtOWxhb0lmN0o?oc=5"
         }
       ]
     },
@@ -693,9 +618,9 @@
       "ticker": "07709",
       "name": "XL二南方海力士",
       "region": "hk_stocks",
-      "reddit_mentions_7d": 0,
+      "reddit_mentions_7d": null,
       "reddit_posts": [],
-      "reddit_status": "ok",
+      "reddit_status": "failed",
       "reddit_mentions_capped": false,
       "reddit_query_terms": [
         "SKHY",
@@ -703,28 +628,28 @@
       ],
       "google_news_en": [
         {
-          "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$ $SK Hynix (000660.KR)$ $SK hynix (SKHY.US)$",
-          "source": "Moomoo",
-          "published": "Sat, 25 Jul 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOWEdpYXJSa2t2c241SVVDV3hUbmM1Vy1IYUx0VUo1a2JSZUp5LUtFa1JPb084RHFfdEU5dEMtTmFfRjIza25sd211WnR1OE5uTFRoay14NlY3cVh3LU56Rk01X1QzeHRkRzRXdHkwVWhPR3U1MnZKcWxPb0hrRkdjUVNlWktDV3pVRnVnVkJpRjl5STlLTlJyU0hrTEpXTUdfRlB0aHhCb2c?oc=5"
-        },
-        {
-          "title": "CSOP SK HYNIX DAILY (2X) LEVERAGED PRODUCT (7709.HK) stock price, news, quote and history",
-          "source": "Yahoo Finance UK",
-          "published": "Wed, 15 Oct 2025 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1EaHF0Tl9LVzdnM0tDSUFxSXdxRHk5aWZ1T3h6MmdRWjhEVWRvX3FLMVR6OHNWXzV2N2lJQ2E1LUJPcHNqdFZhUmJCYVRvVWhIcGJoVm5B?oc=5"
-        },
-        {
           "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$",
           "source": "Moomoo",
           "published": "Mon, 31 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQRmRqbkRzOC1rMXBKTzBiQ0E4UTcxYjFyUGc0WXRuOXB2Qk9TRUQ4NFFlYlRDdl9wSEJIR0hLNF9PdVRldEM0cV9WUkowX0tkTjRjZUlmUi1tcTJsbGJvM2k0bDFuc0poYmpsdnEwbkRsdUlDTzVoSHZ2d1pxS0RWR25hYzY4V2dnTUZ1bDlwdHA0VmZab2ZnRHFMX1FiclUzLTNUSldueTlvTUk?oc=5"
         },
         {
+          "title": "$CSOP SK Hynix Daily Max (2x) Leveraged Product (07709.HK)$ It finally launched",
+          "source": "Moomoo",
+          "published": "Fri, 06 Nov 2026 03:19:46 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQZG1jZWFOQ21UU2hTSGpDOHpxWGNlRGZqVjAyN0IzaDEtaW1peVRGMk81ZmVmbUItZk9qaHFuZGVhZGh1aXpVS29jVkd4X1dlek44S1VjaDlKV04wRFVqeXBfNEgxbE5XR0M0TGJZbmYyY3hBdDNrLW1VeENMVHdpRUUza2lYR3ZmWVMxeDRGenRBb3RldjlITEdEVHU5YlpyeTNDVVVWejAtWFE?oc=5"
+        },
+        {
           "title": "Tech rally cools off! Asia-Pacific equities declined across the board, with South Korean stocks briefly triggering a circuit breaker and the Hang Seng Tech Index dropping more than 3%. What other risks lie ahead?",
           "source": "富途牛牛",
           "published": "Tue, 23 Jun 2026 06:41:55 GMT",
           "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPc2JfLVItQVVKSVhCRWU5NjAwMnpUa1ZzZmZkeHp5NE9XY0FQTTI2dkJFYzRVVG1WaVlwQXJJZlkwSUVOT09JX2hZNFRYQ3BOVDdnanlHdGRoWjNhSjY1aURDYW1zemxBbXRwRHcwcEw2eGQ1WUlCdUJCMDEtOTdOcUJFWTAwcEFfeUlDZjZwU1Vxa1J3NVdNMXJCXzRFT2lQOGNJTUd3?oc=5"
+        },
+        {
+          "title": "XL2CSOPHYNIX - Leveraged and Inverse Products Details - ETF",
+          "source": "etnet 經濟通",
+          "published": "Thu, 16 Oct 2025 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMickFVX3lxTE5WSzdEUTJYTHJGYjByV3BKY0V4S2VZamlFY0VyLUYxNFlRbDZlZnpSamhkVWRPX2stZV9ueGNsdW5TNHZ0MDg1aFFIWjRKd1F3VUp1NXZfSDFGNE1lQVVzdFVCaWZZNjl6V3JUOHhnWTY0UQ?oc=5"
         }
       ],
       "google_news_zh": [
@@ -735,16 +660,16 @@
           "url": "https://news.google.com/rss/articles/CBMigANBVV95cUxNb010RDVBbFluYTRNRGgwMklwRWI5dzdLR0I2X2tfUUhyOHcwRkRDWkcxOUxkeUNiazZscWZxeXY1TWxpd0xSY2lpeXE0VFlxdVQ0NVBNaGpwOVpoVXd4UURDc1h6SjRicUwyNk8zNEdLOE9qbWdWSzNIaFBPX2VtV1B4QWVaM0lnTnlLZmtUOU92Z2pMbV83bWdSR3JxeHp6aVREZGw3bWd0WExyMk1QQ25qcV9GOGJoVGJPUlZTUVpHWDZXQnhSTkhfLVlTWkVuRXlzbTRtVnd6OG42VzlOb0dFSmtzRG5ZSU1hSVB3aXFlV2RnaGhnLUxZamZGWVJHY3dxYTU5WTFBeVNnZU5LeHlHUVYzX3pjVzZOd0JMWUhkbGZ1WFBkRUpORnRacG1kblZEVnl2cFhBc25xX2xIUW5tZ1JWSDZFZUFWSVlzVEtMSVVVbjhudG1ndzRyTzRWQnR5WFFneHFLekFMay1Mbi00ZnVWNE9fSTZXY0pxTGs?oc=5"
         },
         {
+          "title": "槓桿資金回港抄底|香港經濟日報",
+          "source": "香港經濟日報HKET",
+          "published": "Tue, 10 Nov 2026 16:14:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOTlhOckhlRzA1ZWVhU1Z6aGYxS2NnR3VqcHhHRU5vU1dQNkprUC1BeDB1Zy13Y0hRWF9MN3ZaTlVCWUhIOGhYdkdxLURqekVxbllkZUdiQXFCT0NiMzR4ckZvQnlMY01BQUVUdnBkNXc2dHV4SGd2U1EwendZZW5oRTZqdmdQU1VtVGZlb0I5Z0drS19PUVBRQkdSZ0J0LWFhSDZZcFpsRXY1YzYxUWgxX29R?oc=5"
+        },
+        {
           "title": "SK海力士爆炒 XL二南方海力士AUM逾400億元 為全球槓反產品一哥",
           "source": "香港01",
           "published": "Fri, 08 May 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMimgNBVV95cUxNcHhrbFBWclB2TGVRN0N5S2VfMDJWUXBCQXpDUXYyZUVHdldtWEtHSFJkbmE0TmYyRU9rYTZaQUFkNG1NS3NNcFRyYkZvaFFGV25udllMQ1dLcVFUQWRoTk9WdFg4c216QVhweTk5MXVEOXI1SG9JRk1HRUw0VmVhUVAySUZTT2ZuWThJX19HYUhLZW9YQk10M25sRkJFSHc0SS1rODJSRmE1ZjNJQm5zalVwVzlzMi16eDBvaDNRUW92UlpDdjZMbnZjV3JkVDFXZ2NfRWxQTEVlRDlNczRISFBPcldIUTBlUEdqczJvRUduTkktbXkzdENPempIRVM3d2xvUTAxQl9qUlViSGRocU5QX1FxNXpTRVYzNFhPUFpHY0YzWHJYWXB5ZjNRZnRZVENtVnRROHZyNGgta2g1YWpUZmtTTk5sTDF1ZlJ2V2Y3TVNBY2R0VmhlaVRKanNOVWpVMXlZNTBxeFRjd2NGWU9QNTN3UXBOMUprOTU0RFhQSHRNVlZ6Sm9mWEtBM21Tc0RIOWstS2JqUQ?oc=5"
-        },
-        {
-          "title": "【港股收市】恒指跌315點阿里巴巴跌近4% XL二南方海力士挫19% 李寧逆市升半成（不斷更新）",
-          "source": "香港經濟日報HKET",
-          "published": "Fri, 06 Nov 2026 11:01:18 GMT",
-          "url": "https://news.google.com/rss/articles/CBMisgRBVV95cUxQeEZha1dVczlyTFRDSXVncjl4a0Exc3c4S2J6a1Q2NklPZks5MHZ2TzktTUJWcTBxc1gxYUFPS2UyT1J2aTVDMlNSNUwwZ3pTTU0ybDFfQ3RZMGpFbTJsckl4blJ1a3JfTGFGWFdsTXcyMUowczFTNVR0c05nSU9JR3ZPMG9CbUJNTzFOOW1HZHFLcGF5Y0dJanBHOGFvWk45aFpJN0lLS2VZR3RXZS1KWVVhM2owcEktNDQyNGJYWk1PdEdWZ051b1lPb2dsVjRDVDlvc0tyemZvYkxvRVZaTlBqektFN0h4ZnBham1NelRMVldQLW9Pd3VZMGU1UWtodnJNeGVLbnpPOUlldUFIdlNod09ib0EydU1QZ2Fyc0JlZmRTLTh6QjZWU3BidjAzQjhfTW1XLUpId1l3QVoxUTJLWk83UE9DSjZYOGF4SUxEdjJ5ODlFWTZRelNLYXQ2aWlWem5GVzlUZUwxRWpmV2ktRnlpQS14YXRzUXRRdmFfWGprWll3ODI3Nmp4TGVTYkEzb1FNZUd6NkpDaXNrc294UF9mSkNqWXUzU3hYeElTWm1yNmpPTmZyNDJWX0FNanBjeWV5MklVOFhiRks5VWRtaUM2TXB6cGp3T3Z1U3JERlgxbkEwV2ZOMFN2NmxKMUlIQjh4TWktX1E4cTRSMUk3T3BUdkpYRFR5NTRDX2NfUXFqUXVWcVdrWW54dGx4NU5RWVUyc1RPUmstc19yRjVB?oc=5"
         },
         {
           "title": "7709丨XL二南方海力士下月3日起採靈活槓桿結構",
@@ -768,11 +693,11 @@
     }
   ],
   "source_status": {
-    "reddit": "ok",
+    "reddit": "failed",
     "google_news": "ok"
   },
   "reddit_feed": {
-    "entries": 99,
-    "within_window": 97
+    "entries": null,
+    "within_window": null
   }
 }
