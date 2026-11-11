@@ -177,11 +177,15 @@ does resuming an existing session. An empty OpenCode exit is an error, never a f
 review. `MODEL_USED` names the last attempted model, not the next fallback.
 
 The supervisor records the failed round, preserves its area without spending an
-area retry, and waits one hour. `pool-cooldown-until` persists this wait across
-restarts; `status` reports the remaining seconds. Expiry admits a normal round
-with the same pool and gates, which also tests recovery. This is an elapsed-time
-cooldown, not a claim about provider quota reset times. Other failures keep the
-existing retry/backoff policy. No availability probe advances the review cursor.
+area retry, and resamples after 10 minutes. The ordinary outage backoff may grow
+that wait, but never past 30 minutes. A `retryAfterMs` reset is honoured exactly
+only when it falls within the same 30 minutes; a farther claim is not slept on,
+because the free limit is per model and the reported window has been wrong by
+more than half a day. `pool-cooldown-until` persists this wait across restarts;
+`status` reports the remaining seconds. Expiry admits a normal round with the
+same pool and gates, which also tests recovery. This is an elapsed-time cooldown,
+not a claim about provider quota reset times. Other failures keep the existing
+retry/backoff policy. No availability probe advances the review cursor.
 
 `PATROL_DISPATCH_DIR` can point tests at fixture policy/helpers; production uses
 `/root/tools/agent-dispatch`. Run the focused supervisor coverage with
@@ -261,8 +265,13 @@ price change; a provider can change prices between checks, so this is bounded po
 not a billing guarantee.
 
 `select-free-models.py` takes the eligible seed priorities plus automatically discovered
-eligible models. It selects at most nine per task. When new names outnumber capacity,
-one rotating newcomer gets position two; the remaining slots follow seed priorities.
+eligible models. It selects at most nine per task. Before applying seed order, it reads
+the last seven days of `run.log` attempt outcomes: three or more decisive outcomes
+(`ok`/`rate_limited`) let a seed move ahead of its reviewed position or behind it;
+ties keep seed order. A timeout after real generation is not a quota refusal and does
+not count. When new names outnumber capacity, one rotating newcomer gets position two;
+the remaining slots follow the resulting order. The ordering is availability only, never
+output quality.
 No name needs manual per-model approval after satisfying this policy. Models removed
 from Zen/catalog or reporting positive prices disappear from effective selection on
 the next audit. Fresh, valid evidence automatically restores transient exclusions;

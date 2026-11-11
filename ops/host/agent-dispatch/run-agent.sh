@@ -1234,7 +1234,11 @@ PY
       RATE_LIMITED=1
       if [[ $ARETRY_AFTER_MS =~ ^[0-9]+$ ]]; then
         candidate=$(( $(now) + (ARETRY_AFTER_MS + 999) / 1000 ))
-        if [ -z "$FREE_RESET_AT" ] || [ "$candidate" -gt "$FREE_RESET_AT" ]; then FREE_RESET_AT=$candidate; fi
+        # The free limit is per model, so several refusals report different windows. Keep the
+        # earliest: that is the first moment any refused model may answer again. Taking the
+        # latest parked patrol for 12 hours (the supervisor's old cap) even though another
+        # model's window could have opened earlier.
+        if [ -z "$FREE_RESET_AT" ] || [ "$candidate" -lt "$FREE_RESET_AT" ]; then FREE_RESET_AT=$candidate; fi
       fi
     fi
     if [ -n "$RATE_LIMITED" ]; then

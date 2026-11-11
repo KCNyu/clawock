@@ -44,9 +44,14 @@ ROUND_DEADLINE_H="${PATROL_ROUND_HOURS:-3}"  # whole round incl. retries
 ATTEMPT_TIMEOUT="${PATROL_ATTEMPT_TIMEOUT:-5400}"
 AXIS_RETRIES="${PATROL_AXIS_RETRIES:-2}"      # times an unfinished area is dispatched again before the rotation moves on
 [[ $AXIS_RETRIES =~ ^[0-9]+$ ]] || AXIS_RETRIES=2
-POOL_COOLDOWN=3600  # elapsed time, never a guessed provider reset hour
-POOL_MAX_COOLDOWN="${PATROL_POOL_MAX_COOLDOWN:-43200}"  # v2 reports its own reset; bound the sleep
-[[ $POOL_MAX_COOLDOWN =~ ^[0-9]+$ ]] || POOL_MAX_COOLDOWN=43200
+# A whole pool refusing says nothing about when it will answer again. retryAfterMs is per model
+# and has been wrong by more than half a day (11-10 20:49 succeeded while the reported reset was
+# 11-11 08:47), so retry at a short fixed interval. A reset inside MAX is still honoured exactly.
+POOL_COOLDOWN="${PATROL_POOL_COOLDOWN:-600}"       # resample interval after a whole-pool refusal
+POOL_MAX_COOLDOWN="${PATROL_POOL_MAX_COOLDOWN:-1800}"  # longest retryAfter we sleep for; longer resamples
+[[ $POOL_COOLDOWN =~ ^[0-9]+$ ]] || POOL_COOLDOWN=600
+[[ $POOL_MAX_COOLDOWN =~ ^[0-9]+$ ]] || POOL_MAX_COOLDOWN=1800
+[ "$POOL_MAX_COOLDOWN" -ge "$POOL_COOLDOWN" ] || POOL_MAX_COOLDOWN=$POOL_COOLDOWN
 PREEMPT_GRACE="${PATROL_PREEMPT_GRACE:-300}"  # wrap-up time a preempted round gets; 0 = cancel at once
 [[ $PREEMPT_GRACE =~ ^[0-9]+$ ]] || PREEMPT_GRACE=300
 mkdir -p "$STATE/drafts" "$STATE/filed"
@@ -393,19 +398,22 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
   local failure
   failure=$( FAILURE_REASON=""; . "$TASKS/$rid/result.env" 2>/dev/null; printf '%s' "$FAILURE_REASON" )
   if [ "$state" = failed ] && [ "$failure" = pool_no_response ]; then
-    local reset_at until
+    local reset_at until now_epoch
+    now_epoch=$(now)
     reset_at=$( POOL_RESET_AT=""; . "$TASKS/$rid/result.env" 2>/dev/null; printf '%s' "${POOL_RESET_AT:-}" )
-    until=$(( $(now) + POOL_COOLDOWN ))
-    # v2 reports the free window's own reset with the refusal. Sleeping to it avoids probing a
-    # 10-hour quota every hour; a missing/damaged value keeps the one-hour circuit. Bound it so a
-    # bad clock or claim cannot park patrol indefinitely.
-    if [[ $reset_at =~ ^[0-9]{1,12}$ ]] && [ "$reset_at" -gt "$until" ]; then
-      [ "$reset_at" -gt "$(( $(now) + POOL_MAX_COOLDOWN ))" ] \
-        && reset_at=$(( $(now) + POOL_MAX_COOLDOWN ))
+    until=$(( now_epoch + POOL_COOLDOWN ))
+    # Honour a reset the runner actually saw, but only while it is inside the short cap. A
+    # longer or missing claim is not a reason to stop sampling: it may be stale or per-model.
+    if [[ $reset_at =~ ^[0-9]{1,12}$ ]] && [ "$reset_at" -gt "$now_epoch" ] \
+       && [ "$reset_at" -le "$(( now_epoch + POOL_MAX_COOLDOWN ))" ]; then
       until=$reset_at
     fi
     echo "$until" >"$STATE/pool-cooldown-until"
-    log "pool_no_response: cooling down for $(( until - $(now) ))s before retrying $axis"
+    if [ -n "$reset_at" ] && [ "$until" = "$reset_at" ]; then
+      log "pool_no_response: free window resets at $(date -d "@$until" '+%F %T'); retrying $axis then ($(( until - now_epoch ))s)"
+    else
+      log "pool_no_response: resampling $axis in $(( until - now_epoch ))s (retryAfter absent or beyond ${POOL_MAX_COOLDOWN}s)"
+    fi
     settle_slot "$axis" unavailable
     return 1
   fi
@@ -457,8 +465,16 @@ loop() {
     if [ -z "$(current_round)" ]; then
       wait=$(pool_cooldown_remaining)
       if [ "$wait" -gt 0 ]; then
-        log "pool_no_response: cooldown has ${wait}s left"
-        sleep "$wait" & wait $!
+        if [ "$wait" -gt "$POOL_MAX_COOLDOWN" ]; then
+          # A file written by an older supervisor could still say 12h. Sleep the cap once,
+          # then drop it and sample; otherwise an upgrade would inherit the old lock.
+          log "pool_no_response: cooldown has ${wait}s left; resampling after the ${POOL_MAX_COOLDOWN}s cap"
+          sleep "$POOL_MAX_COOLDOWN" & wait $!
+          rm -f "$STATE/pool-cooldown-until"
+        else
+          log "pool_no_response: cooldown has ${wait}s left"
+          sleep "$wait" & wait $!
+        fi
         continue
       fi
     fi
@@ -480,10 +496,16 @@ loop() {
         notify "⏸️ clawock 巡检连续 $fails 次未完成（执行、抢占或审计失败），继续按 ${wait}s 退避重试。看情况：/root/tools/clawock-patrol/patrol.sh status"
         alerted=1
       fi
+      # A whole-pool refusal resamples at the short interval, then the ordinary outage backoff
+      # may grow the wait - but never past the same 30-minute cap. A reported reset inside the
+      # cap still wins. This keeps a broken day from turning back into two probes.
+      reason=$(pool_cooldown_remaining)
+      if [ "$reason" -gt 0 ]; then
+        [ "$wait" -gt "$POOL_MAX_COOLDOWN" ] && wait=$POOL_MAX_COOLDOWN
+        [ "$reason" -gt "$wait" ] && wait=$reason
+      fi
     fi
     prune
-    reason=$(pool_cooldown_remaining)
-    [ "$reason" -le "$wait" ] || wait=$reason
     log "next round in ${wait}s"
     sleep "$wait" & wait $!
   done
