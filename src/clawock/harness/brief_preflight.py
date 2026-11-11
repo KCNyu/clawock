@@ -2243,9 +2243,18 @@ def _collect(argv=None):
         # bundle's deepcopy, so audit/core, data_holes and the ledger's
         # issue_count all carry the same list (#3343).
         read_budget = brief_decision_packet.read_budget_report(decision_packet)
-        for read in read_budget['over_budget']:
+        over_budget = read_budget['over_budget']
+        for read in over_budget:
             issues.append(f'decision packet read `{read}` 超出预算，工具会拒读；'
                           '模型只能逐票 decision_packet_query')
+        if over_budget:
+            # `issues` is context['issues'], so the warning above moved the
+            # generation after the packet was compiled. Recompute it now and
+            # re-stamp the packet, whose `_meta` is its only generation field;
+            # otherwise write_run_bundle rejects the packet as cross-generation
+            # (#3402).
+            generation_id = brief_context.compute_generation_id(context)
+            decision_packet['_meta']['generation_id'] = generation_id
         context, bundle_manifest = brief_context.write_run_bundle(
             context,
             ctx_path,
