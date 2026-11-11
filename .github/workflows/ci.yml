@@ -671,7 +671,10 @@ jobs:
   browser-tests:
     needs: scope
     if: needs.scope.outputs.ui == 'true'
-    runs-on: ubuntu-latest
+    # Playwright 1.60 does not support Ubuntu 26.04, which ubuntu-latest now
+    # resolves to. The workbench job is pinned for the same reason; keep the
+    # browser contract on a supported image instead of disabling the gate.
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     strategy:
       fail-fast: false
