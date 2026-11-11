@@ -134,16 +134,20 @@ def validate_forbidden_phrases(text, phrases, label='报告'):
 # (03033 holds 1000), it is simply not 07226's. That class is addressed by not
 # restating position sizes at all (SKILL rule) and by handing the prose the plan's
 # own numbers (plan_context, issue #119), not by a regex.
-_MAGNITUDE = {'万': 10_000, '亿': 100_000_000, 'w': 10_000}
-_CURRENCY = r'(?:HK\$|US\$|RMB|\$|¥|港元|美元|港币)'
+_MAGNITUDE = {'百万': 1_000_000, '千万': 10_000_000,
+              '万': 10_000, '亿': 100_000_000, 'w': 10_000}
+_MAG = r'(?:百万|千万|万|亿)'
+# Bare currency codes and 元 are how an analyst writes a cross-border target
+# ("4.26 百万美元"); they are currency claims too (#3342).
+_CURRENCY = r'(?:HK\$|US\$|RMB|USD|HKD|CNY|\$|¥|港元|美元|港币|元)'
 # A thousands separator groups exactly three digits. `\d[\d,]*` also swallowed a
 # list comma — 2026-09-08 hk-pm "跌得接近 00100,12pp 背离" was reported as the
 # unverifiable number "00100,12pp".
 _DIGITS = r'(?:\d{1,3}(?:,\d{3})+(?!\d)|\d+)'
 _NUM = rf'-?{_DIGITS}(?:\.\d+)?'
-_SHARE_CLAIM = re.compile(rf'({_NUM})\s*(万|亿)?\s*(?:股|shares?(?![A-Za-z0-9_]))')
+_SHARE_CLAIM = re.compile(rf'({_NUM})\s*({_MAG})?\s*(?:股|shares?(?![A-Za-z0-9_]))')
 _CURRENCY_CLAIM = re.compile(
-    rf'{_CURRENCY}\s*({_NUM})\s*(万|亿)?|({_NUM})\s*(万|亿)?\s*{_CURRENCY}'
+    rf'{_CURRENCY}\s*({_NUM})\s*({_MAG})?|({_NUM})\s*({_MAG})?\s*{_CURRENCY}'
 )
 _SHARE_KEY = re.compile(r'(?:^|_)(?:shares?|quantity|qty|size_shares)(?:_|$)')
 _MONEY_KEY = re.compile(
@@ -202,10 +206,9 @@ _PRODUCT = re.compile(
     rf'(?P<b_cur>{_CURRENCY})?\s*(?P<b>{_UNIT_NUM})\s*(?P<b_pct>[%％])?\s*'
     rf'(?P<eq>≈|=)\s*'
     rf'(?P<result_cur>{_CURRENCY})?\s*(?P<result>{_UNIT_NUM})'
-    rf'\s*(?P<result_mag>万|亿)?'
+    rf'\s*(?P<result_mag>{_MAG})?'
     rf'\s*(?P<result_pct>[%％])?'
 )
-MAX_NUMERIC_SAMPLES = 4
 # Only book-scale currency figures are checked. US price talk is conventionally
 # written with the symbol — "跌破 $65，下一支撑 $60" is a level, not a claim about
 # the book, and flagging it would make the gate noise on ordinary technical
@@ -661,10 +664,10 @@ def check_numeric_claims(text, ctx):
 
     parts = []
     if unverified:
-        shown = ', '.join(unverified[:MAX_NUMERIC_SAMPLES])
+        shown = ', '.join(unverified)
         parts.append(f'context 里没有的数字: {shown}')
     if impossible:
-        parts.append(f'区间自相矛盾: {", ".join(impossible[:MAX_NUMERIC_SAMPLES])}')
+        parts.append(f'区间自相矛盾: {", ".join(impossible)}')
     if not parts:
         return concentration_issues
     return concentration_issues + [f'{"；".join(parts)} —— 数字只能引用 context，不许心算 {ADVISORY_MARK}']

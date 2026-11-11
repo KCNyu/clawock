@@ -525,3 +525,19 @@ def test_an_atr_multiple_needs_the_matching_multiple_source(hc, row):
 def test_an_atr_multiple_does_not_authorize_a_percentage(hc):
     ctx = {'t0_setups': {'rows': {'CRCL': {'range_used_atr': 1.24}}}}
     assert hc.check_numeric_claims('今日涨幅 1.24%', ctx)
+
+
+def test_million_notation_is_checked_like_any_other_currency_claim(hc):
+    # "4.26 百万美元" is 4,260,000 USD; the magnitude and the bare currency code
+    # both used to fall outside the gate (#3342).
+    assert hc.check_numeric_claims("分析师目标 4.26 百万美元。", CTX)
+    ctx = dict(CTX, raw_wechat_block=CTX["raw_wechat_block"] + "\n目标 4,260,000 美元")
+    assert hc.check_numeric_claims("分析师目标 4.26 百万美元。", ctx) == []
+    assert hc.check_numeric_claims("目标 USD 4.26 百万。", ctx) == []
+
+
+def test_every_unverified_number_is_listed_not_just_the_first_four(hc):
+    prose = ("今日 1.23%、2.34%、3.45%、4.56%、5.67%、6.78% 全部上涨。")
+    issue = hc.check_numeric_claims(prose, CTX)[0]
+    for value in ("1.23", "2.34", "3.45", "4.56", "5.67", "6.78"):
+        assert value in issue, (value, issue)
