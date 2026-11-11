@@ -1159,42 +1159,56 @@ def maybe_commit(status, today, dry_run=False, *, after_delivery=False):
     # It moved to `assets/data/evidence.json` on 2026-09-12 when the standalone
     # page was retired. The path changed; the reason this line exists did not, and
     # a reader who finds this comment should not have to rediscover it.
-    add_ok, add_out = _git('add', 'memory/', 'portfolio.json',
-                            'memory/decisions.jsonl', 'assets/data/risk.json',
-                            'assets/data/lev_regime.json', 'assets/data/benchmark.json',
-                            'assets/data/quant_signals.json',
-                            'assets/data/quant_signals_history.jsonl',
-                            'assets/data/quant_signal_review.json',
-                            'assets/data/cross_sectional_factor.json',
-                            'assets/data/cross_sectional_factor_history.jsonl',
-                            'assets/data/bar_signal_history.jsonl',
-                            'assets/data/decision_map.json',
-                            'assets/data/peer_residual.json',
-                            'assets/data/peer_residual_history.jsonl',
-                            'assets/data/catalysts.json',
-                            'assets/data/news_evidence_graph.json',
-                            'assets/data/news_evidence_history.jsonl',
-                            # 滚动窗口的冷段（#951）。目录里有 .gitkeep，所以
-                            # 归档还没生成的日子这条 pathspec 也匹配得到 ——
-                            # 匹配不到 git add 会失败，而失败会带走整次提交。
-                            'assets/data/archive/',
-                            'assets/data/em_news.json',
-                            'assets/data/guardrail_history.jsonl',
-                            'assets/data/t0_setups.json',
-                            'assets/data/t0_setups_history.jsonl',
-                            'assets/data/t0_setup_review.json',
-                            'assets/data/brief_projection.json',
-                            'logs/dashboard_build_status.json',
-                            'assets/data/evidence.json',
-                            # Left-side forward sample (observe mode). Staged only
-                            # once preflight has written it: an unmatched pathspec
-                            # fails the whole add, and the commit with it.
-                            *_existing('assets/data/left_side_history.jsonl'))
+    # This generation owns today's plan, page, snapshot and the single-file
+    # ledgers it appended to. The old whole-directory `memory/` staged whatever
+    # a timed-out earlier run had left behind, so 2026-11-09's page was published
+    # under 2026-11-10's commit title (#3354). Bars and strategy-lab are
+    # directory-scoped because their files are not day-named, but they still
+    # only receive this generation's writes.
+    day_paths = _existing(f'memory/{today}-plan.json',
+                          f'memory/{today}-pre-open.md',
+                          f'memory/snapshots/{today}.json',
+                          'memory/bars/', 'memory/strategy-lab/',
+                          'memory/decisions.jsonl')
+    add_args = ['add', *day_paths, 'portfolio.json',
+                'assets/data/risk.json',
+                'assets/data/lev_regime.json', 'assets/data/benchmark.json',
+                'assets/data/quant_signals.json',
+                'assets/data/quant_signals_history.jsonl',
+                'assets/data/quant_signal_review.json',
+                'assets/data/cross_sectional_factor.json',
+                'assets/data/cross_sectional_factor_history.jsonl',
+                'assets/data/bar_signal_history.jsonl',
+                'assets/data/decision_map.json',
+                'assets/data/peer_residual.json',
+                'assets/data/peer_residual_history.jsonl',
+                'assets/data/catalysts.json',
+                'assets/data/news_evidence_graph.json',
+                'assets/data/news_evidence_history.jsonl',
+                # 滚动窗口的冷段（#951）。目录里有 .gitkeep，所以
+                # 归档还没生成的日子这条 pathspec 也匹配得到 ——
+                # 匹配不到 git add 会失败，而失败会带走整次提交。
+                'assets/data/archive/',
+                'assets/data/em_news.json',
+                'assets/data/guardrail_history.jsonl',
+                'assets/data/t0_setups.json',
+                'assets/data/t0_setups_history.jsonl',
+                'assets/data/t0_setup_review.json',
+                'assets/data/brief_projection.json',
+                'logs/dashboard_build_status.json',
+                'assets/data/evidence.json',
+                # Left-side forward sample (observe mode). Staged only
+                # once preflight has written it: an unmatched pathspec
+                # fails the whole add, and the commit with it.
+                *_existing('assets/data/left_side_history.jsonl')]
+    add_ok, add_out = _git(*add_args)
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
 
     subject = 'revise daily deep brief' if after_delivery else 'daily deep brief'
-    commit_ok, commit_out = _git('commit', '-m', f'memory: {subject} {today}{msg_suffix}')
+    commit_paths = add_args[1:]
+    commit_ok, commit_out = _git('commit', '-m', f'memory: {subject} {today}{msg_suffix}',
+                                 '--', *commit_paths)
     if not commit_ok:
         # git words "nothing staged" by whatever else is dirty in the checkout
         # ("no changes added to commit" on the live host), so the index is
