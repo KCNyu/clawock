@@ -39,8 +39,12 @@ def test_parsing_round_trips_every_kind():
 
 
 def test_sent_ok_is_wechat_and_tg_ok_is_telegram_and_only_true_counts(tmp_path):
-    body = receipts.build_receipt(ts=1, sent_ok=0, tg_ok="yes", out="x" * 300, first_line="L")
-    assert body["sent_ok"] is False and body["tg_ok"] is True and len(body["out"]) == 200
+    body = receipts.build_receipt(ts=1, sent_ok=0, tg_ok="yes",
+                                  out="head " + "x" * 900 + " tail", first_line="L")
+    assert body["sent_ok"] is False and body["tg_ok"] is True
+    assert body["out"].startswith("head ")
+    assert body["out"].endswith(" tail")
+    assert "…" in body["out"]
     path = tmp_path / "r.json"
     path.write_text(json.dumps(body))
     assert receipts.channels(receipts.read_receipt(path)) == (False, True)

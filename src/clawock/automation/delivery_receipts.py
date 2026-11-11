@@ -113,11 +113,23 @@ def claim_path(tmp, kind, **slot) -> Path:
     return Path(tmp) / claim_name(kind, **slot)
 
 
+def _clip_out(text, limit=200):
+    """Keep the diagnostic's head (the error class/status) and tail (the detail).
+
+    A bare [-200:] dropped the WeChat/HTTP error line that explains the failure;
+    watchdog retries only see this field, not the session transcript (#3382).
+    """
+    text = text or ""
+    if len(text) <= 2 * limit:
+        return text
+    return f"{text[:limit]} … {text[-limit:]}"
+
+
 def build_receipt(*, ts, sent_ok, tg_ok, out="", **fields) -> dict:
     """The receipt body. `sent_ok` is WeChat, `tg_ok` is Telegram; the caller's own
     identity fields (first line, context id, slot…) ride along unchanged."""
     return {"ts": ts, "sent_ok": bool(sent_ok), "tg_ok": bool(tg_ok),
-            **fields, "out": (out or "")[-200:]}
+            **fields, "out": _clip_out(out)}
 
 
 def failed_wechat_body(sent_ok, message) -> dict:
