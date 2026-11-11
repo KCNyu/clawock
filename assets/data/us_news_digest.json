@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T20:07:15.743363+00:00",
+  "generated_at": "2026-11-11T19:56:46.492808+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,122 +14,115 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **SPCX**: Anthropic IPO 文件显示，其与 SpaceX 的 compute deals 到 12 月将达到约 **$3.1B/月**。  \n  **Implication**: kcn 的 SPCX 敞口通过 **SPCH（2x）**持有；若月度规模兑现，2x 将放大上行，也会放大 IPO 或执行失误的回撤。\n- **RKLB**: Q3 2026 电话会摘要称 **Neutron 定价上升、Iridium deal 继续推进**。  \n  **Implication**: kcn 的 RKLB 敞口通过 **RKLX（2x）**持有；定价与订单进展偏正面，2x 会同步放大财报催化及事件波动。\n- **CRCL**: Coinbase 获 OCC 最终批准联邦信托牌照，与 Circle、Ripple 等进入受监管托管赛道。  \n  **Implication**: 对 CRCL 属同业竞争读-through，边际偏负；但没有 Circle 自身的新订单、指引或财务数据可量化影响。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB**: Q3 更新显示 Neutron 定价改善且 Iridium 合作推进——基本面方向偏正；RKLX 的 2x 放大财报后波动。\n- **SPCX**: Anthropic 文件披露 SpaceX compute deals 约 $3.1B/月——商业化能见度提升；SPCH 的 2x 放大兑现与失误。\n- **CRCL**: Coinbase 获得联邦信托牌照——强化受监管托管竞争，但本窗口无 Circle-specific 催化，边际影响偏竞争性。\n\n### 风险 watch (若有)\n- **SPCX**: 报道援引 Cramer 称，若 Anthropic IPO 失败，SpaceX 与 Nvidia 的预期可能受冲击；$3.1B/月属于 12 月月度规模，SPCH 2x 将放大相关回撤。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **RKLB:** Q3 营收增长 73% 并超预期，但亏损扩大、Neutron 发射延至 2027；Morgan Stanley 称发射定价提升及积压增长仍支撑长期前景。  \n  **Implication:** kcn 经 **RKLX** 持有；其 **2x 杠杆**会放大业绩改善与延期风险的日内波动，净信号偏混合。\n- **CRCL:** Goldman Sachs、Citi 与另外 19 家机构承诺 2.70 亿美元设立 Project Faro，目标 2027 年推出稳定币，直接挑战 Tether 与 Circle。  \n  **Implication:** kcn 的直接 CRCL 仓位面临新的银行系竞争者；非即期份额冲击，但构成中期竞争折价。\n- **SPCX:** Starlink 2026 上半年订户强劲增长，但美国 16 州及华盛顿特区下载速度中位数下滑，网络容量能否匹配需求成为疑点。  \n  **Implication:** kcn 经 **SPCH** 持有；其 **2x 杠杆**会同时放大订户增长利好与容量瓶颈疑虑。\n\n### Per-ticker 简报 (有新闻才列)\n- **RKLB:** Q3 超预期增长被 Neutron 延期及亏损扩大抵消；长期商业化预期尚在，但执行折价仍高。\n- **CRCL:** 21 家机构推出 2.70 亿美元稳定币项目；竞争格局恶化，2027 启动时间表提供缓冲。\n- **SPCX:** Starlink 用户增长与网络质量分化并存；增长利好尚未消除容量约束风险。\n\n### 风险 watch (若有)\n- **RKLB:** Neutron 延期至 2027、Q3 亏损超预期；CEO 另指原材料供应仍是行业挑战。\n- **CRCL:** 银行 consortium 支持的新稳定币 entrant 构成明确竞争风险。\n- **SPCX:** Starlink 在部分市场下载速度下滑，若容量扩张落后于订户增长，可能影响体验与变现。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 4,
     "RKLB": 5,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Coinbase vs. SoFi: The Recent Market Sell-Off Exposes Two Very Different Fintech Risks for 2027",
-        "datetime": 1794257402,
+        "headline": "5 Best AI-Powered Financial Stocks to Buy According to Analysts",
+        "datetime": 1794351138,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5dc201e745eb8f13df778c04568718ff9bb4282f2d5c8e73e7df2f62cb5f06f3"
+        "url": "https://finnhub.io/api/news?id=b8b84a3e460a4d96348613bcf239fee3dd5f492c60bc2d309b3d59b810192aaf"
       },
       {
-        "headline": "Coinbase secures unconditional trust charter",
-        "datetime": 1794245030,
+        "headline": "Goldman, Citi Commit $270M to Their Own Stablecoin: Can Tether and Circle Hold On?",
+        "datetime": 1794341988,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=eb4ef6423bbcd4c9a57612bd9a35bd592296ed3318b589b6de7c9aa2c8ebef75"
+        "url": "https://finnhub.io/api/news?id=bb399fad1cb3dc71403be6dc4631bd782cf91da8a8cd27a5ccf0d52f722c45ea"
       },
       {
-        "headline": "PNC Bank Partners With Coinbase to Offer USDC Payments to Clients",
-        "datetime": 1794239040,
+        "headline": "Coinbase Falls 4%, Robinhood Slides 3% as Hot Inflation Data Drags Bitcoin Lower; Webull Declines 2%",
+        "datetime": 1794333101,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f44b66c847d4c675de617fea620364fc0f3acfb173161b2bebf21ac2d33789be"
+        "url": "https://finnhub.io/api/news?id=5ec16cb199e7e03b22c606d4b0a77d8c579f7f692dbf4298d01c80e476e89545"
       },
       {
-        "headline": "Applied Digital Slides 37% YTD: Time to Exit or Hold the Stock?",
-        "datetime": 1794237600,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6bbe429a2882616c767018d312b4d2bf7f3cb9da06f22c52efb8fa3afd7796e6"
-      },
-      {
-        "headline": "Coinbase Joins Circle, Ripple With Federal Trust Charter",
-        "datetime": 1794228933,
+        "headline": "Goldman Sachs, Citi Back $270M Stablecoin Venture to Challenge Tether, Circle",
+        "datetime": 1794319485,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fc1ca20be43b4fc4274cc4d31c2e19939fd3c29bf452dd0b201c3b50970e5678"
+        "url": "https://finnhub.io/api/news?id=69e7ebe4dc76363960205c8999b7e3ab3b5aaf2a7a20f0f4bbcea2e935d82b1e"
       }
     ],
     "RKLB": [
       {
-        "headline": "Space stocks Rocket Lab, AST SpaceMobile on the move following earnings, operational updates",
-        "datetime": 1794333204,
+        "headline": "Rocket Lab Long-Term Trajectory Intact Amid Higher Neutron Pricing, Backlog Expansion, Morgan Stanley Says",
+        "datetime": 1794418302,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8902779d5098de4c579140a79232d6164914abfdfb6d77598d2eb6a24631983b"
+        "url": "https://finnhub.io/api/news?id=5ce3a7200167e0ffdd46f34a4d2d85a73239c007a7945821ed64079cc623bd09"
       },
       {
-        "headline": "Stock Market Midday, Nov. 10: Stocks Slide on Hot Inflation Data",
-        "datetime": 1794332420,
+        "headline": "RKLB Q3 Earnings Call Highlights Neutron Demand and Launch Delays",
+        "datetime": 1794413280,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1597d240a349a64fcfcc0b4cd8162d918dfc350ebefc66c13dba1cda1aa58748"
+        "url": "https://finnhub.io/api/news?id=aa1d6dc868e8d26da2511e75495d6a9ee396fff5b3aac6104c4b0c19d681c749"
       },
       {
-        "headline": "Rocket Lab earnings: what to look for from RKLB",
-        "datetime": 1794330576,
+        "headline": "Rocket Lab's Neutron Commercialization Path Outweighs Q3 Margin Noise, Morgan Stanley Says",
+        "datetime": 1794411842,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7fae8ecf7e0005bec2cdd09bc7e12d51f239115d488dcb58daf1d0571771d0c4"
+        "url": "https://finnhub.io/api/news?id=6fa7b1e41fd1b470729e16c57daa9e12cc3367d374ca090c2257ffc41ed51c50"
       },
       {
-        "headline": "Rocket Lab (RKLB) Q3 2026 Earnings Call Transcript",
-        "datetime": 1794326381,
+        "headline": "Rocket Lab CEO Peter Beck Says 'Critical Minerals' Remain 'a Challenge for a Number of Industries' While Trump Pushes Greenland Exploration",
+        "datetime": 1794411008,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=baea65304c3844978e8f8b7283c31d28a2e279ca472cf2cba750e0aa4ea1ebd4"
+        "url": "https://finnhub.io/api/news?id=65192b061d476260ee552541e7480f442284817777dd21b71c7a9f0fad423e64"
       },
       {
-        "headline": "AST SpaceMobile Sinks 8% on Q3 Miss as BofA Slashes Target to $45 Over Rocket Risk",
-        "datetime": 1794325995,
-        "source": "Yahoo",
+        "headline": "Rocket Lab: Liftoff Before The Launch",
+        "datetime": 1794401268,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8a6538867bdf846145157ddb23a42aa8b796f9de8cb75f57ee832b1551bda403"
+        "url": "https://finnhub.io/api/news?id=9764305407e639d110b731d03ca235aa0448ceae1b885ff15e306f6e3870075c"
       }
     ],
     "SPCX": [
       {
-        "headline": "Musk Calls Anthropic’s Opus 5.5 “a Masterpiece” but Says Grok 5 Beats It “in 2 or 3 Months”",
-        "datetime": 1794333332,
+        "headline": "Anthropic IPO retail demand and market positioning risks ahead of debut",
+        "datetime": 1794419175,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3e996f13bc7a5fbc30eec5370705d2a0477708de15d0a426e655fa14bca27486"
+        "url": "https://finnhub.io/api/news?id=dfbebacb61fa373b33e87f2aac18646ad799fe8aa47de6b1d8a26588a2168bd7"
       },
       {
-        "headline": "Space stocks Rocket Lab, AST SpaceMobile on the move following earnings, operational updates",
-        "datetime": 1794333204,
+        "headline": "Is UBS Wrong to Give Up on AST SpaceMobile? Wall Street Still Sees $68",
+        "datetime": 1794416957,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8902779d5098de4c579140a79232d6164914abfdfb6d77598d2eb6a24631983b"
+        "url": "https://finnhub.io/api/news?id=e729c0f7629571f606d19cc1463549b758104f28d0f39bcabaf863e25eb24b30"
       },
       {
-        "headline": "Apple Just Hit $5 Trillion. Its “Biggest Competition” Is a SpaceX Phone, Says Gene Munster",
-        "datetime": 1794332391,
+        "headline": "SpaceX’s Starlink Sees Strong Subscriber Growth in H1 2026, But Ookla Asks Whether Network Capacity Can Keep Up With Growing Demand",
+        "datetime": 1794416297,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bf9c20852c2f2d53452e0bfa0d494389af1d6afae50cea35f94bb1e66bc5e271"
+        "url": "https://finnhub.io/api/news?id=2dac6b3db4837c5be1cff4c1a40e916f183d92406dd16e91ab4f218949d7a357"
       },
       {
-        "headline": "Why SpaceX Could Be the Best Buy-and-Hold Stock of the Decade",
-        "datetime": 1794332160,
+        "headline": "CoreWeave’s Rise Takes Super Micro Along for the Ride, Sending Stock Higher",
+        "datetime": 1794415860,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0f7ab32d2ce7ea3abe156efcb88538180091cb2c4233100067ac8939b96b0a05"
+        "url": "https://finnhub.io/api/news?id=2400fb30fb454e13bd2600d17bfdb46c604e2cd3b54d4e49a1e3313a78cc8097"
       },
       {
-        "headline": "Anthropic Will Pay SpaceX “Over $3 Billion Per Month.” Cramer Says a Failed IPO Hits Nvidia Too",
-        "datetime": 1794329039,
+        "headline": "Anthropic Carves Out Up To 20% of IPO For Retail Investors",
+        "datetime": 1794415560,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=056fd7fe54afdce25b47bcd7b4aa914593d36df130220a45c3603996d60a8f60"
+        "url": "https://finnhub.io/api/news?id=cd2e456f6c4605df3dae42c2d13bc7f3a3ff9db6095a216c3f57f4c06578638e"
       }
     ]
   },
