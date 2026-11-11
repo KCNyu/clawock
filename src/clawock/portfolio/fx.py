@@ -17,10 +17,12 @@ import argparse
 import json
 import os
 import time
+from datetime import datetime, timezone
 from typing import Optional, Dict
 import requests
 
 from clawock.safe_io import safe_write_json
+from clawock.sessions import HKT
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -140,9 +142,23 @@ def _save_cache(data: Dict):
 
 
 def _ledger_day(entry: Dict) -> str:
-    """The UTC day an entry belongs to, from its fetch time."""
-    stamp = (entry.get('fetched_at') or '')[:10]
-    return stamp or time.strftime('%Y-%m-%d', time.gmtime())
+    """The HKT day an entry belongs to, from its fetch time.
+
+    The rest of the desk keys days by HKT (the brief and the HK session), and a
+    fetch at HKT 02:00 is still 18:00Z the previous day. A UTC prefix put that
+    row under the previous day's key (#3385). Old rows keep their historical
+    key; only new writes use this.
+    """
+    stamp = entry.get('fetched_at') or ''
+    try:
+        at = datetime.fromisoformat(stamp.replace('Z', '+00:00'))
+    except ValueError:
+        at = None
+    if at is None:
+        at = datetime.now(timezone.utc)
+    if at.tzinfo is None:
+        at = at.replace(tzinfo=timezone.utc)
+    return at.astimezone(HKT).date().isoformat()
 
 
 def read_rate_ledger(path: str = None) -> Dict[str, Dict]:
