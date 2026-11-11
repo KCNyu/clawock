@@ -1043,9 +1043,9 @@ export function createClaudeService(
       if (!existsSync(credentialsPath)) return undefined
       try {
         JSON.parse(readFileSync(credentialsPath, 'utf8'))
-      } catch (cause) {
-        throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):`
-          + (cause instanceof Error ? cause.message : String(cause)))
+      } catch {
+        // JSON.parse errors may quote credential contents; never expose the cause.
+        throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):请检查文件权限和 JSON 格式`)
       }
       const token = readClaudeCredentials(credentialsPath)?.creds.accessToken
       if (typeof token !== 'string' || token.trim() === '') {
