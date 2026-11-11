@@ -17,6 +17,7 @@ from pathlib import Path
 
 from clawock.instruments import get as get_instrument
 from clawock.instruments import one_x_swap_map
+from clawock.portfolio.math import ledger_rows
 from clawock.safe_io import temp_dir_lock, safe_write_json
 from clawock.workspace import workspace_root
 
@@ -156,7 +157,7 @@ def _fingerprint(row: dict) -> str:
 def _holding_map(portfolio: dict) -> dict[str, dict]:
     out = {}
     for book in (portfolio.get("portfolios") or {}).values():
-        for holding in (book or {}).get("holdings") or []:
+        for holding in ledger_rows((book or {}).get("holdings")):
             ticker = str(holding.get("ticker") or holding.get("code") or "")
             if ticker:
                 out[ticker] = holding
@@ -179,7 +180,7 @@ def _broker_evidence(record: dict, portfolio: dict) -> list[dict]:
     opened_day = opened.date().isoformat() if opened else ""
     evidence = []
     for ticker in sorted(set(targets)):
-        for trade in (holdings.get(ticker) or {}).get("trades") or []:
+        for trade in ledger_rows((holdings.get(ticker) or {}).get("trades")):
             if (str(trade.get("action") or "").lower() != "sell"
                     or str(trade.get("date") or "") < opened_day):
                 continue

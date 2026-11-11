@@ -1201,9 +1201,9 @@ def _accumulate_day_range(holding, q, c, *, now_et, today_et_date):
 
 def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_prev_session):
     t = holding['ticker']
-    old_price = holding.get('current_price', 0)
-    cost = holding['cost_basis']
-    shrs = number(holding['shares'])
+    old_price = number(holding.get('current_price')) or 0.0
+    cost = number(holding.get('cost_basis')) or 0.0
+    shrs = number(holding.get('shares')) or 0.0
 
     c, pc, pc_date, prev_close_ok = _resolve_prev_close(
         q, holding, prev_closes, ticker=t, today_et_date=today_et_date,
@@ -1280,7 +1280,8 @@ def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, ticker
                         updated, missing, source_counts):
     # Recompute portfolio totals from all active holdings
     all_active_h = active_holdings(us['holdings'])
-    total_cost  = sum(h['cost_basis'] * number(h['shares']) for h in all_active_h)
+    total_cost  = sum((number(h.get('cost_basis')) or 0.0) * (number(h.get('shares')) or 0.0)
+                      for h in all_active_h)
     total_value = sum(carried_value(h) for h in all_active_h)
     total_pnl   = total_value - total_cost
     today_chg   = sum(h.get('today_change', 0) for h in all_active_h)
