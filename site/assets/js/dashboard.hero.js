@@ -769,7 +769,13 @@
     if (fxEl) {
       if (fx) {
         const at = fxMeta.fetched_at ? new Date(fxMeta.fetched_at) : null;
-        const stamp = at && !isNaN(at) ? at.toISOString().replace("T", " ").slice(0, 16) + "Z" : "";
+        // The page's other clocks say HKT; a bare UTC "Z" here read as local
+        // time and hid that the rate was fetched at 08:03 HKT (#3365).
+        const stamp = at && !isNaN(at) ? at.toLocaleString("zh-CN", {
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", hour12: false,
+          timeZone: "Asia/Hong_Kong",
+        }) + " HKT" : "";
         // 逐段包 span：整行以前是一个 textContent，浏览器于是在任何空格处
         // 断行 —— 1200 档实测把时间戳劈成「2026-」+「08-24 00:03Z」，一个
         // 值被折成两半。段内 nowrap、段间可断，和上面那行副行同一套规矩。

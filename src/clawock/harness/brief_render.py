@@ -591,7 +591,11 @@ def holdings_section(context):
                      f"**{money(book.get('total_pnl'), digits=0)}**"])
         # A quote stamp is free text off the feed ("Tencent+Eastmoney Oct 16 09:50
         # HKT"), so it goes through the same inline escape as a headline (#3001).
-        sources = sorted({_inline(row["data_source"]) for row in held if row.get("data_source")})
+        # "Eastmoney (alt-prefix)" is the same feed as "Eastmoney" from the
+        # exchange-prefix retry. Printing both in one header read like two
+        # providers and made the reader pick a price source (#3367).
+        sources = sorted({_inline(row["data_source"]).replace(" (alt-prefix)", "")
+                          for row in held if row.get("data_source")})
         # The column is a percentage against the previous close, so the header
         # names a change and the session it belongs to, never a price (#2579).
         sessions = {str(row.get("day_session_date") or "") for row in held}

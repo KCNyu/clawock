@@ -825,6 +825,11 @@
     const fmt = (v, suffix='') => v == null || isNaN(v) ? DASH : (fixed(Number(v), 2) + suffix);
     // Trend tag: 'up'/'down'/'' so .sub can be color-coded
     const trend = (chg) => chg == null ? '' : (chg > 0 ? 'up' : (chg < 0 ? 'down' : ''));
+    // A session-dated macro cell says which close it quotes. Without this the
+    // band's 11-09 closes sat unlabelled beside the snapshot card's 11-10
+    // quote, and the two opposite moves read as the same moment (#3344).
+    const closeNote = (asOf) => typeof asOf === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(asOf)
+      ? ` · ${asOf.slice(5)} 收盘` : '';
 
     // Volatility / rates / dollar (existing)
     if (m.vix?.price != null) cells.push({lbl: 'VIX', val: fmt(m.vix.price), sub: fmtPct(m.vix.change_pct), cls: trend(m.vix.change_pct)});
@@ -834,12 +839,12 @@
 
     // [A] Market indices — newly added so dashboard aligns with brief ▎大盘速读
     const idxFmt = (v) => v == null ? DASH : (v >= 1000 ? Math.round(v).toLocaleString() : fmt(v));
-    if (m.spx?.price != null)    cells.push({lbl: 'SPX',    val: idxFmt(m.spx.price),    sub: fmtPct(m.spx.change_pct),    cls: trend(m.spx.change_pct)});
+    if (m.spx?.price != null)    cells.push({lbl: 'SPX',    val: idxFmt(m.spx.price),    sub: fmtPct(m.spx.change_pct) + closeNote(m.spx.as_of), cls: trend(m.spx.change_pct)});
     // macro.nasdaq is the Nasdaq Composite (^IXIC), not the Nasdaq-100 — the
     // real NDX lives in DATA.indices and the Market Snapshot card (#1548).
-    if (m.nasdaq?.price != null) cells.push({lbl: 'IXIC',   val: idxFmt(m.nasdaq.price), sub: fmtPct(m.nasdaq.change_pct), cls: trend(m.nasdaq.change_pct)});
-    if (m.hsi?.price != null)    cells.push({lbl: 'HSI',    val: idxFmt(m.hsi.price),    sub: fmtPct(m.hsi.change_pct),    cls: trend(m.hsi.change_pct)});
-    if (m.hstech?.price != null) cells.push({lbl: 'HSTECH', val: idxFmt(m.hstech.price), sub: fmtPct(m.hstech.change_pct), cls: trend(m.hstech.change_pct)});
+    if (m.nasdaq?.price != null) cells.push({lbl: 'IXIC',   val: idxFmt(m.nasdaq.price), sub: fmtPct(m.nasdaq.change_pct) + closeNote(m.nasdaq.as_of), cls: trend(m.nasdaq.change_pct)});
+    if (m.hsi?.price != null)    cells.push({lbl: 'HSI',    val: idxFmt(m.hsi.price),    sub: fmtPct(m.hsi.change_pct) + closeNote(m.hsi.as_of), cls: trend(m.hsi.change_pct)});
+    if (m.hstech?.price != null) cells.push({lbl: 'HSTECH', val: idxFmt(m.hstech.price), sub: fmtPct(m.hstech.change_pct) + closeNote(m.hstech.as_of), cls: trend(m.hstech.change_pct)});
 
     // Sentiment aggregate (kept as quick-glance counts; per-ticker drill below)
     if (s.tickers && Array.isArray(s.tickers)) {

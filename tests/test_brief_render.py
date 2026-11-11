@@ -916,3 +916,18 @@ def test_card_book_total_is_a_whole_bold_line_and_the_legs_a_table():
     assert lines[5].startswith("| 盈亏 |") and lines[6].startswith("| 集中度 |")
     assert lines[7] == "" and lines[8].startswith("USDHKD ")
     assert all(line.count("$") <= 1 for line in lines[:9])
+
+
+def test_the_leg_header_collapses_the_alt_prefix_source_spelling():
+    """The exchange-prefix retry is the same Eastmoney feed, not a second source (#3367)."""
+    ctx = copy.deepcopy(CONTEXT)
+    ctx["portfolio"]["portfolios"]["us_stocks"]["holdings"] = [
+        {"ticker": "AAA", "name": "A", "shares": 1, "cost_basis": 1,
+         "current_price": 1, "data_source": "Eastmoney (alt-prefix) Nov 10, 2026 19:03 ET"},
+        {"ticker": "BBB", "name": "B", "shares": 1, "cost_basis": 1,
+         "current_price": 1, "data_source": "Eastmoney Nov 10, 2026 19:03 ET"},
+    ]
+    text = render.holdings_section(ctx)
+    us_header = next(line for line in text.splitlines() if line.startswith("**US leg**"))
+    assert us_header.count("Eastmoney") == 1, us_header
+    assert "alt-prefix" not in us_header
