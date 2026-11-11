@@ -27,7 +27,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'shared-memory' / 'scripts'))
-from review_dreaming import reasons  # noqa: E402
+from review_dreaming import atomic_write, reasons  # noqa: E402
 import provenance  # noqa: E402  (private topic bodies may not reach a public file)
 
 DEFAULT_STORE = Path(os.environ.get('SHARED_MEMORY_DIR', '~/.shared-memory')).expanduser()
@@ -245,18 +245,6 @@ def approve(workspace: Path, target: str, reviewer: str, rationale: str,
     atomic_write(dreams_path, text)
     print(f'dreams review: approved {target}; rerun review to record it')
     return 0
-
-
-def atomic_write(path: Path, text: str, private: bool = False) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + '.review-tmp')
-    with tmp.open('w') as stream:
-        if private:
-            os.fchmod(stream.fileno(), 0o600)
-        stream.write(text)
-        stream.flush()
-        os.fsync(stream.fileno())
-    tmp.replace(path)
 
 
 def main() -> int:

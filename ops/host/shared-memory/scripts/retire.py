@@ -30,6 +30,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import recall  # noqa: E402
 from memory import index_refs, split_frontmatter  # noqa: E402
+from replay import now_from  # noqa: E402
 
 STALE_DAYS = int(os.environ.get("SHARED_MEMORY_STALE_DAYS", "90"))
 USAGE_DAYS = int(os.environ.get("SHARED_MEMORY_USAGE_DAYS", "30"))
@@ -45,13 +46,6 @@ VALID = {
 SCOPE_RE = re.compile(r"[a-z][a-z0-9_-]*")
 LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
 ROUTE_RE = re.compile(r"`([a-zA-Z0-9][\w.-]*)\.md`")
-
-
-def now_from(value: str | None) -> dt.datetime:
-    if not value:
-        return dt.datetime.now(dt.timezone.utc).astimezone()
-    parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=dt.timezone.utc)
 
 
 def parse_day(value: str | None) -> dt.date | None:
