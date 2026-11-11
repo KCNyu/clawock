@@ -2239,6 +2239,13 @@ def _collect(argv=None):
         decision_packet = brief_decision_packet.compile_packet(
             context, generation_id=generation_id
         )
+        # Read-budget warning is part of this generation: append it before the
+        # bundle's deepcopy, so audit/core, data_holes and the ledger's
+        # issue_count all carry the same list (#3343).
+        read_budget = brief_decision_packet.read_budget_report(decision_packet)
+        for read in read_budget['over_budget']:
+            issues.append(f'decision packet read `{read}` 超出预算，工具会拒读；'
+                          '模型只能逐票 decision_packet_query')
         context, bundle_manifest = brief_context.write_run_bundle(
             context,
             ctx_path,
@@ -2260,14 +2267,9 @@ def _collect(argv=None):
     except Exception as exc:  # noqa: BLE001
         print(f'   ⚠ left_side_history not written: {type(exc).__name__}: {exc}'[:200])
 
-    read_budget = brief_decision_packet.read_budget_report(decision_packet)
     # A read the tool will refuse is known now, not after the model's turn has
     # started (#3109). It stays an issue rather than a failed generation: the
     # off-host fallback inlines the whole packet and can still write the brief.
-    for read in read_budget['over_budget']:
-        issues.append(f'decision packet read `{read}` 超出预算，工具会拒读；'
-                      '模型只能逐票 decision_packet_query')
-
     print(f'\n═════ preflight done | {len(issues)} issues ═════')
     print(f'context: {ctx_path}')
     print(
