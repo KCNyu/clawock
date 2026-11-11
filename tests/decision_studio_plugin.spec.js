@@ -2242,13 +2242,16 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
 
     // #2266: present but unreadable is a failed read, not "not configured".
     const brokenPath = pathMod.join(tmp, "broken.json");
-    fsMod.writeFileSync(brokenPath, "{ not json");
+    // A JSON.parse error quotes the file's first bytes. The canary stands in
+    // for the access token that must never reach the balance response (#3243).
+    fsMod.writeFileSync(brokenPath, "sekret-leakcanary");
     const unreadable = await createClaudeService(
       { credentials: { resolve: async () => undefined } },
       { credentialsPath: brokenPath, usageUrl: "https://api.anthropic.com/api/oauth/usage" },
     ).get(false);
     assert.equal(unreadable.status, "failed");
     assert.match(unreadable.message, /读不出来/);
+    assert.doesNotMatch(JSON.stringify(unreadable), /sekret/, "credential fragments stay out of the balance response");
     for (const value of [{ claudeAiOauth: {} }, {}, { claudeAiOauth: { accessToken: " " } }]) {
       fsMod.writeFileSync(credsPath, JSON.stringify(value));
       const tokenless = await svc.get(true);

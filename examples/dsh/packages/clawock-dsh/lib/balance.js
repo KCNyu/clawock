@@ -663,8 +663,8 @@ function createClaudeService(deps, config = {}) {
 			if (!existsSync(credentialsPath)) return void 0;
 			try {
 				JSON.parse(readFileSync(credentialsPath, "utf8"));
-			} catch (cause) {
-				throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):` + (cause instanceof Error ? cause.message : String(cause)));
+			} catch {
+				throw new Error(`Claude 登录文件读不出来(${config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH}):请检查文件权限和 JSON 格式`);
 			}
 			const token = readClaudeCredentials(credentialsPath)?.creds.accessToken;
 			if (typeof token !== "string" || token.trim() === "") throw new Error(`Claude 登录文件里没有可用 accessToken(${credentialsPath})`);
