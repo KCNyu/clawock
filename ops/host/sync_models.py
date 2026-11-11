@@ -35,7 +35,9 @@ sys.path.insert(0, str(_CHECKOUT / 'src'))
 from clawock.model_registry import load  # noqa: E402
 from clawock.providers.openclaw import read_jobs, read_runs, runtime_paths  # noqa: E402
 
-DSH_PROFILES = Path.home() / '.dsh' / 'profiles'
+from clawock.providers import dsh
+
+DSH_PROFILES = dsh.profiles_dir()
 PROVIDER_OWNED = ('baseUrl', 'api', 'authHeader', 'timeoutSeconds', 'models')
 
 

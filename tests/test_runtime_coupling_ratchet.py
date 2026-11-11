@@ -60,6 +60,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "src" / "clawock" / "providers"
 
 RUNTIME = "openclaw"
+# The repository now ships for two runtimes. A path rule that only knows
+# openclaw reports zero while the portable layer knows where dsh keeps its
+# credentials (#3353).
+RUNTIMES = (RUNTIME, "dsh")
 
 # Lower this as consumers move behind clawock.providers. It must never rise.
 # The per-file split is in the failure message; keeping a copy here only
@@ -118,13 +122,19 @@ def _names_bound_to_the_binary(tree: ast.AST) -> set[str]:
 
 
 def _is_runtime_path(value: str) -> bool:
-    """A filesystem path that names openclaw: its home, state, config, install."""
-    if RUNTIME not in value or " " in value.strip():
+    """A filesystem path that names a runtime's private layout."""
+    if " " in value.strip() or not any(runtime in value for runtime in RUNTIMES):
         return False
     if "/" in value:
         # `/root/.openclaw` is a dotted home directory, `node_modules/openclaw`
         # an install, `state/openclaw.sqlite` a private database. All three name
-        # it as a path segment; a sentence mentioning it does not.
+        # it as a path segment; a sentence mentioning it does not. dsh is
+        # checked by its dotted home only: `examples/dsh` is this repository's
+        # own plugin source, not another runtime's storage.
+        if "dsh" in value and any(
+                part == ".dsh" or part.startswith(".dsh.")
+                for part in value.split("/")):
+            return True
         return any(part.lstrip(".") == RUNTIME or part.lstrip(".").startswith(f"{RUNTIME}.")
                    for part in value.split("/"))
     # A bare filename still points at its private storage: `openclaw.sqlite`.
@@ -182,7 +192,7 @@ def _is_argv_vector(node: ast.AST, enumerations: set[int]) -> bool:
     if not isinstance(node, ast.List) or not node.elts or id(node) in enumerations:
         return False
     head = node.elts[0]
-    if not (isinstance(head, ast.Constant) and head.value == RUNTIME):
+    if not (isinstance(head, ast.Constant) and head.value in RUNTIMES):
         return False
     # An enumeration is all literal peers; a command line carries arguments —
     # a flag, or a value computed at runtime.
@@ -216,12 +226,12 @@ def _sites_in(tree: ast.AST) -> list[int]:
         if isinstance(node, ast.Call) and _is_spawn(node) and node.args:
             first = node.args[0]
             if (isinstance(first, ast.Constant) and isinstance(first.value, str)
-                    and first.value.split()[:1] == [RUNTIME]):
+                    and first.value.split()[:1] in ([runtime] for runtime in RUNTIMES)):
                 found.append(node.lineno)
                 continue
             if (isinstance(first, (ast.List, ast.Tuple)) and first.elts
                     and isinstance(first.elts[0], ast.Constant)
-                    and first.elts[0].value == RUNTIME):
+                    and first.elts[0].value in RUNTIMES):
                 found.append(first.lineno)
                 continue
         # 3. Another runtime's private files.
@@ -502,6 +512,18 @@ HOST_OWNED_SHELL = {
            "instead of vendoring a duplicate dependency; NOSTR_TOOLS_PATH "
            "overrides the path and a missing OpenClaw install falls through "
            "to a bare require() rather than silently using stale data"),
+    "ops/host/agent-dispatch/quota.mjs": (
+        2, "host quota reader: resolves the same dsh credentials seam the runner "
+           "exports, so the notice can print the provider balances"),
+    "ops/host/agent-dispatch/run-agent.sh": (
+        1, "host runner: reads the dsh credentials seam to export the provider "
+           "keys the CLI needs; the fallback path is the documented launcher input"),
+    "ops/host/install_dsh_plugin.sh": (
+        3, "host installer: owns the two dsh profile directories the plugin is "
+           "copied into, which is the installer's whole subject"),
+    "site/tools/dsh_bundle.js": (
+        1, "screenshot tool: loads the installed dsh profile's client bundle for "
+           "a local preview, a host-only aid that never ships in the package"),
     "examples/dsh/packages/clawock-dsh/lib/balance.js": (
         1, "the balance chip's key-resolution chain ends at the gateway's own "
            "provider config: credentials seam and env resolve first, and the "
