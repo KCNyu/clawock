@@ -878,10 +878,18 @@ def trim_holding(h, currency):
     Missing daily highs/lows likewise stay null, as in compute_today_ranges;
     an observed zero remains a number (#3212).
     """
+    def number_or(value, fallback=0.0):
+        parsed = _share_number(value)
+        return fallback if parsed is None else parsed
+
+    def rounded(value, digits):
+        parsed = _share_number(value)
+        return None if parsed is None else round(parsed, digits)
+
     def today(field):
         if (_share_number(h.get('shares')) or 0) <= 0:
             return 0.0
-        value = session_change_pct(h) if field == 'today_change_pct' else h.get(field)
+        value = session_change_pct(h) if field == 'today_change_pct' else _share_number(h.get(field))
         return None if value is None else round(value, 2)
 
     return {
@@ -890,18 +898,18 @@ def trim_holding(h, currency):
                 or h.get('name') or h.get('stock_name', ''),
         'currency': currency,
         'shares': h.get('shares', 0),
-        'cost_basis': round(h.get('cost_basis') or 0, 4),
-        'current_price': round(h.get('current_price') or 0, 4),
+        'cost_basis': round(number_or(h.get('cost_basis')), 4),
+        'current_price': round(number_or(h.get('current_price')), 4),
         # A row before its first quote is worth its cost, as the leg totals
         # above it count it (#2967); 0 here split the row from its own leg.
         'current_value': round(carried_value(h), 2),
         'valuation_basis': valuation_basis(h),
         'today_change': today('today_change'),
         'today_change_pct': today('today_change_pct'),
-        'day_high': None if h.get('day_high') is None else round(h['day_high'], 4),
-        'day_low': None if h.get('day_low') is None else round(h['day_low'], 4),
-        'pnl_abs': round(h.get('pnl_abs') or 0, 2),
-        'pnl_percent': round(h.get('pnl_percent') or 0, 2),
+        'day_high': rounded(h.get('day_high'), 4),
+        'day_low': rounded(h.get('day_low'), 4),
+        'pnl_abs': round(number_or(h.get('pnl_abs')), 2),
+        'pnl_percent': round(number_or(h.get('pnl_percent')), 2),
         'is_active': (_share_number(h.get('shares')) or 0) > 0,
         'trades_count': len(h.get('trades') or []),
         # The row's own session, as the fetcher assigned it. The holdings table's

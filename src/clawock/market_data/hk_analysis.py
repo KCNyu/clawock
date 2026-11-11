@@ -36,7 +36,7 @@ from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import session_change_pct
-from clawock.portfolio.math import number, day_pnl, ledger_rows, trade_session_date
+from clawock.portfolio.math import day_pnl, ledger_rows, trade_session_date
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
 
@@ -415,8 +415,8 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     code = h['ticker']
     c    = q['c']
     pc   = q['pc']
-    cost = h['cost_basis']
-    shrs = number(h['shares'])
+    cost = _share_number(h.get('cost_basis')) or 0.0
+    shrs = _share_number(h.get('shares')) or 0.0
 
     # A fallback that cannot supply a prior close must not be allowed to
     # invent one. stooq returns OHLC only, and `_fetch_stooq` fills `pc`
@@ -552,7 +552,8 @@ def _hk_finalize_region(data, hk_key, region_before_fetch, active, hkt_str,
             print(f"     - {w}", file=sys.stderr)
 
     # Portfolio totals
-    total_cost  = sum(h['cost_basis'] * number(h['shares']) for h in active)
+    total_cost  = sum((_share_number(h.get('cost_basis')) or 0.0) * (_share_number(h.get('shares')) or 0.0)
+                      for h in active)
     total_value = sum(carried_value(h) for h in active)
     total_pnl   = total_value - total_cost
     today_chg   = sum(h.get('today_change') or 0 for h in active)

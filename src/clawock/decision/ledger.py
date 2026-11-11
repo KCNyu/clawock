@@ -30,7 +30,7 @@ from pathlib import Path
 
 from clawock import seeds
 from clawock import sessions as _cal
-from clawock.portfolio.math import trade_session_date
+from clawock.portfolio.math import ledger_rows, trade_session_date
 from clawock.decision import proposals
 from clawock.decision.mind_record import validate_mind_record
 from clawock.decision.book import plan_totals, validate_plan_book
@@ -1522,9 +1522,9 @@ def _portfolio_trades(portfolio: dict) -> list[dict]:
     out = []
     for region, leg in (("hk_stocks", "HK"), ("us_stocks", "US")):
         holdings = ((portfolio.get("portfolios") or {}).get(region) or {}).get("holdings") or []
-        for holding_index, holding in enumerate(holdings):
+        for holding_index, holding in enumerate(ledger_rows(holdings)):
             ticker = str(holding.get("ticker") or holding.get("code") or "")
-            for trade_index, trade in enumerate(holding.get("trades") or []):
+            for trade_index, trade in enumerate(ledger_rows(holding.get("trades"))):
                 row = copy.deepcopy(trade)
                 row.update({
                     "ticker": ticker,

@@ -407,7 +407,7 @@ def _date_close_map(series):
 def _shares_on(holding: dict, as_of: str) -> float:
     """Reconstruct close-of-day shares from today's shares and later trades."""
     shares = (_share_number(holding.get('shares')) or 0)
-    for trade in holding.get('trades') or []:
+    for trade in ledger_rows(holding.get('trades')):
         trade_date = str(trade.get('date') or '')[:10]
         if not trade_date or trade_date <= as_of:
             continue

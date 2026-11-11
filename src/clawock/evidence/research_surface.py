@@ -173,7 +173,7 @@ def active_positions(portfolio: dict) -> list[dict]:
                 continue
             buys = [
                 _parse_date(trade.get("date"))
-                for trade in holding.get("trades") or []
+                for trade in ledger_rows(holding.get("trades"))
                 if trade.get("action") == "buy"
             ]
             buys = [day for day in buys if day]

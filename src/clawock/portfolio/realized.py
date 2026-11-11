@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from clawock.portfolio.math import ledger_date, ledger_rows
-from clawock.safe_io import mutate_json
+from clawock.safe_io import mutate_json, to_strict_finite_number
 from clawock.workspace import workspace_root
 
 # The CLI operates on the configured workspace. Library callers pass an
@@ -32,14 +32,20 @@ def _aggregate(holdings: List[Dict]) -> Tuple[float, str, List[Dict]]:
     for h in ledger_rows(holdings):
         ticker = h.get('ticker', '?')
         for t in ledger_rows(h.get('trades')):
-            r = t.get('realized_pnl')
+            # A hand-entered fill may quote a number ("34.8"). Read it as the
+            # number it is instead of letting the raw leaf crash the quote
+            # writer before it can persist today's prices (#3359); the integer
+            # gate still names a leaf that is not a number at all.
+            r = to_strict_finite_number(t.get('realized_pnl'))
             if r is None:
                 continue
+            shares = to_strict_finite_number(t.get('shares'))
+            price = to_strict_finite_number(t.get('price'))
             sells.append({
                 'date':         ledger_date(t.get('date')),
                 'ticker':       ticker,
-                'shares':       t.get('shares', 0),
-                'price':        t.get('price', 0),
+                'shares':       shares if shares is not None else 0,
+                'price':        price,
                 'realized_pnl': r,
             })
 
@@ -50,7 +56,7 @@ def _aggregate(holdings: List[Dict]) -> Tuple[float, str, List[Dict]]:
     for s in sells:
         # Format: "TICKER Nshares@price(+realized)"
         # Round price/realized to keep notes tidy; price stays as-is unless float oddity.
-        price_s = f"{s['price']:g}"
+        price_s = '?' if s['price'] is None else f"{s['price']:g}"
         r = s['realized_pnl']
         r_s = f"{r:+g}".replace('+', '+').replace('-', '-')
         parts.append(f"{s['ticker']} {s['shares']}股@{price_s}({r_s})")
