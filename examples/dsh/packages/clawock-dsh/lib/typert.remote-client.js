@@ -112,6 +112,7 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'lastEvent': z.string(),
   'lastEventAtMs': z.union([z.number(), z.literal(null)]),
   'needs': z.string().optional(),
+  'needsAck': z.boolean().optional(),
   'stage': z.string().optional(),
   'attention': z.string().optional(),
   'finishedAtMs': z.union([z.number(), z.literal(null)]).optional(),
@@ -281,6 +282,7 @@ const clawock_dsh_clawockStudio_traces_result$schema = z.object({
   'trades': z.array(z.object({
   'side': z.union([z.literal("add"), z.literal("reduce"), z.literal(null)]),
   'holdPnl': z.union([z.literal(null), z.number()]),
+  'reconstructed': z.literal(true).optional(),
   't1': z.union([z.literal(null), z.object({
   'date': z.string(),
   'price': z.number(),

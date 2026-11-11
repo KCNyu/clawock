@@ -5684,6 +5684,7 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = object({
 	"lastEvent": string(),
 	"lastEventAtMs": union([number(), literal(null)]),
 	"needs": string().optional(),
+	"needsAck": boolean().optional(),
 	"stage": string().optional(),
 	"attention": string().optional(),
 	"finishedAtMs": union([number(), literal(null)]).optional(),
@@ -5918,6 +5919,7 @@ const clawock_dsh_clawockStudio_traces_result$schema = object({
 			literal(null)
 		]),
 		"holdPnl": union([literal(null), number()]),
+		"reconstructed": literal(true).optional(),
 		"t1": union([literal(null), object({
 			"date": string(),
 			"price": number(),
