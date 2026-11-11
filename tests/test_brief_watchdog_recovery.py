@@ -145,3 +145,38 @@ def test_counter_observer_does_not_duplicate_0905_offhost_dispatch(recovery):
     watchdog.check_local_recovery(TODAY)
     assert not dispatches
     assert 'off-host 兜底已完成' in messages[0]
+
+def test_pending_0905_offhost_fallback_is_rechecked_at_0950(recovery, monkeypatch):
+    """#3401: a 09:05 dispatch whose run outlived the 15min poll has no reader.
+
+    The 2026-11-03 run finished 18.5min after dispatch; the 09:05 pass stored
+    ``fallback_outcome='pending'`` and the 09:50 pass early-returned because no
+    local rerun was selected. It must re-read the dispatched run and report the
+    conclusion it now has.
+    """
+    _, _, messages, dispatches, _ = recovery
+    state = watchdog.load_missing_state(TODAY)
+    state.update(
+        rerun_inflight=False,
+        fallback_dispatch_attempted=True,
+        fallback_dispatch_succeeded=True,
+        fallback_outcome='pending',
+        fallback_outcome_detail='still in_progress after 15min: run 41557349099',
+        dispatch_out='https://github.com/KCNyu/clawock/actions/runs/41557349099',
+    )
+    watchdog.write_missing_state(TODAY, state)
+    calls = []
+
+    def recheck(*args, **kwargs):
+        calls.append(kwargs)
+        return 'failure', 'run concluded failure at 09:23'
+
+    monkeypatch.setattr(watchdog, 'await_brief_fallback_outcome', recheck)
+    watchdog.check_local_recovery(TODAY)
+    assert calls and calls[0].get('dispatch_out', '').endswith('41557349099')
+    assert '兜底失败' in messages[0]
+    assert not dispatches
+    assert watchdog.load_missing_state(TODAY)['fallback_outcome'] == 'failure'
+    # One follow-up, not one per pass.
+    watchdog.check_local_recovery(TODAY)
+    assert len(calls) == 1 and len(messages) == 1
