@@ -687,6 +687,15 @@
     -webkit-font-smoothing: antialiased;
     padding-bottom: env(safe-area-inset-bottom);
   }
+  /* WCAG 2.4.1: the first Tab reaches the content, not every top-bar control.
+     Hidden off-screen until focused; both templates use the same anchor. */
+  .skip-link {
+    position: absolute; left: var(--space-3); top: -4rem; z-index: 1000;
+    padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong); background: var(--surface-0);
+    color: var(--text); font-size: var(--fs-md); text-decoration: none;
+  }
+  .skip-link:focus { top: var(--space-2); outline: var(--focus-ring); }
   /* 环境光场。固定在视口后面，比视口大一圈（漂移和旋转时四角不露底）。
      · 为什么要它：卡片现在是半透明的玻璃面（见 .card），玻璃背后没有结构
        就只是一块灰板 —— 这页上「毛玻璃看不出来」每一次都是这个原因。
@@ -2170,9 +2179,8 @@
   .br-point {
     display: flex; gap: 8px; align-items: flex-start; padding: var(--space-2) var(--space-3);
     margin-bottom: var(--space-2); border-radius: var(--radius-sm); background: var(--fill-inset);
-    font-size: var(--fs-md); line-height: 1.5;
+    font-size: var(--fs-md); line-height: 1.5; color: var(--text);
   }
-  .br-point { color: var(--text); }
   .br-point .br-icon {
     flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%;
     background: var(--neutral); margin-top: .55em;
@@ -4150,7 +4158,7 @@
   /* 要点区 = 终端的状态行：同类信息一排徽章 chip，放不下折行，不做段落。
      chip 三段式 label+value+delta；统一高度 24 / 圆角 7 / micro 字阶 /
      发丝线描边；数值段 mono tabular（仓库字规：mono 只用于数字）。
-     底色用不透明 --card-2 —— 玻璃上的开孔必须不透明（#937 打孔判据），
+     底色用不透明 --fill-inset —— 玻璃上的开孔必须不透明（#937 打孔判据），
      tone 只染边线与 value，不染整底：满屏色底是行情软件最廉价的读感。 */
   /* 第八次迭代：牌是绝对定位、撑满台面的（inset: 0 0 16px），而正文只有
      判词 + chip + 三根柱 —— 实测 1200 档正文 196px 待在 244px 的牌里，390 档
