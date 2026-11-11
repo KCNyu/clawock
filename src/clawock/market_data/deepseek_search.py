@@ -31,8 +31,13 @@ import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
-from pathlib import Path
 
+from clawock.providers import dsh
+
+# The provider owns the layout; these aliases keep the module's test seam (and
+# any host that patches the paths) working without re-hardcoding dsh's home.
+DSH_CREDENTIALS = dsh.credentials_path()
+GATE_DIR = dsh.gate_dir()
 from clawock.sessions import HKT
 
 #: DeepSeek's index dates by the Beijing day; Hong Kong keeps the same offset.
@@ -43,10 +48,6 @@ QPS = 5
 TIMEOUT_S = 8
 MAX_COUNT = 50
 RETRY_STATUSES = (408, 429, 500, 502, 503, 504)
-DSH_CREDENTIALS = Path(os.environ.get('CLAWOCK_DSH_CREDENTIALS',
-                                      Path.home() / '.dsh' / '.credentials.yaml'))
-GATE_DIR = Path(os.environ.get('CLAWOCK_DEEPSEEK_GATE_DIR',
-                               Path.home() / '.cache' / 'clawock' / 'deepseek-search'))
 #: DeepSeek stamps a page it knows only the day of at 00:00 Beijing time.
 _DAY_ONLY = re.compile(r'T16:00:00(?:\.0+)?(?:Z|\+00:00)$')
 
@@ -64,31 +65,9 @@ class SearchError(RuntimeError):
 
 # ── Key ───────────────────────────────────────────────────────────────────────
 
-def _dsh_ref(name):
-    """`name` from the dsh credentials seam's top-level `refs:` mapping."""
-    try:
-        lines = DSH_CREDENTIALS.read_text(encoding='utf-8').splitlines()
-    except OSError:
-        return None
-    in_refs = False
-    for line in lines:
-        if re.match(r'^refs:\s*$', line):
-            in_refs = True
-            continue
-        if not in_refs:
-            continue
-        if re.match(r'^\S', line):
-            break
-        match = re.match(r'^\s+([A-Z][A-Z0-9_]*):\s*(.*?)\s*$', line)
-        if match and match.group(1) == name:
-            value = re.sub(r'^([\'"])(.*)\1$', r'\2', match.group(2))
-            return value or None
-    return None
-
-
 def api_key():
     """DeepSeek's key, or None: the environment first, then the dsh seam."""
-    return os.environ.get('DEEPSEEK_API_KEY') or _dsh_ref('DEEPSEEK_API_KEY')
+    return os.environ.get('DEEPSEEK_API_KEY') or dsh.ref('DEEPSEEK_API_KEY', DSH_CREDENTIALS)
 
 
 # ── Account-wide rate gate ────────────────────────────────────────────────────

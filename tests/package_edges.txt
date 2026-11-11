@@ -96,6 +96,7 @@ market_data -> history_store
 market_data -> instruments
 market_data -> plugin_host
 market_data -> portfolio
+market_data -> providers
 market_data -> safe_io
 market_data -> seeds
 market_data -> sessions
