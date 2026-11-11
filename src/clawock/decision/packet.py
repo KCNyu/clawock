@@ -1497,7 +1497,10 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
                 "current_price": _number(holding.get("current_price"), 4),
                 "pnl_pct": _number(holding.get("pnl_percent"), 2),
                 # Position day P&L: new lots count from their fill (#3036).
-                "today_change_pct": _number(holding.get("today_change_pct"), 2),
+                # A row whose quote lacked a real prior close has no measured
+                # day change; printing the writer's 0.00 would read as flat (#3350).
+                "today_change_pct": (None if holding.get("quote_incomplete_prev_close")
+                                     else _number(holding.get("today_change_pct"), 2)),
                 # The quote against the prior close, what a 「上一场收盘」 column
                 # means (#3107).
                 "session_change_pct": _number(session_change_pct(holding), 2),

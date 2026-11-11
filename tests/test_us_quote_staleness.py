@@ -878,3 +878,12 @@ def test_nasdaq_summary_high_low_slash_order(monkeypatch):
     monkeypatch.setattr(F.SESSION, 'get', lambda *a, **k: _FakeResp(payload))
     quote = F.get_nasdaq_quote('PLTU')
     assert (quote['l'], quote['h']) == (71.665, 75.87)
+
+
+def test_a_provider_without_a_real_prior_close_is_not_complete():
+    # pc == c is the provider's placeholder, not a measured previous close;
+    # pc_ok=False keeps that quote from winning the provider race (#3350).
+    assert not F._quote_is_complete({"c": 1.0, "pc": 1.0, "pc_ok": False,
+                                     "h": 2.0, "l": 0.5})
+    assert F._quote_is_complete({"c": 1.0, "pc": 0.9, "pc_ok": True,
+                                 "h": 2.0, "l": 0.5})

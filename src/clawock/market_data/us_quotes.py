@@ -133,7 +133,8 @@ def _quote_is_complete(q: Optional[Dict]) -> bool:
     """
     if not q:
         return False
-    return q.get('pc') is not None and q.get('h') is not None and q.get('l') is not None
+    return (q.get('pc') is not None and q.get('pc_ok', True)
+            and q.get('h') is not None and q.get('l') is not None)
 
 
 def _prev_trading_day(date_str: str) -> str:
@@ -309,11 +310,12 @@ def get_eastmoney_batch(tickers: List[str]) -> Dict[str, Dict]:
                 continue
             c  = float(current)
             pc_raw = item.get('f18')
-            pc = float(pc_raw) if pc_raw and pc_raw != '-' else c
+            pc_ok = bool(pc_raw and pc_raw != '-')
+            pc = float(pc_raw) if pc_ok else c
             dp = float(item.get('f3') or 0)
             vol = item.get('f5')
             results[ticker] = {
-                'c': c, 'pc': pc,
+                'c': c, 'pc': pc, 'pc_ok': pc_ok,
                 'h': float(item.get('f15') or c),
                 'l': float(item.get('f16') or c),
                 'o': float(item.get('f17') or c),
@@ -351,9 +353,10 @@ def get_eastmoney_batch(tickers: List[str]) -> Dict[str, Dict]:
                     continue
                 c  = float(current)
                 pc_raw = item.get('f18')
-                pc = float(pc_raw) if pc_raw and pc_raw != '-' else c
+                pc_ok = bool(pc_raw and pc_raw != '-')
+                pc = float(pc_raw) if pc_ok else c
                 results[ticker] = {
-                    'c': c, 'pc': pc,
+                    'c': c, 'pc': pc, 'pc_ok': pc_ok,
                     'h': float(item.get('f15') or c),
                     'l': float(item.get('f16') or c),
                     'o': float(item.get('f17') or c),
@@ -386,9 +389,10 @@ def get_finnhub_quote(ticker: str, api_key: str) -> Optional[Dict]:
         c = d.get('c', 0)
         if c <= 0:
             return None
+        pc_ok = d.get('pc') is not None
         pc = d.get('pc', c)
         return {
-            'c': float(c), 'pc': float(pc),
+            'c': float(c), 'pc': float(pc), 'pc_ok': pc_ok,
             'h': float(d.get('h', c)), 'l': float(d.get('l', c)),
             'o': float(d.get('o', c)),
             'dp': _pct(c, pc),
@@ -411,9 +415,10 @@ def get_yahoo_v8_quote(ticker: str) -> Optional[Dict]:
         if not c or float(c) <= 0:
             return None
         c = float(c)
-        pc = float(meta.get('regularMarketPreviousClose') or meta.get('previousClose') or c)
+        pc_raw = meta.get('regularMarketPreviousClose') or meta.get('previousClose')
+        pc = float(pc_raw or c)
         return {
-            'c': c, 'pc': pc,
+            'c': c, 'pc': pc, 'pc_ok': pc_raw is not None,
             'h': float(meta.get('regularMarketDayHigh', c)),
             'l': float(meta.get('regularMarketDayLow', c)),
             'o': float(meta.get('regularMarketOpen', c)),
@@ -434,9 +439,10 @@ def get_yfinance_quote(ticker: str) -> Optional[Dict]:
         if not c or float(c) <= 0:
             return None
         c = float(c)
-        pc = float(info.get('regularMarketPreviousClose') or c)
+        pc_raw = info.get('regularMarketPreviousClose')
+        pc = float(pc_raw or c)
         return {
-            'c': c, 'pc': pc,
+            'c': c, 'pc': pc, 'pc_ok': pc_raw is not None,
             'h': float(info.get('dayHigh', c)),
             'l': float(info.get('dayLow', c)),
             'o': float(info.get('open', c)),
@@ -476,9 +482,10 @@ def get_alpha_vantage_quote(ticker: str, api_key: str) -> Optional[Dict]:
         c = _parse_price(q.get('05. price'))
         if not c:
             return None
-        pc = _parse_price(q.get('08. previous close')) or c
+        pc_raw = _parse_price(q.get('08. previous close'))
+        pc = pc_raw or c
         quote = {
-            'c': c, 'pc': pc,
+            'c': c, 'pc': pc, 'pc_ok': pc_raw is not None,
             'h': _parse_price(q.get('03. high')) or c,
             'l': _parse_price(q.get('04. low')) or c,
             'o': _parse_price(q.get('02. open')) or c,
