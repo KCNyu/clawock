@@ -326,7 +326,7 @@ def test_pool_outage_preserves_area_retries_and_cooldown_survives_restart(patrol
             ["bash", "-c", 'source "$1"; now() { echo "$AT"; }; pool_cooldown_remaining',
              "test", str(SCRIPT)], env=dict(patrol.env, AT=str(at)),
             capture_output=True, text=True, timeout=5).stdout.strip()
-    assert remaining(until - 3600) == "3600"
+    assert remaining(0) == str(until)
     assert remaining(until + 1) == "0"
     assert _end_round(patrol, tmp_path, "patrol-money-20261012-120008", 8,
                       "STATE=ok\nOUTCOME=DONE\n").returncode == 0
@@ -338,17 +338,41 @@ def test_pool_outage_preserves_area_retries_and_cooldown_survives_restart(patrol
 
 
 def test_a_v2_free_window_reset_sets_the_pool_cooldown(patrol, tmp_path):
-    # The runner passes the v2 free-limit retryAfter as an absolute epoch. Sleep to it instead of
-    # probing every hour, but cap it so a bad value cannot park the supervisor for a day.
+    # A reported reset inside the short cap is honoured exactly; a farther one is not a reason
+    # to stop sampling. 2026-11-10: the runner claimed 11-11 08:47 and a model answered at 20:49.
     result = _end_round(patrol, tmp_path, "patrol-recent-20261106-120000", 1,
-                        "STATE=failed\nFAILURE_REASON=pool_no_response\nPOOL_RESET_AT=7200\n")
+                        "STATE=failed\nFAILURE_REASON=pool_no_response\nPOOL_RESET_AT=1200\n")
     assert result.returncode == 1
-    assert (tmp_path / "pool-cooldown-until").read_text().strip() == "7200"
+    assert (tmp_path / "pool-cooldown-until").read_text().strip() == "1200"
 
-    result = _end_round(patrol, tmp_path, "patrol-recent-20261106-120001", 2,
+    for n, stamp in ((2, 120001), (3, 120002)):
+        result = _end_round(patrol, tmp_path, f"patrol-recent-20261106-{stamp}", n,
+                            "STATE=failed\nFAILURE_REASON=pool_no_response\nPOOL_RESET_AT=7200\n")
+        assert result.returncode == 1
+        assert (tmp_path / "pool-cooldown-until").read_text().strip() == "600"
+
+    result = _end_round(patrol, tmp_path, "patrol-recent-20261106-120003", 4,
                         "STATE=failed\nFAILURE_REASON=pool_no_response\nPOOL_RESET_AT=999999999999\n")
     assert result.returncode == 1
-    assert (tmp_path / "pool-cooldown-until").read_text().strip() == "43200"
+    assert (tmp_path / "pool-cooldown-until").read_text().strip() == "600"
+
+
+def test_a_stale_long_cooldown_is_capped_on_startup(patrol, tmp_path):
+    # A file left by the old 12h policy must not survive an upgrade as a 12h sleep.
+    (tmp_path / "pool-cooldown-until").write_text("44200\n")  # now=1000: 43200s left
+    script = '''source "$1"
+now() { echo 1000; }
+others_need_slot() { :; }
+prune() { :; }
+run_round() { :; }
+sleep() { echo "$1" >"$STATE/slept"; kill -TERM "$$"; }
+loop
+'''
+    result = subprocess.run(["bash", "-c", script, "test", str(SCRIPT)],
+                            env=dict(patrol.env, PATROL_TOOL_DIR=str(tmp_path)),
+                            capture_output=True, text=True, timeout=5)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "slept").read_text().strip() == "1800"
 
 
 @pytest.mark.parametrize("adopt", [False, True])

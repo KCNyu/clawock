@@ -79,8 +79,10 @@ P3 占比要靠分子变大（更多 P0/P1）和 P3 自己带上代价来降，�
 kcn 已允许未有 patrol 战绩/未通过工具探针的免费候选入选，并要求自动发现和选择。
 `opencode-fallback-models` 现在是 reviewed 种子优先级；实际每轮由
 `agent-dispatch/audit-free-pool.py` 的新鲜价格/在册证据和 `select-free-models.py` 产生，
-每轮任务目录保存 `free-pool-selection.json` 解释次序。新候选可自动占一个轮换探索位，
-不改 immutable 种子、不让机器人代开/合并 PR。下架、正价格或过期证据会阻止下一次推理；
+每轮任务目录保存 `free-pool-selection.json` 解释次序。选择器按最近 7 天 `run.log` 的
+`ok`/`rate_limited` 次数调整种子顺序（至少 3 次才移动，平局回种子顺序），只反映可用性，
+不按输出质量换模型。新候选可自动占一个轮换探索位，不改 immutable 种子、不让机器人代开/合并 PR。
+下架、正价格或过期证据会阻止下一次推理；
 五项硬退役名单不因 refresh_live 或候选恢复而解锁。详见 `ops/host/README.md` 的自动选择规则。
 
 上述质量指标继续按实际完成模型记录，不是新候选准入前置条件；探针成功也不是质量战绩。

@@ -80,6 +80,55 @@ def test_invalid_snapshot_blocks_instead_of_reverting_to_static_seed(evidence, k
         select.eligible(report, pool, time.time())
 
 
+def test_recent_evidence_moves_answering_seeds_ahead_of_blocked_ones():
+    seeds = [f'opencode/seed-{i}-free' for i in range(3)]
+    history = {seeds[0]: {'ok': 0, 'rate_limited': 4},
+               seeds[1]: {'ok': 4, 'rate_limited': 0},
+               seeds[2]: {'ok': 1, 'rate_limited': 1}}
+    selected, reasons = select.choose(seeds, seeds, {'mode': 'automatic', 'max_models': 9,
+                                                     'exploration_position': 1}, history=history)
+    # Positive evidence first; a two-attempt sample stays neutral; a 0/4 seed sinks.
+    assert selected == [seeds[1], seeds[2], seeds[0]]
+    assert '4 ok, 0 rate-limited' in reasons[seeds[1]]
+    assert 'no recent pool evidence' in reasons[seeds[2]]
+    assert '0 ok, 4 rate-limited' in reasons[seeds[0]]
+
+
+def test_a_short_record_cannot_reorder_seeds():
+    seeds = [f'opencode/seed-{i}-free' for i in range(2)]
+    history = {seeds[0]: {'ok': 0, 'rate_limited': 2}}
+    assert select.choose(seeds, seeds, {'mode': 'automatic', 'max_models': 9,
+                                        'exploration_position': 1}, history=history)[0] == seeds
+
+
+def test_newcomer_keeps_its_exploration_slot_after_seed_reorder():
+    seeds = [f'opencode/seed-{i}-free' for i in range(2)]
+    history = {seeds[0]: {'ok': 0, 'rate_limited': 4},
+               seeds[1]: {'ok': 4, 'rate_limited': 0}}
+    selected, _ = select.choose(seeds, seeds + [NEW], {'mode': 'automatic', 'max_models': 9,
+                                                       'exploration_position': 1}, history=history)
+    assert selected == [seeds[1], NEW, seeds[0]]
+
+
+def test_recent_history_reads_finished_attempts_only(tmp_path):
+    tasks = tmp_path / 'tasks'
+    (tasks / 'patrol-x').mkdir(parents=True)
+    (tasks / 'patrol-x' / 'run.log').write_text(
+        '---- 2026-11-11 09:00:00 attempt 1/3 (task) cap=300s session=- model=opencode/a\n'
+        '---- 2026-11-11 09:00:01 attempt 1 (task) rc=1 kind=rate_limited session=-\n'
+        '---- 2026-11-11 09:01:00 attempt 2/3 (task) cap=300s session=- model=opencode/b\n'
+        '---- 2026-11-11 09:01:01 attempt 2 (task) rc=0 kind=ok session=-\n'
+        '---- 2026-10-01 09:00:00 attempt 1/3 (task) cap=300s session=- model=opencode/a\n'
+        '---- 2026-10-01 09:00:01 attempt 1 (task) rc=0 kind=ok session=-\n'
+        '---- 2026-11-11 09:02:00 attempt 3/3 (task) cap=300s session=- model=opencode/c\n'
+        '---- 2026-11-11 09:02:01 attempt 3 (task) rc=1 kind=error session=-\n')
+    now = time.mktime(time.strptime('2026-11-11 10:00:00', '%Y-%m-%d %H:%M:%S'))
+    assert select.recent_history(tasks, now) == {
+        'opencode/a': {'ok': 0, 'rate_limited': 1},
+        'opencode/b': {'ok': 1, 'rate_limited': 0},
+    }
+
+
 def test_capacity_rotates_newcomers_and_seed_only_is_safe_rollback():
     seeds = [f'opencode/seed-{i}-free' for i in range(9)]
     available = seeds + [NEW, 'opencode/another-free']
@@ -97,7 +146,8 @@ def test_explicit_model_cannot_bypass_and_filter_observes_changed_evidence(evide
     pool, report = evidence
     report_path = tmp_path / 'report.json'
     report_path.write_text(json.dumps(report))
-    command = ['python3', str(DIR / 'select-free-models.py'), '--pool', str(pool), '--report', str(report_path)]
+    command = ['python3', str(DIR / 'select-free-models.py'), '--pool', str(pool), '--report', str(report_path),
+               '--history', str(tmp_path / 'history')]
     r = subprocess.run(command, capture_output=True, text=True, timeout=5)
     assert r.returncode == 0 and json.loads(r.stdout)['models'] == [SEED, NEW]
     assert (tmp_path / 'free-pool-selection.json').exists()
