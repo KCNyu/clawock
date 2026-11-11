@@ -75,6 +75,7 @@ from ._watchdog_common import (
     WS, HKT, log, send_telegram, telegram_target,
     send_wechat, resolve_wechat_target, wechat_backstop,
     dispatch_brief_fallback, await_brief_fallback_outcome,
+    BRIEF_FALLBACK_POLL_INTERVAL_S,
     brief_cron_job_state, cron_run_ended_in_failure,
     rerun_cron_job, cron_retry_budget,
     CRON_MAX_ALLOWED_ATTEMPTS,
@@ -547,7 +548,17 @@ def check_local_recovery(today, dry_run=False):
     that the selected local run ended permits another writer before 10:00.
     """
     state = load_missing_state(today)
-    if (not state.get('rerun_inflight') and not _rerun_count(today)
+    # A 09:05 off-host dispatch whose run outlived the 15-minute poll budget
+    # leaves only ``fallback_outcome='pending'`` behind. This is the last pass
+    # before the workflow's 10:00 cutoff, so it must read that run instead of
+    # treating "no local rerun" as "nothing to do" (2026-11-03: the dispatched
+    # run failed 18.5 minutes after dispatch and no pass ever read it, #3401).
+    fallback_pending = (
+        state.get('fallback_dispatch_succeeded')
+        and (state.get('fallback_outcome') or 'unknown') in ('pending', 'unknown')
+    )
+    if ((not state.get('rerun_inflight') and not _rerun_count(today)
+         and not fallback_pending)
             or state.get('local_recovery_notified')):
         return 0
     issues = inspect_brief_artifacts(today)
@@ -568,6 +579,25 @@ def check_local_recovery(today, dry_run=False):
         message = (f'本地简报重跑已生成产物 — {today}\n'
                    f'微信送达：{"已确认" if marker.get("sent_ok") else "未确认"}；'
                    f'Telegram：{"已确认" if marker.get("tg_ok") else "未确认"}。')
+    elif fallback_pending:
+        # Re-read the run 09:05 dispatched. One poll interval, not the full
+        # 15-minute budget: at 09:50 the run has normally concluded long ago,
+        # and waiting longer would cross the workflow's own 10:00 cutoff.
+        outcome, detail = await_brief_fallback_outcome(
+            state.get('dispatch_attempted_at') or datetime.now(HKT).isoformat(),
+            dry_run,
+            budget_s=BRIEF_FALLBACK_POLL_INTERVAL_S,
+            dispatch_out=state.get('dispatch_out'))
+        if outcome == 'pending':
+            # The poll's own detail counts its 60s budget, not the ~45 minutes
+            # since dispatch; name this pass instead of printing "after 1min".
+            detail = ('still in progress at the 09:50 recovery check: '
+                      f'{state.get("dispatch_out") or ""}').strip()
+        elif outcome == 'unknown':
+            detail = f'run lookup failed at the 09:50 recovery check: {detail}'
+        state['fallback_outcome'] = outcome
+        state['fallback_outcome_detail'] = detail
+        message = _fallback_outcome_message(today, outcome, detail)
     elif state.get('recovery_dispatch_attempted') or state.get('fallback_dispatch_succeeded'):
         outcome = state.get('fallback_outcome') or 'unconfirmed'
         message = _fallback_outcome_message(today, outcome,
