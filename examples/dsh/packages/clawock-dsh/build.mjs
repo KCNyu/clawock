@@ -89,6 +89,7 @@ if (!existsSync(remoteArtifact)) {
 await run(['--config', 'tsdown.host.config.mjs'])
 await patchTypertAlignment()
 await patchTypertSide()
+await patchTypertReconstructed()
 await patchTypertBalance()
 await patchTypertTaskQueue()
 await patchTypertQueueAction()
@@ -243,6 +244,7 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'lastEvent': z.string(),
   'lastEventAtMs': z.union([z.number(), z.literal(null)]),
   'needs': z.string().optional(),
+  'needsAck': z.boolean().optional(),
   'stage': z.string().optional(),
   'attention': z.string().optional(),
   'finishedAtMs': z.union([z.number(), z.literal(null)]).optional(),
@@ -683,6 +685,29 @@ async function patchTypertAlignment() {
     source = source.replace(`${head}${tail}`, `${head}${marker}\n${tail}`)
     await writeFile(file, source)
     console.log(`patched ${rel}: +TraceDecision.alignment`)
+  }
+}
+
+/**
+ * Carry the reconstructed-opening-lot marker across the strict Typert codec.
+ * The trace reader marks the nine pre-ledger opening lots and the client uses
+ * the flag to withhold T+1 and the "no plan" line; without this key zod strips
+ * it and every placeholder renders as a real fill (#3122, #3399).
+ */
+async function patchTypertReconstructed() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const marker = `  'reconstructed': z.literal(true).optional(),`
+  const anchor = `  'holdPnl': z.union([z.literal(null), z.number()]),`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(marker)) continue
+    if (!source.includes(anchor)) {
+      throw new Error(`patchTypertReconstructed: trade-object anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(anchor, `${anchor}\n${marker}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +Trade.reconstructed`)
   }
 }
 

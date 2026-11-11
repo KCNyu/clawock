@@ -2379,6 +2379,10 @@ test("typert: the frozen artifacts carry hand-maintained wire fields on both fac
     assert.match(src, /'refreshMs': z\.number\(\)/, rel + " result schema field");
     assert.match(src, /'side': z\.union\(\[z\.literal\("add"\), z\.literal\("reduce"\), z\.literal\(null\)\]\)/,
       rel + " host-computed trade side");
+    assert.match(src, /'reconstructed': z\.literal\(true\)\.optional\(\)/,
+      rel + " reconstructed opening-lot marker");
+    assert.match(src, /'needsAck': z\.boolean\(\)\.optional\(\)/,
+      rel + " dismissed-NEEDS marker");
   }
   const client = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
   assert.match(client, /"side": union\(\[\s*literal\("add"\),\s*literal\("reduce"\),\s*literal\(null\)/,
