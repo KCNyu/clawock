@@ -48,9 +48,9 @@ GHA_OWNED = {
 
 
 def _postflight_add_list():
-    """The paths brief_postflight stages, as written in its _git('add', ...) call."""
-    m = re.search(r"_git\('add',(.*?)\)\n", POSTFLIGHT, re.S)
-    assert m, "brief_postflight no longer has a _git('add', ...) call — did it move?"
+    """The static paths brief_postflight stages (the day paths are f-strings)."""
+    m = re.search(r"add_args = \['add', \*day_paths, (.*?)\]\n", POSTFLIGHT, re.S)
+    assert m, "brief_postflight no longer has an add_args list — did it move?"
     return set(re.findall(r"'([^']+)'", m.group(1)))
 
 
