@@ -2436,11 +2436,11 @@ body[data-ds-dark-theme] .wb {
 .wb-prov-fill { display: block; height: 100%; border-radius: var(--wb-radius-sm); background: var(--wb-ok); }
 .wb-prov-fill[data-role=warn] { background: var(--wb-warn); }
 .wb-prov-fill[data-role=alert] { background: var(--wb-alert); }
-.wb-prov-fill[data-role=stale] { background: var(--wb-text-3); }
+.wb-prov-fill[data-role=stale] { background: var(--wb-warn); }
 .wb-prov-primary[data-wb-tone=alert], .wb-prov-secondary[data-wb-tone=alert] { color: var(--wb-alert); }
 .wb-prov-primary[data-wb-tone=warn], .wb-prov-secondary[data-wb-tone=warn] { color: var(--wb-warn); }
 .wb-prov-primary[data-wb-tone=ok] { color: var(--wb-ok); }
-.wb-prov-primary[data-wb-tone=stale] { color: var(--wb-text-2); }
+.wb-prov-primary[data-wb-tone=stale] { color: var(--wb-warn); }
 .wb-prov[data-wb-tone=stale] .wb-prov-name { color: var(--wb-text-1); }
 .wb-prov-primary[data-wb-tone=none] { color: var(--wb-text-3); }
 :global([class*="settingsArea"]) { border-top: var(--wb-visual) solid var(--wb-line-2); padding-top: var(--wb-space-2); }
