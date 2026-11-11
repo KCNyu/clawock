@@ -217,7 +217,8 @@ class _Timeline:
         return wrapped
 
 
-def run_stubbed_preflight(tmp_path, monkeypatch, *, plan=None, delays=None):
+def run_stubbed_preflight(tmp_path, monkeypatch, *, plan=None, delays=None,
+                          over_budget_reads=()):
     """Drive the real brief_preflight._collect() against a stubbed workspace."""
     ws = _build_workspace(Path(tmp_path))
 
@@ -242,7 +243,8 @@ def run_stubbed_preflight(tmp_path, monkeypatch, *, plan=None, delays=None):
         for name in RELOAD_TARGETS:
             sys.modules.pop(name, None)
         return _run_with_reloaded_modules(
-            ws, monkeypatch, plan=plan, delays=delays)
+            ws, monkeypatch, plan=plan, delays=delays,
+            over_budget_reads=over_budget_reads)
     finally:
         created = [k for k in sys.modules if k not in saved_keys
                    and (k == 'clawock' or k.startswith('clawock.'))]
@@ -270,7 +272,8 @@ def run_stubbed_preflight(tmp_path, monkeypatch, *, plan=None, delays=None):
 _MISSING = object()
 
 
-def _run_with_reloaded_modules(ws, monkeypatch, *, plan, delays):
+def _run_with_reloaded_modules(ws, monkeypatch, *, plan, delays,
+                               over_budget_reads=()):
     monkeypatch.setenv('CLAWOCK_WORKSPACE', str(ws))
     monkeypatch.setenv('TODAY', TODAY)
     for name in RELOAD_TARGETS:
@@ -280,6 +283,17 @@ def _run_with_reloaded_modules(ws, monkeypatch, *, plan, delays):
     from clawock.automation import workflow_outcomes
 
     pf = sys.modules['clawock.harness.brief_preflight']
+
+    if over_budget_reads:
+        real_report = pf.brief_decision_packet.read_budget_report
+
+        def _report_with_over_budget(packet):
+            report = real_report(packet)
+            report['over_budget'] = list(over_budget_reads)
+            return report
+
+        monkeypatch.setattr(pf.brief_decision_packet, 'read_budget_report',
+                            _report_with_over_budget)
 
     recorder = _SpawnRecorder(plan=dict(plan or DEFAULT_PLAN), delays=delays or {})
     monkeypatch.setattr(pf.subprocess, 'run', recorder.subprocess_run)
@@ -312,6 +326,33 @@ def _run_with_reloaded_modules(ws, monkeypatch, *, plan, delays):
                            issues=context['issues'], stage_calls=stage_calls,
                            timeline=timeline, recorder=recorder, workspace=ws,
                            pf=pf)
+
+
+def test_an_over_budget_read_warning_keeps_one_generation_everywhere(
+        tmp_path, monkeypatch):
+    """#3402: the read-budget warning is appended after the packet is compiled.
+
+    ``context['issues']`` is the list the preflight appends to, so the append
+    changes the generation id. The bundle must be stamped with the id computed
+    after that append and the decision packet must carry the same id; otherwise
+    ``write_run_bundle`` rejects the packet as cross-generation and every
+    preflight with an over-budget read exits 2.
+    """
+    run = run_stubbed_preflight(
+        tmp_path, monkeypatch, over_budget_reads=('summary',))
+    # The warning itself makes the run a warning (exit 1); exit 2 is the
+    # fatal context-boundary failure this test guards against.
+    assert run.exit_code == 1, f'preflight failed: {run.stage_calls}'
+    assert any('超出预算' in issue for issue in run.issues), run.issues
+
+    from clawock.context import brief as brief_context
+    from clawock.decision import packet as packet_mod
+
+    ctx_path = run.workspace / 'memory' / '.tmp' / f'brief-context-{TODAY}.json'
+    manifest_path = ctx_path.with_suffix('') / 'manifest.json'
+    assert brief_context.validate_run_bundle(ctx_path, manifest_path) == []
+    packet = packet_mod.read_packet(manifest_path)
+    assert packet['_meta']['generation_id'] == run.context['generation_id']
 
 
 def _final_preflight_stage(run):
