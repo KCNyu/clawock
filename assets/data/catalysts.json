@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-10T08:03:35.271461+08:00",
+  "generated_at": "2026-11-11T08:03:34.306229+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-10",
-  "window_end": "2026-11-24",
+  "window_start": "2026-11-11",
+  "window_end": "2026-11-25",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -27,7 +27,7 @@
       "date": "2026-11-09",
       "time": "amc",
       "eps_estimate": -0.0714,
-      "eps_actual": null,
+      "eps_actual": -0.07,
       "revenue_estimate_m": 260.82,
       "quarter": 3,
       "year": 2026
@@ -39,13 +39,23 @@
       "date": "2026-11-13",
       "type": "CPI",
       "detail": "Oct CPI release (BLS 8:30 ET)"
+    },
+    {
+      "date": "2026-11-25",
+      "type": "PCE",
+      "detail": "Oct PCE price index (BEA, Fed preferred inflation gauge)"
+    },
+    {
+      "date": "2026-11-25",
+      "type": "GDP",
+      "detail": "Q3 2026 GDP 2nd estimate"
     }
   ],
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
-    "macro_count": 1,
+    "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
     "highest_impact_within_7d": "CPI 2026-11-13"
