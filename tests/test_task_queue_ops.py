@@ -622,8 +622,8 @@ def test_codex_models_are_priced_from_openais_published_api_table(q):
         "payload": {"type": "token_count", "info": {"total_token_usage": total}}}) + "\n")
     code, out = q.run("usage", "u-codex")
     assert code == 0, out
-    # gpt-6.1-sol: 1M fresh input x $2 + 2M cached x $0.10 + 0.1M output x $10
-    assert (out["cost_usd"], out["cost_kind"]) == (f"{2.0 + 0.2 + 1.0:.2f}", "estimate")
+    # gpt-6.1-sol: 1M fresh input x $2 + 2M cached x $0.20 + 0.1M output x $10
+    assert (out["cost_usd"], out["cost_kind"]) == (f"{2.0 + 0.4 + 1.0:.2f}", "estimate")
 
 
 def test_dsh_usage_comes_from_the_tasks_own_attempt_events_priced_per_attempt_model(q):
@@ -646,8 +646,8 @@ def test_dsh_usage_comes_from_the_tasks_own_attempt_events_priced_per_attempt_mo
     assert code == 0, out
     assert out["tokens"] == {"in": 2_000_000, "cache_w": 0, "cache_r": 2_000_000, "out": 1_100_000, "total": 5_100_000}
     assert out["models"] == ["deepseek-official/deepseek-flash", "deepseek-official/deepseek-v4-pro"]
-    # DeepSeek's peak list prices: v4-pro 1M x 1.32 + 2M cached x 0.044 + 0.1M x 3.96; flash 1M x 0.3 + 1M x 1.2
-    assert (out["cost_usd"], out["cost_kind"]) == (f"{1.32 + 0.088 + 0.396 + 0.3 + 1.2:.2f}", "estimate")
+    # DeepSeek's peak list prices: v4-pro 1M x 1.27 + 2M cached x 0.042 + 0.1M x 3.8; flash 1M x 0.28 + 1M x 1.13
+    assert (out["cost_usd"], out["cost_kind"]) == (f"{1.27 + 0.084 + 0.38 + 0.28 + 1.13:.2f}", "estimate")
 
 
 def test_usage_of_the_free_opencode_pool_says_free(q, tmp_path):
