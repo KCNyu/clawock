@@ -297,8 +297,11 @@
     // 同一队列的两行:这里曾把 30d 的平均收益和 episode_backtest 的**全量**资金加权
     // 并排显示,窗口不同、符号相反(-2.36% vs +0.83%),读者会当成"大仓位的 call 更准"。
     // 两行必须同源同窗;全量口径归金额曲线,那张图自己标了。
+    // The two books' capital is in different currencies. The server converts each
+    // leg to USD before weighting (#3425); the label says so rather than letting
+    // the reader assume HKD and USD were added at face value.
     if (active.capital_weighted_benefit_pct != null)
-      rows.push(row("资金加权平均方向分", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${fixed(active.capital_weighted_benefit_pct, 2)}%`,
+      rows.push(row("资金加权平均方向分（USD）", `${active.capital_weighted_benefit_pct >= 0 ? "+" : ""}${fixed(active.capital_weighted_benefit_pct, 2)}%`,
         active.capital_weighted_benefit_pct >= 0 ? "var(--green)" : "var(--red)"));
     rows.push(row("今日决策变化", `新增 ${(delta.new || []).length} · 修改 ${(delta.changed || []).length} · 触发 ${(delta.triggered || []).length} · override ${(delta.active_overrides || []).length}`, "var(--text-dim)"));
     if (dm && dm.decisiveness_pct != null)
