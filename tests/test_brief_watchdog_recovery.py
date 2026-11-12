@@ -67,6 +67,27 @@ def test_no_second_writer_without_selected_run_ending(recovery, evidence):
     assert not dispatches and '未确认' in messages[0]
 
 
+def test_corrupt_state_is_not_silence_at_the_0950_check(tmp_path, monkeypatch):
+    """#3424: an unreadable state file used to return 0 with no message."""
+    monkeypatch.setattr(watchdog, 'WS', tmp_path)
+    path = watchdog.missing_state_path(TODAY)
+    path.parent.mkdir(parents=True)
+    path.write_text('{bad json')
+    messages, dispatches = [], []
+    monkeypatch.setattr(watchdog, '_safe_brief_cron_job_state', lambda: None)
+    monkeypatch.setattr(watchdog, 'telegram_target', lambda: 'target')
+    monkeypatch.setattr(watchdog, 'send_telegram',
+                        lambda _, msg, dry: (messages.append(msg) or True, 'sent'))
+    monkeypatch.setattr(watchdog, 'dispatch_brief_fallback',
+                        lambda dry: (dispatches.append(dry), (True, 'should not run'))[1])
+    monkeypatch.setattr(watchdog, 'log', lambda event: None)
+
+    assert watchdog.check_local_recovery(TODAY) == 0
+    assert dispatches == []
+    assert len(messages) == 1
+    assert '无法读取' in messages[0] and '未确认' in messages[0]
+
+
 def test_produced_brief_reports_delivery_evidence_without_dispatch(recovery):
     root, _, messages, dispatches, _ = recovery
     (root / 'memory' / f'{TODAY}-pre-open.md').write_text('# brief')
