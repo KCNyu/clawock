@@ -20,7 +20,7 @@ def test_reflect_sidecar_compiles_backtest_from_the_same_decisions(monkeypatch):
     monkeypatch.setattr(
         build_dashboard.decision_v2,
         "compute_backtest",
-        lambda rows: {"decision_ids": [row["decision_id"] for row in rows]},
+        lambda rows, **kwargs: {"decision_ids": [row["decision_id"] for row in rows]},
     )
 
     sidecar = build_dashboard.build_decision_audit_payload(decisions, {})
@@ -103,7 +103,7 @@ def test_reflect_sidecar_carries_the_debates(monkeypatch):
         lambda rows, portfolio, include_records: {"schema_version": 1},
     )
     monkeypatch.setattr(
-        build_dashboard.decision_v2, "compute_backtest", lambda rows: {},
+        build_dashboard.decision_v2, "compute_backtest", lambda rows, **kwargs: {},
     )
     sidecar = build_dashboard.build_decision_audit_payload(
         [_debated("d1", "2026-08-31T08:00:00+08:00")], {})
