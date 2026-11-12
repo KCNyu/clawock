@@ -527,6 +527,41 @@ def test_dashboard_money_reconciliation_checks_fx_cache_when_available(
         )
 
 
+def test_published_fx_must_match_a_tracked_ledger_row(tmp_path):
+    """#3407: the cache comparison is dead in CI; the ledger is always there."""
+    fx = {'usdhkd': 7.8449, 'source': 'Frankfurter',
+          'fetched_at': '2026-11-11T00:03:20.603683+00:00'}
+    row = {'day': '2026-11-11', 'rate': 7.8449, 'source': 'Frankfurter',
+           'fetched_at': '2026-11-11T00:03:20.603683+00:00',
+           'pair': 'USDHKD', 'fallback_used': False}
+    ledger = tmp_path / 'fx-rates.jsonl'
+    ledger.write_text(json.dumps(row) + '\n')
+    validators._assert_published_fx_is_in_ledger({'fx': fx}, ledger)
+
+    bad = dict(fx, usdhkd=7.90)
+    with pytest.raises(AssertionError, match=r'fx\.usdhkd=7.9 .*no matching row'):
+        validators._assert_published_fx_is_in_ledger({'fx': bad}, ledger)
+
+    # A published day the ledger has already passed without an exact row is
+    # untraceable, not merely pending.
+    ledger.write_text(
+        json.dumps(dict(row, day='2026-11-10')) + '\n'
+        + json.dumps(dict(row, day='2026-11-12')) + '\n')
+    with pytest.raises(AssertionError, match=r'no matching row.*2026-11-11'):
+        validators._assert_published_fx_is_in_ledger({'fx': fx}, ledger)
+
+    # The live host appends today's row before the brief commits it. A data
+    # plane generation for that pending day must not fail the gate.
+    pending = dict(fx, fetched_at='2026-11-13T00:03:20.603683+00:00',
+                   usdhkd=7.8456)
+    ledger.write_text(json.dumps(dict(row, day='2026-11-12', rate=7.8456)) + '\n')
+    validators._assert_published_fx_is_in_ledger({'fx': pending}, ledger)
+
+    with pytest.raises(AssertionError, match='fx.fetched_at'):
+        validators._assert_published_fx_is_in_ledger(
+            {'fx': dict(fx, fetched_at=None)}, ledger)
+
+
 def test_dashboard_money_reconciliation_allows_untracked_cash_as_null(
         tmp_path, freshly_built_dashboard):
     payload = json.loads(freshly_built_dashboard.read_text())

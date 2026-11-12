@@ -20,6 +20,7 @@ import subprocess
 from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 from clawock.workspace import workspace_root
@@ -723,7 +724,8 @@ def _book_generation(stamp: object, label: str) -> datetime:
 
 def _assert_dashboard_money_reconciles(
         data: dict, portfolio_path: Path | str,
-        fx_path: Path | str | None = None) -> None:
+        fx_path: Path | str | None = None,
+        fx_ledger_path: Path | str | None = None) -> None:
     """Reconcile public first-paint money against the canonical source book."""
     portfolio_path = Path(portfolio_path)
     assert portfolio_path.is_file(), f'portfolio missing: {portfolio_path}'
@@ -925,7 +927,8 @@ def _assert_dashboard_money_reconciles(
     if fx_source_available:
         fx_source = json.loads(Path(fx_path).read_text(encoding='utf-8'))
         same_number(fx_rate, fx_source.get('rate'), 'fx.usdhkd', 0.00005)
-
+    if fx_ledger_path is not None:
+        _assert_published_fx_is_in_ledger(data, fx_ledger_path)
     embedded = (data.get('build_status') or {}).get('integrity')
     assert isinstance(embedded, dict), 'build_status.integrity missing'
     assert embedded.get('ok') is True and embedded.get('error_count') == 0, (
@@ -1090,10 +1093,63 @@ def validate_dashboard_companions(manifest: Path | str) -> None:
             raise AssertionError(f'{filename}: {exc}') from None
 
 
+def _assert_published_fx_is_in_ledger(data: dict,
+                                       ledger_path: Path | str) -> None:
+    """The published USDHKD must be a row of the tracked rate ledger.
+
+    `.cache/fx_rate.json` is gitignored and absent in a clean CI checkout, so
+    the cache comparison above never ran there (#3407). The ledger is tracked,
+    append-only, and records the same rate/source/fetched_at the publisher
+    read. A published rate that matches no ledger row for its HKT day cannot
+    be traced back to an observation, so every combined_usd figure beside it
+    is unverified.
+    """
+    ledger_path = Path(ledger_path)
+    assert ledger_path.is_file(), f'fx ledger missing: {ledger_path}'
+    rows = []
+    for line in ledger_path.read_text(encoding='utf-8').splitlines():
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(row, dict) and row.get('day'):
+            rows.append(row)
+    fx = data.get('fx') or {}
+    fetched_at = fx.get('fetched_at')
+    try:
+        day = datetime.fromisoformat(
+            str(fetched_at).replace('Z', '+00:00')).astimezone(
+                ZoneInfo('Asia/Hong_Kong')).date().isoformat()
+    except (TypeError, ValueError):
+        raise AssertionError(
+            'fx.fetched_at is missing or not an ISO-8601 timestamp') from None
+    exact = [row for row in rows
+             if row.get('day') == day
+             and row.get('rate') == fx.get('usdhkd')
+             and row.get('source') == fx.get('source')
+             and row.get('fetched_at') == fetched_at]
+    if exact:
+        return
+    # The ledger is appended by the morning FX fetch on the live host and only
+    # committed by the brief postflight. A data-plane generation can therefore
+    # land for the current HKT day before master carries that day's row; that
+    # one pending day is allowed. Any *older* day without an exact row is a
+    # published rate the repo cannot trace, and is rejected (#3407).
+    ledger_days = {row.get('day') for row in rows}
+    if rows and day > max(d for d in ledger_days if isinstance(d, str)):
+        return
+    raise AssertionError(
+        f'fx.usdhkd={fx.get("usdhkd")!r} source={fx.get("source")!r} '
+        f'fetched_at={fetched_at!r} has no matching row in {ledger_path} '
+        f'for {day}; published cross-leg USD figures cannot be traced to a '
+        'recorded rate')
+
+
 def validate_dashboard(
         path: Path | str = 'assets/data/dashboard.json', *,
         portfolio_path: Path | str | None = None,
         fx_path: Path | str | None = None,
+        fx_ledger_path: Path | str | None = None,
         overview_path: Path | str | None = None,
         outputs_manifest: Path | str | None = None) -> None:
     """Validate the committed, public full cross-tab dashboard payload.
@@ -1205,7 +1261,8 @@ def validate_dashboard(
             f'concentration.{leg} has invalid verdict level')
 
     if portfolio_path is not None:
-        _assert_dashboard_money_reconciles(data, portfolio_path, fx_path)
+        _assert_dashboard_money_reconciles(
+            data, portfolio_path, fx_path, fx_ledger_path)
 
     if overview_path is not None:
         overview_path = Path(overview_path)
@@ -1308,6 +1365,7 @@ def _dispatch(name: str) -> None:
             'assets/data/dashboard.json',
             portfolio_path='portfolio.json',
             fx_path='.cache/fx_rate.json',
+            fx_ledger_path='memory/fx-rates.jsonl',
             overview_path='assets/data/overview.json',
             outputs_manifest='config/dashboard-outputs.json',
         )
