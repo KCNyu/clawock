@@ -13,6 +13,34 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.4.3] — 2026-11-13
+
+### Added
+
+- The DSH plugin's **Workbench** is a full page with Tasks, Providers and Overview segments, keeping the whole task detail, every provider quota window and the system overview on one surface, with a full-page queue on desktop and a drawer on phones ([#3273](https://github.com/KCNyu/clawock/pull/3273), [#3278](https://github.com/KCNyu/clawock/pull/3278), [#3280](https://github.com/KCNyu/clawock/pull/3280), [#3283](https://github.com/KCNyu/clawock/pull/3283)).
+- Dispatch API 7: questions answered inside the task's own session, idempotency keys for automated callers, `dispatch.sh why`, waiting for external results without holding the agent lock, reaping tasks whose runner disappeared, and metadata search across earlier tasks ([#3249](https://github.com/KCNyu/clawock/pull/3249), [#3250](https://github.com/KCNyu/clawock/pull/3250), [#3251](https://github.com/KCNyu/clawock/pull/3251), [#3252](https://github.com/KCNyu/clawock/pull/3252), [#3253](https://github.com/KCNyu/clawock/pull/3253), [#3235](https://github.com/KCNyu/clawock/pull/3235)).
+- Shared memory generates `MEMORY.md` from reviewed public topics, recalls from every session, reports consolidation and retirement candidates, and promotes reviewed dreaming candidates instead of editing live memory ([#3314](https://github.com/KCNyu/clawock/pull/3314), [#3315](https://github.com/KCNyu/clawock/pull/3315), [#3316](https://github.com/KCNyu/clawock/pull/3316), [#3320](https://github.com/KCNyu/clawock/pull/3320), [#3321](https://github.com/KCNyu/clawock/pull/3321)).
+- Market cards add session progress and open risk follow-ups ([#3236](https://github.com/KCNyu/clawock/pull/3236)).
+- The memory index is maintained offline, cutting KNN oversampling ([#3265](https://github.com/KCNyu/clawock/pull/3265)).
+
+### Changed
+
+- The sidebar has one Workbench entry; provider quotas, the task queue, and patrol/statistics/history live in its Providers, Tasks and Overview segments instead of a permanent footer row ([#3276](https://github.com/KCNyu/clawock/pull/3276), [#3278](https://github.com/KCNyu/clawock/pull/3278)).
+- Provider rows print every quota window, colour by the tightest window, keep money in its local currency, and total mixed-provider API estimates in USD ([#3261](https://github.com/KCNyu/clawock/pull/3261), [#3303](https://github.com/KCNyu/clawock/pull/3303), [#3338](https://github.com/KCNyu/clawock/pull/3338), [#3340](https://github.com/KCNyu/clawock/pull/3340)).
+- Agent dispatch runs OpenCode v2 and keeps external task prose in context files rather than the instruction ([#3254](https://github.com/KCNyu/clawock/pull/3254), [#3257](https://github.com/KCNyu/clawock/pull/3257)).
+- Quota refresh and cancellation share one status path, and the dispatch price table follows the model registry ([#3238](https://github.com/KCNyu/clawock/pull/3238), [#3394](https://github.com/KCNyu/clawock/pull/3394)).
+
+### Fixed
+
+- A quote without a prior close clears its stale day change instead of publishing a made-up flat day, and a missing daily range stays distinct from an unknown session return ([#3245](https://github.com/KCNyu/clawock/pull/3245), [#3396](https://github.com/KCNyu/clawock/pull/3396), [#3438](https://github.com/KCNyu/clawock/pull/3438)).
+- Ledger and bar readers keep quoted fills, interrupted archives and bar order from corrupting a later read ([#3428](https://github.com/KCNyu/clawock/pull/3428)); the durable FX ledger is keyed by HKT day and the published USDHKD is checked against it ([#3398](https://github.com/KCNyu/clawock/pull/3398), [#3434](https://github.com/KCNyu/clawock/pull/3434)).
+- Brief generation folds its summary to the available headroom, reports an unreadable recovery state instead of going silent, re-reads a pending off-host fallback, re-stamps the read-budget warning, and commits only this generation's ledgers and snapshot ([#3388](https://github.com/KCNyu/clawock/pull/3388), [#3404](https://github.com/KCNyu/clawock/pull/3404), [#3405](https://github.com/KCNyu/clawock/pull/3405), [#3427](https://github.com/KCNyu/clawock/pull/3427), [#3432](https://github.com/KCNyu/clawock/pull/3432), [#3435](https://github.com/KCNyu/clawock/pull/3435)).
+- Decision capital is weighted in USD, never by adding HKD and USD nominally ([#3426](https://github.com/KCNyu/clawock/pull/3426)).
+- The dsh panel redacts credential parse errors, keeps task titles readable, contains modal focus and geometry, and no longer offers Stop on an ended task ([#3294](https://github.com/KCNyu/clawock/pull/3294), [#3330](https://github.com/KCNyu/clawock/pull/3330), [#3335](https://github.com/KCNyu/clawock/pull/3335), [#3336](https://github.com/KCNyu/clawock/pull/3336), [#3384](https://github.com/KCNyu/clawock/pull/3384)).
+- Cron day-of-month and month expansion no longer fires quarterly jobs every day ([#3429](https://github.com/KCNyu/clawock/pull/3429)).
+- Shared-memory audit, projection and recall checks fail closed instead of reporting green ([#3323](https://github.com/KCNyu/clawock/pull/3323), [#3324](https://github.com/KCNyu/clawock/pull/3324), [#3325](https://github.com/KCNyu/clawock/pull/3325), [#3326](https://github.com/KCNyu/clawock/pull/3326), [#3329](https://github.com/KCNyu/clawock/pull/3329)).
+- Delivery failure receipts keep both the head and tail of the error, and macro, FX and quote labels name their session and source ([#3389](https://github.com/KCNyu/clawock/pull/3389), [#3393](https://github.com/KCNyu/clawock/pull/3393)).
+
 ## [0.4.2] — 2026-11-01
 
 ### Added

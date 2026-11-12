@@ -10,5 +10,9 @@ runs:
         cache-dependency-path: examples/dsh/packages/clawock-dsh/package-lock.json
         registry-url: https://registry.npmjs.org
     # Pin the publishing tool: runner-bundled npm previously crashed mid-release.
+    # 11.5.1 is also the first npm that can authenticate with a trusted
+    # publisher's OIDC identity; npm 10 silently cannot, and the release would
+    # fail only at the publish step. Pin the 11.x line rather than npm 12,
+    # whose install-script default changed under the plugin's native build.
     - shell: bash
-      run: npm install -g npm@10.9.8
+      run: npm install -g npm@11.21.2

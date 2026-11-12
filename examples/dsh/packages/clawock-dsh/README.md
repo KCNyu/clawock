@@ -9,8 +9,15 @@
 The [clawock](https://github.com/KCNyu/clawock) investment-decision workflow,
 as a DeepSeek Harness plugin. A skill package that makes the agent walk four
 steps — read the request, research and argue both sides, write the decision,
-then let Python validate and settle it — plus a Decision Mind tab that renders
-every real fill as an expandable decision trace inside the DSH web GUI.
+then let Python validate and settle it.
+
+The plugin adds two surfaces to DSH:
+
+- **Decision Mind** — every real fill as an expandable decision trace in the
+  session view.
+- **Workbench** — on a host that runs clawock's agent-dispatch, a full page for
+  the task queue, provider quotas and system overview, with the same queue in
+  the sidebar and through the `/dispatch-list` chat command.
 
 The fourth step is the one that matters: the model never touches settlement.
 Prices, FX, P&L and the scorecard are computed by code the agent cannot write
@@ -29,16 +36,19 @@ dsh plugin --profile web add clawock-dsh
 ```
 
 Installation needs one more step on rc.6 and later (skill discovery), covered
-in the installation section below. On a host that runs clawock's agent-dispatch,
-the sidebar panel is also a view and control plane for that host's task queue:
-see [Dispatch queue](#dispatch-queue), which is in English and Chinese.
-The rest of this README is in Chinese.
+in the installation section below. The Workbench and dispatch-queue sections
+are bilingual; the Chinese walkthrough starts at 前提.
 
 ---
 
 DeepSeek Harness 的投资决策工作流插件:agent 走完
-「读请求 → 研究 + 正反辩论 → 写决策 → Python 校验结算」四步,
-web GUI 多一个 Decision Mind tab 把每笔成交的决策轨迹钉在页面上。
+「读请求 → 研究 + 正反辩论 → 写决策 → Python 校验结算」四步。
+
+插件在 DSH 里加两个界面:
+
+- **Decision Mind**:web GUI 的会话视图里,每笔成交都是一条可以点开的决策轨迹;
+- **工作台**:在跑着 clawock agent-dispatch 的主机上,一页看任务队列、provider 额度和
+  系统概况;同一队列也在侧栏和 `/dispatch-list` 聊天命令里。
 
 第四步是核心:**模型永远不能给自己打分**——价格、风控、账本、战绩全部由
 Python 独立结算,agent 写不到那段代码,下错单显示为一笔公开页上的亏损,
@@ -108,14 +118,20 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 
 面板是只读 Remote,不改任何文件;结算仍归 clawock 自己的机制。
 
-### 工作台里的 provider 额度（2026-11-07）
+## 工作台 / Workbench
 
-左侧栏只剩一个**工作台**入口：provider 额度不再常驻 footer（Settings 仍是宿主的，留在原位）。
-工作台页标题下是 44px 三段控件 `任务 | 提供方 | 概况`：
+侧栏的 `工作台` 图标是插件的常驻入口（`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）。
+有 provider 告警时，宿主行文案变成 `工作台 · N 个告警`（中英各一份）；56px rail 用 `!`
+字形加 `title`/`aria-label` 兜底，不再有只有颜色、没有文字的裸红点。打开工作台后，顶栏
+唯一的刷新按钮随分段切换：任务/概况刷新巡检，提供方拉额度。更早、没有 keyed `main` 面板的
+宿主仍退回会话标题行的余额芯片。
 
-- **任务**：卡住 / 待你处理 / 进行中三个折叠组，另有 `状态 / 来源` 分组切换。组头整行
-  可点，chevron 只作指示；默认最多展开 6 条（<360px 4 条），<360px 同时只开 1 组、以上
-  2 组，超出给「还有 N 条 ›」。组上方一行 queue headline 说清 running 和每种等待。
+页面标题下是 44px 分段控件 `任务 | 提供方 | 概况`：
+
+- **任务**：`卡住`、`待你处理`、`进行中` 三个折叠组，另有 `状态 / 来源` 分组切换。组头
+  整行可点，chevron 只作指示；默认最多展开 6 条（<360px 4 条），<360px 同时只开 1 组、
+  以上 2 组，超出给「还有 N 条 ›」。组上方一行 queue headline 说清 running 和每种等待。
+  窄屏点任务进焦点视图；桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。
 - **提供方**：每个来源两行常显，行高 76px：第一行 14px 品牌/类型图标（Claude 星芒、
   Codex 终端提示符、DeepSeek 鲸鱼、MiniMax 波浪、OpenCode 方括号）+ 名称 14/600 +
   右侧已用%（周% 灰色）；第二行重置时间，余额制显示 `余额 · 赠金`。底部一条统一的 4px
@@ -128,16 +144,19 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
   堆叠的 7 天图、按 agent 的 token/花费和完成表；历史默认折叠，列出最近结束任务的状态与
   花费，点开进同一个任务详情看结果、花费与全部字段。
 
-任务详情在焦点视图原位保留旧版能力：状态、结果摘要、任务书正文（内联折叠）、日志、
-时间线、模型、排队/优先级、deadline/重试/续跑预算、agent/slot/来源/窗口/池/额度、时间、
-花费/tokens、通知回执、体面收尾/取消/重试、原始记录折叠与完整日志，以及巡检覆盖折叠。
-全局工作台没有会话可开 dsh 文件预览时，任务书正文和日志内联显示。
+焦点视图保留继续 / 需要修改 / 终止三个预设动作（终止就地两段确认），同时保留任务详情的
+原位能力：状态、结果摘要、任务书正文（内联折叠）、日志、时间线、模型、排队/优先级、
+deadline/重试/续跑预算、agent/slot/来源/窗口/池/额度、时间、花费/tokens、通知回执、体面
+收尾/取消/重试、原始记录折叠与完整日志，以及巡检覆盖折叠。全局工作台没有会话可开 dsh 文件
+预览时，任务书正文和日志内联显示。三个预设只调用现有的 `dispatch.sh answer` / `append` /
+`cancel`（有 ask 块时走 `answer --resolve`），插件不另造审批通道，也不新增存储。Esc 从
+焦点视图返回队列，再按一次离开工作台；焦点回到打开它的行、历史行或图标。data 来自 runner
+已写入的 `result.env` 的 `NEEDS` / `STAGE` / `OUTCOME` / `ATTENTION`，巡检覆盖沿用派发
+详情页的同一读取路径。
 
 抽屉里**不显示任何额度数值**。56px 窄轨上待办数是 16×≤22px 数字徽章（1–99，99+ 封顶），
 provider 告警是图标右上角的 `!` 字形，右缘对齐、垂直间隔 4px，互不重叠；stale 永不点红。
-更宽侧栏仍是标签右侧中性徽章 + `工作台 · N 个告警` 文案；不再有只有颜色、没有文字的
-裸红点。打开工作台后，顶栏唯一的刷新按钮随分段切换：任务/概况刷新巡检，提供方拉额度。
-更早、没有 keyed `main` 面板的宿主仍退回会话标题行的余额芯片。
+更宽侧栏仍是标签右侧中性徽章 + `工作台 · N 个告警` 文案。
 
 配额读数一律是**已使用 %**(kcn:「剩余」不直观;头条数字
 与进度条同用这套档位配色):
@@ -191,8 +210,10 @@ provider 告警是图标右上角的 `!` 字形，右缘对齐、垂直间隔 4p
 
 ### 面板里的派发队列
 
-装了 agent-dispatch 的主机上(`~/logs/agent-dispatch` 存在),队列就在上面那个 provider 面板里,
-挂在喂它的那一行 agent 下面(2026-09-27 起不再单独占一行;这套控制面本身见下方
+数据模型、ops 动作、公平性与账务见下方 [Dispatch queue](#dispatch-queue);本节只描述工作台里的队列界面。
+
+装了 agent-dispatch 的主机上(`~/logs/agent-dispatch` 存在),队列就在上面那个工作台里,
+挂在喂它的那一行 agent 下面(这套控制面本身见下方
 [派发队列](#dispatch-queue))。运行槽**按 agent 分**(`limits.env` 的
 `MAX_RUNNING_<AGENT>`),所以不写 `n/总数`。
 
@@ -200,7 +221,7 @@ provider 告警是图标右上角的 `!` 字形，右缘对齐、垂直间隔 4p
 `--dsw-elevation-prominent`,12px 圆角,44px 头),**按执行器分组**——每个 agent 一把锁,
 所以每组就是一条独立的队列,顺序只在组内。
 
-**一套行栅格**(2026-09-28 重做;`src/client.ts` 的 `ROW_KINDS` / `FACT_ORDER` / `FACT_CELL`,
+**一套行栅格**(`src/client.ts` 的 `ROW_KINDS` / `FACT_ORDER` / `FACT_CELL`,
 列宽只写在 `styles.module.css` 的 `--tq-grid`,spec 钉住):面板里每一行都是同五轨,其中三轨定宽,
 所以同一种信息在任何行都落在同一条竖线上——
 
@@ -314,30 +335,6 @@ DeepSeek 的鲸鱼沿用宿主 `dsh-client-ui-primitives` 的 `FishLogo` path，
 侧栏底部不再挂 clawock 的自定义动作；Settings 是宿主自带的，provider 行与额度都移进
 工作台。工作台行只保留中性计数徽章，以及仅在 provider 异常时出现的 8px 红点。
 
-## 工作台 / Workbench
-
-侧栏的 `工作台` 图标是常驻入口（`sidebar.panellist`，与 `main` 的 keyed 页同一个 id）；
-底部不再有信号行。有 provider 告警时，宿主行文案变成 `工作台 · N 个告警`（中英各一份），
-56px rail 用 `!` 字形加 `title`/`aria-label` 兜底——不再有只有颜色、没有文字的裸红点。
-页面标题下是 44px 分段控件 `任务 | 提供方 | 概况`。任务段显示 `卡住`、`待你处理`、
-`进行中` 三个折叠组，并带 `状态 / 来源` 分组切换；顶部的 queue headline 说清 running 和
-每种等待。提供方段是两行常显的 76px 行：14px 品牌/类型图标 + 名称 + 已用% / 周%，第二行
-重置时间 / 余额·赠金，底部一条统一的 4px 用量条（从行内容左边缘到右边缘，按 ok /
-near-limit / alert / stale 取色；金额和免费池没有百分比，就不画条）。没有 `Add provider`。
-概况段把巡检、统计、历史收进同一套折叠组：巡检默认折叠，展开是 KPI、结果条、一行一轮的
-轮次和单列覆盖表；统计展开是总览指标、按 provider 堆叠的 7 天图、按 agent 的 token/花费
-和完成表；历史默认折叠，列出最近结束任务的状态与花费，点开进同一个任务详情。窄屏点任务进
-焦点视图；桌面 ≥768px 时左列 340px 队列常驻、右列详情 max-width 640。焦点视图保留继续 /
-需要修改 / 终止三个预设动作（终止就地两段确认），同时恢复旧版任务详情的全部原位能力：
-状态、结果摘要、任务书（正文内联折叠）、日志、时间线、模型、排队/优先级、deadline/重试/
-续跑预算、agent/slot/来源/窗口/池/额度、时间、花费/tokens、通知回执、体面收尾/取消/重试、
-原始记录折叠与完整日志，以及巡检覆盖折叠。全局工作台没有会话可开 dsh 文件预览时，任务书
-正文和日志改为内联显示。三个预设仍只调用现有的 `dispatch.sh answer` / `append` / `cancel`
-（有 ask 块时走 `answer --resolve`），插件不另造审批通道，也不新增存储。Esc 从焦点视图
-返回队列，再按一次离开工作台；焦点回到打开它的行、历史行或图标。data 来自 runner 已写入的
-`result.env` 的 `NEEDS` / `STAGE` / `OUTCOME` / `ATTENTION`，巡检覆盖沿用派发详情页的同一
-读取路径。
-
 ## Dispatch queue
 
 The second thing this package does, separate from investment decisions: on a host that runs
@@ -349,46 +346,27 @@ steer it. 与投资决策无关的第二项能力:在跑着 clawock agent-dispat
 
 ### English
 
-**Where it lives (2026-11-07).** The permanent sidebar-footer provider block is gone. The
-sidebar keeps one **Workbench** entry: a neutral pending count (capped at `99+`) and, while
-a provider is actually broken, the host row's own words: `Workbench · 1 alert` (zh
-`工作台 · 1 个告警`). The 56px rail keeps a `!` glyph with `title`/`aria-label`; the colour
-is never the only signal, and no bare dot is drawn. The page has one 44px segmented
-control, **Tasks | Providers | Overview**. Tasks keep the three status folds and gain a
-`Status / Source` grouping toggle; the queue headline says what is running and what each
-task waits for. Providers are two-line, always-visible 76px rows: a 14px brand/type icon
-(Claude spark, Codex terminal prompt, DeepSeek whale, MiniMax wave, OpenCode brackets),
-name, used % / muted week, reset line and balance/credit split, with one shared 4px bar
-from the row's content left edge to its right edge, coloured by ok / near-limit / alert /
-stale. Money and free rows have no percentage, so they draw no bar. There is no
-`Add provider`. Overview folds Patrol (KPI, outcome strip, one-line rounds, single-column
-coverage), Stats (metrics, stacked provider chart, per-agent token/cost and completion)
-and History (recently ended tasks with result and cost, opening the same task detail).
-The detail restores the old in-place sections and controls: status, result summary, brief
-text (inline fold), log, timeline, model, place/priority, deadline/retry/resume budgets,
-agent/slot/source/windows/pool/quota, time, cost/tokens, notification receipts,
-wrap-up/cancel/retry, the folded raw record with full log, plus the patrol coverage fold.
-When the global page has no conversation to preview a file into, the brief text and log
-are shown inline instead. The queue description below still owns the data model and the
-host-side reads.
+**Where it lives.** The Workbench page and its Tasks / Providers / Overview segments are
+described in the Workbench section above. This section owns the data model and the
+host-side reads behind that queue.
 
 **What it is.** agent-dispatch runs headless Claude Code, Codex and OpenCode tasks, each in
 its own transient systemd unit, so a task outlives the chat, terminal or dsh session that
-started it. The chip is one view of a control plane with three parties:
+started it. The Workbench is one view of a control plane with three parties:
 
 | Party | Where | Role |
 | :--- | :--- | :--- |
-| dsh chip | this package: `src/taskqueue.ts` (host half), `src/client.ts` | reads the queue; sends every write through the ops entry. Its own commands are read-only: `systemctl list-units` / `is-active` and `journalctl -u clawock-patrol -n 12` on each queue read. It never stops or restarts a unit, never takes `flock` and never edits a task directory |
-| ops entry | [`ops/host/task_queue_ops.py`](https://github.com/KCNyu/clawock/blob/master/ops/host/task_queue_ops.py), installed to `/root/tools/agent-dispatch/` | the only code that writes to a task on the UI's behalf, and the only place the queue order is decided. Every write appends one line to the task's `audit.log`: who (`source=ui\|cli`), what changed, and the entry's `ops_version` (the sha256 of the file). The chip compares the installed `ops_version` with the repository's copy and turns red when they differ: merged but not installed |
+| Workbench | this package: `src/taskqueue.ts` (host half), `src/client.ts` | reads the queue; sends every write through the ops entry. Its own commands are read-only: `systemctl list-units` / `is-active` and `journalctl -u clawock-patrol -n 12` on each queue read. It never stops or restarts a unit, never takes `flock` and never edits a task directory |
+| ops entry | [`ops/host/task_queue_ops.py`](https://github.com/KCNyu/clawock/blob/master/ops/host/task_queue_ops.py), installed to `/root/tools/agent-dispatch/` | the only code that writes to a task on the UI's behalf, and the only place the queue order is decided. Every write appends one line to the task's `audit.log`: who (`source=ui\|cli`), what changed, and the entry's `ops_version` (the sha256 of the file). The Workbench compares the installed `ops_version` with the repository's copy and turns red when they differ: merged but not installed |
 | runner | [`ops/host/agent-dispatch/`](https://github.com/KCNyu/clawock/tree/master/ops/host/agent-dispatch) (`run-agent.sh`, `dispatch.sh`), installed to `/root/tools/agent-dispatch/` | runs one task: waits for its agent's lock in queue order, takes a run slot, runs attempts, sleeps through quota limits, applies appends and budget changes, writes `result.env`, sends the notification |
 
-The whole contract, including every field the chip reads, is
+The whole contract, including every field the Workbench reads, is
 [`docs/architecture/task-queue.md`](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md).
 
 **What you can do.** The ops entry's actions (`task_queue_ops.py [--json] [--source ui|cli] <action>`).
-The chip calls them through its host half; the same entry works from a shell.
+The Workbench calls them through its host half; the same entry works from a shell.
 
-| Action | What it does | In the chip |
+| Action | What it does | In the Workbench |
 | :--- | :--- | :--- |
 | `list` | per agent: lock holder, queue in real order, quota hint, tasks it cannot order | the panel itself |
 | `head <agent>` | the task that takes the agent's lock next (asked by the runner on every poll) | — |
@@ -446,7 +424,7 @@ message per channel in the task's list (`weixin`, `telegram`, both by default), 
 in parallel, through `openclaw message send`. Delivery is best-effort. A failed channel does
 not change the task, is not retried and raises no alarm. It shows up as
 `notify: send failed (<channel>)` in `run.log`, in `NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT`
-in `result.env`, and as a red receipt icon in the chip. A missing notification only means
+in `result.env`, and as a red receipt icon in the Workbench. A missing notification only means
 nobody was told; read `result.env` before assuming the task failed. As of 2026-09-28:
 Telegram delivers. Its misses on 09-26/27 were 30-second notices running past their limit,
 because `openclaw message send` takes 13–25 s just to start on this host. The quota-wait notice
@@ -461,7 +439,7 @@ fixed.
 - There is no sandbox. The runner runs as root in an unconfined systemd unit: claude with
   `--dangerously-skip-permissions`, codex with `--dangerously-bypass-approvals-and-sandbox`.
   That is this dedicated host's choice, not a recommendation.
-- The chip appears only when `~/logs/agent-dispatch` exists. A host without the dispatcher sees
+- The Workbench entry appears only when `~/logs/agent-dispatch` exists. A host without the dispatcher sees
   the provider rows and nothing else.
 - The runner is a host tool, **not part of this npm package**. It hard-codes `/root` paths
   and is installed as a separate step from a clawock checkout. Create
@@ -474,22 +452,22 @@ fixed.
 ### 中文:派发队列
 
 **它是什么。** agent-dispatch 把 Claude Code / Codex / OpenCode 任务以无头方式跑在各自的 systemd
-临时 unit 里,发起它的聊天、终端或 dsh 会话关掉了任务照样跑。芯片只是这个控制面的**一个视图**,
+临时 unit 里,发起它的聊天、终端或 dsh 会话关掉了任务照样跑。工作台只是这个控制面的**一个视图**,
 控制面由三方组成:
 
 | 一方 | 在哪 | 职责 |
 | :--- | :--- | :--- |
-| dsh 芯片 | 本包 `src/taskqueue.ts`(host 半边)、`src/client.ts` | 读队列;所有写操作都交给 ops 入口。它自己跑的命令都是只读的:每次读队列跑 `systemctl list-units` / `is-active` 与 `journalctl -u clawock-patrol -n 12`;从不停/重启 unit、不 flock、不改任务目录 |
-| ops 入口 | [`ops/host/task_queue_ops.py`](https://github.com/KCNyu/clawock/blob/master/ops/host/task_queue_ops.py),装到 `/root/tools/agent-dispatch/` | 代表 UI 写任务的**唯一入口**,也是队列顺序唯一的决定处。每次写都在任务的 `audit.log` 追加一行:谁(`source=ui\|cli`)、改了什么、执行它的 `ops_version`(文件 sha256)。芯片把已装的 `ops_version` 与仓库那份比对,不一致变红——已合并、未装机 |
+| 工作台 | 本包 `src/taskqueue.ts`(host 半边)、`src/client.ts` | 读队列;所有写操作都交给 ops 入口。它自己跑的命令都是只读的:每次读队列跑 `systemctl list-units` / `is-active` 与 `journalctl -u clawock-patrol -n 12`;从不停/重启 unit、不 flock、不改任务目录 |
+| ops 入口 | [`ops/host/task_queue_ops.py`](https://github.com/KCNyu/clawock/blob/master/ops/host/task_queue_ops.py),装到 `/root/tools/agent-dispatch/` | 代表 UI 写任务的**唯一入口**,也是队列顺序唯一的决定处。每次写都在任务的 `audit.log` 追加一行:谁(`source=ui\|cli`)、改了什么、执行它的 `ops_version`(文件 sha256)。工作台把已装的 `ops_version` 与仓库那份比对,不一致变红——已合并、未装机 |
 | runner | [`ops/host/agent-dispatch/`](https://github.com/KCNyu/clawock/tree/master/ops/host/agent-dispatch)(`run-agent.sh`、`dispatch.sh`),装到 `/root/tools/agent-dispatch/` | 跑一个任务:按队列顺序等本 agent 的锁、拿运行槽、逐次尝试、额度用尽时睡到重置、投递追加指令与预算改动、写 `result.env`、发通知 |
 
-完整契约(含芯片读的每个字段)在
+完整契约(含工作台读的每个字段)在
 [`docs/architecture/task-queue.md`](https://github.com/KCNyu/clawock/blob/master/docs/architecture/task-queue.md)。
 
-**能做什么。** ops 入口的动作(`task_queue_ops.py [--json] [--source ui|cli] <action>`),芯片经
+**能做什么。** ops 入口的动作(`task_queue_ops.py [--json] [--source ui|cli] <action>`),工作台经
 host 半边调用,shell 里也能直接用:
 
-| 动作 | 做什么 | 芯片里有 |
+| 动作 | 做什么 | 工作台里有 |
 | :--- | :--- | :--- |
 | `list` | 每个 agent:持锁者、真实顺序的队列、额度提示、排不了序的任务 | 面板本身 |
 | `head <agent>` | 下一个拿该 agent 锁的任务(runner 每次轮询都问它) | — |
@@ -535,7 +513,7 @@ claude 会在每个 content block 行上重复同一条消息的 usage)、codex 
 **通知。** 任务结束、以及开始等额度时,runner 向任务通知列表里的每个通道(`weixin`、`telegram`,
 默认两条都发)经 `openclaw message send` 并行各发一次。投递是**尽力而为**:某条失败不改变任务状态、
 不重试、不告警,只体现在 `run.log` 的 `notify: send failed (<通道>)`、`result.env` 的
-`NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT`,以及芯片里红色的回执图标。没收到推送只说明没人被
+`NOTIFIED` / `NOTIFY_FAILED` / `NOTIFY_AT`,以及工作台里红色的回执图标。没收到推送只说明没人被
 告知,先看 `result.env`,别据此认定任务失败。截至 2026-09-28:Telegram 正常送达;09-26/27 的几次
 失败都是 30 秒时限的通知超时——本机上 `openclaw message send` 光启动就要 13–25 秒。等额度通知自
 clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩这么多),主机忙时取消可能没推送。
@@ -547,7 +525,7 @@ clawock#2057 起改为 60 秒;取消通知仍是 30 秒(unit 停止预算只剩�
 - 没有沙箱。runner 以 root 在不受限的 systemd unit 里跑,claude 带
   `--dangerously-skip-permissions`,codex 带 `--dangerously-bypass-approvals-and-sandbox`——
   这是这台专用主机的选择,不是推荐。
-- 芯片只在 `~/logs/agent-dispatch` 存在时出现;没有派发器的主机只看到 provider 行。
+- 工作台只在 `~/logs/agent-dispatch` 存在时出现;没有派发器的主机只看到 provider 行。
 - runner 是宿主工具,**不在这个 npm 包里**。它写死了 `/root` 路径,要从 clawock 仓库单独装一步:
   先建 `/root/tools/agent-dispatch/`,放一份 `limits.env`(`MAX_RUNNING_CLAUDE`、`MAX_RUNNING_CODEX`、
   `MAX_RUNNING_OPENCODE`、`MAX_RUNNING_DSH`、`PATROL_MIN_AVAILABLE_KB`、`PATROL_MAX_MEMORY_FULL_AVG60`、
@@ -595,7 +573,7 @@ Telegram (whose menu spells it `/dispatch_list`) answers with every provider's a
 and cost, patrol and the ops footer. `/dispatch-list refresh` bypasses the balance caches. It
 reads the same services the gateway does (`src/desk.ts`) and prints the same view model the
 sidebar draws (`src/panel.ts` → `src/text.ts`), so the reply cannot say something the panel
-does not; the spec compares the two row by row. Read-only: steering stays on the chip. Keys
+does not; the spec compares the two row by row. Read-only: steering stays in the Workbench. Keys
 come from the gateway config's `env` block (e.g. `DEEPSEEK_API_KEY`), then the environment.
 
 A **stats tile** is the closing summary at the bottom of the panel: after patrol, before the ops
@@ -631,7 +609,7 @@ subscription quota.
 `/dispatch_list`)就回一条消息:各 provider 额度(窗口用 ▓░ 条和重置时刻)、各 agent 的进行中任务、
 最近结束(含送达回执与费用)、巡检和 ops 页脚;`/dispatch-list refresh` 绕过余额缓存。取数与 dsh
 网关同一套服务(`src/desk.ts`),渲染的是侧栏同一个视图模型(`src/panel.ts` → `src/text.ts`),
-spec 逐行比对两者。只读,调度仍在芯片上操作。
+spec 逐行比对两者。只读,调度仍在工作台里操作。
 
 **统计卡片**是面板的收尾,放在巡检之后、ops 页脚之前(页脚是来源元数据,永远最后),不再挨着
 「最近结束」:队列是打开时的主视图,近 7 天的回顾是收尾。任务数、token、API 估价和一条完成条
@@ -667,7 +645,7 @@ provider 自己的错误详情(`message`)保持原文,不做翻译。
 
 ## 它不做什么
 
-- **不改文件**。面板只读;账本写入、发布只走 `clawock run` / brief 管线。
+- **Decision Mind 不改文件**。它只读;工作台的队列操作只经 `task_queue_ops.py` 的审计入口。
 - **不替代 clawock**。skill 只把「什么时候跑、产出什么」讲给 agent 听,
   agent 调用的仍是同一套 CLI 与文件契约。
 - **不发明判定**。没有 bar 就没有 T+1;`execution.status` 只渲染为
@@ -698,8 +676,14 @@ TypeScript,网页是构建期算好塞进 `dashboard.json` 的 Python。两边�
 ```bash
 cd examples/dsh/packages/clawock-dsh
 npm install --include=dev && npm run build   # 生成的 lib/ 提交入库,CI 断言零漂移
-npm publish                                   # 发布当前版本
+
+# 在仓库根目录发布当前 package.json 的版本。
+# 本地需要 NPM_TOKEN;GitHub Actions 的 release.yml 用 trusted publishing(OIDC),不设 token。
+ops/publish/publish_dsh_plugin.sh
 ```
+
+版本号在 `pyproject.toml`;同一版本发布 PyPI 与 npm 的流程见
+[`docs/operations/release.md`](https://github.com/KCNyu/clawock/blob/master/docs/operations/release.md)。
 
 把当前 checkout 装进 self-hosted DSH(开发/自部署):
 `ops/host/install_dsh_plugin.sh --restart`。README 截图一条命令:
