@@ -679,6 +679,43 @@ class DecisionV2Test(unittest.TestCase):
         self.assertAlmostEqual(curve[0]["daily_benefit_pct"], 8.0)
         self.assertAlmostEqual(curve[-1]["compounded_benefit_pct"], 18.8)
 
+    def test_capital_weighting_converts_hkd_before_aggregating(self):
+        """HKD and USD capital are never added at face value (#3425).
+
+        HK$7,845.6 is US$1,000 at 7.8456, so the two ±10% calls cancel once the
+        HK leg is converted. The old nominal sum read +7.75% — the HK leg looked
+        7.8x larger than it is.
+        """
+        hk = decision("2026-07-01", ticker="00100", action="cut",
+                      benefit=10, capital=7845.6)
+        us = decision("2026-07-01", ticker="BBB", action="cut",
+                      benefit=-10, capital=1000.0)
+        hk["leg"], us["leg"] = "HK", "US"
+        dv2.assign_episode_ids([hk, us])
+        bt = dv2.compute_backtest([hk, us], fx_rate=7.8456)["horizons"]["t1"]["active"]
+        self.assertAlmostEqual(bt["capital_weighted_benefit_pct"], 0.0, places=4)
+        self.assertEqual(bt["capital_weight_currency"], "USD")
+        self.assertAlmostEqual(bt["capital_coverage_pct"], 100.0)
+        metrics = dv2.compute_metrics([hk, us], cutoff="2026-01-01", fx_rate=7.8456)
+        self.assertAlmostEqual(metrics["active"]["capital_weighted_benefit_pct"], 0.0, places=4)
+        self.assertAlmostEqual(
+            dv2.compute_backtest([hk, us], fx_rate=7.8456)["horizons"]["t1"]["active_curve"][0]
+            ["daily_benefit_pct"], 0.0, places=4)
+
+    def test_capital_weighting_refuses_to_mix_without_a_rate(self):
+        hk = decision("2026-07-01", ticker="00100", action="cut",
+                      benefit=10, capital=7845.6)
+        us = decision("2026-07-01", ticker="BBB", action="cut",
+                      benefit=-10, capital=1000.0)
+        hk["leg"], us["leg"] = "HK", "US"
+        with mock.patch.object(dv2, "_default_usdhkd", return_value=None):
+            metrics = dv2.compute_metrics([hk, us], cutoff="2026-01-01")
+            bt = dv2.compute_backtest([hk, us])
+        self.assertIsNone(metrics["active"]["capital_weighted_benefit_pct"])
+        self.assertIsNone(metrics["active"]["capital_weight_currency"])
+        self.assertAlmostEqual(metrics["active"]["capital_coverage_pct"], 100.0)
+        self.assertIsNone(bt["horizons"]["t1"]["active"]["capital_weighted_benefit_pct"])
+
     def test_backtest_preserves_complete_ai_line_including_migrated_holds(self):
         rows = [decision("2026-07-01", action="hold_and_watch", benefit=4),
                 decision("2026-07-02", ticker="BBB", action="cut", benefit=-2)]

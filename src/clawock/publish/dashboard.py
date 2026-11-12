@@ -595,7 +595,7 @@ def build_debate_sidecar(decisions, limit=DEBATE_SIDECAR_LIMIT):
     return {'limit': limit, 'rows': rows}
 
 
-def build_decision_audit_payload(decisions, portfolio):
+def build_decision_audit_payload(decisions, portfolio, fx_rate=None):
     """Compile the complete Reflect sidecar from one settled decision set.
 
     ``episode_backtest`` is rendered only on Reflect, whose existing
@@ -606,7 +606,7 @@ def build_decision_audit_payload(decisions, portfolio):
     payload = decision_v2.build_audit_sidecar(
         decisions, portfolio, include_records=False
     )
-    payload['episode_backtest'] = decision_v2.compute_backtest(decisions)
+    payload['episode_backtest'] = decision_v2.compute_backtest(decisions, fx_rate=fx_rate)
     # The debate itself, not just how often one was recorded (#1117). It rides
     # this sidecar rather than dashboard.json because Reflect is the only tab
     # that renders it and dashboard.json is the payload under the 200KB cap.
@@ -4985,7 +4985,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     # Reflect reads timing_diagnostic plus its episode backtest from this sidecar.
     # The full per-decision `records` trail (~700KB, recomputable from decisions)
     # is not rendered or linked anywhere, so it stays unpublished.
-    _audit = build_decision_audit_payload(_decisions, portfolio)
+    _audit = build_decision_audit_payload(_decisions, portfolio, fx_rate=fx_rate)
     # Shadow-portfolio policy simulation (模拟·非实盘): its own sidecar, NOT embedded
     # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
     # same-seed buy-and-hold) marked to canonical closes; cumulative diff is a
@@ -4993,7 +4993,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     _shadow = build_shadow_sidecar(portfolio, _decisions, shadow_previous)
     out['decision_schema_version'] = 2
     out['decision_metrics'] = trim_decision_metrics(
-        decision_v2.compute_metrics(_decisions))
+        decision_v2.compute_metrics(_decisions, fx_rate=fx_rate))
     scorecard_provenance.record_settlement_view(
         out['decision_metrics']['provenance'], _source_decisions, settlement_day=_settlement_day,
         source_ref=_source_ref)

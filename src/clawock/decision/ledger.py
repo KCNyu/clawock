@@ -1930,17 +1930,73 @@ def _cluster_ci(rows: list[dict], value_fn, samples: int = 1000) -> list[float] 
             round(stats[int(0.975 * (len(stats) - 1))], 4)]
 
 
-def _aggregate(rows: list[dict], benefit_key: str) -> dict:
+def _default_usdhkd() -> float | None:
+    """The cached USDHKD rate, for callers that did not pass one explicitly.
+
+    The scorecard weights episodes by capital, and the two books keep that
+    capital in different currencies. A caller that has the published rate
+    should pass it; this fallback keeps CLI/offline readers on the same rate
+    the dashboard used instead of silently reverting to the nominal mix
+    (#3425). No invented peg midpoint when the cache is missing — the
+    weighted figure is then unavailable rather than wrong.
+    """
+    try:
+        from clawock.portfolio import fx as fx_rates
+        cached = fx_rates.read_cached_usdhkd(str(WS / ".cache" / "fx_rate.json"))
+    except Exception:
+        return None
+    rate = _float(cached.get("rate"))
+    return rate if rate and rate > 0 else None
+
+
+def _usd_capital(row: dict, fx_rate: float | None) -> float | None:
+    """One row's capital in USD, or None when it cannot be converted.
+
+    HKD and USD are never added nominally (AGENTS.md). HK capital is divided by
+    the USDHKD rate; without a rate the row cannot enter a cross-leg weight.
+    """
+    capital = _float((row.get("evaluation") or {}).get("capital"))
+    if capital is None or capital <= 0:
+        return None
+    if (row.get("leg") or "") == "HK":
+        rate = _float(fx_rate)
+        if rate is None or rate <= 0:
+            return None
+        return capital / rate
+    return capital
+
+
+def _aggregate(rows: list[dict], benefit_key: str,
+               fx_rate: float | None = None) -> dict:
     vals = [(_float((r.get("evaluation") or {}).get(benefit_key)),
              _float((r.get("evaluation") or {}).get("capital"))) for r in rows]
     vals = [(v, c) for v, c in vals if v is not None]
     if not vals:
         return {"n_episodes": 0, "win_rate": None, "win_rate_ci95": None,
                 "avg_benefit_pct": None,
-                "capital_weighted_benefit_pct": None, "cluster_ci95": None}
+                "capital_weighted_benefit_pct": None, "cluster_ci95": None,
+                "capital_weight_currency": None}
     plain = [v for v, _ in vals]
-    weighted = [(v, c) for v, c in vals if c and c > 0]
-    cw = sum(v * c for v, c in weighted) / sum(c for _, c in weighted) if weighted else None
+    weighted = []
+    with_capital = 0
+    unconverted = False
+    for r in rows:
+        v = _float((r.get("evaluation") or {}).get(benefit_key))
+        if v is None:
+            continue
+        native = _float((r.get("evaluation") or {}).get("capital"))
+        if native is None or native <= 0:
+            continue
+        with_capital += 1
+        usd = _usd_capital(r, fx_rate)
+        if usd is None:
+            unconverted = True
+            continue
+        weighted.append((v, usd))
+    # A partial sum would quietly drop the leg it could not convert, which is
+    # the same class of error as mixing the two. Say "unavailable" instead.
+    cw = (sum(v * c for v, c in weighted) / sum(c for _, c in weighted)
+          if weighted and not unconverted else None)
     wins = sum(v > 0 for v in plain)
     return {
         "n_episodes": len(vals),
@@ -1956,39 +2012,51 @@ def _aggregate(rows: list[dict], benefit_key: str) -> dict:
         "win_rate_ci95": wilson_ci(wins, len(plain)),
         "avg_benefit_pct": round(sum(plain) / len(plain), 4),
         "capital_weighted_benefit_pct": round(cw, 4) if cw is not None else None,
-        "capital_coverage_pct": round(100 * len(weighted) / len(vals), 1),
+        "capital_weight_currency": "USD" if cw is not None else None,
+        "capital_coverage_pct": round(100 * with_capital / len(vals), 1),
         "cluster_ci95": _cluster_ci(rows, lambda r: _float((r.get("evaluation") or {}).get(benefit_key))),
     }
 
 
-def _breakdown(rows: list[dict], field_getter, benefit_key: str) -> dict:
+def _breakdown(rows: list[dict], field_getter, benefit_key: str,
+               fx_rate: float | None = None) -> dict:
     groups = defaultdict(list)
     for r in rows:
         groups[field_getter(r) or "unknown"].append(r)
     out = {}
     for key, rs in sorted(groups.items()):
-        agg = _aggregate(rs, benefit_key)
+        agg = _aggregate(rs, benefit_key, fx_rate=fx_rate)
         ci = agg.get("cluster_ci95")
         agg["edge_significant"] = bool(ci and ci[0] > 0)
         out[key] = agg
     return out
 
 
-def _compounded_curve(rows: list[dict], benefit_key: str) -> list[dict]:
-    """Compound one capital-weighted portfolio-of-decisions return per plan date."""
+def _compounded_curve(rows: list[dict], benefit_key: str,
+                      fx_rate: float | None = None) -> list[dict]:
+    """Compound one USD-capital-weighted portfolio return per plan date.
+
+    Same currency rule as `_aggregate`: HK capital enters at the USDHKD rate,
+    never at face value. A day that cannot convert one of its capital-bearing
+    calls falls back to its equal-weight return rather than summing mixed
+    currencies; the dashboard always passes its published rate.
+    """
     by_date = defaultdict(list)
     for r in rows:
         v = _float((r.get("evaluation") or {}).get(benefit_key))
-        c = _float((r.get("evaluation") or {}).get("capital"))
+        usd = _usd_capital(r, fx_rate)
+        has_capital = (_float((r.get("evaluation") or {}).get("capital")) or 0) > 0
         if v is not None:
-            by_date[r.get("plan_date")].append((v, c))
+            by_date[r.get("plan_date")].append((v, usd, has_capital))
     curve = []
     equity = 1.0
     for day in sorted(by_date):
         values = by_date[day]
-        weighted = [(v, c) for v, c in values if c and c > 0]
+        convertible = all(c is not None for _, c, has_capital in values if has_capital)
+        weighted = [(v, c) for v, c, _ in values if c is not None]
         day_ret = (sum(v * c for v, c in weighted) / sum(c for _, c in weighted)
-                   if weighted else sum(v for v, _ in values) / len(values))
+                   if weighted and convertible
+                   else sum(v for v, _, _ in values) / len(values))
         equity *= 1 + day_ret / 100
         curve.append({"date": day, "daily_benefit_pct": round(day_ret, 4),
                       "compounded_benefit_pct": round((equity - 1) * 100, 4)})
@@ -2507,7 +2575,8 @@ def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
 
 
 def compute_metrics(decisions: list[dict], window_days: int = 30,
-                    cutoff: str | None = None) -> dict:
+                    cutoff: str | None = None,
+                    fx_rate: float | None = None) -> dict:
     """The scorecard the UI labels "30d" — so every field here must BE 30d.
 
     ``execution`` and the override count used to be tallied over the whole
@@ -2523,6 +2592,8 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
     # every day, so verification would compare two populations rather than two
     # computations of one (see `evidence.scorecard_provenance`).
     cutoff = cutoff or (datetime.now(HKT).date() - timedelta(days=window_days)).isoformat()
+    if fx_rate is None:
+        fx_rate = _default_usdhkd()
     in_window = [d for d in decisions if (d.get("plan_date") or "") >= cutoff]
     lifetime_reps = episode_representatives(decisions, "t1")
     # Membership is "the episode has a call inside the window", the same rule
@@ -2883,15 +2954,16 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
             "active": _exec_rate([d for d in in_window if d.get("action") in ACTIVE_ACTIONS]),
             "passive": _exec_rate([d for d in in_window if d.get("action") in PASSIVE_ACTIONS]),
         },
-        "active": _aggregate(active, "benefit_t1_pct"),
-        "passive": _aggregate(passive, "benefit_t1_pct"),
-        "by_action": _breakdown(reps, lambda r: r.get("action"), "benefit_t1_pct"),
-        "by_strategy": _breakdown(reps, lambda r: r.get("strategy_id"), "benefit_t1_pct"),
-        "by_driver": _breakdown(reps, lambda r: r.get("driven_by"), "benefit_t1_pct"),
-        "by_condition": _breakdown(reps, lambda r: (r.get("condition") or {}).get("type"), "benefit_t1_pct"),
+        "active": _aggregate(active, "benefit_t1_pct", fx_rate=fx_rate),
+        "passive": _aggregate(passive, "benefit_t1_pct", fx_rate=fx_rate),
+        "by_action": _breakdown(reps, lambda r: r.get("action"), "benefit_t1_pct", fx_rate=fx_rate),
+        "by_strategy": _breakdown(reps, lambda r: r.get("strategy_id"), "benefit_t1_pct", fx_rate=fx_rate),
+        "by_driver": _breakdown(reps, lambda r: r.get("driven_by"), "benefit_t1_pct", fx_rate=fx_rate),
+        "by_condition": _breakdown(reps, lambda r: (r.get("condition") or {}).get("type"), "benefit_t1_pct", fx_rate=fx_rate),
         "by_technical_setup": _breakdown(
-            reps, lambda r: r.get("technical_setup_id"), "benefit_t1_pct"
+            reps, lambda r: r.get("technical_setup_id"), "benefit_t1_pct", fx_rate=fx_rate
         ),
+        "capital_weight_fx": fx_rate,
         "information_overlay": _prospective_overlay_metrics(in_window),
         "execution": dict(execution),
         "active_overrides": len(overrides),
@@ -3064,7 +3136,10 @@ def _benchmark_aggregate(rows):
     }
 
 
-def compute_backtest(decisions: list[dict], *, benchmark: dict | None = None) -> dict:
+def compute_backtest(decisions: list[dict], *, benchmark: dict | None = None,
+                     fx_rate: float | None = None) -> dict:
+    if fx_rate is None:
+        fx_rate = _default_usdhkd()
     if benchmark is None:
         try:
             benchmark = json.loads((WS / "assets/data/benchmark.json").read_text())
@@ -3087,25 +3162,25 @@ def compute_backtest(decisions: list[dict], *, benchmark: dict | None = None) ->
             # This is the v2 continuation of the migrated v1 "all calls" line;
             # `active` remains separate so passive market beta cannot masquerade
             # as evidence that cut/trim/add timing has alpha.
-            "all": _aggregate(reps, key),
-            "active": _aggregate(active, key),
+            "all": _aggregate(reps, key, fx_rate=fx_rate),
+            "active": _aggregate(active, key, fx_rate=fx_rate),
             # The beta this book carried, shown rather than left implicit.
             # `_benefit` gives a HOLD the underlying's own move, so a hold in a
             # falling market scores a loss however right the hold was — and
             # 103 of the 166 August decisions were holds on a book down 28-66%.
             # Without this column the reader has no way to see how much of
             # `all` and `followed` is simply the market (#1087).
-            "passive": _aggregate(passive, key),
-            "followed": _aggregate(followed, key),
+            "passive": _aggregate(passive, key, fx_rate=fx_rate),
+            "followed": _aggregate(followed, key, fx_rate=fx_rate),
             # `followed` mixes both, which is why it reads as "listening to the
             # AI loses money, significantly" — measured 2026-08-26 at T+1:
             # n=107, 32.7%, −1.86%, CI [−3.25, −0.62]. This is the same question
             # asked of the calls that were actually a decision to do something.
-            "followed_active": _aggregate(followed_active, key),
-            "by_strategy": _breakdown(reps, lambda r: r.get("strategy_id"), key),
-            "all_curve": _compounded_curve(reps, key),
-            "active_curve": _compounded_curve(active, key),
-            "followed_curve": _compounded_curve(followed, key),
+            "followed_active": _aggregate(followed_active, key, fx_rate=fx_rate),
+            "by_strategy": _breakdown(reps, lambda r: r.get("strategy_id"), key, fx_rate=fx_rate),
+            "all_curve": _compounded_curve(reps, key, fx_rate=fx_rate),
+            "active_curve": _compounded_curve(active, key, fx_rate=fx_rate),
+            "followed_curve": _compounded_curve(followed, key, fx_rate=fx_rate),
             "all_win_rate_curve": _cumulative_win_rate_curve(reps, key),
             "active_win_rate_curve": _cumulative_win_rate_curve(active, key),
             # Absolute direction scores retain their original populations.
@@ -3125,7 +3200,9 @@ def compute_backtest(decisions: list[dict], *, benchmark: dict | None = None) ->
         "method": ("one synthetic representative per strategy episode carrying that episode's mean benefit; "
                    "an episode is consecutive reaffirmations of the same (ticker, strategy, action) within a "
                    "4-calendar-day gap — a moved trigger or changed condition does NOT start a new episode; "
-                   "daily capital-weighted benefit is compounded, never arithmetically summed across calls"),
+                   "capital is converted to USD at the published USDHKD rate before weighting, and the daily "
+                   "capital-weighted benefit is compounded, never arithmetically summed across calls"),
+        "capital_weight_fx": fx_rate,
         "benchmark_method": {
             "markets": {"US": "SPY", "HK": "HSI"},
             "measure": "directional broad-market excess in percentage points; not portfolio alpha or decision value",
