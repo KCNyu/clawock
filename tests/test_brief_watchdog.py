@@ -380,6 +380,7 @@ def test_corrupt_state_suppresses_duplicate_dispatch_but_still_notifies(
     path.parent.mkdir(parents=True)
     path.write_text("{bad json")
     calls = {"dispatch": 0, "send": 0}
+    messages = []
     monkeypatch.setattr(
         watchdog,
         "dispatch_brief_fallback",
@@ -389,7 +390,9 @@ def test_corrupt_state_suppresses_duplicate_dispatch_but_still_notifies(
     monkeypatch.setattr(
         watchdog,
         "send_telegram",
-        lambda *_args: calls.__setitem__("send", calls["send"] + 1) or (True, "ok"),
+        lambda _target, message, _dry_run: (
+            messages.append(message), calls.__setitem__("send", calls["send"] + 1),
+            (True, "ok"))[2],
     )
     monkeypatch.setattr(watchdog, "log", lambda _event: None)
     _stub_outcome(monkeypatch)
@@ -400,6 +403,10 @@ def test_corrupt_state_suppresses_duplicate_dispatch_but_still_notifies(
     state = json.loads(path.read_text())
     assert state["fallback_dispatch_attempted"] is True
     assert "state_error" in state
+    # #3424: unreadable state is not "dispatch failed"; do not send kcn to a
+    # manual dispatch that would bypass the double-writer gate.
+    assert "恢复状态无法读取" in messages[0]
+    assert "gh workflow run brief-fallback.yml" not in messages[0]
 
 
 def _run_alert_capturing_messages(monkeypatch, tmp_path, outcome, detail):

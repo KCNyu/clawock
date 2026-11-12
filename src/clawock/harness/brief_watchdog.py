@@ -362,6 +362,123 @@ def retry_budget_note():
             f'    ⇒ {remedy}\n\n')
 
 
+def _decide_local_recovery(today, dry_run, state):
+    """Decide the one recovery path for this miss and persist the decision.
+
+    Returns ``(rerun_queued, rerun_inflight, dispatched, dispatch_out)``. The
+    decision and its state write live here so the alert text and the Telegram
+    retry cannot grow their own copy of the #550/#606/#508 rules (#3419).
+    """
+    rerun_queued = False
+    rerun_inflight = bool(state.get('rerun_inflight'))
+    if state.get('fallback_dispatch_attempted'):
+        # A prior pass already fired (or may have fired) the fallback. Never a
+        # second dispatch: the corrupt-state branch above deliberately lands
+        # here too, so a torn file cannot cause a duplicate writer.
+        return (rerun_queued, rerun_inflight,
+                bool(state.get('fallback_dispatch_succeeded')),
+                state.get('dispatch_out')
+                or '(prior dispatch attempt; outcome unavailable)')
+
+    # Second on-host chance before the off-host fallback (#550). #606 gates it
+    # on evidence: only a run that already ended in failure today is proof the
+    # attempt is over, and the counter only caps the number of chances.
+    job = _safe_brief_cron_job_state()
+    failed, evidence = _brief_retry_evidence(job, today)
+    state['run_evidence'] = evidence
+    state['local_rerun_after_ms'] = ((job or {}).get('state') or {}).get('runningAtMs')
+    if failed and _rerun_count(today) < MAX_ONHOST_RERUNS:
+        state['local_rerun_after_ms'] = int(datetime.now(HKT).timestamp() * 1000)
+        rerun_queued = _rerun_once(today, dry_run, attempt=2, job=job)
+    rerun_inflight = bool(
+        isinstance(job, dict) and _rerun_count(today) > 0
+        and (job.get('status') == 'running'
+             or (job.get('state') or {}).get('runningAtMs') is not None))
+    if rerun_inflight:
+        log({'tag': 'brief', 'action': 'skip-offhost-inflight'})
+    if rerun_queued or rerun_inflight:
+        # The queued local re-run writes the same artifacts the fallback would;
+        # two LLMs racing on them risks duplicate delivery (#508).
+        dispatched, out = False, 'local rerun queued; off-host fallback skipped'
+    else:
+        dispatched, out = dispatch_brief_fallback(dry_run)
+    state.update({
+        'rerun_inflight': rerun_inflight or rerun_queued,
+        'fallback_dispatch_attempted': True,
+        'fallback_dispatch_succeeded': bool(dispatched),
+        'dispatch_attempted_at': datetime.now(HKT).isoformat(),
+        'dispatch_out': out,
+    })
+    # A Telegram timeout must never erase the fact that the fallback was fired.
+    if not dry_run:
+        write_missing_state(today, state)
+    return rerun_queued, rerun_inflight, bool(dispatched), out
+
+
+def _brief_missing_alert_text(today, issues, state, rerun_inflight,
+                              rerun_queued, dispatched):
+    """The 09:05 alert body: issues, what recovery did, and how to check."""
+    labels = {
+        'brief_missing': f'brief 缺失：memory/{today}-pre-open.md 不存在',
+        'plan_missing': f'plan 缺失：memory/{today}-plan.json 不存在',
+        'plan_invalid': f'plan 无效：memory/{today}-plan.json 无法解析或没有非空动作数组',
+    }
+    issue_text = '\n'.join(f'- {labels[x]}' for x in issues)
+    if rerun_inflight:
+        recovery_note = (
+            '🔄 先前排队的本地重跑仍在执行，off-host 兜底已跳过（防双写）。'
+            '09:50 会自动复核结果；确认结束仍缺产物时转离机兜底\n')
+    elif rerun_queued:
+        recovery_note = (
+            '🔄 已排队本地重跑(attempt 2)，off-host 兜底已跳过（防双写）。'
+            '09:50 会自动复核结果；确认结束仍缺产物时转离机兜底\n')
+    elif state.get('state_error'):
+        # A corrupt state deliberately refuses a second dispatch. Calling that
+        # "dispatch failed" and telling kcn to run it by hand would bypass the
+        # double-writer gate (#3424).
+        recovery_note = (
+            f"⚠️ 恢复状态无法读取（{state['state_error']}）——不自动重派；\n"
+            '请先核对 gh run list --workflow=brief-fallback.yml 与 '
+            f'memory/{today}-pre-open.md 是否已生成，确认失败后再手动派发。\n')
+    elif dispatched:
+        recovery_note = (
+            '🔄 已 dispatch off-host 兜底 (brief-fallback.yml)，正在等待运行结果，稍后另发一条。\n')
+    else:
+        recovery_note = (
+            '⚠️ 自动 dispatch 兜底失败，需要手动：gh workflow run brief-fallback.yml\n'
+            '（10:00 HKT 前有效，之后 workflow 会判定过期跳过）\n')
+    return (
+        f'🔴 盘前深度简报产物不完整 — {today}\n\n'
+        f'09:05 检查结果：\n{issue_text}\n\n'
+        + (f"重跑判据：{state['run_evidence']}\n" if state.get('run_evidence') else '')
+        + (f"恢复状态：无法读取（{state['state_error']}）\n"
+           if state.get('state_error') else '')
+        + retry_budget_note()
+        + recovery_note
+        + '\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '
+          f'/ sar -q 看 {BRIEF_SLOT_HKT} 起的 blocked'
+    )
+
+
+def _send_brief_alert_with_retry(today, target, alert, state, dry_run):
+    """Send the alert with its bounded retry, persisting each attempt."""
+    tg_ok, tg_out = False, ''
+    for _ in range(NOTIFICATION_ATTEMPTS_PER_RUN):
+        try:
+            tg_ok, tg_out = send_telegram(target, alert, dry_run)
+        except Exception as e:
+            tg_ok, tg_out = False, f'{type(e).__name__}: {e}'[:300]
+        state['notification_attempts'] = int(state.get('notification_attempts') or 0) + 1
+        state['notification_succeeded'] = bool(tg_ok)
+        state['notification_last_attempt_at'] = datetime.now(HKT).isoformat()
+        state['notification_out'] = tg_out
+        if not dry_run:
+            write_missing_state(today, state)
+        if tg_ok:
+            break
+    return tg_ok, tg_out
+
+
 def alert_brief_missing(today, dry_run, issues=None):
     """09:05 HKT: landing artifacts are incomplete ⇒ page kcn + self-heal.
 
@@ -385,102 +502,13 @@ def alert_brief_missing(today, dry_run, issues=None):
         return 0
 
     state['issues'] = list(issues)
-    rerun_queued = False
-    rerun_inflight = bool(state.get('rerun_inflight'))
-    if not state.get('fallback_dispatch_attempted'):
-        # Second on-host chance before the off-host fallback (#550): the 08:46
-        # re-run can itself fail (2026-08-12), and a local re-run is cheaper
-        # than a vendor fallback and lands well before the 10:00 HKT cutoff.
-        # #606: gate the chance on evidence, not just the counter — only a run
-        # that already ended in failure today is proof the attempt is over
-        # (three-way rule as the 08:46 pass); a healthy run or an unreadable
-        # schedule must not stack another queue entry. The counter only caps
-        # the number of chances.
-        job = _safe_brief_cron_job_state()
-        failed, evidence = _brief_retry_evidence(job, today)
-        state['run_evidence'] = evidence
-        state['local_rerun_after_ms'] = ((job or {}).get('state') or {}).get('runningAtMs')
-        if failed and _rerun_count(today) < MAX_ONHOST_RERUNS:
-            state['local_rerun_after_ms'] = int(datetime.now(HKT).timestamp() * 1000)
-            rerun_queued = _rerun_once(today, dry_run, attempt=2, job=job)
-        rerun_inflight = bool(
-            isinstance(job, dict) and _rerun_count(today) > 0
-            and (job.get('status') == 'running'
-                 or (job.get('state') or {}).get('runningAtMs') is not None))
-        if rerun_inflight:
-            log({'tag': 'brief', 'action': 'skip-offhost-inflight'})
-        if rerun_queued or rerun_inflight:
-            # #606: the queued local re-run writes the same brief artifacts the
-            # GHA fallback would; dispatching both made two LLMs race on the
-            # same files with per-environment delivery markers → duplicate
-            # WeChat/TG risk (#508 pattern). Skip the fallback while the local
-            # chance is in flight; the alert below names both paths and the
-            # manual dispatch stays available before the 10:00 HKT cutoff.
-            dispatched, out = False, 'local rerun queued; off-host fallback skipped'
-        else:
-            dispatched, out = dispatch_brief_fallback(dry_run)
-        state.update({
-            'rerun_inflight': rerun_inflight or rerun_queued,
-            'fallback_dispatch_attempted': True,
-            'fallback_dispatch_succeeded': bool(dispatched),
-            'dispatch_attempted_at': datetime.now(HKT).isoformat(),
-            'dispatch_out': out,
-        })
-        # This ordering is the core invariant: a Telegram timeout must never
-        # erase the fact that the off-host fallback was already fired.
-        if not dry_run:
-            write_missing_state(today, state)
-    else:
-        dispatched = bool(state.get('fallback_dispatch_succeeded'))
-        out = state.get('dispatch_out') or '(prior dispatch attempt; outcome unavailable)'
+    rerun_queued, rerun_inflight, dispatched, out = _decide_local_recovery(
+        today, dry_run, state)
+    alert = _brief_missing_alert_text(
+        today, issues, state, rerun_inflight, rerun_queued, dispatched)
 
-    labels = {
-        'brief_missing': f'brief 缺失：memory/{today}-pre-open.md 不存在',
-        'plan_missing': f'plan 缺失：memory/{today}-plan.json 不存在',
-        'plan_invalid': f'plan 无效：memory/{today}-plan.json 无法解析或没有非空动作数组',
-    }
-    issue_text = '\n'.join(f'- {labels[x]}' for x in issues)
-    if rerun_inflight:
-        recovery_note = (
-            '🔄 先前排队的本地重跑仍在执行，off-host 兜底已跳过（防双写）。'
-            '09:50 会自动复核结果；确认结束仍缺产物时转离机兜底\n')
-    elif rerun_queued:
-        recovery_note = (
-            '🔄 已排队本地重跑(attempt 2)，off-host 兜底已跳过（防双写）。'
-            '09:50 会自动复核结果；确认结束仍缺产物时转离机兜底\n')
-    elif dispatched:
-        recovery_note = (
-            '🔄 已 dispatch off-host 兜底 (brief-fallback.yml)，正在等待运行结果，稍后另发一条。\n')
-    else:
-        recovery_note = (
-            '⚠️ 自动 dispatch 兜底失败，需要手动：gh workflow run brief-fallback.yml\n'
-            '（10:00 HKT 前有效，之后 workflow 会判定过期跳过）\n')
-    alert = (
-        f'🔴 盘前深度简报产物不完整 — {today}\n\n'
-        f'09:05 检查结果：\n{issue_text}\n\n'
-        + (f"重跑判据：{state['run_evidence']}\n" if state.get('run_evidence') else '')
-        + retry_budget_note()
-        + recovery_note
-        + '\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '
-          f'/ sar -q 看 {BRIEF_SLOT_HKT} 起的 blocked'
-    )
-
-    tg_ok, tg_out = False, ''
     target = telegram_target()
-    for _ in range(NOTIFICATION_ATTEMPTS_PER_RUN):
-        try:
-            tg_ok, tg_out = send_telegram(target, alert, dry_run)
-        except Exception as e:
-            tg_ok, tg_out = False, f'{type(e).__name__}: {e}'[:300]
-        state['notification_attempts'] = int(state.get('notification_attempts') or 0) + 1
-        state['notification_succeeded'] = bool(tg_ok)
-        state['notification_last_attempt_at'] = datetime.now(HKT).isoformat()
-        state['notification_out'] = tg_out
-        if not dry_run:
-            write_missing_state(today, state)
-        if tg_ok:
-            break
-
+    tg_ok, tg_out = _send_brief_alert_with_retry(today, target, alert, state, dry_run)
     log({'tag': 'brief', 'action': 'alert-brief-missing', 'dry_run': dry_run,
          'issues': issues,
          'rerun_queued': rerun_queued,
@@ -557,8 +585,12 @@ def check_local_recovery(today, dry_run=False):
         state.get('fallback_dispatch_succeeded')
         and (state.get('fallback_outcome') or 'unknown') in ('pending', 'unknown')
     )
+    # An unreadable state file is not "nothing to do": the 09:05 pass could not
+    # say whether a fallback was in flight, and dropping it here left kcn with
+    # only the misleading 09:05 text (#3424).
+    corrupt_state = state.get('state_error')
     if ((not state.get('rerun_inflight') and not _rerun_count(today)
-         and not fallback_pending)
+         and not fallback_pending and not corrupt_state)
             or state.get('local_recovery_notified')):
         return 0
     issues = inspect_brief_artifacts(today)
@@ -579,6 +611,14 @@ def check_local_recovery(today, dry_run=False):
         message = (f'本地简报重跑已生成产物 — {today}\n'
                    f'微信送达：{"已确认" if marker.get("sent_ok") else "未确认"}；'
                    f'Telegram：{"已确认" if marker.get("tg_ok") else "未确认"}。')
+    elif corrupt_state:
+        outcome = 'corrupt-state'
+        message = (f'⚠️ 简报恢复状态无法读取，结果未确认 — {today}\n\n'
+                   f'{corrupt_state}\n\n'
+                   '产物仍缺失；09:05 无法判断离机兜底是在飞、已失败还是从未派发，'
+                   '因此没有启动第二个写者。请核对 '
+                   'gh run list --workflow=brief-fallback.yml 与 '
+                   f'memory/{today}-pre-open.md。')
     elif fallback_pending:
         # Re-read the run 09:05 dispatched. One poll interval, not the full
         # 15-minute budget: at 09:50 the run has normally concluded long ago,
