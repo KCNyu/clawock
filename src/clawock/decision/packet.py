@@ -1362,6 +1362,181 @@ def _matching_events(events, ticker, source_ticker) -> list:
     ]
 
 
+def _ticker_facts(holding, context, ticker, shares) -> dict:
+    """The money fields of one row, and nothing about authority (#3420)."""
+    return {
+        "shares": shares,
+        "cost_basis": _number(holding.get("cost_basis"), 4),
+        "current_price": _number(holding.get("current_price"), 4),
+        "pnl_pct": _number(holding.get("pnl_percent"), 2),
+        # Position day P&L: new lots count from their fill (#3036).
+        # A row whose quote lacked a real prior close has no measured
+        # day change; printing the writer's 0.00 would read as flat (#3350).
+        "today_change_pct": (None if holding.get("quote_incomplete_prev_close")
+                             else _number(holding.get("today_change_pct"), 2)),
+        # The quote against the prior close, what a 「上一场收盘」 column
+        # means (#3107).
+        "session_change_pct": _number(session_change_pct(holding), 2),
+        "concentration_review": next((review for review in
+            (context.get("risk_guardrail") or {}).get("concentration_reviews") or []
+            if review.get("ticker") == ticker), None),
+        "day_high": _number(holding.get("day_high"), 4),
+        "day_low": _number(holding.get("day_low"), 4),
+        "data_source": holding.get("data_source"),
+    }
+
+
+def _ticker_authority_views(*, holding, leg, ticker, source_ticker, technical,
+                            factor_view, peer_view, information_view,
+                            matching_events, leveraged, ticker_usage, add_policy,
+                            alpha_activation, left_policy, quant_rows, context,
+                            thesis, invested, cash, open_add_gate_error,
+                            open_adds, sizing_overlay) -> dict:
+    """Authority, early/preposition state and the execution view for one row."""
+    continuing_alpha = any(
+        ":validated:" in str(campaign) and int(used or 0) > 0
+        for campaign, used in ticker_usage.items()
+    )
+    alpha_authority = add_alpha.classify_authority(
+        factor_view,
+        peer_view,
+        information_view,
+        leveraged=leveraged,
+        policy=add_policy,
+        market=leg,
+        continuing=continuing_alpha,
+        # The decision lane never saw a price trend until #1086: the one
+        # formation #856 measured positive at every horizon fed only the
+        # intraday message.
+        technical=technical,
+        cold_start=alpha_activation["cold_start"],
+    )
+    if alpha_authority.get("tier") == "exploration":
+        # A current-universe backfill can discover an interaction worth
+        # collecting, but never upgrade itself into validated authority.
+        alpha_authority["limitations"] = [
+            "prospective_collection_only",
+            "current_universe_survivorship_limit",
+        ]
+    early_candidate = early_trend.classify(
+        technical, peer_view, information_view, matching_events,
+        leveraged=leveraged, policy=add_policy, market=leg,
+    )
+    early_setup = early_trend.exploration_setup(
+        technical, early_candidate, add_policy, ticker=ticker,
+    )
+    # The early lane can grant one exploration intent without changing the
+    # mature factor×information authority classification.  Downstream risk,
+    # cash, lot and open-order gates remain identical.
+    execution_tier = alpha_authority.get("tier") or "none"
+    if early_setup is not None and execution_tier == "none":
+        execution_tier = "exploration"
+    alpha_setup = add_alpha.confirmation_setup(
+        technical, alpha_authority, add_policy, ticker=ticker
+    )
+    if alpha_setup is not None:
+        technical["setups"].append(alpha_setup)
+        technical = _apply_setup_usage(
+            technical, ticker_usage
+        )
+    if early_setup is not None:
+        technical["setups"].append(early_setup)
+        technical = _apply_setup_usage(technical, ticker_usage)
+    # Left side, observe mode (kcn 2026-09-27; evidence in `left_side`):
+    # which gate would hold the ladder back, recorded for the forward
+    # sample. It never joins `technical.setups`, so nothing here can size
+    # or authorise an add. A stale bar row is no evidence of weakness.
+    left_view = (left_side.observe(
+        quant_rows.get(source_ticker) or {}, left_policy, leveraged=leveraged,
+        thesis_state=thesis.get("state"),
+        blockers=alpha_authority.get("blockers") or [])
+        if technical.get("usable") else None)
+    experiment = preposition.setup(
+        (context.get("preposition_inputs") or quant_rows).get(ticker) or {}, information_view,
+        context.get("preposition_policy", preposition.load_policy()),
+        ticker=ticker, leg=leg, usage=ticker_usage,
+        cost_basis=holding.get("cost_basis"), leveraged=leveraged,
+        thesis_state=thesis.get("state"),
+        hard_stop_pct=((context.get("risk_guardrail") or {}).get("caps") or {}).get("lev_etf_stop_pct"))
+    if experiment is not None:
+        technical["setups"].append(experiment)
+        technical = _apply_setup_usage(technical, ticker_usage)
+        if execution_tier != "validated":
+            execution_tier = preposition.TIER
+    raw_exploration_book = add_policy.get("exploration_max_book_pct")
+    execution = _execution_view(
+        holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
+        authority_tier=execution_tier,
+        # #666: explicit None check, never `X or DEFAULT` — a config value
+        # of 0 (`exploration_max_book_pct: 0` = 封死探索敞口) is legal and
+        # must not be swallowed into the 0.03 default.
+        exploration_max_book_pct=(
+            float(raw_exploration_book)
+            if raw_exploration_book is not None
+            else READ_DEFAULTS["exploration_max_book_pct"]
+        ),
+        overlay=sizing_overlay,
+        open_add=open_add_gate_error or ticker in open_adds,
+    )
+    return {"technical": technical, "alpha_authority": alpha_authority,
+            "early_candidate": early_candidate, "left_view": left_view,
+            "experiment": experiment, "execution": execution}
+
+
+def _ticker_row_views(*, ticker, source_ticker, leg, holding, context, technical,
+                      thesis, execution, alpha_authority, early_candidate,
+                      left_view, experiment, factor_view, peer_view,
+                      information_view, sentiment_rows, matching_events,
+                      ticker_risks, shares, actionable_ids, swap_mandates) -> dict:
+    """The projected row: views assembled around the facts and authority."""
+    return {
+        "ticker": ticker,
+        "name": holding.get("name") or holding.get("stock_name") or "",
+        "leg": leg,
+        "facts": _ticker_facts(holding, context, ticker, shares),
+        "technical": technical,
+        "thesis": thesis,
+        "execution": execution,
+        "quant": {
+            "factor": factor_view,
+            "peer_residual": peer_view,
+            "add_authority": alpha_authority,
+            "early_trend": early_candidate,
+            **({"left_side": left_view} if left_view else {}),
+            "preposition": experiment,
+            "preposition_input": (context.get("preposition_inputs") or {}).get(ticker),
+            "activation": {
+                "factor": bool(
+                    ((context.get("cross_sectional_factor") or {}).get("activation") or {})
+                    .get("usable_for_decisions")
+                ),
+                "peer": _peer_rules_state(
+                    (context.get("peer_residual") or {}).get("rule_activation") or {}
+                )[0],
+            },
+        },
+        "sentiment": _sentiment_view(sentiment_rows, ticker, source_ticker),
+        "history": _history_view(context, ticker),
+        # Trimmed here, not in `_information_view`: the full view is what
+        # `classify_authority` and `_information_sizing_overlay` above were
+        # given, and stripping it earlier would quietly withdraw the add
+        # authority those two grant.
+        "information": {
+            **_without_cold_components(information_view),
+            # Added after authority and sizing were read from the view:
+            # live items inform the judgment, they do not grant an add.
+            "live": _live_rows(context, ticker),
+        },
+        "evidence": matching_events,
+        "risk": ticker_risks,
+        "status": _status(technical, ticker_risks),
+        "constraints": _constraints(
+            shares, ticker_risks, actionable_ids, technical, execution,
+            swap_mandates.get(ticker) or [],
+        ),
+    }
+
+
 def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross_rows,
                  events, evidence_graph, invested, left_policy, open_add_gate_error,
                  open_adds, peer_rows, proxies, quant_rows, risks, sentiment_rows,
@@ -1402,156 +1577,31 @@ def _ticker_rows(holdings, context, *, add_policy, alpha_activation, cash, cross
         )
         leveraged = is_leveraged_holding(holding)
         ticker_usage = setup_usage.get(ticker) or {}
-        continuing_alpha = any(
-            ":validated:" in str(campaign) and int(used or 0) > 0
-            for campaign, used in ticker_usage.items()
+        views = _ticker_authority_views(
+            holding=holding, leg=leg, ticker=ticker,
+            source_ticker=source_ticker, technical=technical,
+            factor_view=factor_view, peer_view=peer_view,
+            information_view=information_view, matching_events=matching_events,
+            leveraged=leveraged, ticker_usage=ticker_usage,
+            add_policy=add_policy, alpha_activation=alpha_activation,
+            left_policy=left_policy, quant_rows=quant_rows, context=context,
+            thesis=thesis, invested=invested, cash=cash,
+            open_add_gate_error=open_add_gate_error, open_adds=open_adds,
+            sizing_overlay=sizing_overlay,
         )
-        alpha_authority = add_alpha.classify_authority(
-            factor_view,
-            peer_view,
-            information_view,
-            leveraged=leveraged,
-            policy=add_policy,
-            market=leg,
-            continuing=continuing_alpha,
-            # The decision lane never saw a price trend until #1086: the one
-            # formation #856 measured positive at every horizon fed only the
-            # intraday message.
-            technical=technical,
-            cold_start=alpha_activation["cold_start"],
+        tickers[ticker] = _ticker_row_views(
+            ticker=ticker, source_ticker=source_ticker, leg=leg, holding=holding,
+            context=context, technical=views["technical"], thesis=thesis,
+            execution=views["execution"],
+            alpha_authority=views["alpha_authority"],
+            early_candidate=views["early_candidate"],
+            left_view=views["left_view"], experiment=views["experiment"],
+            factor_view=factor_view, peer_view=peer_view,
+            information_view=information_view, sentiment_rows=sentiment_rows,
+            matching_events=matching_events, ticker_risks=ticker_risks,
+            shares=shares, actionable_ids=actionable_ids,
+            swap_mandates=swap_mandates,
         )
-        if alpha_authority.get("tier") == "exploration":
-            # A current-universe backfill can discover an interaction worth
-            # collecting, but never upgrade itself into validated authority.
-            alpha_authority["limitations"] = [
-                "prospective_collection_only",
-                "current_universe_survivorship_limit",
-            ]
-        early_candidate = early_trend.classify(
-            technical, peer_view, information_view, matching_events,
-            leveraged=leveraged, policy=add_policy, market=leg,
-        )
-        early_setup = early_trend.exploration_setup(
-            technical, early_candidate, add_policy, ticker=ticker,
-        )
-        # The early lane can grant one exploration intent without changing the
-        # mature factor×information authority classification.  Downstream risk,
-        # cash, lot and open-order gates remain identical.
-        execution_tier = alpha_authority.get("tier") or "none"
-        if early_setup is not None and execution_tier == "none":
-            execution_tier = "exploration"
-        alpha_setup = add_alpha.confirmation_setup(
-            technical, alpha_authority, add_policy, ticker=ticker
-        )
-        if alpha_setup is not None:
-            technical["setups"].append(alpha_setup)
-            technical = _apply_setup_usage(
-                technical, ticker_usage
-            )
-        if early_setup is not None:
-            technical["setups"].append(early_setup)
-            technical = _apply_setup_usage(technical, ticker_usage)
-        # Left side, observe mode (kcn 2026-09-27; evidence in `left_side`):
-        # which gate would hold the ladder back, recorded for the forward
-        # sample. It never joins `technical.setups`, so nothing here can size
-        # or authorise an add. A stale bar row is no evidence of weakness.
-        left_view = (left_side.observe(
-            quant_rows.get(source_ticker) or {}, left_policy, leveraged=leveraged,
-            thesis_state=thesis.get("state"),
-            blockers=alpha_authority.get("blockers") or [])
-            if technical.get("usable") else None)
-        experiment = preposition.setup(
-            (context.get("preposition_inputs") or quant_rows).get(ticker) or {}, information_view,
-            context.get("preposition_policy", preposition.load_policy()),
-            ticker=ticker, leg=leg, usage=ticker_usage,
-            cost_basis=holding.get("cost_basis"), leveraged=leveraged,
-            thesis_state=thesis.get("state"),
-            hard_stop_pct=((context.get("risk_guardrail") or {}).get("caps") or {}).get("lev_etf_stop_pct"))
-        if experiment is not None:
-            technical["setups"].append(experiment)
-            technical = _apply_setup_usage(technical, ticker_usage)
-            if execution_tier != "validated":
-                execution_tier = preposition.TIER
-        raw_exploration_book = add_policy.get("exploration_max_book_pct")
-        execution = _execution_view(
-            holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
-            authority_tier=execution_tier,
-            # #666: explicit None check, never `X or DEFAULT` — a config value
-            # of 0 (`exploration_max_book_pct: 0` = 封死探索敞口) is legal and
-            # must not be swallowed into the 0.03 default.
-            exploration_max_book_pct=(
-                float(raw_exploration_book)
-                if raw_exploration_book is not None
-                else READ_DEFAULTS["exploration_max_book_pct"]
-            ),
-            overlay=sizing_overlay,
-            open_add=open_add_gate_error or ticker in open_adds,
-        )
-        tickers[ticker] = {
-            "ticker": ticker,
-            "name": holding.get("name") or holding.get("stock_name") or "",
-            "leg": leg,
-            "facts": {
-                "shares": shares,
-                "cost_basis": _number(holding.get("cost_basis"), 4),
-                "current_price": _number(holding.get("current_price"), 4),
-                "pnl_pct": _number(holding.get("pnl_percent"), 2),
-                # Position day P&L: new lots count from their fill (#3036).
-                # A row whose quote lacked a real prior close has no measured
-                # day change; printing the writer's 0.00 would read as flat (#3350).
-                "today_change_pct": (None if holding.get("quote_incomplete_prev_close")
-                                     else _number(holding.get("today_change_pct"), 2)),
-                # The quote against the prior close, what a 「上一场收盘」 column
-                # means (#3107).
-                "session_change_pct": _number(session_change_pct(holding), 2),
-                "concentration_review": next((review for review in
-                    (context.get("risk_guardrail") or {}).get("concentration_reviews") or []
-                    if review.get("ticker") == ticker), None),
-                "day_high": _number(holding.get("day_high"), 4),
-                "day_low": _number(holding.get("day_low"), 4),
-                "data_source": holding.get("data_source"),
-            },
-            "technical": technical,
-            "thesis": thesis,
-            "execution": execution,
-            "quant": {
-                "factor": factor_view,
-                "peer_residual": peer_view,
-                "add_authority": alpha_authority,
-                "early_trend": early_candidate,
-                **({"left_side": left_view} if left_view else {}),
-                "preposition": experiment,
-                "preposition_input": (context.get("preposition_inputs") or {}).get(ticker),
-                "activation": {
-                    "factor": bool(
-                        ((context.get("cross_sectional_factor") or {}).get("activation") or {})
-                        .get("usable_for_decisions")
-                    ),
-                    "peer": _peer_rules_state(
-                        (context.get("peer_residual") or {}).get("rule_activation") or {}
-                    )[0],
-                },
-            },
-            "sentiment": _sentiment_view(sentiment_rows, ticker, source_ticker),
-            "history": _history_view(context, ticker),
-            # Trimmed here, not in `_information_view`: the full view is what
-            # `classify_authority` and `_information_sizing_overlay` above were
-            # given, and stripping it earlier would quietly withdraw the add
-            # authority those two grant.
-            "information": {
-                **_without_cold_components(information_view),
-                # Added after authority and sizing were read from the view:
-                # live items inform the judgment, they do not grant an add.
-                "live": _live_rows(context, ticker),
-            },
-            "evidence": matching_events,
-            "risk": ticker_risks,
-            "status": _status(technical, ticker_risks),
-            "constraints": _constraints(
-                shares, ticker_risks, actionable_ids, technical, execution,
-                swap_mandates.get(ticker) or [],
-            ),
-        }
     return tickers
 
 
