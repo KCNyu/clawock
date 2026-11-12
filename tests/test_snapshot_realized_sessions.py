@@ -140,3 +140,26 @@ def test_snapshot_shares_skips_a_row_that_is_not_an_object():
     # such a row; here it raised and aborted the whole dashboard build.
     assert snapshot_shares({"holdings": [{"ticker": "A", "shares": 3}, "oops", None]}) == {"A": 3}
     assert snapshot_shares({"holdings": None}) == {}
+
+
+def test_quoted_fill_numbers_are_read_as_numbers():
+    """#3411: a hand-entered `"125.00"` used to abort the dashboard build."""
+    ledger = [_closed_position("SPCH", "2026-06-10", "125.00")]
+    ledger[0]["trades"][-1]["price"] = "12.5"
+    snapshot = {"holdings": [{"ticker": "SPCH", "shares": "0"}]}
+
+    total, note = realized_as_of(
+        ledger, FRIDAY, snapshot_shares(snapshot), market="us")
+
+    assert total == 125.0
+    assert "SPCH" in note and "12.5" in note
+
+
+def test_an_unusable_realized_leaf_is_skipped_not_fatal():
+    ledger = [_closed_position("SPCH", "2026-06-10", "not a number")]
+    snapshot = {"holdings": [{"ticker": "SPCH", "shares": 0}]}
+
+    total, note = realized_as_of(
+        ledger, FRIDAY, snapshot_shares(snapshot), market="us")
+
+    assert total == 0 and note == ""

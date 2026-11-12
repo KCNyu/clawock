@@ -225,6 +225,11 @@ def record_conflicts(ticker: str, conflicts: list[dict], path: Path | None = Non
 
 
 def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[dict]]:
+    # The implausible-move check reads the nearest stored prior close, and bars
+    # are stored as we go. Processing a batch out of order therefore compares a
+    # later date against an older base and can miss the flag (#3416). Input
+    # order is a provider detail; chronological order is the contract.
+    fresh = sorted(fresh, key=lambda b: str(b.get("date") or ""))
     doc = load_bars(ticker)
     doc.setdefault("tencent", MANIFEST[ticker]["tencent"])
     # The manifest is the declaration; docs written before it existed get it here.
