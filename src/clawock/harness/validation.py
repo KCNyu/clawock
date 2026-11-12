@@ -565,7 +565,8 @@ def _concentration_claim_issues(text, ctx):
                         r'(?:支配度|集中度|仓位占比|占[^，,。；;%％]{0,8}腿)'
                         r'[^，,。；;%％]{0,12}$', prefix)
                     destination = concentration and re.search(
-                        r'(?:压回|回到|降至|降到)\s*(?:约)?\s*$', prefix)
+                        r'[落降压回变剩][^，,。；;%％\d]{0,5}\s*(?:约)?\s*$',
+                        prefix)
                     # A quote return, revenue growth, etc. in the same sentence
                     # is not a concentration claim merely because it has a %.
                     if not (direct or destination):
@@ -575,7 +576,7 @@ def _concentration_claim_issues(text, ctx):
                     if not _states(allowed, value, _rounding_tolerance(raw)):
                         issues.append(f'仓位支配度不符: {ticker} {raw}%，请引用减仓联立计算')
                 if (expected is not None and expected > review['review_pct']
-                        and re.search(r'(?:压回|降至|降到).{0,12}复核线(?:下方|以下)', sentence)
+                        and re.search(r'[落降压回变剩][^。；;！？!?]{0,10}复核线(?:下方|以下)', sentence)
                         and not re.search(r'不能|无法|未能|不再声称', sentence)):
                     issues.append(f'仓位支配度不符: {ticker} 减仓后 {expected}% 仍高于复核线')
     return list(dict.fromkeys(issues))
