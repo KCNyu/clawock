@@ -18,6 +18,7 @@ strict date-`<` branch handles later sell→rebuy cycles without false negatives
 """
 
 from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import to_strict_finite_number
 from clawock.portfolio.math import ledger_date, ledger_rows, session_date, trade_session_date  # noqa: F401 session_date re-export
 
 
@@ -41,14 +42,18 @@ def _ledger_sells(holdings):
                 bal += shares
             else:  # sell (or any realizing action)
                 bal -= shares
-                if t.get('realized_pnl') is not None:
+                # Hand-entered fills may quote a number (`"125.00"`); read it as
+                # the number it is instead of letting arithmetic on the raw leaf
+                # abort the whole dashboard build (#3411, same contract as #3359).
+                realized = to_strict_finite_number(t.get('realized_pnl'))
+                if realized is not None:
                     sells.append({
                         'date': ledger_date(t.get('date')),
                         'note': t.get('note'),
                         'ticker': ticker,
                         'shares': shares,
-                        'price': t.get('price', 0),
-                        'realized_pnl': t['realized_pnl'],
+                        'price': to_strict_finite_number(t.get('price')),
+                        'realized_pnl': realized,
                         'post_bal': bal,
                     })
         if sells:
@@ -87,7 +92,9 @@ def realized_as_of(holdings, snap_date, snap_shares, *, market=None):
     reflected.sort(key=lambda x: (x['date'], x['ticker']))
     total = round(sum(s['realized_pnl'] for s in reflected), 2)
     parts = [
-        f"{s['ticker']} {s['shares']}股@{s['price']:g}({s['realized_pnl']:+g})"
+        f"{s['ticker']} {s['shares']}股@"
+        f"{format(s['price'], 'g') if s['price'] is not None else '?'}"
+        f"({s['realized_pnl']:+g})"
         for s in reflected
     ]
     return total, ' + '.join(parts)
@@ -99,5 +106,5 @@ def snapshot_shares(region_pf):
     for h in ledger_rows(region_pf.get('holdings')):
         tk = h.get('ticker')
         if tk:
-            out[tk] = h.get('shares', 0) or 0
+            out[tk] = to_strict_finite_number(h.get('shares')) or 0
     return out

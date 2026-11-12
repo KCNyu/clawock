@@ -7,6 +7,8 @@ novelty 用它区分「旧事重提」(0.8) 与「全新」(1.0)，walk-forward 
 import json
 from datetime import date, datetime, timedelta, timezone
 
+import pytest
+
 from clawock import history_store
 from clawock.evidence import news_evidence_graph as graph
 
@@ -177,3 +179,24 @@ def test_roll_never_scans_or_touches_the_archive_interior(tmp_path):
 
 def test_roll_on_a_missing_directory_is_a_no_op(tmp_path):
     assert history_store.roll_dated_files(tmp_path / 'nope', today=TODAY) == []
+
+
+def test_an_interrupted_write_does_not_show_readers_every_cold_row_twice(tmp_path, monkeypatch):
+    """#3412: the archive lands before the working file. A crash between them
+    leaves the cold rows on both sides; every later read doubled them."""
+    rows = _rows(400)
+    path = tmp_path / 'news_evidence_history.jsonl'
+    path.write_text(history_store._dump(rows))
+    real = history_store.safe_write_text
+
+    def flaky(target, text):
+        if str(target) == str(path):
+            raise OSError('injected failure between the two writes')
+        return real(target, text)
+
+    monkeypatch.setattr(history_store, 'safe_write_text', flaky)
+    with pytest.raises(OSError):
+        history_store.write_series(path, rows, today=TODAY)
+
+    monkeypatch.setattr(history_store, 'safe_write_text', real)
+    assert history_store.load_series(path) == rows

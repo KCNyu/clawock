@@ -108,7 +108,20 @@ def load_series(path) -> list:
     to avoid.
     """
     rows = _read_jsonl(archive_path(path)) + _read_jsonl(path)
-    return sorted(rows, key=_day)
+    # `write_series` writes the archive before the working file, so a crash
+    # between the two leaves the cold rows in BOTH halves. Without this, every
+    # later reader sees the cold segment twice and every rewrite keeps it twice
+    # (#3412). Byte-identical rows carry no extra information; only exact
+    # duplicates are removed, and the sort keeps the surviving order stable.
+    seen = set()
+    unique = []
+    for row in sorted(rows, key=_day):
+        key = json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(row)
+    return unique
 
 
 def split_window(rows, *, keep_days=HOT_WINDOW_DAYS, today=None):

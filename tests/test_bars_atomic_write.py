@@ -122,3 +122,26 @@ def test_ledger_grades_a_leveraged_fund_with_its_underlying_from_the_same_store(
         '2026-08-04': {'open': 150, 'high': 165, 'low': 149, 'close': 162.66}}}))
     assert 'implausible_move' not in ledger.bar('PLTU', '2026-08-04')
     assert 'implausible_move' not in ledger.bar('PLTR', '2026-08-04')
+
+
+def test_merge_grades_a_batch_in_date_order_not_input_order(tmp_path, monkeypatch):
+    """#3416: a provider response is not guaranteed to be chronological.
+
+    Out of order, 01-03 was compared with 01-01 (+10%, plausible) before 01-02
+    was stored; the -63% move against its real prior was never flagged.
+    """
+    monkeypatch.setattr(bars, "BARS_DIR", tmp_path)
+    monkeypatch.setattr(bars, "CONFLICT_LOG", tmp_path / "bar-conflicts.jsonl")
+    monkeypatch.setitem(bars.MANIFEST, "TEST", {"tencent": "usTEST", "leg": "us"})
+    monkeypatch.setattr(bars, "_last_closed_session", lambda leg: "2026-01-03")
+    monkeypatch.setattr(bars, "_sync_manifest_flags", lambda ticker: None, raising=False)
+    bars.write_bars("TEST", {"ticker": "TEST", "bars": {
+        "2026-01-01": {"open": 10, "high": 11, "low": 9, "close": 10}}})
+
+    def bar(day, close):
+        return {"date": day, "open": close, "high": close, "low": close, "close": close}
+
+    bars.merge("TEST", [bar("2026-01-03", 11.0), bar("2026-01-02", 30.0)], False)
+    stored = bars.load_bars("TEST")["bars"]
+    assert stored["2026-01-02"]["implausible_move"] == "200.0%"
+    assert stored["2026-01-03"]["implausible_move"] == "63.3%"
