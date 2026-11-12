@@ -858,6 +858,10 @@
         cells.push({lbl: 'Reddit 7d', val: totalReddit,
                     sub: measured.length === s.tickers.length
                       ? 'mentions' : `mentions · ${measured.length}/${s.tickers.length} 只票`});
+      } else if (s.tickers.length && (s.source_status || {}).reddit === 'failed') {
+        // Zero measured names is not "nothing was said": the source failed.
+        // Dropping the cell made that indistinguishable from a quiet feed (#3423).
+        cells.push({lbl: 'Reddit 7d', val: DASH, sub: '源失败'});
       }
       if (totalNews > 0) cells.push({lbl: 'News 7d', val: totalNews, sub: 'articles'});
     }
@@ -913,6 +917,7 @@
         name: t.name || '',
         region: t.region || '',
         reddit: typeof t.reddit_mentions_7d === 'number' ? t.reddit_mentions_7d : null,
+        reddit_status: t.reddit_status || '',
         reddit_posts: t.reddit_posts || [],
         news: [...(t.google_news_en || []), ...(t.google_news_zh || [])],
       }))
@@ -934,7 +939,7 @@
         <summary>
           <span class="sd-tk">${escapeHtml(t.ticker)}</span>
           <span class="sd-reg">${regionTag(t.region)}</span>
-          <span class="sd-counts">Reddit <strong>${t.reddit == null ? '—' : t.reddit}</strong> · 新闻 <strong>${t.news.length}</strong></span>
+          <span class="sd-counts">Reddit <strong>${t.reddit == null ? (t.reddit_status === 'failed' ? '— 源失败' : '—') : t.reddit}</strong> · 新闻 <strong>${t.news.length}</strong></span>
         </summary>
         <div class="sd-body">
           ${newsLis ? `<div class="sd-grp">News</div><ul>${newsLis}</ul>` :

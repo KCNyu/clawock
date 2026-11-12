@@ -20,16 +20,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDERER = ROOT / "site" / "assets" / "js" / "dashboard.render.js"
+HERO = ROOT / "site" / "assets" / "js" / "dashboard.hero.js"
 
 _DECL = re.compile(r"^  function ([A-Za-z_$][\w$]*)\s*\(")
 
 
-def _function_body(name: str) -> str:
-    lines = RENDERER.read_text(encoding="utf-8").split("\n")
+def _function_body(name: str, source: Path = RENDERER) -> str:
+    lines = source.read_text(encoding="utf-8").split("\n")
     starts = [i for i, line in enumerate(lines) if _DECL.match(line)]
     names = {i: _DECL.match(lines[i]).group(1) for i in starts}
     own = next((i for i in starts if names[i] == name), None)
-    assert own is not None, f"{name} not found in {RENDERER.name}"
+    assert own is not None, f"{name} not found in {source.name}"
     end = own + 1
     while end < len(lines) and lines[end] != "  }":
         end += 1
@@ -56,6 +57,17 @@ def test_sidecar_free_text_never_reaches_innerhtml_raw():
     assert "escapeHtml(t.ticker)" in sentiment
     # risk keyword banner reads the same sidecar.
     assert "escapeHtml(h.ticker)" in risk_banner
+
+
+def test_hero_innerhtml_interpolations_are_escaped_too():
+    """#3406: #948/#986 fixed render.js, but the hero file has its own templates."""
+    highlights = _function_body("renderTodayHighlights", HERO)
+    assert "escapeHtml(x.ticker || DASH)" in highlights
+    assert "${x.ticker}" not in highlights, "movers aria-label interpolates ticker raw"
+    risk = _function_body("renderRiskGuardrail", HERO)
+    assert "escapeHtml(detail || '')" in risk
+    assert "escapeHtml(action)" in risk
+    assert "SEV_CLASSES.has(sev)" in risk, "severity reaches a class attribute unchecked"
 
 
 def test_plan_timeline_ledger_fields_never_reach_innerhtml_raw():

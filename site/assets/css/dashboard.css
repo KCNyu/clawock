@@ -4267,6 +4267,10 @@
     font-family: var(--mono); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+  .deck-card .hl-mv-s {
+    flex: 0 0 auto; color: var(--text-tertiary);
+    font: 600 var(--fs-micro)/1 var(--mono); white-space: nowrap;
+  }
   .overview-gates {
     padding-top: 16px; border-top: 1px solid var(--border-subtle);
   }
@@ -4375,6 +4379,10 @@
   .overview-market .market-cell .val { font-size: var(--fs-md); }
   .overview-market .market-cell .pct { font-size: var(--fs-micro); }
   .overview-market .market-cell .src { display: none; }
+  .overview-market .market-cell .sess {
+    margin-top: 2px; color: var(--text-tertiary);
+    font: 600 var(--fs-micro)/1 var(--mono); white-space: nowrap;
+  }
   .overview-market .rs-row {
     min-height: 0; margin-top: 5px; font-size: var(--fs-micro); white-space: normal;
     overflow-wrap: anywhere;
