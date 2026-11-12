@@ -20,9 +20,9 @@ import subprocess
 from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 
+from clawock.sessions import HKT
 from clawock.workspace import workspace_root
 
 ROOT = workspace_root()
@@ -927,7 +927,9 @@ def _assert_dashboard_money_reconciles(
     if fx_source_available:
         fx_source = json.loads(Path(fx_path).read_text(encoding='utf-8'))
         same_number(fx_rate, fx_source.get('rate'), 'fx.usdhkd', 0.00005)
-    if fx_ledger_path is not None:
+    if fx_ledger_path is not None and data['fx'].get('usdhkd') is not None:
+        # No published rate means no cross-leg figure to trace; a rebuild
+        # without the live cache has fx=null on every field.
         _assert_published_fx_is_in_ledger(data, fx_ledger_path)
     embedded = (data.get('build_status') or {}).get('integrity')
     assert isinstance(embedded, dict), 'build_status.integrity missing'
@@ -1119,7 +1121,7 @@ def _assert_published_fx_is_in_ledger(data: dict,
     try:
         day = datetime.fromisoformat(
             str(fetched_at).replace('Z', '+00:00')).astimezone(
-                ZoneInfo('Asia/Hong_Kong')).date().isoformat()
+                HKT).date().isoformat()
     except (TypeError, ValueError):
         raise AssertionError(
             'fx.fetched_at is missing or not an ISO-8601 timestamp') from None
