@@ -350,12 +350,14 @@ def parse_cron_slots(expr, tz_name, target_date_utc):
     """Given cron expr like `*/30 10-11,14-15 * * 1-5` + tz, return list of
     HH:MM strings that should fire on `target_date_utc` (UTC datetime).
 
-    Simple parser: handles minute (*/N or list), hour (range,list), DOW.
+    Handles minute (*/N or list), hour (range,list), day-of-month, month and
+    DOW. Day-of-month and month are real constraints: a quarterly expression
+    must not expand to a slot every day (#3415).
     """
     parts = expr.split()
     if len(parts) < 5:
         return []
-    m_field, h_field, _dom, _mo, dow_field = parts[:5]
+    m_field, h_field, dom_field, mo_field, dow_field = parts[:5]
 
     # Minute: */N or list
     def parse_field(field, lo, hi):
@@ -381,6 +383,8 @@ def parse_cron_slots(expr, tz_name, target_date_utc):
 
     mins = parse_field(m_field, 0, 59)
     hours = parse_field(h_field, 0, 23)
+    days = set(parse_field(dom_field, 1, 31))
+    months = set(parse_field(mo_field, 1, 12))
     dows = set(parse_field(dow_field, 0, 7))
     # 0 and 7 both = Sunday in cron
     if 7 in dows:
@@ -396,6 +400,8 @@ def parse_cron_slots(expr, tz_name, target_date_utc):
     py_weekday = target_local.weekday()  # 0=Mon
     cron_dow = (py_weekday + 1) % 7      # convert: Mon→1 ... Sun→0
     if cron_dow not in dows:
+        return []
+    if target_local.day not in days or target_local.month not in months:
         return []
 
     return [f"{h:02d}:{m:02d}" for h in hours for m in mins]

@@ -123,6 +123,25 @@ def test_parse_cron_slots_uses_job_timezone_and_dow():
     ]
 
 
+def test_parse_cron_slots_honours_day_of_month_and_month():
+    """#3415: `17 4 1 1,4,7,10 *` fires quarterly, not every day at 04:17."""
+    expr = '17 4 1 1,4,7,10 *'
+
+    def slots(year, month, day):
+        # Noon HKT, far enough from midnight that the UTC date cannot shift it.
+        when = datetime(year, month, day, 12, tzinfo=ZoneInfo('Asia/Hong_Kong'))
+        return cron_health.parse_cron_slots(
+            expr, 'Asia/Hong_Kong', when.astimezone(timezone.utc))
+
+    assert slots(2026, 11, 12) == []
+    assert slots(2026, 11, 1) == []
+    assert slots(2026, 12, 1) == []
+    assert slots(2026, 1, 1) == ['04:17']
+    assert slots(2026, 4, 1) == ['04:17']
+    assert slots(2026, 7, 1) == ['04:17']
+    assert slots(2026, 10, 1) == ['04:17']
+
+
 def test_payload_semantic_contract_detects_deprecated_or_missing_rules():
     data = contract()
     expected = next(j for j in data['jobs'] if j['name'] == '美股开盘报告')
