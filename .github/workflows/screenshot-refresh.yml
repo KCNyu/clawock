@@ -30,7 +30,9 @@ concurrency:
 
 jobs:
   shoot:
-    runs-on: ubuntu-latest
+    # Playwright 1.60 has no browser build for Ubuntu 26.04, which
+    # `ubuntu-latest` now resolves to. Same pin as ci.yml's two browser jobs.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: write
