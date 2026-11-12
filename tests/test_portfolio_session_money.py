@@ -226,3 +226,26 @@ def test_unknown_quote_session_is_a_named_money_error(tmp_path, stamp):
     assert not report['ok']
     assert any(f['code'] == 'SESSION_STAMP_INVALID' and f.get('ticker') == h['ticker']
                for f in report['findings'])
+
+
+def test_a_quote_without_a_prior_close_clears_the_stale_day_change():
+    """#3437: the book total excludes the row, so the row must not keep 777."""
+    data = {'last_updated': '2026/11/12 09:33 HKT', 'portfolios': {'us_stocks': {
+        'currency': 'USD', 'cash': 0,
+        'holdings': [
+            {'ticker': 'AAA', 'shares': 10, 'cost_basis': 100,
+             'current_price': 110, 'prev_close': 108,
+             'today_change': 20, 'today_change_pct': 1.85},
+            {'ticker': 'BBB', 'shares': 5, 'cost_basis': 50,
+             'current_price': 55, 'prev_close': None,
+             'today_change': 777, 'today_change_pct': 5.0},
+        ]}}}
+    aggregates.recompute(data)
+    book = data['portfolios']['us_stocks']
+    bbb = book['holdings'][1]
+    assert bbb['today_change'] is None
+    assert bbb['today_change_pct'] is None
+    assert book['today_total_change'] == 20.0
+    findings = integrity.check(
+        Path('/nonexistent/portfolio.json'), document=data)['findings']
+    assert not [f for f in findings if f.get('code') == 'TODAY_TOTAL']

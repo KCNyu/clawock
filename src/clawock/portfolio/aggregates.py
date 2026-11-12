@@ -154,7 +154,19 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
             if not dry_run:
                 h['current_value'] = cv
             pc = number(h.get('prev_close'))
-            if pc is not None:
+            if pc is None:
+                # A quote without a prior close cannot measure today's move.
+                # `today_total_change` already excludes this row, so leaving a
+                # stale today_change/today_change_pct behind makes the row and
+                # the book disagree (TODAY_TOTAL, #3437). Clear both rather
+                # than publish a number the current prices cannot support.
+                for field in ('today_change', 'today_change_pct'):
+                    if h.get(field) is not None:
+                        diffs.setdefault(f'holdings.{field}', []).append(
+                            (h.get('ticker'), h.get(field), None))
+                        if not dry_run:
+                            h[field] = None
+            else:
                 session = holding_session(h, data.get('last_updated'), region)
                 amount, base = day_pnl(h, session, market=region)
                 ref = base / sh if sh else 0
