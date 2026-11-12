@@ -139,7 +139,7 @@
   // value+delta 三段式，tone ok/warn/bad），同类一排、放不下折行，不做段落；
   // 能画的数据画微图（接近度计量条、异动零轴迷你柱），文字退为 caption。
   // 判词句本体由 CSS 压成一行 caption —— 成段 prose 在这张卡里没有位置。
-  function moversHeadLabel(DATA) {
+  function moversHeadLabel(DATA, movers) {
     // The card said 今日异动 whatever the payload's age, and on a weekend those
     // are Friday's moves — as is Monday morning before the open. About a third
     // of the hours in a week the word 今日 is wrong.
@@ -162,6 +162,11 @@
     // artifact follows the cron, the market's own time is a different thing).
     // The list also mixes both legs, which have different sessions. What the
     // reader needs is that these are not today's, and that is what it says.
+    // Two legs on two sessions: the heading cannot say 今日 for both, even
+    // when the artifact itself is fresh (#3421).
+    const sessions = [...new Set((movers || [])
+      .map(x => x && x.session).filter(Boolean))];
+    if (sessions.length > 1) return "异动 · 最近收盘";
     var stamp = String(safe(DATA, "last_updated") || "");
     var match = stamp.match(/^(\d{4})[\/-](\d{2})[\/-](\d{2})\s+(\d{2}):(\d{2})/);
     var built = Date.parse(String(safe(DATA, "generated_at") || ""));
@@ -310,17 +315,20 @@
     const mvRow = x => {
       const pct = x.today_change_pct || 0;
       const w = Math.abs(pct) / maxAbs * 46;
+      const sess = x.session ? `${escapeHtml(String(x.session).slice(5))} 场` : "";
       return `<div class="hl-mv">`
         + `<span class="hl-mv-t">${escapeHtml(x.ticker || DASH)}</span>`
         + `<span class="hl-mv-bar"><i class="${pct >= 0 ? "up" : "down"}"`
         + ` style="width:${w.toFixed(1)}%"></i></span>`
-        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct)}</span></div>`;
+        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct)}</span>`
+        + (sess ? `<span class="hl-mv-s">${sess}</span>` : "")
+        + `</div>`;
     };
-    const moversHead = moversHeadLabel(DATA);
+    const moversHead = moversHeadLabel(DATA, movers);
     const moversRow = movers.length
-      ? `<div class="hl-movers" role="img" aria-label="${moversHead}前 ${movers.length}：`
-        + movers.map(x => `${x.ticker} ${fmtPct(x.today_change_pct)}`).join("、")
-        + `"><div class="hl-mv-head">${moversHead}</div>${movers.map(mvRow).join("")}</div>`
+      ? `<div class="hl-movers" role="img" aria-label="${escapeHtml(moversHead)}前 ${movers.length}：`
+        + movers.map(x => `${escapeHtml(x.ticker || DASH)} ${fmtPct(x.today_change_pct)}`).join("、")
+        + `"><div class="hl-mv-head">${escapeHtml(moversHead)}</div>${movers.map(mvRow).join("")}</div>`
       : "";
     // chip 与异动条各自落到自己的挂载点：≥1024 时它们是牌上左右两栏，
     // 窄档回到上下两带（版式全在 CSS，渲染端不判断宽度）。
@@ -639,19 +647,31 @@
         : DASH;
       const pctTxt = (pct == null) ? DASH : `${pct > 0 ? "+" : ""}${fixed(pct, 2)}%`;
       const srcShort = (r.source || "").split(/[@(]/, 1)[0].trim().slice(0, 22);
+      // Each cell names its own session: the five indices routinely span two
+      // closes, and one max-date as-of makes 11-11 closes look like 11-12 (#3422).
+      const sess = (typeof r.session === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.session))
+        ? `${r.session.slice(5)} 收盘` : "";
       return `
         <div class="market-cell ${stale ? "stale" : ""}" title="${escapeHtml(r.source || "")}">
           <div class="lbl">${escapeHtml(k)}</div>
           <div class="val">${priceTxt}</div>
           <div class="pct ${cls}">${pctTxt}</div>
           <div class="src">${escapeHtml(srcShort)}</div>
+          ${sess ? `<div class="sess">${escapeHtml(sess)}</div>` : ""}
         </div>`;
     });
     grid.innerHTML = cells.length ? cells.join("") : `<div class="empty-state">No index data.</div>`;
 
-    // As-of line: the newest session across rendered cells
-    const sessions = MARKET_INDICES.map(k => idx[k] && idx[k].session).filter(Boolean).sort();
-    if (sessions.length && asof) asof.textContent = `(行情 ${sessions[sessions.length - 1].slice(5)})`;
+    // As-of line: a range when the cells span two sessions, not the newest one
+    // applied to all five (#3422).
+    const sessions = [...new Set(MARKET_INDICES
+      .map(k => idx[k] && idx[k].session)
+      .filter(s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s)))].sort();
+    if (sessions.length && asof) {
+      asof.textContent = sessions.length > 1
+        ? `(行情 ${sessions[0].slice(5)} ~ ${sessions[sessions.length - 1].slice(5)})`
+        : `(行情 ${sessions[0].slice(5)})`;
+    }
 
     // RS: our combined today_pct vs SPX/HSI (region-weighted)
     if (rsRow) {
@@ -1903,11 +1923,14 @@
     const breaches = g.breaches || [], stops = g.hard_stop_watch || [];
     const n = g.breach_count || 0;
     const ICON = { single_name: '', factor_concentration: '', leveraged_exposure: '', beta: '', regime_delever: '' };
-    const row = (icon, sev, detail, action) =>
-      `<div class="risk-alert ${sev || 'high'}">
+    const SEV_CLASSES = new Set(['critical', 'high', 'medium']);
+    const row = (icon, sev, detail, action) => {
+      const cls = SEV_CLASSES.has(sev) ? sev : 'high';
+      return `<div class="risk-alert ${cls}">
          <span class="icon">${icon}</span>
-         <div><strong>${detail || ''}</strong>${action ? `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">→ ${action}</div>` : ''}</div>
+         <div><strong>${escapeHtml(detail || '')}</strong>${action ? `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">→ ${escapeHtml(action)}</div>` : ''}</div>
        </div>`;
+    };
     const rows = [
       ...breaches.map(b => ({ icon: ICON[b.type] || '', severity: b.severity, detail: stripEmoji(b.detail), action: stripEmoji(b.action) })),
       ...stops.map(s => ({ icon: '', severity: s.severity || 'critical', detail: stripEmoji(s.detail), action: stripEmoji(s.action) })),
