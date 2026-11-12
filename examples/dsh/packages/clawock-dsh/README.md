@@ -37,7 +37,7 @@ dsh plugin --profile web add clawock-dsh
 
 Installation needs one more step on rc.6 and later (skill discovery), covered
 in the installation section below. The Workbench and dispatch-queue sections
-are bilingual; the Chinese walkthrough starts at 前提.
+are bilingual; the Chinese walkthrough starts below.
 
 ---
 
