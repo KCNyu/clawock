@@ -199,11 +199,16 @@ def plan_trim_projections(context, plan):
 
 # Both publication gates use the same explicit claim vocabulary. A destination
 # attached to 占比 is meaningful even when a semicolon separates it from the sale.
+#
+# The verb is a shape, not a whitelist: LLM prose says 落到/落回/压回/回落/降回/
+# 降低/… and every hand-enumerated list eventually misses the one the model
+# used (#3417: 落回 was outside the list while the gate stayed silent). Match a
+# small set of movement prefixes and let the number supply the rest.
 _POST_WEIGHT = re.compile(
-    r'(?:占比|支配度|集中度)\s*(?:落到|降到|降至|回到|变为|剩下)\s*'
+    r'(?:占比|支配度|集中度)\s*[落降压回变剩][^，,。；;%％\d]{0,6}?'
     r'(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]'
     r'|(?:卖|减)[^。；;！？!?\n]{0,18}股后[^，,。；;%％]{0,8}'
-    r'(?:回到|降至|降到|剩|占)\s*(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]')
+    r'[落降压回变剩占][^，,。；;%％\d]{0,4}?(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]')
 
 
 def trim_claim_warnings(text, projection):

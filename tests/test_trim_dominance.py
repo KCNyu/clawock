@@ -57,6 +57,24 @@ def test_wrong_dominance_blocks_publication_even_if_number_exists_elsewhere(tmp_
     assert brief_postflight.categorize(issues) == 'fail'
 
 
+@pytest.mark.parametrize('verb', ['落回', '回落', '降回', '压回', '落到', '降至'])
+def test_the_movement_verb_is_a_shape_not_a_whitelist(tmp_path, verb):
+    """#3417: the model wrote 落回, which was outside the hand-kept list, while
+    the same sentence with 降到 was caught."""
+    ctx, plan = scenario()
+    plan['decisions'][0]['rationale'] = (
+        f'00100 减 60 股后港股腿单名占比{verb} 35% 复核线以下。')
+    issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    assert any('仓位支配度不符' in i and not is_advisory(i) for i in issues), issues
+    assert brief_postflight.categorize(issues) == 'fail'
+
+
+def test_a_high_water_mark_is_not_a_destination(tmp_path):
+    ctx, plan = scenario()
+    plan['decisions'][0]['rationale'] = '00100 港股腿单名占比高达 46.84%，还在复核线上方。'
+    assert not brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+
+
 def test_true_claim_and_unrelated_percentage_keep_their_meaning(tmp_path):
     ctx, plan = scenario()
     plan['decisions'][0]['rationale'] = '00100 卖 40 股后回到 39.53%，支配度仍高于 35% 复核线。'
