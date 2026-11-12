@@ -1744,6 +1744,10 @@ def check_brief_read_budgets(r):
     detail = (f"{latest.parent.name[len('brief-context-'):]} · {report['tickers']} tickers · "
               f"fullest read {fullest['read']} {fullest['bytes']:,}/{fullest['budget']:,} "
               f"({fullest['ratio']:.0%})")
+    if fullest.get('full_bytes') is not None:
+        # The served read comes after folding; print what the book would print
+        # unfolded so a fold is visible beside the ratio that triggered it.
+        detail += f" · unfolded {fullest['full_bytes']:,}"
     flagged = report['over_budget'] or report['near_budget']
     folded = next((row.get('folded') for row in report['reads'] if row.get('folded')), None)
     if flagged:
