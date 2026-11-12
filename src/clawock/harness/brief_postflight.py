@@ -1167,9 +1167,20 @@ def maybe_commit(status, today, dry_run=False, *, after_delivery=False):
     # only receive this generation's writes.
     day_paths = _existing(f'memory/{today}-plan.json',
                           f'memory/{today}-pre-open.md',
-                          f'memory/snapshots/{today}.json',
+                          # Directory-scoped: today's snapshot AND the cold-file
+                          # moves preflight's roll makes (#1040). A single
+                          # `{today}.json` path left both the archive adds and
+                          # the tracked deletions behind.
+                          'memory/snapshots/',
                           'memory/bars/', 'memory/strategy-lab/',
-                          'memory/decisions.jsonl')
+                          'memory/decisions.jsonl',
+                          # The ledgers THIS generation appends to. They are
+                          # append-only, not day-named, so staging the whole file
+                          # is the same contract as decisions.jsonl (#3409).
+                          'memory/risk_breaches.json',
+                          'memory/proposals.jsonl',
+                          'memory/fx-rates.jsonl',
+                          'memory/bar-conflicts.jsonl')
     add_args = ['add', *day_paths, 'portfolio.json',
                 'assets/data/risk.json',
                 'assets/data/lev_regime.json', 'assets/data/benchmark.json',
