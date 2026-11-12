@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-12T02:28:06.522753+00:00",
+  "generated_at": "2026-11-12T20:29:45.826485+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -16,7 +16,7 @@
     "musk": "success",
     "ark": "success",
     "serenity": "failed",
-    "duan": "success",
+    "duan": "success_empty",
     "honghao": "success_empty",
     "burry": "success",
     "pelosi": "success"
@@ -25,90 +25,40 @@
   "llm_filter_status": "ok",
   "counts": {
     "total": 17,
-    "held_hits": 1,
-    "new_ideas": 14,
-    "sector_hits": 1
+    "held_hits": 0,
+    "new_ideas": 15,
+    "sector_hits": 0
   },
   "items": [
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：Rocket Lab Corp(RKLB) 买入 ARKK 36,247 股 / ARKQ 10,327 股 / ARKX 8,049 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0707,
+      "author": "Trump",
+      "text": "NOW THAT Nvidia CEO JENSEN HUANG, who has done a fantastic job, has resigned, there is only one man to take his place - TIM COOK of Apple. A Legend replaces a Legend! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43560",
+      "published": "2026-11-12T15:29:03+00:00",
+      "origin": "truthsocial",
       "tickers": [
-        "RKLB"
-      ],
-      "held": [
-        "RKLB"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCX"
-      ],
-      "stance": "buy",
-      "relevance": 55,
-      "summary_cn": "ARK Invest在2026年11月10日买入Rocket Lab约5.46万股，相关交易占单只ETF约0.07%，属于常规规模的机构加仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "US SEC seeks to close Musk, Tesla settlement fund",
-      "url": "",
-      "published": "Tue, 10 Nov 2026 22:06:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "TSLA"
+        "NVDA",
+        "AAPL"
       ],
       "held": [],
       "new_ideas": [
-        "TSLA"
+        "AAPL",
+        "NVDA"
       ],
       "sectors": [
-        "电动车",
-        "监管"
+        "半导体",
+        "消费电子"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "据报道，美国SEC寻求关闭特斯拉相关和解基金，增加特斯拉面临的监管与合规压力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla and SpaceX lose over $420 billion in combined market cap after midterms",
-      "url": "",
-      "published": "Thu, 05 Nov 2026 21:42:17 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "据报道，美国中期选举后特斯拉与SpaceX合计市值蒸发逾4200亿美元，显示Musk相关资产面临明显政治与估值压力。"
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "特朗普称黄仁勋卸任英伟达CEO后应由苹果CEO蒂姆·库克接任，并同时称赞二人。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry says he's still bearish after Nvidia's 10% plunge — but the market may see it as a 'heck of a trade' soon",
-      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOeWlBZDhLZEZlal9NM3hpbWwtZUxsSi00NGMtTHo0dktVZWIzOHZWUUhQeDNyS2xTMkl1UHdTcndCS0dQc1BSNW1IUy1JR1BzeEt2WUFDaGphOUQweWtUVHdJaFRhVlNtd1pReUxDTHZsaWZCbVVIYUJic1RMaERVU2FaVW10MlNEamlseVh5bHA3dXNwMm1Zc1o3ajVoQnc3?oc=5",
-      "published": "2026-11-11T13:29:00+00:00",
+      "text": "'Big Short' Michael Burry says to 'get out' of Nvidia stock on CEO Jensen Huang's exit",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPd2ZfSEVOZ0dxVGxfNzhseFdvZURIQlRlRjBxbnVEbWlqZkpiODNDWGVEQXdTaGtXMVFlc2pITzVYcDBuWC1sS2hoSHJTdFB2NEZVVjUtbXp3VUJ1Z2J3cmlKZVRnRi00c2plaUJ5V1FnMVJNRmEzS3ltQVdaZjhaWHZSenkzUXJ3bXZMb2UxWXFHLWRzNHFTUExEdk8tY3YyX0xadzBB?oc=5",
+      "published": "2026-11-12T15:20:00+00:00",
       "origin": "gnews-rss",
       "source": "Business Insider",
       "tickers": [
@@ -124,16 +74,42 @@
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "据报道，Michael Burry在英伟达下跌10%后仍维持看空判断，认为市场可能很快重新定价其交易逻辑。"
+      "relevance": 86,
+      "summary_cn": "据报道迈克尔·伯里在黄仁勋离任后主张投资者撤出英伟达股票，表达明显看空态度。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNZm5KOHFwOEppTnA1ZU5HYW02d1ZJalYwUzFHbnFnbkptY0E5ZnpkemNnbFRNeEloV1ZRcC1Fc0lLNkVaZWc4YUtuRWY2UHN2TnRmODFIaV9vR3JGRndzUDBUSWdEM1dPS0tJM2syNEJtQ0dpTXhJZXE0OV90ekdWS1VqbHFoT0VfOUVjdGJEM3Y4TDNGU2MtYUxLRQ?oc=5",
+      "published": "2026-11-11T20:30:06+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "WBD",
+        "PSKY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSKY",
+        "WBD"
+      ],
+      "sectors": [
+        "传媒",
+        "娱乐",
+        "并购"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 80,
+      "summary_cn": "最新国会披露显示，佩洛西持有的华纳兄弟股份已在派拉蒙交易中变现，所得约相当于其年薪的43%。"
     },
     {
       "author": "Burry",
       "text": "Michael Burry buys back into Lululemon, adds to other positions",
-      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPMzNPRlpwWmRFZW1RRTBfU0pEbnFZX2tzaXdEdXh2dGlVdnFmdlNxdUNZWXpJbVg4cFhZU1AzdUUyajVIRDR1Y2Q0a004UUhWSkdUd1Q4cmVrdUctWkl3ck1aTUw1Mm8xNS1JWThEdG90RzZHVXJNNHFWNFNKaWRJRG1KY1NxVjQzTHl3RlM1UFpTNXlmdVBDcS14NjlJM1NPclVRUEFpNFZ4c3RaMW9tUWUtWTBHYUlfOEY4?oc=5",
-      "published": "2026-11-11T19:06:33+00:00",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNWTRSY242cms3TnhJak45bXI3VW1NTjBsdVJuWnE5VGJ5ZnVPdG0ySC1YcVllSVp1SllQbFVXcktmQVRiYjJLeWxGT3d3S1dfSGVmMzRpaEJoMk1zZnp5X0RQQjdrMURIRUZ0Wl95Ulh0a01sLVlmQUNPQkZSMUhyTHZJZG1IZXl3YnE4clkxb2Q4TlA2WWFqeVV2Q3VFWW8?oc=5",
+      "published": "2026-11-11T19:24:55+00:00",
       "origin": "gnews-rss",
-      "source": "Investing.com",
+      "source": "Yahoo Finance",
       "tickers": [
         "LULU"
       ],
@@ -143,13 +119,13 @@
       ],
       "sectors": [
         "消费",
-        "零售",
-        "运动服饰"
+        "运动服饰",
+        "零售"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry重新买入Lululemon并增加其他持仓，显示其进行逆向投资布局。"
+      "relevance": 78,
+      "summary_cn": "据报道迈克尔·伯里重新买入Lululemon（LULU），并增加了其他持仓。"
     },
     {
       "author": "Musk",
@@ -171,90 +147,233 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "据报道，Elon Musk表示特斯拉Cybertruck将延长生产至2027年夏季以消化积压订单，反映产品需求与产能扩张信号。"
+      "relevance": 74,
+      "summary_cn": "据报道，马斯克称特斯拉将把Cybertruck生产延长至2027年夏天，以消化积压订单。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：Archer Aviation Inc.(ACHR) 买入 ARKK 1,021,635 股 / ARKQ 147,118 股 / ARKX 172,486 股（最大单只 ETF 占比 0.12%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1171,
-      "tickers": [
-        "ACHR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ACHR"
-      ],
-      "sectors": [
-        "航空",
-        "电动车",
-        "无人驾驶"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在2026年11月10日买入Archer Aviation约134万股，相关交易占单只ETF约0.12%。"
-    },
-    {
-      "author": "段永平",
-      "text": "《大行》高盛料輝達(NVDA.US)第三季業績及指引強勁",
-      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE10anRSQUkxbDdNVGNCMldJNC0zRmVyQzJaQmFoTHg1eUFKcFFPYk9BTmtkc3hMYUFkTndhRm1TVmotdDd2N3ZzTg?oc=5",
-      "published": "2026-11-10T07:03:37+00:00",
+      "author": "Musk",
+      "text": "Tesla Robotaxi Now Works 24/7 While Elon Musk's Robots Head to Optimus Academy",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 17:21:33 GMT",
       "origin": "gnews-rss",
-      "source": "鉅亨號",
+      "source": "BeInCrypto",
       "tickers": [
-        "NVDA"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "TSLA"
       ],
       "sectors": [
-        "半导体",
-        "AI"
+        "电动车",
+        "自动驾驶",
+        "机器人"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "据报道，高盛预计英伟达第三季度业绩及指引强劲，反映市场对其AI芯片业务增长仍持乐观预期。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNZm5KOHFwOEppTnA1ZU5HYW02d1ZJalYwUzFHbnFnbkptY0E5ZnpkemNnbFRNeEloV1ZRcC1Fc0lLNkVaZWc4YUtuRWY2UHN2TnRmODFIaV9vR3JGRndzUDBUSWdEM1dPS0tJM2syNEJtQ0dpTXhJZXE0OV90ekdWS1VqbHFoT0VfOUVjdGJEM3Y4TDNGU2MtYUxLRQ?oc=5",
-      "published": "2026-11-11T20:30:06+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "WBD",
-        "PARA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PARA",
-        "WBD"
-      ],
-      "sectors": [
-        "媒体",
-        "娱乐并购"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "最新国会披露相关报道显示，Nancy Pelosi持有的Warner Bros.股份已在Paramount交易中套现，收益约为其年薪的43%。"
+      "relevance": 73,
+      "summary_cn": "据报道，特斯拉Robotaxi已实现全天候运营，同时马斯克旗下机器人正进入Optimus学院阶段。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：Honeywell Aerospace Inc(HONA) 卖出 ARKX 6,045 股（最大单只 ETF 占比 0.15%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-11-10T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：Prime Medicine, Inc.(PRME) 买入 ARKG 1,744,714 股（最大单只 ETF 占比 0.31%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-11T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1495,
+      "etf_percent": 0.3094,
+      "tickers": [
+        "PRME"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PRME"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因治疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest买入Prime Medicine（PRME）1,744,714股，单只ETF占比0.31%。"
+    },
+    {
+      "author": "Musk",
+      "text": "‘The end of Tesla!’: Cybertruck diehards turn on Elon Musk after he pulls the plug",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 17:00:17 GMT",
+      "origin": "gnews-rss",
+      "source": "The Verge",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "汽车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克取消Cybertruck相关计划后引发部分车主不满，相关报道以“特斯拉的终结”描述市场反应。"
+    },
+    {
+      "author": "Musk",
+      "text": "How the SpaceX Stock Slump Complicates Elon Musk’s Tesla Merger",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 14:48:18 GMT",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "据报道，SpaceX股价下滑增加了其与特斯拉合并的复杂性，涉及特斯拉潜在合并交易。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：Absci Corp(ABSI) 卖出 ARKG 478,402 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2443,
+      "tickers": [
+        "ABSI"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ABSI"
+      ],
+      "sectors": [
+        "生物科技",
+        "AI制药"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest卖出Absci（ABSI）478,402股，单只ETF占比0.24%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：BYD Company Limited(BYDDY) 卖出 ARKQ 220,351 股（最大单只 ETF 占比 0.11%）",
+      "url": "https://www.ark-funds.com/funds/arkq/",
+      "published": "2026-11-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1117,
+      "tickers": [
+        "BYDDY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BYDDY"
+      ],
+      "sectors": [
+        "电动车",
+        "新能源汽车"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "ARK Invest卖出比亚迪（BYDDY）220,351股，单只ETF占比0.11%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：Archer Aviation Inc.(ACHR) 买入 ARKK 184,601 股 / ARKQ 132,624 股 / ARKX 30,951 股（最大单只 ETF 占比 0.04%）",
+      "url": "https://www.ark-funds.com/funds/arkq/",
+      "published": "2026-11-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0375,
+      "tickers": [
+        "ACHR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ACHR"
+      ],
+      "sectors": [
+        "电动车",
+        "航空"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 56,
+      "summary_cn": "ARK Invest买入Archer Aviation（ACHR），涉及ARKK、ARKQ和ARKX，单只ETF占比最高0.04%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：Kratos Defense & Security Solutions, Inc.(KTOS) 买入 ARKK 66,183 股 / ARKQ 19,020 股（最大单只 ETF 占比 0.04%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-11-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0407,
+      "tickers": [
+        "KTOS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "KTOS"
+      ],
+      "sectors": [
+        "国防",
+        "航空航天"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 55,
+      "summary_cn": "ARK Invest买入Kratos Defense & Security Solutions（KTOS），涉及ARKK和ARKQ，单只ETF占比最高0.04%。"
+    },
+    {
+      "author": "Musk",
+      "text": "House Republican invites Musk to move Tesla HQ to Florida",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 17:52:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Hill",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 53,
+      "summary_cn": "据报道，马斯克回应共和党议员邀请，提议将特斯拉总部迁至佛罗里达。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：Honeywell Aerospace Inc(HONA) 卖出 ARKX 3,335 股（最大单只 ETF 占比 0.08%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-11-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.084,
       "tickers": [
         "HONA"
       ],
@@ -268,252 +387,78 @@
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年11月10日调仓中卖出Honeywell Aerospace 6,045股，相关交易占单只ETF约0.15%。"
+      "relevance": 52,
+      "summary_cn": "ARK Invest卖出Honeywell Aerospace（HONA）3,335股，单只ETF占比0.08%，属于常规再平衡规模。"
     },
     {
-      "author": "Musk",
-      "text": "There’s a Reason Elon Musk’s Cybertruck Never Took Off. Actually, There Are a Few.",
-      "url": "",
-      "published": "Mon, 09 Nov 2026 20:39:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Slate Magazine",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "汽车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "据报道，媒体指出特斯拉Cybertruck销量表现不佳，质疑其产品吸引力与商业化能力。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：eToro Group Ltd.(ETOR) 买入 ARKF 33,241 股（最大单只 ETF 占比 0.10%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0994,
-      "tickers": [
-        "ETOR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ETOR"
-      ],
-      "sectors": [
-        "金融科技",
-        "在线券商",
-        "加密货币"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "buy",
-      "relevance": 65,
-      "summary_cn": "ARK Invest在2026年11月10日买入eToro 33,241股，相关交易占单只ETF约0.10%。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry reveals 2 big stock bets after Nvidia selloff",
-      "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxOWkI2Q3JhT0hCTlhSUkUydzFnOHRfc3BoUUNRTXlsMmdrandNNV9YNl9XcDJjT3Q0c0JsMHBrNmxXaHJaMjFtZFk5amJIMEpYYmtNMWV5OWZ6akRnbU55V3dNMlhLbkI0U2VXSnhRaUM4V2VTZnVpNnZCclRSNWtpUWVENUpkbEVpLU85VjNMOHB2ay1zNmFv?oc=5",
-      "published": "2026-11-11T17:37:37+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道，Michael Burry在英伟达大跌后披露两项大额股票押注，但具体新增头寸方向需结合后续披露确认。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：BYD Company Limited(BYDDY) 卖出 ARKQ 132,535 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.069,
-      "tickers": [
-        "BYDDY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BYDDY"
-      ],
-      "sectors": [
-        "电动车",
-        "汽车"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK Invest在2026年11月10日卖出比亚迪相关持仓132,535股，相关交易占单只ETF约0.07%，属于常规规模减仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：Palantir Technologies Inc.(PLTR) 卖出 ARKF 2,107 股（最大单只 ETF 占比 0.05%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0489,
-      "tickers": [
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PLTR"
-      ],
-      "sectors": [
-        "AI",
-        "软件"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK Invest在2026年11月10日卖出Palantir 2,107股，相关交易占单只ETF约0.05%，属于常规规模减仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Germany's Isar Aerospace eyes overtaking Elon Musk's SpaceX",
-      "url": "",
-      "published": "Tue, 10 Nov 2026 22:20:01 GMT",
-      "origin": "gnews-rss",
-      "source": "Phys.org",
+      "author": "Trump",
+      "text": "Here we go again! With the perceived loss by the Republicans in the Midterms - I WAS NOT ON THE BALLOT- the INVASION of our Country is taking place again. Huge CARAVANS are forming and beginning their illegal march through Mexico. Many of the people in these Caravans are those that various countries don’t want - “Send them to America,” they say - But they will not be accepted! MEXICO MUST STOP THEM, NOW, and if they do not do so, the Tariffs on Mexico will be IMMEDIATELY DOUBLED. MEXICO, THE GOVERNOR OF TEXAS, THE VERY LIBERAL NEW GOVERNOR OF TEXAS, OUR GREAT BORDER PATROL, & ICE, HAVE BEEN SO",
+      "url": "https://www.trumpstruth.org/statuses/43556",
+      "published": "2026-11-12T12:04:10+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "关税",
+        "墨西哥供应链",
+        "汽车"
       ],
-      "sector_holdings": [
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "据报道，德国Isar Aerospace计划在航天领域超越SpaceX，反映欧洲航天企业竞争加剧。"
+      "relevance": 74,
+      "summary_cn": "特朗普威胁若墨西哥不阻止非法移民车队进入美国，将立即把对墨西哥关税提高一倍。"
     },
     {
-      "author": "Pelosi",
-      "text": "Representative Nancy Pelosi introduces H.R. 10968: No Veteran Left Behind: Housing Retention Act of 2026",
-      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNZVhmX0h4MmYzU21rNTlaVFI3bDhRWkhBZjcyVEg3Vjd5WmstRkYzSFZmT2pQODRKMzc1enIwWUw0VXRBVG05a3JuelE4T3pWaXBaWjhYOUtJN3Rwa05RRTNQclkzVS1wQTdyMk12S2NKVDF4TWt6YTdseGdxSGFGTTExQ3hBMW52dWprcnFtdFJJdkM1SUNhMDlGYWhsbEx5OEtpZFBlbUliN21ESHJzN0lwbEVYemRhTllyaG1tU3dGU3BPUUNKT2lHaFluUExVc3VBdkw0REE?oc=5",
-      "published": "2026-11-11T15:50:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Quiver Quantitative",
+      "author": "Trump",
+      "text": "I rebuilt our Military in my First Term, and we’re doing it AGAIN, bigger and better than ever before! The Radical Democrat Majority in the next Congress has already made it clear that their Number One Agenda is to BLOCK and RESIST this historic investment in our National Security. They want to leave our Warriors weak, and unguarded, but the American People want their Warriors SAFE and STRONG.   That’s why TODAY I am calling on Senate Leadership to IMMEDIATELY move on the 350 Billion Dollar Reconciliation Bill to give our brave Warriors the DECISIVE ADVANTAGE they deserve. Our Military must be",
+      "url": "https://www.trumpstruth.org/statuses/43562",
+      "published": "2026-11-12T17:24:53+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "住房",
-        "房地产"
+        "国防",
+        "财政政策"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道，Nancy Pelosi提出《2026年无退伍军人落伍住房保留法案》，涉及退伍军人住房支持政策。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：Rocket Lab Corp(RKLB) 买入 ARKK 36,247 股 / ARKQ 10,327 股 / ARKX 8,049 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0707,
-      "tickers": [
-        "RKLB"
-      ],
-      "held": [
-        "RKLB"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "卫星互联网"
-      ],
-      "sector_holdings": [
-        "SPCX"
-      ],
       "stance": "buy",
-      "relevance": 55,
-      "summary_cn": "ARK Invest在2026年11月10日买入Rocket Lab约5.46万股，相关交易占单只ETF约0.07%，属于常规规模的机构加仓。"
+      "relevance": 72,
+      "summary_cn": "特朗普呼吁参议院立即推进3500亿美元和解法案，为美国国防军事投入提供资金。"
     }
   ],
+  "held_hits": [],
   "new_ideas": [
     {
-      "author": "Musk",
-      "text": "US SEC seeks to close Musk, Tesla settlement fund",
-      "url": "",
-      "published": "Tue, 10 Nov 2026 22:06:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
+      "author": "Trump",
+      "text": "NOW THAT Nvidia CEO JENSEN HUANG, who has done a fantastic job, has resigned, there is only one man to take his place - TIM COOK of Apple. A Legend replaces a Legend! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43560",
+      "published": "2026-11-12T15:29:03+00:00",
+      "origin": "truthsocial",
       "tickers": [
-        "TSLA"
+        "NVDA",
+        "AAPL"
       ],
       "held": [],
       "new_ideas": [
-        "TSLA"
+        "AAPL",
+        "NVDA"
       ],
       "sectors": [
-        "电动车",
-        "监管"
+        "半导体",
+        "消费电子"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "据报道，美国SEC寻求关闭特斯拉相关和解基金，增加特斯拉面临的监管与合规压力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla and SpaceX lose over $420 billion in combined market cap after midterms",
-      "url": "",
-      "published": "Thu, 05 Nov 2026 21:42:17 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "据报道，美国中期选举后特斯拉与SpaceX合计市值蒸发逾4200亿美元，显示Musk相关资产面临明显政治与估值压力。"
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "特朗普称黄仁勋卸任英伟达CEO后应由苹果CEO蒂姆·库克接任，并同时称赞二人。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry says he's still bearish after Nvidia's 10% plunge — but the market may see it as a 'heck of a trade' soon",
-      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOeWlBZDhLZEZlal9NM3hpbWwtZUxsSi00NGMtTHo0dktVZWIzOHZWUUhQeDNyS2xTMkl1UHdTcndCS0dQc1BSNW1IUy1JR1BzeEt2WUFDaGphOUQweWtUVHdJaFRhVlNtd1pReUxDTHZsaWZCbVVIYUJic1RMaERVU2FaVW10MlNEamlseVh5bHA3dXNwMm1Zc1o3ajVoQnc3?oc=5",
-      "published": "2026-11-11T13:29:00+00:00",
+      "text": "'Big Short' Michael Burry says to 'get out' of Nvidia stock on CEO Jensen Huang's exit",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPd2ZfSEVOZ0dxVGxfNzhseFdvZURIQlRlRjBxbnVEbWlqZkpiODNDWGVEQXdTaGtXMVFlc2pITzVYcDBuWC1sS2hoSHJTdFB2NEZVVjUtbXp3VUJ1Z2J3cmlKZVRnRi00c2plaUJ5V1FnMVJNRmEzS3ltQVdaZjhaWHZSenkzUXJ3bXZMb2UxWXFHLWRzNHFTUExEdk8tY3YyX0xadzBB?oc=5",
+      "published": "2026-11-12T15:20:00+00:00",
       "origin": "gnews-rss",
       "source": "Business Insider",
       "tickers": [
@@ -529,16 +474,42 @@
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "据报道，Michael Burry在英伟达下跌10%后仍维持看空判断，认为市场可能很快重新定价其交易逻辑。"
+      "relevance": 86,
+      "summary_cn": "据报道迈克尔·伯里在黄仁勋离任后主张投资者撤出英伟达股票，表达明显看空态度。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNZm5KOHFwOEppTnA1ZU5HYW02d1ZJalYwUzFHbnFnbkptY0E5ZnpkemNnbFRNeEloV1ZRcC1Fc0lLNkVaZWc4YUtuRWY2UHN2TnRmODFIaV9vR3JGRndzUDBUSWdEM1dPS0tJM2syNEJtQ0dpTXhJZXE0OV90ekdWS1VqbHFoT0VfOUVjdGJEM3Y4TDNGU2MtYUxLRQ?oc=5",
+      "published": "2026-11-11T20:30:06+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "WBD",
+        "PSKY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PSKY",
+        "WBD"
+      ],
+      "sectors": [
+        "传媒",
+        "娱乐",
+        "并购"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 80,
+      "summary_cn": "最新国会披露显示，佩洛西持有的华纳兄弟股份已在派拉蒙交易中变现，所得约相当于其年薪的43%。"
     },
     {
       "author": "Burry",
       "text": "Michael Burry buys back into Lululemon, adds to other positions",
-      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPMzNPRlpwWmRFZW1RRTBfU0pEbnFZX2tzaXdEdXh2dGlVdnFmdlNxdUNZWXpJbVg4cFhZU1AzdUUyajVIRDR1Y2Q0a004UUhWSkdUd1Q4cmVrdUctWkl3ck1aTUw1Mm8xNS1JWThEdG90RzZHVXJNNHFWNFNKaWRJRG1KY1NxVjQzTHl3RlM1UFpTNXlmdVBDcS14NjlJM1NPclVRUEFpNFZ4c3RaMW9tUWUtWTBHYUlfOEY4?oc=5",
-      "published": "2026-11-11T19:06:33+00:00",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNWTRSY242cms3TnhJak45bXI3VW1NTjBsdVJuWnE5VGJ5ZnVPdG0ySC1YcVllSVp1SllQbFVXcktmQVRiYjJLeWxGT3d3S1dfSGVmMzRpaEJoMk1zZnp5X0RQQjdrMURIRUZ0Wl95Ulh0a01sLVlmQUNPQkZSMUhyTHZJZG1IZXl3YnE4clkxb2Q4TlA2WWFqeVV2Q3VFWW8?oc=5",
+      "published": "2026-11-11T19:24:55+00:00",
       "origin": "gnews-rss",
-      "source": "Investing.com",
+      "source": "Yahoo Finance",
       "tickers": [
         "LULU"
       ],
@@ -548,13 +519,13 @@
       ],
       "sectors": [
         "消费",
-        "零售",
-        "运动服饰"
+        "运动服饰",
+        "零售"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry重新买入Lululemon并增加其他持仓，显示其进行逆向投资布局。"
+      "relevance": 78,
+      "summary_cn": "据报道迈克尔·伯里重新买入Lululemon（LULU），并增加了其他持仓。"
     },
     {
       "author": "Musk",
@@ -576,113 +547,64 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "据报道，Elon Musk表示特斯拉Cybertruck将延长生产至2027年夏季以消化积压订单，反映产品需求与产能扩张信号。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：Archer Aviation Inc.(ACHR) 买入 ARKK 1,021,635 股 / ARKQ 147,118 股 / ARKX 172,486 股（最大单只 ETF 占比 0.12%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1171,
-      "tickers": [
-        "ACHR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ACHR"
-      ],
-      "sectors": [
-        "航空",
-        "电动车",
-        "无人驾驶"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在2026年11月10日买入Archer Aviation约134万股，相关交易占单只ETF约0.12%。"
-    },
-    {
-      "author": "段永平",
-      "text": "《大行》高盛料輝達(NVDA.US)第三季業績及指引強勁",
-      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE10anRSQUkxbDdNVGNCMldJNC0zRmVyQzJaQmFoTHg1eUFKcFFPYk9BTmtkc3hMYUFkTndhRm1TVmotdDd2N3ZzTg?oc=5",
-      "published": "2026-11-10T07:03:37+00:00",
-      "origin": "gnews-rss",
-      "source": "鉅亨號",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "据报道，高盛预计英伟达第三季度业绩及指引强劲，反映市场对其AI芯片业务增长仍持乐观预期。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNZm5KOHFwOEppTnA1ZU5HYW02d1ZJalYwUzFHbnFnbkptY0E5ZnpkemNnbFRNeEloV1ZRcC1Fc0lLNkVaZWc4YUtuRWY2UHN2TnRmODFIaV9vR3JGRndzUDBUSWdEM1dPS0tJM2syNEJtQ0dpTXhJZXE0OV90ekdWS1VqbHFoT0VfOUVjdGJEM3Y4TDNGU2MtYUxLRQ?oc=5",
-      "published": "2026-11-11T20:30:06+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "WBD",
-        "PARA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PARA",
-        "WBD"
-      ],
-      "sectors": [
-        "媒体",
-        "娱乐并购"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "最新国会披露相关报道显示，Nancy Pelosi持有的Warner Bros.股份已在Paramount交易中套现，收益约为其年薪的43%。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：Honeywell Aerospace Inc(HONA) 卖出 ARKX 6,045 股（最大单只 ETF 占比 0.15%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1495,
-      "tickers": [
-        "HONA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "HONA"
-      ],
-      "sectors": [
-        "航空航天",
-        "国防"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest在2026年11月10日调仓中卖出Honeywell Aerospace 6,045股，相关交易占单只ETF约0.15%。"
+      "relevance": 74,
+      "summary_cn": "据报道，马斯克称特斯拉将把Cybertruck生产延长至2027年夏天，以消化积压订单。"
     },
     {
       "author": "Musk",
-      "text": "There’s a Reason Elon Musk’s Cybertruck Never Took Off. Actually, There Are a Few.",
+      "text": "Tesla Robotaxi Now Works 24/7 While Elon Musk's Robots Head to Optimus Academy",
       "url": "",
-      "published": "Mon, 09 Nov 2026 20:39:00 GMT",
+      "published": "Thu, 12 Nov 2026 17:21:33 GMT",
       "origin": "gnews-rss",
-      "source": "Slate Magazine",
+      "source": "BeInCrypto",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "机器人"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 73,
+      "summary_cn": "据报道，特斯拉Robotaxi已实现全天候运营，同时马斯克旗下机器人正进入Optimus学院阶段。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：Prime Medicine, Inc.(PRME) 买入 ARKG 1,744,714 股（最大单只 ETF 占比 0.31%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3094,
+      "tickers": [
+        "PRME"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PRME"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因治疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "ARK Invest买入Prime Medicine（PRME）1,744,714股，单只ETF占比0.31%。"
+    },
+    {
+      "author": "Musk",
+      "text": "‘The end of Tesla!’: Cybertruck diehards turn on Elon Musk after he pulls the plug",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 17:00:17 GMT",
+      "origin": "gnews-rss",
+      "source": "The Verge",
       "tickers": [
         "TSLA"
       ],
@@ -696,30 +618,60 @@
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "据报道，媒体指出特斯拉Cybertruck销量表现不佳，质疑其产品吸引力与商业化能力。"
-    }
-  ],
-  "sector_hits": [
+      "relevance": 70,
+      "summary_cn": "据报道，马斯克取消Cybertruck相关计划后引发部分车主不满，相关报道以“特斯拉的终结”描述市场反应。"
+    },
     {
       "author": "Musk",
-      "text": "Germany's Isar Aerospace eyes overtaking Elon Musk's SpaceX",
+      "text": "How the SpaceX Stock Slump Complicates Elon Musk’s Tesla Merger",
       "url": "",
-      "published": "Tue, 10 Nov 2026 22:20:01 GMT",
+      "published": "Thu, 12 Nov 2026 14:48:18 GMT",
       "origin": "gnews-rss",
-      "source": "Phys.org",
-      "tickers": [],
+      "source": "Benzinga",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "航天"
+        "航天",
+        "电动车"
       ],
       "sector_holdings": [
+        "RKLX",
+        "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "据报道，德国Isar Aerospace计划在航天领域超越SpaceX，反映欧洲航天企业竞争加剧。"
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "据报道，SpaceX股价下滑增加了其与特斯拉合并的复杂性，涉及特斯拉潜在合并交易。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-11 调仓：Absci Corp(ABSI) 卖出 ARKG 478,402 股（最大单只 ETF 占比 0.24%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2443,
+      "tickers": [
+        "ABSI"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ABSI"
+      ],
+      "sectors": [
+        "生物科技",
+        "AI制药"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest卖出Absci（ABSI）478,402股，单只ETF占比0.24%。"
     }
-  ]
+  ],
+  "sector_hits": []
 }
