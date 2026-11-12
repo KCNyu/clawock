@@ -77,10 +77,10 @@ New commits cancel older runs of the same PR. Each `master` push has a separate
 concurrency group, so neither a running nor a pending older commit is replaced.
 Coverage publishing consumes the combined report without rerunning tests.
 
-## One-time setup (kcn, on the PyPI side)
+## One-time setup (kcn, on the publisher side)
 
 Trusted publishing is used instead of an API token, so nothing long-lived sits
-in repository secrets. Configure the publisher at
+in repository secrets. Configure the PyPI publisher at
 <https://pypi.org/manage/account/publishing/> with:
 
 | field | value |
@@ -93,6 +93,32 @@ in repository secrets. Configure the publisher at
 
 Repeat on <https://test.pypi.org/manage/account/publishing/> with environment
 name `testpypi` to be able to rehearse.
+
+The npm side has its own trusted publisher, configured on the package's
+settings page (<https://www.npmjs.com/package/clawock-dsh/access>). The release
+workflow publishes `clawock-dsh` through it, with no `NODE_AUTH_TOKEN` anywhere:
+
+| field | value |
+|---|---|
+| Package | `clawock-dsh` |
+| Organization or user | `KCNyu` |
+| Repository | `clawock` |
+| Workflow filename | `release.yml` |
+| Environment name | blank — the npm job declares no GitHub environment |
+| Allowed actions | `npm publish`, `npm stage publish`, `npm dist-tag` |
+
+A new npm trusted publisher stays **pending validation** until the first
+successful publish from that exact repository/workflow. That first publish is
+what validates it; a release that authenticates with a token instead leaves the
+configuration pending and it can expire. The workflow therefore grants
+`id-token: write`, sets no token, and has a step that refuses to run if
+`NODE_AUTH_TOKEN` is present. That step also strips the empty
+`//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` line which
+`actions/setup-node`'s `registry-url` writes: with no token, npm treats that
+line as configured credentials and skips the OIDC exchange (the registry then
+answers 404, which looks like a missing publisher). npm's trusted publishing
+requires npm CLI ≥ 11.5.1 and Node ≥ 22.14; `clawock-node` pins npm 11.21.2 on
+Node 22.
 
 Then create the two GitHub environments (`Settings → Environments`): `pypi` and
 `testpypi`. Adding yourself as a required reviewer on `pypi` is worth it — the
@@ -176,12 +202,15 @@ NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh
 NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh "$NEXT"
 ```
 
-`NPM_TOKEN` is the npm registry auth token and the only environment input the
-script needs (a userconfig with registry auth works too). Before touching the
-registry it rebuilds the plugin artifacts (`npm install --include=dev &&
-npm run build` — src → lib + Typert generation, so the published package never
-ships stale committed output) and runs `npm pack --dry-run` to verify the
-package, its `skills/investment-decision/SKILL.md`, and the generated
+`NPM_TOKEN` is the npm registry auth token for a **local** publish; a userconfig
+with registry auth works too. In GitHub Actions the script receives no token:
+the release workflow publishes through the package's npm trusted publisher, and
+npm exchanges the job's OIDC identity for a short-lived publish credential.
+Before touching the registry it rebuilds the plugin artifacts (`npm install
+--include=dev && npm run build` — src → lib + Typert generation, so the
+published package never ships stale committed output) and runs `npm pack
+--dry-run` to verify the package, its
+`skills/investment-decision/SKILL.md`, and the generated
 `lib/typert.remote-client.js` all exist.
 
 On a `v*` tag the workflow's `npm` job calls the same script with the version

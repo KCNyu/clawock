@@ -19,8 +19,11 @@
 #   With neither flag (a human at a terminal) it publishes, then verifies.
 #
 # Env:
-#   NPM_TOKEN                required to publish (or a userconfig with the
-#                            registry auth token); not needed for --verify-only
+#   NPM_TOKEN                npm registry auth for a local publish (or a
+#                            userconfig with the registry auth token). Not
+#                            needed in GitHub Actions: the release workflow
+#                            publishes through the npm trusted publisher's OIDC
+#                            identity and deliberately sets no token.
 #   DSH_READBACK_TIMEOUT_S   how long the readback waits for the registry to
 #                            serve the version (default 900)
 #   DSH_READBACK_INTERVAL_S  pause between readback attempts (default 20)
@@ -132,6 +135,11 @@ provenance_args=()
 if [ "$mode" = verify ]; then
   : # nothing is published, so there is nothing to sign
 elif [ "${GITHUB_ACTIONS:-}" = "true" ] && [ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+  if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+    echo "auth: NODE_AUTH_TOKEN is set — npm will use that token, not the trusted publisher" >&2
+  else
+    echo "auth: no NODE_AUTH_TOKEN — npm authenticates with the workflow's OIDC identity"
+  fi
   echo "provenance: OIDC token available — publishing with --provenance"
   provenance_args+=(--provenance)
 else

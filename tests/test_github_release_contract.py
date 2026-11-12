@@ -93,10 +93,14 @@ def test_the_release_pins_the_npm_that_publishes():
     Letting a runner image decide which npm performs the publish is what turned
     v0.1.6 into a half-released version: PyPI accepted 0.1.6, npm never got it.
     The same install is clean on the pinned version.
+
+    11.5.1 is also npm's first trusted-publishing release. The pin has to stay
+    on the 11.x line: npm 12 changed install-script defaults, which the plugin's
+    native build has not adopted.
     """
     workflow = WORKFLOW.read_text()
     action = (ROOT / ".github/actions/clawock-node/action.yml").read_text()
-    assert "npm install -g npm@10.9.8" in action
+    assert "npm install -g npm@11.21.2" in action
     for name in ("build", "npm", "npm-readback", "github-release"):
         job = re.split(r"\n  [a-z][a-z-]*:", workflow.split(f"\n  {name}:\n", 1)[1])[0]
         assert "uses: ./.github/actions/clawock-node" in job
@@ -275,6 +279,20 @@ def test_the_npm_publish_carries_provenance():
     npm_job = workflow.split("\n  npm:\n", 1)[1].split("\n  github-release:", 1)[0]
     assert "id-token: write" in npm_job, (
         "the npm job needs the OIDC token npm exchanges for a provenance attestation"
+    )
+    assert "NODE_AUTH_TOKEN: ${{" not in npm_job, (
+        "the release has to authenticate with the trusted publisher's OIDC "
+        "identity; a token would publish without validating that configuration"
+    )
+    assert "secrets.NPM_TOKEN" not in npm_job, (
+        "no npm token may be handed to the release job"
+    )
+    assert "Require OIDC trusted publishing" in npm_job, (
+        "the job must refuse to publish with a token before npm runs"
+    )
+    assert "sed -i '/_authToken/d'" in npm_job, (
+        "setup-node's empty _authToken line makes npm skip the OIDC exchange; "
+        "the release has to strip it (actions/setup-node#1551)"
     )
 
     script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text(encoding="utf-8")
