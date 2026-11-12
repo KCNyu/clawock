@@ -188,3 +188,30 @@ def test_every_playwright_consumer_goes_through_the_door(name):
     path = ROOT / ".github" / "workflows" / name
     assert path.is_file(), f"{name} disappeared; update PLAYWRIGHT_CONSUMERS"
     assert "./.github/actions/clawock-playwright" in path.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("name", sorted(PLAYWRIGHT_CONSUMERS))
+def test_every_playwright_job_is_pinned_to_a_supported_image(name):
+    """The composite pins one browser build per image.
+
+    Playwright 1.60 has no chromium build for ubuntu-26.04, which
+    `ubuntu-latest` resolved to in 2026-11. ci.yml's two jobs were pinned in
+    #3395; screenshot-refresh was the missed sibling and failed every Sunday
+    (#3408). Any job that installs through the composite must name the image
+    the composite was tested on.
+    """
+    import yaml
+
+    workflow = yaml.safe_load(
+        (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8"))
+    playwright_jobs = [
+        job for job in (workflow.get("jobs") or {}).values()
+        if any("./.github/actions/clawock-playwright" in str(step.get("uses", ""))
+               for step in (job.get("steps") or []))
+    ]
+    assert playwright_jobs, f"{name} no longer uses the Playwright composite"
+    for job in playwright_jobs:
+        assert job.get("runs-on") == "ubuntu-24.04", (
+            f"{name} installs Playwright on {job.get('runs-on')!r}; the pinned "
+            "browser build has no support for the ubuntu-26.04 image behind "
+            "ubuntu-latest. Pin ubuntu-24.04 like ci.yml.")
