@@ -2068,6 +2068,12 @@ SUMMARY_FOLDS = (
     ("execution", "execution"),
     ("early_trend", "quant"),
     ("live", "information"),
+    # The summary was still 68.7KB after the first three folds (2026-11-12,
+    # #3418). These are the remaining O(holdings) blocks with their own query
+    # section; both are reference detail the model can ask for per ticker,
+    # while without them the resident read is usable again.
+    ("technical", "technical"),
+    ("constraints", "constraints"),
 )
 #: The early-trend keys SKILL.md Step 2 acts on; the rest is measurement.
 _EARLY_TREND_DECISION_KEYS = ("state", "observed", "exploration_ready",
@@ -2200,8 +2206,15 @@ def summary_view(packet: dict, budget: int | None = None) -> dict:
         "live_information": packet.get("live_information"),
         "judgment_contract": packet.get("judgment_contract"),
     }
+    # Fold only once the read is over its hard line, then keep folding until
+    # it also has the 10% headroom that `READ_BUDGET_WARN_RATIO` asks of a
+    # near-budget read. Stopping at 65,535 bytes leaves the next session's
+    # growth to refuse the tool again (#3418); a book that already fits pays
+    # nothing.
+    over_budget = _printed_bytes(view) > budget
+    target = int(budget * READ_BUDGET_WARN_RATIO) if over_budget else budget
     for key, section in SUMMARY_FOLDS:
-        if _printed_bytes(view) <= budget:
+        if _printed_bytes(view) <= target:
             break
         _fold(rows, key)
         view.setdefault("folded", {})[key] = (

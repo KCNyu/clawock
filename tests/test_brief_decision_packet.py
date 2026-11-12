@@ -1187,6 +1187,20 @@ def test_a_book_past_the_summary_budget_folds_instead_of_refusing(monkeypatch):
     assert "summary" in packet_mod.read_budget_report(packet)["over_budget"]
 
 
+def test_a_crossed_summary_is_folded_to_ten_percent_headroom(monkeypatch):
+    """#3418: stopping one byte under the cap re-refused the read next day."""
+    context = _book_with(12)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    full = packet_mod.summary_budget_report(packet)["bytes"]
+    budget = int(full * 0.95)
+    monkeypatch.setattr(packet_mod, "MAX_SUMMARY_BYTES", budget)
+    summary = packet_mod.summary_view(packet)
+
+    assert packet_mod._printed_bytes(summary) <= int(budget * 0.9)
+    assert "execution" in summary["folded"]
+    assert packet_mod.read_budget_report(packet)["over_budget"] == []
+
+
 def test_the_summary_warning_is_wired_to_something_that_runs(capsys):
     """The warning existed and nothing ever asked for it.
 
@@ -1373,7 +1387,7 @@ def test_each_candidate_state_is_reachable_on_its_own(row, state):
     assert candidates[0]["target_tranche_level"] == (1.0 if tier == "validated" else 0.0)
 
 
-def test_one_read_over_budget_does_not_take_the_packet_down(capsys):
+def test_one_read_over_budget_does_not_take_the_packet_down(capsys, monkeypatch):
     """#2816: on 2026-10-09 a nine-holding packet was 71 bytes over a 96KiB
     ceiling on the whole stored artifact, `compile_packet` raised, and the day
     had no brief — while every read the model would have made was inside its
@@ -1382,6 +1396,10 @@ def test_one_read_over_budget_does_not_take_the_packet_down(capsys):
     """
     context = _book_with(30)
     packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    # The 2026-11-12 folds make a 30-holding summary fit, which is the point of
+    # #3418. Force the over-budget branch to keep testing what this case is
+    # about: an over-budget read refuses that read, not the packet.
+    monkeypatch.setattr(packet_mod, "MAX_SUMMARY_BYTES", 1000)
     report = packet_mod.read_budget_report(packet)
 
     assert report["packet_bytes"] > 96 * 1024, "the fixture must pass the old ceiling"
