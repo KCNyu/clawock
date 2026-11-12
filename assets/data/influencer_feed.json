@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-11T19:53:25.957944+00:00",
+  "generated_at": "2026-11-12T02:28:06.522753+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,10 +24,10 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 19,
+    "total": 17,
     "held_hits": 1,
     "new_ideas": 14,
-    "sector_hits": 2
+    "sector_hits": 1
   },
   "items": [
     {
@@ -42,8 +42,7 @@
         "RKLB"
       ],
       "held": [
-        "RKLB",
-        "RKLX"
+        "RKLB"
       ],
       "new_ideas": [],
       "sectors": [
@@ -51,36 +50,34 @@
         "卫星互联网"
       ],
       "sector_holdings": [
-        "SPCH",
         "SPCX"
       ],
       "stance": "buy",
-      "relevance": 89,
-      "summary_cn": "ARK Invest于2026年11月10日合计买入Rocket Lab约5.46万股，覆盖ARKK、ARKQ与ARKX，且直接命中kcn的RKLX杠杆持仓。"
+      "relevance": 55,
+      "summary_cn": "ARK Invest在2026年11月10日买入Rocket Lab约5.46万股，相关交易占单只ETF约0.07%，属于常规规模的机构加仓。"
     },
     {
-      "author": "Burry",
-      "text": "‘Big Short’ Michael Burry calls Nvidia a ‘heck of a trade’ but questions its long-term future",
-      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNZHpzQlhQMkZ3Qk1Nd1NFWUJvVkFUOFBZRGJyZ2ttU2JEbU5Oc0VraU1UVXI4TE41MFRveGNVVDF1bWI2dF94ZEpZTXhTUlgwdTg1Q0hPcFBCN2dvN0dYVDh1MmtOaWhuWUFUakRhNWlkMWlEbkczQWtGa19ka2Vjc3NyOVRZX0Mxdm9EOXJBUDZnaVppV3RIbjNqZDcwQjRLLUlMMFV2MDlJdw?oc=5",
-      "published": "2026-11-11T17:43:15+00:00",
+      "author": "Musk",
+      "text": "US SEC seeks to close Musk, Tesla settlement fund",
+      "url": "",
+      "published": "Tue, 10 Nov 2026 22:06:29 GMT",
       "origin": "gnews-rss",
-      "source": "The American Bazaar",
+      "source": "Reuters",
       "tickers": [
-        "NVDA"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "TSLA"
       ],
       "sectors": [
-        "AI",
-        "半导体",
-        "GPU"
+        "电动车",
+        "监管"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 83,
-      "summary_cn": "据报道，Michael Burry称英伟达是一笔“很棒的交易”，但质疑其长期前景，呈现短线认可与长期谨慎并存的观点。"
+      "relevance": 75,
+      "summary_cn": "据报道，美国SEC寻求关闭特斯拉相关和解基金，增加特斯拉面临的监管与合规压力。"
     },
     {
       "author": "Musk",
@@ -101,70 +98,19 @@
         "航天"
       ],
       "sector_holdings": [
-        "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "据报道，美国中期选举后特斯拉与SpaceX合计市值蒸发逾4200亿美元，反映市场对马斯克相关资产的短线情绪显著转弱。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
-      "url": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxNMkc1N0N2TXRxeUpzOW45NDNLX0VfY0xyUlF6VF9hWEp2T1BxdmFnbGlvQmJrdlluZm9wOEM3Yk9CR2lyM2FwdmJfMlA5NUVSYWZLT2RwSl8xQmNBWGtQNlh5UGl0MzZ6OGEwNjBlU0pfZmtWZHM2bWhOU0JZUG9YVkt0cEVodTlNeUpkT1Z2N3dIMWVCWmp1V3Vjc0dkMlNPRlJESndXYnBpX2Y4MTlXUVdOM0M4ZjR1Zlp5aktXVmNKcVdGNkNBemdQNjVOaTBjUHdxLWlyRjdyTHQ5TTdRN2diMWlKTGt0?oc=5",
-      "published": "2026-11-10T15:20:09+00:00",
-      "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [
-        "WBD",
-        "PSKY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSKY",
-        "WBD"
-      ],
-      "sectors": [
-        "传媒娱乐",
-        "并购",
-        "国会交易披露"
-      ],
-      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 79,
-      "summary_cn": "最新国会披露显示，Pelosi持有的Warner Bros. Discovery股份因Paramount交易套现，价值约相当于其年薪的43%，交易重点是并购结算而非看空。"
-    },
-    {
-      "author": "Musk",
-      "text": "US SEC seeks to close Musk, Tesla settlement fund",
-      "url": "",
-      "published": "Tue, 10 Nov 2026 22:06:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "监管",
-        "证券合规"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，美国证监会寻求关闭马斯克与特斯拉相关的和解资金安排，构成对特斯拉合规及治理的负面监管信号。"
+      "relevance": 75,
+      "summary_cn": "据报道，美国中期选举后特斯拉与SpaceX合计市值蒸发逾4200亿美元，显示Musk相关资产面临明显政治与估值压力。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry Says Jensen’s Affair Won’t Sink Nvidia, But Regulators Might",
-      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOT1VXaXdYVlY2UnQ1UHFRVjRWRzBCVy04eFJ5ZnFjdHZwM21QbWxGTkFvNEEyclFzWUwxVWJSUUdwdGMwdDhYbTFVWjdxMm9HYlRXWThsY0ZyODZuQkZNckNiQUsyc3BZc3dwVXJYOE9mWUNSaDNIa2VCMW5iRzlsRW80SWlKM1BFd25kWFl2VzBZaTNIakx5NVVQTV8zdWVod1ZPcldrdks4Uzg5YTRhTHNKcVYyLWdiOW0yQ3pmU2xVQQ?oc=5",
-      "published": "2026-11-11T17:45:45+00:00",
+      "text": "Michael Burry says he's still bearish after Nvidia's 10% plunge — but the market may see it as a 'heck of a trade' soon",
+      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOeWlBZDhLZEZlal9NM3hpbWwtZUxsSi00NGMtTHo0dktVZWIzOHZWUUhQeDNyS2xTMkl1UHdTcndCS0dQc1BSNW1IUy1JR1BzeEt2WUFDaGphOUQweWtUVHdJaFRhVlNtd1pReUxDTHZsaWZCbVVIYUJic1RMaERVU2FaVW10MlNEamlseVh5bHA3dXNwMm1Zc1o3ajVoQnc3?oc=5",
+      "published": "2026-11-11T13:29:00+00:00",
       "origin": "gnews-rss",
-      "source": "Benzinga",
+      "source": "Business Insider",
       "tickers": [
         "NVDA"
       ],
@@ -173,23 +119,45 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
         "半导体",
-        "公司治理",
-        "监管"
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 75,
-      "summary_cn": "据报道，Michael Burry认为黄仁勋的私人丑闻不会拖垮英伟达，但相关监管风险仍可能对英伟达构成压力。"
+      "summary_cn": "据报道，Michael Burry在英伟达下跌10%后仍维持看空判断，认为市场可能很快重新定价其交易逻辑。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry buys back into Lululemon, adds to other positions",
+      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPMzNPRlpwWmRFZW1RRTBfU0pEbnFZX2tzaXdEdXh2dGlVdnFmdlNxdUNZWXpJbVg4cFhZU1AzdUUyajVIRDR1Y2Q0a004UUhWSkdUd1Q4cmVrdUctWkl3ck1aTUw1Mm8xNS1JWThEdG90RzZHVXJNNHFWNFNKaWRJRG1KY1NxVjQzTHl3RlM1UFpTNXlmdVBDcS14NjlJM1NPclVRUEFpNFZ4c3RaMW9tUWUtWTBHYUlfOEY4?oc=5",
+      "published": "2026-11-11T19:06:33+00:00",
+      "origin": "gnews-rss",
+      "source": "Investing.com",
+      "tickers": [
+        "LULU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LULU"
+      ],
+      "sectors": [
+        "消费",
+        "零售",
+        "运动服饰"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "据报道，Michael Burry重新买入Lululemon并增加其他持仓，显示其进行逆向投资布局。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk says Tesla will extend Cybertruck production through end of summer",
+      "text": "Tesla extending Cybertruck production through summer 2027 to clear backlog, Elon Musk says",
       "url": "",
-      "published": "Wed, 11 Nov 2026 18:57:17 GMT",
+      "published": "Wed, 11 Nov 2026 19:55:13 GMT",
       "origin": "gnews-rss",
-      "source": "LinkedIn",
+      "source": "CBS News",
       "tickers": [
         "TSLA"
       ],
@@ -199,13 +167,12 @@
       ],
       "sectors": [
         "电动车",
-        "皮卡",
-        "制造业"
+        "汽车"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "据报道，马斯克表示特斯拉Cybertruck生产将延长至夏末结束，有助于缓解停产疑虑并支持近期交付。"
+      "relevance": 70,
+      "summary_cn": "据报道，Elon Musk表示特斯拉Cybertruck将延长生产至2027年夏季以消化积压订单，反映产品需求与产能扩张信号。"
     },
     {
       "author": "Cathie Wood",
@@ -223,36 +190,62 @@
         "ACHR"
       ],
       "sectors": [
-        "无人机",
-        "电动航空"
+        "航空",
+        "电动车",
+        "无人驾驶"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年11月10日买入Archer Aviation约134万股，单只ETF最大占比0.12%，显示其继续加仓电动航空标的。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest在2026年11月10日买入Archer Aviation约134万股，相关交易占单只ETF约0.12%。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry buys back into Lululemon, adds to other positions",
-      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPMzNPRlpwWmRFZW1RRTBfU0pEbnFZX2tzaXdEdXh2dGlVdnFmdlNxdUNZWXpJbVg4cFhZU1AzdUUyajVIRDR1Y2Q0a004UUhWSkdUd1Q4cmVrdUctWkl3ck1aTUw1Mm8xNS1JWThEdG90RzZHVXJNNHFWNFNKaWRJRG1KY1NxVjQzTHl3RlM1UFpTNXlmdVBDcS14NjlJM1NPclVRUEFpNFZ4c3RaMW9tUWUtWTBHYUlfOEY4?oc=5",
-      "published": "2026-11-11T19:06:33+00:00",
+      "author": "段永平",
+      "text": "《大行》高盛料輝達(NVDA.US)第三季業績及指引強勁",
+      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE10anRSQUkxbDdNVGNCMldJNC0zRmVyQzJaQmFoTHg1eUFKcFFPYk9BTmtkc3hMYUFkTndhRm1TVmotdDd2N3ZzTg?oc=5",
+      "published": "2026-11-10T07:03:37+00:00",
       "origin": "gnews-rss",
-      "source": "Investing.com",
+      "source": "鉅亨號",
       "tickers": [
-        "LULU"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "LULU"
+        "NVDA"
       ],
       "sectors": [
-        "运动服饰",
-        "消费"
+        "半导体",
+        "AI"
       ],
       "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 71,
-      "summary_cn": "据报道，Michael Burry重新买入Lululemon并增加其他仓位，显示其正在回补此前减持的消费股敞口。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，高盛预计英伟达第三季度业绩及指引强劲，反映市场对其AI芯片业务增长仍持乐观预期。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNZm5KOHFwOEppTnA1ZU5HYW02d1ZJalYwUzFHbnFnbkptY0E5ZnpkemNnbFRNeEloV1ZRcC1Fc0lLNkVaZWc4YUtuRWY2UHN2TnRmODFIaV9vR3JGRndzUDBUSWdEM1dPS0tJM2syNEJtQ0dpTXhJZXE0OV90ekdWS1VqbHFoT0VfOUVjdGJEM3Y4TDNGU2MtYUxLRQ?oc=5",
+      "published": "2026-11-11T20:30:06+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "WBD",
+        "PARA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PARA",
+        "WBD"
+      ],
+      "sectors": [
+        "媒体",
+        "娱乐并购"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "最新国会披露相关报道显示，Nancy Pelosi持有的Warner Bros.股份已在Paramount交易中套现，收益约为其年薪的43%。"
     },
     {
       "author": "Cathie Wood",
@@ -271,12 +264,35 @@
       ],
       "sectors": [
         "航空航天",
-        "工业制造"
+        "国防"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest于2026年11月10日卖出Honeywell Aerospace 6,045股，单只ETF最大占比0.15%，属于具有一定规模的减仓。"
+      "relevance": 68,
+      "summary_cn": "ARK Invest在2026年11月10日调仓中卖出Honeywell Aerospace 6,045股，相关交易占单只ETF约0.15%。"
+    },
+    {
+      "author": "Musk",
+      "text": "There’s a Reason Elon Musk’s Cybertruck Never Took Off. Actually, There Are a Few.",
+      "url": "",
+      "published": "Mon, 09 Nov 2026 20:39:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Slate Magazine",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "汽车"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 65,
+      "summary_cn": "据报道，媒体指出特斯拉Cybertruck销量表现不佳，质疑其产品吸引力与商业化能力。"
     },
     {
       "author": "Cathie Wood",
@@ -295,23 +311,23 @@
       ],
       "sectors": [
         "金融科技",
-        "加密货币",
-        "在线券商"
+        "在线券商",
+        "加密货币"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest于2026年11月10日买入eToro 33,241股，单只ETF占比0.10%，达到其加仓信号的规模门槛。"
+      "relevance": 65,
+      "summary_cn": "ARK Invest在2026年11月10日买入eToro 33,241股，相关交易占单只ETF约0.10%。"
     },
     {
-      "author": "段永平",
-      "text": "《大行》高盛料輝達(NVDA.US)第三季業績及指引強勁",
-      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE10anRSQUkxbDdNVGNCMldJNC0zRmVyQzJaQmFoTHg1eUFKcFFPYk9BTmtkc3hMYUFkTndhRm1TVmotdDd2N3ZzTg?oc=5",
-      "published": "2026-11-10T07:03:37+00:00",
+      "author": "Burry",
+      "text": "Michael Burry reveals 2 big stock bets after Nvidia selloff",
+      "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxOWkI2Q3JhT0hCTlhSUkUydzFnOHRfc3BoUUNRTXlsMmdrandNNV9YNl9XcDJjT3Q0c0JsMHBrNmxXaHJaMjFtZFk5amJIMEpYYmtNMWV5OWZ6akRnbU55V3dNMlhLbkI0U2VXSnhRaUM4V2VTZnVpNnZCclRSNWtpUWVENUpkbEVpLU85VjNMOHB2ay1zNmFv?oc=5",
+      "published": "2026-11-11T17:37:37+00:00",
       "origin": "gnews-rss",
-      "source": "鉅亨號",
+      "source": "Yahoo Finance",
       "tickers": [
         "NVDA"
       ],
@@ -320,15 +336,13 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
         "半导体",
-        "GPU",
-        "数据中心"
+        "AI"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 69,
-      "summary_cn": "据报道，高盛预计英伟达第三季业绩及指引强劲，传递出对AI算力需求与半导体龙头盈利前景的积极判断。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，Michael Burry在英伟达大跌后披露两项大额股票押注，但具体新增头寸方向需结合后续披露确认。"
     },
     {
       "author": "Cathie Wood",
@@ -347,35 +361,12 @@
       ],
       "sectors": [
         "电动车",
-        "新能源汽车"
+        "汽车"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 53,
-      "summary_cn": "ARK Invest于2026年11月10日卖出比亚迪ADR 132,535股，ARKQ持仓占比0.07%，属于规模较小的常规减仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Carlos Giménez invites Elon Musk to move Tesla to Florida after Texas turns blue",
-      "url": "",
-      "published": "Wed, 11 Nov 2026 18:21:26 GMT",
-      "origin": "gnews-rss",
-      "source": "Florida Politics",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "美国政治与企业布局"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道，佛州议员邀请马斯克将特斯拉迁至佛罗里达，可能影响特斯拉未来总部布局与州际政策环境。"
+      "relevance": 50,
+      "summary_cn": "ARK Invest在2026年11月10日卖出比亚迪相关持仓132,535股，相关交易占单只ETF约0.07%，属于常规规模减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -394,13 +385,12 @@
       ],
       "sectors": [
         "AI",
-        "数据分析",
-        "政府软件"
+        "软件"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 51,
-      "summary_cn": "ARK Invest于2026年11月10日卖出Palantir 2,107股，ARKF持仓占比0.05%，属于规模较小的常规减仓。"
+      "relevance": 50,
+      "summary_cn": "ARK Invest在2026年11月10日卖出Palantir 2,107股，相关交易占单只ETF约0.05%，属于常规规模减仓。"
     },
     {
       "author": "Musk",
@@ -413,77 +403,33 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "商业卫星",
-        "欧洲航天"
+        "航天"
       ],
       "sector_holdings": [
-        "SPCH",
         "SPCX"
       ],
       "stance": "attack",
-      "relevance": 63,
-      "summary_cn": "据报道，德国Isar Aerospace正寻求在商业航天领域超越马斯克的SpaceX，显示欧洲航天竞争者带来的长期压力。"
+      "relevance": 65,
+      "summary_cn": "据报道，德国Isar Aerospace计划在航天领域超越SpaceX，反映欧洲航天企业竞争加剧。"
     },
     {
-      "author": "段永平",
-      "text": "交易所透明度，不應被簡化為一個“可信”標籤",
-      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTFBLdlRqQ3g2b0d6VmdqTTFJbmlVd1VObWRwTmlGVjdGazdJSnVUbEtPWk1tWVlfcHhsU1JpYXp1UnVxdjZtdEVyZA?oc=5",
-      "published": "2026-11-10T09:26:48+00:00",
+      "author": "Pelosi",
+      "text": "Representative Nancy Pelosi introduces H.R. 10968: No Veteran Left Behind: Housing Retention Act of 2026",
+      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNZVhmX0h4MmYzU21rNTlaVFI3bDhRWkhBZjcyVEg3Vjd5WmstRkYzSFZmT2pQODRKMzc1enIwWUw0VXRBVG05a3JuelE4T3pWaXBaWjhYOUtJN3Rwa05RRTNQclkzVS1wQTdyMk12S2NKVDF4TWt6YTdseGdxSGFGTTExQ3hBMW52dWprcnFtdFJJdkM1SUNhMDlGYWhsbEx5OEtpZFBlbUliN21ESHJzN0lwbEVYemRhTllyaG1tU3dGU3BPUUNKT2lHaFluUExVc3VBdkw0REE?oc=5",
+      "published": "2026-11-11T15:50:00+00:00",
       "origin": "gnews-rss",
-      "source": "鉅亨號",
+      "source": "Quiver Quantitative",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "加密货币",
-        "交易所",
-        "市场基础设施"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 54,
-      "summary_cn": "相关评论主张交易所透明度不应被简化为单一“可信”标签，提示加密交易平台的信任与合规标准仍可能影响行业发展。"
-    },
-    {
-      "author": "Trump",
-      "text": "I had an excellent conversation with Sheikh Mohammed bin Abdulrahman bin Jassim Al Thani, the Prime Minister of Qatar, wherein much was discussed with respect to the Islamic Republic of Iran. Most importantly, Qatar, Saudi Arabia, UAE, Bahrain, Kuwait, and others, would prefer the status quo, in other words, a continuation of the Greatest Naval Blockade in History, and the new Operation Iron Gate — Therefore, Land and Sea. All have agreed that Iran cannot have a Nuclear Weapon — That is non-negotiable! Should there be any change with respect to developments in the Middle East, the United State",
-      "url": "https://www.trumpstruth.org/statuses/43537",
-      "published": "2026-11-09T21:29:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "原油",
-        "中东地缘政治",
-        "军工"
+        "住房",
+        "房地产"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "特朗普称卡塔尔及海湾国家支持延续对伊朗的海上封锁并推动“铁门行动”，显示中东冲突与能源供应风险仍高。"
-    },
-    {
-      "author": "Trump",
-      "text": "I am proud to announce that David MacNeil, the GREAT American entrepreneur and founder of WeatherTech, will be the Special Envoy for Manufacturing! David has built an incredible American company that makes outstanding products, RIGHT HERE IN THE U.S.A. He knows how to create jobs, bring Manufacturing back home, and put America First. Together, we will bring back American jobs, strengthen our factories, and make sure that future products are MADE IN AMERICA. Congratulations David — Your unparalleled expertise is vitally needed! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43536",
-      "published": "2026-11-09T20:58:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "制造业",
-        "美国产业政策"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "特朗普任命WeatherTech创始人David MacNeil为制造业特使，释放强化美国本土制造与就业的政策信号。"
+      "relevance": 50,
+      "summary_cn": "据报道，Nancy Pelosi提出《2026年无退伍军人落伍住房保留法案》，涉及退伍军人住房支持政策。"
     }
   ],
   "held_hits": [
@@ -499,8 +445,7 @@
         "RKLB"
       ],
       "held": [
-        "RKLB",
-        "RKLX"
+        "RKLB"
       ],
       "new_ideas": [],
       "sectors": [
@@ -508,38 +453,36 @@
         "卫星互联网"
       ],
       "sector_holdings": [
-        "SPCH",
         "SPCX"
       ],
       "stance": "buy",
-      "relevance": 89,
-      "summary_cn": "ARK Invest于2026年11月10日合计买入Rocket Lab约5.46万股，覆盖ARKK、ARKQ与ARKX，且直接命中kcn的RKLX杠杆持仓。"
+      "relevance": 55,
+      "summary_cn": "ARK Invest在2026年11月10日买入Rocket Lab约5.46万股，相关交易占单只ETF约0.07%，属于常规规模的机构加仓。"
     }
   ],
   "new_ideas": [
     {
-      "author": "Burry",
-      "text": "‘Big Short’ Michael Burry calls Nvidia a ‘heck of a trade’ but questions its long-term future",
-      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNZHpzQlhQMkZ3Qk1Nd1NFWUJvVkFUOFBZRGJyZ2ttU2JEbU5Oc0VraU1UVXI4TE41MFRveGNVVDF1bWI2dF94ZEpZTXhTUlgwdTg1Q0hPcFBCN2dvN0dYVDh1MmtOaWhuWUFUakRhNWlkMWlEbkczQWtGa19ka2Vjc3NyOVRZX0Mxdm9EOXJBUDZnaVppV3RIbjNqZDcwQjRLLUlMMFV2MDlJdw?oc=5",
-      "published": "2026-11-11T17:43:15+00:00",
+      "author": "Musk",
+      "text": "US SEC seeks to close Musk, Tesla settlement fund",
+      "url": "",
+      "published": "Tue, 10 Nov 2026 22:06:29 GMT",
       "origin": "gnews-rss",
-      "source": "The American Bazaar",
+      "source": "Reuters",
       "tickers": [
-        "NVDA"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "TSLA"
       ],
       "sectors": [
-        "AI",
-        "半导体",
-        "GPU"
+        "电动车",
+        "监管"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 83,
-      "summary_cn": "据报道，Michael Burry称英伟达是一笔“很棒的交易”，但质疑其长期前景，呈现短线认可与长期谨慎并存的观点。"
+      "relevance": 75,
+      "summary_cn": "据报道，美国SEC寻求关闭特斯拉相关和解基金，增加特斯拉面临的监管与合规压力。"
     },
     {
       "author": "Musk",
@@ -560,70 +503,19 @@
         "航天"
       ],
       "sector_holdings": [
-        "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "据报道，美国中期选举后特斯拉与SpaceX合计市值蒸发逾4200亿美元，反映市场对马斯克相关资产的短线情绪显著转弱。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
-      "url": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxNMkc1N0N2TXRxeUpzOW45NDNLX0VfY0xyUlF6VF9hWEp2T1BxdmFnbGlvQmJrdlluZm9wOEM3Yk9CR2lyM2FwdmJfMlA5NUVSYWZLT2RwSl8xQmNBWGtQNlh5UGl0MzZ6OGEwNjBlU0pfZmtWZHM2bWhOU0JZUG9YVkt0cEVodTlNeUpkT1Z2N3dIMWVCWmp1V3Vjc0dkMlNPRlJESndXYnBpX2Y4MTlXUVdOM0M4ZjR1Zlp5aktXVmNKcVdGNkNBemdQNjVOaTBjUHdxLWlyRjdyTHQ5TTdRN2diMWlKTGt0?oc=5",
-      "published": "2026-11-10T15:20:09+00:00",
-      "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [
-        "WBD",
-        "PSKY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "PSKY",
-        "WBD"
-      ],
-      "sectors": [
-        "传媒娱乐",
-        "并购",
-        "国会交易披露"
-      ],
-      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 79,
-      "summary_cn": "最新国会披露显示，Pelosi持有的Warner Bros. Discovery股份因Paramount交易套现，价值约相当于其年薪的43%，交易重点是并购结算而非看空。"
-    },
-    {
-      "author": "Musk",
-      "text": "US SEC seeks to close Musk, Tesla settlement fund",
-      "url": "",
-      "published": "Tue, 10 Nov 2026 22:06:29 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "监管",
-        "证券合规"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，美国证监会寻求关闭马斯克与特斯拉相关的和解资金安排，构成对特斯拉合规及治理的负面监管信号。"
+      "relevance": 75,
+      "summary_cn": "据报道，美国中期选举后特斯拉与SpaceX合计市值蒸发逾4200亿美元，显示Musk相关资产面临明显政治与估值压力。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry Says Jensen’s Affair Won’t Sink Nvidia, But Regulators Might",
-      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOT1VXaXdYVlY2UnQ1UHFRVjRWRzBCVy04eFJ5ZnFjdHZwM21QbWxGTkFvNEEyclFzWUwxVWJSUUdwdGMwdDhYbTFVWjdxMm9HYlRXWThsY0ZyODZuQkZNckNiQUsyc3BZc3dwVXJYOE9mWUNSaDNIa2VCMW5iRzlsRW80SWlKM1BFd25kWFl2VzBZaTNIakx5NVVQTV8zdWVod1ZPcldrdks4Uzg5YTRhTHNKcVYyLWdiOW0yQ3pmU2xVQQ?oc=5",
-      "published": "2026-11-11T17:45:45+00:00",
+      "text": "Michael Burry says he's still bearish after Nvidia's 10% plunge — but the market may see it as a 'heck of a trade' soon",
+      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOeWlBZDhLZEZlal9NM3hpbWwtZUxsSi00NGMtTHo0dktVZWIzOHZWUUhQeDNyS2xTMkl1UHdTcndCS0dQc1BSNW1IUy1JR1BzeEt2WUFDaGphOUQweWtUVHdJaFRhVlNtd1pReUxDTHZsaWZCbVVIYUJic1RMaERVU2FaVW10MlNEamlseVh5bHA3dXNwMm1Zc1o3ajVoQnc3?oc=5",
+      "published": "2026-11-11T13:29:00+00:00",
       "origin": "gnews-rss",
-      "source": "Benzinga",
+      "source": "Business Insider",
       "tickers": [
         "NVDA"
       ],
@@ -632,23 +524,45 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
         "半导体",
-        "公司治理",
-        "监管"
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 75,
-      "summary_cn": "据报道，Michael Burry认为黄仁勋的私人丑闻不会拖垮英伟达，但相关监管风险仍可能对英伟达构成压力。"
+      "summary_cn": "据报道，Michael Burry在英伟达下跌10%后仍维持看空判断，认为市场可能很快重新定价其交易逻辑。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry buys back into Lululemon, adds to other positions",
+      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPMzNPRlpwWmRFZW1RRTBfU0pEbnFZX2tzaXdEdXh2dGlVdnFmdlNxdUNZWXpJbVg4cFhZU1AzdUUyajVIRDR1Y2Q0a004UUhWSkdUd1Q4cmVrdUctWkl3ck1aTUw1Mm8xNS1JWThEdG90RzZHVXJNNHFWNFNKaWRJRG1KY1NxVjQzTHl3RlM1UFpTNXlmdVBDcS14NjlJM1NPclVRUEFpNFZ4c3RaMW9tUWUtWTBHYUlfOEY4?oc=5",
+      "published": "2026-11-11T19:06:33+00:00",
+      "origin": "gnews-rss",
+      "source": "Investing.com",
+      "tickers": [
+        "LULU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LULU"
+      ],
+      "sectors": [
+        "消费",
+        "零售",
+        "运动服饰"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 72,
+      "summary_cn": "据报道，Michael Burry重新买入Lululemon并增加其他持仓，显示其进行逆向投资布局。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk says Tesla will extend Cybertruck production through end of summer",
+      "text": "Tesla extending Cybertruck production through summer 2027 to clear backlog, Elon Musk says",
       "url": "",
-      "published": "Wed, 11 Nov 2026 18:57:17 GMT",
+      "published": "Wed, 11 Nov 2026 19:55:13 GMT",
       "origin": "gnews-rss",
-      "source": "LinkedIn",
+      "source": "CBS News",
       "tickers": [
         "TSLA"
       ],
@@ -658,13 +572,12 @@
       ],
       "sectors": [
         "电动车",
-        "皮卡",
-        "制造业"
+        "汽车"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "据报道，马斯克表示特斯拉Cybertruck生产将延长至夏末结束，有助于缓解停产疑虑并支持近期交付。"
+      "relevance": 70,
+      "summary_cn": "据报道，Elon Musk表示特斯拉Cybertruck将延长生产至2027年夏季以消化积压订单，反映产品需求与产能扩张信号。"
     },
     {
       "author": "Cathie Wood",
@@ -682,36 +595,62 @@
         "ACHR"
       ],
       "sectors": [
-        "无人机",
-        "电动航空"
+        "航空",
+        "电动车",
+        "无人驾驶"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest于2026年11月10日买入Archer Aviation约134万股，单只ETF最大占比0.12%，显示其继续加仓电动航空标的。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest在2026年11月10日买入Archer Aviation约134万股，相关交易占单只ETF约0.12%。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry buys back into Lululemon, adds to other positions",
-      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPMzNPRlpwWmRFZW1RRTBfU0pEbnFZX2tzaXdEdXh2dGlVdnFmdlNxdUNZWXpJbVg4cFhZU1AzdUUyajVIRDR1Y2Q0a004UUhWSkdUd1Q4cmVrdUctWkl3ck1aTUw1Mm8xNS1JWThEdG90RzZHVXJNNHFWNFNKaWRJRG1KY1NxVjQzTHl3RlM1UFpTNXlmdVBDcS14NjlJM1NPclVRUEFpNFZ4c3RaMW9tUWUtWTBHYUlfOEY4?oc=5",
-      "published": "2026-11-11T19:06:33+00:00",
+      "author": "段永平",
+      "text": "《大行》高盛料輝達(NVDA.US)第三季業績及指引強勁",
+      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE10anRSQUkxbDdNVGNCMldJNC0zRmVyQzJaQmFoTHg1eUFKcFFPYk9BTmtkc3hMYUFkTndhRm1TVmotdDd2N3ZzTg?oc=5",
+      "published": "2026-11-10T07:03:37+00:00",
       "origin": "gnews-rss",
-      "source": "Investing.com",
+      "source": "鉅亨號",
       "tickers": [
-        "LULU"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "LULU"
+        "NVDA"
       ],
       "sectors": [
-        "运动服饰",
-        "消费"
+        "半导体",
+        "AI"
       ],
       "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 71,
-      "summary_cn": "据报道，Michael Burry重新买入Lululemon并增加其他仓位，显示其正在回补此前减持的消费股敞口。"
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，高盛预计英伟达第三季度业绩及指引强劲，反映市场对其AI芯片业务增长仍持乐观预期。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi’s Warner Bros. Stake Was Cashed Out in Paramount Deal, Worth About 43% of Her Salary",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNZm5KOHFwOEppTnA1ZU5HYW02d1ZJalYwUzFHbnFnbkptY0E5ZnpkemNnbFRNeEloV1ZRcC1Fc0lLNkVaZWc4YUtuRWY2UHN2TnRmODFIaV9vR3JGRndzUDBUSWdEM1dPS0tJM2syNEJtQ0dpTXhJZXE0OV90ekdWS1VqbHFoT0VfOUVjdGJEM3Y4TDNGU2MtYUxLRQ?oc=5",
+      "published": "2026-11-11T20:30:06+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "WBD",
+        "PARA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PARA",
+        "WBD"
+      ],
+      "sectors": [
+        "媒体",
+        "娱乐并购"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "最新国会披露相关报道显示，Nancy Pelosi持有的Warner Bros.股份已在Paramount交易中套现，收益约为其年薪的43%。"
     },
     {
       "author": "Cathie Wood",
@@ -730,39 +669,35 @@
       ],
       "sectors": [
         "航空航天",
-        "工业制造"
+        "国防"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest于2026年11月10日卖出Honeywell Aerospace 6,045股，单只ETF最大占比0.15%，属于具有一定规模的减仓。"
+      "relevance": 68,
+      "summary_cn": "ARK Invest在2026年11月10日调仓中卖出Honeywell Aerospace 6,045股，相关交易占单只ETF约0.15%。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-10 调仓：eToro Group Ltd.(ETOR) 买入 ARKF 33,241 股（最大单只 ETF 占比 0.10%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-11-10T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0994,
+      "author": "Musk",
+      "text": "There’s a Reason Elon Musk’s Cybertruck Never Took Off. Actually, There Are a Few.",
+      "url": "",
+      "published": "Mon, 09 Nov 2026 20:39:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Slate Magazine",
       "tickers": [
-        "ETOR"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "ETOR"
+        "TSLA"
       ],
       "sectors": [
-        "金融科技",
-        "加密货币",
-        "在线券商"
+        "电动车",
+        "汽车"
       ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "ARK Invest于2026年11月10日买入eToro 33,241股，单只ETF占比0.10%，达到其加仓信号的规模门槛。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 65,
+      "summary_cn": "据报道，媒体指出特斯拉Cybertruck销量表现不佳，质疑其产品吸引力与商业化能力。"
     }
   ],
   "sector_hits": [
@@ -777,39 +712,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "商业卫星",
-        "欧洲航天"
+        "航天"
       ],
       "sector_holdings": [
-        "SPCH",
         "SPCX"
       ],
       "stance": "attack",
-      "relevance": 63,
-      "summary_cn": "据报道，德国Isar Aerospace正寻求在商业航天领域超越马斯克的SpaceX，显示欧洲航天竞争者带来的长期压力。"
-    },
-    {
-      "author": "段永平",
-      "text": "交易所透明度，不應被簡化為一個“可信”標籤",
-      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTFBLdlRqQ3g2b0d6VmdqTTFJbmlVd1VObWRwTmlGVjdGazdJSnVUbEtPWk1tWVlfcHhsU1JpYXp1UnVxdjZtdEVyZA?oc=5",
-      "published": "2026-11-10T09:26:48+00:00",
-      "origin": "gnews-rss",
-      "source": "鉅亨號",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "加密货币",
-        "交易所",
-        "市场基础设施"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "neutral",
-      "relevance": 54,
-      "summary_cn": "相关评论主张交易所透明度不应被简化为单一“可信”标签，提示加密交易平台的信任与合规标准仍可能影响行业发展。"
+      "relevance": 65,
+      "summary_cn": "据报道，德国Isar Aerospace计划在航天领域超越SpaceX，反映欧洲航天企业竞争加剧。"
     }
   ]
 }
