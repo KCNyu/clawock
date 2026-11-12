@@ -1690,3 +1690,16 @@ def test_a_rows_facts_carry_the_session_change_beside_the_position_day():
     facts = packet["tickers"][holding["ticker"]]["facts"]
     assert facts["today_change_pct"] == -4.24
     assert facts["session_change_pct"] == 2.73
+
+
+def test_ticker_facts_keeps_an_unmeasured_day_change_null():
+    """#3396's rule now has a one-row entry point (#3420)."""
+    holding = {
+        'ticker': 'TST', 'shares': 10, 'cost_basis': 1.5,
+        'current_price': 2.0, 'pnl_percent': 33.3,
+        'quote_incomplete_prev_close': True, 'today_change_pct': 0.0,
+        'day_high': 2.1, 'day_low': 1.9,
+    }
+    facts = packet_mod._ticker_facts(holding, {}, 'TST', 10)
+    assert facts['today_change_pct'] is None
+    assert facts['shares'] == 10 and facts['current_price'] == 2.0
