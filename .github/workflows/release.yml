@@ -247,7 +247,7 @@ jobs:
           node -e '
             const [major, minor, patch] = process.argv[1].split(".").map((part) => parseInt(part, 10));
             if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) {
-              console.error(`npm ${process.argv[1]} cannot use trusted publishing; need >= 11.5.1`);
+              console.error("npm " + process.argv[1] + " cannot use trusted publishing; need >= 11.5.1");
               process.exit(1);
             }
           ' "$npm_version"
