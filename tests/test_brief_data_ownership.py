@@ -48,10 +48,46 @@ GHA_OWNED = {
 
 
 def _postflight_add_list():
-    """The static paths brief_postflight stages (the day paths are f-strings)."""
+    """Every path brief_postflight stages, including the day-path literals.
+
+    #3388 split the add list into `day_paths` plus a static tail, and this
+    parser kept reading only the tail — so the test that exists to notice an
+    uncommitted morning ledger believed the brief staged NO `memory/` file at
+    all (#3409).
+    """
     m = re.search(r"add_args = \['add', \*day_paths, (.*?)\]\n", POSTFLIGHT, re.S)
     assert m, "brief_postflight no longer has an add_args list — did it move?"
-    return set(re.findall(r"'([^']+)'", m.group(1)))
+    day = re.search(r"day_paths = _existing\((.*?)\)\n", POSTFLIGHT, re.S)
+    assert day, "brief_postflight no longer has a day_paths list — did it move?"
+    return (set(re.findall(r"'([^']+)'", m.group(1)))
+            | set(re.findall(r"'([^']+)'", day.group(1))))
+
+
+#: The append-only memory ledgers THIS generation writes, and the code that
+#: writes each one. A file that is written every morning but never staged makes
+#: the published copy freeze while live keeps appending (#3409/#3410).
+BRIEF_MEMORY_LEDGERS = {
+    'memory/risk_breaches.json': 'record_risk_stances(',
+    'memory/proposals.jsonl': 'record_proposals(',
+    'memory/fx-rates.jsonl': "'fx', '--json'",
+    'memory/bar-conflicts.jsonl': "'daily-bars'",
+}
+
+
+def test_brief_commit_stages_the_ledgers_this_generation_writes():
+    staged = _postflight_add_list()
+    assert 'memory/snapshots/' in staged, (
+        'the brief stages one snapshot file instead of the directory; the cold '
+        'roll\'s archive adds and tracked deletions then never reach origin (#1040)')
+    for path, writer in BRIEF_MEMORY_LEDGERS.items():
+        assert writer in PREFLIGHT + POSTFLIGHT, (
+            f'{path} is asserted as a brief write, but {writer!r} is no longer in '
+            'the brief pre/postflight — update this contract with the writer.')
+        covered = path in staged or any(
+            entry.endswith('/') and path.startswith(entry) for entry in staged)
+        assert covered, (
+            f'the brief writes {path} every morning but the postflight commit does not '
+            'stage it; origin freezes while live appends (#3409/#3410)')
 
 
 def test_preflight_writes_are_committed():

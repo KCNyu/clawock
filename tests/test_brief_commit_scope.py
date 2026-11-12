@@ -35,7 +35,7 @@ def test_brief_commit_is_limited_to_this_generations_paths(tmp_path, monkeypatch
     assert 'memory/' not in add, 'the whole memory/ directory is still staged'
     assert f'memory/{day}-plan.json' in add
     assert f'memory/{day}-pre-open.md' in add
-    assert f'memory/snapshots/{day}.json' in add
+    assert 'memory/snapshots/' in add, 'the snapshot directory (and its archive) is staged'
     assert 'memory/2026-07-29-pre-open.md' not in add
 
     commit = next(args for args in calls if args[0] == 'commit')

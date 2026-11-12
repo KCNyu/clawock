@@ -35,10 +35,10 @@ CACHE_PATH = str(WS_ROOT / '.cache' / 'fx_rate.json')
 # past day silently stamps it with today's rate. `openclaw-fx-rule` says HKD and
 # USD cannot be added directly; this is the provenance half of that.
 #
-# Under memory/ deliberately: `brief_postflight` already runs
-# `git add 'memory/'` every morning, so this rides an existing, proven commit
-# path rather than needing a new one. Append-only, so a morning that fails to
-# commit loses nothing — the next one carries both days.
+# Under memory/ deliberately: the morning brief postflight stages this file
+# explicitly (it no longer stages the whole `memory/` directory, #3409).
+# Append-only, so a morning that fails to commit loses nothing — the next one
+# carries both days.
 LEDGER_PATH = str(WS_ROOT / 'memory' / 'fx-rates.jsonl')
 CACHE_TTL_HOURS = 4   # FX moves slowly intraday; refresh 6x/day is enough
 # How old the cache may get before an offline reader calls it stale. The cache

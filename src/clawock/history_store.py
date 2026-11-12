@@ -184,8 +184,9 @@ def roll_dated_files(directory, *, keep_days=HOT_WINDOW_DAYS, today=None) -> lis
 
     Returns the names moved (empty on nothing-to-do), so the caller can report
     or no-op. Callers must commit from a pathspec that covers the archive dir
-    (the morning brief postflight's ``git add memory/`` does; the intraday
-    postflights' explicit-file adds do not, which is why only preflight rolls).
+    (the morning brief postflight's directory-scoped
+    ``git add memory/snapshots/`` does; the intraday postflights' explicit-file
+    adds do not, which is why only preflight rolls).
     """
     today = today or datetime.now(timezone.utc).date()
     if isinstance(today, str):

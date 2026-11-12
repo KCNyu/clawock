@@ -1871,9 +1871,10 @@ def _collect(argv=None):
     print(f'   ✓ {snapshot_path.name}')
 
     # Roll cold snapshots into _archive/ (#1040): readers look at ≤90 entries,
-    # storage was unbounded. Runs HERE and only here — this postflight commits
-    # with a directory-scoped `git add memory/` that carries the moves; the
-    # intraday/report postflights stage explicit paths and would strand them.
+    # storage was unbounded. Runs HERE and only here — the brief postflight
+    # stages the directory-scoped `memory/snapshots/`, which carries both the
+    # archived adds and the tracked originals' deletions; the intraday/report
+    # postflights stage explicit paths and would strand the moves.
     try:
         rolled = history_store.roll_dated_files(SNAPSHOT_DIR, today=today)
         if rolled:
