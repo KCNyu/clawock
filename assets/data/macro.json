@@ -1,129 +1,139 @@
 {
   "vix": {
     "symbol": "^VIX",
-    "price": 17.49,
-    "prev": 19.46,
-    "change_pct": -10.12,
+    "price": 18.7,
+    "prev": 17.49,
+    "change_pct": 6.92,
     "source": "yahoo",
-    "as_of": 1794431701
+    "as_of": 1794518101
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.998,
-    "prev": 4.983,
-    "change_pct": 0.3,
+    "price": 5.103,
+    "prev": 4.998,
+    "change_pct": 2.1,
     "source": "yahoo",
-    "as_of": 1794427194,
-    "yield_pct": 4.998
+    "as_of": 1794513594,
+    "yield_pct": 5.103
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 102.843,
-    "prev": 102.231,
-    "change_pct": 0.6,
+    "price": 103.17,
+    "prev": 102.908,
+    "change_pct": 0.25,
     "source": "yahoo",
-    "as_of": 1794438299
+    "as_of": 1794524698
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24315.92,
-    "prev": 24557.04,
-    "change_pct": -0.98,
+    "price": 24008.55,
+    "prev": 24315.92,
+    "change_pct": -1.26,
     "source": "tencent",
-    "as_of": "2026-11-11"
+    "as_of": "2026-11-12"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4027.06,
-    "prev": 4084.45,
-    "change_pct": -1.41,
+    "price": 3931.93,
+    "prev": 4027.06,
+    "change_pct": -2.36,
     "source": "tencent",
-    "as_of": "2026-11-11"
+    "as_of": "2026-11-12"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7619.38,
-    "prev": 7520.93,
-    "change_pct": 1.31,
+    "price": 7592.4,
+    "prev": 7619.38,
+    "change_pct": -0.35,
     "source": "tencent",
-    "as_of": "2026-11-11"
+    "as_of": "2026-11-12"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 25466.19,
-    "prev": 25065.87,
-    "change_pct": 1.6,
+    "price": 25366.09,
+    "prev": 25466.19,
+    "change_pct": -0.39,
     "source": "tencent",
-    "as_of": "2026-11-11"
+    "as_of": "2026-11-12"
   },
   "fear_greed": {
-    "score": 37.0,
+    "score": 39.9,
     "rating": "fear",
-    "prev_close": 33.5,
-    "prev_1_week": 34.2,
-    "as_of": "2026-11-11T23:01:33+00:00"
+    "prev_close": 37.0,
+    "prev_1_week": 20.0,
+    "as_of": "2026-11-12T23:01:34+00:00"
   },
   "fed_press": [
+    {
+      "date": "2026-11-12",
+      "title": "Federal Reserve Board announces pricing, effective January 1, 2027, for payment services the Federal Reserve Banks provide to banks and credit unions, and changes to streamline and adjust their check ",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261112a.htm"
+    },
+    {
+      "date": "2026-11-12",
+      "title": "Federal Reserve announces revised tentative schedule of Federal Open Market Committee meetings in 2027",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261112a.htm"
+    },
+    {
+      "date": "2026-11-12",
+      "title": "Federal Reserve Board issues enforcement action with former employee of United Community Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261112a.htm"
+    },
     {
       "date": "2026-11-09",
       "title": "Federal Reserve Board announces approval of two applications by Mutual Federal Bancorp, MHC, and MFB Bancorp, Inc.",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20261109a.htm"
-    },
-    {
-      "date": "2026-11-05",
-      "title": "Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261105a.htm"
     }
   ],
   "treasury_curve": {
     "source": "us_treasury",
-    "as_of": "2026-11-10",
+    "as_of": "2026-11-12",
     "status": "ok",
-    "age_days": 1,
+    "age_days": 0,
     "unit": "percent",
     "frequency": "daily_par_yield",
     "yields": {
-      "1m": 4.05,
-      "1.5m": 4.16,
-      "2m": 4.21,
-      "3m": 4.3,
-      "4m": 4.28,
-      "6m": 4.38,
-      "1y": 4.56,
-      "2y": 4.73,
-      "3y": 4.74,
-      "5y": 4.81,
-      "7y": 4.89,
-      "10y": 4.98,
-      "20y": 5.39,
-      "30y": 5.35
+      "1m": 4.12,
+      "1.5m": 4.18,
+      "2m": 4.26,
+      "3m": 4.32,
+      "4m": 4.35,
+      "6m": 4.42,
+      "1y": 4.65,
+      "2y": 4.86,
+      "3y": 4.9,
+      "5y": 4.95,
+      "7y": 5.02,
+      "10y": 5.1,
+      "20y": 5.48,
+      "30y": 5.43
     },
     "missing_maturities": [],
-    "spread_10y_2y_bps": 25.0,
-    "spread_10y_3m_bps": 68.0,
+    "spread_10y_2y_bps": 24.0,
+    "spread_10y_3m_bps": 78.0,
     "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
   },
   "volatility": {
     "vix": null,
     "vix9d": {
       "symbol": "VIX9D",
-      "price": 16.04,
-      "prev": 18.54,
-      "change_pct": -13.48,
+      "price": 17.51,
+      "prev": 16.04,
+      "change_pct": 9.16,
       "source": "cboe",
-      "as_of": "2026-11-11",
-      "previous_as_of": "2026-11-10",
+      "as_of": "2026-11-12",
+      "previous_as_of": "2026-11-11",
       "frequency": "daily_close",
       "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
     },
     "vix3m": {
       "symbol": "VIX3M",
-      "price": 19.24,
-      "prev": 20.64,
-      "change_pct": -6.78,
+      "price": 20.06,
+      "prev": 19.24,
+      "change_pct": 4.26,
       "source": "cboe",
-      "as_of": "2026-11-11",
-      "previous_as_of": "2026-11-10",
+      "as_of": "2026-11-12",
+      "previous_as_of": "2026-11-11",
       "frequency": "daily_close",
       "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
     },
@@ -143,5 +153,5 @@
     "skew": "unavailable",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-11-11T23:20:29.477532+00:00"
+  "generated_at": "2026-11-12T23:20:26.801393+00:00"
 }
