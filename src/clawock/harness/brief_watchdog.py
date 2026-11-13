@@ -73,6 +73,7 @@ from clawock.safe_io import safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
 from .brief_card import build_brief_card
+from . import brief_versions
 from ._watchdog_common import (
     WS, HKT, log, send_telegram, telegram_target,
     send_wechat, resolve_wechat_target, wechat_backstop,
@@ -812,22 +813,42 @@ def main():
     if not isinstance(card_footer, str):
         card_footer = ''
 
+    # Only claim the delivered version when the archive still shows it. A page
+    # that moved on after delivery must not have a rebuilt card labelled with
+    # the older id it no longer matches.
+    delivered_version = (marker or {}).get('brief_version')
+    current_version = brief_versions.current(WS, today)
+    card_version = (delivered_version if delivered_version
+                    and (current_version or {}).get('id') == delivered_version
+                    else None)
+
     def card_for_backstop(day):
-        # Keep the one-argument call when there is no footer, so a backstop over
-        # an old receipt is byte-for-byte the card it always built.
-        return (build_brief_card(day, footer=card_footer) if card_footer
-                else build_brief_card(day))
+        # Keep the one-argument call when there is neither footer nor version, so
+        # a backstop over an old receipt is byte-for-byte the card it always built.
+        if not card_footer and not card_version:
+            return build_brief_card(day)
+        kwargs = {}
+        if card_footer:
+            kwargs['footer'] = card_footer
+        if card_version:
+            kwargs['version'] = card_version
+        return build_brief_card(day, **kwargs)
     # WeChat is judged on its own (2026-09-17): Telegram having the card says
     # nothing about WeChat. The receipt path includes today's date, so its age
     # cannot turn a confirmed delivery into a missing delivery (#2121).
     if marker:
-        # This path rebuilds the card from today's plan/brief instead of
-        # replaying the failed bytes, so the outcome ledger must say that rather
-        # than the default `unspecified` (#3443).
-        wechat_backstop('brief', tag, card_for_backstop(today), marker, marker_path,
+        # Replay the exact bytes the failed WeChat send recorded (#3443). Only a
+        # receipt from before that field existed falls back to rebuilding the
+        # card, and the outcome ledger says which source was used.
+        recorded_body = delivery_receipts.recorded_wechat_body(marker)
+        if recorded_body:
+            wechat_body, body_source = recorded_body, 'recorded-wechat-body'
+        else:
+            wechat_body, body_source = card_for_backstop(today), 'rebuilt-card'
+        wechat_backstop('brief', tag, wechat_body, marker, marker_path,
                         WS / 'memory' / '.tmp' / f'watchdog-brief-wechat-{today}.done',
                         args.dry_run, wechat=send_wechat, telegram=send_telegram,
-                        resolve=resolve_wechat_target, body_source='rebuilt-card')
+                        resolve=resolve_wechat_target, body_source=body_source)
     # TG is covered iff postflight's cosend confirmed today's card to Telegram.
     if marker and marker.get('tg_ok'):
         log({'tag': tag, 'action': 'ok',

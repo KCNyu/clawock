@@ -72,3 +72,27 @@ def test_plan_fallback_also_reports_zero_candidate_truth(tmp_path, monkeypatch):
     assert "提示 0 个底层机会 · 可小仓试探 0 · 当前可加仓 0" in result
     assert "不是“模型没写”" in result
     assert result.index("**提前布局候选**") < result.index("完整报告：")
+
+
+def test_the_card_names_the_version_it_was_delivered_as(tmp_path, monkeypatch):
+    monkeypatch.setattr(common, "WS", tmp_path)
+    card = tmp_path / "memory" / ".tmp" / f"brief-card-{TODAY}.txt"
+    card.parent.mkdir(parents=True)
+    card.write_text("📊 盘前深度简报\n\n完整报告：link", encoding="utf-8")
+
+    result = common.build_brief_card(
+        TODAY, decision_packet={"add_alpha_diagnostics": {"candidates": []}},
+        version={"id": "v2-8d1e0f2a"})
+
+    assert "本卡版本 v2-8d1e0f2a" in result
+    assert result.rstrip().endswith("本卡版本 v2-8d1e0f2a")
+    # The version line must not replace or prefix the report link.
+    assert "完整报告：link" in result
+
+
+def test_a_card_without_a_version_keeps_its_old_shape(tmp_path, monkeypatch):
+    monkeypatch.setattr(common, "WS", tmp_path)
+    result = common.build_brief_card(
+        TODAY, decision_packet={"add_alpha_diagnostics": {"candidates": []}})
+
+    assert "本卡版本" not in result

@@ -140,6 +140,10 @@ memory/*.md
 # renders it onto the site) and the plan behind it are repository data.
 !memory/*-pre-open.md
 
+# Immutable brief versions are committed; an interrupted atomic write's staging
+# file is not. The version directory is staged whole by the brief commit.
+memory/brief-versions/**/.tmp-*
+
 # Misc
 share/
 
