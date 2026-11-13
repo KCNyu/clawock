@@ -29,6 +29,7 @@ there too. Pinned here:
 import hashlib
 import json
 import sys
+from pathlib import Path
 from datetime import datetime, timedelta
 
 import pytest
@@ -565,3 +566,29 @@ def test_report_watchdog_backstop_sends_the_recorded_report(
 
     assert watchdog.main() == 0
     assert calls['wechat'] == [report]
+
+
+def test_report_backstop_records_where_the_retried_body_came_from(monkeypatch):
+    """#3443: receipt / transcript / deterministic block must not look alike."""
+    from clawock.harness import report_watchdog as rw
+
+    marker = {"sent_ok": False, "wechat_body": "EXACT REPORT"}
+    assert rw._backstop_body(marker, "sid", "first", {}, "tag") == ("EXACT REPORT", "receipt")
+
+    monkeypatch.setattr(rw, "transcript_loop_score", lambda _sid: (0, ""))
+    monkeypatch.setattr(rw, "last_report_text", lambda _sid, _first: "TRANSCRIPT")
+    assert rw._backstop_body({}, "sid", "first", {}, "tag") == ("TRANSCRIPT", "transcript")
+
+    monkeypatch.setattr(rw, "transcript_loop_score", lambda _sid: (rw.LOOP_THRESHOLD, ""))
+    monkeypatch.setattr(rw, "fallback_block", lambda _ctx: "BLOCK")
+    monkeypatch.setattr(rw, "deterministic_fallback", lambda *_a, **_k: "FALLBACK")
+    monkeypatch.setattr(rw, "last_report_text",
+                        lambda *_a: (_ for _ in ()).throw(AssertionError("looped transcript must not be used")))
+    assert rw._backstop_body({}, "sid", "first", {}, "tag") == ("FALLBACK", "deterministic_fallback")
+
+
+def test_brief_postflight_keeps_the_failed_wechat_bytes():
+    """#3443: the sibling postflights already record the exact failed body."""
+    source = (Path(__file__).resolve().parents[1]
+              / "src/clawock/harness/brief_postflight.py").read_text(encoding="utf-8")
+    assert "**delivery_receipts.failed_wechat_body(wechat_ok, message)" in source

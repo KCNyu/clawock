@@ -104,7 +104,12 @@ def assemble(workspace, *, skills=(), profile: str | None = None) -> ContextBund
     pattern = manifest["skills"]["body_pattern"]
     for name in dict.fromkeys(skills):
         relative = pattern.format(name=name)
-        selected.append(_read_required(root / relative, str(name)))
+        path = (root / relative).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError as exc:
+            raise ValueError(f"context path escapes workspace: {relative}") from exc
+        selected.append(_read_required(path, str(name)))
     return ContextBundle(documents, tuple(selected))
 
 

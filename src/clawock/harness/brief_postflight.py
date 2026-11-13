@@ -1906,7 +1906,10 @@ def main(argv=None):
                         **({'usage_footer': card_footer} if card_footer else {}),
                         # What the card's link showed when it went out (#3105).
                         report_sha256=(prior_receipt.get('report_sha256') if after_delivery
-                                       else report_sha256(md_path))),
+                                       else report_sha256(md_path)),
+                        # The exact bytes a failed WeChat send tried to deliver
+                        # (#3443), same field the report/intraday receipts keep.
+                        **delivery_receipts.failed_wechat_body(wechat_ok, message)),
                     ensure_ascii=False))
                 return True
 

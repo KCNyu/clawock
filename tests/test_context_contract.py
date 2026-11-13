@@ -312,3 +312,44 @@ def test_every_command_the_injected_context_names_exists():
                 unknown.append(f"{name}: {command}")
     assert not unknown, ("injected context names commands that do not exist:\n"
                          + "\n".join(unknown))
+
+
+def _bootstrap_workspace(root):
+    for name in dict.fromkeys(INTERACTIVE + EXCLUDED):
+        (root / name).write_text(f"body:{name}", encoding="utf-8")
+
+
+def test_a_skill_name_cannot_read_outside_the_workspace(tmp_path):
+    """#3445: `skills=['../..']` inlined a parent-directory SKILL.md.
+
+    `assemble_explicit` has refused this shape since #427; the profile
+    assembler must apply the same containment to a caller-supplied skill name.
+    """
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    _bootstrap_workspace(workspace)
+    (tmp_path / "SKILL.md").write_text("OUTSIDE", encoding="utf-8")
+    with pytest.raises(ValueError, match="context path escapes workspace"):
+        assemble(workspace, skills=["../.."])
+
+
+def test_a_skill_symlink_cannot_read_outside_the_workspace(tmp_path):
+    workspace = tmp_path / "ws"
+    (workspace / "skills").mkdir(parents=True)
+    _bootstrap_workspace(workspace)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SKILL.md").write_text("LINKED_OUTSIDE", encoding="utf-8")
+    os.symlink(outside, workspace / "skills" / "evil-link")
+    with pytest.raises(ValueError, match="context path escapes workspace"):
+        assemble(workspace, skills=["evil-link"])
+
+
+def test_a_skill_symlink_inside_the_workspace_is_still_usable(tmp_path):
+    workspace = tmp_path / "ws"
+    skill = workspace / "skills" / "demo" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
+    _bootstrap_workspace(workspace)
+    skill.write_text("skill body", encoding="utf-8")
+    os.symlink(workspace / "skills" / "demo", workspace / "skills" / "alias")
+    assert "skill body" in assemble(workspace, skills=["alias"]).text
