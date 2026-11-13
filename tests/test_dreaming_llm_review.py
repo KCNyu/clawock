@@ -89,6 +89,21 @@ def test_a_clean_candidate_gets_a_hash_bound_receipt_and_promotes(tmp_path):
     assert decision["write"] == ["lessons-dreaming-2026-11-12-10-10"]
 
 
+def test_a_named_covering_topic_blocks_the_promotion(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    text = candidate("chat 里只做判断，代码都交给 coding agent。")
+    ws = workspace(tmp_path, text)
+    entry = load_gate().extract(text)[1][0]
+    result = run_review(ws, store, [{
+        "key": entry["key"], "decision": "reject", "covered_by": "feedback-delegation-brief",
+        "conclusion": "chat 里只做判断，代码交给 coding agent",
+        "scope": "engineering", "salience": "high", "reason": "已有 topic 覆盖"}])
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["approved"] == 0
+    assert not (ws / "memory/.dreams/promotion-approvals.json").exists()
+
+
 def test_a_contaminated_candidate_is_never_sent_to_the_model(tmp_path):
     store = tmp_path / "store"
     store.mkdir()

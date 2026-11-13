@@ -29,31 +29,54 @@ def model() -> str:
     return (os.environ.get("MEMORY_LLM_MODEL") or DEFAULT_MODEL).strip()
 
 
-def _command(prompt: str, model_id: str) -> list[str]:
+def _resolve_cli() -> str:
+    found = shutil.which("openclaw")
+    if found:
+        return found
+    # Cron starts with /usr/bin:/bin; the host installs the CLI under the pnpm
+    # prefix and the launcher still needs node on PATH. Build the candidates from
+    # segments so this module does not spell out a runtime path.
+    home = Path.home()
+    for candidate in (home / ".local" / "share" / "pnpm" / "openclaw",
+                      home / ".local" / "bin" / "openclaw"):
+        if candidate.is_file():
+            return str(candidate)
+    return ""
+
+
+def _environment(cli: str) -> dict:
+    env = dict(os.environ)
+    node = shutil.which("node")
+    if not node:
+        fallback = Path("/usr/local/bin/node")
+        node = str(fallback) if fallback.is_file() else ""
+    if node:
+        env["PATH"] = f"{Path(node).parent}:{Path(cli).parent}:{env.get('PATH', '')}"
+    return env
+
+
+def _command(prompt: str, model_id: str) -> tuple[list[str], dict]:
     override = (os.environ.get("MEMORY_LLM_CMD") or "").strip()
     if override:
         # A test/alternate harness gets the prompt on stdin, not argv.
-        return shlex.split(override)
-    cli = shutil.which("openclaw")
+        return shlex.split(override), dict(os.environ)
+    cli = _resolve_cli()
     if not cli:
-        fallback = Path.home() / ".local" / "bin" / "openclaw"
-        cli = str(fallback) if fallback.is_file() else ""
-    if not cli:
-        raise LLMError("openclaw CLI not found on PATH")
-    return [cli, "infer", "model", "run", "--model", model_id, "--thinking", "off",
-            "--prompt", prompt, "--json"]
+        raise LLMError("openclaw CLI not found on PATH or in the host prefix")
+    return ([cli, "infer", "model", "run", "--model", model_id, "--thinking", "off",
+             "--prompt", prompt, "--json"], _environment(cli))
 
 
 def run_model(prompt: str, *, model_id: str | None = None, timeout: int = 180) -> str:
     """Return the model's text. Raises LLMError; never prints the prompt."""
     model_id = model_id or model()
-    command = _command(prompt, model_id)
+    command, env = _command(prompt, model_id)
     try:
         if os.environ.get("MEMORY_LLM_CMD"):
             proc = subprocess.run(command, input=prompt, text=True, capture_output=True,
-                                  timeout=timeout)
+                                  timeout=timeout, env=env)
         else:
-            proc = subprocess.run(command, text=True, capture_output=True, timeout=timeout)
+            proc = subprocess.run(command, text=True, capture_output=True, timeout=timeout, env=env)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise LLMError(f"model call failed: {type(exc).__name__}") from exc
     if proc.returncode:

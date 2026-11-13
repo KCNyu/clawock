@@ -105,6 +105,9 @@ def prompt_for(entries: list[dict], catalogue: str) -> str:
 - 不与现有 topic 重复；
 - 不包含价格、仓位动作、HTML、文件路径、task/session id。
 
+先做去重：如果某个现有 topic 的 description 已经覆盖同一条规则（措辞可以不同），
+decision=reject，covered_by 填那个 slug；没有覆盖才 covered_by=null。
+
 拒绝掉：一次性任务、当天的市场判断、某次运行的状态、含糊的口号、只是在复述简报。
 
 现有 public topic：
@@ -114,7 +117,7 @@ def prompt_for(entries: list[dict], catalogue: str) -> str:
 {json.dumps(payload, ensure_ascii=False)}
 
 只输出一个 JSON 数组，每个候选一个对象，顺序不限：
-[{{"key":"...", "decision":"approve|reject", "conclusion":"一行中文结论，<=200字，不含日期/价格/路径/HTML", "scope":"engineering|investment|persona|memory", "salience":"high|normal", "reason":"一句话说明为什么可复用"}}]
+[{{"key":"...", "decision":"approve|reject", "covered_by":null, "conclusion":"一行中文结论，<=200字，不含日期/价格/路径/HTML", "scope":"engineering|investment|persona|memory", "salience":"high|normal", "reason":"一句话说明为什么可复用"}}]
 不要输出 Markdown。"""
 
 
@@ -129,6 +132,11 @@ def validate(reply, entries: list[dict]) -> dict[str, dict]:
         key = str(item.get("key") or "")
         entry = by_key.get(key)
         if entry is None or key in accepted:
+            continue
+        covered = item.get("covered_by")
+        if isinstance(covered, str) and covered.strip():
+            # The model's own duplicate call wins; never promote over it, even if
+            # the slug it named is not in the truncated catalogue.
             continue
         if str(item.get("decision")).lower() != "approve":
             continue
@@ -188,8 +196,9 @@ def main() -> int:
     if not chosen:
         print(json.dumps({**summary, "decisions": []}, ensure_ascii=False))
         return 0
+    catalogue = topic_catalogue(store)
     text = (args.llm_response.read_text(encoding="utf-8") if args.llm_response
-            else llm_json.run_model(prompt_for(chosen, topic_catalogue(store))))
+            else llm_json.run_model(prompt_for(chosen, catalogue)))
     accepted = validate(llm_json.extract_json(text), chosen)
     summary["approved"] = len(accepted)
     summary["rejected"] = len(chosen) - len(accepted)

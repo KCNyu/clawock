@@ -30,6 +30,9 @@ set -uo pipefail
 
 WS="${DREAMING_WORKSPACE:-/root/.openclaw/workspace}"
 STORE="${SHARED_MEMORY_DIR:-$HOME/.shared-memory}"
+# The cron PATH has no node and no pnpm prefix. The model review and intake
+# shells run the OpenClaw CLI; give them the same prefix the gateway uses.
+export PATH="/root/.local/share/pnpm:/root/.local/bin:/usr/local/bin:$PATH"
 cd "$WS" || exit 1
 
 # Automated job → commit as the bot, but with `git -c` (per-invocation) NOT
