@@ -25,7 +25,8 @@ not survive a session as readable context, and nothing in this page changes them
 | Representations | Area indexes, a routing table, redirects, and `[[topic]]` links between notes | `MEMORY.md`, `indexes/MEMORY-*.md`, `indexes/routes.tsv`, `indexes/redirects.tsv` |
 | Retrieval | Literal, rarity-weighted topic search; exact tag/status filters; the assistant's semantic `memory_search` with a read-only supplement over the same store | `memory.py search`; `ops/host/shared-memory/openclaw/index.ts` |
 | Injected context | OpenClaw `MEMORY.md` (generated public projection) in direct chats; the shared index for Claude Code sessions in the home directory; payload/skill only in isolated cron and subagent runs | OpenClaw bootstrap; `publish.py`; Claude Code auto-memory + SessionStart hook; dispatch payload |
-| Dreaming | 03:00 HKT candidates in private `memory/.dreams/`, 03:20 HKT reviewed promotion into public store topics and a regenerated `MEMORY.md`, plus the separately gated `DREAMS.md` append (legacy diary entries reviewed and pruned 2026-11-08) | `ops/host/patch_dreaming_review.py`, `ops/host/review_dreaming.py`, `ops/host/promote_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh`, `ops/host/shared-memory/scripts/publish.py`; see [`dreaming-review.md`](../operations/dreaming-review.md) |
+| Dreaming | 03:00 HKT candidates in private `memory/.dreams/`, 03:20 HKT model review plus hash-bound promotion into public store topics and a regenerated `MEMORY.md`, plus the separately gated `DREAMS.md` append (legacy diary entries reviewed and pruned 2026-11-08) | `ops/host/patch_dreaming_review.py`, `ops/host/review_dreaming.py`, `ops/host/review_dreaming_llm.py`, `ops/host/promote_dreaming.py`, `ops/host/review_dreams.py`, `ops/host/commit_dreaming.sh`, `ops/host/shared-memory/scripts/publish.py`; see [`dreaming-review.md`](../operations/dreaming-review.md) |
+| Dispatch/task intake | A private queue of the owner's dispatch words and finished task reports; a one-shot model distils one conclusion, the deterministic screen and de-dupe decide, and `memory.py` writes it | `ops/host/shared-memory/scripts/intake.py`, `ops/host/shared-memory/scripts/llm_json.py`; wired from `ops/host/agent-dispatch/{dispatch,run-agent}.sh`; see [`dispatch-memory-intake.md`](dispatch-memory-intake.md) |
 | Evaluation | Held-out search rows; a three-layer benefit run (no memory / index only / notes) | `ops/host/shared-memory-eval/` |
 
 ## Notes are written once, with their future use attached
@@ -48,7 +49,9 @@ timeline sections; a topic that would exceed 16 KB keeps its conclusions and mov
 text to `archive/`. That keeps recall cheap, but it also leaves in-session salience to the
 author. There is no automatic per-turn extractor: the article's own results show that a
 fixed "record this" rule can cost more than it saves, and an automatic writer would create a
-second, unaudited store.
+second, unaudited store. The per-task dispatch intake is not that extractor: it queues the
+owner's own words and a finished task's report, and a model has to call the conclusion durable
+before the deterministic screen lets anything through.
 
 `memory.py add|update` requires `scope` and writes `salience`, `status`, `publish` and `agent`
 (tags stay optional); an active topic missing any of them fails `memory.py doctor`. The 156 existing
@@ -114,12 +117,13 @@ exist, but the brief still has to carry the rules the run needs.
 
 ## Dreaming, representations and promotion
 
-OpenClaw's dreaming pipeline is the only automatic memory writer. It reads transcripts,
+OpenClaw's dreaming pipeline is the automatic transcript writer. It reads transcripts,
 proposes candidates into ignored `memory/.dreams/`, and the 03:20 gate promotes only
 explicitly reviewed, hash-bound conclusions. An approved conclusion becomes a public store
-topic; `publish.py --write` then regenerates `MEMORY.md`. There is no second dreaming job and
-no second reviewer. High-salience notes written by coding agents are not candidates for that
-gate.
+topic; `publish.py --write` then regenerates `MEMORY.md`. There is no second dreaming job; the
+model reviewer writes the receipt the existing gate already required. High-salience notes
+written by coding agents are not candidates for that gate; a dispatched task's report enters
+through the separate intake queue described above.
 
 The store is small, curated at write time, and every change is attributable and restorable
 through `memctl`; the dreaming gate adds one reviewed public write path, not a general

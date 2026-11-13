@@ -65,10 +65,14 @@ ignored `memory/.dreams/promotion-approvals.json`, keyed by the exact promotion 
 }
 ```
 
-Receipts expire after 30 days until applied and bind the exact candidate hash. They are
-operator-controlled input, never generated from score or model DONE status. This flow does not
-schedule a new model reviewer. Pending work needs a reviewer; absence of a reviewer keeps it
-private.
+Receipts expire after 30 days until applied and bind the exact candidate hash. They are never
+generated from score or a model's own DONE status. The 03:20 job runs
+`ops/host/review_dreaming_llm.py` before promotion: it batches the candidates the deterministic rules
+left pending, asks one model for a one-line reusable conclusion per candidate, re-screens that
+conclusion with the same rules, and writes a receipt with reviewer `llm:<model>`. It is not a second
+gate: `review_dreaming.py` still binds the receipt to the exact SHA256 and rejects contaminated text
+even when a receipt exists. A model outage or malformed reply writes nothing and leaves the
+candidates pending.
 
 An approved conclusion becomes one new topic:
 
@@ -108,9 +112,12 @@ decisions and the slugs it would write, without touching the store or the reposi
 - **One side fails in `commit_dreaming.sh`:** each side is reviewed and committed separately; the
   other side still commits and pushes. The failing side is named in the cron log.
 
-No gateway restart is needed for a change to this host-side Python or shell gate. Never publish
-private archives, approval files, or candidate text. Private storage pruning requires separate
-review.
+No gateway restart is needed for a change to this host-side Python or shell gate. The dist patch
+that feeds direct-chat sessions into the corpus does need an idle-gateway restart; its selection
+rules and the dispatch/task intake are described in
+[`../architecture/dispatch-memory-intake.md`](../architecture/dispatch-memory-intake.md). Never
+publish private archives, approval files, or candidate text. Private storage pruning requires
+separate review.
 
 ### DREAMS.md diary append
 
@@ -147,6 +154,7 @@ decision counts and run:
 ```bash
 python3 ops/host/patch_dreaming_review.py --check
 python3 ops/host/review_dreaming.py --workspace /root/.openclaw/workspace --check
+python3 ops/host/review_dreaming_llm.py --workspace /root/.openclaw/workspace --store ~/.shared-memory --check
 python3 ops/host/review_dreams.py --workspace /root/.openclaw/workspace --check --store ~/.shared-memory
 python3 ops/host/promote_dreaming.py --workspace /root/.openclaw/workspace --check
 python3 ops/host/shared-memory/scripts/publish.py --check --store ~/.shared-memory

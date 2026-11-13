@@ -29,6 +29,8 @@ FILES=(
   references/maintenance.md
   publish-manifest.json
   scripts/recall.py
+  scripts/intake.py
+  scripts/llm_json.py
   scripts/memory.py
   scripts/memctl
   scripts/provenance.py

@@ -590,6 +590,19 @@ finish() {
   # ATTENTION=person even when the model wrote NEEDS: none; publish that before the notice.
   parse_receipt
   write_result
+  # Queue the finished task's brief + report for the memory curator. This is the
+  # missing path for dispatched dsh/codex/opencode work: dreaming only reads OpenClaw
+  # session transcripts, so 41+20+19 issue tasks never reached the store. Fail-soft and
+  # detached: the report/notice path must not wait for a model call.
+  local intake="${MEMORY_INTAKE_SCRIPT:-$HOME/.agents/skills/shared-memory/scripts/intake.py}"
+  if [ -r "$intake" ]; then
+    timeout 20 python3 "$intake" capture --task-dir "$DIR" --stage outcome \
+      >>"$DIR/memory-intake.log" 2>&1 || true
+    systemd-run --unit "agent-dispatch-memory-$ID-outcome-$RUN_NO" --collect --quiet \
+      --description "memory outcome $ID" \
+      python3 "$intake" run --task "$ID" --limit 1 \
+      >>"$DIR/memory-intake.log" 2>&1 || true
+  fi
   # Out of the queue and off the lock before the notification: the next task need not wait for it.
   rm -f "${QDIR:?}/${ID:?}" 2>/dev/null
   release_agent_lock

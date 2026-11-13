@@ -314,8 +314,10 @@ No autonomous process edits the seed, lifts chattr, opens PRs or merges code.
 ## Dreaming promotion review
 
 The promotion writer uses a private candidate file; the commit job screens candidates
-and requires explicit review receipts before adding permanent conclusions. Installation,
-review, verification and rollback: [dreaming review](../../docs/operations/dreaming-review.md).
+and requires explicit review receipts before adding permanent conclusions. A model
+reviewer now writes those receipts for clean candidates, and a separate private queue
+distils dispatch briefs and finished task reports. Installation, review, verification
+and rollback: [dreaming review](../../docs/operations/dreaming-review.md).
 
 ## Versioned OpenClaw patch kit
 

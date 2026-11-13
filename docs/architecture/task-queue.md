@@ -604,6 +604,17 @@ material file", and makes the material a reviewer can audit afterwards. It does 
 model that chooses to follow text inside a material file; that remains a prompt-injection
 risk outside the wrapper's control.
 
+## Memory intake
+
+A dispatch now also queues the owner's own words for the shared-memory curator. The
+queue write is local and cheap; the model distillation runs as a separate transient
+unit, and the 03:20 dreaming job drains anything left over. The task's final report
+and any appended instructions are queued the same way, which is how dispatched
+coding work (the issue sweeps) finally becomes memory. The raw brief and report are
+private; only a screened one-line conclusion reaches the store. Details, limits and
+the public-projection fallback are in
+[`dispatch-memory-intake.md`](dispatch-memory-intake.md).
+
 ## Design provenance
 
 The dsh-superagent prototype contributed the explicit mandate and wait-derived
