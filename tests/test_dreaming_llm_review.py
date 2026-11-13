@@ -46,6 +46,24 @@ def run_review(ws, store, reply, *args):
                           capture_output=True, text=True, timeout=60)
 
 
+def test_the_reviewer_catalogue_contains_only_public_topics(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("review_for_test", REVIEW)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    store = tmp_path / "store"
+    store.mkdir()
+    (store / "feedback-public.md").write_text(
+        "---\nname: feedback-public\ndescription: \"public rule\"\n"
+        "metadata:\n  publish: public\n---\n\n# P\n", encoding="utf-8")
+    (store / "project-private.md").write_text(
+        "---\nname: project-private\ndescription: \"private deployment note\"\n"
+        "metadata:\n  publish: private\n---\n\n# P\n", encoding="utf-8")
+    catalogue = module.topic_catalogue(store)
+    assert "public rule" in catalogue
+    assert "private deployment note" not in catalogue
+
+
 def test_a_clean_candidate_gets_a_hash_bound_receipt_and_promotes(tmp_path):
     store = tmp_path / "store"
     store.mkdir()

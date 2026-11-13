@@ -90,6 +90,23 @@ def queue_item(root, name):
     return json.loads(path.read_text())
 
 
+def test_a_private_topic_description_never_reaches_the_model_prompt():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("intake_for_test", INTAKE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    topics = [
+        {"slug": "project-private", "description": "private deployment note", "tags": "",
+         "salience": "normal", "publish": "private", "body": ""},
+        {"slug": "feedback-public", "description": "public rule", "tags": "",
+         "salience": "high", "publish": "public", "body": ""},
+    ]
+    prompt = module.curator_prompt(
+        {"stage": "dispatch", "task_id": "x", "user_words": "记住这条", "result": {}}, topics)
+    assert "public rule" in prompt
+    assert "private deployment note" not in prompt
+
+
 def test_capture_keeps_the_owners_words_and_drops_the_contract(tmp_path):
     store = make_store(tmp_path)
     repo = make_repo(tmp_path, store)

@@ -248,6 +248,7 @@ def store_topics(store: Path) -> list[dict]:
         description = ""
         tags = ""
         salience = "normal"
+        publish = "private"
         for line in head.splitlines():
             key, _, value = line.partition(":")
             value = value.strip().strip("'\"")
@@ -257,8 +258,11 @@ def store_topics(store: Path) -> list[dict]:
                 tags = value
             elif key.strip() == "salience":
                 salience = value
+            elif key.strip() == "publish":
+                publish = value
         topics.append({"slug": path.stem, "description": description, "tags": tags,
-                       "salience": salience, "body": text[match.end():] if match else text})
+                       "salience": salience, "publish": publish,
+                       "body": text[match.end():] if match else text})
     order = {"high": 0, "normal": 1, "low": 2}
     topics.sort(key=lambda topic: (order.get(topic["salience"], 1), topic["slug"]))
     return topics
@@ -298,9 +302,12 @@ def existing_marker(slug: str, marker: str, topics: list[dict]) -> bool:
 # --- model decision -------------------------------------------------------
 
 def curator_prompt(item: dict, topics: list[dict]) -> str:
+    # Only public descriptions leave the host. De-dupe below still runs against
+    # every topic locally, so a private note can suppress a duplicate without its
+    # text reaching the model.
     catalogue = "\n".join(
         f"- {topic['slug']}: {topic['description'][:180]}"
-        for topic in topics[:80] if topic["description"])
+        for topic in topics[:80] if topic["description"] and topic["publish"] == "public")
     payload = {
         "stage": item["stage"],
         "task": item["task_id"].rsplit("-", 2)[0],

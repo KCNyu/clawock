@@ -82,11 +82,14 @@ def topic_catalogue(store: Path) -> str:
         match = re.match(r"^---\n([\s\S]*?)\n---\n?", text)
         head = match.group(1) if match else ""
         description = ""
+        publish = "private"
         for line in head.splitlines():
             key, _, value = line.partition(":")
             if key.strip() == "description":
                 description = value.strip().strip("'\"")
-        if description:
+            elif key.strip() == "publish":
+                publish = value.strip().strip("'\"")
+        if description and publish == "public":
             rows.append(f"- {path.stem}: {description[:180]}")
     return "\n".join(rows[:80])
 
