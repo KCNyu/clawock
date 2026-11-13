@@ -78,7 +78,7 @@ def test_a_clean_candidate_gets_a_hash_bound_receipt_and_promotes(tmp_path):
     approvals = json.loads((ws / "memory/.dreams/promotion-approvals.json").read_text())
     receipt = approvals[entry["key"]]
     assert receipt["sha256"] == entry["sha256"]
-    assert receipt["reviewer"] == "llm:deepseek/deepseek-v4-pro"
+    assert receipt["reviewer"] == "llm:minimax/MiniMax-M3.1-Flash"
     assert receipt["scope"] == "engineering" and receipt["salience"] == "high"
     check = subprocess.run([sys.executable, str(PROMOTE), "--workspace", str(ws),
                             "--store", str(store), "--check"],

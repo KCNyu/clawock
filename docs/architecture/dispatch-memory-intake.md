@@ -89,9 +89,11 @@ without a model call.
 ## 2. A model, not the worker, decides what is memory
 
 `intake.py run` sends the item plus the descriptions of existing topics to a
-one-shot model (`openclaw infer model run`, default `deepseek/deepseek-v4-pro`).
-The prompt asks one question: is this a durable rule/preference/definition/lesson,
-or a task-specific request? It returns strict JSON:
+one-shot model (`openclaw infer model run`, default
+`minimax/MiniMax-M3.1-Flash` with `--thinking adaptive`; M3.1 rejects a disabled
+thinking level). `MEMORY_LLM_MODEL` overrides the model; a non-MiniMax override keeps
+the old pinned `--thinking off`. The prompt asks one question: is this a durable
+rule/preference/definition/lesson, or a task-specific request? It returns strict JSON:
 
 ```json
 {"store": true, "kind": "preference|rule|definition|lessons",

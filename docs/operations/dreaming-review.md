@@ -67,12 +67,13 @@ ignored `memory/.dreams/promotion-approvals.json`, keyed by the exact promotion 
 
 Receipts expire after 30 days until applied and bind the exact candidate hash. They are never
 generated from score or a model's own DONE status. The 03:20 job runs
-`ops/host/review_dreaming_llm.py` before promotion: it batches the candidates the deterministic rules
-left pending, asks one model for a one-line reusable conclusion per candidate, re-screens that
-conclusion with the same rules, and writes a receipt with reviewer `llm:<model>`. It is not a second
-gate: `review_dreaming.py` still binds the receipt to the exact SHA256 and rejects contaminated text
-even when a receipt exists. A model outage or malformed reply writes nothing and leaves the
-candidates pending.
+`ops/host/review_dreaming_llm.py` before promotion: it batches the candidates the deterministic
+rules left pending, asks the same memory model (`llm_json.py`, default
+`minimax/MiniMax-M3.1-Flash` with adaptive thinking) for a one-line reusable conclusion per
+candidate, re-screens that conclusion with the same rules, and writes a receipt with reviewer
+`llm:<model>`. It is not a second gate: `review_dreaming.py` still binds the receipt to the exact
+SHA256 and rejects contaminated text even when a receipt exists. A model outage or malformed reply
+writes nothing and leaves the candidates pending.
 
 An approved conclusion becomes one new topic:
 
