@@ -648,6 +648,43 @@ def tool_receipt_issues(decisions, plan_date, workspace=None):
     return issues
 
 
+# A watch level is a price the plan wants quoted daily. A value an order of
+# magnitude away from that ticker's own quote is not a view — it is another
+# subject's number (2026-11-13: SPCX's 120.39 copied into SPCH at 7.97, a 15x
+# gap published as an executable trim trigger, #3447). Only exact ticker
+# prefixes are checked; name-style prefixes (`minimax`) and percentage/money
+# keys are outside this gate.
+WATCH_LEVEL_MAX_RATIO = 10.0
+_WATCH_LEVEL_NON_PRICE_TOKENS = {'pct', 'percent', 'usd', 'hkd', 'zscore', 'yield', 'book'}
+
+
+def _watch_level_scale_issues(plan, decision_packet):
+    levels = plan.get('watch_levels') if isinstance(plan, dict) else None
+    if not isinstance(levels, dict) or not decision_packet:
+        return []
+    tickers = decision_packet.get('tickers') or {}
+    issues = []
+    for key, value in levels.items():
+        if (not isinstance(value, (int, float)) or isinstance(value, bool)
+                or value <= 0):
+            continue
+        tokens = str(key).lower().split('_')
+        if _WATCH_LEVEL_NON_PRICE_TOKENS.intersection(tokens):
+            continue
+        ticker = tokens[0].upper()
+        facts = (tickers.get(ticker) or {}).get('facts') or {}
+        price = facts.get('current_price')
+        if (not isinstance(price, (int, float)) or isinstance(price, bool)
+                or price <= 0):
+            continue
+        ratio = max(value / price, price / value)
+        if ratio >= WATCH_LEVEL_MAX_RATIO:
+            issues.append(
+                f'plan.json watch_levels: {key}={value:g} 与 {ticker} 现价 '
+                f'{price:g} 相差 {ratio:.1f} 倍 [WATCH_LEVEL_SCALE]（critical）')
+    return issues
+
+
 def validate_plan_json(path, context=None, decision_packet=None, *,
                        normalized=True):
     """Validate the plan on disk.
@@ -680,6 +717,7 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
                 exempt_breach_ids=_durable_override_ids(context),
             )
         ]
+        issues += _watch_level_scale_issues(plan, decision_packet)
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
     issues += [f'plan.json harness: {x}'
                for x in tool_receipt_issues(decisions, plan.get('date'))]
@@ -920,6 +958,7 @@ CRITICAL_KEYWORDS = [
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
     'book inputs invalid', 'book totals mismatch:',
     '仓位支配度不符',
+    'plan.json watch_levels',
     '引用了 private topic',
 ]  # table mismatch, cross-generation output and placeholder prose are critical
 

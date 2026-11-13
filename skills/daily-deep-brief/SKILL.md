@@ -604,6 +604,7 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 #### 决策记忆 (reflections — REQUIRED if `context.reflections` 非空)
 
 `context.reflections[ticker]` 是每个持仓的历史同类决策战绩(`bucket_history` 如 "清×9 胜3" / `recent` / `lesson`)。**给某标的下主动 call 前必须先看它的 reflection**:
+- 若该票的某个 action 桶样本很少(如 `n=1`/`n=2`)，先读同一 `reflection` 里的 `cross_ticker`：它给出**其他票**在同 action 桶的样本量与胜率(已剔除本票)，用来看这个动作在全账本上的基础率。它是基础率，不是本票的证据，不能拿它替代本票的 `bucket_history`。
 - 若该票 `bucket_history` 显示你**反复做某动作且多半错**(如 ROBN "清×9 胜3")→ 这次别再机械重复,要么换论据要么降级为 hold,并在 rationale 里引"过去 N 次清 ROBN 错 M 次"。
 - `win_rate < 0.5` 的票 → 主动 call 需要比平时更强的新证据才出手。
 
