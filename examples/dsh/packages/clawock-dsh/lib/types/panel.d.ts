@@ -489,9 +489,11 @@ export type ProviderRowView = {
     aria: string;
 };
 /**
- * The one-bit alarm rule (the 2026-11-07 design): a window at or above 90%
- * used, or money balance plus credit at or below zero, is an alert. 70–90 is a
- * warning. Stale is the normal overnight state and must never turn the dot red.
+ * The Providers-tab alarm rule (the 2026-11-07 design): a window at or above
+ * 90% used, or money balance plus credit at or below zero, is an alert. 70–90
+ * is a warning. Stale is the normal overnight state and must never turn the
+ * dot red. The sidebar chip and task-detail hairlines use `_usedLevel`'s
+ * lowPct-derived tiers; this predicate only owns the quota bar/row (#3450).
  */
 export declare function providerSignal(row: BalanceRow): ProviderSignal;
 /** The provider rows the panellist dot / tab dot watches: only real providers, never the free pool. */
