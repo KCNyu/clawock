@@ -1220,11 +1220,14 @@ def maybe_commit(status, today, dry_run=False, *, after_delivery=False):
                           'memory/risk_breaches.json',
                           'memory/proposals.jsonl',
                           'memory/fx-rates.jsonl',
-                          'memory/bar-conflicts.jsonl',
-                          # Today's immutable renders and the pointer the page
-                          # matches. Directory-scoped like snapshots: older
-                          # dates' archives are never swept into this commit.
-                          f'memory/brief-versions/{today}/')
+                          'memory/bar-conflicts.jsonl')
+    # Today's immutable renders and the pointer the page matches. The directory
+    # is staged only once capture wrote its index: an empty leftover directory
+    # would make `git add` fail and take the whole commit with it. Older dates'
+    # archives are never swept into this commit.
+    version_dir = f'memory/brief-versions/{today}/'
+    if (WS / version_dir / 'index.json').is_file():
+        day_paths.append(version_dir)
     add_args = ['add', *day_paths, 'portfolio.json',
                 'assets/data/risk.json',
                 'assets/data/lev_regime.json', 'assets/data/benchmark.json',
