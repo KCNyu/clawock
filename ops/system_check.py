@@ -1932,6 +1932,8 @@ def _memory_index_patch_gaps():
         gaps.append('dreaming-review patch missing: automatic promotions would write MEMORY.md')
     if not contains('dreaming-*.js', 'memory/.dreams/promotion-candidates.md (pending review)'):
         gaps.append('dreaming promotion report still names MEMORY.md instead of the private review file')
+    if not contains('dreaming-phases-*.js', 'clawock-dreaming-session-ingestion-v1'):
+        gaps.append('session-ingestion patch missing: direct chats will not reach dreaming')
     return gaps
 
 

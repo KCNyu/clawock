@@ -679,6 +679,20 @@ WAKE_DEPTH=$WAKE_DEPTH
 CREATED=$(printf %q "$(date '+%F %T')")
 EOF
 
+# Memory intake: queue kcn's own words now, then let a separate one-shot model turn
+# distil them. The queue write is synchronous and cheap; the model run is a transient
+# unit so dispatch latency and a model outage never hold the task. On this host the
+# 03:20 dreaming job drains anything still queued.
+MEMORY_INTAKE="${MEMORY_INTAKE_SCRIPT:-$HOME/.agents/skills/shared-memory/scripts/intake.py}"
+if [ -r "$MEMORY_INTAKE" ]; then
+  python3 "$MEMORY_INTAKE" capture --task-dir "$DIR" --stage dispatch \
+    >>"$DIR/memory-intake.log" 2>&1 || true
+  systemd-run --unit "agent-dispatch-memory-$ID" --collect --quiet \
+    --description "memory intake $ID" \
+    python3 "$MEMORY_INTAKE" run --task "$ID" --limit 1 \
+    >>"$DIR/memory-intake.log" 2>&1 || true
+fi
+
 # adopt: a background session still open in the daemon is stopped last, after every check above
 # passed, so a refused dispatch never leaves it stopped; and it must be gone before the task
 # starts, or two processes would write one transcript.

@@ -78,6 +78,8 @@ def box(tmp_path, sc, monkeypatch):
     (dist / "dreaming-ddd.js").write_text(
         "reportLines.push(`- Promoted N candidate(s) into "
         "memory/.dreams/promotion-candidates.md (pending review).`);\n")
+    (dist / "dreaming-phases-eee.js").write_text(
+        "// clawock-dreaming-session-ingestion-v1: direct chats first\n")
 
     log = workspace / "logs" / "memory_index.log"
     stamp = (datetime.now().astimezone() - timedelta(hours=3)).isoformat(timespec="seconds")
@@ -174,6 +176,15 @@ def test_wiped_dreaming_review_patch_is_reported(sc, box):
     severity, message = _run(sc)
     assert severity == sc.WARNING
     assert "dreaming-review patch missing" in message
+
+
+def test_wiped_session_ingestion_patch_is_reported(sc, box):
+    """An upgrade restores the stock 240-message sweep and the first-N cursor."""
+    (box["dist"] / "dreaming-phases-eee.js").write_text(
+        "const SESSION_INGESTION_MAX_MESSAGES_PER_SWEEP = 240;\n")
+    severity, message = _run(sc)
+    assert severity == sc.WARNING
+    assert "session-ingestion patch missing" in message
 
 
 def test_wrong_promotion_report_target_is_reported(sc, box):

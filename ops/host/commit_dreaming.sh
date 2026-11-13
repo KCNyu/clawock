@@ -56,6 +56,22 @@ if [ "$DREAMS_OK" = 1 ] && ! python3 "$WS/ops/host/review_dreams.py" --workspace
   DREAMS_OK=0
 fi
 
+# Dispatch/task intake: a model distils the queued kcn words and task outcomes.
+# Fail-soft: an unreachable model leaves the raw items private for the next run.
+MEMORY_KIT="${SHARED_MEMORY_SKILL_DIR:-$HOME/.agents/skills/shared-memory}"
+if [ -r "$MEMORY_KIT/scripts/intake.py" ]; then
+  if ! timeout 600 python3 "$MEMORY_KIT/scripts/intake.py" --store "$STORE" \
+      --repo "$WS" run --limit 20; then
+    echo "$(date -Is) dreaming-commit: memory intake failed; raw items stay queued"
+  fi
+fi
+
+# The missing reviewer: the deterministic gate only approves an exact hash-bound
+# receipt. This model writes one for clean candidates; failures leave them pending.
+if ! timeout 600 python3 "$WS/ops/host/review_dreaming_llm.py" --workspace "$WS" --store "$STORE"; then
+  echo "$(date -Is) dreaming-commit: model review failed; candidates stay pending"
+fi
+
 # MEMORY: reviewed candidates -> public store topics -> regenerated MEMORY.md.
 # promote_dreaming.py snapshots the store, writes only approved candidates, runs
 # verify/doctor, and restores the previous projection if generation fails.

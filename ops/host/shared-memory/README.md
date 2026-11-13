@@ -11,6 +11,8 @@ an empty store and grows the user's own.
 | `scripts/memory.py` | format owner: read, search, add/update/archive, index routing, `doctor` (stdlib only) |
 | `scripts/memctl` | history, audit and wiring checks around the store (stdlib only; PyYAML optional for the dsh profile check) |
 | `scripts/recall.py` | private recall counter (`recall.jsonl`, `recall-stats.json`) shared by `memory.py` and the OpenClaw supplement |
+| `scripts/intake.py` | private dispatch/task queue, one-shot model distillation, deterministic screen and de-dupe; writes through `memory.py` |
+| `scripts/llm_json.py` | one-shot `openclaw infer model run` call and strict JSON extraction for the memory jobs |
 | `scripts/retire.py` | nightly nomination report: stale, unused, superseded and duplicate topics; never edits the store |
 | `scripts/replay.py` | nightly consolidation candidates (duplicates, contradictions, unused high-salience) under `memory/.replay/`; never edits the store |
 | `hooks/claude-hook.sh` | Claude Code `PostToolUse` / `SessionStart` hook |

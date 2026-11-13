@@ -9,8 +9,11 @@ two existing host-extension installers. Gateway restart remains a separate step.
 
 `openclaw-patches/manifest.json` owns ordered patch IDs, adapter paths, target
 selectors and required postconditions. The eleven shell adapters live beside it;
-`patch_dreaming_fallbacks.py`, `patch_dreaming_review.py` and
-`patch-memory-local-warmup.py` are the three Python adapters.
+`patch_dreaming_fallbacks.py`, `patch_dreaming_review.py`,
+`patch-dreaming-session-ingestion.py` and `patch-memory-local-warmup.py` are the four
+Python adapters. The session-ingestion adapter changes only which transcript messages
+dreaming sees (budget, append-only cursor, direct-chat priority), not scoring or the
+review rules; it is version-pinned and must be replayed after an upgrade.
 `patch-vector-knn-oversample.sh` is the memory-recall KNN fix; its measured
 rationale and the 8 → 1 argument are in the adapter's header.
 `patch-memory-local-warmup.py` probes the local embedding provider 5s after

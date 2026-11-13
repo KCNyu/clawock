@@ -234,6 +234,12 @@ def write_topic(store: Path, memory_py: Path, memctl: Path, entry: dict, receipt
     if path.exists():
         raise PromotionError(f"topic already exists without this candidate's marker: {path.name}")
     body = body_with_metadata(entry, topic_body(entry, receipt), order)
+    scope = (receipt.get("scope") or "memory").strip()
+    salience = (receipt.get("salience") or "normal").strip()
+    if scope not in ("engineering", "investment", "persona", "memory"):
+        raise PromotionError(f"{entry['key']}: invalid review scope {scope!r}")
+    if salience not in ("high", "normal", "low"):
+        raise PromotionError(f"{entry['key']}: invalid review salience {salience!r}")
     try:
         provenance.assert_public_sources(f"dreaming candidate {entry['key']}", body, store)
     except provenance.ProvenanceError as exc:
@@ -248,8 +254,8 @@ def write_topic(store: Path, memory_py: Path, memctl: Path, entry: dict, receipt
         env["SHARED_MEMORY_MEMCTL"] = str(memctl)
         run([sys.executable, str(memory_py), "add", slug,
              "--summary", memory_tool.one_line(receipt["conclusion"]),
-             "--body-file", name, "--type", "project", "--scope", "memory",
-             "--salience", "normal", "--status", "verified", "--publish", "public"],
+             "--body-file", name, "--type", "project", "--scope", scope,
+             "--salience", salience, "--status", "verified", "--publish", "public"],
             env=env, what=f"store write for {slug}")
     finally:
         try:

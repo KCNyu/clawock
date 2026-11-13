@@ -67,8 +67,14 @@ is their one implementation, and a topic over the byte budget is skipped by name
 
 **Dreaming, once.** 03:00 HKT candidates and the 03:20 HKT hash-bound review gate run against the
 unified store. Candidates carry the source agent and the transcript they came from. The gate writes
-topics and, in the same run, regenerates the publish projection. There is no second dreaming job and
-no second reviewer.
+topics and, in the same run, regenerates the publish projection. There is no second dreaming job.
+
+The gate now has the reviewer it was missing: `review_dreaming_llm.py` reads the clean candidates,
+asks one model for a one-line conclusion per candidate, re-screens that conclusion with the same
+deterministic rules, and writes the hash-bound receipt `review_dreaming.py` already required. It can
+only make the gate stricter. Dispatched coding work and the owner's dispatch briefs enter through a
+separate private queue (`intake.py`), not through a second store; see
+[`dispatch-memory-intake.md`](dispatch-memory-intake.md).
 
 ## Write schema
 
@@ -153,6 +159,7 @@ review queue only: no store or `DREAMS.md` write, and no `commit_dreaming.sh` ca
 | P2 | Backfill + merge; `MEMORY.md` sections become topics | every current `MEMORY.md` line resolves to one topic or is listed as dropped with a reason |
 | P3 | Injection: direct chat, workers and investment crons read their scoped view | `inject --audience` matches the policy; no investment note reaches a worker brief and no engineering note reaches a report |
 | P4 | Single dreaming engine; publish projection generated | 03:20 gate writes topics and regenerates `MEMORY.md`; the repo diff contains only `publish: public` |
+| P5 | Intake feeds the gate: direct-chat transcript coverage, model review receipts, dispatch/task capture | a direct chat appears in `session-corpus`; a repeated dispatch rule is covered by an existing topic; a clean candidate gets a receipt and promotes |
 
 P4 is implemented by `ops/host/promote_dreaming.py`: the 03:20 gate reuses the hash-bound review,
 writes each approved conclusion as a new `publish: public` topic with the next contiguous
@@ -178,13 +185,14 @@ nothing.
   `MEMORY.md` and its hash manifest are checked by `tests/test_memory_publish.py`; a hand-added or
   non-public section fails CI.
 - **Gate overload.** One 03:20 review over every agent's transcripts is more candidates than one
-  reviewer can hold. Mitigation: cap per-source candidates per night and keep the review hash-bound,
-  so an unreviewed night promotes nothing.
+  reviewer can hold. Mitigation: cap per-source candidates per night, keep the review hash-bound, and
+  batch the model review so an unreviewed or malformed night promotes nothing.
 
 ## What does not change
 
 - Weights, in-context learning and compaction are still not memory.
-- No per-turn automatic extractor: notes are written when an agent records a durable conclusion.
+- No per-turn automatic extractor: notes are written when an agent records a durable conclusion,
+  or by the per-task dispatch/task intake after a model has distilled it. Neither path stores raw chat.
 - No vector service or graph database; literal search plus facets plus the assistant's semantic
   search is the retrieval layer.
 - No split `MEMORY.md` per domain and no moved site inputs. The repository's `MEMORY.md`, `DREAMS.md`,

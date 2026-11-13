@@ -34,6 +34,9 @@ belongs here.
   the learning loop and the evaluations that keep them honest.
 - [`agent-memory-unified.md`](architecture/agent-memory-unified.md) — the target: one shared
   store with scoped injection and publishing views, and the P0–P4 path to it.
+- [`dispatch-memory-intake.md`](architecture/dispatch-memory-intake.md) — how a dispatch
+  brief or a finished task becomes a reviewed topic, and why the 03:20 dreaming gate had
+  approved nothing.
 
 ## Product surfaces
 
@@ -68,7 +71,7 @@ belongs here.
   latest code on the host without a release.
 - [`openclaw-patch-kit.md`](operations/openclaw-patch-kit.md) — versioned dist adaptations, isolated rehearsal, transaction receipts and guarded rollback.
 - [`sqlite-maintenance.md`](operations/sqlite-maintenance.md) — offline checkpoint/VACUUM for the OpenClaw memory index and state store, rollback and the quarterly cron job.
-- [`dreaming-review.md`](operations/dreaming-review.md) — private candidates, explicit review receipts, permanent promotion and rollback.
+- [`dreaming-review.md`](operations/dreaming-review.md) — private candidates, deterministic screening, model review receipts, permanent promotion and rollback.
 - [`models.md`](operations/models.md) — `config/models.toml`: every model, its parameters and which scenario uses it; OpenClaw, cron, dsh and the MiniMax client follow it.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of
   the tracked cron contract.
