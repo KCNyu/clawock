@@ -115,3 +115,33 @@ def test_naming_a_section_in_a_sentence_does_not_satisfy_it(tmp_path):
                     encoding='utf-8')
     written = brief_postflight.validate_markdown(path, context)
     assert not any('大盘速读' in issue or '社交舆情' in issue for issue in written)
+
+
+def test_a_watch_level_from_another_ticker_is_critical():
+    """#3447: SPCX's 120.39 in `spch_prior_20d_low` at a 7.97 quote."""
+    plan = {'watch_levels': {
+        'spch_prior_20d_low': 120.39,
+        'spcx_prior_20d_low': 120.39,
+        'hstech_breakdown': 3912,
+        'hk_leg_force_derisk_hkd': -80000,
+        'spch_breakdown_pct': -4,
+    }}
+    packet = {'tickers': {
+        'SPCH': {'facts': {'current_price': 7.97}},
+        'SPCX': {'facts': {'current_price': 139.94}},
+    }}
+    issues = brief_postflight._watch_level_scale_issues(plan, packet)
+    assert len(issues) == 1
+    assert 'spch_prior_20d_low' in issues[0] and '15.1 倍' in issues[0]
+    assert 'critical' in issues[0]
+    assert 'plan.json watch_levels' in brief_postflight.CRITICAL_KEYWORDS
+
+
+def test_a_plausible_watch_level_is_not_flagged():
+    plan = {'watch_levels': {
+        'spch_prior_20d_low': 5.93,      # the real SPCH 20d low
+        'spch_breakdown': 7.0,           # 1.14x from 7.97
+        'spch_target': 79.0,             # 9.9x: below the 10x gate
+    }}
+    packet = {'tickers': {'SPCH': {'facts': {'current_price': 7.97}}}}
+    assert brief_postflight._watch_level_scale_issues(plan, packet) == []

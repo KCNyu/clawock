@@ -664,8 +664,22 @@ def _detect_followed(row, min_window_days=None):
 
 
 def compute_reflections(portfolio):
-    """Episode-level lessons for currently held tickers."""
+    """Episode-level lessons for currently held tickers, same-ticker and cross-ticker.
+
+    The per-ticker axis answers "what did this name do last time"; a thin name
+    (n=1/2) cannot answer "what does this action do across the book". The
+    `cross_ticker` axis supplies that baseline without the ticker's own rows
+    (#3460). It is deterministic, a few dozen bytes per bucket, and never
+    enters the packet projection.
+    """
     rows = decision_v2.episode_representatives(decision_v2.load_decisions(), 't1')
+    settled_all = [
+        r for r in rows
+        if (r.get('evaluation') or {}).get('outcome') in ('win', 'loss', 'flat')
+    ]
+    buckets_all = {}
+    for r in settled_all:
+        buckets_all.setdefault(r['action'], []).append(r)
 
     held = {h['ticker'] for leg in ('hk_stocks', 'us_stocks')
             for h in ledger_rows(portfolio['portfolios'][leg]['holdings']) if (_share_number(h.get('shares', 0)) or 0) > 0}
@@ -688,10 +702,26 @@ def compute_reflections(portfolio):
                     'hold_and_watch': '持', 't_only': 'T'}.get(b, b)
             lessons.append(f'{verb}×{len(rs)} 胜{w}')
         recent = settled[-3:]
+        # A name with a thin bucket cannot see the book's base rate for that
+        # action from its own rows. Only the buckets that are thin (n<10) and
+        # have at least five rows elsewhere are worth the bytes.
+        cross = []
+        for action, own_rows in by_b.items():
+            if len(own_rows) >= 10:
+                continue
+            others = [r for r in buckets_all.get(action, []) if r['ticker'] != tk]
+            if len(others) < 5:
+                continue
+            other_wins = sum(1 for r in others
+                             if (r.get('evaluation') or {}).get('outcome') == 'win')
+            cross.append({'action': action, 'n': len(others), 'win': other_wins,
+                          'win_rate': round(other_wins / len(others), 2)})
+        cross.sort(key=lambda row: (-row['n'], row['action']))
         out[tk] = {
             'n': len(settled),
             'win_rate': round(wins / len(settled), 2),
             'bucket_history': '; '.join(lessons),
+            **({'cross_ticker': cross[:3]} if cross else {}),
             'recent': [{'date': r['plan_date'], 'strategy_id': r.get('strategy_id'),
                         'action': r['action'], 'conf': r.get('confidence'),
                         'outcome': (r.get('evaluation') or {}).get('outcome'),

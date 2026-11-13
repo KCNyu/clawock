@@ -125,3 +125,62 @@ def test_a_flat_episode_counts_in_the_ticker_win_rate_denominator(monkeypatch):
     assert out["win_rate"] == 0.33
     assert out["bucket_history"] == "持×3 胜1"
     assert [r["outcome"] for r in out["recent"]] == ["win", "loss", "flat"]
+
+
+def test_a_thin_ticker_bucket_sees_the_rest_of_the_books_base_rate(monkeypatch):
+    """#3460: 07709's `cut` n=1 and SPCX's add n=2 cannot carry the base rate.
+
+    The cross axis must exclude the ticker's own contribution and stay
+    deterministic; it is context-only, not a new packet field.
+    """
+    from clawock.harness import brief_preflight
+
+    def row(ticker, action, outcome, day):
+        return {"ticker": ticker, "plan_date": day, "action": action,
+                "evaluation": {"outcome": outcome}}
+
+    rows = [
+        # LEVX's own bucket: must not be counted in its cross row.
+        row("LEVX", "add_only_on_trigger", "win", "2026-09-01"),
+        # Other names: 3 wins / 2 losses on the same action.
+        row("AAA", "add_only_on_trigger", "win", "2026-09-01"),
+        row("BBB", "add_only_on_trigger", "win", "2026-09-02"),
+        row("CCC", "add_only_on_trigger", "win", "2026-09-03"),
+        row("DDD", "add_only_on_trigger", "loss", "2026-09-04"),
+        row("EEE", "add_only_on_trigger", "loss", "2026-09-05"),
+        # A different bucket with no cross sample is omitted.
+        row("LEVX", "cut", "loss", "2026-09-06"),
+    ]
+    monkeypatch.setattr(brief_preflight.decision_v2, "load_decisions", lambda: rows)
+    monkeypatch.setattr(brief_preflight.decision_v2, "episode_representatives",
+                        lambda rs, _h: rs)
+    portfolio = {"portfolios": {
+        "hk_stocks": {"holdings": []},
+        "us_stocks": {"holdings": [{"ticker": "LEVX", "shares": 10}]},
+    }}
+
+    out = brief_preflight.compute_reflections(portfolio)["LEVX"]
+    assert out["cross_ticker"] == [{
+        "action": "add_only_on_trigger", "n": 5, "win": 3, "win_rate": 0.6,
+    }]
+    assert "cut" not in {row["action"] for row in out["cross_ticker"]}
+
+
+def test_a_sufficient_own_bucket_does_not_get_a_cross_row(monkeypatch):
+    from clawock.harness import brief_preflight
+
+    def row(ticker, action, outcome, day):
+        return {"ticker": ticker, "plan_date": day, "action": action,
+                "evaluation": {"outcome": outcome}}
+
+    rows = [row("LEVX", "hold_and_watch", "win" if i % 2 else "loss",
+                f"2026-09-{i + 1:02d}") for i in range(10)]
+    rows += [row(t, "hold_and_watch", "win", "2026-10-01") for t in ("AAA", "BBB")]
+    monkeypatch.setattr(brief_preflight.decision_v2, "load_decisions", lambda: rows)
+    monkeypatch.setattr(brief_preflight.decision_v2, "episode_representatives",
+                        lambda rs, _h: rs)
+    portfolio = {"portfolios": {
+        "hk_stocks": {"holdings": []},
+        "us_stocks": {"holdings": [{"ticker": "LEVX", "shares": 10}]},
+    }}
+    assert "cross_ticker" not in brief_preflight.compute_reflections(portfolio)["LEVX"]
