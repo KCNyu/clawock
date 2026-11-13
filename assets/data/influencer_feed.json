@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-12T20:29:45.826485+00:00",
+  "generated_at": "2026-11-13T02:05:00.824011+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,35 +24,129 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 17,
-    "held_hits": 0,
-    "new_ideas": 15,
-    "sector_hits": 0
+    "total": 24,
+    "held_hits": 4,
+    "new_ideas": 16,
+    "sector_hits": 4
   },
   "items": [
     {
-      "author": "Trump",
-      "text": "NOW THAT Nvidia CEO JENSEN HUANG, who has done a fantastic job, has resigned, there is only one man to take his place - TIM COOK of Apple. A Legend replaces a Legend! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43560",
-      "published": "2026-11-12T15:29:03+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "SpaceX plans over $74 billion investment in Texas, Arizona AI campuses",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 20:23:24 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
       "tickers": [
-        "NVDA",
-        "AAPL"
+        "SPCX"
       ],
-      "held": [],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "人工智能",
+        "数据中心",
+        "资本开支"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "SPCH"
+      ],
+      "stance": "buy",
+      "relevance": 84,
+      "summary_cn": "报道称SpaceX计划在得州和亚利桑那投资超过740亿美元建设AI园区，直接强化其AI基础设施与资本开支叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX, Tesla merger talks progress, Bloomberg News reports",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 21:15:43 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "TSLA",
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
       "new_ideas": [
-        "AAPL",
-        "NVDA"
+        "TSLA"
       ],
       "sectors": [
-        "半导体",
-        "消费电子"
+        "航天",
+        "电动车",
+        "企业并购"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 82,
+      "summary_cn": "据彭博报道，SpaceX与特斯拉的合并谈判取得进展，可能推动特斯拉航天业务及SpaceX估值重估。"
+    },
+    {
+      "author": "Musk",
+      "text": "A 68-Year-Old Retiree Bought 1,000 Tesla Shares at $108 in January 2023. Now Musk Could Merge Tesla Into SpaceX by December, and a 15% Premium Would Turn Her Stake Into About 3,270 SpaceX Shares",
+      "url": "",
+      "published": "Fri, 13 Nov 2026 00:17:00 GMT",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "TSLA",
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "企业并购"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "特朗普称黄仁勋卸任英伟达CEO后应由苹果CEO蒂姆·库克接任，并同时称赞二人。"
+      "relevance": 75,
+      "summary_cn": "报道以特斯拉股东换股案例说明，若马斯克推动SpaceX合并特斯拉，合并溢价可能显著提升股东持股价值。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Surges as Speculation Grows Over Jensen Huang Teaming Up With Elon Musk",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 18:49:54 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "人工智能",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "报道称围绕黄仁勋与马斯克合作的猜测升温，推动SpaceX股价上涨。"
     },
     {
       "author": "Burry",
@@ -70,12 +164,150 @@
       ],
       "sectors": [
         "半导体",
-        "AI"
+        "人工智能",
+        "公司治理"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "07709"
+      ],
       "stance": "attack",
-      "relevance": 86,
-      "summary_cn": "据报道迈克尔·伯里在黄仁勋离任后主张投资者撤出英伟达股票，表达明显看空态度。"
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry因黄仁勋离任而主张退出英伟达股票，释放明确的看空信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says Nvidia Has Bigger Problems Than Jensen Huang",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNN0d0N1o2SDlLODlwZHdSeGxYV3NBTEIzVjRNb2ZCSk8xREFBakJaSVF4cTE2dDZqLVFwUXpMNkh5WF9HRkFESU1xbUt2RFQxRllvYkI3WjNPc2htdkZaM2JZRnJrSW80VEF3cHNPVnRqcmVjNzBoOVVhbHU5VTRobGE4ZWluY2dLRzBrRkhwaXEzVFJobFlaeVpwcFctV3Vkc1JCT1NuN3JiUmM?oc=5",
+      "published": "2026-11-12T17:55:00+00:00",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 85,
+      "summary_cn": "据报道，Michael Burry称英伟达面临的问题比黄仁勋离任本身更严重，对该公司前景持负面态度。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry warned Jensen Huang affair could invite antitrust crackdown on Nvidia",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5aS19oeHNOd182Tkh0RG9taHpOSndKZko5UWFPaXBURkg4aXQxandRdGhKMDRTTHpJN3RUUGh1RHkyc2t5ZmRtRWRQRld4Vlc1UFAzZTMxTTFLSGhQN19vNHB1UGZ0VFJTc2EtX2FhVVlVcUZBMWtaTDVrTU5CUXM?oc=5",
+      "published": "2026-11-12T13:11:07+00:00",
+      "origin": "gnews-rss",
+      "source": "Quartz",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "反垄断",
+        "监管"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 85,
+      "summary_cn": "据报道，Michael Burry警告黄仁勋相关事件可能招致对英伟达的反垄断审查，增加监管风险。"
+    },
+    {
+      "author": "Burry",
+      "text": "“The Don Has Fallen.” Michael Burry Says Nvidia Is Losing Its “Enforcer,” Warns “The Key-Man Risk at NVIDIA Always Was a Worry” and Cites Reports Jensen Huang Had as Many as 60 Direct Reports and Delegated Little",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQN3VqbFVKWFFnM1c0aHdud1lTb0VVRmRXOGt4VWdhN255N2FGVEgtcG1GSGJ0RG5RWXRPYzIwaDRxWkRReDJJZmJIdkxlQkZxaW9oeVNTNGNpdHZVQ1NDUVkwYUd6cjVxMk5pWlgtYTdtc29vWmozVzd0WlZtZzRQYkNETEF0c19KRjVIMWRhcXFtVlBOQS1RZHJB?oc=5",
+      "published": "2026-11-12T16:16:01+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 84,
+      "summary_cn": "据报道，Michael Burry认为英伟达正在失去其核心领导人，并警告黄仁勋一直存在关键人物风险。"
+    },
+    {
+      "author": "Trump",
+      "text": "NOW THAT Nvidia CEO JENSEN HUANG, who has done a fantastic job, has resigned, there is only one man to take his place - TIM COOK of Apple. A Legend replaces a Legend! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43560",
+      "published": "2026-11-12T15:29:03+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "NVDA",
+        "AAPL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL",
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "消费电子"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "特朗普声称黄仁勋已辞任并应由苹果的库克接任，暗示对英伟达领导层及治理能力的负面评价。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry calls Nvidia 'a heck of a trade' while betting big on MercadoLibre (NVDA:NASDAQ)",
+      "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPbElEcU1VT2FXQU1GLUN5NlVlVl9GWmRUcmJyWmpLaUphTnF4QUotMmlEd2JPWmEtRWhZenUwR0w5dW9zZ3YyeGRJcFkxb3lzRXdtaGJmMllrcWlzMVByY19JM2NLeUJFTDk2MERjcUw2Y1NGWkZQVzZIN3VKdkNIYWowaUtSN2x1MjdDbU1mM0dOTUVOX3ZvbFVoN0FoTzNsNElWay1WZ19ZVENXaUNSN2poTmpvaWM?oc=5",
+      "published": "2026-11-11T06:08:56+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "NVDA",
+        "MELI"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MELI",
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "电商",
+        "金融科技"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry称英伟达是一笔“非常棒的交易”，同时押注MercadoLibre（MELI），对两只股票均表达积极态度。"
     },
     {
       "author": "Pelosi",
@@ -85,55 +317,29 @@
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
-        "WBD",
-        "PSKY"
+        "WBD"
       ],
       "held": [],
       "new_ideas": [
-        "PSKY",
         "WBD"
       ],
       "sectors": [
         "传媒",
         "娱乐",
-        "并购"
+        "企业并购"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 80,
-      "summary_cn": "最新国会披露显示，佩洛西持有的华纳兄弟股份已在派拉蒙交易中变现，所得约相当于其年薪的43%。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry buys back into Lululemon, adds to other positions",
-      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNWTRSY242cms3TnhJak45bXI3VW1NTjBsdVJuWnE5VGJ5ZnVPdG0ySC1YcVllSVp1SllQbFVXcktmQVRiYjJLeWxGT3d3S1dfSGVmMzRpaEJoMk1zZnp5X0RQQjdrMURIRUZ0Wl95Ulh0a01sLVlmQUNPQkZSMUhyTHZJZG1IZXl3YnE4clkxb2Q4TlA2WWFqeVV2Q3VFWW8?oc=5",
-      "published": "2026-11-11T19:24:55+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "LULU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "LULU"
-      ],
-      "sectors": [
-        "消费",
-        "运动服饰",
-        "零售"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "据报道迈克尔·伯里重新买入Lululemon（LULU），并增加了其他持仓。"
+      "relevance": 76,
+      "summary_cn": "最新国会披露显示，Pelosi在派拉蒙交易中退出其华纳兄弟探索（WBD）持股，所套现金额约相当于其年薪的43%。"
     },
     {
       "author": "Musk",
-      "text": "Tesla extending Cybertruck production through summer 2027 to clear backlog, Elon Musk says",
+      "text": "‘The end of Tesla!’: Cybertruck diehards turn on Elon Musk after he pulls the plug",
       "url": "",
-      "published": "Wed, 11 Nov 2026 19:55:13 GMT",
+      "published": "Thu, 12 Nov 2026 17:00:17 GMT",
       "origin": "gnews-rss",
-      "source": "CBS News",
+      "source": "The Verge",
       "tickers": [
         "TSLA"
       ],
@@ -143,36 +349,13 @@
       ],
       "sectors": [
         "电动车",
-        "汽车"
+        "消费电子",
+        "产品战略"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 74,
-      "summary_cn": "据报道，马斯克称特斯拉将把Cybertruck生产延长至2027年夏天，以消化积压订单。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Robotaxi Now Works 24/7 While Elon Musk's Robots Head to Optimus Academy",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 17:21:33 GMT",
-      "origin": "gnews-rss",
-      "source": "BeInCrypto",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "机器人"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 73,
-      "summary_cn": "据报道，特斯拉Robotaxi已实现全天候运营，同时马斯克旗下机器人正进入Optimus学院阶段。"
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "报道称Cybertruck拥趲因马斯克叫停相关产品而反弹，显示特斯拉产品路线调整正引发客户不满。"
     },
     {
       "author": "Cathie Wood",
@@ -191,62 +374,12 @@
       ],
       "sectors": [
         "生物科技",
-        "基因治疗"
+        "基因编辑"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest买入Prime Medicine（PRME）1,744,714股，单只ETF占比0.31%。"
-    },
-    {
-      "author": "Musk",
-      "text": "‘The end of Tesla!’: Cybertruck diehards turn on Elon Musk after he pulls the plug",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 17:00:17 GMT",
-      "origin": "gnews-rss",
-      "source": "The Verge",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "汽车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据报道，马斯克取消Cybertruck相关计划后引发部分车主不满，相关报道以“特斯拉的终结”描述市场反应。"
-    },
-    {
-      "author": "Musk",
-      "text": "How the SpaceX Stock Slump Complicates Elon Musk’s Tesla Merger",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 14:48:18 GMT",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，SpaceX股价下滑增加了其与特斯拉合并的复杂性，涉及特斯拉潜在合并交易。"
+      "relevance": 71,
+      "summary_cn": "ARK Invest买入174.47万股Prime Medicine（PRME），单只ARKG ETF仓位占比0.31%。"
     },
     {
       "author": "Cathie Wood",
@@ -265,12 +398,12 @@
       ],
       "sectors": [
         "生物科技",
-        "AI制药"
+        "人工智能制药"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest卖出Absci（ABSI）478,402股，单只ETF占比0.24%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest卖出47.84万股Absci（ABSI），单只ARKG ETF仓位占比0.24%。"
     },
     {
       "author": "Cathie Wood",
@@ -289,12 +422,35 @@
       ],
       "sectors": [
         "电动车",
-        "新能源汽车"
+        "新能源车"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 65,
-      "summary_cn": "ARK Invest卖出比亚迪（BYDDY）220,351股，单只ETF占比0.11%。"
+      "relevance": 66,
+      "summary_cn": "ARK Invest卖出22.04万股比亚迪ADR（BYDDY），单只ARKQ ETF仓位占比0.11%。"
+    },
+    {
+      "author": "Trump",
+      "text": "Lilly breaks ground in Pennsylvania's Lehigh Valley on a $3.5 billion site to make next-generation obesity medicines, the latest of 10 new U.S. sites since 2020: https://investor.lilly.com/news-releases/news-release-details/lilly-breaks-ground-pennsylvanias-lehigh-valley-35-billion-site",
+      "url": "https://www.trumpstruth.org/statuses/43565",
+      "published": "2026-11-13T00:18:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "LLY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LLY"
+      ],
+      "sectors": [
+        "医药",
+        "减肥药",
+        "医疗产能"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "礼来在宾夕法尼亚州破土建设35亿美元下一代肥胖药生产基地，显示其持续扩大美国减重药产能。"
     },
     {
       "author": "Cathie Wood",
@@ -313,12 +469,13 @@
       ],
       "sectors": [
         "电动车",
-        "航空"
+        "航空出行",
+        "无人机"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 56,
-      "summary_cn": "ARK Invest买入Archer Aviation（ACHR），涉及ARKK、ARKQ和ARKX，单只ETF占比最高0.04%。"
+      "relevance": 60,
+      "summary_cn": "ARK Invest在多只主题ETF合计买入Archer Aviation（ACHR），单只ETF仓位占比0.04%。"
     },
     {
       "author": "Cathie Wood",
@@ -339,10 +496,13 @@
         "国防",
         "航空航天"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "buy",
-      "relevance": 55,
-      "summary_cn": "ARK Invest买入Kratos Defense & Security Solutions（KTOS），涉及ARKK和ARKQ，单只ETF占比最高0.04%。"
+      "relevance": 58,
+      "summary_cn": "ARK Invest在ARKK和ARKQ合计买入Kratos Defense & Security Solutions（KTOS），单只ETF仓位占比0.04%。"
     },
     {
       "author": "Musk",
@@ -359,12 +519,14 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车"
+        "电动车",
+        "公司治理",
+        "美国政策"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 53,
-      "summary_cn": "据报道，马斯克回应共和党议员邀请，提议将特斯拉总部迁至佛罗里达。"
+      "relevance": 57,
+      "summary_cn": "据报道，美国众议院共和党议员邀请马斯克将特斯拉总部迁至佛罗里达，涉及特斯拉潜在政策与治理利好。"
     },
     {
       "author": "Cathie Wood",
@@ -385,10 +547,38 @@
         "航空航天",
         "国防"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "sell",
-      "relevance": 52,
-      "summary_cn": "ARK Invest卖出Honeywell Aerospace（HONA）3,335股，单只ETF占比0.08%，属于常规再平衡规模。"
+      "relevance": 56,
+      "summary_cn": "ARK Invest卖出3,335股Honeywell Aerospace（HONA），单只ARKX ETF仓位占比0.08%，属于较低规模的常规调仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Could Elon Musk End Up as Jensen Huang’s Boss? ‘That Would Be an Honor.’",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 15:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "航天",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "07709",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "媒体报道称马斯克表示若能接替黄仁勋将成为荣幸，引出了其未来掌管英伟达并整合AI与航天业务的猜想。"
     },
     {
       "author": "Trump",
@@ -401,13 +591,43 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "墨西哥供应链",
-        "汽车"
+        "移民政策",
+        "宏观经济"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "attack",
-      "relevance": 74,
-      "summary_cn": "特朗普威胁若墨西哥不阻止非法移民车队进入美国，将立即把对墨西哥关税提高一倍。"
+      "relevance": 67,
+      "summary_cn": "特朗普威胁在对墨西哥实施移民措施期间将对其关税立即翻倍，增加贸易政策不确定性。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk Offers To Hire Huang; Prediction Markets Capitalize On Scandal",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 21:23:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "航天",
+        "预测市场"
+      ],
+      "sector_holdings": [
+        "07709",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 66,
+      "summary_cn": "据报道，马斯克提出聘用黄仁勋后，预测市场迅速交易这一潜在AI与航天人才整合事件。"
     },
     {
       "author": "Trump",
@@ -422,14 +642,241 @@
         "国防",
         "财政政策"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "特朗普呼吁参议院立即推进3500亿美元和解法案，为美国国防军事投入提供资金。"
+      "relevance": 58,
+      "summary_cn": "特朗普呼吁参议院立即推进3500亿美元预算和解法案，以增加国防投入。"
     }
   ],
-  "held_hits": [],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX plans over $74 billion investment in Texas, Arizona AI campuses",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 20:23:24 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "人工智能",
+        "数据中心",
+        "资本开支"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "SPCH"
+      ],
+      "stance": "buy",
+      "relevance": 84,
+      "summary_cn": "报道称SpaceX计划在得州和亚利桑那投资超过740亿美元建设AI园区，直接强化其AI基础设施与资本开支叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX, Tesla merger talks progress, Bloomberg News reports",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 21:15:43 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "TSLA",
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "企业并购"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "neutral",
+      "relevance": 82,
+      "summary_cn": "据彭博报道，SpaceX与特斯拉的合并谈判取得进展，可能推动特斯拉航天业务及SpaceX估值重估。"
+    },
+    {
+      "author": "Musk",
+      "text": "A 68-Year-Old Retiree Bought 1,000 Tesla Shares at $108 in January 2023. Now Musk Could Merge Tesla Into SpaceX by December, and a 15% Premium Would Turn Her Stake Into About 3,270 SpaceX Shares",
+      "url": "",
+      "published": "Fri, 13 Nov 2026 00:17:00 GMT",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "TSLA",
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "企业并购"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "报道以特斯拉股东换股案例说明，若马斯克推动SpaceX合并特斯拉，合并溢价可能显著提升股东持股价值。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX Surges as Speculation Grows Over Jensen Huang Teaming Up With Elon Musk",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 18:49:54 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX"
+      ],
+      "held": [
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "人工智能",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "SPCH"
+      ],
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "报道称围绕黄仁勋与马斯克合作的猜测升温，推动SpaceX股价上涨。"
+    }
+  ],
   "new_ideas": [
+    {
+      "author": "Burry",
+      "text": "'Big Short' Michael Burry says to 'get out' of Nvidia stock on CEO Jensen Huang's exit",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPd2ZfSEVOZ0dxVGxfNzhseFdvZURIQlRlRjBxbnVEbWlqZkpiODNDWGVEQXdTaGtXMVFlc2pITzVYcDBuWC1sS2hoSHJTdFB2NEZVVjUtbXp3VUJ1Z2J3cmlKZVRnRi00c2plaUJ5V1FnMVJNRmEzS3ltQVdaZjhaWHZSenkzUXJ3bXZMb2UxWXFHLWRzNHFTUExEdk8tY3YyX0xadzBB?oc=5",
+      "published": "2026-11-12T15:20:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry因黄仁勋离任而主张退出英伟达股票，释放明确的看空信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says Nvidia Has Bigger Problems Than Jensen Huang",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNN0d0N1o2SDlLODlwZHdSeGxYV3NBTEIzVjRNb2ZCSk8xREFBakJaSVF4cTE2dDZqLVFwUXpMNkh5WF9HRkFESU1xbUt2RFQxRllvYkI3WjNPc2htdkZaM2JZRnJrSW80VEF3cHNPVnRqcmVjNzBoOVVhbHU5VTRobGE4ZWluY2dLRzBrRkhwaXEzVFJobFlaeVpwcFctV3Vkc1JCT1NuN3JiUmM?oc=5",
+      "published": "2026-11-12T17:55:00+00:00",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 85,
+      "summary_cn": "据报道，Michael Burry称英伟达面临的问题比黄仁勋离任本身更严重，对该公司前景持负面态度。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry warned Jensen Huang affair could invite antitrust crackdown on Nvidia",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5aS19oeHNOd182Tkh0RG9taHpOSndKZko5UWFPaXBURkg4aXQxandRdGhKMDRTTHpJN3RUUGh1RHkyc2t5ZmRtRWRQRld4Vlc1UFAzZTMxTTFLSGhQN19vNHB1UGZ0VFJTc2EtX2FhVVlVcUZBMWtaTDVrTU5CUXM?oc=5",
+      "published": "2026-11-12T13:11:07+00:00",
+      "origin": "gnews-rss",
+      "source": "Quartz",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "反垄断",
+        "监管"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 85,
+      "summary_cn": "据报道，Michael Burry警告黄仁勋相关事件可能招致对英伟达的反垄断审查，增加监管风险。"
+    },
+    {
+      "author": "Burry",
+      "text": "“The Don Has Fallen.” Michael Burry Says Nvidia Is Losing Its “Enforcer,” Warns “The Key-Man Risk at NVIDIA Always Was a Worry” and Cites Reports Jensen Huang Had as Many as 60 Direct Reports and Delegated Little",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQN3VqbFVKWFFnM1c0aHdud1lTb0VVRmRXOGt4VWdhN255N2FGVEgtcG1GSGJ0RG5RWXRPYzIwaDRxWkRReDJJZmJIdkxlQkZxaW9oeVNTNGNpdHZVQ1NDUVkwYUd6cjVxMk5pWlgtYTdtc29vWmozVzd0WlZtZzRQYkNETEF0c19KRjVIMWRhcXFtVlBOQS1RZHJB?oc=5",
+      "published": "2026-11-12T16:16:01+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "人工智能",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 84,
+      "summary_cn": "据报道，Michael Burry认为英伟达正在失去其核心领导人，并警告黄仁勋一直存在关键人物风险。"
+    },
     {
       "author": "Trump",
       "text": "NOW THAT Nvidia CEO JENSEN HUANG, who has done a fantastic job, has resigned, there is only one man to take his place - TIM COOK of Apple. A Legend replaces a Legend! President DONALD J. TRUMP",
@@ -447,35 +894,44 @@
       ],
       "sectors": [
         "半导体",
+        "人工智能",
         "消费电子"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "特朗普称黄仁勋卸任英伟达CEO后应由苹果CEO蒂姆·库克接任，并同时称赞二人。"
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "特朗普声称黄仁勋已辞任并应由苹果的库克接任，暗示对英伟达领导层及治理能力的负面评价。"
     },
     {
       "author": "Burry",
-      "text": "'Big Short' Michael Burry says to 'get out' of Nvidia stock on CEO Jensen Huang's exit",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPd2ZfSEVOZ0dxVGxfNzhseFdvZURIQlRlRjBxbnVEbWlqZkpiODNDWGVEQXdTaGtXMVFlc2pITzVYcDBuWC1sS2hoSHJTdFB2NEZVVjUtbXp3VUJ1Z2J3cmlKZVRnRi00c2plaUJ5V1FnMVJNRmEzS3ltQVdaZjhaWHZSenkzUXJ3bXZMb2UxWXFHLWRzNHFTUExEdk8tY3YyX0xadzBB?oc=5",
-      "published": "2026-11-12T15:20:00+00:00",
+      "text": "Michael Burry calls Nvidia 'a heck of a trade' while betting big on MercadoLibre (NVDA:NASDAQ)",
+      "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPbElEcU1VT2FXQU1GLUN5NlVlVl9GWmRUcmJyWmpLaUphTnF4QUotMmlEd2JPWmEtRWhZenUwR0w5dW9zZ3YyeGRJcFkxb3lzRXdtaGJmMllrcWlzMVByY19JM2NLeUJFTDk2MERjcUw2Y1NGWkZQVzZIN3VKdkNIYWowaUtSN2x1MjdDbU1mM0dOTUVOX3ZvbFVoN0FoTzNsNElWay1WZ19ZVENXaUNSN2poTmpvaWM?oc=5",
+      "published": "2026-11-11T06:08:56+00:00",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "Seeking Alpha",
       "tickers": [
-        "NVDA"
+        "NVDA",
+        "MELI"
       ],
       "held": [],
       "new_ideas": [
+        "MELI",
         "NVDA"
       ],
       "sectors": [
         "半导体",
-        "AI"
+        "人工智能",
+        "电商",
+        "金融科技"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 86,
-      "summary_cn": "据报道迈克尔·伯里在黄仁勋离任后主张投资者撤出英伟达股票，表达明显看空态度。"
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "据报道，Michael Burry称英伟达是一笔“非常棒的交易”，同时押注MercadoLibre（MELI），对两只股票均表达积极态度。"
     },
     {
       "author": "Pelosi",
@@ -485,55 +941,29 @@
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [
-        "WBD",
-        "PSKY"
+        "WBD"
       ],
       "held": [],
       "new_ideas": [
-        "PSKY",
         "WBD"
       ],
       "sectors": [
         "传媒",
         "娱乐",
-        "并购"
+        "企业并购"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 80,
-      "summary_cn": "最新国会披露显示，佩洛西持有的华纳兄弟股份已在派拉蒙交易中变现，所得约相当于其年薪的43%。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry buys back into Lululemon, adds to other positions",
-      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNWTRSY242cms3TnhJak45bXI3VW1NTjBsdVJuWnE5VGJ5ZnVPdG0ySC1YcVllSVp1SllQbFVXcktmQVRiYjJLeWxGT3d3S1dfSGVmMzRpaEJoMk1zZnp5X0RQQjdrMURIRUZ0Wl95Ulh0a01sLVlmQUNPQkZSMUhyTHZJZG1IZXl3YnE4clkxb2Q4TlA2WWFqeVV2Q3VFWW8?oc=5",
-      "published": "2026-11-11T19:24:55+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "LULU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "LULU"
-      ],
-      "sectors": [
-        "消费",
-        "运动服饰",
-        "零售"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "据报道迈克尔·伯里重新买入Lululemon（LULU），并增加了其他持仓。"
+      "relevance": 76,
+      "summary_cn": "最新国会披露显示，Pelosi在派拉蒙交易中退出其华纳兄弟探索（WBD）持股，所套现金额约相当于其年薪的43%。"
     },
     {
       "author": "Musk",
-      "text": "Tesla extending Cybertruck production through summer 2027 to clear backlog, Elon Musk says",
+      "text": "‘The end of Tesla!’: Cybertruck diehards turn on Elon Musk after he pulls the plug",
       "url": "",
-      "published": "Wed, 11 Nov 2026 19:55:13 GMT",
+      "published": "Thu, 12 Nov 2026 17:00:17 GMT",
       "origin": "gnews-rss",
-      "source": "CBS News",
+      "source": "The Verge",
       "tickers": [
         "TSLA"
       ],
@@ -543,36 +973,13 @@
       ],
       "sectors": [
         "电动车",
-        "汽车"
+        "消费电子",
+        "产品战略"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 74,
-      "summary_cn": "据报道，马斯克称特斯拉将把Cybertruck生产延长至2027年夏天，以消化积压订单。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Robotaxi Now Works 24/7 While Elon Musk's Robots Head to Optimus Academy",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 17:21:33 GMT",
-      "origin": "gnews-rss",
-      "source": "BeInCrypto",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "机器人"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 73,
-      "summary_cn": "据报道，特斯拉Robotaxi已实现全天候运营，同时马斯克旗下机器人正进入Optimus学院阶段。"
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "报道称Cybertruck拥趲因马斯克叫停相关产品而反弹，显示特斯拉产品路线调整正引发客户不满。"
     },
     {
       "author": "Cathie Wood",
@@ -591,62 +998,12 @@
       ],
       "sectors": [
         "生物科技",
-        "基因治疗"
+        "基因编辑"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "ARK Invest买入Prime Medicine（PRME）1,744,714股，单只ETF占比0.31%。"
-    },
-    {
-      "author": "Musk",
-      "text": "‘The end of Tesla!’: Cybertruck diehards turn on Elon Musk after he pulls the plug",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 17:00:17 GMT",
-      "origin": "gnews-rss",
-      "source": "The Verge",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "汽车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据报道，马斯克取消Cybertruck相关计划后引发部分车主不满，相关报道以“特斯拉的终结”描述市场反应。"
-    },
-    {
-      "author": "Musk",
-      "text": "How the SpaceX Stock Slump Complicates Elon Musk’s Tesla Merger",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 14:48:18 GMT",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，SpaceX股价下滑增加了其与特斯拉合并的复杂性，涉及特斯拉潜在合并交易。"
+      "relevance": 71,
+      "summary_cn": "ARK Invest买入174.47万股Prime Medicine（PRME），单只ARKG ETF仓位占比0.31%。"
     },
     {
       "author": "Cathie Wood",
@@ -665,13 +1022,109 @@
       ],
       "sectors": [
         "生物科技",
-        "AI制药"
+        "人工智能制药"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK Invest卖出Absci（ABSI）478,402股，单只ETF占比0.24%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest卖出47.84万股Absci（ABSI），单只ARKG ETF仓位占比0.24%。"
     }
   ],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Could Elon Musk End Up as Jensen Huang’s Boss? ‘That Would Be an Honor.’",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 15:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "航天",
+        "公司治理"
+      ],
+      "sector_holdings": [
+        "07709",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "媒体报道称马斯克表示若能接替黄仁勋将成为荣幸，引出了其未来掌管英伟达并整合AI与航天业务的猜想。"
+    },
+    {
+      "author": "Trump",
+      "text": "Here we go again! With the perceived loss by the Republicans in the Midterms - I WAS NOT ON THE BALLOT- the INVASION of our Country is taking place again. Huge CARAVANS are forming and beginning their illegal march through Mexico. Many of the people in these Caravans are those that various countries don’t want - “Send them to America,” they say - But they will not be accepted! MEXICO MUST STOP THEM, NOW, and if they do not do so, the Tariffs on Mexico will be IMMEDIATELY DOUBLED. MEXICO, THE GOVERNOR OF TEXAS, THE VERY LIBERAL NEW GOVERNOR OF TEXAS, OUR GREAT BORDER PATROL, & ICE, HAVE BEEN SO",
+      "url": "https://www.trumpstruth.org/statuses/43556",
+      "published": "2026-11-12T12:04:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "移民政策",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 67,
+      "summary_cn": "特朗普威胁在对墨西哥实施移民措施期间将对其关税立即翻倍，增加贸易政策不确定性。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk Offers To Hire Huang; Prediction Markets Capitalize On Scandal",
+      "url": "",
+      "published": "Thu, 12 Nov 2026 21:23:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "半导体",
+        "航天",
+        "预测市场"
+      ],
+      "sector_holdings": [
+        "07709",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 66,
+      "summary_cn": "据报道，马斯克提出聘用黄仁勋后，预测市场迅速交易这一潜在AI与航天人才整合事件。"
+    },
+    {
+      "author": "Trump",
+      "text": "I rebuilt our Military in my First Term, and we’re doing it AGAIN, bigger and better than ever before! The Radical Democrat Majority in the next Congress has already made it clear that their Number One Agenda is to BLOCK and RESIST this historic investment in our National Security. They want to leave our Warriors weak, and unguarded, but the American People want their Warriors SAFE and STRONG.   That’s why TODAY I am calling on Senate Leadership to IMMEDIATELY move on the 350 Billion Dollar Reconciliation Bill to give our brave Warriors the DECISIVE ADVANTAGE they deserve. Our Military must be",
+      "url": "https://www.trumpstruth.org/statuses/43562",
+      "published": "2026-11-12T17:24:53+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国防",
+        "财政政策"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "buy",
+      "relevance": 58,
+      "summary_cn": "特朗普呼吁参议院立即推进3500亿美元预算和解法案，以增加国防投入。"
+    }
+  ]
 }
