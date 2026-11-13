@@ -20,7 +20,7 @@ import shutil
 import subprocess
 
 # Same id as `[models.flash]` in config/models.toml: the memory jobs use the
-# gateway's own MiniMax model (kcn, 2026-11-13).
+# gateway's own MiniMax model.
 DEFAULT_MODEL = "minimax/MiniMax-M3.1-Flash"
 
 
