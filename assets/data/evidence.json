@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-11-12T05:12:16+08:00",
+  "generated_at": "2026-11-13T05:06:53+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -50,7 +50,7 @@
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "56 / 需要 24 · ✅"
+          "value": "57 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -70,7 +70,7 @@
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.02551, 0.02471] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.02634, 0.02574] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
@@ -134,7 +134,7 @@
       "verdict": "🟢 通过",
       "verdict_key": "passed",
       "tone": "good",
-      "sample": "留痕 112 天",
+      "sample": "留痕 113 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 2/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -148,11 +148,11 @@
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 60.0% · CI95 [50.5%, 68.6%] · n=515（93 日 × 12 标的）· ✅ 可入决策"
+          "value": "命中率 59.8% · CI95 [50.6%, 68.3%] · n=520（94 日 × 12 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 59.0% · CI95 [50.2%, 67.2%] · n=636（104 日 × 11 标的）· ✅ 可入决策"
+          "value": "命中率 59.3% · CI95 [50.7%, 67.4%] · n=643（105 日 × 11 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_on_follow`",
@@ -160,10 +160,10 @@
         },
         {
           "label": "`zscore_extreme_revert`",
-          "value": "命中率 47.8% · CI95 [23.6%, 76.0%] · n=46（26 日 × 8 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 49.0% · CI95 [25.6%, 75.6%] · n=49（27 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
         }
       ]
     }
   ],
-  "built_at": "2026-11-12T00:04:47.905530+00:00"
+  "built_at": "2026-11-13T00:05:12.088562+00:00"
 }

@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-12T08:03:36.826332+08:00",
+  "generated_at": "2026-11-13T08:03:40.334365+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-12",
-  "window_end": "2026-11-26",
+  "window_start": "2026-11-13",
+  "window_end": "2026-11-27",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -27,7 +27,7 @@
       "date": "2026-11-09",
       "time": "amc",
       "eps_estimate": -0.0714,
-      "eps_actual": -0.07,
+      "eps_actual": -0.08,
       "revenue_estimate_m": 260.82,
       "quarter": 3,
       "year": 2026
