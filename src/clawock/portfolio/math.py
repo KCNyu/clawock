@@ -274,18 +274,27 @@ def trade_session_date(market, trade):
     local = moment.astimezone(ZoneInfo(MARKET_TZ[market]))
     if local.year not in covered_years(market):
         return day
+    if market == "hk":
+        # HK's whole session (including the 09:00-09:30 pre-open auction) is
+        # one calendar day. Folding a 09:15 HKT fill back to the previous
+        # session put an auction fill on the wrong day and dropped it from
+        # that day's P&L (#3459). A weekend/holiday date still folds through
+        # the calendar in `session_date`.
+        return session_date(market, local.date().isoformat())
     if local.time() < time(9, 30):
+        # A US fill stamped in the early ET morning is pre-market; the desk
+        # books it with the previous completed session (the old rule).
         return previous_trading_day(market, local.date()).isoformat()
     return session_date(market, local.date().isoformat())
 
 
-def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None, market=None) -> tuple[float, float]:
-    """Day P&L of the remaining position and its matching reference capital.
+def day_pnl_basis(holding: Mapping[str, Any], session: str | None, *, current=None, market=None) -> tuple[float, float, float]:
+    """`day_pnl` plus the number of remaining shares that predate this session.
 
-    Old shares start at prior close; shares bought in this quote session start
-    at their fill. Replay same-session sells oldest first so a buy/sell/rebuy
-    does not count sold shares as a remaining new lot. Realized sells remain
-    in the realized ledger, outside this mark of the currently held position.
+    A quote with no prior close cannot value the old shares, but when every
+    remaining share was bought in this session the fill price is the whole
+    basis and the day's move is still measurable (#3451). Callers use the
+    third value to tell that case from a row whose old shares have no basis.
     """
     shares = number(holding.get('shares')) or 0
     current = number(holding.get('current_price') if current is None else current) or 0
@@ -320,4 +329,17 @@ def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None, ma
         new_shares += used
         remaining -= used
     base = (shares - new_shares) * prev + new_base
-    return shares * current - base, base
+    return shares * current - base, base, old
+
+
+def day_pnl(holding: Mapping[str, Any], session: str | None, *, current=None, market=None) -> tuple[float, float]:
+    """Day P&L of the remaining position and its matching reference capital.
+
+    Old shares start at prior close; shares bought in this quote session start
+    at their fill. Replay same-session sells oldest first so a buy/sell/rebuy
+    does not count sold shares as a remaining new lot. Realized sells remain
+    in the realized ledger, outside this mark of the currently held position.
+    """
+    amount, base, _old_shares = day_pnl_basis(
+        holding, session, current=current, market=market)
+    return amount, base

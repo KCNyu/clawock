@@ -141,6 +141,16 @@ HK_HALF_DAYS = {
     "2027-12-31",  # New Year's Eve (Fri)
 }
 
+# US early closes: the regular session ends at 13:00 ET. NYSE's published
+# calendar lists 2026-11-27 (day after Thanksgiving), 2026-12-24 (Christmas
+# Eve) and 2027-11-26 (day after Thanksgiving). 2027-12-24 is a full holiday
+# (Christmas observed), not a half day.
+US_HALF_DAYS = {
+    "2026-11-27",
+    "2026-12-24",
+    "2027-11-26",
+}
+
 MARKET_TZ = {"hk": "Asia/Hong_Kong", "us": "America/New_York"}
 
 # Wall-clock objects are projections of MARKET_TZ, not parallel literals.  A
@@ -227,6 +237,9 @@ def is_trading_day(market: str, d: date | None = None, session: str = "full") ->
 #: settling quotes to arrive, so that "the session ended" never gets read as
 #: "today's prices are in the book" while they are still landing.
 SESSION_SETTLED_HOUR = 17
+# A US half day closes three hours early; the same one-hour settling margin
+# makes its "finished" hour 14:00 ET.
+US_HALF_DAY_SETTLED_HOUR = 14
 
 
 def latest_completed_session(market: str, at: datetime | None = None) -> date | None:
@@ -249,7 +262,9 @@ def latest_completed_session(market: str, at: datetime | None = None) -> date | 
         raise ValueError(f"unknown market {market!r} (use 'hk' or 'us')")
     tz = ZoneInfo(MARKET_TZ[market])
     now = at.astimezone(tz) if at else datetime.now(tz)
-    probe = now.date() if now.hour >= SESSION_SETTLED_HOUR else now.date() - timedelta(days=1)
+    half_day = market == "us" and now.date().isoformat() in US_HALF_DAYS
+    settled_hour = US_HALF_DAY_SETTLED_HOUR if half_day else SESSION_SETTLED_HOUR
+    probe = now.date() if now.hour >= settled_hour else now.date() - timedelta(days=1)
     for _ in range(14):
         if is_trading_day(market, probe):
             return probe
@@ -306,6 +321,8 @@ def in_session(market: str, at: datetime | None = None) -> bool:
     windows = SESSION_WINDOWS[market]
     if market == "hk" and now.date().isoformat() in HK_HALF_DAYS:
         windows = windows[:1]
+    elif market == "us" and now.date().isoformat() in US_HALF_DAYS:
+        windows = ((time(9, 30), time(13, 0)),)
     clock = now.time()
     return any(start <= clock < end for start, end in windows)
 

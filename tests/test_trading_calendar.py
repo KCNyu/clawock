@@ -267,3 +267,30 @@ def test_the_brief_asks_both_markets_about_its_own_day():
     assert all(trading_calendar.brief_closed_reasons(date(2026, 12, 25)))
     # An ordinary Tuesday: both open.
     assert trading_calendar.brief_closed_reasons(date(2026, 10, 6)) == (None, None)
+
+
+def test_us_early_closes_are_half_trading_days():
+    """NYSE closes at 13:00 ET on 2026-11-27 and 2026-12-24.
+
+    Before #3453 the US window always ran to 16:00, so the 13:00-16:00 ET
+    intraday slots saw an open market and `latest_completed_session` skipped
+    the just-finished half day for three hours.
+    """
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    et = ZoneInfo("America/New_York")
+    assert {"2026-11-27", "2026-12-24", "2027-11-26"} <= trading_calendar.US_HALF_DAYS
+    # Christmas 2027 is observed on Friday the 24th: a full closure, not a
+    # half day.
+    assert "2027-12-24" not in trading_calendar.US_HALF_DAYS
+
+    for day in ("2026-11-27", "2026-12-24"):
+        at = lambda hm: datetime.fromisoformat(f"{day}T{hm}:00").replace(tzinfo=et)
+        assert trading_calendar.in_session("us", at("12:30")) is True
+        assert trading_calendar.in_session("us", at("13:00")) is False
+        assert trading_calendar.in_session("us", at("14:30")) is False
+        assert trading_calendar.latest_completed_session("us", at("14:30")).isoformat() == day
+        # Before the early close the settled answer is still the prior session.
+        assert (trading_calendar.latest_completed_session("us", at("12:30")).isoformat()
+                < day)

@@ -249,3 +249,43 @@ def test_a_quote_without_a_prior_close_clears_the_stale_day_change():
     findings = integrity.check(
         Path('/nonexistent/portfolio.json'), document=data)['findings']
     assert not [f for f in findings if f.get('code') == 'TODAY_TOTAL']
+
+
+def test_a_same_session_buy_still_has_a_day_change_without_a_prior_close():
+    """#3451: the fill is the whole basis when every remaining share is new.
+
+    #3438 correctly stopped a stale pair from surviving a missing `prev_close`,
+    but it also cleared a row whose only shares were bought today — a case
+    `day_pnl` can measure exactly from the fill.
+    """
+    data = {'last_updated': '2026/11/13 10:00 HKT', 'portfolios': {'us_stocks': {
+        'currency': 'USD', 'cash': 1000,
+        'holdings': [{
+            'ticker': 'NEW', 'shares': 10, 'cost_basis': 5.0,
+            'current_price': 6.0, 'prev_close': None,
+            'day_session_date': '2026-11-13',
+            'trades': [{'action': 'buy', 'date': '2026-11-13',
+                        'shares': 10, 'price': 5.0}],
+        }]}}}
+    aggregates.recompute(data)
+    row = data['portfolios']['us_stocks']['holdings'][0]
+    assert (row['today_change'], row['today_change_pct']) == (10.0, 20.0)
+    assert data['portfolios']['us_stocks']['today_total_change'] == 10.0
+
+
+def test_old_shares_without_a_prior_close_still_clear_the_day_change():
+    """#3437 must stay fixed: an old share has no measurable basis."""
+    data = {'last_updated': '2026/11/13 10:00 HKT', 'portfolios': {'us_stocks': {
+        'currency': 'USD', 'cash': 1000,
+        'holdings': [{
+            'ticker': 'MIX', 'shares': 10, 'cost_basis': 5.0,
+            'current_price': 6.0, 'prev_close': None,
+            'day_session_date': '2026-11-13',
+            'today_change': 777, 'today_change_pct': 9.9,
+            'trades': [{'action': 'buy', 'date': '2026-11-13',
+                        'shares': 5, 'price': 5.0}],
+        }]}}}
+    aggregates.recompute(data)
+    row = data['portfolios']['us_stocks']['holdings'][0]
+    assert row['today_change'] is None and row['today_change_pct'] is None
+    assert data['portfolios']['us_stocks']['today_total_change'] == 0.0
