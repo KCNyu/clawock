@@ -684,7 +684,7 @@ EOF
 # unit so dispatch latency and a model outage never hold the task. On this host the
 # 03:20 dreaming job drains anything still queued.
 MEMORY_INTAKE="${MEMORY_INTAKE_SCRIPT:-$HOME/.agents/skills/shared-memory/scripts/intake.py}"
-if [ -r "$MEMORY_INTAKE" ]; then
+if [ -r "$MEMORY_INTAKE" ] && [ "${AGENT_DISPATCH_PATROL:-}" != 1 ] && [[ "$NAME" != patrol-* ]]; then
   python3 "$MEMORY_INTAKE" capture --task-dir "$DIR" --stage dispatch \
     >>"$DIR/memory-intake.log" 2>&1 || true
   systemd-run --unit "agent-dispatch-memory-$ID" --collect --quiet \

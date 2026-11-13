@@ -201,6 +201,10 @@ def capture(task_dir: Path, stage: str) -> Path:
     if stage not in ("dispatch", "outcome"):
         raise IntakeError("stage must be dispatch or outcome")
     task_dir = task_dir.resolve()
+    # Patrol rounds are supervisor-generated briefs, not the owner speaking. Their
+    # contents change every round and are already owned by the patrol skill.
+    if task_dir.name.startswith("patrol-"):
+        raise IntakeError("patrol rounds are supervisor-generated, not owner words")
     if stage == "outcome":
         user_words, prompt = task_texts(task_dir)
     else:
@@ -553,6 +557,10 @@ def public_writes_today() -> int:
 
 def process(item: dict, *, dry_run: bool, llm_response: str | None,
             repo: Path, store: Path) -> dict:
+    base = {"id": item["id"], "task_id": item["task_id"], "stage": item["stage"],
+            "at": datetime.now().astimezone().isoformat(timespec="seconds")}
+    if str(item.get("task_id", "")).startswith("patrol-"):
+        return {**base, "action": "skipped", "reason": "patrol brief is supervisor-generated"}
     topics = store_topics(store)
     prompt = curator_prompt(item, topics)
     if llm_response is not None:
@@ -560,8 +568,6 @@ def process(item: dict, *, dry_run: bool, llm_response: str | None,
     else:
         text = llm_json.run_model(prompt)
     decision = validate_decision(llm_json.extract_json(text), topics)
-    base = {"id": item["id"], "task_id": item["task_id"], "stage": item["stage"],
-            "at": datetime.now().astimezone().isoformat(timespec="seconds")}
     if not decision["store"]:
         return {**base, "action": "skipped", "reason": decision["reason"],
                 "existing_topic": decision.get("existing_topic")}
