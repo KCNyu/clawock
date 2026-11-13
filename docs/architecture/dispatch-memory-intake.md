@@ -73,6 +73,13 @@ unchanged and a model outage loses nothing. A transient systemd unit
 (`agent-dispatch-memory-<task>`) runs the curator immediately; the 03:20 dreaming
 job drains anything still queued as a retry path.
 
+Direct chat is captured separately from a dispatch. At 03:20 `intake.py capture-chat`
+reads the previous and current day's private `session-corpus` and queues one item per
+transcript's `User:` lines (probe prompts, heartbeats and dispatch events are dropped).
+This exists because the short-term score needs repeated recalls and ranked 0 candidates
+on a one-day conversation: the corpus was fixed, but the score threshold still starved
+a new instruction. The raw lines stay private; the same model and screen decide.
+
 ## 2. A model, not the worker, decides what is memory
 
 `intake.py run` sends the item plus the descriptions of existing topics to a
@@ -96,7 +103,11 @@ reach a topic.
 `review_dreaming_llm.py` uses the same model surface for the 03:00 candidates. It is
 a batch call: one JSON array, one conclusion per clean candidate. It never sees a
 candidate the deterministic gate already rejected, and it writes receipts, not
-topics. `review_dreaming.py` still owns the decision and re-checks the SHA256.
+topics. The prompt asks for `covered_by` first: if a public topic already covers the
+rule, even in different words, the candidate is rejected and no receipt is written.
+Only public topic descriptions leave the host; the intake de-dupe still compares
+against private topics locally. `review_dreaming.py` still owns the decision and
+re-checks the SHA256.
 
 ## 3. The hard screen is not the model
 
@@ -148,11 +159,18 @@ file, and it is bounded by the same generator and manifest checks as the 03:20 g
 
 At 03:20 `commit_dreaming.sh` runs, in order:
 
-1. `intake.py run --limit 20` — drain overnight dispatch/task items (fail-soft);
-2. `review_dreaming_llm.py` — batch-review clean candidates and write hash-bound
+1. `intake.py capture-chat` for yesterday and today — queue direct-chat `User:` lines
+   from the private corpus;
+2. `intake.py run --limit 20` — drain dispatch, outcome and chat items (fail-soft);
+3. `review_dreaming_llm.py` — batch-review clean candidates and write hash-bound
    receipts (`scope`/`salience` from the review now reach the topic);
-3. `promote_dreaming.py` — the existing fail-closed write + projection;
-4. the two commit halves, unchanged.
+4. `promote_dreaming.py` — the existing fail-closed write + projection;
+5. the two commit halves, unchanged.
+
+The script exports the host's pnpm and node directories on `PATH`; a bare crontab
+`/usr/bin:/bin` cannot find the CLI even when the gateway is healthy. `llm_json.py`
+also resolves the CLI from `~/.local/share/pnpm` and adds node's directory to the
+child process, so the model call works from either cron or a transient unit.
 
 An unreachable model leaves candidates pending and raw items queued. A malformed
 reply writes nothing. The deterministic gate keeps rejecting contamination even
@@ -192,13 +210,15 @@ Local, against throwaway stores and `--llm-response` fixtures:
 - the session patch is idempotent, leaves valid JavaScript, and its manifest
   postconditions are present.
 
-Production verification after the restart is the next 03:00 run:
-`memory/.dreams/session-corpus/<date>.txt` must contain `User:` lines and
-`main/sessions/main/6f69c1f4-…` (or the then-current direct session), and
-OpenClaw's session-ingestion state must show a growing `lastContentLine` (this host stores it in
-the workspace-entry state, not the legacy `memory/.dreams/session-ingestion.json`). A candidate batch followed by `review_dreaming_llm.py --check`
-and `promote_dreaming.py --check` is the promotion check. An empty batch is not
-evidence.
+Production verification after the restart: a manual dreaming run on 2026-11-13 grew
+`memory/.dreams/session-corpus/2026-11-13.txt` from 20 lines / 0 `User:` lines to
+166 lines / 11 `User:` lines, with 74 lines from the live direct session
+`main/sessions/main/6f69c1f4-…`. The same run ranked 0 candidates, which is why the
+direct-chat capture exists. A live `review_dreaming_llm.py --check` on the current
+batch approved one new engineering rule and rejected two (one was a wording variant
+of `feedback-delegation-brief`). A candidate batch followed by
+`review_dreaming_llm.py --check` and `promote_dreaming.py --check` is the full
+promotion check. An empty batch is not evidence.
 
 ## Remaining limits
 
@@ -211,6 +231,10 @@ evidence.
 - The 0.65 overlap threshold is conservative: it may retire a genuinely new rule
   that shares most of its wording with an old one. The ledger keeps the decision and
   the raw item until processed; a later review can reopen it.
+- The model reviewer is semantic, not infallible. `covered_by` blocked the observed
+  wording variant, but a model that names no covering topic can still create a
+  duplicate; the public projection is reviewed at 03:20 and a bad topic can be
+  corrected through `memory.py update` and a regeneration.
 - Auto-public is capped, but it is still an automatic public write. The deterministic
   screen and the projection check are the safety boundary; there is no human preview
   for a new public topic.
