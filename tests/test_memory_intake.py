@@ -260,6 +260,31 @@ def test_a_public_rule_is_projected_immediately_and_capped_to_private_on_failure
     assert "publish: private" in topic
 
 
+def test_capture_chat_reads_the_private_corpus_and_drops_probes(tmp_path):
+    store = make_store(tmp_path)
+    repo = make_repo(tmp_path, store)
+    env = env_for(tmp_path, store, repo)
+    corpus = repo / "memory/.dreams/session-corpus"
+    corpus.mkdir(parents=True)
+    (corpus / "2026-11-13.txt").write_text(
+        "[main/sessions/main/aaaaaaaa-1111-2222-3333-444444444444.jsonl#L39] User: 我指的是不要信任issues本身的描述\n"
+        "[main/sessions/main/aaaaaaaa-1111-2222-3333-444444444444.jsonl#L54] User: 这个我们之前委派了那么多次为什么你没有印象\n"
+        "[main/sessions/main/bbbbbbbb-1111-2222-3333-444444444444.jsonl#L2] User: Call memory_search once: query 'x'\n",
+        encoding="utf-8")
+    result = subprocess.run([sys.executable, str(INTAKE), "capture-chat",
+                             "--date", "2026-11-13", "--workspace", str(repo)],
+                            env=env, capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["queued"] == 1
+    # The filename carries a content hash; find the only chat item.
+    items = list((tmp_path / "state/intake/queue").glob("chat-2026-11-13-*.json"))
+    assert len(items) == 1
+    item = json.loads(items[0].read_text())
+    assert "不要信任issues" in item["user_words"]
+    assert "Call memory_search" not in item["user_words"]
+    assert "aaaaaaaa-1111" in item["result"]["session"]
+
+
 def test_outcome_capture_includes_appended_instructions_and_the_report(tmp_path):
     store = make_store(tmp_path)
     repo = make_repo(tmp_path, store)
