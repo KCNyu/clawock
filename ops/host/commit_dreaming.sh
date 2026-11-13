@@ -60,6 +60,12 @@ fi
 # Fail-soft: an unreachable model leaves the raw items private for the next run.
 MEMORY_KIT="${SHARED_MEMORY_SKILL_DIR:-$HOME/.agents/skills/shared-memory}"
 if [ -r "$MEMORY_KIT/scripts/intake.py" ]; then
+  # Direct chat is a source even when the dreaming score ranked nothing: queue the
+  # user lines from yesterday's and today's private corpus, then distil everything.
+  for day in "$(date -d yesterday +%F)" "$(date +%F)"; do
+    timeout 60 python3 "$MEMORY_KIT/scripts/intake.py" capture-chat \
+      --date "$day" --workspace "$WS" >/dev/null 2>&1 || true
+  done
   if ! timeout 600 python3 "$MEMORY_KIT/scripts/intake.py" --store "$STORE" \
       --repo "$WS" run --limit 20; then
     echo "$(date -Is) dreaming-commit: memory intake failed; raw items stay queued"

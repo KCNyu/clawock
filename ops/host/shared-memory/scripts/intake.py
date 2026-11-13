@@ -233,6 +233,54 @@ def capture(task_dir: Path, stage: str) -> Path:
     return path
 
 
+CHAT_LINE = re.compile(r"^\[(?P<path>[^\]]+\.jsonl)#L(?P<line>\d+)\] User: (?P<text>.*)$")
+CHAT_SKIP = ("[agent-dispatch 事件]", "Call memory_search", "Reply with ONLY",
+             "HEARTBEAT_OK", "System: [")
+
+
+def capture_chat(day: str, workspace: Path) -> list[Path]:
+    """Queue one item per direct/cron transcript that has user text that day.
+
+    The dreaming ingest writes the day's excerpts to `session-corpus`; this reads
+    that private file rather than the transcript again. It is the direct-chat
+    counterpart to a dispatch brief: the model still decides durable vs chatter.
+    """
+    corpus = workspace / "memory/.dreams/session-corpus" / f"{day}.txt"
+    if not corpus.is_file():
+        return []
+    groups: dict[str, list[str]] = {}
+    for line in corpus.read_text(encoding="utf-8", errors="replace").splitlines():
+        match = CHAT_LINE.match(line)
+        if not match:
+            continue
+        text = match.group("text").strip()
+        if not text or any(skip in text for skip in CHAT_SKIP):
+            continue
+        groups.setdefault(match.group("path"), []).append(text)
+    paths = []
+    for session, lines in groups.items():
+        words = "\n".join(lines)[:MAX_ITEM_CHARS]
+        identity = digest(f"{day}\n{session}\n{words}")[:16]
+        item = {
+            "schema": 1,
+            "task_id": f"chat-{day}-{identity[:8]}",
+            "stage": "chat",
+            "created": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "prompt_sha256": digest(words),
+            "user_words": scrub(words),
+            "result": {"date": day, "session": session},
+            "attempts": 0,
+            "id": identity,
+        }
+        path = state_dir() / "queue" / f"chat-{day}-{identity[:8]}.json"
+        if path.exists():
+            paths.append(path)
+            continue
+        atomic_write(path, json.dumps(item, ensure_ascii=False, indent=2) + "\n")
+        paths.append(path)
+    return paths
+
+
 # --- existing topics / dedupe ---------------------------------------------
 
 def store_topics(store: Path) -> list[dict]:
@@ -594,6 +642,9 @@ def main() -> int:
     run.add_argument("--task")
     run.add_argument("--dry-run", action="store_true")
     run.add_argument("--llm-response", type=Path, help="read one fake model reply (tests)")
+    chat = sub.add_parser("capture-chat", help="queue the day's user lines from the private corpus")
+    chat.add_argument("--date", default=date.today().isoformat())
+    chat.add_argument("--workspace", type=Path, default=DEFAULT_REPO)
     sub.add_parser("status", help="queue/processed/failed counts")
     args = parser.parse_args()
     try:
@@ -605,6 +656,10 @@ def main() -> int:
             if args.limit < 1:
                 raise IntakeError("--limit must be positive")
             print(json.dumps(run_queue(args), ensure_ascii=False, indent=2))
+            return 0
+        if args.command == "capture-chat":
+            paths = capture_chat(args.date, args.workspace.expanduser().resolve())
+            print(json.dumps({"queued": len(paths), "date": args.date}, ensure_ascii=False))
             return 0
         counts = {name: len(list((state_dir() / name).glob("*.json")))
                   for name in ("queue", "processed", "failed")}
