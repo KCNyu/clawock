@@ -52,6 +52,10 @@ def test_movers_name_their_session_and_stop_saying_today_when_mixed():
 def test_sentiment_names_a_failed_reddit_source_instead_of_dropping_it():
     body = RENDER.read_text(encoding="utf-8")
     macro = _body(body, "renderMacro")
-    assert "source_status" in macro and "源失败" in macro
+    assert "source_status" in macro and "redditSourceNote(" in macro
+    note = _body(body, "redditSourceNote")
+    # One vocabulary for the macro cell and the per-ticker row; #3446 added the
+    # throttled half beside the original failed word.
+    assert "源失败" in note and "源限流" in note
     drill = _body(body, "renderSentimentDrill")
-    assert "reddit_status" in drill and "— 源失败" in drill
+    assert "reddit_status" in drill and "redditSourceNote(" in drill
