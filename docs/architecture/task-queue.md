@@ -610,9 +610,10 @@ A dispatch now also queues the owner's own words for the shared-memory curator. 
 queue write is local and cheap; the model distillation runs as a separate transient
 unit, and the 03:20 dreaming job drains anything left over. The task's final report
 and any appended instructions are queued the same way, which is how dispatched
-coding work (the issue sweeps) finally becomes memory. The raw brief and report are
-private; only a screened one-line conclusion reaches the store. Details, limits and
-the public-projection fallback are in
+coding work (the issue sweeps) finally becomes memory. `patrol-*` rounds are excluded:
+their briefs are supervisor-generated and already owned by the patrol skill. The raw
+brief and report are private; only a screened one-line conclusion reaches the store.
+Details, limits and the public-projection fallback are in
 [`dispatch-memory-intake.md`](dispatch-memory-intake.md).
 
 ## Design provenance

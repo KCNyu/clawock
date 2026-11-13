@@ -595,7 +595,7 @@ finish() {
   # session transcripts, so 41+20+19 issue tasks never reached the store. Fail-soft and
   # detached: the report/notice path must not wait for a model call.
   local intake="${MEMORY_INTAKE_SCRIPT:-$HOME/.agents/skills/shared-memory/scripts/intake.py}"
-  if [ -r "$intake" ]; then
+  if [ -r "$intake" ] && [[ "$NAME" != patrol-* ]]; then
     timeout 20 python3 "$intake" capture --task-dir "$DIR" --stage outcome \
       >>"$DIR/memory-intake.log" 2>&1 || true
     systemd-run --unit "agent-dispatch-memory-$ID-outcome-$RUN_NO" --collect --quiet \

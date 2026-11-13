@@ -260,6 +260,40 @@ def test_a_public_rule_is_projected_immediately_and_capped_to_private_on_failure
     assert "publish: private" in topic
 
 
+def test_patrol_briefs_are_never_captured(tmp_path):
+    store = make_store(tmp_path)
+    repo = make_repo(tmp_path, store)
+    env = env_for(tmp_path, store, repo)
+    task = tmp_path / "tasks/patrol-round-1"
+    prompt(task, "只提 issues 不要改代码，保持对抗性训练。")
+    result = subprocess.run([sys.executable, str(INTAKE), "capture", "--task-dir", str(task),
+                             "--stage", "dispatch"], env=env, capture_output=True, text=True,
+                            timeout=60)
+    assert result.returncode == 1
+    assert "patrol" in result.stderr
+    assert not (tmp_path / "state/intake/queue").exists()
+
+
+def test_a_queued_patrol_item_is_skipped_without_a_model_call(tmp_path):
+    store = make_store(tmp_path)
+    repo = make_repo(tmp_path, store)
+    env = env_for(tmp_path, store, repo)
+    queue = tmp_path / "state/intake/queue"
+    queue.mkdir(parents=True)
+    item = {"schema": 1, "task_id": "patrol-round-1", "stage": "outcome",
+            "created": "2026-11-13T22:40:00+08:00", "prompt_sha256": "x" * 64,
+            "user_words": "只提 issues 不要改代码", "result": {}, "attempts": 0, "id": "x"}
+    (queue / "patrol-round-1-outcome.json").write_text(json.dumps(item), encoding="utf-8")
+    bad_reply = tmp_path / "bad.json"
+    bad_reply.write_text("not json", encoding="utf-8")
+    result = run(env, tmp_path, store, repo, "run", "--limit", "1",
+                 "--llm-response", str(bad_reply))
+    assert result.returncode == 0, result.stderr
+    summary = json.loads(result.stdout)
+    assert summary["skipped"] == 1 and summary["failed"] == 0
+    assert summary["results"][0]["reason"] == "patrol brief is supervisor-generated"
+
+
 def test_capture_chat_reads_the_private_corpus_and_drops_probes(tmp_path):
     store = make_store(tmp_path)
     repo = make_repo(tmp_path, store)
