@@ -34,7 +34,12 @@ def _command(prompt: str, model_id: str) -> list[str]:
     if override:
         # A test/alternate harness gets the prompt on stdin, not argv.
         return shlex.split(override)
-    cli = shutil.which("openclaw") or str(Path.home() / ".local/bin/openclaw")
+    cli = shutil.which("openclaw")
+    if not cli:
+        fallback = Path.home() / ".local" / "bin" / "openclaw"
+        cli = str(fallback) if fallback.is_file() else ""
+    if not cli:
+        raise LLMError("openclaw CLI not found on PATH")
     return [cli, "infer", "model", "run", "--model", model_id, "--thinking", "off",
             "--prompt", prompt, "--json"]
 

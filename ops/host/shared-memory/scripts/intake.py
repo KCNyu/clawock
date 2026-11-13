@@ -42,7 +42,7 @@ import llm_json  # noqa: E402
 
 DEFAULT_STORE = Path(os.environ.get("SHARED_MEMORY_DIR", "~/.shared-memory")).expanduser()
 DEFAULT_STATE = Path(os.environ.get("SHARED_MEMORY_STATE", "~/.local/state/shared-memory")).expanduser()
-DEFAULT_REPO = Path(os.environ.get("OPENCLAW_WORKSPACE", "~/.openclaw/workspace")).expanduser()
+DEFAULT_REPO = Path(os.environ.get("OPENCLAW_WORKSPACE") or (Path.home() / ".openclaw" / "workspace")).expanduser()
 MEMORY_PY = SCRIPTS / "memory.py"
 PUBLISH_PY = SCRIPTS / "publish.py"
 MANIFEST_REL = Path("ops/host/shared-memory/publish-manifest.json")
