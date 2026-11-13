@@ -28,7 +28,7 @@
       support:"支撑", breakdown:"破位", breakout:"突破", target:"目标", force:"强制",
       derisk:"减仓", trim:"减仓", trigger:"触发", resist:"压力", resistance:"压力",
       reclaim:"收复", reentry:"重回", floor:"底线", ma:"均线", low:"低点", high:"高点",
-      prior:"前", yield:"收益率", alert:"预警", date:"日期", next:"下次",
+      prior:"前", close:"收盘", yield:"收益率", alert:"预警", date:"日期", next:"下次",
       breakeven:"回本", chandelier:"吊灯" };
 
     function resolve(key) {
@@ -75,6 +75,7 @@
       // (brief_render._LEVEL_WORDS, #2194) instead of echoing the raw key.
       const words = toks.map(t => WORDS[t]
         || (/^ma\d+$/.test(t) ? `${t.slice(2)}日线`
+          : /^zscore\d+$/.test(t) ? `${t.slice(6)}日 z 值`
           : /^\d+[dy]$/.test(t) ? t.slice(0, -1) + (t.endsWith("d") ? "日" : "年") : t));
       return words.length ? words.join(" ") : "触发位";
     };

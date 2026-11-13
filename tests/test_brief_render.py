@@ -931,3 +931,13 @@ def test_the_leg_header_collapses_the_alt_prefix_source_spelling():
     us_header = next(line for line in text.splitlines() if line.startswith("**US leg**"))
     assert us_header.count("Eastmoney") == 1, us_header
     assert "alt-prefix" not in us_header
+
+
+def test_level_labels_name_close_and_a_zscore_window():
+    """The card must not print the plan's raw `close` / `zscore20` tokens (#3449).
+
+    Chinese words run together, exactly as `_level_label`'s contract says; the
+    dashboard's Watch Levels card names the same words (#2194).
+    """
+    assert render._level_label('hstech_close') == '恒科收盘'
+    assert render._level_label('rklb_zscore20') == 'RKLB 20日 z 值'
