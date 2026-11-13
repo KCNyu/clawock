@@ -62,6 +62,8 @@ Usage: brief_watchdog.py [--check-missing | --check-recovery] [--dry-run]
 """
 import argparse
 import json
+import os
+import subprocess
 import sys
 from datetime import datetime
 
@@ -527,6 +529,8 @@ def alert_brief_missing(today, dry_run, issues=None):
         outcome, outcome_detail = await_brief_fallback_outcome(
             state.get('dispatch_attempted_at') or datetime.now(HKT).isoformat(),
             dry_run, dispatch_out=state.get('dispatch_out'))
+        outcome, outcome_detail = _verified_fallback_outcome(
+            today, outcome, outcome_detail)
         state['fallback_outcome'] = outcome
         state['fallback_outcome_detail'] = outcome_detail
         if not dry_run:
@@ -548,15 +552,73 @@ def alert_brief_missing(today, dry_run, issues=None):
     return 0
 
 
+def _remote_brief_artifacts(today):
+    """(missing artifact issues, detail) for today's files on origin/master.
+
+    A successful fallback run is evidence that the workflow concluded, not
+    that its already-exists branch generated anything (#3452). The two files
+    are the contract; `push` only happens after the workflow validates them,
+    so presence on origin/master is enough here. `missing is None` means the
+    remote could not be read and the caller must not claim success.
+    """
+    try:
+        fetch = subprocess.run(
+            ['git', 'fetch', '--quiet', 'origin', 'master'],
+            cwd=WS, capture_output=True, text=True, timeout=45,
+            env={**os.environ, 'GIT_TERMINAL_PROMPT': '0'},
+        )
+        if fetch.returncode != 0:
+            detail = (fetch.stderr or fetch.stdout or '').strip()
+            return None, f'git fetch failed: {detail[:180]}'
+        missing = []
+        for issue, name in (('brief_missing', f'memory/{today}-pre-open.md'),
+                            ('plan_missing', f'memory/{today}-plan.json')):
+            check = subprocess.run(
+                ['git', 'cat-file', '-e', f'origin/master:{name}'],
+                cwd=WS, capture_output=True, text=True, timeout=15,
+            )
+            if check.returncode != 0:
+                missing.append(issue)
+        return missing, ''
+    except Exception as exc:  # noqa: BLE001 — an unreadable remote is not success
+        return None, f'{type(exc).__name__}: {exc}'[:180]
+
+
+def _verified_fallback_outcome(today, outcome, detail):
+    """Downgrade a `success` whose artifacts are not on origin/master."""
+    if outcome != 'success':
+        return outcome, detail
+    missing, note = _remote_brief_artifacts(today)
+    if missing is None:
+        return 'success-unverified', f'run concluded success; {note}'
+    if missing:
+        return 'success-incomplete', (
+            'run concluded success, but origin/master still lacks ' + ', '.join(missing))
+    return outcome, detail
+
+
 def _fallback_outcome_message(today, outcome, detail):
     """Telegram follow-up naming what the off-host fallback actually did.
 
-    Only 'success' claims the brief exists, and it says so because the run concluded
-    success — every other state is reported as unresolved with the manual next step."""
+    Only a verified 'success' claims the brief exists. A green run whose
+    already-exists branch did nothing is `success-incomplete`: the run
+    concluded success, but origin/master still lacks a named artifact (#3452).
+    """
     if outcome == 'success':
         return (f'✅ off-host 兜底已完成 — {today}\n\n'
                 f'{detail}\n\n'
                 f'pre-open.md + plan.json 已由 workflow 生成并 push。')
+    if outcome == 'success-incomplete':
+        return (f'🔴 off-host 兜底运行结了，但产物仍不完整 — {today}\n\n'
+                f'{detail}\n\n'
+                f'这次运行没有生成/推送 watchdog 缺失的产物，不能当作已恢复。\n'
+                f'请查 gh run view <id> 的 step summary 与 '
+                f'memory/{today}-pre-open.md / plan.json。')
+    if outcome == 'success-unverified':
+        return (f'⚠️ off-host 兜底运行结论 success，但无法复核产物 — {today}\n\n'
+                f'{detail}\n\n'
+                f'这不代表成功；origin/master 的复核失败，watchdog 不会声称已生成。\n'
+                f'请查 gh run view <id> 与 memory/{today}-pre-open.md / plan.json。')
     if outcome == 'failure':
         return (f'🔴 off-host 兜底失败 — {today}\n\n'
                 f'{detail}\n\n'
@@ -628,6 +690,7 @@ def check_local_recovery(today, dry_run=False):
             dry_run,
             budget_s=BRIEF_FALLBACK_POLL_INTERVAL_S,
             dispatch_out=state.get('dispatch_out'))
+        outcome, detail = _verified_fallback_outcome(today, outcome, detail)
         if outcome == 'pending':
             # The poll's own detail counts its 60s budget, not the ~45 minutes
             # since dispatch; name this pass instead of printing "after 1min".
@@ -640,8 +703,10 @@ def check_local_recovery(today, dry_run=False):
         message = _fallback_outcome_message(today, outcome, detail)
     elif state.get('recovery_dispatch_attempted') or state.get('fallback_dispatch_succeeded'):
         outcome = state.get('fallback_outcome') or 'unconfirmed'
-        message = _fallback_outcome_message(today, outcome,
-                                            state.get('fallback_outcome_detail') or '此前已尝试离机恢复')
+        detail = state.get('fallback_outcome_detail') or '此前已尝试离机恢复'
+        outcome, detail = _verified_fallback_outcome(today, outcome, detail)
+        state['fallback_outcome'], state['fallback_outcome_detail'] = outcome, detail
+        message = _fallback_outcome_message(today, outcome, detail)
     elif selected_ended and now.date().isoformat() == today and now.hour < 10:
         # Persist BEFORE dispatch. A crash leaves an explicit unknown result,
         # never a second workflow on the next invocation.
@@ -657,6 +722,7 @@ def check_local_recovery(today, dry_run=False):
         if dispatched:
             outcome, detail = await_brief_fallback_outcome(
                 state['recovery_dispatch_at'], dry_run, dispatch_out=detail)
+            outcome, detail = _verified_fallback_outcome(today, outcome, detail)
         else:
             outcome = 'failure'
         state['fallback_outcome'], state['fallback_outcome_detail'] = outcome, detail
@@ -755,10 +821,13 @@ def main():
     # nothing about WeChat. The receipt path includes today's date, so its age
     # cannot turn a confirmed delivery into a missing delivery (#2121).
     if marker:
+        # This path rebuilds the card from today's plan/brief instead of
+        # replaying the failed bytes, so the outcome ledger must say that rather
+        # than the default `unspecified` (#3443).
         wechat_backstop('brief', tag, card_for_backstop(today), marker, marker_path,
                         WS / 'memory' / '.tmp' / f'watchdog-brief-wechat-{today}.done',
                         args.dry_run, wechat=send_wechat, telegram=send_telegram,
-                        resolve=resolve_wechat_target)
+                        resolve=resolve_wechat_target, body_source='rebuilt-card')
     # TG is covered iff postflight's cosend confirmed today's card to Telegram.
     if marker and marker.get('tg_ok'):
         log({'tag': tag, 'action': 'ok',

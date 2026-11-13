@@ -46,6 +46,11 @@ def _stub_outcome(monkeypatch, outcome="success", detail="https://example/run/1"
         watchdog, "await_brief_fallback_outcome",
         lambda _since, _dry_run, **_kw: (outcome, detail),
     )
+    # A green run is only a claim about the run; the artifact check reads
+    # origin/master. Keep the unit suite off the network and default it to
+    # "both files present"; the mismatched case is its own test below.
+    monkeypatch.setattr(watchdog, "_remote_brief_artifacts",
+                        lambda _today: ([], ""))
 
 
 def _write_brief(ws):
@@ -234,11 +239,12 @@ def test_0905_still_backstops_a_failed_wechat_send(tmp_path, monkeypatch):
     _write_receipt(tmp_path, sent_ok=False, tg_ok=True, out="ret=-2 prepare failed")
     retried = []
     monkeypatch.setattr(watchdog, "wechat_backstop",
-                        lambda *args, **kwargs: retried.append(args))
+                        lambda *args, **kwargs: retried.append((args, kwargs)))
 
     assert watchdog.main() == 0
     assert messages == []
-    assert len(retried) == 1 and retried[0][3]["sent_ok"] is False
+    assert len(retried) == 1 and retried[0][0][3]["sent_ok"] is False
+    assert retried[0][1]["body_source"] == "rebuilt-card"
     assert events[-1]["action"] == "ok"
 
 
@@ -409,7 +415,7 @@ def test_corrupt_state_suppresses_duplicate_dispatch_but_still_notifies(
     assert "gh workflow run brief-fallback.yml" not in messages[0]
 
 
-def _run_alert_capturing_messages(monkeypatch, tmp_path, outcome, detail):
+def _run_alert_capturing_messages(monkeypatch, tmp_path, outcome, detail, remote=([], "")):
     monkeypatch.setattr(watchdog, "WS", tmp_path)
     messages = []
     monkeypatch.setattr(
@@ -421,6 +427,7 @@ def _run_alert_capturing_messages(monkeypatch, tmp_path, outcome, detail):
     )
     monkeypatch.setattr(watchdog, "log", lambda _event: None)
     _stub_outcome(monkeypatch, outcome, detail)
+    monkeypatch.setattr(watchdog, "_remote_brief_artifacts", lambda _today: remote)
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
     return messages
 
@@ -556,3 +563,31 @@ def test_one_market_open_still_earns_a_brief(tmp_path, monkeypatch):
     assert watchdog.main() == 0
     assert calls["dispatch"] == 1          # the miss detector did its job
     assert not any(e.get("closed_reason") for e in events)
+
+
+def test_a_green_run_that_left_plan_missing_is_not_reported_as_generated(
+    tmp_path, monkeypatch
+):
+    """#3452: already-exists concludes success while generating nothing.
+
+    Re-inspecting the two files on origin/master is what separates "the run
+    finished" from "the artifact is there".
+    """
+    messages = _run_alert_capturing_messages(
+        monkeypatch, tmp_path, "success", "https://gh/run/3",
+        remote=(["plan_missing"], ""),
+    )
+    follow_up = messages[-1]
+    assert "pre-open.md + plan.json 已由 workflow 生成并 push" not in follow_up
+    assert "plan_missing" in follow_up
+    assert follow_up.startswith("🔴")
+
+
+def test_an_unreadable_origin_is_unverified_not_success(tmp_path, monkeypatch):
+    messages = _run_alert_capturing_messages(
+        monkeypatch, tmp_path, "success", "https://gh/run/3",
+        remote=(None, "git fetch failed: network down"),
+    )
+    follow_up = messages[-1]
+    assert "✅" not in follow_up
+    assert "无法复核产物" in follow_up

@@ -43,6 +43,8 @@ def recovery(tmp_path, monkeypatch):
     monkeypatch.setattr(watchdog, 'dispatch_brief_fallback', dispatch)
     monkeypatch.setattr(watchdog, 'await_brief_fallback_outcome',
                         lambda *a, **k: ('success', 'confirmed workflow receipt'))
+    monkeypatch.setattr(watchdog, '_remote_brief_artifacts',
+                        lambda _today: ([], ''))
     return tmp_path, job, messages, dispatches, start
 
 

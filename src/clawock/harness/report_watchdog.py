@@ -175,6 +175,25 @@ def _flag_key(run_at, today):
     return run_at if run_at is not None else f'unfinished-{today}'
 
 
+def _backstop_body(marker, session_id, raw_block_first, ctx, tag):
+    """The WeChat payload and where it came from (#2050, #3443).
+
+    The receipt's own failed bytes win; a clean transcript is the next best
+    evidence (prose mode usually keeps only a status line there); the
+    deterministic block is the last resort. The returned source is what the
+    outcome ledger records, so the three outcomes stop looking alike.
+    """
+    receipt_body = delivery_receipts.recorded_wechat_body(marker)
+    transcript_body = None
+    if not receipt_body and transcript_loop_score(session_id)[0] < LOOP_THRESHOLD:
+        transcript_body = last_report_text(session_id, raw_block_first)
+    body = (receipt_body or transcript_body or
+            deterministic_fallback(fallback_block(ctx), tag, '报告文本不在回执与会话里'))
+    source = ('receipt' if receipt_body else
+              'transcript' if transcript_body else 'deterministic_fallback')
+    return body, source
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -335,18 +354,16 @@ def main():
                                     ctx_generated_at=ctx.get('generated_at'))[0]):
         # The payload postflight tried to send comes first (#2050): in prose
         # mode the transcript never holds the report.
-        wechat_body = delivery_receipts.recorded_wechat_body(marker)
-        if not wechat_body and transcript_loop_score(session_id)[0] < LOOP_THRESHOLD:
-            wechat_body = last_report_text(session_id, raw_block_first)
-        if not wechat_body:
-            wechat_body = deterministic_fallback(fallback_block(ctx), tag, '报告文本不在回执与会话里')
+        wechat_body, body_source = _backstop_body(
+            marker, session_id, raw_block_first, ctx, tag)
         wechat_backstop(
             'report', tag, wechat_body.strip(), marker,
             delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'report',
                                            market=args.market, phase=args.phase, date=today),
             WS / 'memory' / '.tmp' / f'watchdog-{tag}-{today}-wechat.done',
             args.dry_run, market=args.market, wechat=send_wechat,
-            telegram=send_telegram, resolve=resolve_wechat_target)
+            telegram=send_telegram, resolve=resolve_wechat_target,
+            body_source=body_source)
 
     # --- Generation gate ------------------------------------------------------
     # In prose mode the model's final answer is a postflight status line, not the
