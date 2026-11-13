@@ -96,6 +96,7 @@ not in the SVG. `fits()` warns when a label would overflow its box, and the
 build refuses to write while it does.
 """
 import base64
+import json
 import math
 import re
 import struct
@@ -104,6 +105,14 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 ASSETS = Path(__file__).resolve().parents[1] / 'assets'
+# The figure's structural count is the same one the README headline and
+# config/information-layers.json use (#3440). Deriving it here keeps a
+# module-list edit from leaving the picture at the previous number.
+_LAYERS = json.loads(
+    (Path(__file__).resolve().parents[2] / 'config' / 'information-layers.json')
+    .read_text(encoding='utf-8'))
+INFORMATION_MODULES = sum(len(layer['modules']) for layer in _LAYERS['layers'])
+INFORMATION_LAYERS = len(_LAYERS['layers'])
 W, M = 520, 24          # one column's width, outer margin
 CW = W - 2 * M          # content width of a column
 GUTTER = 24             # between the two columns
@@ -1063,7 +1072,9 @@ def decision_pipeline():
     d.card(M, y, CW, h, 'blue')
     d.icon('layers', M + 20, y + 14)
     d.text(M + 50, y + 32, 'Your HK + US book wakes up', 'h')
-    d.text(M + 20, y + 56, '44 modules · 8 layers · deterministic collection', 'm', fill=MUT)
+    d.text(M + 20, y + 56,
+           f'{INFORMATION_MODULES} modules · {INFORMATION_LAYERS} layers · '
+           'deterministic collection', 'm', fill=MUT)
     xs, cw = columns(3, gap=10, x0=M + 16, w=CW - 32)
     sources = [('market', 'Quotes + FX', 'Tencent/Nasdaq'),
                ('filing', 'SEC · HKEX', 'filings'),

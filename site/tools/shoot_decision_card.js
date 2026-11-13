@@ -20,8 +20,9 @@ const OUT = process.env.OUT || path.join(ROOT, 'site/assets/decision-card-exampl
 const WIDTH = 980;
 const HEIGHT = 640;
 const DSF = 1.5;
-const CHROME_EXE = process.env.CHROME_EXE
-  || '/root/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
+// Empty means Playwright's own browser resolution; set CHROME_EXE only
+// for a non-default install. Public tooling must not carry a host path.
+const CHROME_EXE = process.env.CHROME_EXE || '';
 
 const html = `<!doctype html>
 <html><head><meta charset="utf-8"><style>

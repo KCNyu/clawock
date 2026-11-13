@@ -31,7 +31,7 @@
     <path d="M25.5 229V555" stroke="#3f82b5" stroke-width="4" stroke-linecap="round"/>
     <g class="hero-icon" data-icon="layers" transform="translate(44 229) scale(0.916667)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l9 5-9 5-9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></g>
     <text x="74" y="247" class="h"><tspan fill="#151a21">Your HK + US book wakes up</tspan></text>
-    <text x="44" y="271" class="m"><tspan fill="#5b6875">44 modules · 8 layers · deterministic collection</tspan></text>
+    <text x="44" y="271" class="m"><tspan fill="#5b6875">48 modules · 8 layers · deterministic collection</tspan></text>
     <rect x="40" y="285" width="140" height="90" rx="9" fill="#e8f1f8"/>
     <g class="hero-icon" data-icon="market" transform="translate(52 295) scale(1)" fill="none" stroke="#3f82b5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9L12 3l9 6M4 21h16M6 10v8m6-8v8m6-8v8"/></g>
     <text x="52" y="336" class="b"><tspan fill="#151a21">Quotes + FX</tspan></text>
