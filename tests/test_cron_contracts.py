@@ -856,8 +856,23 @@ def test_every_twenty_minutes_timeline_label_is_not_every_hour():
     timeline = importlib.util.module_from_spec(timeline_spec)
     timeline_spec.loader.exec_module(timeline)
 
-    mins, hours, _ = timeline.parse_cron('*/20 * * * *')
+    mins, hours, _dow, dom, month = timeline.parse_cron('*/20 * * * *')
+    assert (dom, month) == (None, None)
     assert timeline.time_label(mins, hours) == '每20分钟'
+
+
+def test_a_quarterly_timeline_row_is_not_rendered_as_daily():
+    """#3444: dropping day-of-month/month turned the SQLite job into 每日 04:17."""
+    timeline_spec = importlib.util.spec_from_file_location(
+        'cron_timeline_quarterly', ROOT / 'ops' / 'host' / 'cron_timeline.py'
+    )
+    timeline = importlib.util.module_from_spec(timeline_spec)
+    timeline_spec.loader.exec_module(timeline)
+
+    mins, hours, dow, dom, month = timeline.parse_cron('17 4 1 1,4,7,10 *')
+    assert (dom, month) == ([1], [1, 4, 7, 10])
+    assert timeline.days_label(dow, dom, month) == '1,4,7,10月1日'
+    assert timeline.days_label(None) == '每日'
 
 
 def _brief_live_payload(data, *, timeout=2400):

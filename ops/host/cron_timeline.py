@@ -61,16 +61,22 @@ def _expand(field, lo, hi):
 
 
 def parse_cron(expr):
-    """→ (minutes:set|None, hours:set|None, dow:set|None) ; None means 'every'."""
+    """→ (minutes, hours, dow, dom, month); None means 'every'.
+
+    Day-of-month and month are carried, not dropped: a quarterly job whose
+    expression is `17 4 1 1,4,7,10 *` must not render as a daily one (#3444).
+    """
     f = expr.split()
     if len(f) != 5:
         return None
     mins = _expand(f[0], 0, 59)
     hours = _expand(f[1], 0, 23)
+    dom = _expand(f[2], 1, 31)
+    month = _expand(f[3], 1, 12)
     dow = _expand(f[4], 0, 7)
     if dow is not None:
         dow = sorted({0 if d == 7 else d for d in dow})  # cron 7 == Sunday == 0
-    return mins, hours, dow
+    return mins, hours, dow, dom, month
 
 
 def shift_to_hkt(mins, hours, dow, utc_offset):
@@ -98,7 +104,31 @@ def shift_to_hkt(mins, hours, dow, utc_offset):
 
 # ── label rendering ─────────────────────────────────────────────────────────
 
-def days_label(dow):
+def _month_dom_label(dom, month):
+    """`dom=[1], month=[1,4,7,10]` → `1,4,7,10月1日`; no card, just the fact."""
+    if dom is None and month is None:
+        return None
+    def join(vals, unit):
+        if vals is None:
+            return f'每日{unit}' if unit else '每日'
+        if len(vals) <= 5:
+            return ','.join(str(v) for v in vals) + unit
+        return f'{len(vals)}{unit}'
+    day = join(dom, '日') if dom is not None else ''
+    mon = join(month, '月') if month is not None else ''
+    if mon and dom is None:
+        return f'{mon}每日'
+    if mon and dom is not None:
+        return f'{mon}{day}'
+    return f'每月{day}' if day else '每日'
+
+
+def days_label(dow, dom=None, month=None):
+    constrained = _month_dom_label(dom, month)
+    if constrained is not None:
+        # A DOM/month constraint usually leaves DOW='*'. When both are set cron
+        # ORs them; naming both is safer than silently dropping one.
+        return constrained if dow is None else f'{constrained} 或 周' + '·'.join(DOW_SHORT[d] for d in dow)
     if dow is None:
         return '每日'
     s = set(dow)
@@ -174,11 +204,11 @@ def load_openclaw(backend='auto'):
         parsed = parse_cron(expr)
         if not parsed:
             continue
-        mins, hours, dow = parsed
+        mins, hours, dow, dom, month = parsed
         if not j.get('enabled', True):
             continue
         rows.append(('openclaw', j.get('name', j['id'][:8]), expr,
-                     sch.get('tz') or 'HKT', mins, hours, dow))
+                     sch.get('tz') or 'HKT', mins, hours, dow, dom, month))
     return rows
 
 
@@ -193,14 +223,17 @@ def load_gha():
         crons = re.findall(r'-\s*cron:\s*[\'"]([^\'"]+)[\'"]', text)
         if not crons:
             if 'workflow_dispatch' in text or 'push:' in text or 'pull_request' in text:
-                rows.append(('gha', name, '(on push/PR/dispatch)', 'UTC', None, None, None))
+                rows.append(('gha', name, '(on push/PR/dispatch)', 'UTC',
+                             None, None, None, None, None))
             continue
         for expr in crons:
             parsed = parse_cron(expr)
             if not parsed:
                 continue
-            for mins, hours, dow in shift_to_hkt(*parsed, utc_offset=8):
-                rows.append(('gha', name, expr + ' UTC', 'UTC→HKT', mins, hours, dow))
+            mins, hours, dow, dom, month = parsed
+            for g_mins, g_hours, g_dow in shift_to_hkt(mins, hours, dow, utc_offset=8):
+                rows.append(('gha', name, expr + ' UTC', 'UTC→HKT',
+                             g_mins, g_hours, g_dow, dom, month))
     return rows
 
 
@@ -286,7 +319,8 @@ def main():
     if args.json:
         print(json.dumps([{
             'source': r[0], 'name': r[1], 'expr': r[2], 'tz': r[3],
-            'hkt_time': time_label(r[4], r[5]), 'hkt_days': days_label(r[6]),
+            'hkt_time': time_label(r[4], r[5]),
+            'hkt_days': days_label(r[6], r[7], r[8]),
         } for r in rows], ensure_ascii=False, indent=2))
         if LAST_OPENCLAW_SOURCE in {'fossil', 'empty'}:
             detail = ('stale pre-6.1 fossil' if LAST_OPENCLAW_SOURCE == 'fossil'
@@ -297,16 +331,16 @@ def main():
 
     print('📆 合并调度时间线（全部归一到 HKT，按当日触发时刻排序）')
     print('   来源: openclaw cron(CLI/SQLite) · GH Actions(UTC→HKT) · 系统 crontab(HKT)\n')
-    print(f'{"HKT 触发":<22}  {"来源":<12}  {"任务":<22}  {"星期":<12}  原始 cron')
-    print('─' * 108)
+    print(f'{"HKT 触发":<22}  {"来源":<12}  {"任务":<22}  {"星期":<18}  原始 cron')
+    print('─' * 114)
 
     def vpad(s, width):
         vw = sum(2 if ord(c) > 127 else 1 for c in s)
         return s + ' ' * max(0, width - vw)
 
-    for src, name, expr, tz, mins, hours, dow in rows:
+    for src, name, expr, tz, mins, hours, dow, dom, month in rows:
         print(f'{vpad(time_label(mins, hours), 22)}  {vpad(TAG[src], 12)}  '
-              f'{vpad(name, 22)}  {vpad(days_label(dow), 12)}  {expr}')
+              f'{vpad(name, 22)}  {vpad(days_label(dow, dom, month), 18)}  {expr}')
     print(f'\n共 {len(rows)} 个调度项。GH Action cron 是 UTC，已 +8h 折算并修正跨日星期。')
     if LAST_OPENCLAW_SOURCE in {'fossil', 'empty'}:
         detail = ('rows came from a stale pre-6.1 fossil'
