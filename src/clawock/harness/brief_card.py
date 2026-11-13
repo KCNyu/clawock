@@ -173,7 +173,24 @@ def _with_usage_footer(card, footer):
     return f'{card.rstrip()}\n\n{footer}' if footer else card
 
 
-def build_brief_card(today, decision_packet=None, *, footer=''):
+def _version_id(version):
+    if isinstance(version, dict):
+        version = version.get('id')
+    return str(version or '').strip()
+
+
+def _with_version(card, version):
+    """Name the version this card is, matching the archived report it links to.
+
+    A card is static; the page behind its link is always current. The id is the
+    one thing that lets a reader (and the watchdog's receipt) tell which
+    archived version the card showed when the page has since moved on.
+    """
+    version_id = _version_id(version)
+    return f'{card.rstrip()}\n\n本卡版本 {version_id}' if version_id else card
+
+
+def build_brief_card(today, decision_packet=None, *, footer='', version=None):
     """The WeChat card for the 盘前深度简报 — single source of truth shared by
     brief_postflight (primary send) and brief_watchdog (backstop).
 
@@ -184,7 +201,9 @@ def build_brief_card(today, decision_packet=None, *, footer=''):
          full-brief link) if the model didn't write the card file — never silent.
 
     In both paths the harness inserts/replaces the deterministic early-candidate
-    section from the generation-bound packet. Model omission cannot hide it.
+    section from the generation-bound packet. Model omission cannot hide it, and
+    `version` (the archived report the card shows) is appended harness-side so a
+    model-written card cannot forget or invent it.
     """
     url = brief_url(today)
     decision_packet = decision_packet or _brief_decision_packet(today)
@@ -193,8 +212,9 @@ def build_brief_card(today, decision_packet=None, *, footer=''):
         if card_file.exists():
             txt = card_file.read_text().strip()
             if txt:
-                return _with_usage_footer(
-                    _inject_early_candidate_section(txt, decision_packet), footer)
+                return _with_usage_footer(_with_version(
+                    _inject_early_candidate_section(txt, decision_packet), version),
+                    footer)
     except Exception:
         pass  # fall through to deterministic build
     from clawock.decision.plans import ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS, PRICE_CONDITIONS
@@ -236,5 +256,6 @@ def build_brief_card(today, decision_packet=None, *, footer=''):
     except Exception:
         pass  # link-only fallback
     lines += ['', f'完整报告：{url}']
-    return _with_usage_footer(
-        _inject_early_candidate_section('\n'.join(lines), decision_packet), footer)
+    return _with_usage_footer(_with_version(
+        _inject_early_candidate_section('\n'.join(lines), decision_packet),
+        version), footer)

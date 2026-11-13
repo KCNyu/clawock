@@ -50,9 +50,11 @@ def desk(tmp_path, monkeypatch):
                         lambda *_a, **_k: ([], {'decisions': []}))
     monkeypatch.setattr(postflight, 'validate_plan_json', lambda *_a, **_k: [])
     monkeypatch.setattr(postflight, 'record_proposals', lambda *_a, **_k: None)
-    monkeypatch.setattr(postflight, 'build_brief_card', lambda *_a, **_k: 'card')
+    cards = []
+    monkeypatch.setattr(postflight, 'build_brief_card',
+                        lambda *_a, **_k: cards.append(_k) or 'card')
     monkeypatch.setattr(postflight, 'send_per_policy',
-                        lambda *a, **_k: sends.append(a) or (True, 'ok', True))
+                        lambda *_a, **kw: sends.append(kw) or (True, 'ok', True))
     monkeypatch.setattr(postflight, 'maybe_commit', lambda status, _today, dry_run=False, **_kw:
                         commits.append(status) or (True, 'committed + pushed'))
     monkeypatch.setattr(postflight, 'dashboard_publication_state', lambda _ws: 'published')
@@ -78,6 +80,8 @@ def desk(tmp_path, monkeypatch):
     d = Desk()
     d.md, d.tmp, d.rendered = md, tmp, rendered
     d.stages, d.degradations, d.sends, d.commits = stages, degradations, sends, commits
+    d.cards = cards
+    d.versions = tmp_path / 'memory' / 'brief-versions' / TODAY
 
     def run(capsys, *argv):
         monkeypatch.setattr(sys, 'argv', ['brief_postflight.py', *argv])
@@ -92,6 +96,67 @@ def test_the_delivering_run_records_what_the_link_showed(desk, capsys):
     receipt = json.loads((desk.tmp / f'brief-sent-{TODAY}.json').read_text())
     assert code == 0 and len(desk.sends) == 1
     assert receipt['report_sha256'] == postflight.report_sha256(desk.md)
+    assert result['content_revised_after_delivery'] is None
+    assert desk.degradations == []
+
+
+def test_the_delivered_card_binds_a_version_and_a_rerun_keeps_it(desk, capsys):
+    code, result = desk.run(capsys)
+    first_id = result['brief_version']
+    receipt = json.loads((desk.tmp / f'brief-sent-{TODAY}.json').read_text())
+    index = json.loads((desk.versions / 'index.json').read_text())
+
+    assert code == 0 and len(desk.sends) == 1
+    assert first_id.startswith('v1-')
+    assert receipt['brief_version'] == first_id
+    assert receipt['brief_version_path'] == index['versions'][0]['path']
+    assert receipt['brief_version_sha256'] == receipt['report_sha256']
+    assert index['current'] == first_id
+    assert index['versions'][0]['delivery']['channels'] == {
+        'wechat': True, 'telegram': True}
+    assert desk.cards[0]['version']['id'] == first_id
+
+    archived_v1 = (desk.versions / index['versions'][0]['file']).read_text()
+    assert '现金 13.2 亿美元' in archived_v1
+    desk.rendered['body'] = 'SK 海力士收 142.87'
+    code, result = desk.run(capsys)
+    second_id = result['brief_version']
+    receipt = json.loads((desk.tmp / f'brief-sent-{TODAY}.json').read_text())
+    index = json.loads((desk.versions / 'index.json').read_text())
+    page = desk.md.read_text(encoding='utf-8')
+
+    # No second card; the delivered version stays bound to the first card.
+    assert code == 0 and len(desk.sends) == 1
+    assert second_id != first_id and index['current'] == second_id
+    assert receipt['brief_version'] == first_id
+    assert (desk.versions / index['versions'][0]['file']).read_text() == archived_v1
+    assert len(index['versions']) == 2
+    assert result['content_revised_after_delivery']['delivered_version'] == first_id
+    assert result['content_revised_after_delivery']['current_version'] == second_id
+    # The live page is current and names both sides; the archive link is absent
+    # because this fixture's workspace declares no repository.
+    assert 'SK 海力士收 142.87' in page
+    assert first_id in page and second_id in page
+
+
+def test_a_legacy_receipt_binds_the_archived_digest_it_still_names(desk, capsys):
+    desk.run(capsys)
+    marker = desk.tmp / f'brief-sent-{TODAY}.json'
+    receipt = json.loads(marker.read_text())
+    first_id = receipt['brief_version']
+    for key in ('brief_version', 'brief_version_path', 'brief_version_sha256'):
+        receipt.pop(key)
+    marker.write_text(json.dumps(receipt))
+
+    code, result = desk.run(capsys)
+    rebound = json.loads(marker.read_text())
+    index = json.loads((desk.versions / 'index.json').read_text())
+
+    assert code == 0 and len(desk.sends) == 1
+    assert rebound['brief_version'] == first_id
+    assert index['versions'][0]['delivery']['channels'] == {
+        'wechat': True, 'telegram': True}
+    assert index['versions'][0]['delivery']['receipt'] == marker.name
     assert result['content_revised_after_delivery'] is None
     assert desk.degradations == []
 
@@ -172,7 +237,11 @@ def test_telegram_only_delivery_revision_precedes_wechat_claim(desk, capsys, mon
     assert len(calls) == int(claim_won)
     if calls:
         assert calls[0]['telegram_done'] is True
-    assert json.loads(marker.read_text())['report_sha256'] == original['report_sha256']
+    rewritten = json.loads(marker.read_text())
+    assert rewritten['report_sha256'] == original['report_sha256']
+    # The first delivered card keeps the version binding; a later WeChat
+    # recovery may carry a newer page, but it must not relabel the delivery.
+    assert rewritten['brief_version'] == original['brief_version']
     desk.run(capsys)
     assert len(desk.degradations) == 1
 
@@ -184,3 +253,27 @@ def test_no_revision_when_both_channels_failed(desk, capsys, monkeypatch):
     _, result = desk.run(capsys)
     assert result['content_revised_after_delivery'] is None
     assert postflight.REVISION_NOTICE_PREFIX not in desk.md.read_text()
+
+
+def test_dry_run_does_not_create_a_version(desk, capsys):
+    code, result = desk.run(capsys, '--dry-run')
+
+    assert code == 0
+    assert result['brief_version'] is None
+    assert not desk.versions.exists()
+    assert len(desk.sends) == 1 and desk.sends[0].get('dry_run') is True
+
+
+def test_a_version_store_failure_does_not_block_the_card(desk, capsys, monkeypatch):
+    def broken(*_a, **_k):
+        raise OSError('disk full while archiving')
+
+    monkeypatch.setattr(postflight.brief_versions, 'capture', broken)
+    code, result = desk.run(capsys)
+
+    assert code == 0 and len(desk.sends) == 1
+    assert result['brief_version'] is None
+    assert 'disk full while archiving' in result['brief_version_error']
+    receipt = json.loads((desk.tmp / f'brief-sent-{TODAY}.json').read_text())
+    assert 'brief_version' not in receipt
+    assert receipt['sent_ok'] is True and receipt['tg_ok'] is True

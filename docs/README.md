@@ -10,6 +10,9 @@ belongs here.
 
 - [`harness.md`](architecture/harness.md) — package/profile/runtime boundaries,
   CLI lifecycle, context injection contract, and generation-pinned artifacts.
+- [`brief-versions.md`](architecture/brief-versions.md) — the daily brief's
+  immutable version chain, its current pointer, and how delivery receipts bind
+  the card that went out.
 - [`decision-architecture.md`](architecture/decision-architecture.md) — who owns
   observations, computation, rule outputs, the hypothesis and the accounting; the
   `observations` and `compute` tools, immutable method proposals and prospective three-arm trials.

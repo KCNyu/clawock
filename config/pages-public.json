@@ -1,5 +1,6 @@
 {
   "site_url": "https://kcnyu.github.io/clawock",
+  "repo_url": "https://github.com/KCNyu/clawock",
   "browser_data": [
     "assets/data/overview.json",
     "assets/data/dashboard.json",

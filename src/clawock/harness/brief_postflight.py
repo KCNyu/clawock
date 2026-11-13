@@ -989,6 +989,7 @@ from ._harness_common import (  # noqa: E402
     push_with_rebase_retry,
     rebuild_dashboard,
 )
+from . import brief_versions  # noqa: E402
 from .brief_card import brief_url, build_brief_card  # noqa: E402
 from .run_usage import footer as run_usage_footer  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
@@ -1219,7 +1220,11 @@ def maybe_commit(status, today, dry_run=False, *, after_delivery=False):
                           'memory/risk_breaches.json',
                           'memory/proposals.jsonl',
                           'memory/fx-rates.jsonl',
-                          'memory/bar-conflicts.jsonl')
+                          'memory/bar-conflicts.jsonl',
+                          # Today's immutable renders and the pointer the page
+                          # matches. Directory-scoped like snapshots: older
+                          # dates' archives are never swept into this commit.
+                          f'memory/brief-versions/{today}/')
     add_args = ['add', *day_paths, 'portfolio.json',
                 'assets/data/risk.json',
                 'assets/data/lev_regime.json', 'assets/data/benchmark.json',
@@ -1380,21 +1385,91 @@ def _write_revision_notice(md_path, notice):
         safe_write_text(str(md_path), updated)
 
 
-def note_revision_after_delivery(md_path, receipt_path, today, *, job_name):
+def _receipt_sent_at(receipt):
+    """The HKT instant a delivery receipt records, or None if it cannot tell."""
+    try:
+        return datetime.fromtimestamp(int(receipt['ts']) / 1000, workflow_outcomes.HKT)
+    except (KeyError, TypeError, ValueError, OverflowError, OSError):
+        return None
+
+
+def _bind_legacy_delivery(receipt, receipt_path, today):
+    """Name the archived version a pre-version-chain receipt delivered.
+
+    Receipts written before this module carry only `report_sha256`.  When that
+    digest still names an archived version, the binding is a fact, not a guess:
+    record it so the notice and later readers can say `v1` instead of a digest.
+    A digest no archived version matches is left alone.
+    """
+    delivered = receipt.get('report_sha256')
+    if not delivered or receipt.get('brief_version'):
+        return None
+    row = brief_versions.find_by_sha(WS, today, delivered)
+    if row is None:
+        return None
+    sent = _receipt_sent_at(receipt)
+    try:
+        brief_versions.record_delivery(
+            WS, today, row['id'], at=sent,
+            channels={'wechat': receipt.get('sent_ok') is True,
+                      'telegram': receipt.get('tg_ok') is True},
+            receipt_name=Path(receipt_path).name)
+        receipt.update({'brief_version': row['id'],
+                        'brief_version_path': row.get('path'),
+                        'brief_version_sha256': row.get('sha256')})
+        safe_write_json(str(receipt_path), receipt)
+    except Exception as exc:  # noqa: BLE001 — the notice can still use the digest
+        print(f'warn: could not bind the delivered brief version: '
+              f'{type(exc).__name__}: {exc}', file=sys.stderr)
+        return row
+    return row
+
+
+def _revision_notice(delivered_id, current_id, sent_at, revised_at, archive):
+    """One blockquote naming both sides of the rewrite, with the archive if any."""
+    if delivered_id and current_id:
+        body = (f'{REVISION_NOTICE_PREFIX}：'
+                + (f'今天的卡片 {sent_at} HKT 送达 {delivered_id}；' if sent_at
+                   else f'今天的卡片送达 {delivered_id}；')
+                + f'本页于 {revised_at} HKT 更新为 {current_id}。'
+                + (f'送达版存档：{archive}。' if archive else '')
+                + '卡片内容以送达版为准，本页始终展示当前版。')
+    else:
+        body = (f'{REVISION_NOTICE_PREFIX}：'
+                + (f'今天的卡片 {sent_at} HKT 送达后，' if sent_at
+                   else '今天的卡片送达后，')
+                + f'本页于 {revised_at} HKT 按修正后的判断重新生成；'
+                + '卡片里的内容和校验提示是送达时的版本，与本页如有出入，以本页为准。')
+    return body
+
+
+def note_revision_after_delivery(md_path, receipt_path, today, *, job_name,
+                                 version=None):
     """Say so when the report about to be committed is not the one delivered.
 
-    The receipt carries `report_sha256` from the delivering run. A different
-    digest now gets a notice under the page title (re-added on every later
-    re-run of that version) and one `content_revised_after_delivery`
-    degradation per distinct revision; `brief-revision-{date}.json` remembers
-    which versions were counted. An older receipt without the digest says
-    nothing here: what was delivered cannot be told.
+    The receipt carries `report_sha256` and, since the version chain, the
+    `brief_version` whose card went out. A different current version now gets a
+    notice under the page title naming both versions and linking the archived
+    delivered one; it is re-added on every later re-run of that version. Each
+    distinct revision is counted once in `brief-revision-{date}.json` and as a
+    `content_revised_after_delivery` degradation. A receipt from before the
+    chain is bound to its archived digest when that digest still exists; one
+    that cannot be resolved keeps the digest-only wording rather than inventing
+    a version.
     """
     receipt = delivery_receipts.read_receipt(receipt_path) or {}
     delivered = receipt.get('report_sha256')
     current = report_sha256(md_path)
     if not delivered or not current:
         return None
+
+    _bind_legacy_delivery(receipt, receipt_path, today)
+    delivered_id = receipt.get('brief_version')
+    current_row = version
+    if not isinstance(current_row, dict) and current != delivered:
+        current_row = brief_versions.find_by_sha(WS, today, current)
+    current_id = (current_row or {}).get('id') if current != delivered else delivered_id
+
     if current == delivered:
         # Back to the delivered text (or a render that kept the old file):
         # nothing to say, and no stale notice either.
@@ -1413,29 +1488,32 @@ def note_revision_after_delivery(md_path, receipt_path, today, *, job_name):
     if first_seen:
         revision = {'at': datetime.now(workflow_outcomes.HKT).isoformat(timespec='seconds'),
                     'report_sha256': current}
+        if current_id:
+            revision['brief_version'] = current_id
         revisions.append(revision)
         state['revisions'] = revisions
         safe_write_json(str(state_path), state)
-    try:
-        sent = datetime.fromtimestamp(int(receipt['ts']) / 1000, workflow_outcomes.HKT)
-        sent_at = _hkt_clock(sent)
-    except (KeyError, TypeError, ValueError, OverflowError, OSError):
-        sent_at = None
+    sent = _receipt_sent_at(receipt)
+    sent_at = _hkt_clock(sent) if sent else None
     revised_at = _hkt_clock(datetime.fromisoformat(revision['at']))
-    _write_revision_notice(md_path, (
-        f'{REVISION_NOTICE_PREFIX}：'
-        + (f'今天的卡片 {sent_at} HKT 送达后，' if sent_at else '今天的卡片送达后，')
-        + f'本页于 {revised_at} HKT 按修正后的判断重新生成；'
-        + '卡片里的内容和校验提示是送达时的版本，与本页如有出入，以本页为准。'))
+    delivered_row = (brief_versions.find_by_sha(WS, today, delivered)
+                     if delivered_id else None)
+    archive = brief_versions.archive_url(WS, delivered_row) if delivered_row else ''
+    _write_revision_notice(md_path, _revision_notice(
+        delivered_id, current_id, sent_at, revised_at, archive))
     if first_seen:
+        delivered_name = delivered_id or delivered[:12]
+        current_name = current_id or current[:12]
         workflow_outcomes.note_degradation(
             None, 'content_revised_after_delivery',
             f'{today} 简报卡{f" {sent_at}" if sent_at else ""} 送达后报告被改写'
-            f'（{delivered[:12]} → {current[:12]}，第 {len(revisions)} 版修订）；'
+            f'（{delivered_name} → {current_name}，第 {len(revisions)} 版修订）；'
             f'原投递版本保留，页面已加修订说明',
             group=job_name)
     return {'delivered_at': sent_at, 'revised_at': revision['at'],
             'delivered_report_sha256': delivered, 'report_sha256': current,
+            'delivered_version': delivered_id, 'current_version': current_id,
+            'archive': archive or None,
             'revision': len(revisions), 'counted': first_seen}
 
 
@@ -1744,6 +1822,23 @@ def main(argv=None):
     )
 
     status = categorize(issues)
+    # Keep what is about to be delivered as an immutable version. This runs
+    # before the card is composed (it needs the id) and before the revision
+    # notice (which compares the delivered version with this one). It fails
+    # open: a broken version store must not cost the day's brief.
+    brief_version = None
+    brief_version_error = None
+    if status in ('pass', 'warn') and not args.dry_run:
+        try:
+            page_text = _without_revision_notice(md_path.read_text(encoding='utf-8'))
+            brief_version = brief_versions.capture(
+                WS, today, page_text,
+                generation_id=(context or {}).get('generation_id'),
+                at=datetime.now(workflow_outcomes.HKT))
+        except Exception as exc:  # noqa: BLE001 — delivery outranks traceability
+            brief_version_error = f'{type(exc).__name__}: {exc}'
+            print(f'warn: brief version not recorded: {brief_version_error}',
+                  file=sys.stderr)
     if not args.dry_run:
         record_proposals(normalized_plan, decision_packet, context, status)
     # A present context means the preflight ran and filed its own stage —
@@ -1873,7 +1968,8 @@ def main(argv=None):
     if status in ('pass', 'warn') and after_delivery and not args.dry_run:
         try:
             revision = note_revision_after_delivery(
-                md_path, brief_marker, today, job_name=job_name)
+                md_path, brief_marker, today, job_name=job_name,
+                version=brief_version)
         except Exception as exc:
             workflow_outcomes.note_degradation(
                 None, 'content_revised_after_delivery',
@@ -1890,7 +1986,8 @@ def main(argv=None):
         # Same two-line footer as direct chat. The watchdog reads it back from
         # the receipt and reuses it on a backstop send.
         card_footer = run_usage_footer(job=job_name)
-        card = build_brief_card(today, decision_packet=decision_packet, footer=card_footer)
+        card = build_brief_card(today, decision_packet=decision_packet,
+                                footer=card_footer, version=brief_version)
         message = (wechat_prefix + card).strip()
         first_line = card.strip().splitlines()[0] if card.strip() else ''
         # Take the send right before sending, not after (#508). The marker below
@@ -1934,6 +2031,28 @@ def main(argv=None):
                     print('dry-run: skipping brief-sent marker write', file=sys.stderr)
                     return False
                 wechat_ok, out, telegram_ok = sent
+                delivered = bool(wechat_ok or telegram_ok)
+                # The version whose card this is: the same id the card prints
+                # and the archived page the revision notice links. Recorded
+                # only when a channel really took it; a both-channel failure
+                # leaves the receipt describing an attempt, not a delivery.
+                # `after_delivery` is the per-channel recovery path: the first
+                # delivered card keeps the binding (and `report_sha256` above),
+                # even though this retry may carry a newer page.
+                version_fields = {}
+                if after_delivery:
+                    version_fields = {
+                        key: prior_receipt[key]
+                        for key in ('brief_version', 'brief_version_path',
+                                    'brief_version_sha256')
+                        if prior_receipt.get(key)
+                    }
+                elif delivered and brief_version:
+                    version_fields = {
+                        'brief_version': brief_version.get('id'),
+                        'brief_version_path': brief_version.get('path'),
+                        'brief_version_sha256': brief_version.get('sha256'),
+                    }
                 brief_marker.parent.mkdir(parents=True, exist_ok=True)
                 safe_write_text(str(brief_marker), json.dumps(
                     delivery_receipts.build_receipt(
@@ -1946,10 +2065,20 @@ def main(argv=None):
                         # What the card's link showed when it went out (#3105).
                         report_sha256=(prior_receipt.get('report_sha256') if after_delivery
                                        else report_sha256(md_path)),
+                        **version_fields,
                         # The exact bytes a failed WeChat send tried to deliver
                         # (#3443), same field the report/intraday receipts keep.
                         **delivery_receipts.failed_wechat_body(wechat_ok, message)),
                     ensure_ascii=False))
+                if delivered and brief_version and not after_delivery:
+                    try:
+                        brief_versions.record_delivery(
+                            WS, today, brief_version['id'],
+                            channels={'wechat': wechat_ok, 'telegram': telegram_ok},
+                            receipt_name=brief_marker.name)
+                    except Exception as exc:  # noqa: BLE001 — the send already landed
+                        print(f'warn: delivered brief version not bound: '
+                              f'{type(exc).__name__}: {exc}', file=sys.stderr)
                 return True
 
             # The marker owns idempotency from here — but only if it exists
@@ -1989,6 +2118,9 @@ def main(argv=None):
         'wechat_prefix': wechat_prefix,
         'wechat_sent':   wechat_sent,
         'content_revised_after_delivery': revision,
+        'brief_version': (brief_version or {}).get('id'),
+        'brief_version_path': (brief_version or {}).get('path'),
+        'brief_version_error': brief_version_error,
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
         'data_plane_status': data_plane_status,
@@ -2001,6 +2133,7 @@ def main(argv=None):
             'plan_json':    str(plan_path),
             'judgment_json': str(judgment_path),
             'pages_projection': str(projection_path),
+            'brief_versions': str(brief_versions.index_path(WS, today)),
         },
     }
     if not shipped:

@@ -591,3 +591,68 @@ def test_an_unreadable_origin_is_unverified_not_success(tmp_path, monkeypatch):
     follow_up = messages[-1]
     assert "✅" not in follow_up
     assert "无法复核产物" in follow_up
+
+
+def _wire_brief_backstop(tmp_path, monkeypatch, **receipt_fields):
+    from clawock.harness import _watchdog_common
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    # wechat_backstop logs through its own module, not the watchdog's re-export.
+    monkeypatch.setattr(_watchdog_common, "log", lambda _event: None)
+    _write_brief(tmp_path)
+    _write_plan(tmp_path, [{"action": "hold_and_watch"}])
+    _write_receipt(tmp_path, **receipt_fields)
+    monkeypatch.setattr(watchdog.trading_calendar, "hkt_today",
+                        lambda: date.fromisoformat(TODAY))
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason",
+                        lambda _market, *_a, **_k: None)
+    monkeypatch.setattr(watchdog, "resolve_wechat_target",
+                        lambda: ("wechat", "to", "account"))
+    monkeypatch.setattr(watchdog, "telegram_target", lambda: "target")
+    monkeypatch.setattr(watchdog, "log", lambda _event: None)
+
+
+def test_wechat_backstop_replays_the_bytes_the_failed_send_recorded(tmp_path, monkeypatch):
+    """#3443's receipt field is the delivered card, not a rebuild of today."""
+    _wire_brief_backstop(tmp_path, monkeypatch, sent_ok=False, tg_ok=True,
+                         wechat_body="EXACT FAILED CARD")
+    sent = []
+    monkeypatch.setattr(
+        watchdog, "send_wechat",
+        lambda *_a, **_k: (sent.append(_a[3]), (True, "ok"))[1])
+    monkeypatch.setattr(
+        watchdog, "build_brief_card",
+        lambda *_a, **_k: pytest.fail("a recorded card must be replayed, not rebuilt"))
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", "--dry-run"])
+
+    assert watchdog.main() == 0
+    assert sent == ["EXACT FAILED CARD"]
+
+
+def test_backstop_labels_the_delivered_version_only_while_it_is_current(tmp_path, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    from clawock.harness import brief_versions
+
+    version = brief_versions.capture(
+        tmp_path, TODAY, "# brief",
+        at=datetime(2026, 7, 17, 8, 32, tzinfo=timezone(timedelta(hours=8))))
+    _wire_brief_backstop(
+        tmp_path, monkeypatch, sent_ok=True, tg_ok=False,
+        brief_version=version["id"])
+    calls = []
+    monkeypatch.setattr(
+        watchdog, "build_brief_card",
+        lambda _day, **kw: calls.append(kw) or "CARD")
+    monkeypatch.setattr(watchdog, "send_telegram", lambda *_a, **_k: (True, "ok"))
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", "--dry-run"])
+
+    assert watchdog.main() == 0
+    assert calls[-1]["version"] == version["id"]
+
+    # A later revision makes the delivered id stale; the rebuilt card must not
+    # claim to be the archived version it no longer matches.
+    brief_versions.capture(
+        tmp_path, TODAY, "# brief\n\ncorrected",
+        at=datetime(2026, 7, 17, 9, 2, tzinfo=timezone(timedelta(hours=8))))
+    calls.clear()
+    assert watchdog.main() == 0
+    assert "version" not in calls[-1]

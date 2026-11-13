@@ -39,12 +39,15 @@ files ignored on master must be published as a complete generation rather than
 added individually to a ledger commit.
 
 A brief re-run checks the first delivered report digest whenever either channel
-has succeeded, before acquiring another send claim. Changed pages carry a revision
-notice and one `content_revised_after_delivery` entry per distinct version.
-WeChat-only recovery retains that original digest and skips Telegram if it already
-succeeded. Post-delivery commits use `memory: revise daily deep brief <date>`;
-cron health counts them separately from the initial brief commit, so unexplained
-duplicate initial commits still warn.
+has succeeded, before acquiring another send claim. Every publishable render is
+also kept as an immutable node under `memory/brief-versions/{date}/`, with
+`index.json.current` naming the report the live page shows; the receipt binds the
+delivered node (`brief_version`), and the page carries a revision notice when the
+two differ. The shape and its readers are in
+[brief-versions.md](brief-versions.md). WeChat-only recovery retains that original
+digest and skips Telegram if it already succeeded. Post-delivery commits use
+`memory: revise daily deep brief <date>`; cron health counts them separately from
+the initial brief commit, so unexplained duplicate initial commits still warn.
 
 Canonical raw bars are refreshed by the weekday brief preflight. Store freshness
 compares against the last expected brief slot plus a 20-minute completion grace,
