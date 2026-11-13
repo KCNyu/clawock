@@ -376,17 +376,17 @@ Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 
 preflight 已算好,直接读 `context.risk_guardrail`:
 - `concentration_reviews[].trim_to_review_line` 是按当前价、卖出同时缩小持仓腿分母、整手向上取整的情景尺寸，不是卖出授权。`trim_inputs` 给出复算输入。不能把原占比按剩余股数等比缩放；不同触发价须重算该票剩余市值与腿总市值。postflight 按 plan 的卖出股数及触发价生成减仓后支配度，未核算的百分比不要写进理由或导语；高于复核线不得声称已压回线下。
-- `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
+- `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。`age_days` 是**连续多少份简报记录**仍带该闸（周末/假日缺行不计，不是日历天；触底时带 `age_capped=true`）。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
 - `directive` — 本次总指令；`caps` — 当前阈值（2026-10-11 kcn：集中与杠杆 ETF 敞口不设上限。单名超过 35% 只进 `concentration_reviews`，杠杆与否都不算 breach；单名、相关 cluster、杠杆 ETF 占比上限都是整段 100%，杠杆 ETF 占比仍按港股制度乘数收紧；US β 6.0；杠杆止损 −18%）。持仓策略带 `forbid_reduce_advice` 的票（现为 `infinite_ammo_dca`）不出硬止损和 `regime_delever` 行。Top2 仅展示，不再冒充同因子。
-- `context.risk_discipline.records[]`（core，常驻）— 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence；`adaptive.recent_choices` 是最近几次 stand/reissue（完整理由留在账本）。每日重新生成的 plan 不是状态账本。
+- `context.risk_discipline.records[]`（core，常驻）— 同一 breach 的持久状态：`breach_id`、严重度、`age_days`（首次进入至今的**日历天**）、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence；`adaptive.recent_choices` 是最近几次 stand/reissue（完整理由留在账本）。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
 - **强制与回应分两类**,看每条风险行的 `risk[].enforcement`(#2839):
   - `forced`(杠杆硬止损、`regime_delever`):规则自己给了去处(`required_reduction.swap_to`),必须在 Judge 段落出对应动作(cut,或 regime 的 trim/cut),不准"观望"。**唯一例外**是下面「长期不执行的建议」里 `adaptive.may_stand=true` 的那几条,以及 durable override 生效的。
   - `respond`(`single_name` / `leveraged_exposure` / `factor_concentration` / `beta` 四类上限):规则只说要减多少、没说钱去哪,所以**不强制卖**。每条都要回应:减仓(trim/cut),或 `hold_and_watch` 并在 rationale 写明今天为什么不减、什么情况下会减。不许不提,也不许只写一句「继续观察」。**超限期间该票加仓关闭**,持有不等于可以加。postflight 把这次选择记进风险账本。
   - 卖出不是默认答案。比较减仓后持有现金与换仓的机会成本；现金也可以是有理由的选择。强制义务只核应减数量，不强迫同时写买腿。引用 `risk_rule` 换仓买腿时，仍须遵守指定目标与配对金额。
-- 每条 open 记录必须引用 `breach_id + age_days + acknowledgement/execution 状态`；未确认的老 breach 要明确升级，不得每天当新提醒重写。
+- 每条 open 记录必须引用 `breach_id + age_days + acknowledgement/execution 状态`；引用 `age_days` 时注明口径（`breaches[]` 按简报记录数，`records[]` 按日历天）。未确认的老 breach 要明确升级，不得每天当新提醒重写。
 - 当天 plan 内的 `override.status=active` **不能**豁免硬闸。只有 durable ledger 里带非空 reason 且未过 TTL 的 `status=overridden` 才有效；创建例外必须由用户明确决定，可用 `/root/.local/bin/clawock risk override BREACH_ID --reason '...' --ttl-hours N`。确认已看见用 `risk ack ... --note '...'`，成交证据用 `risk confirm ... --evidence '...'`；这些命令只记账，绝不下单。
 - 任何 critical/high breach 未关闭且未 durable override 时，禁止新增同一标的、杠杆或因子暴露。卖出不受阻；同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对换仓不受阻。
 - 这些减仓及其风控换仓买腿 **strategy_id=`risk_rebalance`、driven_by=`risk_rule`**（纪律性再平衡，不是择时预测），并在 rationale 注明组合政策依据。

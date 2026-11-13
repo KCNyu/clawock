@@ -24,8 +24,9 @@ const path = require('path');
 const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright-core');
 const ROOT = path.resolve(__dirname, '../..');
 const OUT = process.env.OUT || path.join(ROOT, 'site/assets/openclaw-cron.png');
-const CHROME_EXE = process.env.CHROME_EXE
-  || '/root/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
+// Empty means Playwright's own browser resolution; set CHROME_EXE only
+// for a non-default install. Public tooling must not carry a host path.
+const CHROME_EXE = process.env.CHROME_EXE || '';
 const WIDTH = 1000;
 const DSF = 2;
 
@@ -108,7 +109,7 @@ async function main() {
       took: took(j.state.lastDurationMs),
     }));
   if (!rows.length) throw new Error('no clawock jobs in `openclaw cron list`');
-  const browser = await chromium.launch({ executablePath: CHROME_EXE });
+  const browser = await chromium.launch({ executablePath: CHROME_EXE || undefined });
   const page = await browser.newPage({ viewport: { width: WIDTH, height: 400 }, deviceScaleFactor: DSF });
   await page.setContent(html(rows));
   await page.evaluate(() => document.fonts.ready);

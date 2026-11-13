@@ -7,7 +7,7 @@
  * the real panel on a real host (a CI runner has no DSH and no dispatcher).
  * WebKit, because this host's visual checks are single-engine WebKit (Linux
  * Chromium does not reproduce the host's type and material), and that needs a
- * playwright-core whose version matches ~/.cache/ms-playwright/webkit-*.
+ * playwright-core whose version matches the installed Playwright WebKit.
  *
  *   node site/tools/shoot_dsh_queue.js      # → site/assets/dsh-dispatch-queue.png
  *   clawock validate-sidecar screenshots    # same gate CI runs

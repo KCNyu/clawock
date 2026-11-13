@@ -48,8 +48,9 @@ const HEIGHT = Number(process.env.HEIGHT || 900);
 const DSF = Number(process.env.DSF || 1.5);
 // Playwright's bundled Chromium; this host has no system Chrome since the snap
 // was removed (2026-08-17).
-const CHROME_EXE = process.env.CHROME_EXE
-  || '/root/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
+// Empty means Playwright's own browser resolution; set CHROME_EXE only
+// for a non-default install. Public tooling must not carry a host path.
+const CHROME_EXE = process.env.CHROME_EXE || '';
 
 async function main() {
   const browser = await chromium.launch({

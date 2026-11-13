@@ -13,6 +13,7 @@ same picture. Every diagram shares one 1016-unit canvas and one type scale, so
 the same class of label is the same size in every figure on the page.
 """
 import importlib.util
+import json
 import math
 import re
 import xml.etree.ElementTree as ET
@@ -42,6 +43,15 @@ def test_committed_diagrams_match_their_builder():
     for name, draw in tour.FIGURES.items():
         assert (ROOT / 'site/assets' / name).read_text() == draw(), (
             name, 'run `python3 site/tools/build_dsh_task_tour.py` and commit the SVGs')
+
+
+def test_decision_pipeline_prints_the_configured_module_count():
+    """The figure's structural count must be the one config/docs/tests use."""
+    layers = json.loads((ROOT / 'config' / 'information-layers.json').read_text(encoding='utf-8'))
+    modules = sum(len(layer['modules']) for layer in layers['layers'])
+    text = (ROOT / 'site' / 'assets' / 'decision-pipeline.svg').read_text(encoding='utf-8')
+    assert f'{modules} modules · {len(layers["layers"])} layers' in text
+    assert '44 modules' not in text
 
 
 def test_rsi_views_share_the_house_style_and_stay_small():
