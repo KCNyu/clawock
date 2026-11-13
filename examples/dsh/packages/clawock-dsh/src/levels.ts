@@ -1,10 +1,11 @@
 /**
- * The one used-direction colour tier, shared by every surface that reads a
- * quota window: the sidebar and its panel, `/dispatch-list`, and the quota
+ * The low-balance colour tier for the sidebar chip, its popover,
+ * `/dispatch-list`, the task-detail allowance hairlines and the quota
  * notification (`ops/host/agent-dispatch/quota.mjs` imports this through the
- * built `lib/balance.js`). Keeping it here rather than in the client half is
- * what makes "内外一致" a property of one function instead of four copies of
- * the thresholds.
+ * built `lib/balance.js`). The workbench Providers tab's 4px quota bar uses
+ * `providerSignal`'s fixed 70/90 predicate instead (kcn's 2026-11-07 design);
+ * the two surfaces answer different questions and are documented separately
+ * in the package README (#3450).
  */
 export type UsedLevel = 'ok' | 'mid' | 'low'
 
