@@ -32,7 +32,7 @@ import json
 import sys
 from pathlib import Path
 
-from clawock.portfolio.math import active_holdings, carried_value, number, ledger_rows, day_pnl, holding_session, trade_session_date
+from clawock.portfolio.math import active_holdings, carried_value, number, ledger_rows, day_pnl_basis, holding_session, trade_session_date
 from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
@@ -154,12 +154,16 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
             if not dry_run:
                 h['current_value'] = cv
             pc = number(h.get('prev_close'))
-            if pc is None:
-                # A quote without a prior close cannot measure today's move.
-                # `today_total_change` already excludes this row, so leaving a
-                # stale today_change/today_change_pct behind makes the row and
-                # the book disagree (TODAY_TOTAL, #3437). Clear both rather
-                # than publish a number the current prices cannot support.
+            session = holding_session(h, data.get('last_updated'), region)
+            amount, base, old_shares = day_pnl_basis(h, session, market=region)
+            # A quote without a prior close cannot value shares that predate
+            # this session. It can still measure a row whose remaining shares
+            # were all bought today: the fill is the whole basis (#3451).
+            # Otherwise `today_total_change` excludes the row, so clear any
+            # stale pair rather than publish a number the prices cannot
+            # support (TODAY_TOTAL, #3437).
+            measurable = pc is not None or (old_shares == 0 and base > 0)
+            if not measurable:
                 for field in ('today_change', 'today_change_pct'):
                     if h.get(field) is not None:
                         diffs.setdefault(f'holdings.{field}', []).append(
@@ -167,8 +171,6 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
                         if not dry_run:
                             h[field] = None
             else:
-                session = holding_session(h, data.get('last_updated'), region)
-                amount, base = day_pnl(h, session, market=region)
                 ref = base / sh if sh else 0
                 fresh_lot = bool(session and any(t.get('action') == 'buy' and trade_session_date(region, t) == session
                                                 for t in ledger_rows(h.get('trades'))))
