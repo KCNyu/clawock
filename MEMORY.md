@@ -222,3 +222,11 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 ## 为什么会写进这里
 
 2026-11-11（41 条）和 2026-11-12（20 条）两轮派发的 prompt 里都带过这段原话，但它只留在 `/root/logs/agent-dispatch/<id>/prompt.md`，没进 store、没进 MEMORY.md、也不在 dreaming 的 session-corpus 里；2026-11-13 再派时我又漏带，kcn 要求不要每次重复。这条要求属于「重复两次以上」的稳定口径，故落成 topic。
+
+---
+
+## Dreaming 晋升 2026-10-27（28-30）
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-27.md:28:30 -->
+- Dependabot 分支可以直接合并，required checks 在 bot 分支上同样跑绿，无需从 claude/ 分支重开；release.yml 的 pin 必须写 40 位 commit SHA 加注释，annotated tag 需解引用到 commit SHA。
+- Source: memory/2026-10-27.md:28-30 (reviewed 2026-11-13; SHA256 4dbecf3a9e3f454bee0fa8046858d4b31f7ff5b881654e89230410cb1d730723)

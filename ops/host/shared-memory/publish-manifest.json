@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "233897fc5a58f352a70bd694a632a0dc05a97690fbca63bd59da5764292b3c9b",
-  "bytes": 14265,
+  "content_sha256": "81ff391e597f33481ce26e4272e9686fc35db85f24bafc58e63b3d55c50b7aec",
+  "bytes": 14739,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -140,6 +140,15 @@
       "heading": "# issues 处置 SOP（kcn 原话，逐字）",
       "lines": 19,
       "sha256": "ef9e405598527505fe4d4ac10da7140bfb507c8c0cfb1e8bdf06c6543bd2f0ef"
+    },
+    {
+      "slug": "lessons-dreaming-2026-10-27-28-30",
+      "order": 16,
+      "publish": "public",
+      "separator": true,
+      "heading": "## Dreaming 晋升 2026-10-27（28-30）",
+      "lines": 5,
+      "sha256": "e1861d38a231e6112ecfeb78146eaf04d4abb00b50ce72253f24b66d0da4e62b"
     }
   ]
 }
