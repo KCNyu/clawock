@@ -29,7 +29,7 @@
       support:"支撑", breakdown:"破位", breakout:"突破", target:"目标", force:"强制",
       derisk:"减仓", trim:"减仓", trigger:"触发", resist:"压力", resistance:"压力",
       reclaim:"收复", reentry:"重回", floor:"底线", ma:"均线", low:"低点", high:"高点",
-      prior:"前", yield:"收益率", alert:"预警", date:"日期", next:"下次",
+      prior:"前", close:"收盘", yield:"收益率", alert:"预警", date:"日期", next:"下次",
       breakeven:"回本", chandelier:"吊灯" };
 
     function resolve(key) {
@@ -76,6 +76,7 @@
       // (brief_render._LEVEL_WORDS, #2194) instead of echoing the raw key.
       const words = toks.map(t => WORDS[t]
         || (/^ma\d+$/.test(t) ? `${t.slice(2)}日线`
+          : /^zscore\d+$/.test(t) ? `${t.slice(6)}日 z 值`
           : /^\d+[dy]$/.test(t) ? t.slice(0, -1) + (t.endsWith("d") ? "日" : "年") : t));
       return words.length ? words.join(" ") : "触发位";
     };
@@ -799,6 +800,14 @@
     wrap.innerHTML = `<div class="digest-meta">generated: ${meta}</div>${md}${emHtml}`;
   }
 
+  // A null count is "not measured", not "nobody mentioned it" (#1237). The
+  // producer distinguishes a throttled run from a hard failure, so the reader
+  // gets the same three words the source itself uses.
+  function redditSourceNote(status) {
+    return { failed: "源失败", throttled: "源限流", not_attempted: "未尝试" }[status]
+      || (status ? "源不可用" : "");
+  }
+
   function renderMacro() {
     const wrap = document.getElementById('macro-row');
     if (!wrap) return;
@@ -857,14 +866,17 @@
       const measured = s.tickers.filter(t => typeof t.reddit_mentions_7d === 'number');
       const totalReddit = measured.reduce((sum, t) => sum + t.reddit_mentions_7d, 0);
       const totalNews = s.tickers.reduce((sum, t) => sum + ((t.google_news_en || []).length + (t.google_news_zh || []).length), 0);
+      const redditStatus = (s.source_status || {}).reddit;
       if (measured.length) {
         cells.push({lbl: 'Reddit 7d', val: totalReddit,
                     sub: measured.length === s.tickers.length
                       ? 'mentions' : `mentions · ${measured.length}/${s.tickers.length} 只票`});
-      } else if (s.tickers.length && (s.source_status || {}).reddit === 'failed') {
-        // Zero measured names is not "nothing was said": the source failed.
-        // Dropping the cell made that indistinguishable from a quiet feed (#3423).
-        cells.push({lbl: 'Reddit 7d', val: DASH, sub: '源失败'});
+      } else if (s.tickers.length && redditStatus && redditStatus !== 'ok') {
+        // Zero measured names is not "nothing was said": the source failed or
+        // throttled this run. Dropping the cell made both indistinguishable
+        // from a quiet feed (#3423 was the failed half; throttled is the other).
+        cells.push({lbl: 'Reddit 7d', val: DASH,
+                    sub: redditSourceNote(redditStatus) || '源不可用'});
       }
       if (totalNews > 0) cells.push({lbl: 'News 7d', val: totalNews, sub: 'articles'});
     }
@@ -942,7 +954,7 @@
         <summary>
           <span class="sd-tk">${escapeHtml(t.ticker)}</span>
           <span class="sd-reg">${regionTag(t.region)}</span>
-          <span class="sd-counts">Reddit <strong>${t.reddit == null ? (t.reddit_status === 'failed' ? '— 源失败' : '—') : t.reddit}</strong> · 新闻 <strong>${t.news.length}</strong></span>
+          <span class="sd-counts">Reddit <strong>${t.reddit == null ? (t.reddit_status && t.reddit_status !== 'ok' ? '— ' + redditSourceNote(t.reddit_status) : '—') : t.reddit}</strong> · 新闻 <strong>${t.news.length}</strong></span>
         </summary>
         <div class="sd-body">
           ${newsLis ? `<div class="sd-grp">News</div><ul>${newsLis}</ul>` :

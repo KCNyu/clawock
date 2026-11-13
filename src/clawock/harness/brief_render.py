@@ -1270,7 +1270,7 @@ _LEVEL_WORDS = {
     "target": "目标", "force": "强制", "derisk": "减仓", "trim": "减仓",
     "trigger": "触发", "resist": "压力", "resistance": "压力", "reclaim": "收复",
     "reentry": "重回", "floor": "底线", "ma": "均线", "low": "低点",
-    "high": "高点", "prior": "前", "yield": "收益率", "alert": "预警",
+    "high": "高点", "close": "收盘", "prior": "前", "yield": "收益率", "alert": "预警",
     "date": "日期", "next": "下次", "breakeven": "回本", "chandelier": "吊灯",
     "usd": "USD", "hkd": "HKD", "pct": "%",
     "recovery": "收复", "underlying": "正股", "single": "单", "day": "日",
@@ -1289,6 +1289,8 @@ def _level_label(key):
             words.append(_LEVEL_WORDS[token])
         elif re.fullmatch(r"ma(\d+)", token):
             words.append(f"{token[2:]}日线")
+        elif re.fullmatch(r"zscore(\d+)", token):
+            words.append(f"{token[6:]}日 z 值")
         elif re.fullmatch(r"\d+[dy]", token):
             words.append(token[:-1] + ("日" if token[-1] == "d" else "年"))
         elif i == 0:

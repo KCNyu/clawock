@@ -139,3 +139,29 @@ def test_market_prefix_resolves_the_actual_holding_token(bundle):
     assert by_name["00100"]["cur"] == 213
     assert by_name["00100"]["dist"] == pytest.approx(-5.33333, abs=.00001)
     assert all(r["ccy"] == "HKD" for r in rows)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
+@pytest.mark.parametrize("bundle", BUNDLES)
+def test_close_and_a_zscore_window_are_named_not_echoed(bundle):
+    """#3448: both bundles print the raw token when the word table is missing."""
+    rows = _ordered_rows(bundle, {"hstech_close": 3931.93, "rklb_zscore20": 1.78}, [
+        {"ticker": "RKLB", "current_price": 72.1, "region": "us"},
+    ])
+    labels = {r["who"]: r["label"] for r in rows}
+    assert labels["恒科"] == "收盘"
+    assert labels["RKLB"] == "20日 z 值"
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
+def test_reddit_source_states_are_named_on_both_signals_surfaces():
+    """#3446: `throttled` is a measured source state, not a quiet feed."""
+    source = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text(encoding="utf-8")
+    fn = re.search(r"^  function redditSourceNote\(status\) \{.*?^  \}$", source,
+                   re.MULTILINE | re.DOTALL).group(0)
+    script = fn + "\nprocess.stdout.write(JSON.stringify(['failed','throttled','not_attempted',''].map(redditSourceNote)));\n"
+    out = subprocess.run([shutil.which("node"), "-e", script], check=True,
+                         capture_output=True, text=True).stdout
+    assert json.loads(out) == ["源失败", "源限流", "未尝试", ""]
+    assert source.count("redditSourceNote(") >= 3, (
+        "the macro cell and the per-ticker row must both name the state")
