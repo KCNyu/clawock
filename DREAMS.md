@@ -493,6 +493,7 @@ Elsewhere the ledger kept its colder manners: rule day, not market day; cuts sta
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
+- Repaired recall artifacts: rewrote recall store.
 - Ranked 0 candidate(s) for durable promotion.
 - Promoted 0 candidate(s) into memory/.dreams/promotion-candidates.md (pending review).
 <!-- openclaw:dreaming:deep:end -->
