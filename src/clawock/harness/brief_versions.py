@@ -49,12 +49,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from pathlib import Path
 
 from clawock.safe_io import safe_write_json, safe_write_text, temp_dir_lock
-
-HKT = timezone(timedelta(hours=8))
+from clawock.sessions import HKT
 
 VERSION_ID_RE = re.compile(r'^v(\d+)-([0-9a-f]{8})$')
 DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
