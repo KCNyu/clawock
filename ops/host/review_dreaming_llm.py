@@ -60,6 +60,8 @@ def load_candidates(workspace: Path, approvals: dict) -> tuple[list[dict], list[
             continue
         if entry.get("invalid") or gate.reasons(entry["text"]):
             continue
+        if "source_already_accepted" in entry.get("reasons", []):
+            continue
         # The gate accepts one conclusion per source. Review the first candidate
         # from each source; the rest stay pending behind source_already_accepted.
         if entry["source"] in seen_sources:
