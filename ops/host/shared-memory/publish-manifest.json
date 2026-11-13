@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "9da714f64c4bed06afa8e17af222af8265f0a0d0b785fa7399ee9a3da1ef60d6",
-  "bytes": 12866,
+  "content_sha256": "233897fc5a58f352a70bd694a632a0dc05a97690fbca63bd59da5764292b3c9b",
+  "bytes": 14265,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -131,6 +131,15 @@
       "heading": "## Dreaming 审阅",
       "lines": 5,
       "sha256": "f664a418ffe8c651e03f1bed6d493102f87bccc5d7b5367cc74cae952ed0d842"
+    },
+    {
+      "slug": "feedback-issue-handling-sop",
+      "order": 15,
+      "publish": "public",
+      "separator": false,
+      "heading": "# issues 处置 SOP（kcn 原话，逐字）",
+      "lines": 19,
+      "sha256": "ef9e405598527505fe4d4ac10da7140bfb507c8c0cfb1e8bdf06c6543bd2f0ef"
     }
   ]
 }

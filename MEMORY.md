@@ -202,3 +202,23 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 自动候选留在私有 `memory/.dreams/`，只有显式审阅后的长期结论进入本文件。
 拒绝和待审记录不注入主会话；score 不代表事实已核实。同源候选不算独立证据。
 操作规则见 `docs/operations/dreaming-review.md`。
+
+# issues 处置 SOP（kcn 原话，逐字）
+
+派 coding agent 处理 issues 时，必须携带以下要求，不能只写「按规范做」：
+
+> 「好神奇，委派dsh处理掉所有的issues吧，然后不要完全信任issues里面写的，可能是错的，要独立思考和分析，看到地是不是真的错误」——kcn 2026-11-11 派发 issues-verify-sweep 时
+
+> 「委派dsh把issues都处理一下吧和之前一样要深度思考到底对不对」——kcn 2026-11-12 派发 issues-verify-sweep 时
+
+> 「不要信任issues本身的描述」——kcn 2026-11-13 追加
+
+## 执行口径
+
+- 不照 issue 的描述直接改代码。issue 由 patrol 免费模型轮次产出，未经人工复核。
+- 每条先独立复现或反证，判断「到底是不是真的错误」，再决定修还是关。
+- 每条都要有证据：确认为真的给修复 PR；假的/重复的/超范围的，写下已核实的理由再关闭；不用「未实现」冒充「已完成」。
+
+## 为什么会写进这里
+
+2026-11-11（41 条）和 2026-11-12（20 条）两轮派发的 prompt 里都带过这段原话，但它只留在 `/root/logs/agent-dispatch/<id>/prompt.md`，没进 store、没进 MEMORY.md、也不在 dreaming 的 session-corpus 里；2026-11-13 再派时我又漏带，kcn 要求不要每次重复。这条要求属于「重复两次以上」的稳定口径，故落成 topic。
