@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 from pathlib import Path
 
 import pytest
@@ -23,6 +23,17 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 from clawock import sessions as trading_calendar
+
+
+def test_half_day_closes_have_one_owner():
+    """#3472: evidence freshness and earnings maturity each hard-coded 16:00,
+    so a 12:00 HK / 13:00 ET half-day close was read as an open afternoon."""
+    assert trading_calendar.session_close("hk", date(2026, 12, 24)) == time(12, 0)
+    assert trading_calendar.session_close("us", date(2026, 12, 24)) == time(13, 0)
+    assert trading_calendar.session_close("hk", date(2026, 12, 23)) == time(16, 0)
+    assert trading_calendar.session_close("us", date(2026, 12, 23)) == time(16, 0)
+    with pytest.raises(ValueError):
+        trading_calendar.session_close("jp", date(2026, 12, 24))
 
 
 def test_calendar_implementation_and_cli_ship_in_the_product():

@@ -578,6 +578,18 @@ def test_invalid_overlay_cannot_corrupt_deterministic_pages_rows(tmp_path):
     assert json.loads(output_path.read_text()) == projection
 
 
+def test_pages_projection_write_never_emits_bare_nan(tmp_path):
+    """#3477: a browser rejects `NaN`/`Infinity`; the projection writer now
+    takes the same safe-JSON path as every other published JSON document."""
+    target = tmp_path / "brief_projection.json"
+    packet_mod._atomic_write(target, {"v": float("nan"), "ok": 1})
+    raw = target.read_text(encoding="utf-8")
+    assert "NaN" not in raw and "Infinity" not in raw
+    parsed = json.loads(raw, parse_constant=lambda token: (_ for _ in ()).throw(
+        ValueError(token)))
+    assert parsed == {"v": None, "ok": 1}
+
+
 def test_pages_projection_exposes_add_campaign_without_raw_run_card_inputs():
     context = _context()
     context["cross_sectional_factor"] = {

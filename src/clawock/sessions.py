@@ -272,6 +272,22 @@ def latest_completed_session(market: str, at: datetime | None = None) -> date | 
     return None
 
 
+def session_close(market: str, day: date) -> time:
+    """Regular-session close in market-local time for a trading day.
+
+    HK half-days stop at 12:00 and US early closes at 13:00; every other
+    trading day closes at 16:00. This is the one owner of that clock: evidence
+    freshness and earnings maturity each used to hard-code 16:00, so a half-day
+    close was read as an afternoon session that had not ended yet (#3472).
+    """
+    market = market.lower()
+    if market == "hk":
+        return time(12, 0) if day.isoformat() in HK_HALF_DAYS else time(16, 0)
+    if market == "us":
+        return time(13, 0) if day.isoformat() in US_HALF_DAYS else time(16, 0)
+    raise ValueError(f"unknown market {market!r} (use 'hk' or 'us')")
+
+
 def previous_trading_day(market: str, d: date) -> date:
     """Most recent trading day strictly before ``d``."""
     probe = d - timedelta(days=1)

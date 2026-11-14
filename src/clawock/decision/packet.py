@@ -17,7 +17,6 @@ import copy
 import hashlib
 import json
 import math
-import os
 import re
 import sys
 from datetime import date
@@ -32,7 +31,7 @@ from clawock.decision import receipts
 from clawock.decision import risk as risk_ledger
 from clawock.decision.actions import is_risk_swap_buy, positive_whole_shares
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
-from clawock.safe_io import to_strict_finite_number
+from clawock.safe_io import safe_write_json, to_strict_finite_number
 from clawock.safe_io import carried_value
 from clawock.portfolio.math import session_change_pct
 from clawock.workspace import workspace_root
@@ -185,11 +184,14 @@ def _sha256(text: str) -> str:
 
 
 def _atomic_write(path: Path, value) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
-    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
-    tmp.write_text(text, encoding="utf-8")
-    os.replace(tmp, path)
+    """Write the Pages projection through the repository's safe JSON writer.
+
+    The projection is parsed by a browser, which rejects bare `NaN`/`Infinity`;
+    `safe_write_json` replaces non-finite holes with `null`, keeps
+    `allow_nan=False`, and fsyncs the temporary file before the atomic replace
+    (#3477).
+    """
+    safe_write_json(str(path), value, indent=2)
 
 
 def _number(value, digits=4):
