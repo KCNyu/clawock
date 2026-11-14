@@ -74,14 +74,19 @@ def session_open(market, now):
 
 
 def last_close(market, now):
-    """The close (16:00 local) of the latest completed session before `now`."""
+    """The close of the latest completed session before `now`.
+
+    The close itself comes from the shared calendar (`sessions.session_close`):
+    HK half-days close at 12:00 and US early closes at 13:00, not 16:00. Using
+    16:00 on those days labelled post-close news as pre-close old news (#3472).
+    """
     from clawock import sessions  # noqa: PLC0415
 
     zone = ET if market == 'us' else HKT
     day = sessions.latest_completed_session(market, now)
     if day is None:
         return session_open(market, now)
-    return datetime.combine(day, dtime(16, 0), tzinfo=zone)
+    return datetime.combine(day, sessions.session_close(market, day), tzinfo=zone)
 
 
 # ── Parameters ────────────────────────────────────────────────────────────────

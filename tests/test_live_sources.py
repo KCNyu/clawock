@@ -4,7 +4,7 @@ normalisation, budgets, cache. No network: every answer is a stub.
 """
 import json
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 from clawock.evidence import live_sources as live
@@ -87,6 +87,15 @@ def test_the_caller_chooses_what_fresh_means():
     [row] = out['tickers']['02208']
     assert row['stale'] is False
     assert row['cite'].endswith('（Google新闻·证券时报，09-28 06:10 HKT 发布，上次收盘后）')
+
+
+def test_last_close_uses_the_half_day_close():
+    """#3472: Christmas Eve is a 12:00 HK / 13:00 ET close; the next morning's
+    brief must not call post-close news pre-close old news."""
+    from clawock.evidence import live_sources
+    now = datetime(2026, 12, 25, 0, 3, tzinfo=timezone.utc)
+    assert live_sources.last_close("hk", now).isoformat() == "2026-12-24T12:00:00+08:00"
+    assert live_sources.last_close("us", now).isoformat() == "2026-12-24T13:00:00-05:00"
 
 
 def test_an_edgar_filing_with_no_minute_is_neither_fresh_nor_old(monkeypatch):

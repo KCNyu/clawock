@@ -32,7 +32,7 @@ from clawock.decision import entry as entry_gate
 from clawock.decision import theses as thesis_registry
 from clawock import instruments as instrument_registry
 from clawock.workspace import workspace_root
-from clawock.sessions import ET
+from clawock.sessions import ET, session_close
 
 WS = workspace_root()
 THESIS_DIR = WS / "memory" / "theses"
@@ -97,8 +97,9 @@ STALE_LEDGER_FACTOR = float(POLICY["stale_ledger_factor"])
 US_EARNINGS_TZ = ET
 US_MARKET_OPEN = time(9, 30)
 # An AMC label promises only "after close", not a precise release minute.
-# Waiting 15 minutes avoids creating work at the closing bell itself.
-US_AFTER_CLOSE_MATURE = time(16, 15)
+# Waiting 15 minutes avoids creating work at the closing bell itself. The close
+# is the calendar's (13:00 ET on an early-close day), not a hard-coded 16:00.
+AMC_MATURITY_DELAY = timedelta(minutes=15)
 
 
 def _load_json(path: Path):
@@ -224,7 +225,10 @@ def earnings_event_mature(event: dict, *, now: datetime) -> bool:
     if session == "bmo":
         mature_at = datetime.combine(reported, US_MARKET_OPEN, US_EARNINGS_TZ)
     elif session in {"amc", "dmh"}:
-        mature_at = datetime.combine(reported, US_AFTER_CLOSE_MATURE, US_EARNINGS_TZ)
+        mature_at = (
+            datetime.combine(reported, session_close("us", reported), US_EARNINGS_TZ)
+            + AMC_MATURITY_DELAY
+        )
     else:
         mature_at = datetime.combine(
             reported + timedelta(days=1), time.min, US_EARNINGS_TZ

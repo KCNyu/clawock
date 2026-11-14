@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from clawock.evidence import research_surface as rs
+from clawock.sessions import ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -117,6 +118,17 @@ def test_earnings_queue_waits_for_the_event_to_mature(dirs, event_time, now, exp
         **dirs,
     )
     assert bool(surface["earnings"]["reviews_due"]) is expected
+
+
+@pytest.mark.parametrize("now,expected", [
+    (datetime(2026, 12, 24, 13, 14, tzinfo=ET), False),
+    (datetime(2026, 12, 24, 13, 15, tzinfo=ET), True),
+])
+def test_amc_on_an_early_close_matures_fifteen_minutes_after_1300(now, expected):
+    """#3472: the US early close is 13:00 ET, so AMC maturity is 13:15, not
+    16:15 — the review queue should not wait three extra hours."""
+    event = {"date": "2026-12-24", "time": "amc"}
+    assert rs.earnings_event_mature(event, now=now) is expected
 
 
 def test_an_actual_result_matures_the_event_before_the_calendar_boundary(dirs):
