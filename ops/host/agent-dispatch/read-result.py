@@ -7,6 +7,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from dispatch_json import read_json_object  # noqa: E402
+
 
 def read_result(directory: Path, run: int | None = None) -> str:
     attempts = []
@@ -53,14 +56,6 @@ def read_result(directory: Path, run: int | None = None) -> str:
         if completed and last and last.strip():
             return last
     raise ValueError("The latest attempt has no report; inspect status for running/error state.")
-
-
-def read_json(path: Path) -> dict:
-    try:
-        data = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
 
 
 def read_env(path: Path) -> dict:
@@ -116,7 +111,7 @@ def report(directory: Path, run: int | None = None) -> str:
             pass
     # The ask question object and its answer (runner api 6). question.json is the question as
     # asked; answer.json is the one answer, if any.
-    question, answer = read_json(directory / "question.json"), read_json(directory / "answer.json")
+    question, answer = read_json_object(directory / "question.json"), read_json_object(directory / "answer.json")
     if question:
         lines.append(f"question: {question.get('state', 'open')} key={question.get('key', '-')} "
                      f"asked_by_run={question.get('asked_by_run', '?')}")
@@ -131,7 +126,7 @@ def report(directory: Path, run: int | None = None) -> str:
         else:
             lines.append(f"answer_command: dispatch.sh answer {directory.name} <n>")
     for path in [directory / "later.json"] + sorted(directory.glob("later-*.json"), reverse=True)[:2]:
-        later = read_json(path)
+        later = read_json_object(path)
         if later:
             lines.append(f"later: {later.get('state', '?')} key={later.get('key', '-')} "
                          f"at={later.get('at', '-')} attempt={later.get('attempt', '?')} "

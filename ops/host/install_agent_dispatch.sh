@@ -25,6 +25,7 @@ FILES=(
   run-agent.sh
   dispatch.sh
   read-result.py
+  dispatch_json.py
   quota.mjs
   resource-pressure.sh
   probe-free-models.sh
