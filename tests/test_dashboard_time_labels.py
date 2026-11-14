@@ -47,6 +47,48 @@ def test_movers_name_their_session_and_stop_saying_today_when_mixed():
     label = _body(hero, "moversHeadLabel")
     assert "sessions.length > 1" in label
     assert "异动 · 最近收盘" in label
+    # #3479: one session on a weekend / Monday morning is still not today.
+    # The old 20-hour rule compared generated_at with last_updated, both of
+    # which belong to this artifact, so it could never see that.
+    assert "sessions[0] === dhHktDay(generated)" in label
+    # A legacy projection with no per-row session keeps the artifact-age rule.
+    assert "20 * 3600" in label
+
+
+def test_hero_today_kicker_requires_the_leg_session_to_be_today():
+    """#3479 comment: both legs carrying a percentage does not make the
+    percentage today's; the weekend payload carried Friday's for both."""
+    block = _body(HERO.read_text(encoding="utf-8"), "renderCommandDeck")
+    assert "d.session_date === generatedHktDay" in block
+    assert "legIsToday(legDelta.us) && legIsToday(legDelta.hk)" in block
+    assert "legName" in block and "!legIsToday(d)" in block
+
+
+def test_hero_spark_keeps_the_last_session_date():
+    """#3478: moving the headline value onto the tail must not invent a
+    non-trading date from the generation's HKT day."""
+    block = _body(HERO.read_text(encoding="utf-8"), "renderHeroSpark")
+    assert "latest.v = currentProfit" in block
+    assert "pts.push(" not in block
+
+
+def test_latest_brief_card_uses_the_projection_generated_at():
+    """#3481: 08:03 is the slot, not the send time of the brief on screen."""
+    import subprocess
+    block = _body((ROOT / "site/assets/js/dashboard.ui.js").read_text(encoding="utf-8"),
+                  "briefCardStamp")
+    js = """
+const assert = require('node:assert/strict');
+""" + block + """
+assert.equal(briefCardStamp('2026-11-13T08:05:21.894196+08:00'), '08:05');
+assert.equal(briefCardStamp('2026-11-13T10:39:00+08:00'), '10:39');
+assert.equal(briefCardStamp(''), '08:03');
+assert.equal(briefCardStamp('not a date'), '08:03');
+"""
+    subprocess.run(['node', '-e', js], check=True)
+    ui = (ROOT / "site/assets/js/dashboard.ui.js").read_text(encoding="utf-8")
+    assert "· 08:03 HKT" not in ui
+    assert "briefCardStamp(brief.generated_at)" in ui
 
 
 def test_sentiment_names_a_failed_reddit_source_instead_of_dropping_it():

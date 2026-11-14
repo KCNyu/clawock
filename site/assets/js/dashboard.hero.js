@@ -151,23 +151,27 @@
     // here depends on the viewer's clock or zone: `last_updated` is HKT
     // ("2026/09/05 04:03 HKT") and `generated_at` is the build's UTC instant.
     //
-    // 20 hours, not "a different date": the widest gap inside one trading day
-    // is the US close (04:03 HKT) to the next HK open (09:30 HKT), about five
-    // and a half hours, so 20 cannot fire on a live session — while a weekend
-    // is about fifty.
+    // The stale label carries no date on purpose: `last_updated` is when the
+    // desk wrote, not which session the numbers are from, and the list mixes
+    // both legs. What the reader needs is that these are not today's, and that
+    // is what it says. The heading cannot say 今日 for two legs on two
+    // sessions even when the artifact is fresh (#3421).
     //
-    // The stale label carries no date on purpose. `last_updated` is when the
-    // desk wrote, not which session the numbers are from: the US close lands at
-    // 04:03 HKT, so Friday's US moves are stamped Saturday, and printing that
-    // date would trade one wrong claim for another (#1278: the time on the
-    // artifact follows the cron, the market's own time is a different thing).
-    // The list also mixes both legs, which have different sessions. What the
-    // reader needs is that these are not today's, and that is what it says.
-    // Two legs on two sessions: the heading cannot say 今日 for both, even
-    // when the artifact itself is fresh (#3421).
+    // Compare the row's own session with the generation's HKT day. The old
+    // 20-hour rule compared `generated_at` with `last_updated` — both stamps of
+    // this same artifact — so it could only fire when the artifact itself was
+    // old, never when the single session was yesterday (weekend, Monday
+    // morning, every 05:40 generation).
     const sessions = [...new Set((movers || [])
       .map(x => x && x.session).filter(Boolean))];
     if (sessions.length > 1) return "异动 · 最近收盘";
+    const generated = new Date(safe(DATA, "generated_at") || "");
+    if (sessions.length === 1 && !isNaN(generated)) {
+      return sessions[0] === dhHktDay(generated) ? "今日异动" : "异动 · 最近收盘";
+    }
+    // A projection predating per-row sessions has nothing to compare but its
+    // own two stamps; keep the old artifact-age rule as the fallback so an
+    // un-sessioned weekend payload still does not claim 今日.
     var stamp = String(safe(DATA, "last_updated") || "");
     var match = stamp.match(/^(\d{4})[\/-](\d{2})[\/-](\d{2})\s+(\d{2}):(\d{2})/);
     var built = Date.parse(String(safe(DATA, "generated_at") || ""));
@@ -764,9 +768,17 @@
     const legDelta = { us: safe(DATA, "delta", "us") || {}, hk: safe(DATA, "delta", "hk") || {} };
     const usTodayPct = has(legDelta.us.today_pct) ? legDelta.us.today_pct : null;
     const hkTodayPct = has(legDelta.hk.today_pct) ? legDelta.hk.today_pct : null;
-    const bothToday = usTodayPct != null && hkTodayPct != null;
+    // Both legs carrying a percentage is not the same as both percentages
+    // being today's: on a weekend or before the first open, the snapshot is
+    // still the previous session. `session_date` is on the same leg object, so
+    // require it to match the generation's HKT day before the kicker says 今日.
+    const generatedAt = new Date(safe(DATA, "generated_at") || "");
+    const generatedHktDay = !isNaN(generatedAt) ? dhHktDay(generatedAt) : "";
+    const legIsToday = d => !generatedHktDay || d.session_date === generatedHktDay;
+    const bothPct = usTodayPct != null && hkTodayPct != null;
+    const bothToday = bothPct && legIsToday(legDelta.us) && legIsToday(legDelta.hk);
     const assetsUsd = eq((us.value_usd || 0) + (us.cash_usd || 0), (hk.value_hkd || 0) + (hk.cash_hkd || 0));
-    const todayPct = (bothToday && has(assetsUsd) && has(todayUsd) && (assetsUsd - todayUsd) > 0)
+    const todayPct = (bothPct && has(assetsUsd) && has(todayUsd) && (assetsUsd - todayUsd) > 0)
       ? todayUsd / (assetsUsd - todayUsd) * 100 : null;
 
     pnlEl.textContent = heroMoney(totalUsd, "USD");
@@ -921,8 +933,9 @@
     // 「亏在哪边」），柱子回答「这根在最近的分布里算大还是算小」。
     const todayEl = document.getElementById("hero-today");
     if (todayEl) {
-      // 没有今日百分比的腿，金额是它最近一场的：把场次写在腿名上。
-      const legName = (name, d) => (d.today_pct == null && d.session_date)
+      // 没有今日百分比、或百分比不属于产物 HKT 日的腿，金额是它最近一场
+      // 的：把场次写在腿名上。只改显示，不改 totals/Delta 的口径。
+      const legName = (name, d) => ((d.today_pct == null || !legIsToday(d)) && d.session_date)
         ? `${name} ${escapeHtml(String(d.session_date).slice(5))}` : name;
       const leg = (k, v, pct, cls) =>
         `<span class="ht-leg"><span class="ht-leg-k">${k}</span>`
@@ -999,15 +1012,17 @@
     host.classList.remove("is-scrubbing");
     if (pts.length < 3) { heroScrub = null; host.replaceChildren(); return; }
 
-    // Historical snapshots round each currency leg to cents. The last point
-    // must use this generation's headline value, or a half-dollar boundary
-    // can print two different totals. Preserve earlier snapshot dates/values.
+    // Historical snapshots round each currency leg to cents, so the last point
+    // must carry this generation's headline value. It must NOT get a new date
+    // for the generation's HKT day: every 05:40 generation and every weekend
+    // generation happens on a day the markets have not traded, and pushing
+    // that date invented a 91st "trading day" out of 90 snapshots (#3478).
+    // Move the tail value only; the date stays the last completed session.
     const generated = new Date(DATA.generated_at || DATA.last_updated || "");
     if (currentProfit != null && isFinite(currentProfit) && !isNaN(generated)) {
       const date = dhHktDay(generated);
       const latest = pts[pts.length - 1];
-      if (date === latest.date) latest.v = currentProfit;
-      else if (date > latest.date) pts.push({ date, v: currentProfit });
+      if (date >= latest.date) latest.v = currentProfit;
     }
     const vals = pts.map(p => p.v);
     const W = 1000, H = 200, PAD = 6;            // viewBox 坐标，实际尺寸由 CSS 给
