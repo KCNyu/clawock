@@ -50,8 +50,9 @@ def test_movers_name_their_session_and_stop_saying_today_when_mixed():
     # #3479: one session on a weekend / Monday morning is still not today.
     # The old 20-hour rule compared generated_at with last_updated, both of
     # which belong to this artifact, so it could never see that.
-    assert "sessions[0] !== dhHktDay(generated)" in label
-    assert "20 * 3600" not in label
+    assert "sessions[0] === dhHktDay(generated)" in label
+    # A legacy projection with no per-row session keeps the artifact-age rule.
+    assert "20 * 3600" in label
 
 
 def test_hero_today_kicker_requires_the_leg_session_to_be_today():

@@ -166,11 +166,20 @@
       .map(x => x && x.session).filter(Boolean))];
     if (sessions.length > 1) return "异动 · 最近收盘";
     const generated = new Date(safe(DATA, "generated_at") || "");
-    if (sessions.length === 1 && !isNaN(generated)
-        && sessions[0] !== dhHktDay(generated)) {
-      return "异动 · 最近收盘";
+    if (sessions.length === 1 && !isNaN(generated)) {
+      return sessions[0] === dhHktDay(generated) ? "今日异动" : "异动 · 最近收盘";
     }
-    return "今日异动";
+    // A projection predating per-row sessions has nothing to compare but its
+    // own two stamps; keep the old artifact-age rule as the fallback so an
+    // un-sessioned weekend payload still does not claim 今日.
+    var stamp = String(safe(DATA, "last_updated") || "");
+    var match = stamp.match(/^(\d{4})[\/-](\d{2})[\/-](\d{2})\s+(\d{2}):(\d{2})/);
+    var built = Date.parse(String(safe(DATA, "generated_at") || ""));
+    if (!match || !isFinite(built)) return "今日异动";
+    var session = Date.parse(
+      match[1] + "-" + match[2] + "-" + match[3] + "T" + match[4] + ":" + match[5] + ":00+08:00");
+    if (!isFinite(session) || built - session < 20 * 3600 * 1000) return "今日异动";
+    return "异动 · 最近收盘";
   }
 
   function renderTodayHighlights() {
