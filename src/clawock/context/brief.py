@@ -272,19 +272,23 @@ def _tool_artifact(path: Path, payload: dict, generation_id: str):
     }
 
 
-def _bundle_bytes(name: str, context: dict, fields=None) -> int:
+def _bundle_bytes(name: str, context: dict, fields=None, *,
+                  dropped_fields: tuple[str, ...] = ()) -> int:
     """Bytes `_artifact` would write for bundle ``name`` of ``context``."""
     fields = tuple(
         field for field in (fields if fields is not None else BUNDLE_FIELDS[name])
         if field in context
     )
+    meta = {
+        "schema_version": SCHEMA_VERSION,
+        # compute_generation_id is a fixed-width 16-hex prefix.
+        "generation_id": "0" * 16,
+        "fields": list(fields),
+    }
+    if dropped_fields:
+        meta["budget_dropped_fields"] = list(dropped_fields)
     payload = {
-        "_meta": {
-            "schema_version": SCHEMA_VERSION,
-            # compute_generation_id is a fixed-width 16-hex prefix.
-            "generation_id": "0" * 16,
-            "fields": list(fields),
-        },
+        "_meta": meta,
         **{field: context[field] for field in fields},
     }
     return len((_compact(payload) + "\n").encode("utf-8"))
@@ -321,9 +325,12 @@ def fit_lazy_bundles(context: dict) -> tuple[dict[str, tuple[str, ...]], dict[st
                 continue
             kept.remove(field)
             omitted.append(field)
-            if _bundle_bytes(name, context, kept) <= SINGLE_BUNDLE_BUDGET_BYTES:
+            if _bundle_bytes(name, context, kept,
+                             dropped_fields=tuple(omitted)) <= SINGLE_BUNDLE_BUDGET_BYTES:
                 break
-        if omitted and _bundle_bytes(name, context, kept) <= SINGLE_BUNDLE_BUDGET_BYTES:
+        if omitted and _bundle_bytes(
+                name, context, kept,
+                dropped_fields=tuple(omitted)) <= SINGLE_BUNDLE_BUDGET_BYTES:
             visible[name] = tuple(kept)
             dropped[name] = omitted
     return visible, dropped
