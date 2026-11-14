@@ -2156,7 +2156,8 @@
      1.62–2.94:1；用字重表达次序，保留可读对比度。 */
   .bucket-wr.wr-lown { font-weight: 500; }
 
-  /* driven_by chip — which data source drove the call (color encodes edge) */
+  /* driven_by chip — which data source drove the call (a flat category label;
+     the per-driver colours were collapsed in #2888, see Calibration·By Driver) */
   .drv-chip {
     display: inline-block; margin-left: 8px; padding: 2px 8px;
     border-radius: var(--radius-sm); font-size: var(--fs-micro); font-weight: 600;

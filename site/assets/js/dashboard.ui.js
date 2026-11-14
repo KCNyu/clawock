@@ -1203,6 +1203,18 @@
     setInterval(_updateAgeLabel, 15000);
   }
 
+  // A brief's cron slot is 08:03 HKT, but a late or fallback delivery is not:
+  // the projection's generated_at is the only recorded send time, so print
+  // that. Only a missing/unparseable stamp falls back to the slot.
+  function briefCardStamp(generatedAt) {
+    const at = new Date(generatedAt || "");
+    if (isNaN(at)) return "08:03";
+    return at.toLocaleTimeString("zh-CN", {
+      hour: "2-digit", minute: "2-digit", hour12: false,
+      timeZone: "Asia/Hong_Kong",
+    });
+  }
+
   async function loadLatestBriefCard() {
     const date = document.getElementById("latest-brief-date");
     const summary = document.getElementById("latest-brief-summary");
@@ -1229,7 +1241,7 @@
         summary.hidden = false;
       }
       if (asOf) {
-        date.textContent = `${asOf} · 08:03 HKT`;
+        date.textContent = `${asOf} · ${briefCardStamp(brief.generated_at)} HKT`;
         link.href = `memory/${asOf}-pre-open.html`;
       }
     } catch (_error) {

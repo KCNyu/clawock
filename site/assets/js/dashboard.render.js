@@ -2158,22 +2158,24 @@
     return `<span class="bucket-wr ${cls}${lowN}" title="${tip}">${icon}${fixed(wr)}%<span class="wr-n">n${pb.n_episodes}</span></span>`;
   }
 
-  // driven_by → which data source drove the call. Color encodes edge (catalyst has
-  // edge ~62%, technical ~47% none). Mirrors calibration_by_driver card semantics.
+  // driven_by → which data source drove the call. This is a category label,
+  // not a colour code: the design system collapsed the per-driver hues in
+  // #2888, so every chip is the same neutral badge and the edge difference is
+  // read from the Calibration·By Driver card, not from here.
   const DRIVER_META = {
-    technical:  { label: "技术",   cls: "drv-technical"  },
-    catalyst:   { label: "催化",   cls: "drv-catalyst"   },
-    sentiment:  { label: "情绪",   cls: "drv-sentiment"  },
-    influencer: { label: "影响力", cls: "drv-influencer" },
-    macro:      { label: "宏观",   cls: "drv-macro"      },
-    peer:       { label: "同行",   cls: "drv-peer"       },
-    risk_rule:  { label: "风控",   cls: "drv-macro"      },
+    technical:  { label: "技术"   },
+    catalyst:   { label: "催化"   },
+    sentiment:  { label: "情绪"   },
+    influencer: { label: "影响力" },
+    macro:      { label: "宏观"   },
+    peer:       { label: "同行"   },
+    risk_rule:  { label: "风控"   },
   };
   function driverChip(driven_by) {
     const d = (driven_by || "").trim().toLowerCase();
     const m = DRIVER_META[d];
     if (!m) return "";
-    return `<span class="drv-chip ${m.cls}" title="driven_by=${d}（该信号源的 30d edge 见 Calibration·By Driver 卡）">${m.label}</span>`;
+    return `<span class="drv-chip" title="driven_by=${d}（该信号源的 30d edge 见 Calibration·By Driver 卡）">${m.label}</span>`;
   }
 
   function unresolvedReasonLabel(reason) {
