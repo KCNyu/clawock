@@ -190,6 +190,56 @@ def test_reference_fields_are_dropped_before_a_lazy_bundle_fails(tmp_path):
         tmp_path / "fitted.json", Path(manifest["manifest_path"])) == []
 
 
+def test_bundle_estimate_counts_the_dropped_field_list(tmp_path):
+    # #3494: _artifact writes budget_dropped_fields into _meta, so the fit
+    # estimate has to include the same list or it measures a smaller document.
+    source = {"quant_signals": {"pad": "Q" * 100},
+              "strategy_scores": {"detail": "S" * 100}}
+    visible = {"research": ("quant_signals",)}
+    _, manifest = brief_context.write_run_bundle(
+        source, tmp_path / "dropped.json", bundle_fields=visible)
+    research = manifest["bundles"]["research"]
+    assert research["budget_dropped_fields"] == ["strategy_scores"]
+    assert research["bytes"] == brief_context._bundle_bytes(
+        "research", source, ("quant_signals",),
+        dropped_fields=("strategy_scores",))
+
+
+def test_fit_does_not_ignore_the_dropped_list_in_its_own_estimate(tmp_path):
+    # #3494: choose a kept-only estimate exactly at the budget. The real write
+    # adds the dropped-field list, so the old fit accepted a bundle that its
+    # own write_run_bundle check then rejected, failing the whole generation.
+    budget = brief_context.SINGLE_BUNDLE_BUDGET_BYTES
+
+    def source(pad):
+        return {"quant_signals": {"pad": "q" * pad},
+                "strategy_scores": {"detail": "S" * 300}}
+
+    lo, hi, best = 0, budget, None
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if brief_context._bundle_bytes(
+                "research", source(mid), ("quant_signals",)) <= budget:
+            best = mid
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    assert best is not None
+    source = source(best)
+    kept = brief_context._bundle_bytes("research", source, ("quant_signals",))
+    with_drop = brief_context._bundle_bytes(
+        "research", source, ("quant_signals",),
+        dropped_fields=("strategy_scores",))
+    assert kept <= budget < with_drop
+    assert brief_context._bundle_bytes("research", source) > budget
+
+    visible, dropped = brief_context.fit_lazy_bundles(source)
+    assert "research" not in dropped
+    with pytest.raises(ValueError, match="lazy bundle exceeds per-load budget"):
+        brief_context.write_run_bundle(
+            source, tmp_path / "boundary.json", bundle_fields=visible)
+
+
 def test_risk_detail_oversize_still_fails_closed(tmp_path):
     """#3484: no field in `risk_detail` is safe to omit, so the old hard error
     stays rather than publishing a partial risk table."""
