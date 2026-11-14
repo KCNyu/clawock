@@ -290,30 +290,13 @@ def _subject_prices(ctx, subject):
         '标普': ('spx', 'spy'), '纳指': ('ndx', 'nasdaq'),
     }
     names = (subject.lower(), *aliases.get(subject, ()))
-    from clawock.instruments import INSTRUMENTS
+    from clawock.instruments import watch_level_owner
 
-    def spelling(value):
-        return re.sub(r'[^a-z0-9\u4e00-\u9fff]', '', value.lower())
-
-    def display_names(ticker):
-        name = str(INSTRUMENTS.get(ticker, {}).get('name') or '')
-        return {spelling(name), spelling(re.sub(r'-(?:W|SW|SS)$', '', name, flags=re.I))} - {''}
-
-    # Resolve the longest complete registered name prefix. A shorter name
-    # cannot borrow a longer instrument's level; shared names stay ambiguous.
-    plan_owners = {}
-    for ticker in INSTRUMENTS:
-        for name in display_names(ticker):
-            plan_owners.setdefault(name, set()).add(ticker)
-
+    # Resolve the longest complete registered display-name prefix. A shorter
+    # name cannot borrow a longer instrument's level; shared names stay
+    # ambiguous. Same owner as the brief's watch-level scale gate (#3476).
     def plan_named(key):
-        tokens = key.split('_')
-        owners = None
-        for n in range(1, len(tokens) + 1):
-            match = plan_owners.get(spelling('_'.join(tokens[:n])))
-            if match:
-                owners = match
-        return owners == {subject}
+        return watch_level_owner(key) == subject
     levels, current = set(), set()
     keys = {'price', 'current_price', 'last', 'condition_price', 'trigger_price',
             'support', 'resistance', 'price_above', 'price_below',

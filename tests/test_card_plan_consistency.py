@@ -245,6 +245,17 @@ def test_the_prose_is_held_to_the_plan_the_ledger_and_the_strategy():
                  '00100 反弹到 191.7 就执行减仓。', '07226 的硬止损 -18% 早已破线。',
                  '07226 收盘失守 2.156 是计划写的重评线。'):
         assert _issues(fine, HK_PLAN, risk_debts=debts, holding_policies=SPCH_POLICY) == [], fine
+    # #3475: an honest acknowledgement of the breach is not the denial the gate
+    # targets, even when it names the stop as a price.
+    for honest in ('07226 硬止损 2.156 早已破线，账上欠着。',
+                   '07226 硬止损价 2.156，早在上月破了。',
+                   '07226 现价 2.3 已收回硬止损 2.156 上方。',
+                   '07226 已经跌破硬止损 2.156，出口还欠着。'):
+        assert _issues(honest, HK_PLAN, risk_debts=debts) == [], honest
+    assert _issues('SPCH 硬止损 53.59（策略豁免），继续按定投走。',
+                   US_PLAN, holding_policies=SPCH_POLICY) == []
+    # A negation still wins over the acknowledgement words: this is a denial.
+    assert _issues('07226 硬止损 2.156 未破，纪律未触发。', HK_PLAN, risk_debts=debts)
 
 
 def test_a_consistency_finding_warns_on_the_report_and_is_revised_once_intraday():

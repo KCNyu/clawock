@@ -215,6 +215,45 @@ def validate_active_holdings(
 INSTRUMENTS = load_registry(missing_ok=True)
 
 
+def _name_spelling(value: str) -> str:
+    return re.sub(r"[^a-z0-9\u4e00-\u9fff]", "", str(value).lower())
+
+
+def display_name_keys(symbol: str, *, registry: dict[str, dict] | None = None) -> set[str]:
+    """Spellings a plan may use for an instrument's display name.
+
+    `MINIMAX-W` becomes both `minimaxw` and `minimax`, so a key written as
+    `minimax_prior_20d_low` can resolve to the same ticker as `00100_...`.
+    """
+    meta = (registry or INSTRUMENTS).get(symbol) or {}
+    name = str(meta.get("name") or "")
+    return {
+        _name_spelling(name),
+        _name_spelling(re.sub(r"-(?:W|SW|SS)$", "", name, flags=re.I)),
+    } - {""}
+
+
+def watch_level_owner(key: str) -> str | None:
+    """The one registered ticker whose display name prefixes a watch-level key.
+
+    The caller checks the ticker prefix first (`spch_...`); this resolves the
+    other live spelling (`minimax_...` for 00100). The longest complete prefix
+    wins; a shared or unknown name returns None so a level can never borrow an
+    unrelated instrument's scale (#3476).
+    """
+    tokens = str(key).lower().split("_")
+    owners: set[str] = set()
+    for n in range(1, len(tokens) + 1):
+        spelled = _name_spelling("_".join(tokens[:n]))
+        match = {
+            ticker for ticker in INSTRUMENTS
+            if spelled in display_name_keys(ticker)
+        }
+        if match:
+            owners = match
+    return next(iter(owners)) if len(owners) == 1 else None
+
+
 def get(symbol: str, *, registry: dict[str, dict] | None = None) -> dict | None:
     return (INSTRUMENTS if registry is None else registry).get(symbol)
 

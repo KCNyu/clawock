@@ -810,10 +810,20 @@ _STOP_AS_LEVEL = re.compile(
     r'(?:硬止损|纪律线|纪律位|止损价|止损位|止损线)(?:价|位|线)?\s*(?:在|是|为)?\s*'
     r'\d+\.\d+(?![\d.]|\s*[%％])'
     r'|(?:才|再)(?:是|算|会)?[^。；，,\n]{0,4}(?:纪律|硬止损|止损)[^。；，,\n]{0,3}触发')
+# An honest sentence says the level is already behind us: 「硬止损 2.156 早已
+# 破线」「现价已收回…上方」. Those are exactly the facts the risk ledger wants,
+# not the denial the gate targets; without this guard the price-shaped check
+# read them as 「写成一条没破的价位」 (#3475).
+_STOP_ACKNOWLEDGED = re.compile(
+    r'(?:已(?:经)?|早已|早于|此前|之前|当时|上月|昨天|上周)[^。；，,\n]{0,10}'
+    r'(?:跌破|破线?|失守|击穿|穿破)'
+    r'|(?:跌破|破线?|失守|击穿|穿破)了'
+    r'|(?:收(?:回|复)|站上|回到|重新站上|升破)[^。；，,\n]{0,12}(?:上方|之上)')
 _HARD_STOP_CLAIM = re.compile(r'硬止损')
 _HARD_STOP_EXEMPT = re.compile(
     r'(?:豁免|不适用|不受|免于|没有|无|不设|不走|不按)[^。；，,\n]{0,6}硬止损'
-    r'|硬止损[^。；，,\n]{0,6}(?:豁免|不适用)')
+    r'|硬止损[^。；，,\n]{0,20}(?<![不未])(?:策略)?豁免'
+    r'|硬止损[^。；，,\n]{0,20}不适用')
 _FORCED_DEBT_RULE = {'hard_stop': '硬止损', 'leveraged_hard_stop': '硬止损',
                      'regime_delever': '降杠杆'}
 PLAN_CONSISTENCY = '与计划/账本不一致'
@@ -870,7 +880,9 @@ def check_plan_consistency(text, ctx, *, strategy_reduce=True):
                 found.setdefault(ticker, f'{ticker} 今日计划持有，正文却给了砍仓/减仓/止损指令')
         for ticker, (rule, days) in owed.items():
             if mentions_ticker(sentence, ticker) and (
-                    _DENIED_STOP.search(sentence) or _STOP_AS_LEVEL.search(sentence)):
+                    _DENIED_STOP.search(sentence)
+                    or (_STOP_AS_LEVEL.search(sentence)
+                        and not _STOP_ACKNOWLEDGED.search(sentence))):
                 found.setdefault(ticker, f'{ticker} 账本里{rule}已破 {days} 天未结，'
                                          '正文却说纪律/止损未触发或写成一条没破的价位')
         for ticker in exempt:

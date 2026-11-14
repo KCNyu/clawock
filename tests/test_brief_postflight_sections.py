@@ -137,6 +137,30 @@ def test_a_watch_level_from_another_ticker_is_critical():
     assert 'plan.json watch_levels' in brief_postflight.CRITICAL_KEYWORDS
 
 
+def test_a_watch_level_written_with_a_display_name_prefix_is_checked():
+    """#3476: the plan also writes `minimax_*` for 00100. The name prefix must
+    resolve to the same ticker before the >=10x ratio check; the issue's own
+    120.39 example is only 1.27x from 152.4, so use a value that is actually
+    an order of magnitude away."""
+    plan = {'watch_levels': {'minimax_prior_20d_low': 1600.0}}
+    packet = {'tickers': {'00100': {'facts': {'current_price': 152.4}}}}
+    issues = brief_postflight._watch_level_scale_issues(plan, packet)
+    assert len(issues) == 1
+    assert 'minimax_prior_20d_low' in issues[0] and '00100' in issues[0]
+    assert '10.5 倍' in issues[0]
+
+
+def test_the_real_minimax_levels_and_unknown_names_are_not_flagged():
+    plan = {'watch_levels': {
+        'minimax_trim_trigger': 182.0,       # the 2026-11-13 plan's real keys
+        'minimax_ma20': 170.18,
+        'minimax_chandelier_stop': 160.57,
+        'not_a_registered_name_prior_low': 1600.0,
+    }}
+    packet = {'tickers': {'00100': {'facts': {'current_price': 152.4}}}}
+    assert brief_postflight._watch_level_scale_issues(plan, packet) == []
+
+
 def test_a_plausible_watch_level_is_not_flagged():
     plan = {'watch_levels': {
         'spch_prior_20d_low': 5.93,      # the real SPCH 20d low

@@ -114,6 +114,30 @@ BUNDLE_FIELDS = {
 }
 
 
+#: Whole fields a model-facing lazy bundle may leave out when that bundle alone
+#: crosses the per-load budget, least critical first. Only fields whose facts
+#: are carried in the decision packet in actionable form (`cross_sectional_factor`,
+#: `peer_residual`, the per-ticker sentiment row) or are reference-only by
+#: contract (`strategy_scores`, `watch_list`) are listed. Risk-critical fields
+#: and any bundle/field not listed stay fail-closed: a partial risk table is
+#: more dangerous than no brief. The audit keeps every field; only the
+#: model-facing artifact is trimmed, and the manifest says what was left out.
+BUNDLE_TRIM_ORDER = {
+    "research": (
+        "strategy_scores",
+        "cross_sectional_factor",
+        "peer_residual",
+    ),
+    "market": (
+        "watch_list",
+        "sentiment",
+    ),
+    "calibration": (
+        "reflections",
+    ),
+}
+
+
 def _compact(value) -> str:
     return json.dumps(
         value, ensure_ascii=False, separators=(",", ":"), sort_keys=True
@@ -183,13 +207,17 @@ def _field_summary(field: str, value):
     return summary
 
 
-def _artifact(path: Path, fields: tuple[str, ...], context: dict, generation_id: str):
+def _artifact(path: Path, fields: tuple[str, ...], context: dict, generation_id: str,
+              *, dropped_fields: tuple[str, ...] = ()):
+    meta = {
+        "schema_version": SCHEMA_VERSION,
+        "generation_id": generation_id,
+        "fields": list(fields),
+    }
+    if dropped_fields:
+        meta["budget_dropped_fields"] = list(dropped_fields)
     payload = {
-        "_meta": {
-            "schema_version": SCHEMA_VERSION,
-            "generation_id": generation_id,
-            "fields": list(fields),
-        },
+        "_meta": meta,
         **{field: deepcopy(context[field]) for field in fields if field in context},
     }
     text = _compact(payload) + "\n"
@@ -208,7 +236,7 @@ def _artifact(path: Path, fields: tuple[str, ...], context: dict, generation_id:
         for field, summary in summaries.items()
         if any(key in summary for key in ("as_of", "generated_at", "fetched_at"))
     }
-    return {
+    entry = {
         "path": str(path),
         "generation_id": generation_id,
         "fields": [field for field in fields if field in context],
@@ -217,6 +245,9 @@ def _artifact(path: Path, fields: tuple[str, ...], context: dict, generation_id:
         "freshness": freshness,
         "summary": summaries,
     }
+    if dropped_fields:
+        entry["budget_dropped_fields"] = list(dropped_fields)
+    return entry
 
 
 def _tool_artifact(path: Path, payload: dict, generation_id: str):
@@ -241,9 +272,12 @@ def _tool_artifact(path: Path, payload: dict, generation_id: str):
     }
 
 
-def _bundle_bytes(name: str, context: dict) -> int:
+def _bundle_bytes(name: str, context: dict, fields=None) -> int:
     """Bytes `_artifact` would write for bundle ``name`` of ``context``."""
-    fields = tuple(field for field in BUNDLE_FIELDS[name] if field in context)
+    fields = tuple(
+        field for field in (fields if fields is not None else BUNDLE_FIELDS[name])
+        if field in context
+    )
     payload = {
         "_meta": {
             "schema_version": SCHEMA_VERSION,
@@ -254,6 +288,45 @@ def _bundle_bytes(name: str, context: dict) -> int:
         **{field: context[field] for field in fields},
     }
     return len((_compact(payload) + "\n").encode("utf-8"))
+
+
+def fit_lazy_bundles(context: dict) -> tuple[dict[str, tuple[str, ...]], dict[str, list[str]]]:
+    """Choose the fields each model-facing lazy bundle may include.
+
+    Returns ``(visible, dropped)``: ``visible[name]`` is the field tuple to
+    write, and ``dropped[name]`` names the fields left out of the model-facing
+    artifact (they remain in the audit). A bundle that still does not fit after
+    every listed field is dropped keeps its full field list, so
+    ``write_run_bundle`` raises as before rather than silently shipping a
+    partial risk table (#3484).
+
+    ``fit_evidence_bundle`` is separate because it trims events inside one
+    field and keeps the actionable escalations; this only omits whole fields
+    that the decision packet already carries in actionable form.
+    """
+    visible: dict[str, tuple[str, ...]] = {}
+    dropped: dict[str, list[str]] = {}
+    for name, configured in BUNDLE_FIELDS.items():
+        present = tuple(field for field in configured if field in context)
+        visible[name] = present
+        if not present or _bundle_bytes(name, context) <= SINGLE_BUNDLE_BUDGET_BYTES:
+            continue
+        order = BUNDLE_TRIM_ORDER.get(name)
+        if not order:
+            continue
+        kept = list(present)
+        omitted = []
+        for field in order:
+            if field not in kept:
+                continue
+            kept.remove(field)
+            omitted.append(field)
+            if _bundle_bytes(name, context, kept) <= SINGLE_BUNDLE_BUDGET_BYTES:
+                break
+        if omitted and _bundle_bytes(name, context, kept) <= SINGLE_BUNDLE_BUDGET_BYTES:
+            visible[name] = tuple(kept)
+            dropped[name] = omitted
+    return visible, dropped
 
 
 def fit_evidence_bundle(context: dict) -> tuple[dict, int]:
@@ -300,12 +373,18 @@ def write_run_bundle(
     audit_path: Path,
     *,
     tool_artifacts: dict[str, dict] | None = None,
+    bundle_fields: dict[str, tuple[str, ...]] | None = None,
 ) -> tuple[dict, dict]:
     """Write full audit JSON plus budgeted model-facing artifacts.
 
-    Returns ``(generation-stamped context, manifest)``. Raises ValueError when
-    action-critical core + manifest exceeds the model boundary budget.
+    ``bundle_fields`` is ``fit_lazy_bundles``' visible-field map. The audit
+    always keeps every field; only the model-facing artifacts are trimmed, and
+    the dropped names are recorded in both the bundle's ``_meta`` and the
+    manifest budget. Returns ``(generation-stamped context, manifest)``. Raises
+    ValueError when action-critical core + manifest exceeds the model boundary
+    budget, or when a bundle still exceeds its per-load budget after trimming.
     """
+    visible_fields = bundle_fields or {}
     stamped = deepcopy(context)
     generation_id = compute_generation_id(stamped)
     stamped["generation_id"] = generation_id
@@ -325,10 +404,15 @@ def write_run_bundle(
     bundles = {}
     assigned = set(core_fields) | {"generation_id"}
     for name, configured_fields in BUNDLE_FIELDS.items():
-        fields = tuple(field for field in configured_fields if field in stamped)
-        assigned.update(fields)
+        present = tuple(field for field in configured_fields if field in stamped)
+        assigned.update(present)
+        selected = visible_fields.get(name)
+        fields = (tuple(field for field in present if field in selected)
+                  if selected is not None else present)
+        dropped = tuple(field for field in present if field not in fields)
         bundles[name] = _artifact(
-            artifact_dir / f"{name}.json", fields, stamped, generation_id
+            artifact_dir / f"{name}.json", fields, stamped, generation_id,
+            dropped_fields=dropped,
         )
 
     extras = tuple(sorted(set(stamped) - assigned))
@@ -359,6 +443,10 @@ def write_run_bundle(
         for key, value in stamped.items()
         if key != "generation_id"
     }
+    dropped_fields = {
+        name: entry["budget_dropped_fields"]
+        for name, entry in bundles.items() if entry.get("budget_dropped_fields")
+    }
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "generation_id": generation_id,
@@ -376,6 +464,7 @@ def write_run_bundle(
         "budget": {
             "max_always_loaded_bytes": ALWAYS_LOADED_BUDGET_BYTES,
             "max_single_bundle_bytes": SINGLE_BUNDLE_BUDGET_BYTES,
+            "dropped_fields": dropped_fields,
             "always_loaded_bytes": 0,
             "estimated_tokens": 0,
             "target_reduction_pct": TARGET_REDUCTION_PCT,
@@ -453,6 +542,7 @@ def validate_run_bundle(audit_path: Path, manifest_path: Path) -> list[str]:
         if payload.get("_meta", {}).get("generation_id") != generation_id:
             issues.append(f"context generation artifact 跨代: {path.name}")
         covered.update(entry.get("fields") or [])
+        covered.update(entry.get("budget_dropped_fields") or [])
         if entry is core_entry:
             core_payload = payload
 

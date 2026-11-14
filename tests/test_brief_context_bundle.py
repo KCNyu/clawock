@@ -159,6 +159,49 @@ def test_news_heavy_day_drops_tail_events_instead_of_the_brief(tmp_path):
         brief_context.write_run_bundle(fitted, tmp_path / "actionable.json")
 
 
+def test_reference_fields_are_dropped_before_a_lazy_bundle_fails(tmp_path):
+    """#3484: research was the realistic near-limit bundle. Drop only the
+    reference fields the packet already projects; keep quant signals and the
+    fundamentals, and keep the full audit."""
+    source = _fixture()
+    source["strategy_scores"] = {"detail": "S" * 20_000}
+    source["cross_sectional_factor"] = {"detail": "C" * 50_000}
+    source["peer_residual"] = {"detail": "P" * 40_000}
+    assert brief_context._bundle_bytes("research", source) > brief_context.SINGLE_BUNDLE_BUDGET_BYTES
+
+    visible, dropped = brief_context.fit_lazy_bundles(source)
+    assert dropped == {"research": ["strategy_scores", "cross_sectional_factor"]}
+    assert "peer_residual" in visible["research"]
+    assert "quant_signals" in visible["research"]
+
+    _, manifest = brief_context.write_run_bundle(
+        source, tmp_path / "fitted.json", bundle_fields=visible)
+    research = manifest["bundles"]["research"]
+    assert research["bytes"] <= brief_context.SINGLE_BUNDLE_BUDGET_BYTES
+    assert research["budget_dropped_fields"] == ["strategy_scores", "cross_sectional_factor"]
+    assert "strategy_scores" not in research["fields"]
+    assert manifest["budget"]["dropped_fields"] == {
+        "research": ["strategy_scores", "cross_sectional_factor"]}
+    # The audit is the complete record, not the model-facing subset.
+    audit = json.loads((tmp_path / "fitted" / manifest["generation_id"] / "audit.json").read_text())
+    assert audit["strategy_scores"] == source["strategy_scores"]
+    assert audit["cross_sectional_factor"] == source["cross_sectional_factor"]
+    assert brief_context.validate_run_bundle(
+        tmp_path / "fitted.json", Path(manifest["manifest_path"])) == []
+
+
+def test_risk_detail_oversize_still_fails_closed(tmp_path):
+    """#3484: no field in `risk_detail` is safe to omit, so the old hard error
+    stays rather than publishing a partial risk table."""
+    source = _fixture()
+    source["risk_metrics"]["detail"] = "X" * 120_000
+    visible, dropped = brief_context.fit_lazy_bundles(source)
+    assert "risk_detail" not in dropped
+    with pytest.raises(ValueError, match="lazy bundle exceeds per-load budget"):
+        brief_context.write_run_bundle(
+            source, tmp_path / "risk.json", bundle_fields=visible)
+
+
 def test_new_optional_feature_cannot_grow_the_always_loaded_core(tmp_path):
     baseline = _fixture()
     baseline.pop("new_feature_surface")
