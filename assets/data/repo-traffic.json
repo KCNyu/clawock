@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T11:42:48Z",
+  "generated_at": "2026-11-14T10:52:01Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -477,6 +477,26 @@
       "timestamp": "2026-11-09T00:00:00Z",
       "count": 14,
       "uniques": 10
+    },
+    {
+      "timestamp": "2026-11-10T00:00:00Z",
+      "count": 21,
+      "uniques": 13
+    },
+    {
+      "timestamp": "2026-11-11T00:00:00Z",
+      "count": 13,
+      "uniques": 10
+    },
+    {
+      "timestamp": "2026-11-12T00:00:00Z",
+      "count": 5,
+      "uniques": 5
+    },
+    {
+      "timestamp": "2026-11-13T00:00:00Z",
+      "count": 7,
+      "uniques": 7
     }
   ],
   "clones": [
@@ -954,6 +974,26 @@
       "timestamp": "2026-11-09T00:00:00Z",
       "count": 1284,
       "uniques": 210
+    },
+    {
+      "timestamp": "2026-11-10T00:00:00Z",
+      "count": 890,
+      "uniques": 218
+    },
+    {
+      "timestamp": "2026-11-11T00:00:00Z",
+      "count": 1348,
+      "uniques": 180
+    },
+    {
+      "timestamp": "2026-11-12T00:00:00Z",
+      "count": 1323,
+      "uniques": 229
+    },
+    {
+      "timestamp": "2026-11-13T00:00:00Z",
+      "count": 1352,
+      "uniques": 220
     }
   ],
   "referrers_snapshots": [
@@ -1773,6 +1813,37 @@
         },
         {
           "referrer": "dshbase.com",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "vuink.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-11-14T10:52:01Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 32,
+          "uniques": 26
+        },
+        {
+          "referrer": "Google",
+          "count": 10,
+          "uniques": 7
+        },
+        {
+          "referrer": "aocr.org",
+          "count": 9,
+          "uniques": 9
+        },
+        {
+          "referrer": "code.jiangshu.ai",
           "count": 1,
           "uniques": 1
         },
@@ -3500,6 +3571,72 @@
           "uniques": 2
         }
       ]
+    },
+    {
+      "captured_at": "2026-11-14T10:52:01Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 64,
+          "uniques": 55
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 12,
+          "uniques": 8
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 12,
+          "uniques": 8
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/scripts/data/fetch_catalysts.py",
+          "title": "/blob/master/scripts/data/fetch_catalysts.py",
+          "count": 9,
+          "uniques": 9
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/scripts/data/trading_calendar.py",
+          "title": "/blob/master/scripts/data/trading_calendar.py",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/site/assets/rsi-loop.svg",
+          "title": "/blob/master/site/assets/rsi-loop.svg",
+          "count": 3,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/actions/runs/26853887670/workflow",
+          "title": "/actions/runs/26853887670/workflow",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/dsh/README.md",
+          "title": "/blob/master/examples/dsh/README.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/issues/2335",
+          "title": "/issues/2335",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/issues/884",
+          "title": "/issues/884",
+          "count": 2,
+          "uniques": 2
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -3663,6 +3800,13 @@
       "forks": 0,
       "watchers": 0,
       "open_issues": 0
+    },
+    {
+      "captured_at": "2026-11-14T10:52:01Z",
+      "stargazers": 23,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 3
     }
   ],
   "package_downloads": [
@@ -3966,6 +4110,19 @@
         "downloads": 1232,
         "start": "2026-10-11",
         "end": "2026-11-09"
+      }
+    },
+    {
+      "captured_at": "2026-11-14T10:52:01Z",
+      "pypi": {
+        "last_day": 10,
+        "last_month": 464,
+        "last_week": 146
+      },
+      "npm": {
+        "downloads": 1449,
+        "start": "2026-10-15",
+        "end": "2026-11-13"
       }
     }
   ]
