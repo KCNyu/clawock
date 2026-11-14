@@ -99,6 +99,7 @@ _quote_is_complete 因此弃用它——链在正常工作），逐日报警只�
 import argparse
 import copy
 import json
+import math
 import pathlib
 import sys
 from datetime import date, datetime, timedelta
@@ -652,6 +653,26 @@ def blocks_money_publication(finding):
             or finding.get('code') in MONEY_WARNING_CODES)
 
 
+def _nonfinite_paths(value, path=''):
+    """Every non-finite float in a decoded book, with its JSON path.
+
+    ``json.loads`` accepts the ``NaN``/``Infinity`` tokens Python writes, and
+    ``json.dumps`` writes them back. A gate that reads such a value with
+    ``float()`` sees a number; its comparisons (``abs(nan - x) > tol``) are all
+    false, so the book passes every money rule. Naming the path here makes the
+    document itself fail closed before any comparison can treat it as healthy.
+    """
+    if isinstance(value, float) and not math.isfinite(value):
+        yield path or '<root>', value
+    elif isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f'{path}.{key}' if path else str(key)
+            yield from _nonfinite_paths(child, child_path)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            yield from _nonfinite_paths(child, f'{path}[{index}]')
+
+
 def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
     """Conservation findings for one book.
 
@@ -668,6 +689,15 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
     def add(code, level, msg, region=None, ticker=None):
         findings.append({'code': code, 'level': level, 'region': region,
                          'ticker': ticker, 'msg': msg})
+
+    # A non-finite float is not a missing value: it is a number every
+    # comparison below reads as healthy (`abs(nan - x) > tol` is false), and
+    # `safe_write_json` would later launder it into null. Name it before the
+    # book can be published or rewritten (#3491).
+    for path, value in _nonfinite_paths(data):
+        add('NUMERIC_INVALID', 'ERROR',
+            f'{path}={value!r} 不是有限数（NaN/Inf）：金额闸的比较会把它当健康值放行，'
+            f'写入时又会被洗成 null；请改成有限数值或删除该字段')
 
     quote_ledger = {}
     region_market, region_ccy, cash_fields = {}, {}, {}

@@ -870,6 +870,24 @@ def test_a_quoted_numeric_leaf_is_named_before_the_dashboard_rounds_it(run_check
     assert report["ok"] is False
 
 
+@pytest.mark.parametrize("where", ["holding", "aggregate"])
+def test_non_finite_money_is_named_and_blocks_publication(run_check, where):
+    # #3491: json.loads accepts NaN/Infinity, float() sees a number, and every
+    # money comparison against NaN is false. The gate must name the field
+    # before safe_write_json turns it into a missing value.
+    data = _portfolio_data()
+    if where == "holding":
+        _port(data)["holdings"][0]["current_price"] = float("nan")
+        expected = "portfolios.us_stocks.holdings[0].current_price"
+    else:
+        _port(data)["total_current_value"] = float("inf")
+        expected = "portfolios.us_stocks.total_current_value"
+    report = run_check(data)
+    invalid = [f for f in report["findings"] if f["code"] == "NUMERIC_INVALID"]
+    assert report["ok"] is False
+    assert any(expected in f["msg"] and "不是有限数" in f["msg"] for f in invalid), invalid
+
+
 @pytest.mark.parametrize("date", [None, 20260701])
 def test_undated_trade_does_not_take_the_gate_down(run_check, date):
     # #2179: trades[] is hand-entered like cash_adjustments; a null or numeric
