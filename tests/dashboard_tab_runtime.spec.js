@@ -1423,6 +1423,10 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
       const row = document.getElementById("hero-today");
       if (!row || !row.textContent.trim()) return null;
       const parts = [...row.querySelectorAll(".ht-total, .ht-leg, .rc-cap")];
+      const generated = new Date(DATA.generated_at || "");
+      const hktDay = isNaN(generated) ? "" : new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Hong_Kong", year: "numeric", month: "2-digit", day: "2-digit",
+      }).format(generated);
       return {
         text: row.textContent,
         legs: row.querySelectorAll(".ht-leg").length,
@@ -1431,6 +1435,7 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         kicker: row.querySelector(".overview-card-kicker").textContent,
         legText: [...row.querySelectorAll(".ht-leg")].map(el => el.textContent),
         delta: ["us", "hk"].map(leg => (DATA.delta || {})[leg] || {}),
+        hktDay,
       };
     });
     assert(today, "the 今日 row is gone — today's move left the first screen");
@@ -1439,13 +1444,18 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     today.delta.forEach((d, i) => {
       if (d.today_pct != null) {
         assert.match(today.legText[i], /%/, "a leg with a today percentage in the payload did not print it");
+        if (today.hktDay && d.session_date && d.session_date !== today.hktDay) {
+          assert.ok(today.legText[i].includes(d.session_date.slice(5)),
+            "a leg whose percentage belongs to an earlier session did not name that session");
+        }
       } else {
         assert.doesNotMatch(today.legText[i], /%/, "a leg the payload gives no today percentage printed its own");
         if (d.session_date) assert.ok(today.legText[i].includes(d.session_date.slice(5)),
           "a leg showing an earlier session's move did not name that session");
       }
     });
-    const bothToday = today.delta.every(d => d.today_pct != null);
+    const bothToday = today.delta.every(d => d.today_pct != null
+      && (!today.hktDay || d.session_date === today.hktDay));
     assert.equal(today.kicker.startsWith("今日"), bothToday,
       "the row is labelled 今日 only when both legs' sessions are today");
     assert.equal(today.legs, 2, "the 今日 row must keep the US / HK split, not just the total");
