@@ -15,6 +15,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEST_DIR="${AGENT_DISPATCH_DIR:-/root/tools/agent-dispatch}"
 FILES=(task_queue_ops.py model_prices.json)
+# The tolerant JSON reader the ops entry imports; the runner installer ships the
+# same bytes, so either installer makes it present and both --checks compare it.
+SHARED=dispatch_json.py
+SHARED_SRC="$ROOT/ops/host/agent-dispatch/$SHARED"
 
 case "${1:-}" in
   --check)
@@ -23,9 +27,11 @@ case "${1:-}" in
       if cmp -s "$ROOT/ops/host/$f" "$DEST_DIR/$f"; then echo "installed $f matches this checkout"
       else echo "installed $f differs from $ROOT/ops/host/$f (or is missing)" >&2; bad=1; fi
     done
+    if cmp -s "$SHARED_SRC" "$DEST_DIR/$SHARED"; then echo "installed $SHARED matches this checkout"
+    else echo "installed $SHARED differs from $SHARED_SRC (or is missing)" >&2; bad=1; fi
     exit "$bad" ;;
   --rollback)
-    for f in "${FILES[@]}"; do
+    for f in "${FILES[@]}" "$SHARED"; do
       saved="$DEST_DIR/$f.before-update"
       if [ ! -f "$saved" ]; then echo "nothing to roll back for $f: $saved is missing"; continue; fi
       tmp=$(mktemp "$DEST_DIR/.$f.XXXXXX")
@@ -54,5 +60,20 @@ for f in "${FILES[@]}"; do
   cmp "$src" "$dest"
   echo "installed $dest"
 done
+src="$SHARED_SRC" dest="$DEST_DIR/$SHARED"
+if [ -f "$dest" ]; then
+  if cmp -s "$src" "$dest"; then echo "$SHARED already installed"
+  else
+    cp -p "$dest" "$dest.before-update"
+    echo "saved the previous $SHARED as $dest.before-update"
+  fi
+fi
+if [ ! -f "$dest" ] || ! cmp -s "$src" "$dest"; then
+  tmp=$(mktemp "$DEST_DIR/.$SHARED.XXXXXX")
+  install -m 0644 "$src" "$tmp"
+  mv -f "$tmp" "$dest"
+  cmp "$src" "$dest"
+  echo "installed $dest"
+fi
 echo "ops entry: $(python3 "$DEST_DIR/task_queue_ops.py" version)"
 echo "roll back: $0 --rollback"

@@ -908,6 +908,8 @@ def test_history_dispatch_wrapper_and_text(q):
                        .replace('/root/tools/agent-dispatch', str(q.tools))
                        .replace('/root/logs/agent-dispatch', str(q.tasks)))
     (q.tools / 'task_queue_ops.py').write_text(OPS.read_text())
+    (q.tools / 'dispatch_json.py').write_text(
+        (ROOT / 'ops/host/agent-dispatch/dispatch_json.py').read_text())
     for flags in [('history', '--json', 'past'), ('history', 'past')]:
         r = subprocess.run(['bash', str(wrapper), *flags], env=q.env, capture_output=True, text=True, timeout=10)
         assert r.returncode == 0, r.stderr

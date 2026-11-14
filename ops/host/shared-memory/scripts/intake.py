@@ -90,10 +90,6 @@ def state_dir() -> Path:
     return DEFAULT_STATE / "intake"
 
 
-def store_dir() -> Path:
-    return DEFAULT_STORE
-
-
 def digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -345,10 +341,6 @@ def covered_by(conclusion: str, topics: list[dict], suggested: str | None) -> st
         if score > best[0]:
             best = (score, topic["slug"])
     return best[1] if best[0] >= 0.65 else None
-
-
-def existing_marker(slug: str, marker: str, topics: list[dict]) -> bool:
-    return any(topic["slug"] == slug and marker in topic["body"] for topic in topics)
 
 
 # --- model decision -------------------------------------------------------

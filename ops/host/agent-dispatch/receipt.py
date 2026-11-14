@@ -37,6 +37,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from dispatch_json import read_json_object  # noqa: E402
+
 SCHEMA = 1
 BLOCK_RE = re.compile(r"```agent-dispatch[ \t]*\r?\n(.*?)\r?\n```", re.S)
 KEY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
@@ -52,14 +55,6 @@ OPTION_RE = re.compile(r"^[\x20-\x7e\u00a0-\uffff]+$")
 def fail(message: str, code: int = 2) -> "NoReturn":  # noqa: F821 - typing is not needed at runtime
     print(f"receipt: {message}", file=sys.stderr)
     raise SystemExit(code)
-
-
-def read_json(path: Path) -> dict:
-    try:
-        data = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
 
 
 def write_json(path: Path, payload: dict, mode: int = 0o444) -> None:
@@ -282,8 +277,8 @@ def unit_active(task_id: str) -> bool:
 
 
 def question_state(directory: Path) -> tuple[dict, dict, str]:
-    q = read_json(directory / "question.json")
-    a = read_json(directory / "answer.json")
+    q = read_json_object(directory / "question.json")
+    a = read_json_object(directory / "answer.json")
     if a:
         state = "resolved" if a.get("state") == "resolved" else "answered"
     elif time.time() - int(q.get("created_epoch") or 0) > TTL_SEC:
@@ -329,7 +324,7 @@ def cmd_answer(args) -> int:
         fail(f"task {directory.name} has no question", 2)
     meta, result = read_env(directory / "meta.env"), read_env(directory / "result.env")
     cancelled = result.get("STATE") == "cancelled"
-    existing = read_json(directory / "answer.json")
+    existing = read_json_object(directory / "answer.json")
     stale_claim = bool(existing) and existing.get("state") == "answering" and (
         time.time() - (directory / "answer.json").stat().st_mtime > ANSWERING_STALE_SEC)
     if existing and not stale_claim:
@@ -420,7 +415,7 @@ def cmd_finish_answer(args) -> int:
     lock = open(directory / "question.lock", "a")
     try:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        a = read_json(directory / "answer.json")
+        a = read_json_object(directory / "answer.json")
         if not a or a.get("state") != "answering":
             fail("no answer is waiting to be linked", 3)
         a["state"] = "answered"
@@ -437,7 +432,7 @@ def cmd_abort_answer(args) -> int:
     lock = open(directory / "question.lock", "a")
     try:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        a = read_json(directory / "answer.json")
+        a = read_json_object(directory / "answer.json")
         if a and a.get("state") == "answering":
             (directory / "answer.json").unlink()
     finally:

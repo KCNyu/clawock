@@ -71,6 +71,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+for _candidate in (Path(__file__).resolve().parent,
+                   Path(__file__).resolve().parent / "agent-dispatch"):
+    if (_candidate / "dispatch_json.py").is_file():
+        sys.path.insert(0, str(_candidate))
+        break
+from dispatch_json import read_json_object  # noqa: E402
+
 API = 3
 MIN_RUNNER_API = 2  # the runner that reads override.env and takes the lock in queue order
 BUDGET_RUNNER_API = 3  # the runner that rereads DEADLINE_EPOCH/MAX_ATTEMPTS/QUOTA_RESUMES from override.env
@@ -1110,14 +1117,6 @@ def task_timeline(d: Path) -> dict:
             "audit_truncated": audit_cut, "log_missing": missing}
 
 
-def _read_json_file(path: Path) -> dict:
-    try:
-        data = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
 def _one_line(value, limit: int = 240) -> str:
     return " ".join(redact(str(value or "")).split())[:limit]
 
@@ -1156,8 +1155,8 @@ def cmd_why(args) -> dict:
     """
     d = task_dir(args.id)
     meta, result = read_env(d / "meta.env"), read_env(d / "result.env")
-    mandate = _read_json_file(d / "mandate.json")
-    selection = _read_json_file(d / "free-pool-selection.json")
+    mandate = read_json_object(d / "mandate.json")
+    selection = read_json_object(d / "free-pool-selection.json")
     timeline = task_timeline(d)
     models = {}
     for event in timeline["events"]:
@@ -1217,15 +1216,15 @@ def cmd_why(args) -> dict:
 
     wake = {}
     for event in ("quota", "end"):
-        data = _read_json_file(d / f"wake-{event}.json")
+        data = read_json_object(d / f"wake-{event}.json")
         if data:
             wake[event] = {"state": data.get("state", ""), "attempts": to_int(data.get("attempts")),
                            "last_error": _safe_text(data.get("last_error"), 160)}
 
-    question = _read_json_file(d / "question.json")
-    answer = _read_json_file(d / "answer.json")
-    later = _read_json_file(d / "later.json")
-    later_history = [_read_json_file(p) for p in sorted(d.glob("later-*.json"), reverse=True)[:3]]
+    question = read_json_object(d / "question.json")
+    answer = read_json_object(d / "answer.json")
+    later = read_json_object(d / "later.json")
+    later_history = [read_json_object(p) for p in sorted(d.glob("later-*.json"), reverse=True)[:3]]
     later_history = [item for item in later_history if item]
 
     try:
