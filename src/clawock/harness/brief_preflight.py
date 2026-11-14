@@ -2265,6 +2265,18 @@ def _collect(argv=None):
     if dropped_events:
         print(f'   🧾 news evidence: {dropped_events} lowest-ranked events '
               'dropped to fit the evidence bundle budget')
+    # #3484: a research/market/calibration bundle past the per-load budget used
+    # to stop the whole brief. Drop only whole fields whose facts the packet
+    # already carries in actionable form (or that are reference-only), record
+    # them in the manifest, and keep every risk-critical field fail-closed.
+    bundle_fields, dropped_bundle_fields = brief_context.fit_lazy_bundles(context)
+    for name, fields in dropped_bundle_fields.items():
+        issues.append(
+            f'{name} bundle 超出单次加载预算，已省略 {", ".join(fields)}；'
+            '相关事实以 decision packet 的投影为准。'
+        )
+        print(f'   🧾 {name} bundle: omitted {", ".join(fields)} to fit '
+              'the per-load budget')
     try:
         generation_id = brief_context.compute_generation_id(context)
         decision_packet = brief_decision_packet.compile_packet(
@@ -2290,6 +2302,7 @@ def _collect(argv=None):
             context,
             ctx_path,
             tool_artifacts={"decision_packet": decision_packet},
+            bundle_fields=bundle_fields,
         )
     except Exception as exc:
         print(f'FATAL: brief context boundary failed: {exc}', file=sys.stderr)

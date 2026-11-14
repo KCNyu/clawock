@@ -37,6 +37,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 from clawock.safe_io import safe_write_json, safe_write_text
+from clawock import instruments as instrument_registry
 from clawock import sessions as trading_calendar
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
@@ -651,9 +652,9 @@ def tool_receipt_issues(decisions, plan_date, workspace=None):
 # A watch level is a price the plan wants quoted daily. A value an order of
 # magnitude away from that ticker's own quote is not a view — it is another
 # subject's number (2026-11-13: SPCX's 120.39 copied into SPCH at 7.97, a 15x
-# gap published as an executable trim trigger, #3447). Only exact ticker
-# prefixes are checked; name-style prefixes (`minimax`) and percentage/money
-# keys are outside this gate.
+# gap published as an executable trim trigger, #3447). Ticker prefixes and
+# registered display-name prefixes (`minimax` for 00100) both resolve; unknown
+# names and percentage/money keys stay outside this gate.
 WATCH_LEVEL_MAX_RATIO = 10.0
 _WATCH_LEVEL_NON_PRICE_TOKENS = {'pct', 'percent', 'usd', 'hkd', 'zscore', 'yield', 'book'}
 
@@ -672,6 +673,13 @@ def _watch_level_scale_issues(plan, decision_packet):
         if _WATCH_LEVEL_NON_PRICE_TOKENS.intersection(tokens):
             continue
         ticker = tokens[0].upper()
+        if ticker not in tickers:
+            # The plan also writes display-name prefixes (`minimax_trim_trigger`
+            # for 00100). Resolve only registered, unambiguous names; an unknown
+            # name keeps the old skip so the ratio is never applied to a guess.
+            owner = instrument_registry.watch_level_owner(key)
+            if owner in tickers:
+                ticker = owner
         facts = (tickers.get(ticker) or {}).get('facts') or {}
         price = facts.get('current_price')
         if (not isinstance(price, (int, float)) or isinstance(price, bool)
