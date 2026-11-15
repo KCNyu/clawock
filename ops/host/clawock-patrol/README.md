@@ -43,7 +43,15 @@
   `patrol:noise`。`filing.py ensure-labels` 建全套，`filing.py backfill` 给存量补标签。
 - **反馈回路**：`patrol_intel.py brief` 每轮统计各范围 14 天内的修复/误报，列最近被判误报的 issue，
   把被关成 not planned / `patrol:noise` 不少于修掉的「领域/类型」写进 `feedback.json`，闸据此降权；recent 轮另附
-  「回归观察」：窗口内非运行时、非 tests/ 编辑碰过的、已修 issue 引用的文件，连同那条 issue 当时的 RED-CHECK（`regress/<N>.sh`）。
+  「回归观察」：窗口内非运行时、非 tests/ 编辑碰过的、已修 issue 引用的文件，连同那条 issue 当时的判据（`regress/<N>.sh`）。
+  判据首选草稿里的 `GREEN-CHECK`（修复后的正向守卫，必须 exit 0）；没有时才用 `RED-CHECK`，并把它当「当时的复现」，
+  红不等于新回归。`RED-CHECK` 若断言的是已发布历史（如 `memory/2026-10-21-pre-open.md`），修完仍会红，不能当守卫。
+  `regress/state.json` 是主机本地的裁定账本：`tracked` = 已有 open 的回归 issue，暂不重复提；`suppressed` = 已有 issue
+  按 not planned/误报关闭，同一判据不再提；`fixed` 清掉裁定（修复后应恢复正向守卫）；`reset` 清裁定并把观察起点推到当下
+  （防止旧 issue 立刻又把判据压回去）。手工入口：`patrol_intel.py regress-verdict <源 issue> suppressed --issue <回归 issue>
+  --reason ...`、`regress-status`、`regress-refresh <N>`（从草稿重写脚本）。脚本头带源草稿、digest、生成时刻与裁定命令；
+  `gate_issue.py` 会拒绝把已 `suppressed` 的 RED-CHECK 再提一次。`#3134`/`#3490` 是这套账本的第一个案例：
+  2026-10-21 已发布简报按仓库立场不改写，`cb5ef45f9` 的前向守卫在 `tests/test_trim_dominance.py`，原始 RED-CHECK 永远红。
 - **peers 轮**：每天一轮读 `peers.json` 里的开源同类项目，只能提 `类型: feature` 的提案（最高 P2，数量不限），
   闸核来源仓库仍活跃、痛点 #N 真实存在、不越产品边界。
 - **关闭巡检 issue 的人**：不成立或不值得修，请以 not planned 关闭或加 `patrol:noise`，这是反馈回路唯一的输入。

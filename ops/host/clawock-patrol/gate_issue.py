@@ -24,6 +24,7 @@ code and its output, so a reader can re-run the evidence.
 """
 
 import fnmatch
+import hashlib
 import json
 import os
 import re
@@ -91,6 +92,7 @@ FILE_LINE = re.compile(
     r"|[\w\-][\w.\-]*\.(?:" + _EXT + r"))[:：](\d{1,6})\b",
     re.M)
 RED_BLOCK = re.compile(r"<!--\s*RED-CHECK\s*\n(.*?)\n\s*-->", re.S)
+GREEN_BLOCK = re.compile(r"<!--\s*GREEN-CHECK\s*\n(.*?)\n\s*-->", re.S)
 
 
 def die(reason, detail=""):
@@ -521,6 +523,35 @@ for pat in FORBIDDEN:
                 "ECharts option 对象、grep 出来的调用点。渲染证据交给 CI 的 tests/*.spec.js。\n")
         die(f"RED-CHECK 里有禁止的操作（匹配 /{pat}/）。判据只能读，不许写 live、不许推、不许改环境。")
 
+# A check the regression watch already adjudicated as not actionable cannot prove a new
+# regression. The host ledger is written by `patrol_intel.py regress-verdict`; without it the
+# gate behaves exactly as before. Match either the original repro or the current forward guard.
+RED_DIGEST = hashlib.sha256(red.encode("utf-8")).hexdigest()
+_green = GREEN_BLOCK.search(body)
+GREEN_DIGEST = hashlib.sha256(_green.group(1).strip().encode("utf-8")).hexdigest() if _green else ""
+try:
+    _state = json.loads((LOGDIR / "regress" / "state.json").read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    _state = {}
+_checks = _state.get("checks") if isinstance(_state, dict) else None
+if isinstance(_checks, dict):
+    for _key, _entry in sorted(_checks.items()):
+        if not isinstance(_entry, dict) or RED_DIGEST not in (_entry.get("digest"), _entry.get("red_digest")):
+            continue
+        if _entry.get("verdict") == "suppressed":
+            die(f"这条 RED-CHECK 已被裁定为不成立/不可行动（源 issue #{_key}"
+                + (f"，#{_entry['issue']}" if _entry.get("issue") else "") + "）："
+                + (_entry.get("reason") or "历史正文/冻结产物不改写，判据无法变绿"),
+                "同一个判据不能再证明今天的代码坏了。如果修复已经改变了判据，先在主机上清掉裁定：\n"
+                f"  python3 /root/tools/clawock-patrol/patrol_intel.py regress-verdict {_key} reset\n"
+                "再重新提交。不要为了过闸改写历史正文，也不要换成更弱的判据。")
+        old, new = _entry.get("red_digest"), _entry.get("digest")
+        if old and new and old != new and RED_DIGEST == old:
+            die(f"这条 RED-CHECK 是 #{_key} 已退役的原始复现：当前正向守卫是草稿 {_entry.get('source') or '?'} 里的 "
+                "GREEN-CHECK（sha256:" + new[:12] + "）。",
+                "原始复现只能证明当时的历史产物错了，修完仍会红，不能当今天的回归判据。\n"
+                "先跑 GREEN-CHECK；它今天红了再按它的断言提，不要重提 repro，也不要为了过闸改写历史正文。")
+
 print(f"gate: running RED-CHECK ({RED_TIMEOUT}s budget) …", file=sys.stderr)
 env = dict(os.environ)
 env.pop("CLAWOCK_WORKSPACE", None)
@@ -698,6 +729,9 @@ def record(route_name, number=None, url=""):
         "ts": int(time.time()), "route": route_name, "number": number, "url": url, "title": title,
         "severity": verdict.severity, "area": verdict.area, "kind": verdict.kind, "lens": verdict.lens,
         "fingerprint": fp, "task": LENS_TASK, "draft": DRAFT.name,
+        # The regression watch links a saved check to the issue it produced by any of these:
+        # `related` is the declared `关联: #N`; the digests are the check texts the draft carried.
+        "related": verdict.related, "red_digest": RED_DIGEST, "green_digest": GREEN_DIGEST,
     })
 
 

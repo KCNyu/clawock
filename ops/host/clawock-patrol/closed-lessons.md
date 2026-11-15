@@ -6,6 +6,9 @@
 1. **「没人用 / 没清理 / 没校验」其实有，只是没搜到**（最常见）——必须 `git -C /root/wt-patrol grep -n '<符号>'`
    搜整个仓库（src、ops、skills、site、tests、config、examples、.github、docs），字段名再搜字符串形式和 bundle/SKILL 引用。查不到 ≠ 不存在。
 2. **读的是过去**：注释、docstring、旧 issue 描述的是已修掉的状态——必须 `git log -S` / `git blame` 看何时为何这样写，并查 open/closed issue 是否处理过。
+   判据读的是已发布历史正文时，还要问「修完它会不会绿」：历史不改写，它不会绿。这种草稿补一个 `GREEN-CHECK`
+   断言修复后的当前行为（`issue-format.md` § RED-CHECK）；只拿永远红的 repro 当回归守卫，会周期性重复提报同一条
+   （#3134 → #3490 的回锅）。
 3. **有意设计被当成缺陷**——必须读目标代码前后至少 40 行和附近注释；注释解释过的取舍不是缺陷。
 4. **影响是乘出来的，不是量出来的；或者修了不值**——不提审美重构、独立拆文件/函数、import 耗时、magic number、「抽注册表」；
    代码债务只按 issue-format.md 的 DEBT-CHECK 固定判据：数清同一事实的实现，指出 owner 和守卫；拆分要有落点、收益和碰过该文件的先例（或明写无先例），不能以自定的大小/命名阈值绕过这条。
