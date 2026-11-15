@@ -1316,7 +1316,8 @@ def _level_value(key, value):
 
 
 _DRIVER_WORDS = {"risk_rule": "风控纪律", "technical": "技术面", "catalyst": "催化",
-                 "fundamental": "基本面", "event": "事件"}
+                 "fundamental": "基本面", "event": "事件", "macro": "宏观",
+                 "sentiment": "情绪", "peer": "同行"}
 
 
 def render_card(context, judgment, plan, *, date=None, page_url=None):

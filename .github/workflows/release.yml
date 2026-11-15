@@ -300,11 +300,13 @@ jobs:
   github-release:
     # A GitHub Release is a public claim that the version exists. Create it only
     # for a real version tag, and only after PyPI accepted that exact artifact
-    # and npm accepted the skill package. TestPyPI workflow_dispatch runs have
-    # a branch ref and deliberately skip it. The registry readback runs beside
-    # it (npm-readback), not in front of it.
+    # and npm accepted the skill package. A workflow_dispatch from a v* tag
+    # defaults to TestPyPI and must skip it too: the npm job is gated the same
+    # way (#1829), and a TestPyPI-only tag would otherwise publish a Release
+    # whose install command names a version neither PyPI nor npm has (#3505).
+    # npm_only repairs the npm side alone; it never creates a Release.
     needs: [publish, npm]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && inputs.repository != 'testpypi' && inputs.npm_only != 'true' && inputs.npm_only != true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

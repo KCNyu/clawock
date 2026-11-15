@@ -138,7 +138,7 @@ On the author's setup four analysts, a bull and a bear researcher, three risk vo
 
 Code settles every call on one standard set of daily bars, read on each market's own trading calendar. Goldwind's reference was 8.645, the first tradable price after publication; the next session closed at 8.28, down 4.22%, so the record is a `loss`. It is a `watch` scored as `passive_stance` with `fill_assumed: false`: a score for the holding judgment, not profit or loss from a new trade. Every call is settled this way and published, wins, losses and ungradeable alike; nobody adjusts a result afterwards.
 
-- **Saying the same thing every day counts once.** From 2026-07-29 to 2026-10-08 the brief said "hold and watch" on Goldwind 45 times. That is one result (`ep-f31982c6d511`), not 45.
+- **Saying the same thing every day counts once.** From 2026-07-29 to 2026-10-08 the brief said "hold and watch" on Goldwind 47 times. That is one result (`ep-f31982c6d511`), not 47.
 - **A call that cannot be graded stays on the ledger.** On 2026-10-01 Hong Kong was closed, so record `dec-143614125e34` has `outcome: unknown`, `status: not_evaluable` and `session_reason: market_closed`.
 - **What you did is recorded apart from what the plan said.** `clawock mark-followed` marks each call followed or not.
 

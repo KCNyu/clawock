@@ -65,6 +65,11 @@ def test_removing_the_budget_did_not_remove_the_required_content():
         mode6 = text.split('### Mode 6', 1)[1].split('### Mode 5', 1)[0]
         assert 'prose_target_chars' not in mode6
         assert '目标 ≤2200' not in mode6 and '目标 ≤ 2200' not in mode6
-        assert 'Top 5' in mode6 and '今日/5 日涨跌' in mode6
+        # The required-content rules live in the shared Mode 6 file the skill
+        # routes to (#3503); both halves are the instruction the cron reads.
+        shared = (ROOT / 'skills' / '_shared' / 'report-prose-rules.md').read_text(
+            encoding='utf-8')
+        instructions = mode6 + '\n' + shared
+        assert 'Top 5' in instructions and '今日/5 日涨跌' in instructions
         for required in ('异动归因', '计划对账', '风险提示', '持仓', '归因'):
-            assert required in mode6
+            assert required in instructions

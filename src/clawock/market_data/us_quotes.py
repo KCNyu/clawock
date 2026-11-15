@@ -1291,7 +1291,7 @@ def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, ticker
                       for h in all_active_h)
     total_value = sum(carried_value(h) for h in all_active_h)
     total_pnl   = total_value - total_cost
-    today_chg   = sum(h.get('today_change', 0) for h in all_active_h)
+    today_chg   = sum((h.get('today_change') or 0) for h in all_active_h)
 
     us['total_cost']          = round(total_cost, 2)
     us['total_current_value'] = round(total_value, 2)

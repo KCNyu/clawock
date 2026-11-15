@@ -2480,3 +2480,33 @@ def test_missing_daily_range_stays_missing_in_holdings_and_range_card(ranges):
 def test_daily_range_preserves_observed_zero_and_four_decimal_precision(value, expected):
     row = dashboard.trim_holding({'shares': 1, 'day_high': value, 'day_low': value}, 'USD')
     assert row['day_high'] == row['day_low'] == expected
+
+
+def test_a_weekend_book_stamp_updates_the_latest_session_snapshot(tmp_path, monkeypatch):
+    """#3502: the 2026-11-14 Saturday refresh moved the top-level stamp to
+    2026-11-14 while the newest snapshot (and every holding's session) was
+    2026-11-13. Matching only the stamp left that row on disk, so the equity
+    chart's last point and the same generation's totals disagreed."""
+    snapshots = tmp_path / 'memory' / 'snapshots'
+    snapshots.mkdir(parents=True)
+
+    def doc(stamp, value, change, day):
+        return {'last_updated': stamp, 'portfolios': {
+            'us_stocks': {'currency': 'USD', 'total_current_value': 10,
+                          'holdings': [{'ticker': 'U', 'shares': 1,
+                                        'day_session_date': day}]},
+            'hk_stocks': {'currency': 'HKD', 'total_current_value': value,
+                          'today_total_change': change,
+                          'holdings': [{'ticker': 'H', 'shares': 1,
+                                        'day_session_date': day}]}}}
+
+    (snapshots / '2026-10-15.json').write_text(
+        json.dumps(doc('2026/10/15 16:10 HKT', 50720.4, 0, '2026-10-15')))
+    (snapshots / '2026-10-16.json').write_text(
+        json.dumps(doc('2026/10/16 09:33 HKT', 53169.6, 2449.2, '2026-10-16')))
+    monkeypatch.setattr(dashboard, 'WS_ROOT', tmp_path)
+    live = doc('2026/10/17 09:39 HKT', 52939.2, 2218.8, '2026-10-16')
+
+    rows = dashboard.load_snapshots(live_book=live)
+    assert [(r['date'], r['hk_total_value'], r['hk_today_change']) for r in rows] == [
+        ('2026-10-15', 50720.4, 0), ('2026-10-16', 52939.2, 2218.8)]

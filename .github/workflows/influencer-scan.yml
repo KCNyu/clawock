@@ -29,11 +29,13 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    # 15: the LLM ladder may open two chains (2 x 360s = 12min) and the fetch
+    # 25: the LLM ladder may open two chains (2 x 360s = 12min) and the fetch
     # phase is 13 sequential requests across 8 sources (worst case ~130s of
     # timeouts). The chain grew from 210s when MiniMax-M3.1 stopped accepting
     # thinking off; at low effort a full 48-item batch reasons for ~30s, and
-    # the rest is room for 529 overload retries (#2202).
+    # the rest is room for 529 overload retries (#2202). The job ceiling is 25
+    # minutes, so setup/validate/commit have ~12 minutes rather than the ~2 a
+    # comment written against a 15-minute ceiling implied.
     # tests/test_llm_workflow_deadlines.py checks 2 chains + 60s.
     timeout-minutes: 25
     permissions:
@@ -52,7 +54,7 @@ jobs:
           # Chain deadline (brief-fallback 2026-08-17 defect class): a hung
           # primary must not eat the whole job before the fallback answers.
           # This scan retries the whole chain once on failure, so the budget is
-          # sized for two chains inside the 15-minute job: 2 x 360s = 12min,
+          # sized for two chains inside the 25-minute job: 2 x 360s = 12min,
           # leaving setup/validate/commit their share. One attempt gets
           # influencer.LLM_TIMEOUT (240s); a full batch at M3.1 low effort
           # measured 30s (#2202).

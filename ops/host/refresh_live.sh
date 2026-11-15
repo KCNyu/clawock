@@ -28,6 +28,9 @@
 #      ~/.agents/skills/shared-memory, a copy, so `ops/host/shared-memory/` changes
 #      reach it only through `install_shared_memory.sh` (same shape again; the
 #      systemd timers are re-rendered when this host has them).
+#   6. the dead-runner reap units — `ops/host/agent-dispatch-reap.*` are copied
+#      into /etc/systemd/system, and their timer can silently stop. This script
+#      checks that copy but never enables a timer: installing one stays manual.
 #
 # None needs npm publish or a PyPI release: publishing is for people who are
 # not this host. See docs/operations/release.md § Running the latest code here.
@@ -128,6 +131,13 @@ install_memory_kit() {
   bash ops/host/install_shared_memory.sh --check
 }
 MEMORY_KIT_STALE="the installed shared-memory skill fails install_shared_memory.sh --check: it needs installing"
+# The reap units are content-checked like the rest, but a missing/inactive timer
+# is a host decision: this script reports it and never installs or enables it.
+reap_differs() {
+  [ -f ops/host/install_agent_dispatch_reap.sh ] &&
+    ! bash ops/host/install_agent_dispatch_reap.sh --check >/dev/null 2>&1
+}
+REAP_STALE="the installed agent-dispatch-reap units fail install_agent_dispatch_reap.sh --check: they need installing (the timer stays manual)"
 
 if [ "$check_only" = "0" ]; then
   mandate_check live.refresh "applying a merge to this host"
@@ -156,8 +166,13 @@ if [ "$behind" = "0" ]; then
     memory_stale=1
     echo "  → $MEMORY_KIT_STALE"
   fi
+  reap_stale=0
+  if reap_differs; then
+    reap_stale=1
+    echo "  → $REAP_STALE"
+  fi
   if [ "$check_only" = "1" ]; then
-    [ $((runner_stale + patrol_stale + memory_stale)) -gt 0 ] && { echo "(--check: nothing written)"; exit 1; }
+    [ $((runner_stale + patrol_stale + memory_stale + reap_stale)) -gt 0 ] && { echo "(--check: nothing written)"; exit 1; }
     [ "$ops_stale" = "1" ] && exit 1
     exit 0
   fi
@@ -194,7 +209,14 @@ if grep -qE '^ops/host/(shared-memory/|install_shared_memory\.sh$)' <<<"$changed
   needs_memory=1
   echo "  → shared-memory skill moved or differs: $MEMORY_KIT_DIR needs install_shared_memory.sh"
 fi
-pending=$((needs_venv + needs_plugin + needs_runner + needs_ops + needs_patrol + needs_memory))
+needs_reap=0
+grep -qE '^ops/host/(agent-dispatch-reap\.(service|timer)|install_agent_dispatch_reap\.sh)$' <<<"$changed" && needs_reap=1
+if [ "$needs_reap" = "0" ] && reap_differs; then
+  needs_reap=1
+fi
+[ "$needs_reap" = "1" ] && echo "  → $REAP_STALE"
+
+pending=$((needs_venv + needs_plugin + needs_runner + needs_ops + needs_patrol + needs_memory + needs_reap))
 if [ "$needs_runner" = "0" ] && runner_differs; then
   echo "  → the installed agent-dispatch runner fails install_agent_dispatch.sh --check: it needs installing"
   pending=$((pending + 1))

@@ -49,6 +49,20 @@ def test_a_session_is_not_complete_until_its_own_market_has_settled(
         f"session is {expected}, not {resolved}")
 
 
+def test_hk_half_day_is_complete_after_its_own_noon_close():
+    """#3497: HK half-days close at 12:00 but `latest_completed_session` kept
+    the 17:00 full-day settling hour, so the afternoon was judged as the prior
+    session. The one-hour margin makes 13:00 the honest handover."""
+    hkt = ZoneInfo("Asia/Hong_Kong")
+    before_close = datetime(2026, 12, 24, 11, 30, tzinfo=hkt)
+    after_settle = datetime(2026, 12, 24, 13, 30, tzinfo=hkt)
+
+    assert sessions.session_close("hk", before_close.date()) == sessions.time(12, 0)
+    assert sessions.latest_completed_session("hk", before_close) == datetime(
+        2026, 12, 23).date()
+    assert sessions.latest_completed_session("hk", after_settle) == before_close.date()
+
+
 def test_the_three_call_sites_ask_the_same_calendar():
     """The drift guard.
 

@@ -175,7 +175,8 @@ def holding_session(h, snapshot_date, market=None):
     own = h.get('day_session_date')
     if isinstance(own, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', own):
         return own
-    m = _ASOF_RE.search(h.get('data_source') or '')
+    text = h.get('data_source')
+    m = _ASOF_RE.search(text) if isinstance(text, str) else None
     if not m:
         return None
     mon, day = _MONTHS[m.group(1)], int(m.group(2))

@@ -10,7 +10,7 @@ Run ``clawock dashboard-build`` after each portfolio mutation.
 """
 
 from clawock.safe_io import to_number as _share_number
-from clawock.safe_io import carried_value
+from clawock.safe_io import carried_value, json_safe
 from clawock.portfolio.valuation import basis as valuation_basis, summary as valuation_summary
 import argparse
 import copy
@@ -614,9 +614,15 @@ def build_decision_audit_payload(decisions, portfolio, fx_rate=None):
     return payload
 
 
+def _strict_json(value, **kwargs):
+    """Browser-bound JSON: non-finite floats become null, never bare NaN."""
+    safe, _ = json_safe(value)
+    return json.dumps(safe, ensure_ascii=False, allow_nan=False, **kwargs)
+
+
 def serialize_dashboard_payload(value):
     """Serialize a browser projection without spending headroom on whitespace."""
-    return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+    return _strict_json(value, separators=(',', ':'))
 
 
 SNAPSHOTS_PACKED_COLUMNS_KEY = 'snapshots_columns'
@@ -1693,7 +1699,8 @@ def load_snapshots(live_book=None):
         books_now = live_book.get('portfolios', {})
         ledger = {leg.bucket: books_now.get(leg.bucket, {}).get('holdings', []) or []
                   for leg in legs}
-        live_file = f'{book_stamp_date(live_book.get("last_updated"))}.json'
+        live_date = book_stamp_date(live_book.get('last_updated'))
+        live_file = f'{live_date}.json' if live_date else None
     else:
         ledger = _canonical_ledger()
         legs = _ledger_legs()
@@ -1704,6 +1711,28 @@ def load_snapshots(live_book=None):
     )
     # Keep only the most recent N — chronological order so dashboard line chart still ascends
     paths = paths[-MAX_SNAPSHOTS_EMBEDDED:]
+    # A book refreshed after a session (typically a Saturday US close, or a
+    # holiday) carries a top-level stamp newer than the newest snapshot file,
+    # while its holdings still belong to that newest session. The stamp-only
+    # match then left that row on disk and the chart printed a different US
+    # book from the same day's totals (#3502). Only the latest row can be the
+    # live session; historical rows stay on disk. Require every active holding
+    # to agree on one session date so a half-refreshed book cannot mislabel a
+    # row.
+    if live_book and paths and live_file not in {os.path.basename(p) for p in paths}:
+        session_dates = set()
+        for leg in legs:
+            for h in books_now.get(leg.bucket, {}).get('holdings', []) or []:
+                if not isinstance(h, dict):
+                    continue
+                if (_share_number(h.get('shares')) or 0) <= 0:
+                    continue
+                day = h.get('day_session_date')
+                if isinstance(day, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}', day):
+                    session_dates.add(day)
+        candidate = f'{next(iter(session_dates))}.json' if len(session_dates) == 1 else None
+        if candidate and os.path.basename(paths[-1]) == candidate:
+            live_file = candidate
     results = []
     for p in paths:
         fname = os.path.basename(p)
@@ -5134,9 +5163,9 @@ def build_projection(previous_source=None, shadow_previous=None):
         # and publish something the cap never saw.
         'dashboard': payload,
         'overview': overview_payload,
-        'audit': json.dumps(_audit, ensure_ascii=False, separators=(',', ':')),
-        'shadow': json.dumps(_shadow, ensure_ascii=False, indent=2) + '\n',
-        'trail': json.dumps(_trail, ensure_ascii=False, separators=(',', ':')),
+        'audit': _strict_json(_audit, separators=(',', ':')),
+        'shadow': _strict_json(_shadow, indent=2) + '\n',
+        'trail': _strict_json(_trail, separators=(',', ':')),
         # What the caller needs to record the slice-2 telemetry without knowing
         # how the merge works.
         'preservation': {'presence': _presence, 'preserved': _preserved,

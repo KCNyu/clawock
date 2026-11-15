@@ -15,6 +15,8 @@ import os
 from copy import deepcopy
 from pathlib import Path
 
+from clawock.safe_io import json_safe
+
 
 SCHEMA_VERSION = 1
 ALWAYS_LOADED_BUDGET_BYTES = 128 * 1024
@@ -139,8 +141,10 @@ BUNDLE_TRIM_ORDER = {
 
 
 def _compact(value) -> str:
+    safe, _ = json_safe(value)
     return json.dumps(
-        value, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+        safe, ensure_ascii=False, separators=(",", ":"), sort_keys=True,
+        allow_nan=False,
     )
 
 
@@ -396,7 +400,8 @@ def write_run_bundle(
     generation_id = compute_generation_id(stamped)
     stamped["generation_id"] = generation_id
 
-    audit_text = json.dumps(stamped, ensure_ascii=False, indent=2) + "\n"
+    audit_text = json.dumps(json_safe(stamped)[0], ensure_ascii=False,
+                            indent=2, allow_nan=False) + "\n"
     _atomic_write(audit_path, audit_text)
     run_root = audit_path.with_suffix("")
     artifact_dir = run_root / generation_id

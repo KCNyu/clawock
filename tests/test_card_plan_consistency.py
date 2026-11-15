@@ -252,6 +252,15 @@ def test_the_prose_is_held_to_the_plan_the_ledger_and_the_strategy():
                    '07226 现价 2.3 已收回硬止损 2.156 上方。',
                    '07226 已经跌破硬止损 2.156，出口还欠着。'):
         assert _issues(honest, HK_PLAN, risk_debts=debts) == [], honest
+    # #3493: an acknowledgement in a neighbouring clause does not belong to the
+    # owed holding. A different ticker, a subjectless recovery, or a mixed
+    # breach-and-recovery phrase is not the honest 「早已破线」 shape #3475
+    # admitted, and must not silence the debt gate.
+    for cross in ('07226 硬止损 2.156 是纪律位，RKLX 昨天跌破了',
+                  '07226 硬止损 2.156 是纪律位，虽然收回上方了',
+                  '07226 硬止损 2.156 是纪律位，我看破了又收回',
+                  '07226 硬止损 2.156 是纪律位，SPCH 跌破了'):
+        assert _issues(cross, HK_PLAN, risk_debts=debts), cross
     assert _issues('SPCH 硬止损 53.59（策略豁免），继续按定投走。',
                    US_PLAN, holding_policies=SPCH_POLICY) == []
     # A negation still wins over the acknowledgement words: this is a denial.

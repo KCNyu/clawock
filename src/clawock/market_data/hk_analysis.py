@@ -377,7 +377,7 @@ def _day_text(value, digits=1):
 def signal(holding: Dict) -> str:
     dp    = session_change_pct(holding)
     dp = round(dp, 2) if dp is not None else None
-    pnl_p = holding.get('pnl_percent', 0)
+    pnl_p = holding.get('pnl_percent') or 0
     # Only 07226 (XL二南方恒科, 2x) is leveraged; 03032/03033 are plain 1x HSTECH
     # ETFs and must NOT be flagged 2x. Use the canonical LEVERAGED set.
 
@@ -712,7 +712,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
         price = h.get('current_price', 0)
         dp    = session_change_pct(h)
         cost  = h.get('cost_basis', 0)
-        pnl_p = h.get('pnl_percent', 0)
+        pnl_p = h.get('pnl_percent') or 0
         sig   = signal(h)
         pnl_s = '+' if pnl_p >= 0 else ''
         dp_s  = _day_text(dp, 2)
@@ -727,7 +727,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
     for h in active:
         sig   = signal(h)
         dp    = session_change_pct(h)
-        pnl   = h.get('pnl_percent', 0)
+        pnl   = h.get('pnl_percent') or 0
         name  = h.get('stock_name', h['ticker'])[:8]
         price = h.get('current_price', 0)
         code  = h['ticker']
@@ -758,7 +758,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
     lev_value = sum(carried_value(h) for h in active
                     if is_leveraged_holding(h))
     lev_pct = lev_value / total_value * 100 if total_value else 0
-    loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
+    loss_count = sum(1 for h in active if (h.get('pnl_percent') or 0) < 0)
 
     print(f"  {'─'*58}")
     print("  风险摘要")
@@ -826,8 +826,8 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
             'cost':      h.get('cost_basis'),
             'price':     h.get('current_price', 0),
             'today_pct': session_change_pct(h),
-            'pnl_pct':   h.get('pnl_percent', 0),
-            'pnl_abs':   h.get('pnl_abs', 0),
+            'pnl_pct':   h.get('pnl_percent') or 0,
+            'pnl_abs':   h.get('pnl_abs') or 0,
         } for h in active]
         lines.extend(render_holdings_table(rows, currency='HKD'))
     else:
@@ -836,7 +836,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
             name  = h.get('stock_name', code).replace('-W', '')[:5]
             price = h.get('current_price', 0)
             dp    = session_change_pct(h)
-            pnl_p = h.get('pnl_percent', 0)
+            pnl_p = h.get('pnl_percent') or 0
             pnl_emoji = '🟢' if pnl_p >= 0 else '🔴'
             lines.append(f"{pnl_emoji} {code} {name}  {price:.3f}  {_day_text(dp)}  浮{pnl_p:+.1f}%")
 
@@ -847,7 +847,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
         if 'HOLD' in sig and 'HOLD+' not in sig:
             continue
         dp    = session_change_pct(h)
-        pnl   = h.get('pnl_percent', 0)
+        pnl   = h.get('pnl_percent') or 0
         name  = h.get('stock_name', h['ticker']).replace('-W','')[:6]
         alerts.append(f"  {sig} {h['ticker']} {name} | 今日{_day_text(dp)} 浮{pnl:+.1f}%")
     if alerts:
@@ -859,7 +859,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     lev_value = sum(carried_value(h) for h in active
                     if is_leveraged_holding(h))
     lev_pct = lev_value / total_value * 100 if total_value else 0
-    loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
+    loss_count = sum(1 for h in active if (h.get('pnl_percent') or 0) < 0)
     lines.append('')
     lines.append(f"📉 亏损持仓 {loss_count}/{len(active)}  |  2x杠杆敞口 {lev_pct:.0f}%")
 
