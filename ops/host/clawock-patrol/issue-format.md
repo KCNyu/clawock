@@ -45,6 +45,24 @@ assert <今天为假的条件>, '<打印出来的说明和数字>'
 -->
 ```
 
+RED-CHECK 是「今天为假」的复现，不一定是「修完会绿」的守卫。如果它断言的是已发布历史/冻结产物
+（典型：`memory/2026-10-21-pre-open.md` 的正文；仓库立场是历史记录不改写，用 projection/timeline 披露正确值），
+修完它仍会红。这种草稿要在末尾再加一个**正向守卫**，回归观察会优先复跑它：
+
+```markdown
+<!-- GREEN-CHECK
+cd /root/wt-patrol && env -u CLAWOCK_WORKSPACE PYTHONPATH=src python3 -c "
+# 只断言修复后的当前行为；不要读已发布历史正文
+assert <修好之后为真的条件>, '<失败时打印读到的值>'
+"
+-->
+```
+
+闸只实跑 RED-CHECK（提报当天必须红），**不要求 GREEN-CHECK 当天是绿的**——修复前它本来就红。
+回归观察没有 GREEN-CHECK 时才用 RED-CHECK，并把红当「原始复现」；若红只来自不能改写的历史正文，
+不要按「新回归」提报，用 `patrol_intel.py regress-verdict <N> suppressed --reason ...` 记账（见 README § 分级与路由）。
+只拿永远红的 repro 当守卫，会周期性重复提报同一条（#3134 → #3490 的回锅）。
+
 ## 分级（闸按证据核，不拒只降）
 
 | 级 | 什么算 | 去向 |

@@ -2,6 +2,7 @@
 never limit findings, one root cause is one issue, and the round's
 yield is readable by the dsh panel. Since 2026-10-11 a P3 owes a line on what leaving it costs.
 Unit tests on the pure half plus gate runs against a stub `gh`."""
+import hashlib
 import json
 import os
 import subprocess
@@ -277,6 +278,8 @@ def test_gate_files_a_p3_that_states_its_cost_and_returns_one_that_does_not(tmp_
     state = tmp_path / "a" / "state"
     rows = triage.read_jsonl(state / "filed" / "index.jsonl")
     assert [(row["route"], row["number"], row["severity"]) for row in rows] == [("candidate", None, "P3")]
+    # The regression watch links a check to the issue it produced by these two fields.
+    assert len(rows[0]["red_digest"]) == 64 and rows[0]["related"] == []
     # not kept under filed/: the same draft with the line added must not be its own duplicate
     assert not (state / "filed" / "R1-x.md").exists()
     asked = calls.read_text() if calls.exists() else ""
@@ -315,10 +318,136 @@ def test_regression_watch_reruns_old_checks_only_for_code_a_commit_touched(tmp_p
         "1\tR2-t.md\t[patrol] t\thttps://github.com/KCNyu/clawock/issues/12\tpatrol-logic-20260901-000000\n")
     monkeypatch.setattr(patrol_intel, "LOGDIR", state)
     monkeypatch.setattr(patrol_intel, "WORK", wt)
-    fixed = lambda n: {"number": n, "fixed": True, "closed": 1.0, "severity": "P1"}
-    out = patrol_intel.regression_watch([fixed(11), fixed(12)], "2000-01-01 00:00:00", patrol_intel.task_by_issue())
+    fixed = lambda n: {"number": n, "fixed": True, "closed": 1.0, "severity": "P1",
+                       "state": "CLOSED", "noise": False, "title": "[patrol] x"}
+    out, skipped = patrol_intel.regression_watch([fixed(11), fixed(12)], "2000-01-01 00:00:00",
+                                                 patrol_intel.task_by_issue())
     assert len(out) == 1 and "#11" in out[0] and "src/a.py" in out[0], out
-    assert (state / "regress/11.sh").read_text().startswith("python3 -c")
+    assert not skipped
+    script = (state / "regress/11.sh").read_text()
+    assert script.startswith("#!/usr/bin/env bash") and "kind=red" in script
+    assert "python3 -c" in script and "digest: sha256:" in script
+
+
+def _regress_fixture(tmp_path):
+    """A worktree whose src/a.py is touched, plus one filed draft for a fixed issue #11."""
+    wt, state = tmp_path / "wt", tmp_path / "state"
+    (wt / "src").mkdir(parents=True)
+    (wt / "tests").mkdir()
+    git = lambda *a: subprocess.run(["git", "-C", str(wt), *a], check=True, capture_output=True)
+    git("init", "-q", "-b", "master")
+    (wt / "src/a.py").write_text("x = 1\n")
+    (wt / "tests/test_a.py").write_text("y = 1\n")
+    git("add", "-A")
+    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "one")
+    git("update-ref", "refs/remotes/origin/master", "HEAD")
+    (state / "filed").mkdir(parents=True)
+    (state / "filed/created.tsv").write_text(
+        "1\tR1-a.md\t[patrol] a\thttps://github.com/KCNyu/clawock/issues/11\tpatrol-logic-20260901-000000\n")
+    return wt, state
+
+
+def _fixed(n=11):
+    return {"number": n, "fixed": True, "closed": 1.0, "severity": "P1",
+            "state": "CLOSED", "noise": False, "title": "[patrol] x"}
+
+
+def _regression_issue(n=20, state="OPEN", noise=False):
+    return {"number": n, "fixed": False, "closed": 2.0, "severity": "P1",
+            "state": state, "noise": noise, "title": "[patrol] regression"}
+
+
+def test_regression_watch_prefers_a_green_check(tmp_path, monkeypatch):
+    wt, state = _regress_fixture(tmp_path)
+    (state / "filed/R1-a.md").write_text(
+        "# [patrol] a\nsrc/a.py:1\n\n"
+        "<!-- RED-CHECK\npython3 -c \"assert open('src/a.py').read() == 'old'\"\n-->\n\n"
+        "<!-- GREEN-CHECK\npython3 -c \"assert open('src/a.py').read().strip() == 'x = 1'\"\n-->\n")
+    monkeypatch.setattr(patrol_intel, "LOGDIR", state)
+    monkeypatch.setattr(patrol_intel, "WORK", wt)
+    out, skipped = patrol_intel.regression_watch([_fixed()], "2000-01-01 00:00:00",
+                                                 patrol_intel.task_by_issue())
+    assert len(out) == 1 and "forward guard" in out[0] and not skipped
+    script = (state / "regress/11.sh").read_text()
+    assert "kind=green" in script and "x = 1" in script
+    status = json.loads((state / "regress/state.json").read_text())
+    assert status["checks"]["11"]["kind"] == "green"
+
+
+def test_regression_watch_notes_a_frozen_repro_without_calling_it_a_regression(tmp_path, monkeypatch):
+    wt, state = _regress_fixture(tmp_path)
+    (state / "filed/R1-a.md").write_text(
+        "# [patrol] a\nsrc/a.py:1\n\n<!-- RED-CHECK\n"
+        "python3 -c \"assert '33%' not in open('memory/2026-10-21-pre-open.md').read()\"\n-->\n")
+    monkeypatch.setattr(patrol_intel, "LOGDIR", state)
+    monkeypatch.setattr(patrol_intel, "WORK", wt)
+    out, _ = patrol_intel.regression_watch([_fixed()], "2000-01-01 00:00:00",
+                                           patrol_intel.task_by_issue())
+    assert len(out) == 1 and "红不等于代码回归" in out[0]
+
+
+def test_regression_watch_tracks_then_suppresses_a_filed_regression(tmp_path, monkeypatch):
+    wt, state = _regress_fixture(tmp_path)
+    (state / "filed/R1-a.md").write_text(
+        "# [patrol] a\nsrc/a.py:1\n\n<!-- RED-CHECK\n"
+        "python3 -c \"assert open('src/a.py').read() == 'old'\"\n-->\n")
+    monkeypatch.setattr(patrol_intel, "LOGDIR", state)
+    monkeypatch.setattr(patrol_intel, "WORK", wt)
+    rows = [_fixed(), _regression_issue(state="OPEN")]
+    out, skipped = patrol_intel.regression_watch(rows, "2000-01-01 00:00:00", patrol_intel.task_by_issue())
+    assert len(out) == 1 and not skipped
+    # The gate recorded that #20 was filed for #11. While it is open, do not offer the check again.
+    (state / "filed/index.jsonl").write_text(
+        json.dumps({"ts": 3, "route": "issue", "number": 20, "related": [11]}) + "\n")
+    out, skipped = patrol_intel.regression_watch(rows, "2000-01-01 00:00:00", patrol_intel.task_by_issue())
+    assert not out and skipped == ["#11 已由 #20 跟踪（open）"]
+    # Closed as not planned: the same check is now adjudicated and never offered again.
+    rows = [_fixed(), _regression_issue(state="CLOSED", noise=True)]
+    out, skipped = patrol_intel.regression_watch(rows, "2000-01-01 00:00:00", patrol_intel.task_by_issue())
+    assert not out and "suppressed" in skipped[0] and "已按误报/不修关闭" in skipped[0]
+    status = json.loads((state / "regress/state.json").read_text())
+    assert status["checks"]["11"]["verdict"] == "suppressed"
+    # reset is the only way back: the check is deliberately live again.
+    patrol_intel.regress_verdict(11, "reset", now=99)
+    out, _ = patrol_intel.regression_watch(rows, "2000-01-01 00:00:00", patrol_intel.task_by_issue())
+    assert len(out) == 1
+
+
+def test_regress_verdict_suppresses_and_reports(tmp_path, monkeypatch, capsys):
+    wt, state = _regress_fixture(tmp_path)
+    (state / "filed/R1-a.md").write_text(
+        "# [patrol] a\nsrc/a.py:1\n\n<!-- RED-CHECK\n"
+        "python3 -c \"assert open('src/a.py').read() == 'old'\"\n-->\n")
+    monkeypatch.setattr(patrol_intel, "LOGDIR", state)
+    monkeypatch.setattr(patrol_intel, "WORK", wt)
+    patrol_intel.regress_verdict(11, "suppressed", linked=20, reason="历史正文不改写", now=100)
+    printed = capsys.readouterr()
+    assert "suppressed" in printed.out and "历史正文不改写" in printed.out
+    patrol_intel.regress_status()
+    assert "#11\tsuppressed\t#20" in capsys.readouterr().out
+
+
+def test_gate_refuses_a_red_check_adjudicated_not_actionable(tmp_path):
+    digest = hashlib.sha256(patrol_intel.RED_BLOCK.search(DRAFT).group(1).strip().encode()).hexdigest()
+    state = tmp_path / "a" / "state"
+    (state / "regress").mkdir(parents=True)
+    (state / "regress/state.json").write_text(json.dumps({"version": 1, "checks": {"11": {
+        "verdict": "suppressed", "red_digest": digest, "issue": 20, "reason": "历史正文不改写"}}}))
+    r = _gate(tmp_path, DRAFT.format(sev="P0"))
+    assert r.returncode == 2 and "已被裁定" in r.stderr and "regress-verdict 11 reset" in r.stderr
+
+
+def test_gate_refuses_the_retired_repro_when_a_green_guard_replaced_it(tmp_path):
+    red = patrol_intel.RED_BLOCK.search(DRAFT).group(1).strip()
+    digest = hashlib.sha256(red.encode()).hexdigest()
+    state = tmp_path / "a" / "state"
+    (state / "regress").mkdir(parents=True)
+    (state / "regress/state.json").write_text(json.dumps({"version": 1, "checks": {"11": {
+        "kind": "green", "red_digest": digest,
+        "digest": hashlib.sha256(b"forward guard").hexdigest(),
+        "source": "filed/R1-x.md"}}}))
+    r = _gate(tmp_path, DRAFT.format(sev="P0"))
+    assert r.returncode == 2 and "已退役的原始复现" in r.stderr and "GREEN-CHECK" in r.stderr
 
 
 def test_inference_guesses_p1_only_for_money_delivery_and_blind_gates():
