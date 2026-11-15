@@ -26,6 +26,9 @@ cli -> tools
 cli -> utilities
 cli -> workflows
 cli -> workspace
+# #3511: browser-bound brief context uses the same strict non-finite JSON
+# policy as every other writer; the helper is the single owner of that rule.
+context -> safe_io
 costs -> market_data
 costs -> workspace
 decision -> code_identity

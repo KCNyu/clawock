@@ -165,3 +165,20 @@ def test_reddit_source_states_are_named_on_both_signals_surfaces():
     assert json.loads(out) == ["源失败", "源限流", "未尝试", ""]
     assert source.count("redditSourceNote(") >= 3, (
         "the macro cell and the per-ticker row must both name the state")
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is required to run the bundle")
+@pytest.mark.parametrize("bundle", BUNDLES)
+def test_a_level_an_order_of_magnitude_off_is_not_compared(bundle):
+    """#3495: `spch_prior_20d_low` is SPCX's 120.39, not a SPCH ETF price.
+
+    The same 10x scale rule as brief_postflight's WATCH_LEVEL_MAX_RATIO: the
+    target still prints, but the card must not invent 「现 $7.84 · −93.5%」.
+    """
+    spch = {"ticker": "SPCH", "region": "us", "current_price": 7.84}
+    spcx = {"ticker": "SPCX", "region": "us", "current_price": 139.11}
+    rows = _watch_rows(bundle, {"spch_prior_20d_low": 120.39}, [spch])
+    assert (rows["SPCH/120.39"]["cur"], rows["SPCH/120.39"]["dist"]) == (None, None)
+    rows = _watch_rows(bundle, {"spcx_prior_20d_low": 120.39}, [spcx])
+    assert rows["SPCX/120.39"]["cur"] == 139.11
+    assert rows["SPCX/120.39"]["dist"] == pytest.approx(15.5495, abs=.001)

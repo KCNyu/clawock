@@ -32,7 +32,7 @@
       prior:"前", close:"收盘", yield:"收益率", alert:"预警", date:"日期", next:"下次",
       breakeven:"回本", chandelier:"吊灯" };
 
-    function resolve(key) {
+    function resolve(key, val) {
       const k = key.toLowerCase();
       if (k.includes("hstech")) return { cur: safe(idx,"HSTECH","price"), ccy:"", who:"恒科", strip:["hstech"] };
       if (k.includes("hsi") || k.includes("hang") || k.includes("seng")) return { cur: safe(idx,"HSI","price"), ccy:"", who:"恒指", strip:["hsi","hang","hangseng","seng"] };
@@ -64,7 +64,19 @@
       if (/(^|[_\-])(pct|percent)([_\-]|$)/.test(k))
         return { cur: null, ccy:"%", who: h ? tok.toUpperCase() : null,
                  strip: (h ? [tok.toLowerCase()] : []).concat(["pct", "percent"]), isPct:true };
-      if (h) return { cur: h.current_price, ccy: h.region === "hk" ? "HKD" : "USD", who: tok.toUpperCase(), strip:[tok.toLowerCase()] };
+      if (h) {
+        // A price an order of magnitude away from the instrument's own quote
+        // is another subject's number, not a distance: `spch_prior_20d_low`
+        // (SPCX's 120.39) read against the SPCH ETF at 7.84 printed -93.5%
+        // (#3495). Same 10x threshold as brief_postflight's
+        // WATCH_LEVEL_MAX_RATIO; the target still prints, the false distance
+        // does not.
+        const px = Number(h.current_price), lv = Number(val);
+        if (px > 0 && lv > 0 && Math.max(px / lv, lv / px) >= 10)
+          return { cur: null, ccy: h.region === "hk" ? "HKD" : "USD",
+                   who: tok.toUpperCase(), strip:[tok.toLowerCase()] };
+        return { cur: px, ccy: h.region === "hk" ? "HKD" : "USD", who: tok.toUpperCase(), strip:[tok.toLowerCase()] };
+      }
       // Unresolved subject: `who` falls back to this same first token, so strip
       // it here too or the row reads 「RKLB | rklb ma200 reclaim」 (#2211).
       return { cur: null, ccy:"", who: null, strip: [tok.toLowerCase()] };
@@ -84,7 +96,7 @@
     // A level the plan left empty has nothing to watch; printed, it read 「null」
     // (the sparse-payload spec caught it once #2134 put the levels back).
     const rows = Object.entries(wl).filter(([, val]) => val != null).map(([key, val]) => {
-      const r = resolve(key);
+      const r = resolve(key, val);
       const who = r.who || key.split(/[_\-]/)[0].toUpperCase();
       const toks = key.toLowerCase().split(/[_\-]/).filter(t => !r.strip.includes(t) && t !== "hkd" && t !== "usd");
       const label = labelOf(toks);

@@ -238,8 +238,10 @@ def is_trading_day(market: str, d: date | None = None, session: str = "full") ->
 #: "today's prices are in the book" while they are still landing.
 SESSION_SETTLED_HOUR = 17
 # A US half day closes three hours early; the same one-hour settling margin
-# makes its "finished" hour 14:00 ET.
+# makes its "finished" hour 14:00 ET. A HK half day closes at 12:00, so the
+# same margin makes it 13:00 HKT (#3497).
 US_HALF_DAY_SETTLED_HOUR = 14
+HK_HALF_DAY_SETTLED_HOUR = 13
 
 
 def latest_completed_session(market: str, at: datetime | None = None) -> date | None:
@@ -262,8 +264,14 @@ def latest_completed_session(market: str, at: datetime | None = None) -> date | 
         raise ValueError(f"unknown market {market!r} (use 'hk' or 'us')")
     tz = ZoneInfo(MARKET_TZ[market])
     now = at.astimezone(tz) if at else datetime.now(tz)
-    half_day = market == "us" and now.date().isoformat() in US_HALF_DAYS
-    settled_hour = US_HALF_DAY_SETTLED_HOUR if half_day else SESSION_SETTLED_HOUR
+    half_day = ((market == "us" and now.date().isoformat() in US_HALF_DAYS)
+                or (market == "hk" and now.date().isoformat() in HK_HALF_DAYS))
+    if not half_day:
+        settled_hour = SESSION_SETTLED_HOUR
+    elif market == "us":
+        settled_hour = US_HALF_DAY_SETTLED_HOUR
+    else:
+        settled_hour = HK_HALF_DAY_SETTLED_HOUR
     probe = now.date() if now.hour >= settled_hour else now.date() - timedelta(days=1)
     for _ in range(14):
         if is_trading_day(market, probe):

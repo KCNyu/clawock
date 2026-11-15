@@ -156,6 +156,7 @@ def runs_finished_today(job_id, provider=None, *, day=None):
 
 
 _commit_log_cache = None
+_COMMIT_LOG_UNREADABLE = object()
 
 
 def _commit_log_entries():
@@ -163,25 +164,28 @@ def _commit_log_entries():
 
     commit_count_today runs once per enabled job (~11), and each call used to
     re-run the same `git log -n 500` subprocess and re-parse the same lines;
-    the job loop now shares a single fetch. A failed fetch degrades to an
-    empty list — identical to the old per-call failure path (count 0).
+    the job loop now shares a single fetch. A failed fetch is cached as
+    `_COMMIT_LOG_UNREADABLE`, not as an empty list: an unreadable evidence
+    source is not the same fact as "this job made no commit today" (#3507).
     """
     global _commit_log_cache
     if _commit_log_cache is None:
-        entries = []
+        entries = None
         try:
             r = subprocess.run(
                 ['git', '-C', str(WS), 'log', '-n', '500', '--format=%cI%x00%s'],
                 capture_output=True, text=True, timeout=15,
             )
             if r.returncode == 0:
+                entries = []
                 for line in r.stdout.splitlines():
                     if '\x00' in line:
                         stamp, subject = line.split('\x00', 1)
                         entries.append((stamp, subject))
         except Exception:
-            pass
-        _commit_log_cache = entries
+            entries = None
+        _commit_log_cache = (
+            entries if entries is not None else _COMMIT_LOG_UNREADABLE)
     return _commit_log_cache
 
 
@@ -194,8 +198,11 @@ def commit_count_on(commit_pattern, day):
     """
     if not commit_pattern:
         return None  # Mode 7 uses heartbeats; dream has no output contract
+    entries = _commit_log_entries()
+    if entries is _COMMIT_LOG_UNREADABLE:
+        return None  # Cannot tell "no commit" from "git log failed".
     count = 0
-    for stamp, subject in _commit_log_entries():
+    for stamp, subject in entries:
         try:
             commit_day = datetime.fromisoformat(stamp).astimezone(HKT).date()
         except ValueError:
@@ -834,7 +841,11 @@ def main():
             status = 'idle'  # nothing scheduled today yet
             detail = f'next: {expected[0] if expected else "n/a"}'
         elif commit_pat:
-            if commit_n < len(expected_past):
+            if commit_n is None:
+                status = 'evidence-unavailable'
+                detail = 'git log unreadable — commit evidence unavailable'
+                has_warn = True
+            elif commit_n < len(expected_past):
                 # 缺少 commit — 可能漏跑，也可能是 Telegram backstop 接管（设计上不产
                 # 生 commit，见 backstop_covered_slots）。两者是不同的红，分开报（#696）。
                 gap = len(expected_past) - commit_n
@@ -972,7 +983,8 @@ def main():
         for r in report:
             icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~',
                     'ok-heartbeat':'✓','monitoring-grace':'·','running':'…',
-                    'holiday':'🏖','backstop':'⚠','over':'⚠'}.get(r['status'], '·')
+                    'holiday':'🏖','backstop':'⚠','over':'⚠',
+                    'evidence-unavailable':'?'}.get(r['status'], '·')
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = DASHBOARD_STATE_ICONS[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")

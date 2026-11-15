@@ -1023,3 +1023,19 @@ def test_two_source_divergence_is_visible_but_nonblocking(run_check):
     findings = [f for f in report['findings'] if f['code'] == 'QUOTE_DIVERGENCE']
     assert len(findings) == 1
     assert findings[0]['level'] == 'WARN' and findings[0]['ticker'] == '00100'
+
+
+def test_non_string_data_source_is_named_not_a_typeerror(run_check):
+    """#3509: a hand-edited numeric `data_source` reached `re.search` and took
+    the whole gate down instead of producing SESSION_STAMP_INVALID."""
+    data = {
+        'last_updated': '2026-11-13',
+        'portfolios': {'hk_stocks': {'currency': 'HKD', 'holdings': [{
+            'ticker': '02208', 'shares': 100, 'cost_basis': 8.0,
+            'current_price': 9.0, 'prev_close': 8.9, 'today_change': 5.0,
+            'current_value': 900.0, 'data_source': 20261113,
+        }]}},
+    }
+    report = run_check(data)
+    codes = {f['code'] for f in report['findings']}
+    assert 'SESSION_STAMP_INVALID' in codes, codes

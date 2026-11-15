@@ -173,7 +173,7 @@ def generate_signal(holding: Dict, tech: Dict, news_items: List[Dict]) -> Tuple[
     reasons: List[str] = []
     score   = 0   # positive = bullish
 
-    pnl_pct   = holding.get('pnl_percent', 0)
+    pnl_pct   = holding.get('pnl_percent') or 0
     day_pct   = session_change_pct(holding)
     day_pct = round(day_pct, 2) if day_pct is not None else None
     rsi       = tech.get('rsi14')
@@ -267,10 +267,10 @@ def print_report(data: Dict, analyses: List[Dict]):
 
     tc   = us.get('total_cost', 0)
     tv   = us.get('total_current_value', 0)
-    pnl  = us.get('total_pnl', 0)
-    pnl_ = us.get('total_pnl_percent', 0)
+    pnl  = us.get('total_pnl') or 0
+    pnl_ = us.get('total_pnl_percent') or 0
     day  = us.get('today_total_change', 0)
-    real = us.get('realized_pnl', 0)
+    real = us.get('realized_pnl') or 0
 
     sign = lambda x: '+' if x >= 0 else ''
     print(f"  总市值:  ${tv:>10,.2f}  (成本 ${tc:,.2f})")
@@ -298,7 +298,7 @@ def print_report(data: Dict, analyses: List[Dict]):
             f"${h['current_price']:>7.2f} "
             f"{_day_text(session_change_pct(h), 2):>8} "
             f"${h['cost_basis']:>7.2f} "
-            f"{h['pnl_percent']:>+8.2f}% "
+            f"{(h.get('pnl_percent') or 0):>+8.2f}% "
             f"{rsi_s:>5}  "
             f"{arr} {sig}"
         )
@@ -312,7 +312,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     for sig, ticker, reasons, h, tech, news_items in signal_rows:
         arr = SIGNAL_COLOR.get(sig, '?')
         print(f"\n  {arr} [{sig}] {ticker}  ${h['current_price']:.2f}"
-              f"  今日 {_day_text(session_change_pct(h), 2)}  P&L {h['pnl_percent']:+.1f}%")
+              f"  今日 {_day_text(session_change_pct(h), 2)}  P&L {(h.get('pnl_percent') or 0):+.1f}%")
         if reasons:
             for r in reasons:
                 print(f"     · {r}")
@@ -331,8 +331,8 @@ def print_report(data: Dict, analyses: List[Dict]):
     lev_val   = sum(carried_value(h) for h in active
                     if is_leveraged_holding(h))
     lev_pct   = lev_val / tv * 100 if tv else 0
-    losing    = [h for h in active if h.get('pnl_percent', 0) < 0]
-    lose_val  = sum(abs(h.get('pnl_abs', 0)) for h in losing)
+    losing    = [h for h in active if (h.get('pnl_percent') or 0) < 0]
+    lose_val  = sum(abs(h.get('pnl_abs') or 0) for h in losing)
 
     print(f"  杠杆ETF敞口:  {lev_pct:.1f}%  (${lev_val:,.0f})  "
           + ("⚠️ 偏高" if lev_pct > 50 else ""))
@@ -358,10 +358,10 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     now   = datetime.now(ET_TZ)
 
     tv   = us.get('total_current_value', 0)
-    pnl  = us.get('total_pnl', 0)
-    pnl_ = us.get('total_pnl_percent', 0)
+    pnl  = us.get('total_pnl') or 0
+    pnl_ = us.get('total_pnl_percent') or 0
     day  = us.get('today_total_change', 0)
-    real = us.get('realized_pnl', 0)
+    real = us.get('realized_pnl') or 0
 
     lines: List[str] = []
     lines.append(f"🇺🇸 美股盯盘 | {now.strftime('%m/%d %H:%M ET')}")
@@ -390,8 +390,8 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             'cost':      a['holding'].get('cost_basis'),
             'price':     a['holding'].get('current_price', 0),
             'today_pct': session_change_pct(a['holding']),
-            'pnl_pct':   a['holding'].get('pnl_percent', 0),
-            'pnl_abs':   a['holding'].get('pnl_abs', 0),
+            'pnl_pct':   a['holding'].get('pnl_percent') or 0,
+            'pnl_abs':   a['holding'].get('pnl_abs') or 0,
         } for a in analyses]
         lines.extend(render_holdings_table(rows, currency='USD'))
     else:
@@ -399,7 +399,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             h     = a['holding']
             tech  = a['tech']
             dp    = session_change_pct(h)
-            pnl_p = h.get('pnl_percent', 0)
+            pnl_p = h.get('pnl_percent') or 0
             rsi   = tech.get('rsi14')
             emo   = '🟢' if pnl_p >= 0 else '🔴'
             rsi_s = f" RSI{rsi:.0f}" if rsi else ''
@@ -413,7 +413,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             continue
         h = a['holding']
         arr = SIGNAL_COLOR.get(sig, '?')
-        alerts.append(f"  {arr} {sig} {h['ticker']} | 今日{_day_text(session_change_pct(h))} 浮{h['pnl_percent']:+.1f}%")
+        alerts.append(f"  {arr} {sig} {h['ticker']} | 今日{_day_text(session_change_pct(h))} 浮{(h.get('pnl_percent') or 0):+.1f}%")
         for r in a['reasons'][:2]:
             alerts.append(f"     · {r}")
     if alerts:
@@ -426,7 +426,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     lev_val = sum(carried_value(h) for h in active
                   if is_leveraged_holding(h))
     lev_pct = lev_val / tv * 100 if tv else 0
-    losing  = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
+    losing  = sum(1 for h in active if (h.get('pnl_percent') or 0) < 0)
     lines.append('')
     lines.append(f"📉 亏损持仓 {losing}/{len(active)}  |  杠杆ETF敞口 {lev_pct:.0f}%")
 

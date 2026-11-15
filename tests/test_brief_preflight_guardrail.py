@@ -790,3 +790,11 @@ def test_regime_full_position_uses_same_carried_value(preflight, mark, expected)
     result = _evaluate(preflight, us=[holding], lev_regime=regime)
     breach = next(b for b in result["breaches"] if b["type"] == "regime_delever")
     assert breach["required_reduction"]["minimum_value"] == expected
+
+
+def test_none_cost_basis_is_unmeasured_not_a_crash(preflight):
+    """#3499: `.get('cost_basis', 0)` does not default an explicit null."""
+    row = {'ticker': 'X', 'shares': 10, 'cost_basis': None, 'current_value': 100}
+    from clawock.portfolio.guardrail import _holding_pnl_pct
+    assert _holding_pnl_pct(row) is None
+    assert preflight.compute_breakeven_math([row], [])['rows'] == []

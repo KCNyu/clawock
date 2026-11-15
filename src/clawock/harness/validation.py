@@ -814,11 +814,48 @@ _STOP_AS_LEVEL = re.compile(
 # 破线」「现价已收回…上方」. Those are exactly the facts the risk ledger wants,
 # not the denial the gate targets; without this guard the price-shaped check
 # read them as 「写成一条没破的价位」 (#3475).
-_STOP_ACKNOWLEDGED = re.compile(
+_STOP_BREACH_ACK = re.compile(
     r'(?:已(?:经)?|早已|早于|此前|之前|当时|上月|昨天|上周)[^。；，,\n]{0,10}'
     r'(?:跌破|破线?|失守|击穿|穿破)'
-    r'|(?:跌破|破线?|失守|击穿|穿破)了'
-    r'|(?:收(?:回|复)|站上|回到|重新站上|升破)[^。；，,\n]{0,12}(?:上方|之上)')
+    r'|(?:跌破|破线?|失守|击穿|穿破)了')
+_STOP_RECOVERY_ACK = re.compile(
+    r'(?:收(?:回|复)|站上|回到|重新站上|升破)(?:[^。；，,\n]{0,12}(?:上方|之上))?')
+_STOP_ACKNOWLEDGED = re.compile(
+    _STOP_BREACH_ACK.pattern + '|' + _STOP_RECOVERY_ACK.pattern)
+# A second ticker in the acknowledging clause makes it another holding's story
+# (`...，RKLX 昨天跌破了`). The prose spells tickers in capitals; the owed
+# tickers themselves are handled by `mentions_ticker` before this pattern.
+_OTHER_SUBJECT = re.compile(r'(?<![A-Za-z])[A-Z]{2,6}(?![A-Za-z])')
+
+
+def _acknowledges_owed_stop(sentence, ticker):
+    """Is the acknowledgement about *this* owed holding, not a neighbour's move?
+
+    #3475 admitted an honest 「早已破线」 so the price-shaped denial check would
+    not fire on it. The first cut tested any acknowledgement anywhere in the
+    sentence, so a cross-ticker clause (「…，RKLX 昨天跌破了」) or a subjectless
+    recovery (「…，虽然收回上方了」) silenced the whole debt gate (#3493).
+    Binding it per clause keeps the honest shapes:
+    - same clause as the owed ticker or the stop level;
+    - subjectless pure breach acknowledgement (「早在上月破了」);
+    and refuses:
+    - a clause naming another ticker;
+    - a subjectless *recovery* claim, which says the level was reclaimed
+      rather than that the breach happened.
+    """
+    for clause in re.split(r'[，,]', sentence):
+        if not _STOP_ACKNOWLEDGED.search(clause):
+            continue
+        if mentions_ticker(clause, ticker) or _STOP_AS_LEVEL.search(clause):
+            return True
+        if _OTHER_SUBJECT.search(clause):
+            continue
+        if _STOP_RECOVERY_ACK.search(clause):
+            continue
+        return True
+    return False
+
+
 _HARD_STOP_CLAIM = re.compile(r'硬止损')
 _HARD_STOP_EXEMPT = re.compile(
     r'(?:豁免|不适用|不受|免于|没有|无|不设|不走|不按)[^。；，,\n]{0,6}硬止损'
@@ -882,7 +919,7 @@ def check_plan_consistency(text, ctx, *, strategy_reduce=True):
             if mentions_ticker(sentence, ticker) and (
                     _DENIED_STOP.search(sentence)
                     or (_STOP_AS_LEVEL.search(sentence)
-                        and not _STOP_ACKNOWLEDGED.search(sentence))):
+                        and not _acknowledges_owed_stop(sentence, ticker))):
                 found.setdefault(ticker, f'{ticker} 账本里{rule}已破 {days} 天未结，'
                                          '正文却说纪律/止损未触发或写成一条没破的价位')
         for ticker in exempt:

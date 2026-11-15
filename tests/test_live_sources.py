@@ -199,3 +199,14 @@ def test_intraday_brief_and_report_all_go_through_the_one_collect(monkeypatch, c
     assert sorted(calls[2:]) == [
         ('hk', ('T-hk',), brief_preflight.BRIEF_LIVE_SOURCES, live.BRIEF_LABELS, True),
         ('us', ('T-us',), brief_preflight.BRIEF_LIVE_SOURCES, live.BRIEF_LABELS, True)]
+
+
+def test_brief_and_report_live_sources_stay_equal():
+    """#3504: docs/architecture/harness.md says these are the same tuple.
+
+    They are declared in two entry modules, so adding a source to one and
+    forgetting the other silently forks the brief's and the report's evidence.
+    No behaviour changes here — the guard is the fix.
+    """
+    from clawock.harness import brief_preflight, report_preflight
+    assert brief_preflight.BRIEF_LIVE_SOURCES == report_preflight.REPORT_LIVE_SOURCES

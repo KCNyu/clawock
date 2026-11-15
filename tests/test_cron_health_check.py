@@ -280,12 +280,34 @@ def test_commit_evidence_is_fetched_once_not_once_per_job(monkeypatch):
     assert len(calls) == 1
 
 
-def test_commit_evidence_degrades_to_zero_when_git_fails(monkeypatch):
+def test_commit_evidence_is_unavailable_not_zero_when_git_fails(monkeypatch):
+    """#3507: a failed git read used to be cached as an empty list, which the
+    job loop then reported as "0 commits = missing". An unreadable evidence
+    source is not a verified zero."""
     monkeypatch.setattr(cron_health_check, "_commit_log_cache", None)
     monkeypatch.setattr(
         cron_health_check.subprocess, "run",
         lambda *a, **k: SimpleNamespace(returncode=128, stdout=""))
-    assert cron_health_check.commit_count_today("anything") == 0
+    assert cron_health_check.commit_count_today("anything") is None
+
+    monkeypatch.setattr(cron_health_check, "_commit_log_cache", None)
+    def timeout(*a, **k):
+        raise TimeoutError("git log timed out")
+    monkeypatch.setattr(cron_health_check.subprocess, "run", timeout)
+    assert cron_health_check.commit_count_today("anything") is None
+
+
+def test_unreadable_git_log_reports_evidence_unavailable_not_missing(monkeypatch, capsys):
+    """The row must not turn an already-produced report into a fake miss."""
+    monkeypatch.setattr(
+        cron_health_check, "_commit_log_entries",
+        lambda: cron_health_check._COMMIT_LOG_UNREADABLE)
+    rows = _run_health_at(monkeypatch, capsys,
+                          datetime(2026, 10, 2, 10, tzinfo=timezone.utc))
+    row = rows["港股收盘报告"]
+    assert row["status"] == "evidence-unavailable", row
+    assert "unavailable" in row["detail"]
+    assert row["status"] != "missing"
 
 
 # ── #955: cross-midnight US jobs are judged on their SESSION day ────────────

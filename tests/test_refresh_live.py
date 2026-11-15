@@ -334,3 +334,74 @@ def test_queue_ops_install_failure_fails_refresh(desk, tmp_path):
                                  'LIVE_CHECKOUT': str(checkout), 'AGENT_DISPATCH_DIR': str(installed)})
     assert result.returncode != 0
     assert not (installed / 'task_queue_ops.py').exists()
+
+
+def _with_reap(upstream, checkout):
+    """Give the desk the real reap installer and units, as master has them."""
+    import shutil
+    for rel in ("ops/host/install_agent_dispatch_reap.sh",
+                "ops/host/agent-dispatch-reap.service",
+                "ops/host/agent-dispatch-reap.timer"):
+        dest = upstream / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / rel, dest)
+    _git(upstream, "add", "-A")
+    _git(upstream, "commit", "-qm", "reap units")
+    _git(checkout, "pull", "-q", "origin", "master")
+
+
+def test_a_stale_reap_unit_is_reported_and_never_installed_by_refresh(desk, tmp_path):
+    """#3506: refresh_live enumerated six installed-copy components but not the
+    dead-runner reap units, so a merged unit change or a stopped timer left the
+    host silently stale. Enablement stays manual; the check does not restart it."""
+    upstream, checkout = desk
+    _with_reap(upstream, checkout)
+    units = tmp_path / "units"
+    units.mkdir()
+    (units / "agent-dispatch-reap.service").write_bytes(
+        (checkout / "ops/host/agent-dispatch-reap.service").read_bytes())
+    (units / "agent-dispatch-reap.timer").write_text("[Timer]\n")
+    systemctl = tmp_path / "systemctl"
+    systemctl.write_text("#!/bin/sh\nexit 0\n")
+    systemctl.chmod(0o755)
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(checkout),
+           "LIVE_CHECKOUT": str(checkout),
+           "AGENT_DISPATCH_UNIT_DIR": str(units),
+           "AGENT_DISPATCH_SYSTEMCTL": str(systemctl)}
+
+    done = subprocess.run(["bash", str(SCRIPT), "--check"],
+                          capture_output=True, text=True, env=env)
+    assert done.returncode == 1, done.stdout + done.stderr
+    assert "reap" in done.stdout and "need installing" in done.stdout
+
+    done = subprocess.run(["bash", str(SCRIPT)], capture_output=True, text=True, env=env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "reap" in done.stdout and "need installing" in done.stdout
+    assert (units / "agent-dispatch-reap.timer").read_text() == "[Timer]\n", (
+        "refresh_live must report the drift but leave enabling the timer to a person"
+    )
+
+
+def test_a_reap_unit_move_in_the_merge_range_is_named(desk, tmp_path):
+    """The content check runs against the *old* checkout before the pull, so a
+    merged unit change must also be detected from the changed-file list."""
+    upstream, checkout = desk
+    _with_reap(upstream, checkout)
+    _advance(upstream, "ops/host/agent-dispatch-reap.timer",
+             (ROOT / "ops/host/agent-dispatch-reap.timer").read_text() + "\n# changed\n")
+    units = tmp_path / "units"
+    units.mkdir()
+    for name in ("agent-dispatch-reap.service", "agent-dispatch-reap.timer"):
+        (units / name).write_bytes((checkout / "ops/host" / name).read_bytes())
+    systemctl = tmp_path / "systemctl"
+    systemctl.write_text("#!/bin/sh\nexit 0\n")
+    systemctl.chmod(0o755)
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(checkout),
+           "LIVE_CHECKOUT": str(checkout),
+           "AGENT_DISPATCH_UNIT_DIR": str(units),
+           "AGENT_DISPATCH_SYSTEMCTL": str(systemctl)}
+
+    done = subprocess.run(["bash", str(SCRIPT), "--check"],
+                          capture_output=True, text=True, env=env)
+    assert done.returncode == 1
+    assert "reap" in done.stdout, done.stdout

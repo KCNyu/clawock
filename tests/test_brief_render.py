@@ -941,3 +941,15 @@ def test_level_labels_name_close_and_a_zscore_window():
     """
     assert render._level_label('hstech_close') == '恒科收盘'
     assert render._level_label('rklb_zscore20') == 'RKLB 20日 z 值'
+
+
+def test_the_card_names_every_driver_the_ledger_can_carry():
+    """#3496: `peer` (and macro/sentiment) are legal ledger enum values, but a
+    missing translation silently dropped the driver word from the action line."""
+    from clawock.harness import brief_render as render_module
+    assert {"peer", "macro", "sentiment"} <= set(render_module._DRIVER_WORDS)
+    plan = {"decisions": [{
+        "ticker": "00100", "action": "cut", "driven_by": "peer",
+        "confidence": 0.62, "size": {"shares": 10}, "condition": {"type": "open"}}]}
+    card = render.render_card(CONTEXT, _judgment(), plan, date="2026-08-31")
+    assert "同行" in card, card

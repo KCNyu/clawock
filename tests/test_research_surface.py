@@ -528,10 +528,11 @@ def test_intraday_and_report_preflights_carry_mover_thesis():
 
 
 def test_both_stock_skills_frame_it_as_attribution_not_a_trigger():
+    shared = (ROOT / "skills" / "_shared" / "report-prose-rules.md").read_text()
     for name in ("us-stock-analysis", "hk-stock-analysis"):
         skill = (ROOT / "skills" / name / "SKILL.md").read_text()
-        assert "mover_thesis" in skill, name
-        assert "catalyst 评级只是登记策略意见" in skill, name
+        assert "mover_thesis" in skill + shared, name
+        assert "catalyst 评级只是登记策略意见" in skill + shared, name
 
 
 def test_calendar_coverage_is_reported_per_market():

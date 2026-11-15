@@ -44,7 +44,10 @@ def test_github_release_is_downstream_of_real_pypi_and_attaches_artifacts():
     # pinned exact, not `needs: publish`-or-anything (#607: it was relaxed once
     # and a regression to the PyPI-only dependency would not have failed).
     assert "needs: [publish, npm]" in release_job
-    assert "if: startsWith(github.ref, 'refs/tags/v')" in release_job
+    assert ("if: startsWith(github.ref, 'refs/tags/v')" in release_job
+            and "inputs.repository != 'testpypi'" in release_job
+            and "inputs.npm_only != 'true'" in release_job
+            and "inputs.npm_only != true" in release_job)
     assert "contents: write" in release_job
     assert "ops/publish/release_notes.py" in release_job
     assert "actions/download-artifact" in release_job
@@ -176,7 +179,10 @@ def test_npm_only_dispatch_runs_only_npm_and_never_a_github_release():
 
     release_job = workflow.split("\n  github-release:\n", 1)[1]
     assert "needs: [publish, npm]" in release_job
-    assert "if: startsWith(github.ref, 'refs/tags/v')" in release_job
+    assert ("if: startsWith(github.ref, 'refs/tags/v')" in release_job
+            and "inputs.repository != 'testpypi'" in release_job
+            and "inputs.npm_only != 'true'" in release_job
+            and "inputs.npm_only != true" in release_job)
 
 
 def test_the_npm_install_can_survive_a_stalled_runner_fetch():

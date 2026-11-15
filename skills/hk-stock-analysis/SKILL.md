@@ -15,10 +15,7 @@ Workspace-native Hong Kong stock analyst. Uses the local fetch pipeline for live
 
 ## Required reads before answering
 
-For interactive questions (Modes 1-5). Direct chat already has `MEMORY.md` and `TOOLS.md`
-injected — use them rather than rereading. Cron Modes 6/7 follow their payload instead:
-isolated cron does not inject `MEMORY.md`, and what those runs must obey is in the payload,
-the Mode section and the postflight gate.
+交互问题（Modes 1-5）的共同前提两市场共用一份：先 read `../_shared/interactive-mode-reads.md`；下面按市场列出本轮要读的路径。
 
 In this order:
 1. `/root/.openclaw/workspace/MEMORY.md` — data rules, traps, 00100-only-Tencent warning
@@ -99,9 +96,9 @@ clawock report preflight --market hk --phase {open|mid|pm|close}
 
 #### Step 2: 只写分析散文
 
-**你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
+**正文规则**：字段清单、异动归因、管线词与长度四段两市场共用一份：写散文前先 read `../_shared/report-prose-rules.md`。
 
-用 stdout 里的字段：`signal_count` / `anomalies` / `index_direction` / `needs_risk_section` / `peer_scan` / `plan_context`（盘前简报还没执行完的决策，见下）/ `mover_news`（异动票的一手催化）/ `mover_thesis`（异动票的 thesis 与红线）（板块 + 同业 Top 5 今日/5日涨跌 + 背离信号，板块全景段直接用它）/ `live_information`（每只持仓的实时公告与新闻：`summary.<票>` 每条照抄 `cite`，含发布时间与「盘中实时」/「开盘前旧闻」；`degraded` 里的源是没取到，写「X 未取到」，不等于没有消息）/ `quote_coverage`（`unrefreshed` 里的票本次没刷到行情，表里是上次的价与涨跌；`anomalies`/`plan_triggers` 里这些票带 `quote_fresh: false`）；`raw_wechat_block` 是给你参考数字用的，**不要抄进散文**。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成本时段的数。
+**你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
 
 ⚠️ **`plan_context` 对账（非空时 ▎操作建议 必写，写在该段最前）**：里面是 盘前简报为本腿定下、**还没成交**的决策（`open[]`：`ticker`/`action`/`shares`/`pct`/`condition`/`confidence`/`driven_by`/`rationale`，外加 `exec_mode` 当日执行方式、`carried_over` 有几条是往日挂到今天的）。
 - **新建议与旧计划不同，要明确说明变了什么**。`driven_by=risk_rule` 的是**纪律动作不是择时**——给它加「等回踩 / 等反弹 / 等站稳」这类条件就是推翻简报，2026-07-27 09:30 就这么把一条 4 重 breach 的 swap 写成了「回踩 -1% 再减」（issue #119）。要推翻必须明写理由和新证据。
@@ -120,15 +117,7 @@ clawock report preflight --market hk --phase {open|mid|pm|close}
 - 区间必须真实存在：`+0.3~-0.4%` 这种正负打架的区间是编的，postflight 会直接标出来。
 
 
-▎情绪面 里的**异动归因**（`anomalies` 非空时必写，最多 2 行，写在该段最前）：
-- 每只异动票一行：「{票} {幅度}% ← {mover_news 里 signal=interrupt 的标题要点}（{age_minutes} 分钟前 / {来源的中文说法}）」。`source_class` 只用来选说法，不照抄：`exchange_filing`/`hkexnews_filing`→交易所公告，`sec_filing`/`sec_filing_mirror`/`sec_fulltext`→SEC 文件，`finnhub_filing`→公司公告（Finnhub），`market_flash`→市场快讯，其余取值同样换成中文。
-- `halts` 命中该票 → 先写停牌（停牌原因用中文说 + 复牌时间，`reason_code` 不照抄）。
-- `mover_thesis` 里该票有 `triggered`/`watch` 红线 → 追一句「触及红线：{required_action}」——**这是归因语境，不是操作许可**，动作由模型判断，遵守事实、可行性与已有授权；catalyst 评级只是登记策略意见。
-- 没有 interrupt：`no_recent_filing` 先查 `known_catalysts[票]`；有则写「窗口内无新公告；沿用今早已知催化：…」，没有才写「窗口内无新公告，且无已知催化，暂无法归因」；`index_fund_no_issuer` 写「指数基金无发行人公告，看成分/板块」；`degraded` 写「催化源未取到」（**不等于「没有消息」**）。一律不许编理由。
-- 空间不够时**先砍板块全景的细节，不砍归因**——一次异动没解释，比少列两个同业更贵。
-
-🗣 **读者只看得到这条微信，看不到管线**：三段里不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`/`context_id`，也不描述你在按什么指令、格式或步骤写；约束翻成交易语言（「packet 锁定的破位审议线」→「计划里的破位复核线」）。postflight 会以 advisory 标出。
-context 的字段名与枚举值（任何带下划线的英文标识，如 `hold_and_watch`、`near_breakout`，以及 `verdict=wait` 这类「键=值」）一律不写进正文，翻成中文说法（`hold_and_watch`→持有观察）；postflight 会把它标成正文顶部的校验警告。
+异动归因与管线词按 `../_shared/report-prose-rules.md` 写。
 
 写这几段，**存成 `memory/.tmp/report-prose-hk-{phase}.md`**：
 ```
@@ -143,12 +132,6 @@ context 的字段名与枚举值（任何带下划线的英文标识，如 `hold
 
 ▎风险提示（仅当 needs_risk_section=true）
 ```
-
-**长度由你自己判断**：不设字数目标，把该说的说完，不为凑数注水也不为省字砍内容。
-必须写到的：`peer_scan` 的 Top 5、持仓在同行里的位置、今日/5 日涨跌和归因、异动归因、
-计划对账、三段必需标记、证据，以及 `needs_risk_section=true` 时的风险提示。
-自然要避免的是重复而不是长度——同一组合风险数字不要在技术面、操作建议和风险提示三段
-重复；财报/lockup 日期只在最相关的一段写一次；情绪面的异动归因和同行对比不要在技术面复述。
 
 #### Step 3: 跑 postflight
 ```bash
