@@ -256,11 +256,12 @@ def test_symbol_mapping_covers_both_markets():
 # --- the consumers -----------------------------------------------------------
 
 def test_both_skills_bound_how_the_block_may_be_used():
+    shared = (ROOT / "skills" / "_shared" / "report-prose-rules.md").read_text()
     for name in ("us-stock-analysis", "hk-stock-analysis"):
         skill = (ROOT / "skills" / name / "SKILL.md").read_text()
-        assert "mover_news" in skill, name
-        assert "no_recent_filing" in skill, name
-        assert "primary" in skill, name
+        assert "mover_news" in skill + shared, name
+        assert "no_recent_filing" in skill + shared, name
+        assert "primary" in skill + shared, name
     # The intraday half lives in the one Mode 7 body both markets load (#2807).
     mode7 = (ROOT / "skills" / "_shared" / "intraday-mode7.md").read_text()
     assert "mover_news" in mode7 and "supporting" in mode7
@@ -477,7 +478,8 @@ def test_the_movers_sidecar_quotes_the_same_evidence():
 
 def _mode_6_prose_section(skill_name):
     skill = (ROOT / "skills" / skill_name / "SKILL.md").read_text()
-    return skill.split("#### Step 2: 只写分析散文", 1)[1].split("#### Step 3", 1)[0]
+    shared = (ROOT / "skills" / "_shared" / "report-prose-rules.md").read_text()
+    return skill.split("#### Step 2: 只写分析散文", 1)[1].split("#### Step 3", 1)[0] + "\n" + shared
 
 
 @pytest.mark.parametrize("skill_name", ["us-stock-analysis", "hk-stock-analysis"])
