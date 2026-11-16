@@ -96,3 +96,8 @@ kcn 已允许未有 patrol 战绩/未通过工具探针的免费候选入选，�
 上述质量指标继续按实际完成模型记录，不是新候选准入前置条件；探针成功也不是质量战绩。
 运行时仍不按输出质量换模型。诊断探针只在白天、空闲的 OpenCode slot 中有界执行，
 限流/timeout 会降低探测频率，不永久封禁。审计/选择/探针不消费区域轮转槽。
+
+保存回归脚本前先核 bash 语法和静态 `python3 -c` payload（按 shell 引号还原）；
+无法解析的判据记为 `broken`，同 digest 不重复发出。heredoc/动态展开由执行时闸检查；
+Python 的 SyntaxError/IndentationError/TabError 即使没有 Traceback 也拒收。
+`regress-verdict <N> broken --reason ...` 可隔离已存的坏判据；修正文案后 digest 改变才重启检查。

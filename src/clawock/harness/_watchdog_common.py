@@ -972,10 +972,8 @@ def _host_delivery_state_dir():
     `CLAWOCK_DELIVERY_STATE_DIR` overrides it; set empty it turns the host
     flag off (the test suite does, so tests never write under $HOME).
     """
-    configured = os.environ.get('CLAWOCK_DELIVERY_STATE_DIR')
-    if configured is not None:
-        return Path(configured) if configured.strip() else None
-    return Path.home() / '.local' / 'state' / 'clawock' / 'delivery'
+    from clawock.providers.host_state import delivery_state_dir
+    return delivery_state_dir()
 
 
 def _claim_host_flag(name):

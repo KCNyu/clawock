@@ -2868,14 +2868,11 @@ def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None, concentration=None):
       - no_context              (single entry, fallback when no context file found)
     """
     try:
-        if not brief_ctx:
-            return [{
-                'type': 'no_context',
-                'ticker': '',
-                'detail': 'no brief-context-*.json found in memory/.tmp/',
-                'severity': 'low',
-            }]
-        out = []
+        out = [] if brief_ctx else [{
+            'type': 'no_context', 'ticker': '',
+            'detail': 'no brief-context-*.json found in memory/.tmp/', 'severity': 'low',
+        }]
+        brief_ctx = brief_ctx or {}
         holdings_by_ticker = _holdings_by_ticker(us_h, hk_h)
 
         # NOTE: peer_divergence is no longer injected into anomalies. It now has
@@ -2888,26 +2885,13 @@ def extract_anomalies(brief_ctx, us_h, hk_h, leg_keys=None, concentration=None):
             holdings_by_ticker, leg_keys, concentration,
             brief_ctx.get('concentration') or {}))
 
-        # leveraged_etf_stop anomalies — read from the same brief peer_scan snapshot as
-        # extract_peer_divergence(). The peer_divergence refactor (3f507d3) dropped this
-        # definition but left the loop, so the whole function raised NameError and silently
-        # produced no anomalies. (2026-05-30 fix)
-        peer_scan = brief_ctx.get('peer_scan') or {}
-        peer_items = peer_scan.items() if isinstance(peer_scan, dict) else []
-        for ticker, v in peer_items:
-            tk_str = str(ticker or '').upper()
-            if tk_str not in _LEVERAGED_TICKERS:
+        # Stop membership comes from active leveraged holdings, independently
+        # of whether peer research or a brief context exists for that symbol.
+        for ticker, h_live in holdings_by_ticker.items():
+            if ticker not in _LEVERAGED_TICKERS or not (portfolio_number(h_live.get('shares')) or 0) > 0:
                 continue
-            if not isinstance(v, dict):
-                continue
-            # 优先用 portfolio 实时 pnl/today，brief peer_scan 快照可能陈旧（5/28 错位价残留会触发假止损）。
-            h_live = holdings_by_ticker.get(tk_str) or holdings_by_ticker.get(str(ticker))
-            if isinstance(h_live, dict) and h_live.get('pnl_percent') is not None:
-                self_pnl = h_live.get('pnl_percent')
-                self_today = session_change_pct(h_live)
-            else:
-                self_pnl = v.get('self_pnl_pct')
-                self_today = v.get('self_pct_1d')
+            self_pnl = h_live.get('pnl_percent')
+            self_today = session_change_pct(h_live)
             triggered = False
             detail_bits = []
             if isinstance(self_pnl, (int, float)) and self_pnl <= -15:

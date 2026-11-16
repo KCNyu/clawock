@@ -538,7 +538,7 @@ if isinstance(_checks, dict):
     for _key, _entry in sorted(_checks.items()):
         if not isinstance(_entry, dict) or RED_DIGEST not in (_entry.get("digest"), _entry.get("red_digest")):
             continue
-        if _entry.get("verdict") == "suppressed":
+        if _entry.get("verdict") in {"suppressed", "broken"}:
             die(f"这条 RED-CHECK 已被裁定为不成立/不可行动（源 issue #{_key}"
                 + (f"，#{_entry['issue']}" if _entry.get("issue") else "") + "）："
                 + (_entry.get("reason") or "历史正文/冻结产物不改写，判据无法变绿"),
@@ -611,6 +611,10 @@ for pat, hint in _shell_complaints:
         die(f"RED-CHECK **没有真正执行**（stderr 匹配 /{pat}/）。{hint} "
             "「exit≠0」只说明它失败了，不说明它测过什么——"
             "红必须是判据自己得出的结论。", out)
+
+# Parse-time Python failures do not print a traceback (notably `python -c`).
+if re.search(r"^(?:SyntaxError|IndentationError|TabError):", proc.stderr, re.MULTILINE):
+    die("RED-CHECK 在解释阶段就死掉了；红的是判据本身，不是仓库。", out)
 
 # Python 侧：看 traceback 最后那个异常是什么。
 if "Traceback (most recent call last)" in proc.stderr:

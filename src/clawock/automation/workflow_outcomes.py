@@ -586,11 +586,14 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
                 current["stages"].setdefault(name, _stage())
             # The product stages belong to the attempt that reached WeChat.
             # Its receipt can later be missing/corrupt; the ledger's own
-            # explicit delivery proof still protects those stages (#3529).
-            if stage in {"preflight", "llm", "postflight"} and any(
+            # explicit delivery proof still protects existing terminal verdicts
+            # (#3529). A receipt can precede the first product-stage write.
+            if (stage in {"preflight", "llm", "postflight"}
+                    and current["stages"][stage].get("status") in TERMINAL_STAGE_STATUSES
+                    and any(
                 (current["stages"].get(name) or {}).get("wechat_ok") is True
                 for name in ("primary_delivery", "watchdog_delivery")
-            ):
+            )):
                 return current
             previous = current["stages"].get(stage) or {}
             if ((status == "pending" and previous.get("status") in TERMINAL_STAGE_STATUSES)

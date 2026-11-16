@@ -2510,3 +2510,15 @@ def test_a_weekend_book_stamp_updates_the_latest_session_snapshot(tmp_path, monk
     rows = dashboard.load_snapshots(live_book=live)
     assert [(r['date'], r['hk_total_value'], r['hk_today_change']) for r in rows] == [
         ('2026-10-15', 50720.4, 0), ('2026-10-16', 52939.2, 2218.8)]
+
+
+@pytest.mark.parametrize('ctx', [None, {}, {'peer_scan': {}}, {'peer_scan': {'SPCH': {'self_pnl_pct': -99}}}])
+def test_leverage_stops_enumerate_live_holdings_without_peer_membership(ctx):
+    rows = [{'ticker': '07709', 'shares': 10, 'pnl_percent': -31.64,
+             'current_price': 8.536, 'prev_close': 10},
+            {'ticker': '07747', 'shares': 0, 'pnl_percent': -40}]
+    anomalies = dashboard.extract_anomalies(ctx, [], rows)
+    stops = [a for a in anomalies if a['type'] == 'leveraged_etf_stop']
+    assert [a['ticker'] for a in stops] == ['07709']
+    assert stops[0]['severity'] == 'high'
+    assert 'today -14.6%' in stops[0]['detail']

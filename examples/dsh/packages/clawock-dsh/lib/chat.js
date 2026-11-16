@@ -2897,7 +2897,7 @@ function progressView(progress, t, now) {
 	const openAreas = progress.areas.filter((a) => (a.open ?? 0) > 0).length;
 	const openLenses = progress.lenses.filter((l) => (l.open ?? 0) > 0).length;
 	const unread = progress.issuesAt === "" || [...progress.areas, ...progress.lenses].some((x) => x.open === null);
-	const ended = (l) => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -Infinity;
+	const ended = (l) => (l.last === null ? null : localStampMs(l.last.endedAt)) ?? -1e400;
 	const maxRuns = Math.max(0, ...progress.lenses.map((l) => l.rounds ?? 0));
 	const conclusion = openAreas > 0 ? t("queue.coverage.openAreas", { n: openAreas }) : openLenses > 0 ? t("queue.coverage.openLenses", { n: openLenses }) : unread ? t("queue.coverage.openUnknown") : t("queue.coverage.openNone");
 	return {

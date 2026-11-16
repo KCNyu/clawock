@@ -812,3 +812,23 @@ def test_session_reviews_are_frozen_in_context_and_card(monkeypatch, tmp_path):
     assert compute_context_id(ctx) == original
     ctx['risk_followups']['status'] = 'ok'
     assert compute_context_id(ctx) != original
+
+
+def test_same_second_preflights_bind_distinct_generations(monkeypatch, tmp_path):
+    current, run = _wire_preflight(monkeypatch, tmp_path)
+    clock = preflight.datetime
+
+    class MicrosecondClock(clock):
+        tick = 100
+
+        @classmethod
+        def now(cls, tz=None):
+            result = super().now(tz).replace(microsecond=cls.tick)
+            cls.tick += 1
+            return result
+
+    monkeypatch.setattr(preflight, 'datetime', MicrosecondClock)
+    first = run(copy.deepcopy(current))
+    second = run(copy.deepcopy(current))
+    assert first['generated_at'][:19] == second['generated_at'][:19]
+    assert first['context_id'] != second['context_id']

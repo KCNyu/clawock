@@ -1517,3 +1517,23 @@ def test_explicit_ledger_delivery_protects_product_when_receipt_is_lost(tmp_path
     assert record['stages']['preflight']['reason'] == 'original'
     record = outcomes.record_stage(job, 'postflight', 'failed', slot=slot)
     assert record['stages']['postflight']['status'] == 'success'
+
+
+@pytest.mark.parametrize('postflight_status, expected', [('fail', 'degraded'), ('pass', 'success')])
+def test_receipt_before_heartbeat_allows_initial_product_verdict(tmp_path, monkeypatch,
+                                                             postflight_status, expected):
+    _isolate(tmp_path, monkeypatch)
+    slot = '2026-07-24T22:00:00+08:00'
+    job = '美股盘中盯盘'
+    outcomes.record_stage(job, 'preflight', 'success', slot=slot)
+    outcomes.record_primary_delivery(job, slot=slot, wechat_ok=True, telegram_ok=True,
+                                     source='delivery_receipt')
+    outcomes.record_from_heartbeat({
+        'job': job, 'market': 'us', 'slot': slot, 'state': 'completed',
+        'postflight_status': postflight_status, 'data_plane_status': 'published',
+        'wechat_sent': True, 'telegram_sent': True,
+    })
+    record = outcomes.load_ledger()['records'][0]
+    assert record['stages']['llm']['status'] != 'unknown'
+    assert record['stages']['postflight']['status'] != 'unknown'
+    assert record['final_product']['status'] == expected
