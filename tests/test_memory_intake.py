@@ -107,6 +107,21 @@ def test_a_private_topic_description_never_reaches_the_model_prompt():
     assert "private deployment note" not in prompt
 
 
+def test_private_topics_do_not_crowd_public_rules_out_of_the_catalogue():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("intake_catalogue_test", INTAKE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    topics = [{"slug": f"feedback-private-{i}", "description": "private note",
+               "publish": "private"} for i in range(80)]
+    topics.append({"slug": "feedback-public", "description": "public rule",
+                   "publish": "public"})
+    prompt = module.curator_prompt(
+        {"stage": "dispatch", "task_id": "x", "user_words": "记住这条", "result": {}}, topics)
+    assert "feedback-public: public rule" in prompt
+    assert "private note" not in prompt
+
+
 def test_capture_keeps_the_owners_words_and_drops_the_contract(tmp_path):
     store = make_store(tmp_path)
     repo = make_repo(tmp_path, store)

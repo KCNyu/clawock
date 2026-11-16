@@ -44,7 +44,8 @@ class ReviewError(RuntimeError):
     pass
 
 
-def load_candidates(workspace: Path, approvals: dict) -> tuple[list[dict], list[dict]]:
+def load_candidates(workspace: Path, approvals: dict,
+                    rejections: dict | None = None) -> tuple[list[dict], list[dict]]:
     private = workspace / "memory/.dreams"
     candidates = ""
     for name in ("promotion-candidates.md", "legacy-promotion-candidates.md"):
@@ -54,13 +55,18 @@ def load_candidates(workspace: Path, approvals: dict) -> tuple[list[dict], list[
     memory = (workspace / "MEMORY.md").read_text(encoding="utf-8")
     _, report = gate.review(memory, candidates, approvals)
     pending = []
-    seen_sources = set()
+    # The gate enforces one accepted conclusion per source, including earlier
+    # batches. Do not spend review slots on that source's remaining candidates.
+    seen_sources = set(re.findall(r"^- Source: (memory/[\w./-]+\.md):", memory, re.M))
+    seen_sources.update(entry["source"] for entry in report if entry["decision"] == "approved")
     for entry in report:
         if entry["decision"] != "pending" or entry["key"] in approvals:
             continue
         if entry.get("invalid") or gate.reasons(entry["text"]):
             continue
         if "source_already_accepted" in entry.get("reasons", []):
+            continue
+        if (rejections or {}).get(entry["key"], {}).get("sha256") == entry["sha256"]:
             continue
         # The gate accepts one conclusion per source. Review the first candidate
         # from each source; the rest stay pending behind source_already_accepted.
@@ -163,6 +169,33 @@ def validate(reply, entries: list[dict]) -> dict[str, dict]:
     return accepted
 
 
+def rejected_receipts(reply: list, entries: list[dict]) -> dict[str, dict]:
+    """Remember explicit model rejections, never missing or invalid answers.
+
+    Otherwise the first rejected candidate for a source (or the first full batch)
+    is selected again forever. A changed candidate has a different hash and can
+    be reviewed again; a model outage or malformed approval remains retryable.
+    """
+    by_key = {entry["key"]: entry for entry in entries}
+    rejected = {}
+    for item in reply:
+        if not isinstance(item, dict):
+            continue
+        key = str(item.get("key") or "")
+        entry = by_key.get(key)
+        covered = item.get("covered_by")
+        duplicate = isinstance(covered, str) and bool(covered.strip())
+        if entry is None or (str(item.get("decision")).lower() != "reject" and not duplicate):
+            continue
+        reason = str(item.get("reason") or "").strip()
+        if not reason:
+            continue
+        rejected[key] = {"sha256": entry["sha256"], "reviewer": f"llm:{llm_json.model()}",
+                         "reviewed_on": date.today().isoformat(), "rationale": reason[:300],
+                         "covered_by": covered if duplicate else None}
+    return rejected
+
+
 def write_approvals(path: Path, approvals: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
@@ -189,7 +222,11 @@ def main() -> int:
     approvals = json.loads(approvals_path.read_text(encoding="utf-8")) if approvals_path.exists() else {}
     if not isinstance(approvals, dict):
         raise ReviewError("promotion-approvals.json must be an object")
-    pending, report = load_candidates(workspace, approvals)
+    rejections_path = workspace / "memory/.dreams/promotion-rejections.json"
+    rejections = json.loads(rejections_path.read_text(encoding="utf-8")) if rejections_path.exists() else {}
+    if not isinstance(rejections, dict):
+        raise ReviewError("promotion-rejections.json must be an object")
+    pending, report = load_candidates(workspace, approvals, rejections)
     chosen = pending[:max(0, args.limit)]
     summary = {"pending": len(pending), "sent": len(chosen), "approved": 0, "rejected": 0,
                "already_approved": sum(1 for entry in report if entry["decision"] == "approved")}
@@ -199,7 +236,11 @@ def main() -> int:
     catalogue = topic_catalogue(store)
     text = (args.llm_response.read_text(encoding="utf-8") if args.llm_response
             else llm_json.run_model(prompt_for(chosen, catalogue)))
-    accepted = validate(llm_json.extract_json(text), chosen)
+    reply = llm_json.extract_json(text)
+    accepted = validate(reply, chosen)
+    rejected = rejected_receipts(reply, chosen)
+    # Never suppress a valid approval if a reply repeated its key inconsistently.
+    rejected = {key: value for key, value in rejected.items() if key not in accepted}
     summary["approved"] = len(accepted)
     summary["rejected"] = len(chosen) - len(accepted)
     if args.check:
@@ -210,6 +251,9 @@ def main() -> int:
     if accepted:
         approvals.update(accepted)
         write_approvals(approvals_path, approvals)
+    if rejected:
+        rejections.update(rejected)
+        write_approvals(rejections_path, rejections)
     print(json.dumps({**summary, "keys": sorted(accepted)}, ensure_ascii=False))
     return 0
 
