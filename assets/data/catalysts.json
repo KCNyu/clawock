@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-13T08:03:40.334365+08:00",
+  "generated_at": "2026-11-16T08:03:33.816108+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-13",
-  "window_end": "2026-11-27",
+  "window_start": "2026-11-16",
+  "window_end": "2026-11-30",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -36,11 +36,6 @@
   "fomc": [],
   "macro_events": [
     {
-      "date": "2026-11-13",
-      "type": "CPI",
-      "detail": "Oct CPI release (BLS 8:30 ET)"
-    },
-    {
       "date": "2026-11-25",
       "type": "PCE",
       "detail": "Oct PCE price index (BEA, Fed preferred inflation gauge)"
@@ -55,9 +50,9 @@
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
-    "macro_count": 3,
+    "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "CPI 2026-11-13"
+    "highest_impact_within_7d": null
   }
 }

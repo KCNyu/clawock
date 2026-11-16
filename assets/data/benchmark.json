@@ -1,23 +1,8 @@
 {
-  "generated_at": "2026-11-13T00:05:13.720566Z",
+  "generated_at": "2026-11-16T00:05:01.453664Z",
   "window_days": 60,
   "series": {
     "SPY": [
-      {
-        "open": 759.0,
-        "date": "2026-09-14",
-        "close": 760.88
-      },
-      {
-        "open": 760.117,
-        "date": "2026-09-15",
-        "close": 757.39
-      },
-      {
-        "open": 759.5,
-        "date": "2026-09-16",
-        "close": 754.05
-      },
       {
         "open": 763.15,
         "date": "2026-09-17",
@@ -217,24 +202,19 @@
         "open": 756.8,
         "date": "2026-11-11",
         "close": 759.81
+      },
+      {
+        "open": 753.98,
+        "date": "2026-11-12",
+        "close": 757.12
+      },
+      {
+        "open": 760.07,
+        "date": "2026-11-13",
+        "close": 754.37
       }
     ],
     "HSI": [
-      {
-        "date": "2026-09-14",
-        "close": 24917.6,
-        "open": 24701.18
-      },
-      {
-        "date": "2026-09-15",
-        "close": 24667.24,
-        "open": 24934.06
-      },
-      {
-        "date": "2026-09-16",
-        "close": 24713.78,
-        "open": 24789.91
-      },
       {
         "date": "2026-09-17",
         "close": 24604.29,
@@ -429,24 +409,14 @@
         "date": "2026-11-12",
         "close": 24008.55,
         "open": 24121.4
+      },
+      {
+        "date": "2026-11-13",
+        "close": 23637.6,
+        "open": 23871.91
       }
     ],
     "HSTECH": [
-      {
-        "date": "2026-09-14",
-        "close": 4317.94,
-        "open": 4290.58
-      },
-      {
-        "date": "2026-09-15",
-        "close": 4291.34,
-        "open": 4338.45
-      },
-      {
-        "date": "2026-09-16",
-        "close": 4325.45,
-        "open": 4311.7
-      },
       {
         "date": "2026-09-17",
         "close": 4310.74,
@@ -641,25 +611,30 @@
         "date": "2026-11-12",
         "close": 3931.93,
         "open": 3995.0
+      },
+      {
+        "date": "2026-11-13",
+        "close": 3813.19,
+        "open": 3918.21
       }
     ]
   },
   "freshness": {
     "SPY": {
       "market": "us",
-      "last_session": "2026-11-11",
-      "sessions_behind": 1,
+      "last_session": "2026-11-13",
+      "sessions_behind": 0,
       "expected_lag_sessions": 1
     },
     "HSI": {
       "market": "hk",
-      "last_session": "2026-11-12",
+      "last_session": "2026-11-13",
       "sessions_behind": 0,
       "expected_lag_sessions": 0
     },
     "HSTECH": {
       "market": "hk",
-      "last_session": "2026-11-12",
+      "last_session": "2026-11-13",
       "sessions_behind": 0,
       "expected_lag_sessions": 0
     }
