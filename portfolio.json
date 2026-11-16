@@ -1605,81 +1605,77 @@
   },
   "market_context": {},
   "gold_dca": {
-    "reconciled_date": "2026-06-09",
-    "fund_code": "000217",
-    "start_date": "2026-01-22",
-    "principal_invested": 17299.0,
-    "daily_amount": 200,
-    "currency": "CNY",
     "fund_name": "华安黄金ETF联接C",
-    "units_held": 4854.55,
+    "fund_code": "000217",
+    "currency": "CNY",
+    "reconciled_date": "2026-06-09",
+    "start_date": "2026-01-22",
+    "daily_amount": 200,
     "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
-    "nav": 2.812,
-    "nav_date": "2026-11-13",
-    "nav_change_pct": -1.64,
+    "principal_invested": 17299.0,
+    "units_held": 4854.55,
+    "nav": 2.7849,
+    "nav_date": "2026-11-16",
+    "nav_change_pct": -0.96,
     "realtime": null,
-    "principal_effective": 38499.0,
-    "units_effective": 11789.7,
-    "auto_added_days": 106,
-    "auto_added_amount": 21200.0,
-    "avg_cost": 3.2655,
-    "current_value": 33152.63,
-    "pnl_abs": -5346.37,
-    "pnl_percent": -13.89,
-    "breakeven_nav": 3.2655,
-    "breakeven_upside_pct": 16.13,
-    "days_invested": 195,
-    "installments_est": 192,
+    "principal_effective": 38699.0,
+    "units_effective": 11861.51,
+    "auto_added_days": 107,
+    "auto_added_amount": 21400.0,
+    "avg_cost": 3.2626,
+    "current_value": 33033.13,
+    "pnl_abs": -5665.87,
+    "pnl_percent": -14.64,
+    "breakeven_nav": 3.2626,
+    "breakeven_upside_pct": 17.15,
+    "days_invested": 196,
+    "installments_est": 193,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
     },
     "window_low": {
-      "date": "2026-11-02",
-      "nav": 2.8077
+      "date": "2026-11-16",
+      "nav": 2.7849
     },
     "projection": [
       {
         "days": 20,
-        "invested": 42499.0,
-        "avg_cost": 3.2167,
-        "pnl_pct": -12.58,
-        "breakeven_upside_pct": 14.39
+        "invested": 42699.0,
+        "avg_cost": 3.211,
+        "pnl_pct": -13.27,
+        "breakeven_upside_pct": 15.3
       },
       {
         "days": 40,
-        "invested": 46499.0,
-        "avg_cost": 3.1773,
-        "pnl_pct": -11.5,
-        "breakeven_upside_pct": 12.99
+        "invested": 46699.0,
+        "avg_cost": 3.1694,
+        "pnl_pct": -12.13,
+        "breakeven_upside_pct": 13.81
       },
       {
         "days": 60,
-        "invested": 50499.0,
-        "avg_cost": 3.145,
-        "pnl_pct": -10.59,
-        "breakeven_upside_pct": 11.84
+        "invested": 50699.0,
+        "avg_cost": 3.1353,
+        "pnl_pct": -11.18,
+        "breakeven_upside_pct": 12.58
       },
       {
         "days": 120,
-        "invested": 62499.0,
-        "avg_cost": 3.075,
-        "pnl_pct": -8.55,
-        "breakeven_upside_pct": 9.35
+        "invested": 62699.0,
+        "avg_cost": 3.0616,
+        "pnl_pct": -9.04,
+        "breakeven_upside_pct": 9.93
       },
       {
         "days": 250,
-        "invested": 88499.0,
-        "avg_cost": 2.9928,
-        "pnl_pct": -6.04,
-        "breakeven_upside_pct": 6.43
+        "invested": 88699.0,
+        "avg_cost": 2.9749,
+        "pnl_pct": -6.39,
+        "breakeven_upside_pct": 6.82
       }
     ],
     "nav_history": [
-      [
-        "2026-04-20",
-        3.5592
-      ],
       [
         "2026-04-21",
         3.5473
@@ -2235,48 +2231,42 @@
       [
         "2026-11-13",
         2.812
+      ],
+      [
+        "2026-11-16",
+        2.7849
       ]
     ],
-    "last_updated": "2026-11-15T15:50:35.017689Z",
+    "last_updated": "2026-11-16T15:50:30.758154Z",
     "domestic_gold": {
       "symbol": "Au99.99",
-      "price_cny_g": 837.55,
-      "date": "2026-11-13",
-      "open_cny_g": 847.8,
-      "high_cny_g": 857.8,
-      "low_cny_g": 829.98,
-      "change_pct": -1.62,
-      "weighted_avg_cny_g": 839.44,
+      "price_cny_g": 829.49,
+      "date": "2026-11-16",
+      "open_cny_g": 841.0,
+      "high_cny_g": 841.0,
+      "low_cny_g": 823.0,
+      "change_pct": -0.96,
+      "weighted_avg_cny_g": 831.39,
       "source": "sge_quotation_daily_new",
-      "fetched_at": "2026-11-15T15:50:18.800900Z",
-      "breakeven_cny_g": 972.62,
-      "breakeven_upside_pct": 16.13,
+      "fetched_at": "2026-11-16T15:50:28.875317Z",
+      "breakeven_cny_g": 971.77,
+      "breakeven_upside_pct": 17.15,
       "quote_status": "fresh"
     },
     "london": {
-      "xau_usd": 3879.92,
-      "xau_change_pct": 0.06,
-      "xau_high": 3922.99,
-      "xau_low": 3867.55,
-      "xau_prev_close": 3877.43,
-      "xau_date": "2026-11-14",
-      "usdcny": 6.6719,
-      "oz_equiv": 1.281,
-      "grams_equiv": 39.8,
-      "intl_value_usd": 4968.99,
-      "fund_breakeven_usd_oz": 4505.65,
-      "fund_breakeven_upside_pct": 16.13,
+      "xau_usd": 3864.0,
+      "xau_change_pct": -0.41,
+      "xau_high": 3901.15,
+      "xau_low": 3832.36,
+      "xau_prev_close": 3879.92,
+      "xau_date": "2026-11-16",
+      "usdcny": 6.6665,
+      "oz_equiv": 1.282,
+      "grams_equiv": 39.9,
+      "intl_value_usd": 4955.09,
+      "fund_breakeven_usd_oz": 4526.8,
+      "fund_breakeven_upside_pct": 17.15,
       "compare_series": [
-        [
-          "2026-07-02",
-          81.61,
-          83.54
-        ],
-        [
-          "2026-07-03",
-          83.79,
-          84.58
-        ],
         [
           "2026-07-06",
           83.52,
@@ -2715,59 +2705,65 @@
         [
           "2026-11-12",
           78.05,
-          78.29
+          78.55
+        ],
+        [
+          "2026-11-13",
+          76.77,
+          78.6
+        ],
+        [
+          "2026-11-16",
+          76.03,
+          78.26
         ]
       ],
       "dca_equiv": {
-        "principal_cny": 38800.0,
-        "oz_held": 1.2895,
-        "grams_held": 40.1,
-        "avg_cost_usd_oz": 4432.78,
-        "avg_cost_cny_g": 967.4,
-        "spot_usd_oz": 3864.4,
-        "breakeven_upside_pct": 14.71,
-        "current_value_cny": 33228.69,
-        "pnl_abs": -5571.31,
-        "pnl_pct": -14.36,
-        "days": 194,
+        "principal_cny": 39200.0,
+        "oz_held": 1.305,
+        "grams_held": 40.6,
+        "avg_cost_usd_oz": 4426.2,
+        "avg_cost_cny_g": 965.79,
+        "spot_usd_oz": 3864.0,
+        "breakeven_upside_pct": 14.55,
+        "current_value_cny": 33614.68,
+        "pnl_abs": -5585.32,
+        "pnl_pct": -14.25,
+        "days": 196,
         "daily_grams": 0.241,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4371.71,
-            "breakeven_upside_pct": 13.13
+            "avg_cost_usd_oz": 4366.42,
+            "breakeven_upside_pct": 13.0
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4322.49,
-            "breakeven_upside_pct": 11.85
+            "avg_cost_usd_oz": 4318.13,
+            "breakeven_upside_pct": 11.75
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4281.98,
-            "breakeven_upside_pct": 10.81
+            "avg_cost_usd_oz": 4278.3,
+            "breakeven_upside_pct": 10.72
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4194.42,
-            "breakeven_upside_pct": 8.54
+            "avg_cost_usd_oz": 4192.01,
+            "breakeven_upside_pct": 8.49
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4091.32,
-            "breakeven_upside_pct": 5.87
+            "avg_cost_usd_oz": 4090.02,
+            "breakeven_upside_pct": 5.85
           }
         ]
       },
       "hist_source": {
-        "name": "eastmoney_gc00y_fallback",
-        "points": 200
+        "name": "sina_global_futures_xau",
+        "points": 212
       },
       "hist_series": [
-        [
-          "2026-04-13",
-          4740.15
-        ],
         [
           "2026-04-14",
           4841.56
@@ -2810,7 +2806,7 @@
         ],
         [
           "2026-04-28",
-          4609.6
+          4597.09
         ],
         [
           "2026-04-29",
@@ -2822,71 +2818,71 @@
         ],
         [
           "2026-05-01",
-          4625.6
+          4616.14
         ],
         [
           "2026-05-04",
-          4532.4
+          4523.67
         ],
         [
           "2026-05-05",
-          4567.8
+          4557.27
         ],
         [
           "2026-05-06",
-          4703.1
+          4690.81
         ],
         [
           "2026-05-07",
-          4696.0
+          4687.05
         ],
         [
           "2026-05-08",
-          4723.7
+          4715.18
         ],
         [
           "2026-05-11",
-          4745.6
+          4734.63
         ],
         [
           "2026-05-12",
-          4722.6
+          4715.07
         ],
         [
           "2026-05-13",
-          4697.1
+          4688.71
         ],
         [
           "2026-05-14",
-          4655.4
+          4652.27
         ],
         [
           "2026-05-15",
-          4543.6
+          4538.18
         ],
         [
           "2026-05-18",
-          4570.8
+          4566.02
         ],
         [
           "2026-05-19",
-          4485.4
+          4481.83
         ],
         [
           "2026-05-20",
-          4546.2
+          4543.53
         ],
         [
           "2026-05-21",
-          4544.2
+          4542.99
         ],
         [
           "2026-05-22",
-          4510.5
+          4506.82
         ],
         [
           "2026-05-25",
-          4573.6
+          4570.69
         ],
         [
           "2026-05-26",
@@ -2998,7 +2994,7 @@
         ],
         [
           "2026-07-02",
-          4135.5
+          4123.61
         ],
         [
           "2026-07-03",
@@ -3006,75 +3002,75 @@
         ],
         [
           "2026-07-06",
-          4176.3
+          4164.75
         ],
         [
           "2026-07-07",
-          4116.6
+          4105.7
         ],
         [
           "2026-07-08",
-          4086.6
+          4077.19
         ],
         [
           "2026-07-09",
-          4132.6
+          4123.48
         ],
         [
           "2026-07-10",
-          4128.9
+          4119.01
         ],
         [
           "2026-07-13",
-          4008.7
+          4000.8
         ],
         [
           "2026-07-14",
-          4058.3
+          4052.64
         ],
         [
           "2026-07-15",
-          4066.9
+          4060.28
         ],
         [
           "2026-07-16",
-          3979.9
+          3976.26
         ],
         [
           "2026-07-17",
-          4023.0
+          4016.36
         ],
         [
           "2026-07-20",
-          4011.8
+          4007.32
         ],
         [
           "2026-07-21",
-          4082.2
+          4077.51
         ],
         [
           "2026-07-22",
-          4135.0
+          4129.79
         ],
         [
           "2026-07-23",
-          4052.3
+          4049.26
         ],
         [
           "2026-07-24",
-          4055.7
+          4053.29
         ],
         [
           "2026-07-27",
-          4078.6
+          4076.46
         ],
         [
           "2026-07-28",
-          4028.8
+          4028.42
         ],
         [
           "2026-07-29",
-          4065.5
+          4066.13
         ],
         [
           "2026-07-30",
@@ -3342,15 +3338,15 @@
         ],
         [
           "2026-10-30",
-          3884.9
+          3876.69
         ],
         [
           "2026-11-02",
-          3956.6
+          3946.47
         ],
         [
           "2026-11-03",
-          3940.2
+          3930.09
         ],
         [
           "2026-11-04",
@@ -3358,42 +3354,42 @@
         ],
         [
           "2026-11-05",
-          4097.9
+          4088.8
         ],
         [
           "2026-11-06",
-          4079.5
+          4070.75
         ],
         [
           "2026-11-09",
-          4149.5
+          4140.94
         ],
         [
           "2026-11-10",
-          4040.5
+          4032.73
         ],
         [
           "2026-11-11",
-          3994.3
+          3987.69
         ],
         [
           "2026-11-12",
-          3881.7
+          3877.43
         ],
         [
           "2026-11-13",
-          3887.6
+          3879.92
+        ],
+        [
+          "2026-11-16",
+          3862.92
         ]
       ],
       "fx_hist_source": {
         "name": "frankfurter_usdcny",
-        "points": 209
+        "points": 210
       },
       "fx_hist_series": [
-        [
-          "2026-04-13",
-          6.8322
-        ],
         [
           "2026-04-14",
           6.8158
@@ -4005,10 +4001,14 @@
         [
           "2026-11-13",
           6.6719
+        ],
+        [
+          "2026-11-16",
+          6.6665
         ]
       ],
-      "hist_advisory": "伦敦金历史校验：沿用 108 个已结算点；最大新旧偏差 1.45%（2026-07-30，源 eastmoney_gc00y_fallback）",
-      "last_updated": "2026-11-15T15:50:35.018156Z"
+      "hist_advisory": null,
+      "last_updated": "2026-11-16T15:50:30.759024Z"
     }
   }
 }
