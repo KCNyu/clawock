@@ -266,13 +266,13 @@
       body += '<tr class="' + (row.kind ? 'dm-kind' : 'dm-signal') + '">'
         + '<th class="dm-src" scope="row">' + name + '</th>'
         + '<td class="dm-cov" title="' + esc(row.name + ' join 上了 '
-            + card.decisions_joined + ' / ' + d.kpi.decisions + ' 条决策；快照年龄 中位 '
+            + numText(card.decisions_joined) + ' / ' + numText(d.kpi.decisions) + ' 条决策；快照年龄 中位 '
             + fmt(card.median_snapshot_age_sessions, 1) + ' / 最大 '
             + fmt(card.max_snapshot_age_sessions, 0) + ' session') + '">'
         + '<div class="dm-covbar"><i style="width:'
         + Math.min(100, card.decision_coverage_pct).toFixed(1) + '%"></i></div>'
         + '<span class="dm-covtext">' + fixed(card.decision_coverage_pct, 1) + '% · '
-        + card.decisions_joined + '</span></td>';
+        + numText(card.decisions_joined) + '</span></td>';
       actions.forEach(function (action) { body += cellHtml(row, action, horizon); });
       body += (showIc ? icHtml(row, horizon) : '') + '</tr>';
     });
@@ -323,10 +323,10 @@
     // Every number here is echoed in the payload rather than counted in the
     // browser, so the strip and the file cannot drift apart.
     var parts = [
-      '<span><b>' + (k.decisions || c.decisions) + '</b> 决策 · '
-        + '<b>' + (k.sessions || c.sessions) + '</b> 个交易日 · '
-        + '<b>' + (k.tickers || c.tickers) + '</b> 票</span>',
-      '<span><b>' + (k.signals_referenced || c.signals) + '</b> 信号 / '
+      '<span><b>' + numText(k.decisions ?? c.decisions) + '</b> 决策 · '
+        + '<b>' + numText(k.sessions ?? c.sessions) + '</b> 个交易日 · '
+        + '<b>' + numText(k.tickers ?? c.tickers) + '</b> 票</span>',
+      '<span><b>' + numText(k.signals_referenced ?? c.signals) + '</b> 信号 / '
         + (d.source_kind_cards || []).length + ' 源 · <b>'
         + fmt(k.decision_signal_coverage_pct, 1) + '%</b> 有快照</span>',
       '<span>' + esc(c.first_decision) + ' → ' + esc(d.as_of)
