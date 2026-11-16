@@ -460,3 +460,23 @@ class TestRecomputeAggregates:
         d["portfolios"]["us_stocks"]["total_current_value"] = 777
         ra.recompute(d, dry_run=True)
         assert d["portfolios"]["us_stocks"]["total_current_value"] == 777  # unchanged
+
+
+@pytest.mark.parametrize('dry_run', [False, True])
+def test_unquoted_holding_clears_stale_daily_pair_without_losing_carried_value(dry_run):
+    import copy
+    row = {'ticker': 'BBB', 'shares': 10, 'cost_basis': 5,
+           'current_price': None, 'current_value': 60,
+           'today_change': 777, 'today_change_pct': 5}
+    data = {'portfolios': {'us_stocks': {'holdings': [row]}}}
+    original = copy.deepcopy(data)
+    changes = ra.recompute(data, dry_run=dry_run)
+    assert changes['us_stocks']['holdings.today_change'] == [('BBB', 777, None)]
+    if dry_run:
+        assert data == original
+    else:
+        assert row['today_change'] is None and row['today_change_pct'] is None
+        book = data['portfolios']['us_stocks']
+        assert book['total_cost'] == 50 and book['total_current_value'] == 60
+        assert book['today_total_change'] == 0
+        assert ra.recompute(data) == {}

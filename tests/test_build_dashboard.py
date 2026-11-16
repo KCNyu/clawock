@@ -2044,6 +2044,7 @@ def test_restore_stage_restores_absent_cards_and_rederives_what_belongs_to_this_
     whole `build_projection` run."""
     previous = {
         "anomalies": [{"type": "high_weight_loss", "ticker": "OLD", "weight": 0.9},
+                      {"type": "leveraged_etf_stop", "ticker": "SPCH", "detail": "old stop"},
                       {"type": "peer_gap", "ticker": "00100"}],
         "market_context": {"data_as_of": "prev"},
         "peer_divergence": {"as_of": "2026-10-02", "items": [{"ticker": "00100"}]},
@@ -2510,3 +2511,24 @@ def test_a_weekend_book_stamp_updates_the_latest_session_snapshot(tmp_path, monk
     rows = dashboard.load_snapshots(live_book=live)
     assert [(r['date'], r['hk_total_value'], r['hk_today_change']) for r in rows] == [
         ('2026-10-15', 50720.4, 0), ('2026-10-16', 52939.2, 2218.8)]
+
+
+@pytest.mark.parametrize('ctx', [None, {}, {'peer_scan': {}}, {'peer_scan': {'SPCH': {'self_pnl_pct': -99}}}])
+def test_leverage_stops_enumerate_live_holdings_without_peer_membership(ctx):
+    rows = [{'ticker': '07709', 'shares': 10, 'pnl_percent': -31.64,
+             'current_price': 8.536, 'prev_close': 10},
+            {'ticker': '07747', 'shares': 0, 'pnl_percent': -40}]
+    anomalies = dashboard.extract_anomalies(ctx, [], rows)
+    stops = [a for a in anomalies if a['type'] == 'leveraged_etf_stop']
+    assert [a['ticker'] for a in stops] == ['07709']
+    assert stops[0]['severity'] == 'high'
+    assert 'today -14.6%' in stops[0]['detail']
+
+
+def test_restore_cannot_drop_new_or_keep_closed_leverage_stops():
+    out = {'anomalies': [], 'concentration': {}, 'bear_cases': [], 'hidden_concentration': None}
+    previous = {'anomalies': [{'type': 'leveraged_etf_stop', 'ticker': 'SPCH'}]}
+    dashboard._restore_previous_cards(
+        out, previous, {'anomalies': False}, {'portfolios': {}}, [],
+        [{'ticker': '07709', 'shares': 10, 'pnl_percent': -30}], set(), [])
+    assert [a['ticker'] for a in out['anomalies']] == ['07709']

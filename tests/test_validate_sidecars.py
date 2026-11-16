@@ -454,7 +454,7 @@ def _unquoted_book(tmp_path, freshly_built_dashboard):
     """Today's book with one active US row as it is before its first quote,
     and the payload the publisher builds from it."""
     from clawock.portfolio import aggregates
-    from clawock.publish.dashboard import compute_hhi, leg_totals, resolve_legs, trim_holding
+    from clawock.publish.dashboard import compute_hhi, leg_totals, resolve_legs, trim_holding, extract_anomalies
 
     portfolio = json.loads((ROOT / 'portfolio.json').read_text())
     us = portfolio['portfolios']['us_stocks']
@@ -471,6 +471,14 @@ def _unquoted_book(tmp_path, freshly_built_dashboard):
     payload['holdings']['us'] = [
         trim_holding(h, 'USD') for h in us['holdings'] if (h.get('shares') or 0) > 0]
     payload['concentration']['us'] = compute_hhi(payload['holdings']['us'])
+    # Restate every live-book risk row too. These are now present even when
+    # the fixture has no brief context; keeping the original weights here
+    # models a mixed generation rather than the publisher's output.
+    live_types = {'high_weight_loss', 'leveraged_etf_stop'}
+    live = extract_anomalies(None, payload['holdings']['us'], payload['holdings']['hk'],
+                             concentration=payload['concentration'])
+    payload['anomalies'] = [a for a in live if a['type'] in live_types] + [
+        a for a in payload['anomalies'] if a.get('type') not in live_types]
     _restate_book_day_snapshot(payload)
     return source, payload, row
 

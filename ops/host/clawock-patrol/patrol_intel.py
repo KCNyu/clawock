@@ -31,10 +31,12 @@ Three loops, each borrowed from a tool that already runs one:
 """
 
 import argparse
+import ast
 import hashlib
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -55,7 +57,7 @@ FILE_REF = re.compile(r"((?:[\w.\-]+/)+[\w.\-]+\.(?:py|js|ts|json|jsonl|ya?ml|sh
 # history and discloses the right number in the projection/timeline (#3134/#3490). Such a check
 # cannot go green without rewriting history, so it is a repro, never a post-fix guard.
 FROZEN_BRIEF = re.compile(r"memory/\d{4}-\d{2}-\d{2}-pre-open\.md")
-SUPPRESSING_VERDICTS = {"suppressed"}
+SUPPRESSING_VERDICTS = {"suppressed", "broken"}
 
 
 def _ts(iso):
@@ -181,6 +183,31 @@ def _check_blocks(text):
 
 def _digest(text):
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def check_syntax(check):
+    """Check shell syntax and literal Python -c payloads without executing them.
+
+    shlex removes shell quoting, so a quote-truncated payload is validated as
+    Python will receive it. Dynamic expansions are left to execution-time checks.
+    """
+    shell = subprocess.run(['bash', '-n'], input=check, text=True, capture_output=True)
+    if shell.returncode:
+        return shell.stderr.strip()
+    if not re.search(r"\bpython3?\s+-c\b", check) or "<<" in check:
+        return None
+    try:
+        lexer = shlex.shlex(check, posix=True, punctuation_chars=True)
+        lexer.whitespace_split = True
+        tokens = list(lexer)
+        for i, token in enumerate(tokens[:-2]):
+            if Path(token).name in {'python', 'python3'} and tokens[i + 1] == '-c':
+                payload = tokens[i + 2]
+                if '$' not in payload and '`' not in payload:
+                    ast.parse(payload)
+    except (SyntaxError, ValueError) as exc:
+        return f'Python/shell syntax: {exc}'
+    return None
 
 
 def _regress_script(number, check, kind, digest, source, commit, emitted):
@@ -336,12 +363,18 @@ def regression_watch(rows, since, tasks, limit=6):
                                        by_related, by_digest, rows_by_number, now)
         if entry.get("verdict") in SUPPRESSING_VERDICTS:
             linked = f"#{entry['issue']} " if entry.get("issue") else ""
-            skipped.append(f"#{number}（suppressed，{linked}{entry.get('reason') or ''}）")
+            skipped.append(f"#{number}（{entry.get('verdict')}，{linked}{entry.get('reason') or ''}）")
             state["checks"][str(number)] = entry
             continue
         if entry.get("verdict") == "tracked":
             skipped.append(f"#{number} 已由 #{entry.get('issue')} 跟踪（open）")
             state["checks"][str(number)] = entry
+            continue
+        error = check_syntax(check)
+        if error:
+            entry.update({'verdict': 'broken', 'reason': error, 'updated': now})
+            state['checks'][str(number)] = entry
+            skipped.append(f"#{number}（broken，{error}）")
             continue
         regress.mkdir(parents=True, exist_ok=True)
         script = regress / f"{number}.sh"
@@ -406,10 +439,10 @@ def regress_verdict(number, verdict, linked=None, reason="", now=None):
         _save_regress_state(state)
         print(f"#{number}: verdict cleared; the next touch emits its check again")
         return
-    if verdict == "suppressed":
+    if verdict in {"suppressed", "broken"}:
         if not reason.strip():
             raise SystemExit("suppressed needs --reason (why this check cannot prove a new regression)")
-        entry.update({"verdict": "suppressed", "reason": reason.strip(), "issue": linked, "updated": now})
+        entry.update({"verdict": verdict, "reason": reason.strip(), "issue": linked, "updated": now})
     elif verdict == "tracked":
         if not linked:
             raise SystemExit("tracked needs --issue N")
@@ -437,6 +470,12 @@ def regress_refresh(number, now=None):
     entry = state["checks"].get(str(number), {})
     check, kind, digest = _sync_entry(entry, number, path, int(now or time.time()))
     now = int(now or time.time())
+    error = check_syntax(check)
+    if error:
+        entry.update({'verdict': 'broken', 'reason': error, 'updated': now})
+        state['checks'][str(number)] = entry
+        _save_regress_state(state)
+        raise SystemExit(f'#{number}: broken check, not emitted: {error}')
     entry["first_emitted"] = entry.get("first_emitted") or now
     entry["last_emitted"] = now
     script = LOGDIR / "regress" / f"{number}.sh"
@@ -524,7 +563,7 @@ def main(argv):
     y.add_argument("--task", required=True)
     v = sub.add_parser("regress-verdict")
     v.add_argument("number", type=int, help="the fixed patrol issue whose check is being adjudicated")
-    v.add_argument("verdict", choices=["suppressed", "tracked", "fixed", "reset"])
+    v.add_argument("verdict", choices=["suppressed", "broken", "tracked", "fixed", "reset"])
     v.add_argument("--issue", type=int, dest="linked", default=None,
                    help="the regression issue this check produced (for tracked/suppressed)")
     v.add_argument("--reason", default="", help="why the check cannot prove a new regression")

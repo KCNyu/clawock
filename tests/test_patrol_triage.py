@@ -464,3 +464,45 @@ def test_gate_sanitizes_the_actual_filed_body_and_log(tmp_path):
     body = next((tmp_path / 'a' / 'state' / 'filed').glob('*.body')).read_text()
     assert 'example/project#42' not in body and '@someone' not in body
     assert 'github.com/example' not in body
+
+
+def test_saved_check_validates_shell_decoded_python_payload():
+    broken = '''python3 -c "
+src = open('src/clawock/a.py').read()
+assert "fx_path='.cache/fx_rate.json'" in src
+"'''
+    assert patrol_intel.check_syntax(broken)
+    assert patrol_intel.check_syntax("python3 -c 'assert True'") is None
+    assert patrol_intel.check_syntax("python3 - <<'PY'\nassert True\nPY\n") is None
+    assert patrol_intel.check_syntax("echo 'unterminated")
+
+
+def test_gate_rejects_python_syntax_error_without_traceback(tmp_path):
+    draft = DRAFT.format(sev='P2')
+    start = draft.index('<!-- RED-CHECK')
+    draft = draft[:start] + '补充核验：' + '逐行对照公开账本与输入，确认并非舍入或窗口差异。' * 6 + '\n' + '''<!-- RED-CHECK
+python3 -c "print('src/clawock/money.py'); if"
+-->
+'''
+    result = _gate(tmp_path, draft)
+    assert result.returncode != 0
+    assert '解释阶段' in result.stdout + result.stderr
+
+
+def test_broken_regression_is_not_emitted_until_its_digest_changes(tmp_path, monkeypatch):
+    wt, state = _regress_fixture(tmp_path)
+    draft = state / 'filed/R1-a.md'
+    draft.write_text("# [patrol] a\nsrc/a.py:1\n<!-- RED-CHECK\npython3 -c 'if'\n-->\n")
+    monkeypatch.setattr(patrol_intel, 'LOGDIR', state)
+    monkeypatch.setattr(patrol_intel, 'WORK', wt)
+    for _ in range(2):
+        out, skipped = patrol_intel.regression_watch([_fixed()], '2000-01-01 00:00:00',
+                                                    patrol_intel.task_by_issue())
+        assert out == []
+        assert skipped
+        assert not (state / 'regress/11.sh').exists()
+        assert json.loads((state / 'regress/state.json').read_text())['checks']['11']['verdict'] == 'broken'
+    draft.write_text("# [patrol] a\nsrc/a.py:1\n<!-- RED-CHECK\npython3 -c 'assert True'\n-->\n")
+    out, _ = patrol_intel.regression_watch([_fixed()], '2000-01-01 00:00:00',
+                                         patrol_intel.task_by_issue())
+    assert out and (state / 'regress/11.sh').exists()

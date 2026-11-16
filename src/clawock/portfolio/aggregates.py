@@ -130,6 +130,14 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
                 if cb is not None:
                     sum_cost += sh * cb
                 sum_cv += carried_value(h)
+                # Without a quote neither daily leaf is measurable. The region
+                # excludes this row too; retaining yesterday's pair breaks TODAY_TOTAL.
+                for field in ('today_change', 'today_change_pct'):
+                    if h.get(field) is not None:
+                        diffs.setdefault(f'holdings.{field}', []).append(
+                            (h.get('ticker'), h.get(field), None))
+                        if not dry_run:
+                            h[field] = None
                 continue
             cv = _r(sh * cp)
             sum_cv += cv

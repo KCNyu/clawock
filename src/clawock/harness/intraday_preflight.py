@@ -1987,7 +1987,7 @@ def _collect(argv=None):
         'market':           args.market,
         'date':             now.strftime('%Y-%m-%d'),
         'time':             now.strftime('%H:%M'),
-        'generated_at':     now.isoformat(timespec='seconds'),
+        'generated_at':     now.isoformat(timespec='microseconds'),
         'raw_wechat_block': raw_block,
         'session_review': review,
         'risk_followups': followups,
