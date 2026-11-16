@@ -57,7 +57,13 @@
       }
       const tokens = key.split(/[_\-]/);
       const tok = tokens.find(t => hmap[t.toUpperCase()]) || tokens[0];
-      const h = hmap[tok.toUpperCase()];
+      // Names are supplied by the same holding projection as ticker/quote.
+      // Resolve a unique name only; an ambiguous prefix has no price basis.
+      const named = Object.values(hmap).filter(h => {
+        const name = String(h.name || "").replace(/[-－](W|SW|B)$/i, "").toLowerCase();
+        return name && name === tok.toLowerCase();
+      });
+      const h = hmap[tok.toUpperCase()] || (named.length === 1 ? named[0] : null);
       // spch_breakdown_pct: -4 is a percent threshold whose base the key does
       // not name (cost? today's open?), so it gets no current value and no
       // distance — printed as $-4.00 against the price it read +340% (#2196).
@@ -71,7 +77,7 @@
         // (#3495). Same 10x threshold as brief_postflight's
         // WATCH_LEVEL_MAX_RATIO; the target still prints, the false distance
         // does not.
-        const px = Number(h.current_price), lv = Number(val);
+        const px = h.current_price == null ? null : Number(h.current_price), lv = Number(val);
         if (px > 0 && lv > 0 && Math.max(px / lv, lv / px) >= 10)
           return { cur: null, ccy: h.region === "hk" ? "HKD" : "USD",
                    who: tok.toUpperCase(), strip:[tok.toLowerCase()] };
@@ -336,7 +342,7 @@
     Object.keys(drv).sort().forEach(k => {
       const e = drv[k]; if (!e || e.win_rate == null) return;
       const ci = e.cluster_ci95, band = ci ? `[${fixed(ci[0], 1)}–${fixed(ci[1], 1)}]` : "";
-      fe.push(`${k} ${fixed(e.win_rate * 100)}% ${band}`);
+      fe.push(`${k} ${e.win_rate == null ? DASH : fixed(e.win_rate * 100) + "%"} ${band}`);
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
     el.innerHTML = rows.join("");
@@ -3262,7 +3268,7 @@
       const ci = e.cluster_ci95;
       const ciTxt = ci ? ` avgCI[${fixed(ci[0], 1)}–${fixed(ci[1], 1)}]` : "";
       const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
-      const wrTxt = `${fixed(e.win_rate * 100)}%${ciTxt} n=${e.n_episodes}${edge}`;
+      const wrTxt = `${e.win_rate == null ? DASH : fixed(e.win_rate * 100) + "%"}${ciTxt} n=${e.n_episodes}${edge}`;
       const alertCls = (e.win_rate < 0.4 && e.n_episodes >= 2) ? " alert" : "";
       const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${fixed(e.avg_benefit_pct, 2)}%` : "";
       return `
@@ -3309,7 +3315,7 @@
       const ci = e.cluster_ci95;
       const ciTxt = ci ? ` avgCI[${fixed(ci[0], 1)}–${fixed(ci[1], 1)}]` : "";
       const edge = e.edge_significant ? "✓" : "";   // 整区间 > 50% 才打勾(紧凑,省手机宽度)
-      const wrTxt = `${fixed(e.win_rate * 100)}%${ciTxt} n=${e.n_episodes}${edge}`;
+      const wrTxt = `${e.win_rate == null ? DASH : fixed(e.win_rate * 100) + "%"}${ciTxt} n=${e.n_episodes}${edge}`;
       const alertCls = (e.win_rate < 0.4 && e.n_episodes >= 2) ? " alert" : "";
       const confTxt = e.avg_benefit_pct != null ? ` · avg ${e.avg_benefit_pct >= 0 ? "+" : ""}${fixed(e.avg_benefit_pct, 2)}%` : "";
       return `

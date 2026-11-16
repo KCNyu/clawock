@@ -48,7 +48,7 @@ from clawock.decision.actions import (
     paired_swap_sells,
 )
 from clawock import scorecard_provenance
-from clawock.safe_io import temp_dir_lock, jsonl_line, to_strict_finite_number
+from clawock.safe_io import temp_dir_lock, jsonl_line, to_finite_number, to_strict_finite_number
 from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
@@ -185,17 +185,12 @@ def _stable_id(prefix: str, *parts: object, size: int = 12) -> str:
 
 
 def _float(value):
-    try:
-        return float(value) if value not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
+    return to_finite_number(value)
 
 
 def _int(value):
-    try:
-        return int(float(value)) if value not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
+    number = _float(value)
+    return int(number) if number is not None else None
 
 
 def infer_strategy(action: dict) -> str:
@@ -637,8 +632,9 @@ def validate_decision(d: dict) -> list[str]:
         errors.append(f"bad condition.type {condition.get('type')!r}")
     if condition.get("type") in ("price_above", "price_below") and to_strict_finite_number(condition.get("price")) is None:
         errors.append("price condition requires condition.price")
-    valid_for_sessions = _int(condition.get("valid_for_sessions")) or 1
-    if not 1 <= valid_for_sessions <= 10:
+    raw_sessions = condition.get("valid_for_sessions")
+    valid_for_sessions = 1 if raw_sessions in (None, "") else _int(raw_sessions)
+    if valid_for_sessions is None or not 1 <= valid_for_sessions <= 10:
         errors.append("condition.valid_for_sessions must be in [1,10]")
     conf = _float(d.get("confidence"))
     if conf is None or not 0 <= conf <= 1:

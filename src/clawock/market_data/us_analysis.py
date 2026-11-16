@@ -15,6 +15,7 @@ Usage:
   clawock analyze-us --wechat --md-table  # holdings as a markdown table (intraday cron)
 """
 
+from clawock.market_data.analysis_text import price_text
 from clawock.safe_io import to_number as _share_number
 from clawock.safe_io import carried_value
 
@@ -295,9 +296,9 @@ def print_report(data: Dict, analyses: List[Dict]):
 
         print(
             f"  {h['ticker']:<7} "
-            f"${h['current_price']:>7.2f} "
+            f"${price_text(h['current_price'], '>7.2f')} "
             f"{_day_text(session_change_pct(h), 2):>8} "
-            f"${h['cost_basis']:>7.2f} "
+            f"${price_text(h['cost_basis'], '>7.2f')} "
             f"{(h.get('pnl_percent') or 0):>+8.2f}% "
             f"{rsi_s:>5}  "
             f"{arr} {sig}"
@@ -311,7 +312,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     print(f"{'─'*w}")
     for sig, ticker, reasons, h, tech, news_items in signal_rows:
         arr = SIGNAL_COLOR.get(sig, '?')
-        print(f"\n  {arr} [{sig}] {ticker}  ${h['current_price']:.2f}"
+        print(f"\n  {arr} [{sig}] {ticker}  ${price_text(h['current_price'], '.2f')}"
               f"  今日 {_day_text(session_change_pct(h), 2)}  P&L {(h.get('pnl_percent') or 0):+.1f}%")
         if reasons:
             for r in reasons:
@@ -403,7 +404,7 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
             rsi   = tech.get('rsi14')
             emo   = '🟢' if pnl_p >= 0 else '🔴'
             rsi_s = f" RSI{rsi:.0f}" if rsi else ''
-            lines.append(f"{emo} {h['ticker']:<5} ${h['current_price']:.2f}  {_day_text(dp)}  浮{pnl_p:+.1f}%{rsi_s}")
+            lines.append(f"{emo} {h['ticker']:<5} ${price_text(h['current_price'], '.2f')}  {_day_text(dp)}  浮{pnl_p:+.1f}%{rsi_s}")
 
     # Actionable signals only (BUY / WATCH / TRIM / STOP-LOSS)
     alerts = []

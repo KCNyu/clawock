@@ -56,7 +56,13 @@
       }
       const tokens = key.split(/[_\-]/);
       const tok = tokens.find(t => hmap[t.toUpperCase()]) || tokens[0];
-      const h = hmap[tok.toUpperCase()];
+      // Names are supplied by the same holding projection as ticker/quote.
+      // Resolve a unique name only; an ambiguous prefix has no price basis.
+      const named = Object.values(hmap).filter(h => {
+        const name = String(h.name || "").replace(/[-－](W|SW|B)$/i, "").toLowerCase();
+        return name && name === tok.toLowerCase();
+      });
+      const h = hmap[tok.toUpperCase()] || (named.length === 1 ? named[0] : null);
       // spch_breakdown_pct: -4 is a percent threshold whose base the key does
       // not name (cost? today's open?), so it gets no current value and no
       // distance — printed as $-4.00 against the price it read +340% (#2196).
@@ -70,7 +76,7 @@
         // (#3495). Same 10x threshold as brief_postflight's
         // WATCH_LEVEL_MAX_RATIO; the target still prints, the false distance
         // does not.
-        const px = Number(h.current_price), lv = Number(val);
+        const px = h.current_price == null ? null : Number(h.current_price), lv = Number(val);
         if (px > 0 && lv > 0 && Math.max(px / lv, lv / px) >= 10)
           return { cur: null, ccy: h.region === "hk" ? "HKD" : "USD",
                    who: tok.toUpperCase(), strip:[tok.toLowerCase()] };
@@ -732,7 +738,6 @@
     "decision_map.json": "决策地图",
     "workflow-outcomes.json": "流程账本",
     "cron-heartbeats.json": "定时心跳",
-    "integrity_report.json": "体检报告",
     "portfolio.json#gold_dca": "黄金定投净值",
     "coverage.json": "测试覆盖率",
     "readme_metrics.json": "README 指标",
@@ -1484,7 +1489,7 @@
       next: f.present === false ? "文件没生成，查它的生成任务" : "页面上这块是旧数字，查它的生成任务" }));
     igTop.filter(t => levelOf(t) === "ERROR").forEach(t => todo.push({
       name: "体检", where: String(t.code || ""), why: String(t.msg || ""),
-      next: "看 assets/data/integrity_report.json" }));
+      next: "按本行错误代码和说明核对账本" }));
     const cronTodo = scheduleStale ? [] : cells.filter(c => dhSlotDisposition(c.slot) === "needs_action");
     const seen = new Set(cronTodo.map(c => `${c.job}@${cs.date} ${c.at}`));
     slotsWith("failed").filter(r => !seen.has(`${r.job}@${r.slot}`)).forEach(r => todo.push({

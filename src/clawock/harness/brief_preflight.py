@@ -62,7 +62,7 @@ from clawock.workspace import workspace_root
 from clawock.plugin_host import live as live_plugins
 from clawock import sessions as trading_calendar
 from clawock import history_store
-from clawock.safe_io import safe_write_text
+from clawock.safe_io import safe_write_text, jsonl_line
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision.book import pnl_totals
@@ -417,7 +417,7 @@ def _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk):
         safe_write_text(
             str(GUARDRAIL_HISTORY),
             ''.join(l + '\n' for l in existing)
-            + json.dumps(row, ensure_ascii=False, sort_keys=True) + '\n')
+            + jsonl_line(row, label='guardrail_history'))
         print(f'  guardrail_history: {today} ({row["breach_count"]} breaches)')
     except Exception as e:  # never block the brief on bookkeeping
         print(f'warn: guardrail history append failed: {e}', file=sys.stderr)

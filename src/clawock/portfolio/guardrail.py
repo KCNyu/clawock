@@ -122,7 +122,7 @@ def _swap_suggestions(holdings):
 
 
 def _holding_pnl_pct(h):
-    cost = (h.get('cost_basis') or 0) * (_share_number(h.get('shares', 0)) or 0)
+    cost = (_share_number(h.get('cost_basis')) or 0) * (_share_number(h.get('shares', 0)) or 0)
     cur  = carried_value(h)
     return None if not cost else round((cur - cost) / cost * 100, 1)
 
@@ -622,7 +622,7 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
             pnl = _holding_pnl_pct(h)
             if pnl is None or pnl >= 0:
                 continue
-            cost = (h.get('cost_basis') or 0) * (_share_number(h['shares']) or 0)
+            cost = (_share_number(h.get('cost_basis')) or 0) * (_share_number(h['shares']) or 0)
             cur  = carried_value(h)
             if not cur:
                 continue

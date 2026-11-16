@@ -9,7 +9,7 @@
   // (#2957). Text the page formats goes through `fixed` / `numText` or a
   // formatter built on them; a `toFixed` that feeds CSS or SVG stays as it is.
   const MINUS = "−";
-  const fixed = (v, digits = 0) => v.toFixed(digits).replace("-", MINUS);
+  const fixed = (v, digits = 0) => v == null || !Number.isFinite(v) ? DASH : v.toFixed(digits).replace("-", MINUS);
 
   const fmtMoney = (v, ccy) => {
     if (v == null || !isFinite(v)) return DASH;

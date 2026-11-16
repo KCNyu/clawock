@@ -1058,6 +1058,19 @@ def _assert_drawdown_episodes(data: dict) -> None:
                 f'{where}: deepest_dd is unrecovered but is not the open episode')
 
 
+def _strict_public_json(raw):
+    def constant(token):
+        raise ValueError(f'non-finite JSON number: {token}')
+
+    def number(token):
+        value = float(token)
+        if not math.isfinite(value):
+            raise ValueError(f'non-finite JSON number: {token}')
+        return value
+
+    return json.loads(raw, parse_constant=constant, parse_float=number)
+
+
 def validate_dashboard_companions(manifest: Path | str) -> None:
     outputs = json.loads(Path(manifest).read_text())['outputs']
     checked = {'assets/data/dashboard.json', 'assets/data/overview.json'}
@@ -1065,7 +1078,7 @@ def validate_dashboard_companions(manifest: Path | str) -> None:
         if filename in checked:
             continue
         try:
-            data = json.loads(Path(filename).read_text())
+            data = _strict_public_json(Path(filename).read_text())
             assert isinstance(data, dict) and data, 'empty or non-object payload'
             if filename == 'assets/data/decision_audit.json':
                 assert data.get('schema_version') == 1, 'schema_version must be 1'
@@ -1176,10 +1189,12 @@ def validate_dashboard(
         f'{size:,} bytes exceeds the {DASHBOARD_MAX_BYTES:,}-byte '
         'full dashboard cap')
     try:
-        data = json.loads(raw)
+        data = _strict_public_json(raw)
     except json.JSONDecodeError as exc:
         raise AssertionError(
             f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
+    except ValueError as exc:
+        raise AssertionError(f'invalid JSON: {exc}') from None
     assert isinstance(data, dict), 'top-level JSON must be an object'
 
     required = (
@@ -1272,7 +1287,10 @@ def validate_dashboard(
         assert overview_path.stat().st_size < OVERVIEW_MAX_BYTES, (
             f'{overview_path.stat().st_size:,} bytes exceeds the '
             f'{OVERVIEW_MAX_BYTES:,}-byte Overview cap')
-        overview = json.loads(overview_path.read_text(encoding='utf-8'))
+        try:
+            overview = _strict_public_json(overview_path.read_text(encoding='utf-8'))
+        except ValueError as exc:
+            raise AssertionError(f'invalid Overview JSON: {exc}') from None
         assert overview.get('schema_version') == 1, 'Overview schema_version must be 1'
         assert overview.get('projection') == 'overview', 'Overview projection kind invalid'
         assert overview.get('generation_id') == data['generated_at'], (

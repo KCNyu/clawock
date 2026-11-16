@@ -182,3 +182,14 @@ def test_a_level_an_order_of_magnitude_off_is_not_compared(bundle):
     rows = _watch_rows(bundle, {"spcx_prior_20d_low": 120.39}, [spcx])
     assert rows["SPCX/120.39"]["cur"] == 139.11
     assert rows["SPCX/120.39"]["dist"] == pytest.approx(15.5495, abs=.001)
+
+
+@pytest.mark.parametrize('bundle', BUNDLES)
+def test_unique_holding_name_resolves_watch_level_and_keeps_null_unknown(bundle):
+    holding = {'ticker': '00100', 'name': 'MINIMAX-W', 'region': 'hk', 'current_price': 152.4}
+    rows = _watch_rows(bundle, {'minimax_trigger': 182}, [holding])
+    row = rows['MINIMAX/182']
+    assert row['cur'] == 152.4 and row['dist'] is not None
+    holding['current_price'] = None
+    row = _watch_rows(bundle, {'minimax_trigger': 182}, [holding])['MINIMAX/182']
+    assert row['cur'] is None and row['dist'] is None

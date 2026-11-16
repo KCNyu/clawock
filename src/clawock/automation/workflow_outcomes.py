@@ -584,6 +584,14 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
             current.setdefault("stages", {name: _stage() for name in STAGES})
             for name in STAGES:
                 current["stages"].setdefault(name, _stage())
+            # The product stages belong to the attempt that reached WeChat.
+            # Its receipt can later be missing/corrupt; the ledger's own
+            # explicit delivery proof still protects those stages (#3529).
+            if stage in {"preflight", "llm", "postflight"} and any(
+                (current["stages"].get(name) or {}).get("wechat_ok") is True
+                for name in ("primary_delivery", "watchdog_delivery")
+            ):
+                return current
             previous = current["stages"].get(stage) or {}
             if ((status == "pending" and previous.get("status") in TERMINAL_STAGE_STATUSES)
                     or (unless_terminal_since is not None

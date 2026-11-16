@@ -479,7 +479,7 @@ export type ProviderRowView = {
     /**
      * The one progress bar every provider shares: filled to the fullest window's
      * used percentage, null when the row has no percentage to draw (money, free
-     * pool, unreadable). `state` is the colour role; stale is grey.
+     * pool, unreadable). `state` is the colour role; stale is amber.
      */
     bar: {
         pct: number;

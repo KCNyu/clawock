@@ -1502,3 +1502,18 @@ def test_collector_death_survives_manual_preflight_success(tmp_path, monkeypatch
     outcomes.record_stage(job, 'llm', 'success', slot=slot)
     row = outcomes.record_stage(job, 'postflight', 'success', slot=slot)
     assert row['final_product']['status'] == 'recovered'
+
+
+def test_explicit_ledger_delivery_protects_product_when_receipt_is_lost(tmp_path, monkeypatch):
+    workspace = _isolate(tmp_path, monkeypatch)
+    slot = '2026-07-24T09:30:00+08:00'
+    job = '港股开盘报告'
+    outcomes.record_stage(job, 'preflight', 'warning', slot=slot, reason='original')
+    outcomes.record_stage(job, 'postflight', 'success', slot=slot)
+    outcomes.record_stage(job, 'primary_delivery', 'success', slot=slot, wechat_ok=True)
+    marker = workspace / 'memory/.tmp/report-sent-hk-open-2026-07-24.json'
+    marker.write_text('{bad receipt')
+    record = outcomes.record_stage(job, 'preflight', 'failed', slot=slot, reason='retry')
+    assert record['stages']['preflight']['reason'] == 'original'
+    record = outcomes.record_stage(job, 'postflight', 'failed', slot=slot)
+    assert record['stages']['postflight']['status'] == 'success'

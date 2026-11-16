@@ -49,7 +49,7 @@ from pathlib import Path
 
 from clawock import history_store
 from clawock.decision.ledger import leg_sessions
-from clawock.safe_io import safe_write_text, to_number as _number
+from clawock.safe_io import safe_write_text, json_safe, to_number as _number
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -555,7 +555,10 @@ def encode(payload: dict) -> str:
     actually shipped was 343KB against a budget the build reported as met at
     175KB — a gate checking a number nobody serves.
     """
-    return json.dumps(payload, ensure_ascii=False, separators=(',', ':'))
+    clean, holes = json_safe(payload)
+    if holes:
+        print(f'warn: decision_map: non-finite values written as null: {holes}', file=sys.stderr)
+    return json.dumps(clean, ensure_ascii=False, separators=(',', ':'), allow_nan=False)
 
 
 def degrade(payload: dict, max_bytes: int = MAX_BYTES) -> dict:

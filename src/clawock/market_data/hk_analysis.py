@@ -17,6 +17,7 @@ Usage:
   clawock analyze-hk --wechat --md-table  # holdings as a markdown table (intraday cron)
 """
 
+from clawock.market_data.analysis_text import price_text
 from clawock.safe_io import to_number as _share_number
 from clawock.safe_io import carried_value, to_finite_number
 
@@ -716,7 +717,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
         sig   = signal(h)
         pnl_s = '+' if pnl_p >= 0 else ''
         dp_s  = _day_text(dp, 2)
-        print(f"  {code:6s} {name:8s} HK${price:>6.3f} {dp_s:>7} HK${cost:>5.2f} {pnl_s}{pnl_p:>6.1f}% {sig}")
+        print(f"  {code:6s} {name:8s} HK${price_text(price, '>6.3f')} {dp_s:>7} HK${price_text(cost, '>5.2f')} {pnl_s}{pnl_p:>6.1f}% {sig}")
 
     print(f"{'─'*62}")
     print()
@@ -734,7 +735,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
         articles = (news_map or {}).get(code, [])
         sentiment = news_sentiment(articles) if articles else ''
 
-        print(f"  {sig} [{code}] {name}  HK${price:.3f}  今日{_day_text(dp)}  浮盈{pnl:+.1f}%")
+        print(f"  {sig} [{code}] {name}  HK${price_text(price, '.3f')}  今日{_day_text(dp)}  浮盈{pnl:+.1f}%")
         notes = []
         if dp is not None and abs(dp) >= 5:
             notes.append(f"今日{'大涨' if dp is not None and dp > 0 else '大跌'} {_day_text(dp)}")
@@ -838,7 +839,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
             dp    = session_change_pct(h)
             pnl_p = h.get('pnl_percent') or 0
             pnl_emoji = '🟢' if pnl_p >= 0 else '🔴'
-            lines.append(f"{pnl_emoji} {code} {name}  {price:.3f}  {_day_text(dp)}  浮{pnl_p:+.1f}%")
+            lines.append(f"{pnl_emoji} {code} {name}  {price_text(price, '.3f')}  {_day_text(dp)}  浮{pnl_p:+.1f}%")
 
     # Actionable signals only (skip plain HOLD)
     alerts: List[str] = []

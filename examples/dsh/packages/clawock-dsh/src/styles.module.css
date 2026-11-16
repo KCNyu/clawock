@@ -1822,7 +1822,7 @@
 }
 .pbc .tq-d-summary p{ margin:0 0 6px; }.pbc .tq-d-summary p:last-child{ margin-bottom:0; }
 .pbc .tq-d-summary ul, .pbc .tq-d-summary ol{ margin:4px 0 8px; padding-left:20px; }.pbc .tq-d-summary li{ margin:2px 0; }
-.pbc .tq-d-summary code{ font-family:var(--dsw-font-family-code, ui-monospace, monospace); font-size:.92em; background:var(--tq-inset); padding:0 3px; border-radius:4px; }
+.pbc .tq-d-summary code{ font-family:var(--dsw-font-family-code, ui-monospace, monospace); font-size:.92em; background:var(--tq-fill-inset); padding:0 3px; border-radius:4px; }
 .pbc .tq-d-scroll{ scrollbar-width:none; -ms-overflow-style:none; }
 .pbc .tq-d-scroll::-webkit-scrollbar{ width:0; height:0; }@media (prefers-reduced-motion: reduce){.pbc :is(.tq-pill, .tq-fold-summary):active{
     transform:none

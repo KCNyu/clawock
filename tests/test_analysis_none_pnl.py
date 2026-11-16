@@ -50,3 +50,20 @@ def test_hk_reports_treat_none_pnl_as_unmeasured(monkeypatch, capsys):
 
     out = capsys.readouterr().out
     assert '02208' in out
+
+
+def test_null_price_and_cost_do_not_abort_either_market_report(monkeypatch, capsys):
+    monkeypatch.setattr(hk_analysis, 'fetch_indices', lambda: {})
+    for leg, ticker, currency, module in (
+        ('hk_stocks', '02208', 'HKD', hk_analysis),
+        ('us_stocks', 'CRCL', 'USD', us_analysis),
+    ):
+        holding = _holding(ticker)
+        holding.update(current_price=None, cost_basis=None)
+        data = _book(leg, currency, holding)
+        rows = {} if leg == 'hk_stocks' else [
+            {'holding': holding, 'tech': {}, 'signal': 'HOLD', 'reasons': [], 'news': []}]
+        module.print_report(data, rows)
+        module.print_wechat_report(data, rows)
+        output = capsys.readouterr().out
+        assert ticker in output and '—' in output
