@@ -14,7 +14,7 @@ News source chain (per-ticker fallback):
 Env: MINIMAX_API_KEY required; FINNHUB_API_KEY optional.
 """
 
-from clawock.safe_io import to_number as _share_number
+from clawock.safe_io import safe_write_json, to_number as _share_number
 import json
 import os
 from datetime import datetime, timedelta, timezone
@@ -203,8 +203,7 @@ def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=
     # The book named by CLAWOCK_WORKSPACE, not the process cwd (#2597).
     data_dir = workspace_root() / 'assets' / 'data'
     os.makedirs(data_dir, exist_ok=True)
-    with open(data_dir / 'us_news_digest.json', 'w') as handle:
-        json.dump(out, handle, ensure_ascii=False, indent=2)
+    safe_write_json(str(data_dir / 'us_news_digest.json'), out)
     return out
 
 

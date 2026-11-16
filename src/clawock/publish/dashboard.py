@@ -269,7 +269,7 @@ def compile_overview_projection(dashboard):
                     or (_share_number(holding.get('shares')) or 0) <= 0):
                 continue
             watch_holdings.append({
-                **_fields(holding, ('ticker', 'current_price')),
+                **_fields(holding, ('ticker', 'name', 'current_price')),
                 'region': region,
             })
 

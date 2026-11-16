@@ -46,7 +46,7 @@ import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from clawock.safe_io import safe_write_text
+from clawock.safe_io import safe_write_text, jsonl_line
 
 # Six months of hot rows. Every in-run lookback the daily jobs use is far
 # shorter (novelty 30d, factor windows ≤ 120d), so this is not a behaviour
@@ -90,10 +90,7 @@ def _read_jsonl(path) -> list:
 
 
 def _dump(rows) -> str:
-    return '\n'.join(
-        json.dumps(row, ensure_ascii=False, separators=(',', ':'))
-        for row in rows
-    ) + '\n'
+    return ''.join(jsonl_line(row, label='history_store') for row in rows) or '\n'
 
 
 def _day(row) -> str:

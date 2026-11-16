@@ -48,7 +48,7 @@ from clawock.decision.actions import (
     paired_swap_sells,
 )
 from clawock import scorecard_provenance
-from clawock.safe_io import temp_dir_lock, jsonl_line, to_strict_finite_number
+from clawock.safe_io import temp_dir_lock, jsonl_line, to_finite_number, to_strict_finite_number
 from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
@@ -185,17 +185,12 @@ def _stable_id(prefix: str, *parts: object, size: int = 12) -> str:
 
 
 def _float(value):
-    try:
-        return float(value) if value not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
+    return to_finite_number(value)
 
 
 def _int(value):
-    try:
-        return int(float(value)) if value not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
+    number = _float(value)
+    return int(number) if number is not None else None
 
 
 def infer_strategy(action: dict) -> str:

@@ -32,7 +32,7 @@ from clawock import sessions as tc
 from clawock.portfolio.math import session_change_pct
 from clawock.decision.freshness import quant_row_for_session
 from clawock.instruments import INSTRUMENTS
-from clawock.safe_io import temp_dir_lock, safe_write_json, safe_write_text
+from clawock.safe_io import temp_dir_lock, safe_write_json, safe_write_text, jsonl_line
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -282,8 +282,8 @@ def persist_history(data):
             for t, m in data.get('rows', {}).items() if m.get('current') is not None}
     if not rows:
         return
-    line = json.dumps({'as_of': _date.today().isoformat(),
-                       'ts': data.get('as_of'), 'rows': rows}, ensure_ascii=False)
+    line = jsonl_line({'as_of': _date.today().isoformat(),
+                       'ts': data.get('as_of'), 'rows': rows}, label='t0_setups_history').rstrip('\n')
     HIST.parent.mkdir(parents=True, exist_ok=True)
     with _history_lock(HIST):
         try:

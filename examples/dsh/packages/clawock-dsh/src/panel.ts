@@ -704,11 +704,13 @@ export function roundFiled(filed: string, t: Translate): Fact | null {
   const issues = [...filed.matchAll(/\b(P[0-3])#(\d+)/g)].map((m) => ({ sev: m[1]!, n: m[2]! }))
   const digest = Number(/\+(\d+) digest\b/.exec(filed)?.[1] ?? 0)
   const comment = Number(/\+(\d+) comment\b/.exec(filed)?.[1] ?? 0)
+  const candidate = Number(/\+(\d+) candidate\b/.exec(filed)?.[1] ?? 0)
   const parts: NonNullable<Fact['parts']> = [
     ...(issues.length > 0 ? [{ text: t('queue.round.issueCount', { n: issues.length }) }] : []),
     ...issues.map(({ sev, n }) => ({ text: `${sev} #${n}`, severity: sev, href: `https://github.com/KCNyu/clawock/issues/${n}` })),
     ...(digest > 0 ? [{ text: t('queue.round.digest', { n: String(digest) }) }] : []),
     ...(comment > 0 ? [{ text: t('queue.round.comment', { n: String(comment) }) }] : []),
+    ...(candidate > 0 ? [{ text: t('queue.round.candidate', { n: String(candidate) }) }] : []),
   ]
   if (parts.length === 0) return null
   return {
@@ -1026,7 +1028,7 @@ export type ProviderRowView = {
   /**
    * The one progress bar every provider shares: filled to the fullest window's
    * used percentage, null when the row has no percentage to draw (money, free
-   * pool, unreadable). `state` is the colour role; stale is grey.
+   * pool, unreadable). `state` is the colour role; stale is amber.
    */
   bar: { pct: number; state: 'ok' | 'warn' | 'alert' | 'stale' } | null
   title: string

@@ -5262,3 +5262,22 @@ test("workbench client: a provider row can be pinned to the top", async () => {
     disposeReactEffects();
   }
 });
+
+test("patrol filing facts include candidate counts in both locales", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  for (const locale of ["zh", "en"]) {
+    const t = (key, args = {}) => Object.entries(args).reduce(
+      (text, [k, v]) => text.replace(`{${k}}`, String(v)), api.dictionaries[locale][key]);
+    const result = api.roundFiled("P3#3459 +1 candidate", t);
+    const candidate = t("queue.round.candidate", { n: 1 });
+    assert.ok(result.text.includes(candidate));
+    assert.ok(result.said.includes(candidate));
+    assert.ok(api.roundFiled("+2 candidate", t).text.includes(t("queue.round.candidate", { n: 2 })));
+    assert.equal(api.roundFiled("", t), null);
+  }
+});

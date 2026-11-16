@@ -1029,11 +1029,11 @@ def log_decisions(today):
     plan_path = WS / 'memory' / f'{today}-plan.json'
 
     if not plan_path.exists():
-        return True
+        return False
     try:
         plan = json.loads(plan_path.read_text())
     except Exception:
-        return True
+        return False
     if plan.get('schema_version') != 2 or not plan.get('decisions'):
         return True
     # `normalize_plan_json` skips normalization when the plan carries an authored
@@ -1095,7 +1095,7 @@ def write_publish_gate(status, today, *, reason=None):
         gate['reason'] = reason
     p = WS / 'logs' / 'brief_postflight_status.json'
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(gate, ensure_ascii=False) + '\n')
+    safe_write_text(str(p), json.dumps(gate, ensure_ascii=False) + '\n')
     return gate
 
 

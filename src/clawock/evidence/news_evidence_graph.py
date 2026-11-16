@@ -102,13 +102,20 @@ def load_policy(path=POLICY):
 def normalize_timestamp(value, fallback=None, naive_timezone=timezone.utc):
     """Return UTC ISO timestamp plus input precision."""
     if isinstance(value, (int, float)) and value > 0:
-        return {
-            'iso': datetime.fromtimestamp(value, tz=timezone.utc).isoformat(),
-            'precision': 'second',
-        }
+        try:
+            return {
+                'iso': datetime.fromtimestamp(value, tz=timezone.utc).isoformat(),
+                'precision': 'second',
+            }
+        except (ValueError, OverflowError, OSError):
+            value = None
+
     text = str(value or '').strip()
     if text.isdigit() and len(text) >= 9:
-        return normalize_timestamp(int(text), fallback=fallback)
+        try:
+            return normalize_timestamp(int(text), fallback=fallback)
+        except (ValueError, OverflowError):
+            pass
     if text:
         candidate = text.replace('Z', '+00:00')
         try:

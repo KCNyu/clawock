@@ -1113,7 +1113,7 @@
         formatter: (params) => {
           const cat = params[0]?.axisValue || "";
           const lines = params.map(p =>
-            `${p.marker} ${p.seriesName}: <b>${p.value != null ? "$" + p.value.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "—"}</b>`
+            `${p.marker} ${p.seriesName}: <b>${fmtMoney(p.value, "USD")}</b>`
           );
           return [cat + " (USD-eq)", ...lines].join("<br>");
         },
@@ -1133,11 +1133,11 @@
         { name: "已实现", type: "bar", data: realized,
           itemStyle: { color: green, opacity: 0.9 }, barWidth: 18, barGap: "10%",
           label: { show: true, position: "right", color: chartTextColor(), fontSize: 10,
-            formatter: (p) => p.value != null ? "$" + Math.round(p.value).toLocaleString() : "" } },
+            formatter: (p) => p.value != null ? fmtMoney(Math.round(p.value), "USD") : "" } },
         { name: "浮动", type: "bar", data: unrealized,
           itemStyle: { color: accent, opacity: 0.9 }, barWidth: 18,
           label: { show: true, position: "right", color: chartTextColor(), fontSize: 10,
-            formatter: (p) => p.value != null ? "$" + Math.round(p.value).toLocaleString() : "" } },
+            formatter: (p) => p.value != null ? fmtMoney(Math.round(p.value), "USD") : "" } },
       ],
     };
     // 这张图的 HK 腿永远要折成 USD，所以无论市场切换在哪都标。

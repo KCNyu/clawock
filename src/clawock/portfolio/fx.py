@@ -16,12 +16,13 @@ Usage:
 import argparse
 import json
 import os
+import sys
 import time
 from datetime import datetime, timezone
 from typing import Optional, Dict
 import requests
 
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import safe_write_json, jsonl_line
 from clawock.sessions import HKT
 from clawock.workspace import workspace_root
 
@@ -216,8 +217,9 @@ def _record_rate(data: Dict, path: str = None):
         }
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'a') as handle:
-            handle.write(json.dumps(entry, sort_keys=True) + '\n')
-    except Exception:
+            handle.write(jsonl_line(entry, label='fx_rate_ledger'))
+    except Exception as exc:
+        print(f'warn: FX rate ledger write failed: {exc}', file=sys.stderr)
         return
 
 

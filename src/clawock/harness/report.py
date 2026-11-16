@@ -141,7 +141,7 @@ def validate(body, ctx, model_text):
     return issues
 
 
-CRITICAL_KEYWORDS = ['缺段标记', '敷衍词']
+CRITICAL_KEYWORDS = ['缺段标记', '敷衍词', 'needs_risk_section=true']
 
 
 def categorize(issues):
