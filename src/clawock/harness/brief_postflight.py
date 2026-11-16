@@ -1011,7 +1011,8 @@ from clawock.harness import brief_render  # noqa: E402
 def log_decisions(today):
     """Upsert today's validated, normalized plan into the v2 decision ledger.
 
-    Return ``False`` only when a non-empty v2 plan cannot be booked safely.
+    Return ``False`` when the plan is absent/unreadable or a non-empty v2
+    plan cannot be booked safely.
     ``maybe_commit`` treats that as a publication failure after delivery, so the
     run is visible and retryable instead of committing a day whose decisions
     silently never reached the ledger.

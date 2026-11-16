@@ -632,8 +632,9 @@ def validate_decision(d: dict) -> list[str]:
         errors.append(f"bad condition.type {condition.get('type')!r}")
     if condition.get("type") in ("price_above", "price_below") and to_strict_finite_number(condition.get("price")) is None:
         errors.append("price condition requires condition.price")
-    valid_for_sessions = _int(condition.get("valid_for_sessions")) or 1
-    if not 1 <= valid_for_sessions <= 10:
+    raw_sessions = condition.get("valid_for_sessions")
+    valid_for_sessions = 1 if raw_sessions in (None, "") else _int(raw_sessions)
+    if valid_for_sessions is None or not 1 <= valid_for_sessions <= 10:
         errors.append("condition.valid_for_sessions must be in [1,10]")
     conf = _float(d.get("confidence"))
     if conf is None or not 0 <= conf <= 1:

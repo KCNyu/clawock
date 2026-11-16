@@ -117,12 +117,10 @@ def validate_sentiment(
         raise AssertionError('file is not valid UTF-8') from None
     assert raw.strip(), 'file is empty'
     try:
-        data = _strict_public_json(raw)
+        data = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise AssertionError(
             f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
-    except ValueError as exc:
-        raise AssertionError(f'invalid JSON: {exc}') from None
     assert isinstance(data, dict), 'top-level JSON must be an object'
 
     generated_at = data.get('generated_at')
@@ -201,12 +199,10 @@ def validate_influencer(path: Path | str) -> None:
         raise AssertionError('file is not valid UTF-8') from None
     assert raw.strip(), 'file is empty'
     try:
-        data = _strict_public_json(raw)
+        data = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise AssertionError(
             f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
-    except ValueError as exc:
-        raise AssertionError(f'invalid JSON: {exc}') from None
     assert isinstance(data, dict), 'top-level JSON must be an object'
 
     generated_at = data.get('generated_at')
@@ -298,12 +294,10 @@ def validate_news_digest(
         raise AssertionError('file is not valid UTF-8') from None
     assert raw.strip(), 'file is empty'
     try:
-        data = _strict_public_json(raw)
+        data = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise AssertionError(
             f'invalid JSON at line {exc.lineno} column {exc.colno}') from None
-    except ValueError as exc:
-        raise AssertionError(f'invalid JSON: {exc}') from None
     assert isinstance(data, dict), 'top-level JSON must be an object'
 
     generated_at = data.get('generated_at')
@@ -1293,7 +1287,10 @@ def validate_dashboard(
         assert overview_path.stat().st_size < OVERVIEW_MAX_BYTES, (
             f'{overview_path.stat().st_size:,} bytes exceeds the '
             f'{OVERVIEW_MAX_BYTES:,}-byte Overview cap')
-        overview = json.loads(overview_path.read_text(encoding='utf-8'))
+        try:
+            overview = _strict_public_json(overview_path.read_text(encoding='utf-8'))
+        except ValueError as exc:
+            raise AssertionError(f'invalid Overview JSON: {exc}') from None
         assert overview.get('schema_version') == 1, 'Overview schema_version must be 1'
         assert overview.get('projection') == 'overview', 'Overview projection kind invalid'
         assert overview.get('generation_id') == data['generated_at'], (

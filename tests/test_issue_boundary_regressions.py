@@ -85,3 +85,31 @@ def test_absent_or_unreadable_plan_cannot_pass_the_commit_boundary(tmp_path, mon
     path.parent.mkdir()
     path.write_text('{bad')
     assert brief_postflight.log_decisions('2026-01-01') is False
+
+
+@pytest.mark.parametrize('value', ['1e999', float('inf')])
+def test_plan_reports_invalid_session_window_instead_of_defaulting_it(value):
+    row = ledger.legacy_action_to_decision({
+        'ticker': 'AAA', 'action': 'cut', 'size': {'shares': 1},
+        'confidence': 0.8,
+    }, '2026-01-01')
+    row['episode_id'] = 'ep-test'
+    row['condition']['valid_for_sessions'] = value
+    assert 'condition.valid_for_sessions must be in [1,10]' in ledger.validate_decision(row)
+
+
+def test_news_writer_failure_preserves_previous_artifact(tmp_path, monkeypatch):
+    from clawock import safe_io
+    from clawock.automation import news_digest
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
+    path = tmp_path / 'assets/data/us_news_digest.json'
+    path.parent.mkdir(parents=True)
+    path.write_text('{"previous":true}')
+
+    def fail_replace(*args):
+        raise OSError('replace failed')
+
+    monkeypatch.setattr(safe_io.os, 'replace', fail_replace)
+    with pytest.raises(OSError):
+        news_digest._write_artifact([], {}, {})
+    assert json.loads(path.read_text()) == {'previous': True}
