@@ -195,8 +195,6 @@ const dictionaries = {
 		"queue.report.BLOCKED": "任务：受阻",
 		"queue.report.unknown": "任务：未报告",
 		"queue.statusLegend": "前项是 runner 对执行过程的判决；“任务”是模型最终报告。执行完成但任务部分完成或受阻，表示机器运行正常、工作尚未做完。",
-		"queue.olderRounds": "更早的 {n} 轮",
-		"queue.supervisorLog": "监督器原始记录",
 		"queue.patrol.waitSlot": "等空闲运行槽",
 		"queue.patrol.giveWay": "让手工任务先行",
 		"queue.patrol.memory": "内存不足，暂缓",
@@ -207,6 +205,7 @@ const dictionaries = {
 		"queue.round.preempted": "让路取消",
 		"queue.round.yielded": "让路收尾",
 		"queue.round.name": "{round} · {axis}",
+		"queue.round.candidate": "候选 {n}",
 		"queue.round.digest": "汇总 {n}",
 		"queue.round.comment": "补充 {n}",
 		"queue.round.filed": "本轮提报：{what}",
@@ -860,8 +859,6 @@ const dictionaries = {
 		"queue.report.BLOCKED": "Task: blocked",
 		"queue.report.unknown": "Task: no report",
 		"queue.statusLegend": "The first status is the runner’s execution verdict. “Task” is the model’s final report. Execution can complete while the task remains partial or blocked.",
-		"queue.olderRounds": "{n} earlier rounds",
-		"queue.supervisorLog": "Raw supervisor log",
 		"queue.patrol.waitSlot": "Waiting for a free run slot",
 		"queue.patrol.giveWay": "Giving way to manual tasks",
 		"queue.patrol.memory": "Low memory, deferred",
@@ -872,6 +869,7 @@ const dictionaries = {
 		"queue.round.preempted": "Cancelled to give way",
 		"queue.round.yielded": "Wrapped up to give way",
 		"queue.round.name": "{round} · {axis}",
+		"queue.round.candidate": "{n} candidates",
 		"queue.round.digest": "digest {n}",
 		"queue.round.comment": "{n} added",
 		"queue.round.filed": "filed this round: {what}",
@@ -2128,6 +2126,7 @@ function roundFiled(filed, t) {
 	}));
 	const digest = Number(/\+(\d+) digest\b/.exec(filed)?.[1] ?? 0);
 	const comment = Number(/\+(\d+) comment\b/.exec(filed)?.[1] ?? 0);
+	const candidate = Number(/\+(\d+) candidate\b/.exec(filed)?.[1] ?? 0);
 	const parts = [
 		...issues.length > 0 ? [{ text: t("queue.round.issueCount", { n: issues.length }) }] : [],
 		...issues.map(({ sev, n }) => ({
@@ -2136,7 +2135,8 @@ function roundFiled(filed, t) {
 			href: `https://github.com/KCNyu/clawock/issues/${n}`
 		})),
 		...digest > 0 ? [{ text: t("queue.round.digest", { n: String(digest) }) }] : [],
-		...comment > 0 ? [{ text: t("queue.round.comment", { n: String(comment) }) }] : []
+		...comment > 0 ? [{ text: t("queue.round.comment", { n: String(comment) }) }] : [],
+		...candidate > 0 ? [{ text: t("queue.round.candidate", { n: String(candidate) }) }] : []
 	];
 	if (parts.length === 0) return null;
 	return {

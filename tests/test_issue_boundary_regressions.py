@@ -113,3 +113,28 @@ def test_news_writer_failure_preserves_previous_artifact(tmp_path, monkeypatch):
     with pytest.raises(OSError):
         news_digest._write_artifact([], {}, {})
     assert json.loads(path.read_text()) == {'previous': True}
+
+
+def test_guardrail_history_sanitizes_risk_numbers(tmp_path, monkeypatch):
+    from clawock.harness import brief_preflight
+    path = tmp_path / 'guardrail.jsonl'
+    monkeypatch.setattr(brief_preflight, 'GUARDRAIL_HISTORY', path)
+    brief_preflight._append_guardrail_history(
+        '2026-01-01', {}, {}, {}, {'us': {'beta_spx': float('nan')}})
+    assert json.loads(path.read_text())['us_beta_spx'] is None
+
+
+def test_publish_gate_failed_replacement_keeps_the_previous_complete_gate(tmp_path, monkeypatch):
+    from clawock import safe_io
+    monkeypatch.setattr(brief_postflight, 'WS', tmp_path)
+    brief_postflight.write_publish_gate('fail', '2026-01-01')
+    path = tmp_path / 'logs/brief_postflight_status.json'
+    previous = path.read_text()
+
+    def fail_replace(*args):
+        raise OSError('replace failed')
+
+    monkeypatch.setattr(safe_io.os, 'replace', fail_replace)
+    with pytest.raises(OSError):
+        brief_postflight.write_publish_gate('pass', '2026-01-01')
+    assert path.read_text() == previous

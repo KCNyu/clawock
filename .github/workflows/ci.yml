@@ -372,7 +372,6 @@ jobs:
       # class hash and the bundler's region paths are both package-relative),
       # so a rebuild here must produce a byte-identical tree.
       - name: Decision Studio artifacts match their sources (rebuild is a no-op)
-        id: plugin_build
         if: steps.changes.outputs.dsplugin == 'true'
         env:
           # Same runner hardening as the npm publish job (#732): a lockfile
@@ -393,12 +392,6 @@ jobs:
             echo "::error::examples/dsh/packages/clawock-dsh/lib is stale — run 'npm run build' in the package and commit the result"
             exit 1
           }
-
-      - uses: actions/upload-artifact@v7
-        if: always() && steps.plugin_build.outcome == 'failure'
-        with:
-          name: issue-sweep-plugin-build
-          path: examples/dsh/packages/clawock-dsh/lib/
 
       - name: Decision Studio plugin contract (scan + client bundle registration)
         if: steps.changes.outputs.dsplugin == 'true'

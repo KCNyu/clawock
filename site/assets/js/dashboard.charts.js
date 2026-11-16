@@ -1113,7 +1113,7 @@
         formatter: (params) => {
           const cat = params[0]?.axisValue || "";
           const lines = params.map(p =>
-            `${p.marker} ${p.seriesName}: <b>${fmtMoney(p.value, "USD")}</b>`
+            `${p.marker} ${p.seriesName}: <b>${p.value == null ? DASH : fmtMoney(Math.round(p.value), "USD")}</b>`
           );
           return [cat + " (USD-eq)", ...lines].join("<br>");
         },
