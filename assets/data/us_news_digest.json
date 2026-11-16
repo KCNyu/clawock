@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T20:11:24.371475+00:00",
+  "generated_at": "2026-11-16T22:41:03.766080+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,108 +14,101 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- SPCX: SpaceX 即将进行 Starship Flight 15，计划同场捕获 Starship 与 Super Heavy 助推器，关键在于捕获结果而非仅发射成功。  \n  含义（kcn）：成功可强化技术与估值预期，捕获失败即使升空也可能引发重估；持有 **SPCH（2x SPCX）**，单日涨跌目标约为标的两倍。\n- CRCL: Coinbase 获 OCC 全国信托牌照最终批准；预计 1 月稳定币规则生效后，可为其他机构发行及服务稳定币。  \n  含义（kcn）：削弱 Circle 的牌照、发行及机构分销先发优势，CRCL 仓位偏空。\n- SPCX: Anthropic IPO 据报因美国防务贸易规定，大陆中国及香港机构买方基本被排除；其 IPO 估值目标据报由 2 万亿美元降至不足 1.5 万亿美元。  \n  含义（kcn）：对 SPCX 私募科技及太空资产的融资与估值构成负面传导；**SPCH（2x SPCX）** 放大相关回撤。\n- CRCL: Coinbase Q3 交易收入下降 44% 至 $590m，$719m 净利主要由 $715m 加密资产收益推动。  \n  含义（kcn）：显示加密交易活动及盈利质量承压，对 Circle 构成偏负的行业景气传导。\n- RKLB: Rocket Lab 正准备第 100 次 Electron 任务。  \n  含义（kcn）：按期完成可形成里程碑催化；持有 **RKLX（2x RKLB）**，单日利好与延迟或失败下行均被放大。\n\n### Per-ticker 简报 (有新闻才列)\n- CRCL: Coinbase 全国信托牌照获批并准备进入第三方稳定币发行/服务；Coinbase 交易收入下滑且利润依赖加密收益 — Circle 面临竞争与行业活动走弱双重压力。\n- RKLB: 第 100 次 Electron 任务进入准备阶段 — 近期明确的公司级催化是任务按期执行，RKLX（2x RKLB）将放大里程碑弹性。\n- SPCX: Starship Flight 15 双捕获测试与 Anthropic IPO 买方限制、估值下调构成主要事件 — 通过 SPCH（2x SPCX），任务结果与私募科技重估均被放大。\n\n### 风险 watch (若有)\n- CRCL（监管/竞争）：1 月 OCC 稳定币规则生效后，Coinbase 可进入第三方发行及服务市场，行业竞争格局可能迅速变化。\n- CRCL（景气/盈利质量）：Coinbase 交易收入下降 44%，且单季利润主要由加密资产收益贡献，警惕低交易量及加密市场波动。\n- SPCX（监管/估值）：美国防务贸易规定限制 Anthropic IPO 的中港机构买方，并伴随估值目标下调，私募科技退出与估值压力上升。\n- SPCX（任务执行）：Starship 与助推器“双捕获”尚未验证；发射成功但捕获失败仍可能构成负面意外，SPCH 的 2x 单日杠杆会放大冲击。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- RKLB: Rocket Lab 随科技股抛售跌 7%；尽管两天前完成第 100 次 Electron 发射，ULA Vulcan 任务失败并摧毁 40 颗 Amazon Leo 卫星，仍令航天股情绪承压。  \n  **Implication（kcn）**: 持仓由 RKLX（2x）承接，2x 会近似放大 RKLB 的单日波动；这是 ULA/行业事件而非 RKLB 自身任务失败，短线应控制 RKLX 净敞口。\n- CRCL: Goldman/Citi 的 2.7 亿美元 “Project Faro”，连同 SoFi、Anchorage、Mastercard、Visa 加速争夺 onchain dollar，Circle/Tether 的先发优势面临传统金融挑战。  \n  **Implication（kcn）**: 对 CRCL 仓位偏负面，但目前仍属竞争格局变化，未见收入或 guidance 受影响；重点跟踪稳定币份额及链上支付量。\n- SPCX: Anthropic IPO 临近，报道不建议首日追高而推荐 SPCX 作为替代敞口，形成潜在的 IPO 前后估值重估催化。  \n  **Implication（kcn）**: SPCH（2x）会放大 SPCX 的净值重估；报道未披露 Anthropic 持仓权重，因此只计作估值催化，不等同盈利上修。\n\n### Per-ticker 简报 (有新闻才列)\n- RKLB: 第 100 次 Electron 发射未能抵消板块冲击，股价跌 7%；短期由发射可靠性担忧主导。\n- CRCL: 银行、卡组织及金融科技平台加码链上美元，Circle 的护城河面临增量竞争。\n- SPCX: Anthropic IPO 提供潜在重估路径，但当前缺少可量化的持仓贡献。\n\n### 风险 watch (若有)\n- **失败任务**: ULA Vulcan 任务失败并损失 40 颗 Amazon Leo 卫星，可能提高市场对发射可靠性与成本的折价，但并非 RKLB 运营失误。\n- **IPO/估值**: Anthropic 首日定价仍被描述为昂贵；SPCH 的 2x 杠杆会同步放大估值回撤。\n- **竞争风险**: Circle 面临资金雄厚的银行与卡组织入场，尚无量化业绩影响。\n- **杠杆风险**: RKLX、SPCH 均为 2x，且按日复位；多日实际收益并不简单等于标的累计涨跌的两倍。",
   "raw_news_counts": {
-    "CRCL": 3,
+    "CRCL": 2,
     "RKLB": 5,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Nu Holdings Reports Strong Q3: EPS in Line, Revenue Above Estimates",
-        "datetime": 1794505369,
+        "headline": "Aclaris Therapeutics, Summit Therapeutics And Other Big Stocks Moving Lower In Monday’s Pre-Market Session",
+        "datetime": 1794819669,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=25a3f9d64ba4bd8905502b7387ac93a424260aff9e56f523926f6974a5a3c728"
+        "url": "https://finnhub.io/api/news?id=69db7cc128b829bce57f0e1edc1912d0e1432c7f95586237392b746da368d68b"
       },
       {
-        "headline": "Coinbase Fell 22% in a Month Before Its Charter Win: Is It Time to Sell, or Load Up?",
-        "datetime": 1794501339,
+        "headline": "How Wall Street Is Racing to Claim the Onchain Dollar",
+        "datetime": 1794758462,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bfa26d41fafc2dbe06656fad719651ace3363f5b607652dbd0e11b9258b67b13"
-      },
-      {
-        "headline": "Coinbase’s Bank Charter Is Bad News for Circle. Here’s the $1.4 Billion That Matters",
-        "datetime": 1794476421,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=065e0d232b05fe20b0824d30a9fb6ea57f6c8629f9981855536edcab10878f21"
+        "url": "https://finnhub.io/api/news?id=f11c2aac88dc902d75511f16a98a5b5f03bd90fe3f11db3e86aa1454faf50dc0"
       }
     ],
     "RKLB": [
       {
-        "headline": "AST SpaceMobile Sinks 6%, Rocket Lab Down 5% as Space Stocks Give Back a Stellar Week",
-        "datetime": 1794591053,
+        "headline": "Rocket Lab Sinks 7%, AST SpaceMobile Down 12% as Tech Selloff and Vulcan Failure Hit Space Stocks",
+        "datetime": 1794864124,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a5a547d2ef97514cb655c193907126596b43342e7b1666e3684458ec4910c2ba"
+        "url": "https://finnhub.io/api/news?id=46513ff84ef9fbea9d77b8b89270556444a3211ecab3f513e95f19f3569689bd"
       },
       {
-        "headline": "Intuitive Machines Falls 7% Despite Record Quarter as Space Stocks Slide; AST SpaceMobile Sinks 9%, Rocket Lab Drops 5%",
-        "datetime": 1794586047,
+        "headline": "Air Traffic Control Is Complex. Ground Stop Impact Goes Beyond L3Harris Stock.",
+        "datetime": 1794861540,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=676a0f745ac8aa67a0791a795912a4e87d89c53ac9ac4497fa13735f9ba89a6c"
+        "url": "https://finnhub.io/api/news?id=8945b16b646c58d5258e69437022a54d5c6afbd7eb81f9b33a0f9aff521f211f"
       },
       {
-        "headline": "SpaceX Drops More Than 13% Over 30 Days: This Wall Street Pro Projects 260% Gains Within 12 Months",
-        "datetime": 1794584743,
+        "headline": "Down 60% From Its 52-Week High, Is Rocket Lab Stock a Bargain Buy?",
+        "datetime": 1794859802,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=de8957de366a619a530dfa95bcce818096e1374ab53c7abbbd3ccdb1968e4106"
+        "url": "https://finnhub.io/api/news?id=9dce65a9c75019dbc19658014fff81472552378b597ac53ae322ce1000716201"
       },
       {
-        "headline": "Space Stocks Are Complex. York Sinks, AST and AT&T Make Historic Satellite Call.",
-        "datetime": 1794582000,
+        "headline": "Musk Plans Next Starship After Flight 15 Catch. ULA Loses Amazon Payload.",
+        "datetime": 1794851111,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7cf39b3b157f25d8f6b59f1b7d878616fc3d71475534c557d35f75e47140dfa5"
+        "url": "https://finnhub.io/api/news?id=c1b6a55689e92af06443a25f0870a26fdb32831f052f559967c2526551bc5bb4"
       },
       {
-        "headline": "SpaceX's Starship Flight 15, Rocket Lab's Electron Ready For Milestone Missions",
-        "datetime": 1794581948,
+        "headline": "Cathie Wood Adds Nvidia Stock Before Earnings While Selling Palantir",
+        "datetime": 1794850997,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=759d99e712d7b8a6a8bf92cd60250cde3a80222bf89bdfcb9f314d6b928d5fa6"
+        "url": "https://finnhub.io/api/news?id=875f158fd55ce518430ae948c13c80fec10e7089d02013770220982c534fd7d3"
       }
     ],
     "SPCX": [
       {
-        "headline": "Anthropic IPO Reportedly Closed To China, Hong Kong Buyers, Mirroring SpaceX Playbook",
-        "datetime": 1794591910,
+        "headline": "Rocket Lab Sinks 7%, AST SpaceMobile Down 12% as Tech Selloff and Vulcan Failure Hit Space Stocks",
+        "datetime": 1794864124,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=adeed5dd5ebd76a4867c28fa546d35209f9fd44cec632fc54cded312148d707c"
+        "url": "https://finnhub.io/api/news?id=46513ff84ef9fbea9d77b8b89270556444a3211ecab3f513e95f19f3569689bd"
       },
       {
-        "headline": "Anthropic’s Valuation Target Has Slipped From $2 Trillion to Under $1.5 Trillion. Here’s Why",
-        "datetime": 1794591302,
+        "headline": "Top 3 Growth Stocks To Watch In November 2026",
+        "datetime": 1794863758,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fe1f0be94b19442956e02c6d0d1021805036e9af55628d4e7fc740bb526d417f"
+        "url": "https://finnhub.io/api/news?id=c2914eb58b5706d4977d906bb6fc0f6c552d7315ef29a01355f0cf194a403ad3"
       },
       {
-        "headline": "Elon Musk’s SpaceX Has Spent $15 Billion on Starship. Tonight Could Change Everything",
-        "datetime": 1794590508,
+        "headline": "The Anthropic IPO Is Coming. I Wouldn't Buy on Day 1, I'd Do This Instead",
+        "datetime": 1794862502,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f3be0dac6ea35d5fdaace307b7da2f3af0de1bb8185045fafb8804a035b90530"
+        "url": "https://finnhub.io/api/news?id=7a635eb17e3ca8a3419ea5b55b20c4a43ca277572beb8edc341545fa672b8afa"
       },
       {
-        "headline": "Nvidia, AMD, Microsoft, Broadcom, and More Stocks That Explain Today’s Market",
-        "datetime": 1794589740,
+        "headline": "Down 60% From Its 52-Week High, Is Rocket Lab Stock a Bargain Buy?",
+        "datetime": 1794859802,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7db602bc5fe84056199669b958ff9fddd0795006b0539166c5c7f7abd27f8bda"
+        "url": "https://finnhub.io/api/news?id=9dce65a9c75019dbc19658014fff81472552378b597ac53ae322ce1000716201"
       },
       {
-        "headline": "SpaceX faces key launch test tonight with 'double catch' of Starship and Super Heavy Booster",
-        "datetime": 1794589232,
+        "headline": "Should Nvidia bring Jensen Huang back, as Silicon Valley's elite are demanding?",
+        "datetime": 1794859200,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ba3a0aaf6275dd9b025808d9cd1088f727b183f5d19f465484c2c2ab3fae3a2d"
+        "url": "https://finnhub.io/api/news?id=0ded7ae5cec99666be460576bc10a61a957e55820a38d4f53ca9da0dd0d5899c"
       }
     ]
   },
