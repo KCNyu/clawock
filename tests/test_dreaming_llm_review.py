@@ -104,6 +104,32 @@ def test_a_named_covering_topic_blocks_the_promotion(tmp_path):
     assert not (ws / "memory/.dreams/promotion-approvals.json").exists()
 
 
+def test_prose_wrapped_batch_records_both_candidates(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    text = (candidate("Verify the source before trusting a summary.")
+            + candidate("Separate observations from conclusions.", line=20,
+                        source="memory/2026-11-13.md"))
+    ws = workspace(tmp_path, text)
+    entries = load_gate().extract(text)[1]
+    reply = [{"key": entry["key"], "decision": "approve",
+              "conclusion": conclusion, "scope": "engineering",
+              "salience": "normal", "reason": "可复用"}
+             for entry, conclusion in zip(entries, [
+                 "先核对来源，再把摘要当作独立证据", "把观测事实和推导结论分别记录"])]
+    response = ws / "reply.txt"
+    response.write_text("审阅结果如下：\n```json\n"
+                        + json.dumps(reply, ensure_ascii=False) + "\n```\n审阅完成。",
+                        encoding="utf-8")
+    result = subprocess.run([sys.executable, str(REVIEW), "--workspace", str(ws),
+                             "--store", str(store), "--llm-response", str(response)],
+                            capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["approved"] == 2
+    approvals = json.loads((ws / "memory/.dreams/promotion-approvals.json").read_text())
+    assert set(approvals) == {entry["key"] for entry in entries}
+
+
 def test_a_contaminated_candidate_is_never_sent_to_the_model(tmp_path):
     store = tmp_path / "store"
     store.mkdir()

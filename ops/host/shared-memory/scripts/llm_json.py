@@ -126,30 +126,16 @@ def extract_json(text: str):
         return json.loads(stripped)
     except ValueError:
         pass
-    for opener, closer in (("{", "}"), ("[", "]")):
-        start = text.find(opener)
-        while start != -1:
-            depth, in_string, escaped = 0, False, False
-            for index in range(start, len(text)):
-                char = text[index]
-                if in_string:
-                    if escaped:
-                        escaped = False
-                    elif char == "\\":
-                        escaped = True
-                    elif char == '"':
-                        in_string = False
-                    continue
-                if char == '"':
-                    in_string = True
-                elif char == opener:
-                    depth += 1
-                elif char == closer:
-                    depth -= 1
-                    if depth == 0:
-                        try:
-                            return json.loads(text[start:index + 1])
-                        except ValueError:
-                            break
-            start = text.find(opener, start + 1)
+    # Scan in reply order: an array starts before any of its objects. Trying
+    # every object first turns a valid batch wrapped in prose into just its
+    # first member, so the dreaming reviewer rejects the whole batch.
+    decoder = json.JSONDecoder()
+    for start, char in enumerate(text):
+        if char not in "[{":
+            continue
+        try:
+            value, _end = decoder.raw_decode(text, start)
+            return value
+        except ValueError:
+            continue
     raise LLMError("model reply contained no complete JSON object or array")
