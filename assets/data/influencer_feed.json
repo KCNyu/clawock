@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T01:20:55.355428+00:00",
+  "generated_at": "2026-11-16T22:34:12.044523+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,193 +13,30 @@
   },
   "source_status": {
     "trump": "success",
-    "musk": "success",
+    "musk": "failed",
     "ark": "success",
-    "serenity": "success_empty",
+    "serenity": "failed",
     "duan": "success",
-    "honghao": "success",
+    "honghao": "failed",
     "burry": "success",
-    "pelosi": "success"
+    "pelosi": "failed"
   },
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 24,
+    "total": 12,
     "held_hits": 0,
-    "new_ideas": 15,
-    "sector_hits": 6
+    "new_ideas": 8,
+    "sector_hits": 2
   },
   "items": [
     {
-      "author": "Musk",
-      "text": "Elon Musk, Uber co-founder join calls to reinstate Jensen Huang as Nvidia chief",
-      "url": "",
-      "published": "Sun, 15 Nov 2026 23:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "France 24",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "据报道，Elon Musk与Uber联合创始人呼吁让Jensen Huang重返Nvidia掌门位置，显示对黄仁勋及其领导力的支持。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Pelosi Bought Bloom Before S&P 500 Did | Where I'd Start | Market Prep Sunday Allison Ellsworth (1kABruVOYI)",
-      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxObmJuY2ltak9OeHh6OGVqNFp4T0ppWmJZdEw4NG9sRzZqNENtUHEwc0p2RW1EWXZUVzcwb1NuSU9TdWhUcks1bDNLZ1NvTF9nYXFscFppcDFwZzg3Nll1ckZYTTNjcFhKWHFiSVd4aDBSUHdTd25kc2I3VjZJbnl3eWdpRHdRVWs?oc=5",
-      "published": "2026-11-15T04:49:54+00:00",
-      "origin": "gnews-rss",
-      "source": "Unisba Media",
-      "tickers": [
-        "BLOOM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BLOOM"
-      ],
-      "sectors": [
-        "加密货币",
-        "金融科技"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "buy",
-      "relevance": 86,
-      "summary_cn": "最新国会交易披露显示，Pelosi持有Bloom Strategies相关头寸。"
-    },
-    {
-      "author": "段永平",
-      "text": "掌舵33年黯然謝幕，黃仁勳辭任引輝達震盪，64隻QDII基金重倉承壓",
-      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE1wYkF0VkwtbWx3c1NqUTBtSVFFZDNJcllnTThibHQzVUtGci1LdUdSQnRJUms0em5QYVpyVk5ibkFUempaSjVobA?oc=5",
-      "published": "2026-11-14T01:58:45+00:00",
-      "origin": "gnews-rss",
-      "source": "鉅亨號",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 84,
-      "summary_cn": "据报道，黄仁勋辞任Nvidia掌门后引发股价震荡，并令重仓该股的64只QDII基金承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla and SpaceX Lost More Than $420 Billion in Combined Market Value in Two Days After Democrats Swept the Midterms, With Investors Fearing New Congressional Probes. Here's Why That Political Risk Matters for Shareholders",
-      "url": "",
-      "published": "Sat, 14 Nov 2026 22:48:02 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天",
-        "政治风险"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "媒体称特朗普中期选举胜选后，Tesla与SpaceX两日合计市值蒸发逾4200亿美元，投资者担忧国会调查带来的政治风险。"
-    },
-    {
       "author": "Burry",
-      "text": "Weekly Recap: Lower target and Burry keeps Meituan in Hong Kong portfolio",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNMHp0cF96bFItS1ZYd011ZHBoMnBTcXBDMHNnSjQtMkVFN0pySUpfRjM5eE1vNnMzalVlSzcyaUtfdTZqZkJjSkVJeDloVDhuYTVVMU9ZNjI1NzFaeVN2M0d5dC1GQkRmYzNEdTJEWmhjd3lWTXp3aFhaVG5XRVIwQXY5ZGFmYzhtVWxFX3BKNXdVRzlHZ0g1akVmVGxORWRRZEs3NE1nN2pHV2dyOWQ3NG9waDNfWTdqa01xbTEwYUF2Wnp6WXRNalRvNi1uTU0?oc=5",
-      "published": "2026-11-15T23:00:00+00:00",
+      "text": "Michael Burry says he won't buy Nvidia stock 'at any price' now — as he predicts 'real problems' beyond Jensen Huang",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPUUtJVEdGQWwxZDR0Snk5NWFSY2tLTlAxeTFwM1FaWjdod0I1cnJ5WUZ6dWFOTzUxelhoZi1pUXZlMnF0QTJhYUtuaHBoZzd4ek9rcFV2RzBZM0FIMUQ0Qk1FVkROamVZU2ZLQU1scU5RcmlZZklIZEpDSGpxRF9BWjV3N3NPeGhRbG41bThEaUc1cXowOWxnTGVnSTQxVUU?oc=5",
+      "published": "2026-11-16T15:45:00+00:00",
       "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [
-        "MPNGY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MPNGY"
-      ],
-      "sectors": [
-        "中国互联网",
-        "电商",
-        "本地生活"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry下调目标价的同时仍保留其美团持仓，表达继续持有态度。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Could Announce Tesla-SpaceX Merger By December: Report",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 21:35:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天",
-        "并购重组"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 76,
-      "summary_cn": "据报道，Elon Musk可能在12月宣布Tesla与SpaceX合并，但交易尚未获正式确认。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry sees 2 chip winners in Nvidia’s shake-up",
-      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNemRLWWd6UXU5YmtNbXVWNlVrazRvMHV6YmhzZ01ncllzTVVFQXdoVkk4eWVETl9YYTNWM0pXSW1mQnpBMmlHbnhsMVJzVUpYNlRLX1lYVEV0NENIQmhTc29XLWp4eXpZekxvUWNhQklISzhkMlFWa0JBRlFSdm5RVnFJaVpab3ZUYUYzM1YtUUcyX3kt?oc=5",
-      "published": "2026-11-15T03:42:10+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Business Insider",
       "tickers": [
         "NVDA"
       ],
@@ -210,7 +47,7 @@
       "sectors": [
         "AI",
         "半导体",
-        "芯片"
+        "GPU"
       ],
       "sector_holdings": [
         "00100",
@@ -219,15 +56,15 @@
         "07226",
         "07709"
       ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "据报道，Michael Burry在Nvidia管理层变动后 identifies 两只可能受益的芯片股，但该条目未披露具体赢家。"
+      "stance": "attack",
+      "relevance": 84,
+      "summary_cn": "据报道，Michael Burry表示目前不会以任何价格买入英伟达，并警告黄仁勋之外可能出现“真正的问题”。"
     },
     {
-      "author": "Pelosi",
-      "text": "'Nvidia Will Die Without Jensen' Doesn't Add Up, Says Anthony Scaramucci, Pointing to Apple's Post-Steve",
-      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOMG0zdk1XSnBDdk9MRjR1T0YtWUZfU1dkMDVzZjJnd1pRQTNpajZtd1NXRTJvaXlQakh2WmxTbVNOVTh2YU40ZzRMQWVkcTlYNk1JbVNzeXpHbzZSR05IZzNub3dZNWhXZjRGMlNOa1F0MDQwcXA3M19WN3paUU5ta0FMd2F6N1l0YnJ6YmFNNGxiOHFIOHc?oc=5",
-      "published": "2026-11-14T08:00:57+00:00",
+      "author": "Burry",
+      "text": "Michael Burry Smells a Rat in Nvidia’s Vanishing Singapore Revenue",
+      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOWVMtc3VsNUh6MnBIYW1PSmlHYVZQcXBkNkkwQ3N2MUYybXE5WlVOWGtQZUIxbDVEbnAxUGV2QTNsRU9TZkpJWnRPSkotOWxJRXZDTzdBdWUtckw5M0haM3pTYTRYdzVhSWtNRnhSSmcxQXhXVmVTX3hrUWtQU2laWHdBUklfMTR0QkVZM3VWN1R5M3c0OFJXZnZLcFVjbW82Wm92M0xBTXV3R3R6NzdkaTRIZXNlcF9NUUE?oc=5",
+      "published": "2026-11-16T16:22:41+00:00",
       "origin": "gnews-rss",
       "source": "Benzinga",
       "tickers": [
@@ -239,7 +76,9 @@
       ],
       "sectors": [
         "AI",
-        "半导体"
+        "半导体",
+        "GPU",
+        "会计风险"
       ],
       "sector_holdings": [
         "00100",
@@ -248,17 +87,17 @@
         "07226",
         "07709"
       ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "据报道，Anthony Scaramucci反驳Nvidia没有Jensen Huang就会衰亡的说法，暗示黄仁勋对公司的重要性可能被夸大。"
+      "stance": "attack",
+      "relevance": 79,
+      "summary_cn": "据报道，Michael Burry质疑英伟达新加坡收入正在消失，暗示其财务报表可能存在异常。"
     },
     {
-      "author": "Burry",
-      "text": "How NVIDIA’s Changed Asian Revenue Reporting “Disappeared” Singapore - and What Else?",
-      "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE9lWS1hT0N4b1VSaXkwLWVaVkhldVVjMWIxYmRlbDVtWFN4NDRaTWNiSFhXbGI4aWozU3ZFZ3NFS2VZdjgxLS1IaFoxVHJ5RDBwNFRoYWQxNXREaEtOUGsyWmtnMU03Skw2QkdJekxITnV2MzUxTXMwcGNR?oc=5",
-      "published": "2026-11-15T17:28:46+00:00",
+      "author": "段永平",
+      "text": "段永平谈英伟达前景：护城河依然强大，不想急着逃，黄仁勋回归并非零概率",
+      "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTFAyTkJqS0x3bkFoRmE3Q25CREZfY2xsYTBIRmdlaVprSFl3NExKMm43S190dG1RUUhFQkhUM2hOWk5zOVV1c01mZklDcGt4OG9sd3ZoZG1TY2tEZnJaMzRIWkpscW5Wdw?oc=5",
+      "published": "2026-11-16T09:51:38+00:00",
       "origin": "gnews-rss",
-      "source": "Cassandra Unchained | Michael Burry",
+      "source": "TradingView",
       "tickers": [
         "NVDA"
       ],
@@ -269,7 +108,7 @@
       "sectors": [
         "AI",
         "半导体",
-        "亚洲市场"
+        "GPU"
       ],
       "sector_holdings": [
         "00100",
@@ -278,9 +117,33 @@
         "07226",
         "07709"
       ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，Michael Burry质疑Nvidia改变亚洲收入披露方式，并认为相关收入可能从新加坡报表中消失。"
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "据媒体转述，段永平认为英伟达护城河依然强大、没有急售意向，并称黄仁勋回归并非零概率。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Cashed In Caterpillar Puts After a Nearly 4x Gain Even as CAT Stock Fell 10% in Its Worst Week in 18 Months. Is Caterpillar Still Overvalued, or Did Burry Just Lock In the Easy Money?",
+      "url": "https://news.google.com/rss/articles/CBMi1wJBVV95cUxQRzlMOWd6Y3BEaDZVeDkyWG9Jd2xuMlltLVFyRnJ1cVhsR2RDcjdSZ0FtRXNnZDloOEF3TlUyTWZpQVk0Q2xaXzBBUEhHN2l1VmVEZk1Ob0FPOE11MFMwc0E0LXpuR3VLYzY2dVBpcDhnRW1iMHlLUkJ2elQxQkc1YmNQTlgtMVJ0RTZnTWZGUkIxd0x2LXhfbklHVnJEZm1taE9vVlJ3SEk4Q3lPRGlZYlRiTzI4bm5KNUxoQ3NGQ0tubmRsRUE4RjF4UGNUQzQ2bk5IdU1qTTZRY1B5UkN3X21qT2k5OHJhc0pyUU1ndUsyXzlOTDJ5QVhpWDRUVWdQZVFLRlBja2lCelV6Tl85aVlPajROUFAtSWpfM1l6N09ncVVIcnhKX1dZMF9oZFh0MDZIQXN0T3VlelNCUmV4ODcyTHdzZUM4el9hdjg4X3JodExGVVdn?oc=5",
+      "published": "2026-11-16T21:05:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "CAT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CAT"
+      ],
+      "sectors": [
+        "工程机械",
+        "工业股",
+        "指数期权"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 75,
+      "summary_cn": "据报道，Michael Burry在卡特彼勒（CAT）股价大跌期间兑现 Caterpillar 看跌期权收益，延续对其高估的警惕。"
     },
     {
       "author": "Cathie Wood",
@@ -298,35 +161,13 @@
         "BYDDY"
       ],
       "sectors": [
-        "电动车"
+        "电动车",
+        "中国汽车"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK Invest在ARKQ中卖出219,468股比亚迪，仓位占该ETF约0.10%。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla sets date for long-awaited arrival in Argentina",
-      "url": "",
-      "published": "Sun, 15 Nov 2026 13:03:53 GMT",
-      "origin": "gnews-rss",
-      "source": "Buenos Aires Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "国际市场"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "据报道，Tesla已为进入阿根廷市场确定时间安排，反映其继续推进拉丁美洲扩张。"
+      "summary_cn": "ARK于2026年11月13日从ARKQ卖出219,468股比亚迪（BYDDY），单只ETF占比0.10%。"
     },
     {
       "author": "Cathie Wood",
@@ -344,40 +185,13 @@
         "KTOS"
       ],
       "sectors": [
-        "航空航天与国防"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "buy",
-      "relevance": 52,
-      "summary_cn": "ARK Invest在ARKQ中买入24,784股Kratos Defense，占该ETF约0.05%，属于规模较小的常规加仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla, XPeng, Lucid and Elon Musk Dominated This Week’s Auto Headlines",
-      "url": "",
-      "published": "Sun, 15 Nov 2026 15:00:43 GMT",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [
-        "TSLA",
-        "XPEV",
-        "LCID"
-      ],
-      "held": [],
-      "new_ideas": [
-        "LCID",
-        "TSLA",
-        "XPEV"
-      ],
-      "sectors": [
-        "电动车"
+        "国防军工",
+        "航空航天"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "媒体称Tesla、小鹏汽车、Lucid及Elon Musk成为本周汽车行业报道焦点，但未给出明确方向性判断。"
+      "stance": "buy",
+      "relevance": 52,
+      "summary_cn": "ARK于2026年11月13日买入24,784股Kratos Defense & Security Solutions（KTOS），单只ETF占比0.05%。"
     },
     {
       "author": "Cathie Wood",
@@ -395,17 +209,15 @@
         "TEM"
       ],
       "sectors": [
-        "AI医疗"
+        "AI",
+        "医疗科技"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "00100"
       ],
       "stance": "sell",
-      "relevance": 46,
-      "summary_cn": "ARK Invest在ARKG中卖出7,996股Tempus AI，占该ETF约0.03%，属于规模很小的常规调整。"
+      "relevance": 48,
+      "summary_cn": "ARK于2026年11月13日从ARKG卖出7,996股Tempus AI（TEM），单只ETF占比0.03%。"
     },
     {
       "author": "Cathie Wood",
@@ -424,136 +236,27 @@
       ],
       "sectors": [
         "生物科技",
-        "基因治疗"
+        "基因编辑"
       ],
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 46,
-      "summary_cn": "ARK Invest在ARKG中买入28,905股Scribe Therapeutics，占该ETF约0.02%，属于规模很小的常规加仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX catches upper stage of Starship rocket in historic first",
-      "url": "",
-      "published": "Sat, 14 Nov 2026 21:14:46 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，SpaceX首次在飞行中成功捕获Starship火箭上面级，凸显其航天技术进展。"
-    },
-    {
-      "author": "Trump",
-      "text": "“I’m going to fight and get all of the President’s Nominees confirmed. Get the Permitting Bill passed. I want to do a Reconciliation Bill, which we can pass with no Democrat votes, provide money for the Military, money for Air Control, a Bill to ban Stock Trading, pass a Bill on Pardon Brokers, pass a Fraud Bill, all in the next 50 days. The FAA Funding should be a stand alone Bill — We should get Democrat support for that!” Senator John Kennedy",
-      "url": "https://www.trumpstruth.org/statuses/43571",
-      "published": "2026-11-14T17:39:15+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航空基础设施",
-        "许可监管",
-        "国会立法",
-        "股票交易监管"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "特朗普转述参议员约翰·肯尼迪的立法计划，涉及空管拨款、许可法案、军事及和解法案以及禁止国会议员炒股。"
+      "summary_cn": "ARK于2026年11月13日买入28,905股Scribe Therapeutics（SCTX），单只ETF占比0.02%。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry Warned AI Chips Would Lose Value Fast. New Data Suggests He Was Wrong",
-      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxOLWVzNEtUQXlYZmc3T1l0SEVIalFtYXBIcXpESWUwSGdzTWJtOWNNak5EcUQwbTV0REM2NnNISGZkakhydEI0WHY5SU5jM3FveDFOZ3ZfWWZlR2NhSldnb2VxZC0zWWZvcUdOeFUwek5xa1o2Ti02V2VhQUhESkFuTURiQ3ZMbHhUSExZanBTZTE2dkRJU0EzVVY2WFd2Z05mbVpPcWZuVkRuU1RFRGhLZWEybkdGZ05oQ2NidXdtRDMzTWha?oc=5",
-      "published": "2026-11-15T16:37:00+00:00",
+      "text": "“Behold the Bull-Trap”: Michael Burry Doubles His Nasdaq 100 Puts, Compares October High to March 2000",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNN3p3anJLUW5nVC1tQXR1V0V1ekZzbnpOMFNKRGVSaVI3SmNab1R2cWxxRHpjZEFQclJ2VTZQWEpONElhb1RnTWFLSEJySnFrQ2tBUzR6WW5TaFg1UFpPeDB2UTlPZzU4OHdxWGkycldXNFl4MGlxTkc5WW1EaWkzZW5kbUR0WjhwX2Y1VDVxdkdZOXJEMk10d21CTzI?oc=5",
+      "published": "2026-11-16T09:44:05+00:00",
       "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "半导体",
-        "芯片"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 64,
-      "summary_cn": "据报道，Michael Burry此前警告AI芯片会快速贬值，而新数据对这一看空观点提出质疑。"
-    },
-    {
-      "author": "Musk",
-      "text": "What Elon Musk’s SpaceX Starship Catch Means for Moon Missions",
-      "url": "",
-      "published": "Sun, 15 Nov 2026 11:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Newsweek",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "月球任务"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 63,
-      "summary_cn": "据报道，SpaceX捕获Starship上面级的技术突破可能进一步改善其月球任务能力。"
-    },
-    {
-      "author": "Trump",
-      "text": "The Biden Administration was an FAA disaster. Everything they touched turned bad. Big money spent unwisely, making an old and broken system worse than when they began. We have the knowledge and plan for the Flight Control Systems, we need Congress to give the money, FAST! Our FAA is doing a great job, and is ready to go. President DJT https://justthenews.com/government/federal-agencies/trump-admin-rips-biden-admin-handling-air-traffic-control-after-faa",
-      "url": "https://www.trumpstruth.org/statuses/43587",
-      "published": "2026-11-15T13:16:31+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航空基础设施",
-        "政府支出"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "特朗普要求国会尽快批准空管系统资金，并称现有FAA基础设施老化、亟需一次性升级。"
-    },
-    {
-      "author": "洪灏",
-      "text": "《新聞真假掰》首場Live Podcast登場 為AI時代寫下事實查核備忘錄",
-      "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE80OTczU29TUFpyczVqLUczaXV4NkZzaVNUXzRkT2t1d21ILTBsa19MSTBGSlZrV2VVanhvaFF4VkMxVEVrSzZDNDVxR0syUkFMbDdNQ0M4TTVHMHJXTjlYR1RISm5OV2ZJdzY5czJBeGVMRmc?oc=5",
-      "published": "2026-11-14T13:58:05+00:00",
-      "origin": "gnews-rss",
-      "source": "台灣事實查核中心",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "媒体",
-        "事实查核"
+        "纳斯达克100",
+        "科技股",
+        "指数期权"
       ],
       "sector_holdings": [
         "00100",
@@ -561,9 +264,9 @@
         "03033",
         "07226"
       ],
-      "stance": "neutral",
-      "relevance": 46,
-      "summary_cn": "洪灏参加AI时代事实查核主题播客，但公开条目未给出具体标的或明确投资立场。"
+      "stance": "attack",
+      "relevance": 73,
+      "summary_cn": "据报道，Michael Burry将纳斯达克100看跌期权仓位增加一倍，并以2000年3月高位类比当前科技股风险。"
     },
     {
       "author": "Trump",
@@ -575,223 +278,69 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国股市"
+        "美股",
+        "宏观经济"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "特朗普声称美国大选后股市一度蒸发3万亿美元，但随后已回升。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Gridlock looms on congressional stock trade ban as parties clash over divestment",
-      "url": "https://news.google.com/rss/articles/CBMilgJBVV95cUxOODE0RTg3dFJHVmkzNEJKaFotSkFISVNXR1oxMEFldllxUHFReDdqcUZqUlF4N0ViN3FoRVRQSVR6NWMxSWprUi1jbEtaUHFEOTlETXlZaE5DMHF0ZnBSVkJlejFsQ0dUQXl1VmlsYXZjMlh1eEVqM3hVX1BTemRaLUlfRWtfQ19LNDZUZE5tTEF4RVh4Tm5mNHlaLVBQLWQ4eVJZOUUtaDlBNHpjVlBvcmhMZTBuZGhqbXB2Q3lmWmxaZ3JjdUlCUVNtaVlVendZN1RHS3FMUGVpRzc1TkxZN0ZXR1hhcnE1bkgtc3dfM2s0NlRCMWJROTVMYk5aS0R2RE92RFB5ZFlERmlyT21udUZ6V2RSQQ?oc=5",
-      "published": "2026-11-15T08:14:15+00:00",
-      "origin": "gnews-rss",
-      "source": "National News Desk",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "股票交易监管",
-        "国会"
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
       ],
-      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "据报道，美国国会两党因国会议员持股是否应强制出售而分歧，股票交易禁令面临僵局。"
+      "relevance": 51,
+      "summary_cn": "特朗普称美国股市在选举后一度蒸发3万亿美元市值、随后回升，并继续表达对美股前景的乐观。"
     },
     {
       "author": "Trump",
-      "text": "I am working with Senator Tim Scott and, believe it or not, Senator Adam Schiff, and, additionally, Senators John Cornyn, Raphael Warnock, Steve Daines, Bernie Moreno, Tim Sheehy, Alex Padilla, Mark Warner, Thom Tillis, Chris Coons, Katie Britt, and Dick Durbin, together with Representatives Jason Smith, Nathaniel Moran, Brian Jack, Linda Sanchez, and many others, both Republican and Democrat, on the Motion Picture, Television, and Entertainment Revitalization Act. The support and popularity of doing this, and bringing Entertainment back to the United States of America, has been unbelievable! ",
-      "url": "https://www.trumpstruth.org/statuses/43572",
-      "published": "2026-11-14T17:38:19+00:00",
+      "text": "The new people running 60 Minutes are even worse than their predecessors. A recent study on an attack in the early stages of Iran was not correctly stated. Since February 28, 2026, the start of Epic Fury, Iran has fired between 8,000-9,000 One-way Attack Drones. Only 2 of them got through, resulting in U.S. fatalities, both on the first day, hitting Kuwait and Saudi Arabia. Likewise, Iran has fired about 2,000 Ballistic Missiles. Only 1 out of the 2,0000 got through, and caused U.S. fatalities (Jordan). Translation: 99.99% of Iranian missiles and drones have been shot down or, in any event, no",
+      "url": "https://www.trumpstruth.org/statuses/43603",
+      "published": "2026-11-16T14:17:10+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "影视娱乐",
-        "监管"
+        "中东局势",
+        "国防军工",
+        "无人机",
+        "导弹",
+        "能源"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "特朗普称正推动跨党派支持《影视娱乐振兴法案》，以促进美国影视娱乐业发展。"
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "特朗普称伊朗发射的大量无人机和导弹绝大多数被拦截，凸显中东冲突对国防、能源及风险偏好的潜在影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "If Congress approves the desperately needed money for Air Traffic Control, we can get it built quickly and efficiently. It will be the BEST SYSTEM anywhere in the World. Much of our current air control system is 50 years old - RIDICULOUS! We have already started the work, but it should be done all at once, not in drips and drabs. Congress must approve. The Biden Administration set it back years! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/43588",
+      "published": "2026-11-15T13:35:45+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航空基础设施",
+        "美国财政政策",
+        "FAA"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 54,
+      "summary_cn": "特朗普敦促国会尽快批准空中交通管制系统建设资金，若落地将带来航空基础设施投资增量。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
-      "author": "Musk",
-      "text": "Elon Musk, Uber co-founder join calls to reinstate Jensen Huang as Nvidia chief",
-      "url": "",
-      "published": "Sun, 15 Nov 2026 23:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "France 24",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "据报道，Elon Musk与Uber联合创始人呼吁让Jensen Huang重返Nvidia掌门位置，显示对黄仁勋及其领导力的支持。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Pelosi Bought Bloom Before S&P 500 Did | Where I'd Start | Market Prep Sunday Allison Ellsworth (1kABruVOYI)",
-      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxObmJuY2ltak9OeHh6OGVqNFp4T0ppWmJZdEw4NG9sRzZqNENtUHEwc0p2RW1EWXZUVzcwb1NuSU9TdWhUcks1bDNLZ1NvTF9nYXFscFppcDFwZzg3Nll1ckZYTTNjcFhKWHFiSVd4aDBSUHdTd25kc2I3VjZJbnl3eWdpRHdRVWs?oc=5",
-      "published": "2026-11-15T04:49:54+00:00",
-      "origin": "gnews-rss",
-      "source": "Unisba Media",
-      "tickers": [
-        "BLOOM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BLOOM"
-      ],
-      "sectors": [
-        "加密货币",
-        "金融科技"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "buy",
-      "relevance": 86,
-      "summary_cn": "最新国会交易披露显示，Pelosi持有Bloom Strategies相关头寸。"
-    },
-    {
-      "author": "段永平",
-      "text": "掌舵33年黯然謝幕，黃仁勳辭任引輝達震盪，64隻QDII基金重倉承壓",
-      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE1wYkF0VkwtbWx3c1NqUTBtSVFFZDNJcllnTThibHQzVUtGci1LdUdSQnRJUms0em5QYVpyVk5ibkFUempaSjVobA?oc=5",
-      "published": "2026-11-14T01:58:45+00:00",
-      "origin": "gnews-rss",
-      "source": "鉅亨號",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 84,
-      "summary_cn": "据报道，黄仁勋辞任Nvidia掌门后引发股价震荡，并令重仓该股的64只QDII基金承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla and SpaceX Lost More Than $420 Billion in Combined Market Value in Two Days After Democrats Swept the Midterms, With Investors Fearing New Congressional Probes. Here's Why That Political Risk Matters for Shareholders",
-      "url": "",
-      "published": "Sat, 14 Nov 2026 22:48:02 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天",
-        "政治风险"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "媒体称特朗普中期选举胜选后，Tesla与SpaceX两日合计市值蒸发逾4200亿美元，投资者担忧国会调查带来的政治风险。"
-    },
-    {
       "author": "Burry",
-      "text": "Weekly Recap: Lower target and Burry keeps Meituan in Hong Kong portfolio",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNMHp0cF96bFItS1ZYd011ZHBoMnBTcXBDMHNnSjQtMkVFN0pySUpfRjM5eE1vNnMzalVlSzcyaUtfdTZqZkJjSkVJeDloVDhuYTVVMU9ZNjI1NzFaeVN2M0d5dC1GQkRmYzNEdTJEWmhjd3lWTXp3aFhaVG5XRVIwQXY5ZGFmYzhtVWxFX3BKNXdVRzlHZ0g1akVmVGxORWRRZEs3NE1nN2pHV2dyOWQ3NG9waDNfWTdqa01xbTEwYUF2Wnp6WXRNalRvNi1uTU0?oc=5",
-      "published": "2026-11-15T23:00:00+00:00",
+      "text": "Michael Burry says he won't buy Nvidia stock 'at any price' now — as he predicts 'real problems' beyond Jensen Huang",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPUUtJVEdGQWwxZDR0Snk5NWFSY2tLTlAxeTFwM1FaWjdod0I1cnJ5WUZ6dWFOTzUxelhoZi1pUXZlMnF0QTJhYUtuaHBoZzd4ek9rcFV2RzBZM0FIMUQ0Qk1FVkROamVZU2ZLQU1scU5RcmlZZklIZEpDSGpxRF9BWjV3N3NPeGhRbG41bThEaUc1cXowOWxnTGVnSTQxVUU?oc=5",
+      "published": "2026-11-16T15:45:00+00:00",
       "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [
-        "MPNGY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MPNGY"
-      ],
-      "sectors": [
-        "中国互联网",
-        "电商",
-        "本地生活"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry下调目标价的同时仍保留其美团持仓，表达继续持有态度。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Could Announce Tesla-SpaceX Merger By December: Report",
-      "url": "",
-      "published": "Thu, 12 Nov 2026 21:35:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "航天",
-        "并购重组"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 76,
-      "summary_cn": "据报道，Elon Musk可能在12月宣布Tesla与SpaceX合并，但交易尚未获正式确认。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry sees 2 chip winners in Nvidia’s shake-up",
-      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNemRLWWd6UXU5YmtNbXVWNlVrazRvMHV6YmhzZ01ncllzTVVFQXdoVkk4eWVETl9YYTNWM0pXSW1mQnpBMmlHbnhsMVJzVUpYNlRLX1lYVEV0NENIQmhTc29XLWp4eXpZekxvUWNhQklISzhkMlFWa0JBRlFSdm5RVnFJaVpab3ZUYUYzM1YtUUcyX3kt?oc=5",
-      "published": "2026-11-15T03:42:10+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Business Insider",
       "tickers": [
         "NVDA"
       ],
@@ -802,7 +351,7 @@
       "sectors": [
         "AI",
         "半导体",
-        "芯片"
+        "GPU"
       ],
       "sector_holdings": [
         "00100",
@@ -811,15 +360,15 @@
         "07226",
         "07709"
       ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "据报道，Michael Burry在Nvidia管理层变动后 identifies 两只可能受益的芯片股，但该条目未披露具体赢家。"
+      "stance": "attack",
+      "relevance": 84,
+      "summary_cn": "据报道，Michael Burry表示目前不会以任何价格买入英伟达，并警告黄仁勋之外可能出现“真正的问题”。"
     },
     {
-      "author": "Pelosi",
-      "text": "'Nvidia Will Die Without Jensen' Doesn't Add Up, Says Anthony Scaramucci, Pointing to Apple's Post-Steve",
-      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOMG0zdk1XSnBDdk9MRjR1T0YtWUZfU1dkMDVzZjJnd1pRQTNpajZtd1NXRTJvaXlQakh2WmxTbVNOVTh2YU40ZzRMQWVkcTlYNk1JbVNzeXpHbzZSR05IZzNub3dZNWhXZjRGMlNOa1F0MDQwcXA3M19WN3paUU5ta0FMd2F6N1l0YnJ6YmFNNGxiOHFIOHc?oc=5",
-      "published": "2026-11-14T08:00:57+00:00",
+      "author": "Burry",
+      "text": "Michael Burry Smells a Rat in Nvidia’s Vanishing Singapore Revenue",
+      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOWVMtc3VsNUh6MnBIYW1PSmlHYVZQcXBkNkkwQ3N2MUYybXE5WlVOWGtQZUIxbDVEbnAxUGV2QTNsRU9TZkpJWnRPSkotOWxJRXZDTzdBdWUtckw5M0haM3pTYTRYdzVhSWtNRnhSSmcxQXhXVmVTX3hrUWtQU2laWHdBUklfMTR0QkVZM3VWN1R5M3c0OFJXZnZLcFVjbW82Wm92M0xBTXV3R3R6NzdkaTRIZXNlcF9NUUE?oc=5",
+      "published": "2026-11-16T16:22:41+00:00",
       "origin": "gnews-rss",
       "source": "Benzinga",
       "tickers": [
@@ -831,7 +380,9 @@
       ],
       "sectors": [
         "AI",
-        "半导体"
+        "半导体",
+        "GPU",
+        "会计风险"
       ],
       "sector_holdings": [
         "00100",
@@ -840,17 +391,17 @@
         "07226",
         "07709"
       ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "据报道，Anthony Scaramucci反驳Nvidia没有Jensen Huang就会衰亡的说法，暗示黄仁勋对公司的重要性可能被夸大。"
+      "stance": "attack",
+      "relevance": 79,
+      "summary_cn": "据报道，Michael Burry质疑英伟达新加坡收入正在消失，暗示其财务报表可能存在异常。"
     },
     {
-      "author": "Burry",
-      "text": "How NVIDIA’s Changed Asian Revenue Reporting “Disappeared” Singapore - and What Else?",
-      "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE9lWS1hT0N4b1VSaXkwLWVaVkhldVVjMWIxYmRlbDVtWFN4NDRaTWNiSFhXbGI4aWozU3ZFZ3NFS2VZdjgxLS1IaFoxVHJ5RDBwNFRoYWQxNXREaEtOUGsyWmtnMU03Skw2QkdJekxITnV2MzUxTXMwcGNR?oc=5",
-      "published": "2026-11-15T17:28:46+00:00",
+      "author": "段永平",
+      "text": "段永平谈英伟达前景：护城河依然强大，不想急着逃，黄仁勋回归并非零概率",
+      "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTFAyTkJqS0x3bkFoRmE3Q25CREZfY2xsYTBIRmdlaVprSFl3NExKMm43S190dG1RUUhFQkhUM2hOWk5zOVV1c01mZklDcGt4OG9sd3ZoZG1TY2tEZnJaMzRIWkpscW5Wdw?oc=5",
+      "published": "2026-11-16T09:51:38+00:00",
       "origin": "gnews-rss",
-      "source": "Cassandra Unchained | Michael Burry",
+      "source": "TradingView",
       "tickers": [
         "NVDA"
       ],
@@ -861,7 +412,7 @@
       "sectors": [
         "AI",
         "半导体",
-        "亚洲市场"
+        "GPU"
       ],
       "sector_holdings": [
         "00100",
@@ -870,9 +421,33 @@
         "07226",
         "07709"
       ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，Michael Burry质疑Nvidia改变亚洲收入披露方式，并认为相关收入可能从新加坡报表中消失。"
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "据媒体转述，段永平认为英伟达护城河依然强大、没有急售意向，并称黄仁勋回归并非零概率。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Cashed In Caterpillar Puts After a Nearly 4x Gain Even as CAT Stock Fell 10% in Its Worst Week in 18 Months. Is Caterpillar Still Overvalued, or Did Burry Just Lock In the Easy Money?",
+      "url": "https://news.google.com/rss/articles/CBMi1wJBVV95cUxQRzlMOWd6Y3BEaDZVeDkyWG9Jd2xuMlltLVFyRnJ1cVhsR2RDcjdSZ0FtRXNnZDloOEF3TlUyTWZpQVk0Q2xaXzBBUEhHN2l1VmVEZk1Ob0FPOE11MFMwc0E0LXpuR3VLYzY2dVBpcDhnRW1iMHlLUkJ2elQxQkc1YmNQTlgtMVJ0RTZnTWZGUkIxd0x2LXhfbklHVnJEZm1taE9vVlJ3SEk4Q3lPRGlZYlRiTzI4bm5KNUxoQ3NGQ0tubmRsRUE4RjF4UGNUQzQ2bk5IdU1qTTZRY1B5UkN3X21qT2k5OHJhc0pyUU1ndUsyXzlOTDJ5QVhpWDRUVWdQZVFLRlBja2lCelV6Tl85aVlPajROUFAtSWpfM1l6N09ncVVIcnhKX1dZMF9oZFh0MDZIQXN0T3VlelNCUmV4ODcyTHdzZUM4el9hdjg4X3JodExGVVdn?oc=5",
+      "published": "2026-11-16T21:05:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "CAT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CAT"
+      ],
+      "sectors": [
+        "工程机械",
+        "工业股",
+        "指数期权"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 75,
+      "summary_cn": "据报道，Michael Burry在卡特彼勒（CAT）股价大跌期间兑现 Caterpillar 看跌期权收益，延续对其高估的警惕。"
     },
     {
       "author": "Cathie Wood",
@@ -890,138 +465,127 @@
         "BYDDY"
       ],
       "sectors": [
-        "电动车"
+        "电动车",
+        "中国汽车"
       ],
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK Invest在ARKQ中卖出219,468股比亚迪，仓位占该ETF约0.10%。"
+      "summary_cn": "ARK于2026年11月13日从ARKQ卖出219,468股比亚迪（BYDDY），单只ETF占比0.10%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-13 调仓：Kratos Defense & Security Solutions, Inc.(KTOS) 买入 ARKQ 24,784 股（最大单只 ETF 占比 0.05%）",
+      "url": "https://www.ark-funds.com/funds/arkq/",
+      "published": "2026-11-13T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0477,
+      "tickers": [
+        "KTOS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "KTOS"
+      ],
+      "sectors": [
+        "国防军工",
+        "航空航天"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 52,
+      "summary_cn": "ARK于2026年11月13日买入24,784股Kratos Defense & Security Solutions（KTOS），单只ETF占比0.05%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-13 调仓：Tempus AI, Inc.(TEM) 卖出 ARKG 7,996 股（最大单只 ETF 占比 0.03%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-13T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0284,
+      "tickers": [
+        "TEM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TEM"
+      ],
+      "sectors": [
+        "AI",
+        "医疗科技"
+      ],
+      "sector_holdings": [
+        "00100"
+      ],
+      "stance": "sell",
+      "relevance": 48,
+      "summary_cn": "ARK于2026年11月13日从ARKG卖出7,996股Tempus AI（TEM），单只ETF占比0.03%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-13 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 28,905 股（最大单只 ETF 占比 0.02%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-13T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.023,
+      "tickers": [
+        "SCTX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SCTX"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因编辑"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 46,
+      "summary_cn": "ARK于2026年11月13日买入28,905股Scribe Therapeutics（SCTX），单只ETF占比0.02%。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "SpaceX catches upper stage of Starship rocket in historic first",
-      "url": "",
-      "published": "Sat, 14 Nov 2026 21:14:46 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，SpaceX首次在飞行中成功捕获Starship火箭上面级，凸显其航天技术进展。"
-    },
-    {
-      "author": "Trump",
-      "text": "“I’m going to fight and get all of the President’s Nominees confirmed. Get the Permitting Bill passed. I want to do a Reconciliation Bill, which we can pass with no Democrat votes, provide money for the Military, money for Air Control, a Bill to ban Stock Trading, pass a Bill on Pardon Brokers, pass a Fraud Bill, all in the next 50 days. The FAA Funding should be a stand alone Bill — We should get Democrat support for that!” Senator John Kennedy",
-      "url": "https://www.trumpstruth.org/statuses/43571",
-      "published": "2026-11-14T17:39:15+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航空基础设施",
-        "许可监管",
-        "国会立法",
-        "股票交易监管"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "特朗普转述参议员约翰·肯尼迪的立法计划，涉及空管拨款、许可法案、军事及和解法案以及禁止国会议员炒股。"
-    },
-    {
       "author": "Burry",
-      "text": "Michael Burry Warned AI Chips Would Lose Value Fast. New Data Suggests He Was Wrong",
-      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxOLWVzNEtUQXlYZmc3T1l0SEVIalFtYXBIcXpESWUwSGdzTWJtOWNNak5EcUQwbTV0REM2NnNISGZkakhydEI0WHY5SU5jM3FveDFOZ3ZfWWZlR2NhSldnb2VxZC0zWWZvcUdOeFUwek5xa1o2Ti02V2VhQUhESkFuTURiQ3ZMbHhUSExZanBTZTE2dkRJU0EzVVY2WFd2Z05mbVpPcWZuVkRuU1RFRGhLZWEybkdGZ05oQ2NidXdtRDMzTWha?oc=5",
-      "published": "2026-11-15T16:37:00+00:00",
+      "text": "“Behold the Bull-Trap”: Michael Burry Doubles His Nasdaq 100 Puts, Compares October High to March 2000",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNN3p3anJLUW5nVC1tQXR1V0V1ekZzbnpOMFNKRGVSaVI3SmNab1R2cWxxRHpjZEFQclJ2VTZQWEpONElhb1RnTWFLSEJySnFrQ2tBUzR6WW5TaFg1UFpPeDB2UTlPZzU4OHdxWGkycldXNFl4MGlxTkc5WW1EaWkzZW5kbUR0WjhwX2Y1VDVxdkdZOXJEMk10d21CTzI?oc=5",
+      "published": "2026-11-16T09:44:05+00:00",
       "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "半导体",
-        "芯片"
+        "纳斯达克100",
+        "科技股",
+        "指数期权"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
-        "07226",
-        "07709"
+        "07226"
       ],
       "stance": "attack",
-      "relevance": 64,
-      "summary_cn": "据报道，Michael Burry此前警告AI芯片会快速贬值，而新数据对这一看空观点提出质疑。"
-    },
-    {
-      "author": "Musk",
-      "text": "What Elon Musk’s SpaceX Starship Catch Means for Moon Missions",
-      "url": "",
-      "published": "Sun, 15 Nov 2026 11:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Newsweek",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "月球任务"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 63,
-      "summary_cn": "据报道，SpaceX捕获Starship上面级的技术突破可能进一步改善其月球任务能力。"
+      "relevance": 73,
+      "summary_cn": "据报道，Michael Burry将纳斯达克100看跌期权仓位增加一倍，并以2000年3月高位类比当前科技股风险。"
     },
     {
       "author": "Trump",
-      "text": "The Biden Administration was an FAA disaster. Everything they touched turned bad. Big money spent unwisely, making an old and broken system worse than when they began. We have the knowledge and plan for the Flight Control Systems, we need Congress to give the money, FAST! Our FAA is doing a great job, and is ready to go. President DJT https://justthenews.com/government/federal-agencies/trump-admin-rips-biden-admin-handling-air-traffic-control-after-faa",
-      "url": "https://www.trumpstruth.org/statuses/43587",
-      "published": "2026-11-15T13:16:31+00:00",
+      "text": "Has anyone noticed that immediately after the Election the Stock Market lost 3 Trillion Dollars in Value? In other words, Investors throughout the World hated seeing what took place on Election Day. But have no fear, the Market has since gone up, and America will soon be GREATER THAN EVER BEFORE! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43582",
+      "published": "2026-11-15T00:50:04+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航空基础设施",
-        "政府支出"
-      ],
-      "sector_holdings": [
-        "RKLB"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "特朗普要求国会尽快批准空管系统资金，并称现有FAA基础设施老化、亟需一次性升级。"
-    },
-    {
-      "author": "洪灏",
-      "text": "《新聞真假掰》首場Live Podcast登場 為AI時代寫下事實查核備忘錄",
-      "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE80OTczU29TUFpyczVqLUczaXV4NkZzaVNUXzRkT2t1d21ILTBsa19MSTBGSlZrV2VVanhvaFF4VkMxVEVrSzZDNDVxR0syUkFMbDdNQ0M4TTVHMHJXTjlYR1RISm5OV2ZJdzY5czJBeGVMRmc?oc=5",
-      "published": "2026-11-14T13:58:05+00:00",
-      "origin": "gnews-rss",
-      "source": "台灣事實查核中心",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "媒体",
-        "事实查核"
+        "美股",
+        "宏观经济"
       ],
       "sector_holdings": [
         "00100",
@@ -1030,8 +594,8 @@
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 46,
-      "summary_cn": "洪灏参加AI时代事实查核主题播客，但公开条目未给出具体标的或明确投资立场。"
+      "relevance": 51,
+      "summary_cn": "特朗普称美国股市在选举后一度蒸发3万亿美元市值、随后回升，并继续表达对美股前景的乐观。"
     }
   ]
 }
