@@ -2044,6 +2044,7 @@ def test_restore_stage_restores_absent_cards_and_rederives_what_belongs_to_this_
     whole `build_projection` run."""
     previous = {
         "anomalies": [{"type": "high_weight_loss", "ticker": "OLD", "weight": 0.9},
+                      {"type": "leveraged_etf_stop", "ticker": "SPCH", "detail": "old stop"},
                       {"type": "peer_gap", "ticker": "00100"}],
         "market_context": {"data_as_of": "prev"},
         "peer_divergence": {"as_of": "2026-10-02", "items": [{"ticker": "00100"}]},
@@ -2522,3 +2523,12 @@ def test_leverage_stops_enumerate_live_holdings_without_peer_membership(ctx):
     assert [a['ticker'] for a in stops] == ['07709']
     assert stops[0]['severity'] == 'high'
     assert 'today -14.6%' in stops[0]['detail']
+
+
+def test_restore_cannot_drop_new_or_keep_closed_leverage_stops():
+    out = {'anomalies': [], 'concentration': {}, 'bear_cases': [], 'hidden_concentration': None}
+    previous = {'anomalies': [{'type': 'leveraged_etf_stop', 'ticker': 'SPCH'}]}
+    dashboard._restore_previous_cards(
+        out, previous, {'anomalies': False}, {'portfolios': {}}, [],
+        [{'ticker': '07709', 'shares': 10, 'pnl_percent': -30}], set(), [])
+    assert [a['ticker'] for a in out['anomalies']] == ['07709']

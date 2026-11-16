@@ -4724,13 +4724,15 @@ def _restore_previous_cards(out, previous, presence, portfolio, us_rows, hk_rows
         usable={'peer_divergence': lambda v: isinstance(v, dict) and bool(v.get('items'))})
     if 'anomalies' in _preserved:
         # A restored list carries the previous build's position weights. The
-        # brief-derived entries are what the restore is for; the weight check
-        # needs no brief-context, so it is redone on the book being published.
+        # brief-derived entries are what the restore is for; weight and leverage
+        # stops need no brief-context, so both are redone on the current book.
         _legs = [leg.key for leg in resolve_legs(portfolio)]
-        out['anomalies'] = high_weight_loss_anomalies(
-            _holdings_by_ticker(us_rows, hk_rows), _legs, out['concentration']) + [
+        live_types = {'high_weight_loss', 'leveraged_etf_stop'}
+        live = extract_anomalies(None, us_rows, hk_rows, leg_keys=_legs,
+                                 concentration=out['concentration'])
+        out['anomalies'] = [a for a in live if a['type'] in live_types] + [
             a for a in out['anomalies']
-            if not (isinstance(a, dict) and a.get('type') == 'high_weight_loss')]
+            if not (isinstance(a, dict) and a.get('type') in live_types)]
     _checked_insights = validate_insights(out, known_tickers, weights=insight_weights,
                                           basis_values=basis_values)
     out['bear_cases'] = _checked_insights['bear_cases']
