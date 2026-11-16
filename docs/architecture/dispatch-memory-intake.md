@@ -137,6 +137,10 @@ that a public body does not copy a private topic (`provenance.py`).
 
 ## 4. De-duplication is deliberate
 
+The model catalogue selects public topics before applying its 80-topic budget;
+private topics do not consume that budget. Local token de-duplication still checks
+all topics.
+
 An existing topic wins in three ways:
 
 1. the model names `existing_topic`;

@@ -186,3 +186,97 @@ def test_a_receipt_cannot_be_bound_to_a_different_sha(tmp_path):
                            capture_output=True, text=True, timeout=60)
     assert check.returncode == 1
     assert "invalid review receipt" in check.stderr
+
+
+def test_rejected_candidate_releases_the_next_candidate_from_its_source(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    text = (candidate("A vague slogan about careful work.")
+            + candidate("Verify original evidence before drawing conclusions.", line=20))
+    ws = workspace(tmp_path, text)
+    entries = load_gate().extract(text)[1]
+    first = run_review(ws, store, [{"key": entries[0]["key"], "decision": "reject",
+                                  "reason": "口号，没有可执行结论"}], "--limit", "1")
+    assert first.returncode == 0, first.stderr
+    second = run_review(ws, store, [{"key": entries[1]["key"], "decision": "approve",
+                                    "conclusion": "得出结论前先核验原始证据",
+                                    "scope": "engineering", "salience": "high",
+                                    "reason": "可复用方法"}], "--limit", "1")
+    assert second.returncode == 0, second.stderr
+    assert json.loads(second.stdout)["approved"] == 1
+    rejected = json.loads((ws / "memory/.dreams/promotion-rejections.json").read_text())
+    assert rejected[entries[0]["key"]]["sha256"] == entries[0]["sha256"]
+
+
+def test_rejected_batch_does_not_starve_later_sources(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    text = (candidate("A vague slogan about careful work.")
+            + candidate("Separate evidence and inference.", source="memory/other.md"))
+    ws = workspace(tmp_path, text)
+    entries = load_gate().extract(text)[1]
+    for entry in entries:
+        result = run_review(ws, store, [{"key": entry["key"], "decision": "reject",
+                                        "reason": "已有结论覆盖"}], "--limit", "1")
+        assert result.returncode == 0, result.stderr
+        assert json.loads(result.stdout)["sent"] == 1
+    exhausted = run_review(ws, store, [], "--limit", "1")
+    assert exhausted.returncode == 0, exhausted.stderr
+    assert json.loads(exhausted.stdout)["sent"] == 0
+
+
+def test_changed_rejected_candidate_is_reviewed_again(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    text = candidate("A vague slogan about careful work.")
+    ws = workspace(tmp_path, text)
+    entry = load_gate().extract(text)[1][0]
+    result = run_review(ws, store, [{"key": entry["key"], "decision": "reject",
+                                    "reason": "口号"}])
+    assert result.returncode == 0, result.stderr
+    (ws / "memory/.dreams/promotion-candidates.md").write_text(
+        candidate("Verify original evidence before drawing conclusions."))
+    retry = run_review(ws, store, [], "--check")
+    assert retry.returncode == 0, retry.stderr
+    assert json.loads(retry.stdout)["sent"] == 1
+
+
+def test_missing_model_answer_and_invalid_approval_remain_retryable(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    ws = workspace(tmp_path, candidate("Verify original evidence before drawing conclusions."))
+    for reply in ([], [{"key": load_gate().extract(
+            (ws / "memory/.dreams/promotion-candidates.md").read_text())[1][0]["key"],
+            "decision": "approve", "conclusion": "今天 12.34 美元", "reason": "x"}]):
+        result = run_review(ws, store, reply)
+        assert result.returncode == 0, result.stderr
+        assert json.loads(result.stdout)["sent"] == 1
+        assert not (ws / "memory/.dreams/promotion-rejections.json").exists()
+
+
+def test_check_does_not_record_a_rejection(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    text = candidate("A vague slogan about careful work.")
+    ws = workspace(tmp_path, text)
+    entry = load_gate().extract(text)[1][0]
+    result = run_review(ws, store, [{"key": entry["key"], "decision": "reject",
+                                    "reason": "口号"}], "--check")
+    assert result.returncode == 0, result.stderr
+    assert not (ws / "memory/.dreams/promotion-rejections.json").exists()
+
+
+def test_already_promoted_source_does_not_consume_review_slots(tmp_path):
+    store = tmp_path / "store"
+    store.mkdir()
+    text = (candidate("Another conclusion from an already accepted source.")
+            + candidate("Verify original evidence before drawing conclusions.", source="memory/new.md"))
+    ws = workspace(tmp_path, text)
+    (ws / "MEMORY.md").write_text("# Memory\n\n- Source: memory/2026-11-12.md:1-1 (reviewed)\n")
+    new = load_gate().extract(text)[1][1]
+    result = run_review(ws, store, [{"key": new["key"], "decision": "approve",
+                                    "conclusion": "得出结论前先核验原始证据",
+                                    "scope": "engineering", "salience": "high",
+                                    "reason": "可复用方法"}], "--limit", "1")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["approved"] == 1

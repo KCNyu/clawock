@@ -349,9 +349,10 @@ def curator_prompt(item: dict, topics: list[dict]) -> str:
     # Only public descriptions leave the host. De-dupe below still runs against
     # every topic locally, so a private note can suppress a duplicate without its
     # text reaching the model.
+    public_topics = [topic for topic in topics if topic["description"] and topic["publish"] == "public"]
     catalogue = "\n".join(
         f"- {topic['slug']}: {topic['description'][:180]}"
-        for topic in topics[:80] if topic["description"] and topic["publish"] == "public")
+        for topic in public_topics[:80])
     payload = {
         "stage": item["stage"],
         "task": item["task_id"].rsplit("-", 2)[0],

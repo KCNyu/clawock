@@ -75,6 +75,16 @@ candidate, re-screens that conclusion with the same rules, and writes a receipt 
 SHA256 and rejects contaminated text even when a receipt exists. A model outage or malformed reply
 writes nothing and leaves the candidates pending.
 
+Explicit model rejections are saved privately in
+`memory/.dreams/promotion-rejections.json`, bound to the candidate key and SHA256.
+The next run skips that exact rejected text so later candidates can use the batch
+budget, including the next candidate from the same source. A changed candidate is
+reviewed again. Missing answers and invalid approvals remain pending for retry;
+`--check` writes neither approvals nor rejections. Sources with an already approved
+or promoted conclusion consume no further model review slots. To request a fresh
+review of unchanged rejected text, remove only its key from the private rejection
+file; this grants no promotion approval.
+
 An approved conclusion becomes one new topic:
 
 - slug `lessons-dreaming-<source-stem>-<start>-<end>`;
