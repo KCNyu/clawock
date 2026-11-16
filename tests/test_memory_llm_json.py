@@ -6,6 +6,8 @@ OpenClaw default resolves to `off`; the command therefore always names the level
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 MODULE = ROOT / "ops/host/shared-memory/scripts/llm_json.py"
 
@@ -46,3 +48,20 @@ def test_a_closing_fence_attached_to_the_json_is_ignored(monkeypatch):
     module = load(monkeypatch)
     assert module.extract_json('```json\n[{"key": "a"}]\n```') == [{"key": "a"}]
     assert module.extract_json('```json\n[{"key": "a"}]```') == [{"key": "a"}]
+
+
+@pytest.mark.parametrize("wrapper", [
+    "审阅结果如下：\n{}",
+    "```json\n{}\n```\n以上是审阅结果。",
+    "结果：\n{}\n结束。",
+])
+def test_prose_wrapped_batches_keep_every_decision(monkeypatch, wrapper):
+    module = load(monkeypatch)
+    batch = '[{"key":"a","reason":"含 [括号] 与 } 的文字"},{"key":"b"}]'
+    assert module.extract_json(wrapper.format(batch)) == [
+        {"key": "a", "reason": "含 [括号] 与 } 的文字"}, {"key": "b"}]
+
+
+def test_a_wrapped_object_keeps_its_nested_array(monkeypatch):
+    module = load(monkeypatch)
+    assert module.extract_json('结果：{"tags":["a","b"]} 完毕') == {"tags": ["a", "b"]}
