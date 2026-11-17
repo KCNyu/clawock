@@ -121,6 +121,25 @@ def test_coverage_publish_chain_reads_the_lane_that_produces_the_artifact():
         "publish-coverage must skip when the suite never measured anything")
 
 
+def test_coverage_publish_handles_skipped_optional_ancestors_without_bypassing_gate():
+    """A green validate can have skipped browser/workbench ancestors.
+
+    Without a status function, Actions adds success() and skips publication
+    even though validate succeeded and uploaded the report. An explicit gate
+    result is also required: !cancelled() alone would publish after failure.
+    """
+    import yaml
+
+    job = yaml.safe_load(TEXT)['jobs']['publish-coverage']
+    condition = job['if']
+    assert job['needs'] == 'validate'
+    assert '!cancelled()' in condition
+    assert "needs.validate.result == 'success'" in condition
+    assert "github.event_name == 'push'" in condition
+    assert "github.ref == 'refs/heads/master'" in condition
+    assert "needs.validate.outputs.code == 'true'" in condition
+
+
 def test_validate_publishes_its_detector_answer_as_a_job_output():
     job = TEXT.split("\n  validate:", 1)[1].split("\n  publish-coverage:", 1)[0]
     assert "code: ${{ needs.scope.outputs.code }}" in job
