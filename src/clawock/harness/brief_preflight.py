@@ -1606,6 +1606,7 @@ def news_evidence_node():
             news_evidence_ctx = {
                 'as_of': graph.get('as_of'),
                 'summary': graph.get('summary'),
+                'summary_scope': 'canonical_graph_before_projection_and_budget_trimming',
                 # `attach_event_ids` for the same reason `attach_breach_ids`
                 # exists next to the guardrail: the model should copy an id,
                 # not compose one. Applied to the PROJECTION, not the source —
@@ -2273,7 +2274,8 @@ def _collect(argv=None):
     for name, fields in dropped_bundle_fields.items():
         issues.append(
             f'{name} bundle 超出单次加载预算，已省略 {", ".join(fields)}；'
-            '相关事实以 decision packet 的投影为准。'
+            '被省略的字段本次不可读取，不得假定 decision packet 含有其完整事实；'
+            '涉及该输入的判断须明确说明不可用，不能用其它字段冒充。'
         )
         print(f'   🧾 {name} bundle: omitted {", ".join(fields)} to fit '
               'the per-load budget')

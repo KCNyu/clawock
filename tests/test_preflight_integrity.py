@@ -1039,3 +1039,15 @@ def test_non_string_data_source_is_named_not_a_typeerror(run_check):
     report = run_check(data)
     codes = {f['code'] for f in report['findings']}
     assert 'SESSION_STAMP_INVALID' in codes, codes
+
+
+def test_realized_recompute_and_integrity_count_the_same_non_sell_entries(run_check):
+    from clawock.portfolio.realized import recompute
+    data = _portfolio_data(holdings=[_holding(trades=[
+        {'date': '2026-07-01', 'action': 'buy', 'shares': 10, 'price': 100,
+         'realized_pnl': 50},
+        {'date': '2026-07-02', 'action': 'sell', 'shares': 1, 'price': 110,
+         'realized_pnl': 200},
+    ])])
+    recompute(data)
+    assert not [f for f in run_check(data)['findings'] if f['code'] == 'REALIZED_SUM']

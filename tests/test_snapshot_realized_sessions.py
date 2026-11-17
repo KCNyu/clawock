@@ -163,3 +163,19 @@ def test_an_unusable_realized_leaf_is_skipped_not_fatal():
         ledger, FRIDAY, snapshot_shares(snapshot), market="us")
 
     assert total == 0 and note == ""
+
+
+def test_realized_entries_share_the_live_contract_without_replaying_adjustments_as_sales():
+    from clawock.portfolio.realized import recompute
+    trades = [
+        {'date': '2026-06-10', 'action': 'buy', 'shares': 10, 'realized_pnl': 50},
+        {'date': '2026-06-11', 'action': 'sell', 'shares': 2, 'realized_pnl': 200},
+        {'date': '2026-06-12', 'action': 'correction', 'shares': 123, 'realized_pnl': -10},
+    ]
+    holdings = [_holding('TEST', trades)]
+    doc = {'portfolios': {'us': {'holdings': holdings}}}
+    assert recompute(doc)['us']['realized_pnl'] == 240
+    assert realized_as_of(holdings, '2026-06-13', {'TEST': 8})[0] == 240
+    assert realized_as_of(holdings, '2026-06-10', {'TEST': 0})[0] == 0
+    assert realized_as_of(holdings, '2026-06-10', {'TEST': 10})[0] == 50
+    assert realized_as_of(holdings, '2026-06-12', {'TEST': 8})[0] == 240

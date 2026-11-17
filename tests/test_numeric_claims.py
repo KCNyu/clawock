@@ -541,3 +541,11 @@ def test_every_unverified_number_is_listed_not_just_the_first_four(hc):
     issue = hc.check_numeric_claims(prose, CTX)[0]
     for value in ("1.23", "2.34", "3.45", "4.56", "5.67", "6.78"):
         assert value in issue, (value, issue)
+
+
+def test_negated_waiting_is_not_placeholder_but_a_later_placeholder_still_is():
+    from clawock.harness.validation import FORBIDDEN_PHRASES, validate_forbidden_phrases
+    for prefix in ('无需', '不用', '不必', '不需要'):
+        assert not validate_forbidden_phrases(prefix + '等待数据回档，按计划执行。', FORBIDDEN_PHRASES)
+    for text in ('等待数据', '并非无需等待数据', '无需等待数据；另一票等待数据', '无需 TODO'):
+        assert validate_forbidden_phrases(text, FORBIDDEN_PHRASES)

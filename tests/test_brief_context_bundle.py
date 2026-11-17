@@ -137,6 +137,8 @@ def test_news_heavy_day_drops_tail_events_instead_of_the_brief(tmp_path):
     assert dropped > 0 and len(kept) == len(events) - dropped
     assert kept == events[:len(kept)]                      # only the tail went
     assert fitted["news_evidence_graph"]["budget_dropped_events"] == dropped
+    assert fitted["news_evidence_graph"]["summary_scope"] == (
+        "canonical_graph_before_projection_and_budget_trimming")
     assert len(source["news_evidence_graph"]["events"]) == len(events)  # input untouched
     _, manifest = brief_context.write_run_bundle(fitted, tmp_path / "fitted.json")
     evidence = manifest["bundles"]["evidence"]

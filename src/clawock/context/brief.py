@@ -120,8 +120,9 @@ BUNDLE_FIELDS = {
 #: crosses the per-load budget, least critical first. Only fields whose facts
 #: are carried in the decision packet in actionable form (`cross_sectional_factor`,
 #: `peer_residual`, the per-ticker sentiment row) or are reference-only by
-#: contract (`strategy_scores`, `watch_list`) are listed. Risk-critical fields
-#: and any bundle/field not listed stay fail-closed: a partial risk table is
+#: contract (`strategy_scores`) or optional opportunity inputs (`watch_list`)
+#: are listed. Omitted inputs must be disclosed, never treated as available.
+#: Risk-critical fields and any bundle/field not listed stay fail-closed: a partial risk table is
 #: more dangerous than no brief. The audit keeps every field; only the
 #: model-facing artifact is trimmed, and the manifest says what was left out.
 BUNDLE_TRIM_ORDER = {
@@ -310,7 +311,8 @@ def fit_lazy_bundles(context: dict) -> tuple[dict[str, tuple[str, ...]], dict[st
 
     ``fit_evidence_bundle`` is separate because it trims events inside one
     field and keeps the actionable escalations; this only omits whole fields
-    that the decision packet already carries in actionable form.
+    that the packet carries in actionable form, or optional reference inputs
+    whose absence the brief must disclose.
     """
     visible: dict[str, tuple[str, ...]] = {}
     dropped: dict[str, list[str]] = {}
@@ -364,6 +366,8 @@ def fit_evidence_bundle(context: dict) -> tuple[dict, int]:
         return context, 0
     events = list(graph["events"])
     fitted = {**context, "news_evidence_graph": {**graph, "events": events}}
+    fitted["news_evidence_graph"]["summary_scope"] = (
+        "canonical_graph_before_projection_and_budget_trimming")
     dropped = 0
     while _bundle_bytes("evidence", fitted) > SINGLE_BUNDLE_BUDGET_BYTES:
         tail = next(

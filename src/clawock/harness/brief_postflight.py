@@ -428,8 +428,6 @@ def prune_debate_citations(plan, context):
     if not context:
         return plan, dropped
     citable = _citable_refs(context)
-    if not citable:
-        return plan, dropped
     for decision in plan.get('decisions') or []:
         debate = (decision or {}).get('debate')
         if not isinstance(debate, dict):
@@ -965,7 +963,7 @@ CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id', '敷衍词',
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
     'book inputs invalid', 'book totals mismatch:',
-    '仓位支配度不符',
+    '仓位支配度不符', '判断与计划股数冲突',
     'plan.json watch_levels',
     '引用了 private topic',
 ]  # table mismatch, cross-generation output and placeholder prose are critical
@@ -1682,8 +1680,10 @@ def _brief_numeric_issues(judgment_path, plan, context):
                                    if isinstance(value, (int, float)) and not isinstance(value, bool)})
     if own_fields and isinstance(context, dict):
         context = {**context, 'plan_decision_sizes': own_fields}
-    return check_numeric_claims('\n'.join(value for value in texts if isinstance(value, str)),
-                                with_compute_receipts(context, WS))
+    from clawock.decision.plan_prose import judgment_plan_share_conflicts
+    return (judgment_plan_share_conflicts(plan, overlay)
+            + check_numeric_claims('\n'.join(value for value in texts if isinstance(value, str)),
+                                   with_compute_receipts(context, WS)))
 
 
 def main(argv=None):
@@ -1909,7 +1909,7 @@ def main(argv=None):
         try:
             projection, projection_issues = (
                 brief_decision_packet.write_pages_projection(
-                    decision_packet, judgment_path, projection_path
+                    decision_packet, judgment_path, projection_path, plan=normalized_plan
                 )
             )
             projection_status = projection.get('judgment_status') or 'written'
@@ -1942,7 +1942,7 @@ def main(argv=None):
                   + ('; ...' if len(escalating) > 3 else '')
                   + '\n\n')
     else:
-        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), brief 仍发布但未 commit:\n'
+        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), brief 未发布、未 commit（validation fail）:\n'
                   + '\n'.join('- ' + i for i in escalating[:5])
                   + ('\n- ...' if len(escalating) > 5 else '')
                   + '\n\n')

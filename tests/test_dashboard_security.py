@@ -123,3 +123,12 @@ def test_mover_provider_fields_never_reach_innerhtml_raw():
     assert 'escapeHtml(m.name || "")' in movers
     assert "${m.ticker" not in movers
     assert "${m.name" not in movers
+
+
+def test_risk_tab_quant_notes_and_chart_tooltips_escape_sidecar_text():
+    risk = _function_body('renderRiskGuardrail')
+    assert 'escapeHtml(detail' in risk and 'escapeHtml(action)' in risk
+    assert 'SEV_CLASSES.has(sev)' in risk
+    assert 'escapeHtml(r.note)' in _function_body('renderQuantSignals')
+    charts = ROOT / 'site/assets/js/dashboard.charts.js'
+    assert 'escapeHtml(p.data.name)' in _function_body('renderWeightConfidence', charts)

@@ -1447,6 +1447,13 @@ def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=Tr
     except (OSError, ValueError) as exc:
         return ([f"简报渲染跳过（输入不可读: {exc}）；保留现有 pre-open.md"], None)
 
+    from clawock.decision.plan_prose import judgment_plan_share_conflicts
+    conflicts = judgment_plan_share_conflicts(plan, judgment)
+    if conflicts:
+        # Do not overwrite today's files with contradictory trade sizes, even
+        # when the renderer is invoked without postflight's publication gate.
+        return conflicts, None
+
     # The sector sweep is optional: a day the search quota was spent still has
     # to publish, with the section carrying the model's read and no table.
     # Optional is not the same as unremarkable, though — the file is written by

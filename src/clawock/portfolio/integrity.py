@@ -803,8 +803,9 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
             tally = 0.0
             for h in holdings:
                 for tr in h.get('trades', []) or []:
-                    if tr.get('action') == 'sell':
-                        tally += _num(tr.get('realized_pnl')) or 0
+                    # realized.recompute owns the all-entry contract; action
+                    # controls share/cash replay, not whether a P&L is counted.
+                    tally += _num(tr.get('realized_pnl')) or 0
             if abs(rp - tally) > 1.0:
                 add('REALIZED_SUM', 'WARN',
                     f'realized_pnl={rp:.2f} ≠ trades 汇总={tally:.2f}（差 {rp - tally:+.2f}）；'

@@ -2,7 +2,10 @@
 
 `clawock realized` sums *every* trade in portfolio.json — correct for the
 live portfolio, but wrong for a dated snapshot, where realized must reflect only
-the sells that had already settled into that snapshot's holdings. Crediting a
+the entries already reflected in that snapshot's holdings.
+All numeric realized_pnl entries count, as in realized.recompute; buy/sell
+rows use the share balance to resolve same-day timing, and other adjustments
+use their ledger date without changing shares. Crediting a
 sell too early inflates equity; crediting it too late deflates it.
 
 The canonical portfolio.json `trades[]` ledger is the single source of truth.
@@ -40,22 +43,22 @@ def _ledger_sells(holdings):
             shares = _share_number(t.get('shares')) or 0
             if t.get('action') == 'buy':
                 bal += shares
-            else:  # sell (or any realizing action)
+            elif t.get('action') == 'sell':
                 bal -= shares
-                # Hand-entered fills may quote a number (`"125.00"`); read it as
-                # the number it is instead of letting arithmetic on the raw leaf
-                # abort the whole dashboard build (#3411, same contract as #3359).
-                realized = to_strict_finite_number(t.get('realized_pnl'))
-                if realized is not None:
-                    sells.append({
-                        'date': ledger_date(t.get('date')),
-                        'note': t.get('note'),
-                        'ticker': ticker,
-                        'shares': shares,
-                        'price': to_strict_finite_number(t.get('price')),
-                        'realized_pnl': realized,
-                        'post_bal': bal,
-                    })
+            # Same all-entry contract as realized.recompute. Unknown actions
+            # may carry a correction, but must not masquerade as a share sale.
+            realized = to_strict_finite_number(t.get('realized_pnl'))
+            if realized is not None:
+                sells.append({
+                    'date': ledger_date(t.get('date')),
+                    'note': t.get('note'),
+                    'ticker': ticker,
+                    'shares': shares,
+                    'price': to_strict_finite_number(t.get('price')),
+                    'realized_pnl': realized,
+                    'post_bal': bal,
+                    'action': t.get('action'),
+                })
         if sells:
             by_ticker[ticker] = sells
     return by_ticker
@@ -86,7 +89,10 @@ def realized_as_of(holdings, snap_date, snap_shares, *, market=None):
             # than against an impossible balance — which would otherwise drop a
             # real, fully-closed sell from the session that contains it.
             drawn_down = max(s['post_bal'], 0)
-            if when < snap_date or (when == snap_date and held <= drawn_down):
+            same_day = (held >= s['post_bal'] if s['action'] == 'buy'
+                        else held <= drawn_down if s['action'] == 'sell'
+                        else True)
+            if when < snap_date or (when == snap_date and same_day):
                 reflected.append(s)
 
     reflected.sort(key=lambda x: (x['date'], x['ticker']))

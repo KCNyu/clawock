@@ -1882,10 +1882,11 @@
     const breaches = g.breaches || [], stops = g.hard_stop_watch || [];
     const n = g.breach_count || 0;
     const ICON = {};
+    const SEV_CLASSES = new Set(['critical', 'high', 'medium']);
     const row = (icon, sev, detail, action, age) =>
-      `<div class="risk-alert ${sev || 'high'}">
+      `<div class="risk-alert ${SEV_CLASSES.has(sev) ? sev : 'high'}">
          <span class="icon">${icon}</span>
-         <div><strong>${detail || ''}</strong>${action ? `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">→ ${action}</div>` : ''}</div>
+         <div><strong>${escapeHtml(detail || '')}</strong>${action ? `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">→ ${escapeHtml(action)}</div>` : ''}</div>
          ${age || ''}
        </div>`;
     const rows = [
@@ -1980,7 +1981,7 @@
       const state = r.status && r.status !== 'fresh'
         ? `<div style="font-size:var(--fs-micro);color:var(--warning)">⚠ ${r.status} · ${r.row_as_of || r.last_good_as_of || '无日期'}${r.stale_reason ? ` · ${r.stale_reason}` : ''}</div>`
         : '';
-      return `<tr><td><strong>${k}</strong>${r.note ? `<div class="muted" style="font-size:var(--fs-micro)">${r.note}</div>` : ''}</td>` +
+      return `<tr><td><strong>${k}</strong>${r.note ? `<div class="muted" style="font-size:var(--fs-micro)">${escapeHtml(r.note)}</div>` : ''}</td>` +
         `<td style="text-align:left;font-size:var(--fs-xs)">${r.tag || ''}${state}</td>` +
         `<td class="num">${num(r.rsi14)}</td>` +
         `<td class="num">${num(r.zscore20)}</td>` +

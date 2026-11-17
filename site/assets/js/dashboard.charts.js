@@ -1250,7 +1250,7 @@
                   : p.data._quad === "low_conv_small" ? "Low Conv (small)"
                   : p.data._quad === "comfort" ? "Comfort"
                   : "No data";
-          return `<b>${p.data.name}</b> (${p.data._region.toUpperCase()})<br>
+          return `<b>${escapeHtml(p.data.name)}</b> (${p.data._region.toUpperCase()})<br>
             weight within ${p.data._region.toUpperCase()} leg: ${p.value[0]}%<br>
             conf: ${p.data._confidence == null ? "n/a" : fixed(p.data._confidence, 1) + "%"}<br>
             n_actions: ${p.value[2]}<br>
