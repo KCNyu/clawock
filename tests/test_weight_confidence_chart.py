@@ -9,28 +9,34 @@ const assert = require('node:assert/strict');
 const source = fs.readFileSync('site/assets/js/dashboard.charts.js', 'utf8');
 const core = fs.readFileSync('site/assets/js/dashboard.core.js', 'utf8');
 const signOwner = core.match(/^  const MINUS = .*$/m)[0] + '\n' + core.match(/^  const fixed = .*$/m)[0] + '\n';
+const escapeStart = core.indexOf('  const escapeHtml =');
+const escapeOwner = core.slice(escapeStart, core.indexOf(';\n', escapeStart) + 1);
 const begin = source.indexOf('  function placeBubbleLabels(');
 const end = source.indexOf('\n  }', source.indexOf('  function renderWeightConfidence()')) + 4;
+for (const ticker of ['TEST', '<img onerror="x">']) {
 for (const weight of [0, 57, 86.64, 100]) {
   for (const confidence of [null, 0.71]) {
     let option;
     const echarts = {init: () => ({setOption: o => {option = o;}}), color: {modifyAlpha: () => ''}};
     const environment = {
       document: {getElementById: () => ({})}, window: {echarts}, echarts, charts: {},
-      DATA: {weight_confidence: [{ticker: 'TEST', weight_pct: weight, avg_confidence: confidence, region: 'us', n_actions: confidence == null ? 0 : 6}]},
+      DATA: {weight_confidence: [{ticker, weight_pct: weight, avg_confidence: confidence, region: 'us', n_actions: confidence == null ? 0 : 6}]},
       safe: (data, key) => data[key], getCSS: () => '', baseChartOpts: () => ({}),
       chartTooltip: () => ({}), chartAxis: x => x,
       chartGridColor: () => '', chartLabelColor: () => '', chartTextColor: () => '',
     };
-    new Function(...Object.keys(environment), signOwner + source.slice(begin, end) + '\n;renderWeightConfidence();')(...Object.values(environment));
+    new Function(...Object.keys(environment), signOwner + escapeOwner + source.slice(begin, end) + '\n;renderWeightConfidence();')(...Object.values(environment));
     assert.equal(option.series[0].data.length, 1);
     const point = option.series[0].data[0];
     const tip = option.tooltip.formatter({data: point, value: point.value});
+    assert.ok(tip.includes(ticker === 'TEST' ? '<b>TEST</b>' : '&lt;img onerror=&quot;x&quot;&gt;'));
+    assert.ok(!tip.includes('<img'));
     assert.ok(tip.includes(confidence == null ? 'conf: n/a' : 'conf: 71.0%'));
     assert.equal(point.value[1], confidence == null ? 50 : 71);
     assert.ok(tip.includes(confidence == null ? 'n_actions: 0' : 'n_actions: 6'));
     assert.ok(option.xAxis.max >= weight / 0.8);
     assert.equal(option.series[0].markArea.data[0][1].xAxis, option.xAxis.max);
   }
+}
 }
 '''], cwd=Path(__file__).resolve().parents[1], check=True)

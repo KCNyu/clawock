@@ -99,5 +99,5 @@ kcn 已允许未有 patrol 战绩/未通过工具探针的免费候选入选，�
 
 保存回归脚本前先核 bash 语法和静态 `python3 -c` payload（按 shell 引号还原）；
 无法解析的判据记为 `broken`，同 digest 不重复发出。heredoc/动态展开由执行时闸检查；
-Python 的 SyntaxError/IndentationError/TabError 即使没有 Traceback 也拒收。
+Python 的 SyntaxError/IndentationError/TabError 即使没有 Traceback 也拒收；解释器前缀诊断（缺模块、缺文件、非法选项等）同样拒收。静态语法核验识别版本化解释器及 `-c` 前的选项，不把脚本参数里的 `-c` 当成代码。
 `regress-verdict <N> broken --reason ...` 可隔离已存的坏判据；修正文案后 digest 改变才重启检查。

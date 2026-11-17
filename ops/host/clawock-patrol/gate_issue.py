@@ -616,6 +616,12 @@ for pat, hint in _shell_complaints:
 if re.search(r"^(?:SyntaxError|IndentationError|TabError):", proc.stderr, re.MULTILINE):
     die("RED-CHECK 在解释阶段就死掉了；红的是判据本身，不是仓库。", out)
 
+# Python's command-line launcher can refuse a module/file/options without a
+# traceback. Match the interpreter diagnostic prefix, rather than enumerate
+# its many messages. A normal sys.exit message has no interpreter prefix.
+if re.search(r"^(?:(?:\S*/)?python(?:\d+(?:\.\d+)*)?: |usage: (?:\S*/)?python(?:\d+(?:\.\d+)*)? \[option\])", proc.stderr, re.MULTILINE):
+    die("RED-CHECK 在解释阶段就被解释器拒绝；红的是判据本身，不是仓库。", out)
+
 # Python 侧：看 traceback 最后那个异常是什么。
 if "Traceback (most recent call last)" in proc.stderr:
     raised = TRACEBACK_LAST.findall(proc.stderr.rstrip().splitlines()[-1].strip())

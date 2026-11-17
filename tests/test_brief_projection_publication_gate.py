@@ -110,10 +110,10 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, pri
     )
 
     if projection_error:
-        def write_projection(*_args):
+        def write_projection(*_args, **_kwargs):
             raise RuntimeError(projection_error)
     else:
-        def write_projection(_packet, _judgment, output):
+        def write_projection(_packet, _judgment, output, **_kwargs):
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text('{}')
             return {'judgment_status': 'missing'}, []

@@ -133,7 +133,7 @@ def test_no_context_prunes_nothing():
     plan = {'decisions': [
         {'decision_id': 'd1', 'debate': {'bull': 'x', 'evidence_ids': ['news:evt_real']}},
     ]}
-    for empty in (None, {}, {'news_evidence_graph': {}}):
+    for empty in (None, {}):
         pruned, dropped = brief_postflight.prune_debate_citations(
             json.loads(json.dumps(plan)), empty)
         assert pruned['decisions'][0]['debate']['evidence_ids'] == ['news:evt_real']
@@ -413,3 +413,14 @@ def test_every_namespace_the_skill_teaches_says_copy_not_compose():
         assert '`evidence_id`' in line, (
             f'the {namespace}: namespace still teaches a grammar to compose: '
             f'{line}')
+
+
+def test_explicit_quiet_generation_prunes_invented_refs():
+    from clawock.harness import brief_postflight
+    plan = {'decisions': [{'decision_id': 'quiet', 'debate': {
+        'evidence_ids': ['news:invented', 'quant:SPCH:missing']}}]}
+    context = {'news_evidence_graph': {'events': []}, 'risk_guardrail': {},
+               'quant_signals': {'rows': {}}}
+    pruned, dropped = brief_postflight.prune_debate_citations(plan, context)
+    assert 'evidence_ids' not in pruned['decisions'][0]['debate']
+    assert dropped == ['quiet:news:invented', 'quiet:quant:SPCH:missing']

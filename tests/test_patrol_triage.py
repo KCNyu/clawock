@@ -506,3 +506,25 @@ def test_broken_regression_is_not_emitted_until_its_digest_changes(tmp_path, mon
     out, _ = patrol_intel.regression_watch([_fixed()], '2000-01-01 00:00:00',
                                          patrol_intel.task_by_issue())
     assert out and (state / 'regress/11.sh').exists()
+
+
+def test_python_launcher_rejections_are_not_red_criteria(tmp_path):
+    for command in ('python3 -m clawock_missing_module_3558',
+                    'python3 /nonexistent/clawock_missing_3558.py',
+                    'python3 --clawock-invalid-option'):
+        draft = DRAFT.format(sev='P2')
+        start = draft.index('<!-- RED-CHECK')
+        draft = draft[:start] + '补充核验：' + '逐行对照公开账本与输入，确认并非舍入或窗口差异。' * 6
+        draft += '\n<!-- RED-CHECK\n' + command + '\n-->\n'
+        result = _gate(tmp_path, draft, name=command.split()[-1].replace('/', '_'))
+        assert result.returncode != 0
+        assert '解释阶段' in result.stdout + result.stderr
+
+
+def test_static_python_options_are_not_confused_with_script_arguments():
+    for command in ("python3 -u -c 'if'", "python3 -B -c 'if'", "python3.11 -c 'if'",
+                    "/usr/bin/python3 -X dev -W error -c 'if'"):
+        assert patrol_intel.check_syntax(command), command
+    for command in ("python3 script.py -c 'if'", "python3 -m module -c 'if'",
+                    "python3.11 -u -c 'assert True'"):
+        assert patrol_intel.check_syntax(command) is None, command

@@ -75,25 +75,32 @@ def mentions_ticker(text, ticker):
     ticker = str(ticker or '')
     if not ticker:
         return False
-    if ticker.isdigit():
+    code = re.escape(ticker)
+    if ticker.isascii() and ticker.isdigit():
         kind = r'0-9'
+        # HKEX's five-digit spelling permits omitted padding zeros. Normalize
+        # only fullwidth digits, keeping the existing neighbouring-code rule.
+        text = (text or '').translate(str.maketrans('０１２３４５６７８９', '0123456789'))
+        if len(ticker) == 5 and ticker.startswith('0') and ticker.strip('0'):
+            bare = ticker.lstrip('0')
+            code = rf'0{{0,{len(ticker) - len(bare)}}}{bare}'
     elif ticker.isalpha():
         kind = r'A-Za-z'
     else:
         kind = r'A-Za-z0-9'
-    pattern = rf'(?<![{kind}]){re.escape(ticker)}(?![{kind}])'
+    pattern = rf'(?<![{kind}]){code}(?![{kind}])'
     return re.search(pattern, text or '') is not None
 
 
 def section_marker_end(text, marker):
     """End offset of `marker` where it opens a line, or -1.
 
-    A required section is a line that starts with its marker (≤3 spaces, an
-    optional `#` heading or `**`), never the marker named inside a sentence:
+    A required section opens a line (≤3 horizontal spaces, including CJK
+    ideographic spaces, and an optional `#` heading or `**`), never the marker named inside a sentence:
     「本报告不含 ▎情绪面、▎技术面…」 used to satisfy every required section
     at once (#2049). Same rule as the brief's section-marker lines.
     """
-    match = re.search(rf'^[ \t]{{0,3}}(?:#{{1,6}}[ \t]+|\*\*)?{re.escape(marker)}',
+    match = re.search(rf'^[ \t\u3000]{{0,3}}(?:#{{1,6}}[ \t\u3000]+|\*\*)?{re.escape(marker)}',
                       text or '', re.MULTILINE)
     return match.end() if match else -1
 
@@ -103,14 +110,23 @@ def has_section_marker(text, marker):
 
 
 def _contains_phrase(text, phrase):
-    """Exact substring for non-ASCII phrases; standalone token for ASCII words.
+    """Literal phrases (except directly negated waiting); standalone ASCII words.
 
     A model writes `todo`/`tbd` as readily as `TODO`/`TBD` (#1771). The
     Case-insensitive matching avoids matching identifiers such as TODO_123 or
     numbered references such as TBD-456 while still catching "TODO:" in prose.
     """
     if not phrase.isascii():
-        return phrase in text
+        # A direct refusal to wait is an executable judgment, not a placeholder.
+        # Inspect every occurrence: an earlier negation cannot excuse a later
+        # affirmative placeholder in another clause. Other phrases stay exact.
+        for match in re.finditer(re.escape(phrase), text):
+            prefix = text[max(0, match.start() - 12):match.start()]
+            if phrase == '等待数据' and re.search(r'(?:无需|不用|不必|不需要)\s*$', prefix):
+                if not re.search(r'(?:并非|不是|不能|并不)(?:无需|不用|不必|不需要)\s*$', prefix):
+                    continue
+            return True
+        return False
     pattern = rf'(?<![A-Za-z0-9_]){re.escape(phrase)}(?![A-Za-z0-9_]|[-.:][A-Za-z0-9_])'
     return re.search(pattern, text, re.IGNORECASE) is not None
 

@@ -194,17 +194,27 @@ def check_syntax(check):
     shell = subprocess.run(['bash', '-n'], input=check, text=True, capture_output=True)
     if shell.returncode:
         return shell.stderr.strip()
-    if not re.search(r"\bpython3?\s+-c\b", check) or "<<" in check:
+    if "<<" in check:
         return None
     try:
         lexer = shlex.shlex(check, posix=True, punctuation_chars=True)
         lexer.whitespace_split = True
         tokens = list(lexer)
         for i, token in enumerate(tokens[:-2]):
-            if Path(token).name in {'python', 'python3'} and tokens[i + 1] == '-c':
-                payload = tokens[i + 2]
-                if '$' not in payload and '`' not in payload:
-                    ast.parse(payload)
+            if not re.fullmatch(r'python(?:\d+(?:\.\d+)*)?', Path(token).name):
+                continue
+            j = i + 1
+            while j < len(tokens):
+                option = tokens[j]
+                if option == '-c' and j + 1 < len(tokens):
+                    payload = tokens[j + 1]
+                    if '$' not in payload and '`' not in payload:
+                        ast.parse(payload)
+                    break
+                if option in ('-m', '--') or not option.startswith('-'):
+                    break
+                # These options consume a value; it is not a script path.
+                j += 2 if option in ('-W', '-X', '--check-hash-based-pycs') else 1
     except (SyntaxError, ValueError) as exc:
         return f'Python/shell syntax: {exc}'
     return None

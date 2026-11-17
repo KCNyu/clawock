@@ -59,7 +59,7 @@ def desk(tmp_path, monkeypatch):
                         commits.append(status) or (True, 'committed + pushed'))
     monkeypatch.setattr(postflight, 'dashboard_publication_state', lambda _ws: 'published')
 
-    def write_projection(_packet, _judgment, output):
+    def write_projection(_packet, _judgment, output, **_kwargs):
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text('{}')
         return {'judgment_status': 'valid'}, []
@@ -277,3 +277,11 @@ def test_a_version_store_failure_does_not_block_the_card(desk, capsys, monkeypat
     receipt = json.loads((desk.tmp / f'brief-sent-{TODAY}.json').read_text())
     assert 'brief_version' not in receipt
     assert receipt['sent_ok'] is True and receipt['tg_ok'] is True
+
+
+def test_failed_validation_banner_matches_the_unsent_result(desk, capsys, monkeypatch):
+    monkeypatch.setattr(postflight, 'validate_markdown', lambda *_a, **_k: ['敷衍词 fixture'])
+    code, result = desk.run(capsys)
+    assert code == 2 and desk.sends == []
+    assert 'brief 未发布、未 commit' in result['wechat_prefix']
+    assert '仍发布' not in result['wechat_prefix']

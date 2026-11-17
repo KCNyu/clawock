@@ -94,3 +94,23 @@ def test_brief_divergence_ticker_needs_its_own_mention(tmp_path):
                              'SPCH': {'divergence_signal': True}}}
     flagged = [i for i in brief.validate_markdown(md, context) if 'divergence' in i]
     assert flagged and "['SPCX']" in flagged[0], flagged
+
+
+@pytest.mark.parametrize('spelling', ['7226', '07226', '７２２６', '０７２２６'])
+def test_hk_padding_and_fullwidth_digits_reach_the_alert_validator(spelling):
+    text = '▎我的看法\n' + spelling + ' 跌破触发线，按计划复核，不新增动作。' * 8
+    ctx = _intraday_ctx(should_alert=True, anomalies=[{'ticker': '07226'}])
+    assert not [i for i in _intraday_issues(ctx, text) if '未提任何异动票' in i]
+
+
+@pytest.mark.parametrize('text', ['17226 股', '072260', '００７２２６'])
+def test_hk_padding_cannot_match_inside_longer_numbers(text):
+    assert not mentions_ticker(text, '07226')
+
+
+def test_section_indent_accepts_cjk_spaces_but_preserves_markdown_code_boundary():
+    from clawock.harness.validation import has_section_marker
+    assert has_section_marker('　▎我的看法\n判断', '▎我的看法')
+    assert has_section_marker('  ▎我的看法\n判断', '▎我的看法')
+    assert not has_section_marker('    ▎我的看法\n判断', '▎我的看法')
+    assert not has_section_marker('正文提及 ▎我的看法', '▎我的看法')

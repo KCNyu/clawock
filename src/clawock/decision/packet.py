@@ -2367,7 +2367,7 @@ def _narrative_issues(narrative) -> list[str]:
     return issues
 
 
-def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
+def validate_judgment_overlay(packet: dict, overlay: dict, *, plan=None) -> list[str]:
     from clawock.decision.reflection_claims import episode_claim_mismatches
     issues = []
     reflections = {ticker: {'n': (row.get('history') or {}).get('settled_episodes'),
@@ -2434,6 +2434,9 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
     missing = sorted(known - seen)
     if missing:
         issues.append(f"judgment missing active tickers: {missing}")
+    if plan is not None:
+        from clawock.decision.plan_prose import judgment_plan_share_conflicts
+        issues.extend(judgment_plan_share_conflicts(plan, overlay))
     return issues
 
 
@@ -3193,6 +3196,7 @@ def write_pages_projection(
     packet: dict,
     overlay_path: Path,
     output_path: Path,
+    *, plan=None,
 ) -> tuple[dict, list[str]]:
     """Publish deterministic Pages data even when the model overlay is unusable."""
     overlay = None
@@ -3200,7 +3204,7 @@ def write_pages_projection(
     if overlay_path.exists():
         try:
             overlay = json.loads(overlay_path.read_text(encoding="utf-8"))
-            issues = validate_judgment_overlay(packet, overlay)
+            issues = validate_judgment_overlay(packet, overlay, plan=plan)
         except Exception as exc:
             issues = [f"judgment overlay parse failed: {exc}"]
             overlay = {}

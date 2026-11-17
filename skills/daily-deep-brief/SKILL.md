@@ -192,6 +192,8 @@ bundle 路由：
 - `market`: `macro`, `sentiment`, `influencer`, `em_news`, `watch_list`
 - `calibration`: `retrospective`, `decision_metrics`, `reflections`
 
+预算裁剪：若 manifest / issues 点名 `watch_list`、`strategy_scores` 被省略，本次即无该输入，不能假定 decision packet 含有它。新机会节须说明观察池输入不可用，不得据此宣称没有机会或借其它数据冒充。`news_evidence_graph.summary_scope` 标明 summary 是全量图统计（包括未投影/预算裁掉的事件），当前可读数量以 `events` 数组为准。
+
 `market.watch_list`（#556）：非持仓 AI 观察池（智谱 02513 / 迅策 03317 等）的**价格面观察**——仅当突破/接近突破/5d 大涨时才有行。写「新机会」节时读取它，但**观察池本身不产生 add 授权**；同名标的若在 `proposal_universe` 中，可按其边界写可评估提案，否则先补报价与 registry。
 
 manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 core；只有下面明确要求消费该字段时才读。任一 bundle 的 `_meta.generation_id` 与 manifest 不同，立即停止，不得把不同 preflight run 的事实拼在一起。
