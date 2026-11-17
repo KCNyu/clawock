@@ -191,7 +191,7 @@ def read_rate_ledger(path: str = None) -> Dict[str, Dict]:
 def _record_rate(data: Dict, path: str = None):
     """Append today's rate, unless the same rate for the same day is already there.
 
-    Idempotent per (day, rate) because the fetcher runs up to 6x/day on a 4-hour
+    Idempotent per (day, rate, source, fallback_used) because the fetcher runs up to 6x/day on a 4-hour
     TTL and a re-fetch that agrees carries no new information. A rate that
     CHANGED within the day is appended — that is a real observation, and the
     reader takes the last one.
@@ -203,9 +203,11 @@ def _record_rate(data: Dict, path: str = None):
         rate = data.get('rate')
         if rate is None:
             return
-        day = _ledger_day(data)
+        day = _ledger_day({'fetched_at': data.get('used_at') or data.get('fetched_at')})
         existing = read_rate_ledger(path).get(day)
-        if existing and existing.get('rate') == rate:
+        if (existing and existing.get('rate') == rate
+                and existing.get('source') == data.get('source')
+                and existing.get('fallback_used') == data.get('fallback_used')):
             return
         entry = {
             'day': day,
@@ -214,6 +216,7 @@ def _record_rate(data: Dict, path: str = None):
             'source': data.get('source'),
             'fetched_at': data.get('fetched_at'),
             'fallback_used': data.get('fallback_used'),
+            **({'used_at': data['used_at']} if data.get('used_at') else {}),
         }
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'a') as handle:
@@ -266,6 +269,7 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
     if not force_refresh:
         cached = _from_cache()
         if cached:
+            _record_rate({**cached, 'used_at': datetime.now(timezone.utc).isoformat()})
             return cached
 
     providers = (
@@ -276,7 +280,6 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
     for provider_index, (name, fn) in enumerate(providers):
         rate = fn()
         if rate and 7.0 < rate < 9.0:   # sanity check (HKD pegged ~7.75-7.85)
-            from datetime import datetime, timezone
             data = {
                 'rate':       round(rate, 5),
                 'source':     name,
@@ -290,11 +293,11 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
     # All providers failed — fall back to cached even if stale
     cached = _from_cache(allow_stale=True)
     if cached:
+        _record_rate({**cached, 'used_at': datetime.now(timezone.utc).isoformat()})
         return cached
 
     # Last-resort hard-coded peg midpoint
-    from datetime import datetime, timezone
-    return {
+    data = {
         'rate':       7.80,
         'source':     'HARDCODED_PEG_FALLBACK',
         'fetched_at': datetime.now(timezone.utc).isoformat(),
@@ -302,6 +305,8 @@ def get_usdhkd(force_refresh: bool = False) -> Dict:
         'fallback_used': True,
         'warning':    'all live sources failed; using hard-coded HKD peg midpoint',
     }
+    _record_rate(data)
+    return data
 
 
 def convert(amount: float, from_ccy: str, to_ccy: str) -> Dict:

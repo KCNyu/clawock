@@ -34,10 +34,17 @@
 
     function resolve(key, val) {
       const k = key.toLowerCase();
-      if (k.includes("hstech")) return { cur: safe(idx,"HSTECH","price"), ccy:"", who:"恒科", strip:["hstech"] };
-      if (k.includes("hsi") || k.includes("hang") || k.includes("seng")) return { cur: safe(idx,"HSI","price"), ccy:"", who:"恒指", strip:["hsi","hang","hangseng","seng"] };
-      if (k.includes("spx") || k.includes("sp500")) return { cur: safe(idx,"SPX","price"), ccy:"", who:"SPX", strip:["spx","sp500"] };
-      if (k.includes("ndx") || k.includes("nasdaq")) return { cur: safe(idx,"NDX","price"), ccy:"", who:"NDX", strip:["ndx","nasdaq"] };
+      // The unit belongs to the key even when its subject is an index.
+      let index = null;
+      if (k.includes("hstech")) index = { cur: safe(idx,"HSTECH","price"), who:"恒科", strip:["hstech"] };
+      else if (k.includes("hsi") || k.includes("hang") || k.includes("seng")) index = { cur: safe(idx,"HSI","price"), who:"恒指", strip:["hsi","hang","hangseng","seng"] };
+      else if (k.includes("spx") || k.includes("sp500")) index = { cur: safe(idx,"SPX","price"), who:"SPX", strip:["spx","sp500"] };
+      else if (k.includes("ndx") || k.includes("nasdaq")) index = { cur: safe(idx,"NDX","price"), who:"NDX", strip:["ndx","nasdaq"] };
+      if (index) {
+        const isPct = /(^|[_\-])(pct|percent)([_\-]|$)/.test(k);
+        return { ...index, cur: isPct ? null : index.cur, ccy: isPct ? "%" : "", isPct,
+                 strip: index.strip.concat(isPct ? ["pct", "percent"] : []) };
+      }
       if (k.includes("book") || k.includes("derisk")) {
         // book_force_derisk_{hk,us}_pct = 账面回撤到 X% 强制减仓。是百分比阈值，
         // 不是价格 → 拿对应区域的账面回报率% 比较（旧代码误用绝对 HKD 金额→显示 -22042%）。

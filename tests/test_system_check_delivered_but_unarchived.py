@@ -153,7 +153,7 @@ def test_an_absent_brief_is_the_miss_detectors_business(system_check, workspace)
 def test_an_unreadable_marker_does_not_crash_the_gate(system_check, workspace):
     (workspace / "memory" / ".tmp" / f"brief-sent-{TODAY}.json").write_text("{oops")
     _write_brief(workspace)
-    assert _run(system_check, workspace) == []
+    assert _run(system_check, workspace)[0][1] == system_check.WARNING
 
 
 def test_the_outcome_does_not_depend_on_what_day_it_is(system_check, workspace,
@@ -315,3 +315,12 @@ def test_dreaming_missing_marker_and_pre_run_grace(system_check, workspace):
     result = system_check.Result()
     system_check.check_dreaming_narrative(result, now=datetime(2026, 10, 31, 19, 30, tzinfo=timezone.utc))
     assert result.checks[0][1] == system_check.OK
+
+
+def test_corrupt_receipt_reports_unknown_instead_of_silent_absence(system_check, workspace):
+    assert _run(system_check, workspace) == []
+    (workspace / 'memory' / '.tmp' / f'brief-sent-{TODAY}.json').write_text('{broken')
+    checks = _run(system_check, workspace)
+    assert len(checks) == 1
+    assert checks[0][1] == system_check.WARNING
+    assert 'unreadable' in checks[0][2]

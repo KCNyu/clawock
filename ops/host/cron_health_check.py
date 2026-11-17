@@ -740,6 +740,42 @@ SESSION_DAY_OFFSET_JOBS = frozenset({'美股收盘报告', '美股盘中盯盘-o
 POST_WINDOW_JOBS = frozenset({'美股开盘报告', '美股盘中盯盘'})
 
 
+def sqlite_maintenance_evidence(day, directory=None):
+    """Judge the detached maintenance result, never just its launcher exit code.
+
+    Actions has no host reports: say unmeasured explicitly there. On the host,
+    a missing, malformed or failed report cannot prove successful maintenance.
+    """
+    directory = Path(directory) if directory is not None else Path.home() / 'logs/sqlite-maintenance'
+    if not directory.is_dir():
+        return ('unmeasured' if os.environ.get('GITHUB_ACTIONS') == 'true' else 'evidence-unavailable',
+                'SQLite maintenance reports unavailable on this path')
+    reports = []
+    for path in directory.glob('*.json'):
+        try:
+            report = json.loads(path.read_text())
+            if not isinstance(report, dict):
+                continue
+            started = datetime.fromisoformat(report['started_at'].replace('Z', '+00:00'))
+            if started.tzinfo is None:
+                continue
+            if started.astimezone(HKT).date() == day:
+                reports.append((started, report))
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+    if not reports:
+        return 'missing', 'no readable SQLite maintenance report for scheduled day'
+    report = max(reports, key=lambda row: row[0])[1]
+    databases = report.get('databases') or []
+    if (report.get('result') == 'ok' and not report.get('error') and report.get('finished_at')
+            and isinstance(databases, list) and databases
+            and all(isinstance(db, dict) for db in databases)
+            and any(db.get('quick_check') == 'ok' for db in databases)
+            and all(db.get('quick_check') == 'ok' or db.get('skipped') for db in databases)):
+        return 'ok-run', 'SQLite maintenance finished; database quick_check passed'
+    return 'failed', 'SQLite maintenance report did not confirm successful completion'
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--json', action='store_true')
@@ -898,6 +934,10 @@ def main():
             else:
                 status = 'ok-heartbeat'
                 detail = f"heartbeat {len(coverage['healthy'])}/{len(coverage['monitored'])} slots OK"
+        elif name == 'SQLite 维护':
+            status, detail = sqlite_maintenance_evidence(verify_date)
+            has_missing |= status in {'missing', 'failed'}
+            has_warn |= status == 'evidence-unavailable'
         elif name == 'Memory Dreaming Promotion':
             if runs_n is None and not job.get('id'):
                 # A tracked --jobs-file job (CI) has no runtime id, so there is no
@@ -913,8 +953,9 @@ def main():
             else:
                 status, detail = 'ok-run', f'Dreaming successful runs {runs_n}; no-change is allowed'
         else:
-            detail = f'{len(expected_past)} slots expected (no output contract)'
-            status = 'ok-no-track'
+            detail = f'{len(expected_past)} slots expected; no health evidence handler registered'
+            status = 'untracked'
+            has_warn = True
 
         report.append({
             'name': name,
@@ -984,7 +1025,7 @@ def main():
             icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~',
                     'ok-heartbeat':'✓','monitoring-grace':'·','running':'…',
                     'holiday':'🏖','backstop':'⚠','over':'⚠',
-                    'evidence-unavailable':'?'}.get(r['status'], '·')
+                    'evidence-unavailable':'?', 'untracked':'⚠'}.get(r['status'], '·')
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = DASHBOARD_STATE_ICONS[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")

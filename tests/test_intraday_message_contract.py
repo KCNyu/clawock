@@ -1,5 +1,6 @@
 """Intraday context, policy and message boundaries."""
 import json
+import pytest
 import ast
 import re
 from pathlib import Path
@@ -946,3 +947,41 @@ def test_a_changed_read_on_a_watched_name_is_a_change():
     # A new trading session starts from an empty seen set.
     seen, _ = pre.soft_seen_set('us:2026-10-12', candidate, low, wait)
     assert {'ticker': 'TEST', 'kind': 't0_grade', 'band': '追高低质'} not in seen
+
+
+@pytest.mark.parametrize('line', [
+    '**下一触发：** 恒科 跌破 4,300；07226 站上 3.0',
+    '**下一触发：恒科 跌破 4,300；07226 站上 3.0**',
+])
+def test_bold_trigger_is_extracted_and_checked(line):
+    trigger, rest = post.split_next_trigger('▎我的看法\n本档无变化\n' + line)
+    assert trigger == '下一触发：恒科 跌破 4,300；07226 站上 3.0'
+    assert '**' not in trigger
+    assert line not in rest
+    assert not _trigger_issues('▎我的看法\n本档无变化\n' + line)
+    assert _trigger_issues('▎我的看法\n本档无变化\n' + line.replace('3.0', '9.99'))
+
+
+@pytest.mark.parametrize('quiet', ['本档没有变化，维持原判', '与上次一致，维持原判', '本档无新增异动'])
+def test_unchanged_slot_accepts_plain_quiet_language(quiet):
+    prose = '▎我的看法\n' + quiet + '\n下一触发：恒科 跌破 4,300；07226 站上 3.0'
+    def short_issues(ctx):
+        return [i for i in post.validate(post.assemble_message(ctx, prose), ctx, prose) if '太敷衍' in i]
+    assert not short_issues(TRIGGER_CTX)
+    assert short_issues({**TRIGGER_CTX, 'semantic_unchanged': False})
+
+
+@pytest.mark.parametrize('line', [
+    '**下一触发：** 恒科 跌破 4,300；07226 站上 3.0（减仓线）',
+    '**下一触发：恒科 跌破 4,300；07226 站上 3.0（减仓线）**',
+])
+def test_bold_trigger_remains_extracted_and_price_checked(line):
+    prose = '▎我的看法\n本档无变化。\n' + line
+    trigger, rest = post.split_next_trigger(prose)
+    assert trigger == '下一触发：恒科 跌破 4,300；07226 站上 3.0（减仓线）'
+    assert '**' not in rest
+    assert _trigger_issues(prose) == []
+    assert '下一触发：' in post.assemble_message(TRIGGER_CTX, prose)
+    bad = prose.replace('3.0（', '9.99（')
+    assert any('9.99' in issue for issue in _trigger_issues(bad))
+    assert post.split_next_trigger('正文里' + line)[0] is None

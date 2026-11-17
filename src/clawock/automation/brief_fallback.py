@@ -375,7 +375,8 @@ def checked_reply(out, today, packet):
     Everything postflight would fail the brief for and that this side can see
     is a rejection: the reply's shape, the plan schema, the harness's action
     bounds, a judgment with nothing to render. Judgment overlay findings come
-    back as advisories — postflight publishes those as a warning.
+    back as advisories, except conflicting remaining-share targets, which
+    postflight treats as critical and this adapter rejects before writing.
     """
     generation_id = (packet.get('_meta') or {}).get('generation_id')
     try:
@@ -432,7 +433,11 @@ def checked_reply(out, today, packet):
     # copying a hash wrong must not cost the day its brief.
     judgment['schema_version'] = decision_packet.JUDGMENT_SCHEMA_VERSION
     judgment['context_generation_id'] = generation_id
-    return plan, judgment, decision_packet.validate_judgment_overlay(packet, judgment)
+    findings = decision_packet.validate_judgment_overlay(packet, judgment, plan=plan)
+    conflicts = [issue for issue in findings if '判断与计划股数冲突' in issue]
+    if conflicts:
+        raise ReplyRejected('; '.join(conflicts))
+    return plan, judgment, findings
 
 
 def repair_prompt(user, out, reason):

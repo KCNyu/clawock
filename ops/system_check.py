@@ -1598,10 +1598,12 @@ def check_delivered_but_unarchived(r):
         from clawock.automation import delivery_receipts  # noqa: PLC0415
     except Exception:
         return
-    sent = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
-        WS / 'memory' / '.tmp', 'brief', date=today))
+    receipt = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
+    sent = delivery_receipts.read_receipt(receipt)
     if sent is None:
-        return  # not delivered (yet), or unreadable — nothing is owed to git
+        if receipt.exists():
+            r.add('brief delivery receipt', WARNING, 'receipt unreadable; delivery and archive status unknown')
+        return
     if not delivery_receipts.delivered(sent):
         return  # marker exists but nothing went out; a different failure owns it
     unarchived = []

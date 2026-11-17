@@ -749,3 +749,36 @@ def test_brief_revision_is_reported_without_hiding_duplicate_initial_commit(monk
     assert rows['盘前深度简报']['status'] == 'over'
     rows = _run_health_at(monkeypatch, capsys, now, commit_stamps=[revision])
     assert rows['盘前深度简报']['status'] == 'missing'
+
+
+def test_sqlite_health_uses_completed_report_not_launcher(tmp_path, monkeypatch):
+    day = datetime(2026, 10, 1, tzinfo=HKT).date()
+    check = cron_health_check.sqlite_maintenance_evidence
+    assert check(day, tmp_path)[0] == 'missing'
+    path = tmp_path / 'report.json'
+    report = {'started_at': '2026-09-30T20:17:00Z', 'finished_at': '2026-09-30T20:19:00Z',
+              'result': 'ok', 'databases': [{'quick_check': 'ok'}]}
+    path.write_text(json.dumps(report))
+    assert check(day, tmp_path)[0] == 'ok-run'
+    report['error'] = 'gateway did not recover'
+    path.write_text(json.dumps(report))
+    assert check(day, tmp_path)[0] == 'failed'
+    report.pop('error')
+    report['result'] = 'failed'
+    path.write_text(json.dumps(report))
+    assert check(day, tmp_path)[0] == 'failed'
+    path.write_text('{bad')
+    assert check(day, tmp_path)[0] == 'missing'
+    monkeypatch.setenv('GITHUB_ACTIONS', 'true')
+    assert check(day, tmp_path / 'no-host-reports')[0] == 'unmeasured'
+    monkeypatch.delenv('GITHUB_ACTIONS')
+    assert check(day, tmp_path / 'no-host-reports')[0] == 'evidence-unavailable'
+
+
+def test_quarterly_slot_is_judged_and_other_days_stay_idle(monkeypatch, capsys, tmp_path):
+    monkeypatch.setattr(cron_health_check, 'sqlite_maintenance_evidence',
+                        lambda day: ('missing', 'no completed maintenance report'), raising=False)
+    rows = _run_health_at(monkeypatch, capsys, datetime(2026, 10, 1, 9, 17, tzinfo=timezone.utc))
+    assert rows['SQLite 维护']['status'] == 'missing'
+    rows = _run_health_at(monkeypatch, capsys, datetime(2026, 10, 2, 9, 17, tzinfo=timezone.utc))
+    assert rows['SQLite 维护']['status'] == 'idle'

@@ -329,3 +329,18 @@ def test_a_swap_repair_is_given_the_mandate_instead_of_told_to_drop_the_buy(work
     assert 'max_value' in repair and '换仓的买腿怎么写' in repair
     assert 'no add is available' not in repair
     assert 'packet 没有给 setup 的，改成' not in repair
+
+
+def test_fallback_cross_checks_remaining_share_targets(workspace):
+    packet = write_generation(workspace)
+    raw = model_reply(packet).split('```json\n')[1].split('\n```')[0]
+    reply = json.loads(raw)
+    decision = reply['plan']['decisions'][0]
+    decision['rationale'] = '升级线出现就减到 282 股。'
+    row = next(r for r in reply['judgment']['ticker_judgments'] if r['ticker'] == decision['ticker'])
+    row['falsifier'] = '升级线出现就减到 279 股。'
+    with pytest.raises(bf.ReplyRejected, match='判断与计划股数冲突'):
+        bf.checked_reply(json.dumps(reply), TODAY, packet)
+    row['falsifier'] = '升级线出现就减到 282 股。'
+    _, _, issues = bf.checked_reply(json.dumps(reply), TODAY, packet)
+    assert not any('判断与计划股数冲突' in i for i in issues)

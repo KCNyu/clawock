@@ -26,6 +26,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+from pathlib import Path
 
 from clawock.safe_io import mutate_json
 from clawock import sessions as trading_calendar
@@ -131,7 +132,7 @@ def main():
         for cmd in (
             ['git', 'add', 'portfolio.json'],
             ['git', 'commit', '-q', '-m', f'gold: 定投对账 {rdate}（本金{principal:.0f}/份额{units:.0f}）'],
-            ['bash', os.path.join(WS_ROOT, 'ops/publish/safe_push.sh')],
+            ['bash', str(Path(__file__).resolve().parents[4] / 'ops/publish/safe_push.sh')],
         ):
             result = subprocess.run(cmd)
             if result.returncode != 0:

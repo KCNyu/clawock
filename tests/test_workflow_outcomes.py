@@ -1537,3 +1537,22 @@ def test_receipt_before_heartbeat_allows_initial_product_verdict(tmp_path, monke
     assert record['stages']['llm']['status'] != 'unknown'
     assert record['stages']['postflight']['status'] != 'unknown'
     assert record['final_product']['status'] == expected
+
+
+@pytest.mark.parametrize('detail', [{'action': 'deterministic-fallback'},
+                                     {'watchdog_state': 'deterministic_fallback'}])
+def test_deterministic_data_block_is_not_a_recovered_semantic_product(tmp_path, monkeypatch, detail):
+    _isolate(tmp_path, monkeypatch)
+    job, slot = '港股午后快报', FROZEN_NOW.isoformat()
+    outcomes.record_stage(job, 'preflight', 'success', slot=slot)
+    row = outcomes.record_stage(job, 'watchdog_delivery', 'success', slot=slot, **detail)
+    assert row['final_product']['status'] == 'degraded'
+    assert row['final_product']['fallback_only'] is True
+    from clawock.publish.cron_schedule import _narrate_degraded
+    note = _narrate_degraded(row)
+    assert note['disposition'] == 'needs_action'
+    assert '没有语义报告' in note['text'] or '未产出语义报告' in note['text']
+    # A real product replay remains recovered.
+    outcomes.record_stage(job, 'llm', 'success', slot=slot)
+    row = outcomes.record_stage(job, 'postflight', 'success', slot=slot)
+    assert row['final_product']['status'] == 'recovered'

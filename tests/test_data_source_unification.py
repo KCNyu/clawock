@@ -59,7 +59,8 @@ def test_combined_risk_refuses_to_mix_currencies_without_fx():
         risk.compute_combined(None, hk_meta, {"us": [], "hk": [{"current_value": 100.0}]})
 
 
-def test_fetch_fx_marks_provider_and_hardcoded_fallbacks(monkeypatch):
+def test_fetch_fx_marks_provider_and_hardcoded_fallbacks(monkeypatch, tmp_path):
+    monkeypatch.setattr(fx, "LEDGER_PATH", str(tmp_path / "fx-rates.jsonl"))
     monkeypatch.setattr(fx, "_from_cache", lambda allow_stale=False: None)
     monkeypatch.setattr(fx, "_save_cache", lambda data: None)
     monkeypatch.setattr(fx, "_get_frankfurter", lambda: None)
