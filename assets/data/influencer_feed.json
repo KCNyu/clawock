@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T22:34:12.044523+00:00",
+  "generated_at": "2026-11-17T04:08:24.505500+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -19,14 +19,14 @@
     "duan": "success",
     "honghao": "failed",
     "burry": "success",
-    "pelosi": "failed"
+    "pelosi": "success"
   },
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 12,
+    "total": 16,
     "held_hits": 0,
-    "new_ideas": 8,
+    "new_ideas": 11,
     "sector_hits": 2
   },
   "items": [
@@ -45,7 +45,7 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
+        "人工智能",
         "半导体",
         "GPU"
       ],
@@ -58,7 +58,7 @@
       ],
       "stance": "attack",
       "relevance": 84,
-      "summary_cn": "据报道，Michael Burry表示目前不会以任何价格买入英伟达，并警告黄仁勋之外可能出现“真正的问题”。"
+      "summary_cn": "据媒体报道，Michael Burry 表示目前不会以任何价格买入英伟达，并警告黄仁勋之外可能出现“真正的问题”。"
     },
     {
       "author": "Burry",
@@ -75,10 +75,10 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
+        "人工智能",
         "半导体",
         "GPU",
-        "会计风险"
+        "会计与收入"
       ],
       "sector_holdings": [
         "00100",
@@ -88,8 +88,8 @@
         "07709"
       ],
       "stance": "attack",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry质疑英伟达新加坡收入正在消失，暗示其财务报表可能存在异常。"
+      "relevance": 82,
+      "summary_cn": "据媒体报道，Michael Burry 质疑英伟达新加坡收入的变化，暗示其收入质量或披露存在异常。"
     },
     {
       "author": "段永平",
@@ -106,7 +106,7 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
+        "人工智能",
         "半导体",
         "GPU"
       ],
@@ -118,8 +118,73 @@
         "07709"
       ],
       "stance": "endorse",
-      "relevance": 76,
-      "summary_cn": "据媒体转述，段永平认为英伟达护城河依然强大、没有急售意向，并称黄仁勋回归并非零概率。"
+      "relevance": 82,
+      "summary_cn": "据媒体报道，段永平认为英伟达护城河依然强大、不急于卖出，并称黄仁勋回归并非零概率。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Buys More Of Adobe And MercadoLibre; Exits ORCL, CAT Puts",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOSFpRN29hNGpxVlRpVFRQaG9JSjkyNElEWnpQbFdqd1dybHg1cnZiMGtKOUN1cDFUdnhhNXM5UlQzaEtqMGtGbWc1VXpCN2ZHQ0ZDbUd2RGEwUnhKd3NCRU95U3gxUEU0SlktRUc4eVVmN3h0cFlwMVoySmtLLXZySWQwM3ctX1hneUh4dGJVaHVOalRZaGk2M05n?oc=5",
+      "published": "2026-11-16T22:44:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "ADBE",
+        "MELI",
+        "ORCL",
+        "CAT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADBE",
+        "CAT",
+        "MELI",
+        "ORCL"
+      ],
+      "sectors": [
+        "软件",
+        "人工智能",
+        "云计算",
+        "电商",
+        "工业制造"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "据媒体报道，Michael Burry 增持 Adobe 和 MercadoLibre，同时退出 Oracle，并平仓卡特彼勒看跌期权。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Pelosi Bought Bloom Before S&P 500 Did | Where I'd Start | Market Prep Sunday Allison Ellsworth (1kABruVOYI)",
+      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxObmJuY2ltak9OeHh6OGVqNFp4T0ppWmJZdEw4NG9sRzZqNENtUHEwc0p2RW1EWXZUVzcwb1NuSU9TdWhUcks1bDNLZ1NvTF9nYXFscFppcDFwZzg3Nll1ckZYTTNjcFhKWHFiSVd4aDBSUHdTd25kc2I3VjZJbnl3eWdpRHdRVWs?oc=5",
+      "published": "2026-11-15T04:49:54+00:00",
+      "origin": "gnews-rss",
+      "source": "Unisba Media",
+      "tickers": [
+        "BE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BE"
+      ],
+      "sectors": [
+        "清洁能源",
+        "氢能",
+        "燃料电池",
+        "能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "buy",
+      "relevance": 78,
+      "summary_cn": "最新国会交易披露显示，Nancy Pelosi 买入了 Bloom Energy（BE），媒体将其作为标普500下跌前的代表性买入案例。"
     },
     {
       "author": "Burry",
@@ -136,14 +201,14 @@
         "CAT"
       ],
       "sectors": [
+        "工业制造",
         "工程机械",
-        "工业股",
-        "指数期权"
+        "Caterpillar"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 75,
-      "summary_cn": "据报道，Michael Burry在卡特彼勒（CAT）股价大跌期间兑现 Caterpillar 看跌期权收益，延续对其高估的警惕。"
+      "relevance": 72,
+      "summary_cn": "据媒体报道，Michael Burry 在卡特彼勒股价大跌期间兑现看跌期权收益，文章聚焦其对 CAT 高估值的质疑。"
     },
     {
       "author": "Cathie Wood",
@@ -162,12 +227,38 @@
       ],
       "sectors": [
         "电动车",
+        "新能源汽车",
         "中国汽车"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK于2026年11月13日从ARKQ卖出219,468股比亚迪（BYDDY），单只ETF占比0.10%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest 2026年11月13日从 ARKQ 卖出 219,468 股比亚迪（BYDDY），占该 ETF 权重0.10%。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi Is Not Alone — These Other Congress Members Cashed Out of WBD Stock After Merger",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPWDJOM2JTWldRaFo1QXRHOGs2UUNhWUFaekYzZE9Ua0NSX19ETHhpeXhaZUI0VHN4MEZKOU1UX0ZGd2MzS2RGMk4wWmdNUkNaLUZJMk9Jc3RzVUJBUDJOSmdSNC1HbVJQWGN5aFJYeVItSzdoUzNqeURzTjR4b1gwaWZCdXN1UGRhTWhEWE9jYXVDTnpwNUhmMg?oc=5",
+      "published": "2026-11-17T02:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "WBD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WBD"
+      ],
+      "sectors": [
+        "媒体娱乐",
+        "传媒",
+        "并购交易",
+        "国会交易披露"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 67,
+      "summary_cn": "据报道，多名国会议员在 Warner Bros. Discovery 合并后出售 WBD 股票，焦点在于国会成员减持披露。"
     },
     {
       "author": "Cathie Wood",
@@ -185,13 +276,15 @@
         "KTOS"
       ],
       "sectors": [
-        "国防军工",
-        "航空航天"
+        "航空航天",
+        "国防科技"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLX"
+      ],
       "stance": "buy",
-      "relevance": 52,
-      "summary_cn": "ARK于2026年11月13日买入24,784股Kratos Defense & Security Solutions（KTOS），单只ETF占比0.05%。"
+      "relevance": 55,
+      "summary_cn": "ARK Invest 2026年11月13日买入 24,784 股 Kratos Defense & Security Solutions（KTOS），占 ARKQ 权重0.05%。"
     },
     {
       "author": "Cathie Wood",
@@ -209,15 +302,20 @@
         "TEM"
       ],
       "sectors": [
-        "AI",
-        "医疗科技"
+        "人工智能",
+        "医疗AI",
+        "软件"
       ],
       "sector_holdings": [
-        "00100"
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
       ],
       "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK于2026年11月13日从ARKG卖出7,996股Tempus AI（TEM），单只ETF占比0.03%。"
+      "relevance": 55,
+      "summary_cn": "ARK Invest 2026年11月13日从 ARKG 卖出 7,996 股 Tempus AI（TEM），占该 ETF 权重0.03%。"
     },
     {
       "author": "Cathie Wood",
@@ -236,81 +334,35 @@
       ],
       "sectors": [
         "生物科技",
-        "基因编辑"
+        "基因治疗",
+        "医疗"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 46,
-      "summary_cn": "ARK于2026年11月13日买入28,905股Scribe Therapeutics（SCTX），单只ETF占比0.02%。"
-    },
-    {
-      "author": "Burry",
-      "text": "“Behold the Bull-Trap”: Michael Burry Doubles His Nasdaq 100 Puts, Compares October High to March 2000",
-      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNN3p3anJLUW5nVC1tQXR1V0V1ekZzbnpOMFNKRGVSaVI3SmNab1R2cWxxRHpjZEFQclJ2VTZQWEpONElhb1RnTWFLSEJySnFrQ2tBUzR6WW5TaFg1UFpPeDB2UTlPZzU4OHdxWGkycldXNFl4MGlxTkc5WW1EaWkzZW5kbUR0WjhwX2Y1VDVxdkdZOXJEMk10d21CTzI?oc=5",
-      "published": "2026-11-16T09:44:05+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "纳斯达克100",
-        "科技股",
-        "指数期权"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，Michael Burry将纳斯达克100看跌期权仓位增加一倍，并以2000年3月高位类比当前科技股风险。"
+      "relevance": 52,
+      "summary_cn": "ARK Invest 2026年11月13日买入 28,905 股 Scribe Therapeutics（SCTX），占 ARKG 权重0.02%。"
     },
     {
       "author": "Trump",
-      "text": "Has anyone noticed that immediately after the Election the Stock Market lost 3 Trillion Dollars in Value? In other words, Investors throughout the World hated seeing what took place on Election Day. But have no fear, the Market has since gone up, and America will soon be GREATER THAN EVER BEFORE! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43582",
-      "published": "2026-11-15T00:50:04+00:00",
+      "text": "Despite the United States having the MOST ABUNDANT Supply, and LOWEST COST Natural Gas in the World, Citizens in Blue States like New York have been paying 3X-7X more for Natural Gas due to the costly Anti-Energy Policies pushed by Blue State Governors and Political leaders. We must protect our American Families from these Radical Climate Extremists, they are exploding Energy costs. The Democrat Party wants to ban all Pipelines, all Refineries, and all Fossil Fuels. The great news is that I am working to END the Left's War on Energy Affordability and Energy Security, and I will UNLEASH America",
+      "url": "https://www.trumpstruth.org/statuses/43607",
+      "published": "2026-11-17T00:44:37+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美股",
-        "宏观经济"
+        "能源",
+        "天然气",
+        "能源政策",
+        "气候监管"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "02208"
       ],
-      "stance": "neutral",
-      "relevance": 51,
-      "summary_cn": "特朗普称美国股市在选举后一度蒸发3万亿美元市值、随后回升，并继续表达对美股前景的乐观。"
-    },
-    {
-      "author": "Trump",
-      "text": "The new people running 60 Minutes are even worse than their predecessors. A recent study on an attack in the early stages of Iran was not correctly stated. Since February 28, 2026, the start of Epic Fury, Iran has fired between 8,000-9,000 One-way Attack Drones. Only 2 of them got through, resulting in U.S. fatalities, both on the first day, hitting Kuwait and Saudi Arabia. Likewise, Iran has fired about 2,000 Ballistic Missiles. Only 1 out of the 2,0000 got through, and caused U.S. fatalities (Jordan). Translation: 99.99% of Iranian missiles and drones have been shot down or, in any event, no",
-      "url": "https://www.trumpstruth.org/statuses/43603",
-      "published": "2026-11-16T14:17:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中东局势",
-        "国防军工",
-        "无人机",
-        "导弹",
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普称伊朗发射的大量无人机和导弹绝大多数被拦截，凸显中东冲突对国防、能源及风险偏好的潜在影响。"
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "特朗普称美国蓝州反能源政策推高天然气成本，并表示将推动结束对能源负担和能源安全的限制。"
     },
     {
       "author": "Trump",
@@ -322,14 +374,76 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航空基础设施",
-        "美国财政政策",
-        "FAA"
+        "航空",
+        "空管系统",
+        "基础设施",
+        "政府支出"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普呼吁国会尽快拨款升级老旧空中交通管制系统，涉及航空基础设施和政府支出预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "The new people running 60 Minutes are even worse than their predecessors. A recent study on an attack in the early stages of Iran was not correctly stated. Since February 28, 2026, the start of Epic Fury, Iran has fired between 8,000-9,000 One-way Attack Drones. Only 2 of them got through, resulting in U.S. fatalities, both on the first day, hitting Kuwait and Saudi Arabia. Likewise, Iran has fired about 2,000 Ballistic Missiles. Only 1 out of the 2,0000 got through, and caused U.S. fatalities (Jordan). Translation: 99.99% of Iranian missiles and drones have been shot down or, in any event, no",
+      "url": "https://www.trumpstruth.org/statuses/43603",
+      "published": "2026-11-16T14:17:10+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "国防",
+        "能源安全",
+        "中东局势"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 54,
-      "summary_cn": "特朗普敦促国会尽快批准空中交通管制系统建设资金，若落地将带来航空基础设施投资增量。"
+      "relevance": 68,
+      "summary_cn": "特朗普称伊朗向美国及地区发射大量无人机和弹道导弹，意在强化中东冲突与能源安全风险的市场影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "Under my leadership, our Economy is booming! New Businesses created in America have reached ALL-TIME HIGHS — Over 500,000 new Businesses formed every month this year. Unlike the Communists that want to tax our Small Business Owners to “death,” my Administration and Republicans in Congress rewarded them with the Largest Tax Cuts in American History, which EVERY Democrat voted against. I WILL ALWAYS FIGHT FOR THE AMERICAN PEOPLE! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43608",
+      "published": "2026-11-17T00:42:06+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "小企业",
+        "税收政策"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "特朗普称美国经济强劲、新成立企业数量创纪录，并宣传其政府实施的大规模减税政策。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Jamie Ager leads push for congressional stock trading ban",
+      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPU1BldGtxVFFkeDhWQTRad1ZWZW8zT2xnM3RCNFM5Q0FRaHZ1MnJPdWhaQ2JSN1E2a3M0eVl4LTRxcTY3S3RoTFk3QlVoMHZzM3JsZHJ0WXkwUDRlM2FqVlhZNExHRkZYX29PRWhwclhVMUhZVmpORENGZWVNdzFIRnhCelFoVy1sODI1SU45WTE2OVNpS1dIUW8zM2MwbG9FNF8tMk1OcTRlNUdaeDB2cHFBYXlVQmNCWEZrZnQ2X1JPejdMeHhvRQ?oc=5",
+      "published": "2026-11-16T14:13:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Asheville Citizen Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国会交易",
+        "监管",
+        "金融监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，议员 Jamie Ager 推动禁止国会议员交易股票，市场关注国会交易监管政策可能趋严。"
     }
   ],
   "held_hits": [],
@@ -349,7 +463,7 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
+        "人工智能",
         "半导体",
         "GPU"
       ],
@@ -362,7 +476,7 @@
       ],
       "stance": "attack",
       "relevance": 84,
-      "summary_cn": "据报道，Michael Burry表示目前不会以任何价格买入英伟达，并警告黄仁勋之外可能出现“真正的问题”。"
+      "summary_cn": "据媒体报道，Michael Burry 表示目前不会以任何价格买入英伟达，并警告黄仁勋之外可能出现“真正的问题”。"
     },
     {
       "author": "Burry",
@@ -379,10 +493,10 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
+        "人工智能",
         "半导体",
         "GPU",
-        "会计风险"
+        "会计与收入"
       ],
       "sector_holdings": [
         "00100",
@@ -392,8 +506,8 @@
         "07709"
       ],
       "stance": "attack",
-      "relevance": 79,
-      "summary_cn": "据报道，Michael Burry质疑英伟达新加坡收入正在消失，暗示其财务报表可能存在异常。"
+      "relevance": 82,
+      "summary_cn": "据媒体报道，Michael Burry 质疑英伟达新加坡收入的变化，暗示其收入质量或披露存在异常。"
     },
     {
       "author": "段永平",
@@ -410,7 +524,7 @@
         "NVDA"
       ],
       "sectors": [
-        "AI",
+        "人工智能",
         "半导体",
         "GPU"
       ],
@@ -422,8 +536,73 @@
         "07709"
       ],
       "stance": "endorse",
-      "relevance": 76,
-      "summary_cn": "据媒体转述，段永平认为英伟达护城河依然强大、没有急售意向，并称黄仁勋回归并非零概率。"
+      "relevance": 82,
+      "summary_cn": "据媒体报道，段永平认为英伟达护城河依然强大、不急于卖出，并称黄仁勋回归并非零概率。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Buys More Of Adobe And MercadoLibre; Exits ORCL, CAT Puts",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOSFpRN29hNGpxVlRpVFRQaG9JSjkyNElEWnpQbFdqd1dybHg1cnZiMGtKOUN1cDFUdnhhNXM5UlQzaEtqMGtGbWc1VXpCN2ZHQ0ZDbUd2RGEwUnhKd3NCRU95U3gxUEU0SlktRUc4eVVmN3h0cFlwMVoySmtLLXZySWQwM3ctX1hneUh4dGJVaHVOalRZaGk2M05n?oc=5",
+      "published": "2026-11-16T22:44:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "ADBE",
+        "MELI",
+        "ORCL",
+        "CAT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADBE",
+        "CAT",
+        "MELI",
+        "ORCL"
+      ],
+      "sectors": [
+        "软件",
+        "人工智能",
+        "云计算",
+        "电商",
+        "工业制造"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709"
+      ],
+      "stance": "neutral",
+      "relevance": 80,
+      "summary_cn": "据媒体报道，Michael Burry 增持 Adobe 和 MercadoLibre，同时退出 Oracle，并平仓卡特彼勒看跌期权。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Pelosi Bought Bloom Before S&P 500 Did | Where I'd Start | Market Prep Sunday Allison Ellsworth (1kABruVOYI)",
+      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxObmJuY2ltak9OeHh6OGVqNFp4T0ppWmJZdEw4NG9sRzZqNENtUHEwc0p2RW1EWXZUVzcwb1NuSU9TdWhUcks1bDNLZ1NvTF9nYXFscFppcDFwZzg3Nll1ckZYTTNjcFhKWHFiSVd4aDBSUHdTd25kc2I3VjZJbnl3eWdpRHdRVWs?oc=5",
+      "published": "2026-11-15T04:49:54+00:00",
+      "origin": "gnews-rss",
+      "source": "Unisba Media",
+      "tickers": [
+        "BE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BE"
+      ],
+      "sectors": [
+        "清洁能源",
+        "氢能",
+        "燃料电池",
+        "能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "buy",
+      "relevance": 78,
+      "summary_cn": "最新国会交易披露显示，Nancy Pelosi 买入了 Bloom Energy（BE），媒体将其作为标普500下跌前的代表性买入案例。"
     },
     {
       "author": "Burry",
@@ -440,14 +619,14 @@
         "CAT"
       ],
       "sectors": [
+        "工业制造",
         "工程机械",
-        "工业股",
-        "指数期权"
+        "Caterpillar"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 75,
-      "summary_cn": "据报道，Michael Burry在卡特彼勒（CAT）股价大跌期间兑现 Caterpillar 看跌期权收益，延续对其高估的警惕。"
+      "relevance": 72,
+      "summary_cn": "据媒体报道，Michael Burry 在卡特彼勒股价大跌期间兑现看跌期权收益，文章聚焦其对 CAT 高估值的质疑。"
     },
     {
       "author": "Cathie Wood",
@@ -466,12 +645,38 @@
       ],
       "sectors": [
         "电动车",
+        "新能源汽车",
         "中国汽车"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 68,
-      "summary_cn": "ARK于2026年11月13日从ARKQ卖出219,468股比亚迪（BYDDY），单只ETF占比0.10%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest 2026年11月13日从 ARKQ 卖出 219,468 股比亚迪（BYDDY），占该 ETF 权重0.10%。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Nancy Pelosi Is Not Alone — These Other Congress Members Cashed Out of WBD Stock After Merger",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPWDJOM2JTWldRaFo1QXRHOGs2UUNhWUFaekYzZE9Ua0NSX19ETHhpeXhaZUI0VHN4MEZKOU1UX0ZGd2MzS2RGMk4wWmdNUkNaLUZJMk9Jc3RzVUJBUDJOSmdSNC1HbVJQWGN5aFJYeVItSzdoUzNqeURzTjR4b1gwaWZCdXN1UGRhTWhEWE9jYXVDTnpwNUhmMg?oc=5",
+      "published": "2026-11-17T02:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "WBD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WBD"
+      ],
+      "sectors": [
+        "媒体娱乐",
+        "传媒",
+        "并购交易",
+        "国会交易披露"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 67,
+      "summary_cn": "据报道，多名国会议员在 Warner Bros. Discovery 合并后出售 WBD 股票，焦点在于国会成员减持披露。"
     },
     {
       "author": "Cathie Wood",
@@ -489,13 +694,15 @@
         "KTOS"
       ],
       "sectors": [
-        "国防军工",
-        "航空航天"
+        "航空航天",
+        "国防科技"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLX"
+      ],
       "stance": "buy",
-      "relevance": 52,
-      "summary_cn": "ARK于2026年11月13日买入24,784股Kratos Defense & Security Solutions（KTOS），单只ETF占比0.05%。"
+      "relevance": 55,
+      "summary_cn": "ARK Invest 2026年11月13日买入 24,784 股 Kratos Defense & Security Solutions（KTOS），占 ARKQ 权重0.05%。"
     },
     {
       "author": "Cathie Wood",
@@ -513,89 +720,66 @@
         "TEM"
       ],
       "sectors": [
-        "AI",
-        "医疗科技"
-      ],
-      "sector_holdings": [
-        "00100"
-      ],
-      "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK于2026年11月13日从ARKG卖出7,996股Tempus AI（TEM），单只ETF占比0.03%。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-13 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 28,905 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-13T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.023,
-      "tickers": [
-        "SCTX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SCTX"
-      ],
-      "sectors": [
-        "生物科技",
-        "基因编辑"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 46,
-      "summary_cn": "ARK于2026年11月13日买入28,905股Scribe Therapeutics（SCTX），单只ETF占比0.02%。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Burry",
-      "text": "“Behold the Bull-Trap”: Michael Burry Doubles His Nasdaq 100 Puts, Compares October High to March 2000",
-      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNN3p3anJLUW5nVC1tQXR1V0V1ekZzbnpOMFNKRGVSaVI3SmNab1R2cWxxRHpjZEFQclJ2VTZQWEpONElhb1RnTWFLSEJySnFrQ2tBUzR6WW5TaFg1UFpPeDB2UTlPZzU4OHdxWGkycldXNFl4MGlxTkc5WW1EaWkzZW5kbUR0WjhwX2Y1VDVxdkdZOXJEMk10d21CTzI?oc=5",
-      "published": "2026-11-16T09:44:05+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "纳斯达克100",
-        "科技股",
-        "指数期权"
+        "人工智能",
+        "医疗AI",
+        "软件"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
-        "07226"
+        "07226",
+        "07709"
       ],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "据报道，Michael Burry将纳斯达克100看跌期权仓位增加一倍，并以2000年3月高位类比当前科技股风险。"
-    },
+      "stance": "sell",
+      "relevance": 55,
+      "summary_cn": "ARK Invest 2026年11月13日从 ARKG 卖出 7,996 股 Tempus AI（TEM），占该 ETF 权重0.03%。"
+    }
+  ],
+  "sector_hits": [
     {
       "author": "Trump",
-      "text": "Has anyone noticed that immediately after the Election the Stock Market lost 3 Trillion Dollars in Value? In other words, Investors throughout the World hated seeing what took place on Election Day. But have no fear, the Market has since gone up, and America will soon be GREATER THAN EVER BEFORE! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43582",
-      "published": "2026-11-15T00:50:04+00:00",
+      "text": "Despite the United States having the MOST ABUNDANT Supply, and LOWEST COST Natural Gas in the World, Citizens in Blue States like New York have been paying 3X-7X more for Natural Gas due to the costly Anti-Energy Policies pushed by Blue State Governors and Political leaders. We must protect our American Families from these Radical Climate Extremists, they are exploding Energy costs. The Democrat Party wants to ban all Pipelines, all Refineries, and all Fossil Fuels. The great news is that I am working to END the Left's War on Energy Affordability and Energy Security, and I will UNLEASH America",
+      "url": "https://www.trumpstruth.org/statuses/43607",
+      "published": "2026-11-17T00:44:37+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美股",
-        "宏观经济"
+        "能源",
+        "天然气",
+        "能源政策",
+        "气候监管"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "02208"
       ],
-      "stance": "neutral",
-      "relevance": 51,
-      "summary_cn": "特朗普称美国股市在选举后一度蒸发3万亿美元市值、随后回升，并继续表达对美股前景的乐观。"
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "特朗普称美国蓝州反能源政策推高天然气成本，并表示将推动结束对能源负担和能源安全的限制。"
+    },
+    {
+      "author": "Trump",
+      "text": "If Congress approves the desperately needed money for Air Traffic Control, we can get it built quickly and efficiently. It will be the BEST SYSTEM anywhere in the World. Much of our current air control system is 50 years old - RIDICULOUS! We have already started the work, but it should be done all at once, not in drips and drabs. Congress must approve. The Biden Administration set it back years! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/43588",
+      "published": "2026-11-15T13:35:45+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航空",
+        "空管系统",
+        "基础设施",
+        "政府支出"
+      ],
+      "sector_holdings": [
+        "RKLX"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普呼吁国会尽快拨款升级老旧空中交通管制系统，涉及航空基础设施和政府支出预期。"
     }
   ]
 }
