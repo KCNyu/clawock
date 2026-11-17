@@ -26,7 +26,7 @@ from clawock.portfolio.math import ledger_date, ledger_rows, session_date, trade
 
 
 def _ledger_sells(holdings):
-    """Per-ticker chronological sells, each tagged with its post-sell balance.
+    """Chronological realized entries, each tagged with its resulting share balance.
 
     Returns {ticker: [ {date, shares, price, realized_pnl, post_bal, seq}, ... ]}.
     `seq` preserves array order so same-date trades replay deterministically.
@@ -66,7 +66,7 @@ def _ledger_sells(holdings):
 
 
 def realized_as_of(holdings, snap_date, snap_shares, *, market=None):
-    """Cumulative realized + chronological note reflected in a snapshot.
+    """Cumulative all-entry realized + chronological note reflected in a snapshot.
 
     holdings    — canonical portfolio.json region holdings (the ledger).
     snap_date   — 'YYYY-MM-DD' of the snapshot.
