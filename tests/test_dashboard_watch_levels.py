@@ -200,7 +200,7 @@ def test_unique_holding_name_resolves_watch_level_and_keeps_null_unknown(bundle)
 @pytest.mark.parametrize('index', ['hstech', 'hsi', 'spx', 'ndx'])
 def test_index_percent_threshold_never_uses_index_price(bundle, index):
     rows = _ordered_rows(bundle, {f'{index}_07226_rearm_pnl_pct': -57.8,
-                                  f'{index}_derisk_close': 3758})
+                                  f'{index}_derisk_pct': -12, f'{index}_derisk_close': 3758})
     pct = next(r for r in rows if r['val'] == -57.8)
     assert (pct['isPct'], pct['ccy'], pct['cur'], pct['dist']) == (True, '%', None, None)
     derisk = next(r for r in rows if r['val'] == -12)
