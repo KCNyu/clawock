@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/11/18 00:03 HKT",
+  "last_updated": "2026/11/18 00:33 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -97,10 +97,10 @@
           "ticker": "CRCL",
           "shares": 2,
           "cost_basis": 87,
-          "current_price": 54.575,
-          "today_change_pct": -5.3339,
-          "pnl_percent": -37.2701,
-          "data_source": "Eastmoney Nov 17, 2026 11:03 ET",
+          "current_price": 54.09,
+          "today_change_pct": -6.1752,
+          "pnl_percent": -37.8276,
+          "data_source": "Eastmoney Nov 17, 2026 11:33 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -146,11 +146,11 @@
           "day_low": 53.305,
           "day_open": 57.63,
           "prev_close": 57.65,
-          "current_value": 109.15,
-          "pnl_abs": -64.85,
-          "today_change": -6.15,
+          "current_value": 108.18,
+          "pnl_abs": -65.82,
+          "today_change": -7.12,
           "name": "Circle Internet Group Inc-A",
-          "volume": 4176025,
+          "volume": 4853914,
           "prev_close_date": "2026-11-16",
           "day_session_date": "2026-11-17"
         },
@@ -475,17 +475,17 @@
           "ticker": "RKLX",
           "shares": 30.0,
           "cost_basis": 22.0167,
-          "current_price": 9.24,
-          "today_change_pct": -7.1357,
-          "pnl_percent": -58.0319,
-          "data_source": "Eastmoney (alt-prefix) Nov 17, 2026 11:03 ET",
+          "current_price": 9.093,
+          "today_change_pct": -8.6131,
+          "pnl_percent": -58.6995,
+          "data_source": "Eastmoney (alt-prefix) Nov 17, 2026 11:33 ET",
           "day_high": 10.376,
           "day_low": 8.58,
           "day_open": 10.0,
           "prev_close": 9.95,
-          "current_value": 277.2,
-          "pnl_abs": -383.3,
-          "today_change": -21.3,
+          "current_value": 272.79,
+          "pnl_abs": -387.71,
+          "today_change": -25.71,
           "note": "2x RKLB杠杆ETF,纳指100入指波段仓(生效日6/22),$49.69建仓,目标$60-68,止损$46",
           "trades": [
             {
@@ -542,7 +542,7 @@
             }
           ],
           "name": "Defiance Daily Target 2X Long R",
-          "volume": 1510096,
+          "volume": 1689023,
           "prev_close_date": "2026-11-16",
           "day_session_date": "2026-11-17"
         },
@@ -618,13 +618,13 @@
           "name": "SpaceX",
           "shares": 1,
           "cost_basis": 147.5,
-          "current_price": 140.565,
-          "current_value": 140.56,
-          "pnl_abs": -6.94,
-          "pnl_percent": -4.7017,
-          "today_change": 3.2,
-          "today_change_pct": 2.3333,
-          "data_source": "Eastmoney (alt-prefix) Nov 17, 2026 11:03 ET",
+          "current_price": 140.83,
+          "current_value": 140.83,
+          "pnl_abs": -6.67,
+          "pnl_percent": -4.522,
+          "today_change": 3.47,
+          "today_change_pct": 2.5262,
+          "data_source": "Eastmoney (alt-prefix) Nov 17, 2026 11:33 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -655,20 +655,20 @@
           "day_low": 137.39,
           "day_open": 138.58,
           "day_session_date": "2026-11-17",
-          "volume": 37610254
+          "volume": 44632762
         },
         {
           "ticker": "SPCH",
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
           "shares": 320.0,
           "cost_basis": 11.7487,
-          "current_price": 8.015,
-          "current_value": 2564.8,
-          "pnl_abs": -1194.78,
-          "pnl_percent": -31.7797,
-          "data_source": "Eastmoney Nov 17, 2026 11:03 ET",
-          "today_change": 107.2,
-          "today_change_pct": 4.362,
+          "current_price": 8.034,
+          "current_value": 2570.88,
+          "pnl_abs": -1188.7,
+          "pnl_percent": -31.618,
+          "data_source": "Eastmoney Nov 17, 2026 11:33 ET",
+          "today_change": 113.28,
+          "today_change_pct": 4.6094,
           "trades": [
             {
               "date": "2026-07-22",
@@ -874,7 +874,7 @@
             "SPCH 单日跌幅 > 15%",
             "SPCX 正股单周跌幅 > 25%"
           ],
-          "volume": 12511462
+          "volume": 14086250
         },
         {
           "ticker": "MSFU",
@@ -970,36 +970,36 @@
         }
       ],
       "total_cost": 4741.59,
-      "total_current_value": 3091.71,
-      "total_pnl": -1649.88,
-      "total_pnl_percent": -34.7959,
-      "today_total_change": 82.95,
+      "total_current_value": 3092.68,
+      "total_pnl": -1648.9,
+      "total_pnl_percent": -34.7754,
+      "today_total_change": 83.92,
       "realized_pnl": 2375.84,
       "realized_note": "NVDA 3.0股@197.5(+29.19) + CRCL 4.0股@103.21(+64.84) + CRCL 5.0股@120(+165) + CRCL 3.0股@127(+120) + NVDA 3.0股@199.41(+34.92) + QQQ 1.0股@631.3(+9.03) + TQQQ 8.0股@54.45(+69.76) + HOOD 5.0股@88.36(+74.3) + OKLO 2.0股@68(+10.34) + TCOM 5.0股@53.86(+5.6) + SOXL 5.0股@112(+100.65) + RKLX 4.0股@75(+113.2) + RKLX 2.0股@91.03(+88.66) + SOXL 3.0股@170.8(+236.79) + SOXL 2.0股@217.17(+250.6) + RKLB 5.0股@100.17(+145.85) + SPCX 5.0股@168(+48.5) + RKLX 10.0股@53.93(+7.3) + SPCH 20.0股@18.42(+34.8) + ROBN 20.0股@35.175(+231.85) + ROBN 10.0股@40(+164.17) + ROBN 10.0股@37(+134.18) + MSFU 5.0股@31.19(+10.3) + MSFU 5.0股@32(+14.35) + PLTU 4.0股@45(+16.17) + PLTU 5.0股@49(+40.2143) + MSFU 10.0股@37.32(+81.9) + PLTU 5.0股@50(+45.2143) + SKHY 1.0股@197.35(+28.165)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
-      "last_open_attempted": "2026-11-17 11:03 EST",
+      "last_open_attempted": "2026-11-17 11:33 EST",
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7339.11,
+          "price": 7322.6,
           "prev_close": 7416.59,
-          "change_pct": -1.045,
-          "source": "Tencent usINX index @ 2026-11-17 11:03 ET"
+          "change_pct": -1.267,
+          "source": "Tencent usINX index @ 2026-11-17 11:33 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
-          "price": 26888.59,
+          "price": 26805.67,
           "prev_close": 27197.15,
-          "change_pct": -1.135,
-          "source": "Tencent usNDX index @ 2026-11-17 11:03 ET"
+          "change_pct": -1.439,
+          "source": "Tencent usNDX index @ 2026-11-17 11:33 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 50887.32,
+          "price": 50793.88,
           "prev_close": 51608.17,
-          "change_pct": -1.397,
-          "source": "Tencent usDJI index @ 2026-11-17 11:03 ET"
+          "change_pct": -1.578,
+          "source": "Tencent usDJI index @ 2026-11-17 11:33 ET"
         }
       },
       "last_trade_update": "2026-11-07 00:57 HKT",
@@ -1059,7 +1059,7 @@
           "Eastmoney": 2,
           "Eastmoney (alt-prefix)": 2
         },
-        "updated_at": "2026-11-17 11:03 EST",
+        "updated_at": "2026-11-17 11:33 EST",
         "note": "Multi-provider fetch. Sources: 2x Eastmoney, 2x Eastmoney (alt-prefix)"
       },
       "afterhours_fetch_status": {
