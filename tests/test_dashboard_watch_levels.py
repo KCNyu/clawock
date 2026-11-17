@@ -203,5 +203,7 @@ def test_index_percent_threshold_never_uses_index_price(bundle, index):
                                   f'{index}_derisk_close': 3758})
     pct = next(r for r in rows if r['val'] == -57.8)
     assert (pct['isPct'], pct['ccy'], pct['cur'], pct['dist']) == (True, '%', None, None)
+    derisk = next(r for r in rows if r['val'] == -12)
+    assert (derisk['isPct'], derisk['cur'], derisk['dist']) == (True, None, None)
     price = next(r for r in rows if r['val'] == 3758)
     assert (price['isPct'], price['cur'], price['dist']) == (False, 3758, 0)
