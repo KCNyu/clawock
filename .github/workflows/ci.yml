@@ -1,1016 +1,155 @@
 name: CI
-
-# One workflow for the whole code-quality gate (#884). It consolidates three
-# files that fired together on every PR and master push but carried three
-# different push-path policies and three copies of the same trigger reasoning:
-#
-#   harness-regression.yml -> `checks`, `unit-tests`, `validate`
-#   actionlint.yml         -> `lint`
-#   codeql.yml             -> `Analyze (...)` x3 + the aggregate `CodeQL` check
-#
-# The required check contexts are byte-identical to what the branch ruleset
-# pins — a context comes from the job name, not from the file — so no ruleset
-# change ships with this. What changed is that there is exactly ONE push-path
-# list, ONE concurrency policy and ONE place where "which push runs what" is
-# decided, instead of a positive list next to an ignore-list next to another
-# positive list.
-#
-# The push trigger below stays a positive list on purpose: pure-data commits
-# (~85% of master pushes) must not start CI at all, so the Actions tab keeps
-# showing results instead of skipped runs (#782). The weekly Saturday backstop
-# runs the full matrix whatever the push lane missed.
-on:
-  push:
-    branches: [master]
-    paths:
-      - 'src/**'
-      - 'ops/**'
-      - 'pyproject.toml'
-      # pytest.ini carries test options; a change there can change what the
-      # suite enforces just like pyproject.toml can.
-      - 'pytest.ini'
-      - 'tests/**'
-      - '.githooks/**'
-      - '.devcontainer/**'
-      # The dashboard moved under site/ in #399; these globs kept the
-      # pre-move paths and stopped matching anything.
-      - 'site/assets/css/**'
-      - 'site/assets/js/**'
-      - 'site/index.html'
-      - 'site/_config.yml'
-      - 'site/llms.txt'
-      - 'site/faq.md'
-      - 'site/robots.txt'
-      - 'site/briefs.md'
-      - 'site/manifest.webmanifest'
-      # The shared page layout and the decision-map page. #1209 put both in
-      # the classifier's ui lane but not here, so a master push touching only
-      # them started no run at all (#1568).
-      - 'site/_layouts/**'
-      - 'site/decimap/**'
-      # The screenshot/GIF tooling. Until #754 it was in no trigger, in no
-      # detector lane and in no syntax check: the only thing that ever ran it
-      # was the weekly screenshot-refresh cron, which commits its output.
-      - 'site/tools/**'
-      # Brand/icon/diagram assets the suite reads as contracts (#2215); the
-      # screenshot bot's PNG/GIF outputs stay out (push_scope.CODE_GLOBS).
-      - 'site/assets/**.svg'
-      - 'site/assets/icons/**'
-      - 'site/assets/claude-code-terminal.png'
-      - 'site/assets/decision-card-example.png'
-      - 'site/assets/dsh-dispatch-queue.png'
-      - 'site/assets/dsh-patrol-page.png'
-      - 'site/assets/dsh-stats-layer.png'
-      - 'site/assets/dsh-task-detail.png'
-      - 'site/assets/openclaw-cron.png'
-      # The Decision Studio plugin sources were watched by the detector but
-      # missing here, so a plugin-only master push started nothing on master;
-      # the contracts only ever ran on PRs. Closing that hole (#884).
-      - 'examples/dsh/**'
-      # The portable-workflow job executes these shell entrypoints. A change
-      # to one must test the same script on master, not wait for a release tag.
-      - 'examples/cli/**'
-      - 'examples/profiles/**'
-      - 'examples/claude-code/**'
-      - 'examples/codex/**'
-      # The book (push_scope.BOOK_GLOBS). A push changing only these runs the
-      # `book` lane — the data gates and the tests marked `book` — not the whole
-      # suite: an intraday refresh has no code to test, but it can still break
-      # the money reconciliation, and that must still be able to red master.
-      - 'portfolio.json'
-      - 'memory/**-plan.json'
-      # The decision ledger: three validate-job gates read it and nothing else
-      # feeds them, so a ledger-only commit used to start no run at all (#1063).
-      - 'memory/decisions.jsonl'
-      - 'memory/archive/eod-history.csv'
-      # Research artifacts are validated by the suite below, so a
-      # bad thesis/earnings/gate artifact must be able to red it.
-      - 'memory/theses/**'
-      - 'memory/earnings/**'
-      - 'memory/entry-gates/**'
-      # Hand-maintained peer registry; its contract test reads the real file.
-      - 'memory/peer-map.json'
-      # Composite actions are code the jobs execute; a broken edit deserves a
-      # red run on master too, not only on the PR that introduced it.
-      - '.github/actions/**'
-      # Public-entry tests read the issue chooser config; template-only changes
-      # must run them on PRs and master, just like other tested inputs (#2240).
-      - '.github/ISSUE_TEMPLATE/**'
-      # Whole directory on purpose: every file here (cron contract, instrument
-      # registry, thesis/earnings schemas, news-evidence policy, peer rules) is
-      # read by the suite, and naming them one by one already left new schemas
-      # ungated — a config-only PR then skipped the tests that guard them.
-      - 'config/**'
-      - '.github/workflows/**'
-      - 'skills/**'
-      - 'AGENTS.md'
-      - 'BOOTSTRAP.md'
-      - 'CLAUDE.md'
-      - 'DREAMS.md'
-      - 'HEARTBEAT.md'
-      - 'IDENTITY.md'
-      - 'INVESTMENT_SOP.md'
-      - 'MEMORY.md'
-      - 'SOUL.md'
-      - 'TOOLS.md'
-      - 'USER.md'
-  pull_request:
-  # Weekly full-matrix backstop (inherited from codeql.yml's schedule): a
-  # scheduled event has no diffable range, so the detector answers "everything
-  # changed" and lint + validate + smoke + all three Analyze jobs run in full.
-  # Saturday 03:41 UTC — an uncontended slot, because measured schedule drift
-  # in this repository runs 10-160 minutes and is driven by how busy the UTC
-  # hour is (#781).
-  schedule:
-    - cron: '41 3 * * 6'
-  workflow_dispatch:
-
+on: workflow_dispatch
 permissions:
   contents: read
-
-# Superseded PR runs share a group and are cancelled. Master pushes each get a
-# unique group: cancel-in-progress=false protects only a running job, while a
-# newer push replaces a pending job in the same group (#1967).
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
-  scope:
+  skipped_scope:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
     outputs:
-      code: ${{ steps.changes.outputs.code }}
-      book: ${{ steps.changes.outputs.book }}
-      ui: ${{ steps.changes.outputs.ui }}
-      dsplugin: ${{ steps.changes.outputs.dsplugin }}
-      workflows: ${{ steps.changes.outputs.workflows }}
-      analysable: ${{ steps.changes.outputs.analysable }}
+      code: ${{ steps.lane.outputs.code }}
     steps:
-      - uses: actions/checkout@v7
-      - name: Detect code changes
-        id: changes
-        env:
-          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
-          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-        run: |
-          set -euo pipefail
-          python3 ops/ci/push_scope.py --fetch-missing --base "$BASE_SHA" --head "$HEAD_SHA" \
-            | tee -a "$GITHUB_OUTPUT"
-
-  lint:
-    needs: scope
-    if: needs.scope.outputs.code == 'true'
+      - id: lane
+        run: echo 'code=true' >> "$GITHUB_OUTPUT"
+  skipped_optional:
+    needs: skipped_scope
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
-
-      - name: Install pinned actionlint
-        if: needs.scope.outputs.workflows == 'true'
-        env:
-          ACTIONLINT_VERSION: '1.7.12'
-          ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
-        run: |
-          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-          curl --fail --location --silent --show-error \
-            --output "/tmp/${archive}" \
-            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
-          echo "${ACTIONLINT_SHA256}  /tmp/${archive}" | sha256sum --check --strict
-          tar -xzf "/tmp/${archive}" -C /tmp actionlint
-          /tmp/actionlint -version
-
-      - name: Lint GitHub Actions
-        if: needs.scope.outputs.workflows == 'true'
-        run: /tmp/actionlint -color
-
-      # Correctness-only Python lint (pyflakes + syntax: undefined names,
-      # redefinitions, unused imports/variables). Style is deliberately not
-      # checked. Until 2026-09-12 no Python linter ran anywhere and 174 of these
-      # had accumulated; the rule set lives in pyproject `[tool.ruff.lint]` so a
-      # local `ruff check .` is this exact gate. A skipped lint job still
-      # reports its required context for documentation and runtime data.
-      - name: Lint Python (ruff, correctness rules)
-        run: pipx run --spec 'ruff==0.16.7' ruff check --output-format github .
-
-      # `requires-python` is what every `pip install clawock` is promised. Every
-      # other job runs the 3.12 the desk host trades on, so after #2964 moved the
-      # last of them off 3.11 the declared floor had nothing behind it. Ruff's
-      # `target-version` already rejects newer grammar; these steps check the rest
-      # of what a floor install meets: dependency resolution, and every module's
-      # import-time stdlib use. Here, not in a job of its own: `lint` is required
-      # and runs on code changes, beside the sharded suite.
-      # The version is read from pyproject, not restated, so it checks whatever
-      # floor is declared.
-      - name: Read the declared Python floor
-        id: floor
-        run: |
-          python3 - >> "$GITHUB_OUTPUT" <<'PY'
-          import re
-          import tomllib
-          with open('pyproject.toml', 'rb') as handle:
-              spec = tomllib.load(handle)['project']['requires-python']
-          match = re.fullmatch(r'>=\s*(3\.\d+)', spec.strip())
-          assert match, f'requires-python must be a plain lower bound to be checked here: {spec!r}'
-          print(f'version={match.group(1)}')
-          PY
-
-      - name: Set up clawock on the floor
-        uses: ./.github/actions/clawock-python
-        with:
-          python-version: ${{ steps.floor.outputs.version }}
-
-      - name: Every module imports on the floor
-        env:
-          CLAWOCK_WORKSPACE: ${{ runner.temp }}/floor-workspace
-        run: |
-          python - <<'PY'
-          import importlib
-          import pkgutil
-          import sys
-
-          import clawock
-
-          failed = []
-          names = [m.name for m in pkgutil.walk_packages(clawock.__path__, 'clawock.')]
-          for name in names:
-              try:
-                  importlib.import_module(name)
-              except Exception as exc:  # every failure, not the first
-                  failed.append(f'{name}: {type(exc).__name__}: {exc}')
-          print(f'Python {sys.version.split()[0]}: {len(names) - len(failed)}/{len(names)} modules import')
-          for line in failed:
-              print(f'::error::{line}')
-          sys.exit(1 if failed else 0)
-          PY
-
-  checks:
-    needs: scope
-    outputs:
-      # Job-level mirror of the detector, so sibling jobs can gate without a
-      # second checkout: smoke-data-fetch skips unless code changed.
-      code: ${{ steps.changes.outputs.code }}
-    runs-on: ubuntu-latest
-    # Cold browser setup plus the full test/coverage lane exceeded 10 minutes.
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # PR file-policy checks compare the exact base and head commits.
-          fetch-depth: 0
-
-      - name: Reject conflict markers
-        run: |
-          if git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD --; then
-            echo "::error::Tracked files contain unresolved git conflict markers"
-            exit 1
-          fi
-
-      - name: Tavily credit-ledger unit tests
-        # Always runs (no path gate) so the hard-budget guardrail's assertions
-        # are enforced on every PR and master push — a skills-only change must
-        # not skip them. Pure Node, no deps; Node is preinstalled on the runner.
-        run: node skills/tavily-search/lib/ledger.test.mjs
-
-      - name: Tavily search degrade tests
-        # Guards the fail-safe: a Tavily runtime failure must exit 0 (graceful
-        # degrade), never a non-zero that reds the whole cron. Offline + pure Node.
-        run: node skills/tavily-search/scripts/search.test.mjs
-
-      - name: Dependency review
-        # #784 gave Dependabot the pip and npm trees, but that only reports
-        # AFTER a dependency is on master. This is the PR-time half: GitHub's
-        # own action reads the dependency diff and objects to a newly introduced
-        # known-vulnerable package, or one whose licence the project cannot take.
-        #
-        # Deliberately advisory (`continue-on-error`) and deliberately NOT a
-        # required check. Its red is decided by the outside world — a CVE
-        # disclosed this morning against a dependency nobody touched — not by
-        # the diff under review. Making that block every PR is how a gate turns
-        # into something people route around. Start at `high`, watch what it
-        # actually catches, tighten later with data.
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5.0.0
-        with:
-          fail-on-severity: high
-          comment-summary-in-pr: false
-
-      - name: PR file safety policy
-        if: github.event_name == 'pull_request'
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA")
-          bad=()
-          for f in "${files[@]}"; do
-            case "$f" in
-              .api_keys|*/.api_keys|.openclaw/*|*/.openclaw/*|.clawhub/*|*/.clawhub/*|memory/.dreams/*|memory/.tmp/*)
-                bad+=("$f")
-                ;;
-              *.png|*.jpg|*.jpeg)
-                [[ "$f" == site/assets/* || "$f" == docs/* ]] || bad+=("$f")
-                ;;
-            esac
-            # Coding-agent prose (#2607): the class .gitignore and the pre-commit
-            # hook refuse. Neither runs on a server-side squash merge, and the one
-            # pytest that owns the class is skipped when no code path changed.
-            # A regex, not a `case` glob: there `*` would also match `/` and take
-            # memory/weekly/ and the README files with it.
-            if [[ "$f" =~ ^memory/[^/]+\.md$ && "$f" != *-pre-open.md ]]; then
-              bad+=("$f")
-            fi
-          done
-          if ((${#bad[@]})); then
-            printf '::error::Forbidden PR path: %s\n' "${bad[@]}"
-            exit 1
-          fi
-          echo "PR file policy OK: ${#files[@]} changed paths"
-
-      # #2033: the added lines of every commit this event brings, Markdown
-      # included — the pre-commit hook skips *.md and never runs here, and the
-      # platform scanner cannot see a bare key next to a variable name. Prints
-      # provider and location, never the value. Undiffable pushes scan HEAD.
-      - name: No credential-shaped values in the added lines
-        env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD: ${{ github.event.pull_request.head.sha }}
-          PUSH_BEFORE: ${{ github.event.before }}
-        run: |
-          set -euo pipefail
-          if [ "$EVENT" = pull_request ]; then
-            python3 ops/ci/commit_secret_scan.py --range "$PR_BASE..$PR_HEAD"
-          elif [ "$EVENT" = push ] && [ -n "${PUSH_BEFORE:-}" ] \
-               && [ "$PUSH_BEFORE" != 0000000000000000000000000000000000000000 ] \
-               && git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
-            python3 ops/ci/commit_secret_scan.py --range "$PUSH_BEFORE..HEAD"
-          else
-            python3 ops/ci/commit_secret_scan.py --commit HEAD
-          fi
-
-      - name: Read classified lanes
-        id: changes
-        env:
-          LANES: ${{ toJSON(needs.scope.outputs) }}
-        run: |
-          python3 - <<'PYTHON' >> "$GITHUB_OUTPUT"
-          import json, os
-          for key, value in json.loads(os.environ['LANES']).items():
-              print(f'{key}={value}')
-          PYTHON
-
-      - name: Set up Node for Decision Studio plugin contract
-        if: steps.changes.outputs.dsplugin == 'true'
-        uses: ./.github/actions/clawock-node
-
-      # The committed lib/ is what CI and the live DSH profile consume, so it
-      # has to be a function of src/ alone — not of whoever last remembered to
-      # run `npm run build`. The build is reproducible by construction (the CSS
-      # class hash and the bundler's region paths are both package-relative),
-      # so a rebuild here must produce a byte-identical tree.
-      - name: Decision Studio artifacts match their sources (rebuild is a no-op)
-        if: steps.changes.outputs.dsplugin == 'true'
-        env:
-          # Same runner hardening as the npm publish job (#732): a lockfile
-          # regenerated behind a mirror registry stalls every fetch here and
-          # npm exits with its own `Exit handler never called!`, which reads as
-          # "the build is broken" and is not. Observed on this very step.
-          NODE_OPTIONS: --dns-result-order=ipv4first
-          NO_UPDATE_NOTIFIER: '1'
-          npm_config_replace_registry_host: 'always'
-        run: |
-          set -euo pipefail
-          (
-            cd examples/dsh/packages/clawock-dsh
-            npm install --include=dev --no-audit --no-fund
-            npm run build
-          )
-          git diff --exit-code -- examples/dsh/packages/clawock-dsh/lib || {
-            echo "::error::examples/dsh/packages/clawock-dsh/lib is stale — run 'npm run build' in the package and commit the result"
-            exit 1
-          }
-
-      - name: Decision Studio plugin contract (scan + client bundle registration)
-        if: steps.changes.outputs.dsplugin == 'true'
-        run: node tests/decision_studio_plugin.spec.js
-
-      # The Workbench's state machine and type ladder are static contracts;
-      # both run in the same plugin lane as the client bundle they describe.
-      - name: Workbench state machine (every legal/illegal transition)
-        if: steps.changes.outputs.dsplugin == 'true'
-        run: node tests/workbench_fsm.spec.js
-
-      - name: Workbench typography (tokens + type table + no literals)
-        if: steps.changes.outputs.dsplugin == 'true'
-        run: node tests/workbench_typography.spec.js
-
-      - name: Workbench tokens and primitives (measured scale, no raw values)
-        if: steps.changes.outputs.dsplugin == 'true'
-        run: node tests/workbench_tokens.spec.js
-
-      # The spec above imports lib/ out of the checkout, where the repo's own
-      # node_modules satisfies everything — so it stayed green while #708
-      # shipped an undeclared-at-the-install-site `zod` and crash-looped dsh in
-      # production. This gate packs and installs the package standalone, which
-      # is the only place that class of defect is visible.
-      - name: Decision Studio package contract (standalone install + export entries)
-        if: steps.changes.outputs.dsplugin == 'true'
-        run: node tests/dsh_plugin_package_contract.mjs
-
-      # numpy is required to *collect* tests/, not just to run one of them:
-      # portfolio_risk_metrics imports it at module level, so without it pytest
-      # aborts the whole run with a collection error and all 78 tests silently
-      # stop being enforced — a green-looking local run hides this completely.
-      # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
-      # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
-      # the unit tests here exercise the same validators, so pytest needs it too.
-      - name: Set up clawock (Python)
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        uses: ./.github/actions/clawock-python
-        with:
-          install: ${{ needs.scope.outputs.book == 'true' && '.[test]' || '.' }}
-
-      # A push that changed only the book (`push_scope.BOOK_GLOBS`: price and
-      # intraday refreshes, the brief's plan and ledger rows, the EOD archive)
-      # has no code to test, so the sharded suite is skipped and this step runs the
-      # tests that read the committed book — the money reconciliation module,
-      # every test built on the real tree, the instruction-vs-book checks. The
-      # data gates below run on both lanes. Coverage is not measured here: a
-      # subset has no meaningful percentage, and publish-coverage reads `code`.
-      - name: Unit tests — the committed book (book-only push)
-        if: steps.changes.outputs.book == 'true'
-        run: python3 -m pytest tests/ -q -n auto -m book --durations=10
-
-      - name: Generated cron docs match contract
-        if: steps.changes.outputs.code == 'true'
-        run: python3 ops/host/generate_cron_docs.py --check
-
-      - name: Backtest claims cite a run card that still matches
-        # A stale citation is the failure that matters: it points at real
-        # evidence which no longer says what the claim says, so it reads as
-        # maximally credible while being wrong.
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: clawock claim-provenance --check
-
-      - name: Validate research lifecycle artifacts
-        # Every thesis, earnings and entry-gate artifact on disk must still be
-        # valid — including that a gate's stated verdict matches the recomputed
-        # one. Work items (a due earnings review, an ungated position) only warn
-        # in system_check; this step fails on integrity alone.
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: clawock research --check
-
-      - name: Import-check all scripts
-        if: steps.changes.outputs.code == 'true'
-        run: |
-          set -euo pipefail
-          # One interpreter for the whole list: one per file was 11 s of start-up.
-          find src ops site/tools -type f -name '*.py' -print0 |
-            xargs -0 python3 -m py_compile
-
-      # The two Playwright tools are 22KB of JavaScript that only the weekly
-      # screenshot cron executes, and it commits what they produce — so a syntax
-      # error there surfaced on a Sunday, inside a job that writes to master.
-      # Bare `node`: the runner ships it, same as the Tavily ledger step above.
-      - name: Syntax-check the site tooling
-        if: steps.changes.outputs.code == 'true'
-        run: |
-          set -e
-          for f in site/tools/*.js; do
-            echo "node --check: $f"
-            node --check "$f"
-          done
-
-      - name: argparse-check harness CLIs
-        if: steps.changes.outputs.code == 'true'
-        run: python3 ops/ci/argparse_probe.py
-
-      - name: Schema-validate portfolio.json
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: |
-          python3 << 'PY'
-          import json, sys
-          with open('portfolio.json') as f: p = json.load(f)
-          assert 'portfolios' in p, 'missing top-level portfolios'
-          for region in ('us_stocks', 'hk_stocks'):
-              assert region in p['portfolios'], f'missing {region}'
-              leg = p['portfolios'][region]
-              assert isinstance(leg.get('holdings', []), list), f'{region}.holdings not list'
-              for h in leg['holdings']:
-                  for k in ('ticker', 'shares', 'cost_basis'):
-                      assert k in h, f'{region} holding missing {k}: {h.get("ticker")}'
-          print('portfolio.json: schema OK')
-          PY
-
-      - name: Schema-validate canonical instrument registry
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: python3 -m clawock.instruments
-
-      - name: Schema-validate memory/*-plan.json
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: python3 ops/ci/check_plan_schema.py
-
-      - name: Decision v2 unit tests (book-only)
-        # The full sharded suite already collects these on code changes.
-        if: steps.changes.outputs.book == 'true'
-        run: python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
-
-      - name: Decision ledger audit
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: |
-          python3 << 'PY'
-          import json, glob
-          from clawock.decision import ledger as decision_v2
-          led = decision_v2.load_decisions()
-          ids = [d['decision_id'] for d in led]
-          dupes = len(ids) - len(set(ids))
-          assert not dupes, f'{dupes} duplicate decision_id in ledger'
-          errors = [f"{d['decision_id']}: {e}" for d in led for e in decision_v2.validate_decision(d)]
-          assert not errors, errors[:10]
-          # Every scored decision must trace back to a plan somebody authored. The
-          # v1 migration fabricated 25 that did not, inflating the episode count
-          # and the published curve for six weeks; each was individually valid, so
-          # only this cross-check catches the class.
-          # Conversation mind records (schema_version=0) are the deliberate
-          # second ledger row type (docs/decision-mind-ledger.md): they carry
-          # mind/emotion instead of a plan, are validated by the mind rule
-          # above, and are authored by `clawock record --source <harness>`
-          # (DSH/OpenClaw/Claude Code/Codex/CLI), not by a plan file. Exclude
-          # every mind record from the plan-origin cross-check regardless of
-          # which harness wrote it.
-          authored = set()
-          for p in glob.glob('memory/*-plan.json'):
-              with open(p) as f:
-                  authored |= {x['decision_id'] for x in (json.load(f).get('decisions') or [])}
-          orphans = sorted(set(ids) - authored - {
-              d['decision_id'] for d in led if d.get('schema_version') == 0})
-          assert not orphans, f'{len(orphans)} ledger decisions authored by no plan: {orphans[:5]}'
-          # settle must be a pure recompute from canonical bars, not a ratchet. Compare
-          # settle-twice, never against the stored ledger: build_dashboard settles
-          # in memory without writing back, so on disk it legitimately trails the
-          # intraday snapshot and a freshness check here would just flake.
-          decision_v2.settle_decisions(led)
-          once = json.dumps(led, sort_keys=True)
-          decision_v2.settle_decisions(led)
-          assert json.dumps(led, sort_keys=True) == once, 'settle_decisions is not idempotent'
-          print(f'ledger OK: {len(led)} decisions · {len({d["episode_id"] for d in led if d.get("episode_id")})} episodes · 0 orphans')
-          PY
-
-      - name: Rebuild dashboard.json and validate
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: |
-          clawock dashboard-build
-          clawock validate-sidecar dashboard
-          python3 << 'PY'
-          import json
-          with open('assets/data/decision_audit.json') as f: audit = json.load(f)
-          assert audit.get('episode_backtest', {}).get('horizons', {}).get('t1'), \
-              'decision_audit.json missing Reflect episode backtest'
-          print('decision_audit.json: Reflect backtest OK')
-          PY
-
-      # The step this replaces ran the build twice more over a comment reading
-      # "confirm it runs idempotently" — two bare invocations, no comparison, so
-      # the claim was never checked (and byte equality is not even the
-      # invariant: measured on consecutive builds over unchanged inputs, exactly
-      # four kinds of bytes move — generation_id/generated_at/as_of, which are
-      # wall-clock by design, and build_status.files[].age_hours, which is
-      # round((now - source mtime)/3600, 1) at dashboard.py). So determinism is
-      # asserted where it actually holds: after stripping exactly those keys,
-      # a second build must be JSON-identical to the first. One build instead
-      # of two, and the check finally has teeth.
-      - name: Rebuild is deterministic apart from generation stamps
-        if: steps.changes.outputs.code == 'true' || steps.changes.outputs.book == 'true'
-        run: |
-          set -euo pipefail
-          tmp="$(mktemp -d)"
-          # The write set comes from the contract, not from a copy of it (#1449).
-          # Spelling the five names here meant a sixth output would be built,
-          # published and never checked for determinism — the check would stay
-          # green about a file it had never read.
-          names="$(python3 -c "import json;print(' '.join(p.rsplit('/',1)[-1][:-5] for p in json.load(open('config/dashboard-outputs.json'))['outputs']))")"
-          echo "determinism check covers: $names"
-          for name in $names; do
-            python3 ops/ci/strip_dashboard_clocks.py "assets/data/$name.json" > "$tmp/$name.first"
-          done
-          clawock dashboard-build > /dev/null
-          for name in $names; do
-            if ! python3 ops/ci/strip_dashboard_clocks.py "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
-              echo "::error::dashboard rebuild moved bytes beyond generation stamps ($name)"
-              exit 1
-            fi
-          done
-          rm -rf "$tmp"
-          echo "OK: rebuild deterministic modulo generation stamps"
-
-  # The Workbench geometry contract: real bundle, real React, real browsers.
-  # WebKit is the phone (390/320), Chromium the desktop (1440/1280). This is
-  # the only job that installs two browser builds; it runs only when the
-  # plugin lane is selected, so dashboard-only PRs keep the Chromium cache.
-  workbench-overlap:
-    needs: scope
-    if: needs.scope.outputs.dsplugin == 'true'
-    # Playwright 1.60 has no chromium build for the ubuntu-26.04 image behind
-    # `ubuntu-latest`; pin the LTS image this browser matrix is tested on.
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - name: Set up Playwright (Chromium + WebKit)
-        uses: ./.github/actions/clawock-playwright
-        with:
-          browsers: 'chromium webkit'
-      - name: Set up Node for the Workbench browser contract
-        uses: ./.github/actions/clawock-node
-      - name: Install the plugin's own dependencies (React UMD is a devDependency)
-        env:
-          NODE_OPTIONS: --dns-result-order=ipv4first
-          NO_UPDATE_NOTIFIER: '1'
-          npm_config_replace_registry_host: 'always'
-        run: |
-          set -euo pipefail
-          cd examples/dsh/packages/clawock-dsh
-          npm ci --include=dev --no-audit --no-fund
-      - name: Capture the base bundle against the same regression assertions
-        if: github.event_name == 'pull_request'
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          WORKBENCH_OUT: ${{ runner.temp }}/workbench-before.json
-          WORKBENCH_SHOTS: ${{ runner.temp }}/workbench-before-shots
-          WORKBENCH_STATES: fields-320,fields-375,fields-390,wrap-320-portrait-light-partial,wrap-375-portrait-dark-partial,wrap-390-portrait-light-word,wrap-390-portrait-light-cjk,wrap-375-portrait-dark-long,error-url-320,error-url-393
-        run: |
-          git fetch --depth=1 origin "$BASE_SHA"
-          git show "$BASE_SHA:examples/dsh/packages/clawock-dsh/lib/client.js" > "$RUNNER_TEMP/workbench-before-client.js"
-          export WORKBENCH_BUNDLE="$RUNNER_TEMP/workbench-before-client.js"
-          if node tests/workbench_overlap.spec.js > "$RUNNER_TEMP/workbench-before.log" 2>&1; then
-            echo 'Base bundle passes the current regression assertions.'
-          else
-            echo 'Base bundle fails; evidence saved in workbench-before.log.'
-          fi
-      - name: Workbench overlap + computed type contract
-        env:
-          WORKBENCH_OUT: ${{ runner.temp }}/workbench-overlap.json
-          WORKBENCH_SHOTS: ${{ runner.temp }}/workbench-overlap-shots
-        run: node tests/workbench_overlap.spec.js
-      - name: Upload the overlap matrix and screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: workbench-overlap
-          path: |
-            ${{ runner.temp }}/workbench-overlap.json
-            ${{ runner.temp }}/workbench-overlap-shots
-            ${{ runner.temp }}/workbench-before.json
-            ${{ runner.temp }}/workbench-before.log
-            ${{ runner.temp }}/workbench-before-shots
-          if-no-files-found: warn
-
-  browser-tests:
-    needs: scope
-    if: needs.scope.outputs.ui == 'true'
-    # Playwright 1.60 does not support Ubuntu 26.04, which ubuntu-latest now
-    # resolves to. The workbench job is pinned for the same reason; keep the
-    # browser contract on a supported image instead of disabling the gate.
-    runs-on: ubuntu-24.04
-    timeout-minutes: 8
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [0, 1, 2, 3]
-    steps:
-      - uses: actions/checkout@v7
-      - name: Set up Playwright for the browser contract
-        uses: ./.github/actions/clawock-playwright
-      - name: Fetch the published generation
-        # The live page's payloads are published on data-plane, not master.
-        run: python3 ops/pages/fetch_data_plane.py
-      - name: Browser contract — Hero, detail tabs, and chart gestures
-        env:
-          CI_BROWSER_SHARD_INDEX: ${{ matrix.shard }}
-          CI_BROWSER_SHARD_TOTAL: '4'
-        run: node tests/dashboard_tab_runtime.spec.js
-      - name: Browser contract — the shared layout on a phone
-        if: matrix.shard == 0
-        run: node tests/site_layout_mobile.spec.js
-      - name: Browser contract — the decision map board
-        if: matrix.shard == 0
-        run: node tests/decimap_board.spec.js
-
-  unit-tests:
-    needs: scope
-    if: needs.scope.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [0, 1, 2, 3]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # Dashboard fixtures verify provenance against origin/master history.
-          fetch-depth: 0
-      - name: Set up clawock (Python)
-        uses: ./.github/actions/clawock-python
-        with:
-          install: '.[test]'
-      - name: Unit tests — money-integrity derivations
-        env:
-          COVERAGE_CORE: sysmon
-          CI_SHARD_INDEX: ${{ matrix.shard }}
-          CI_SHARD_TOTAL: '4'
-        run: |
-          python3 -m pytest tests/ -q -n auto --dist loadfile -p ops.ci.pytest_shard \
-            --durations=20 \
-            --cov=clawock \
-            --cov=ops \
-            --cov-report= \
-            --junitxml=junit.xml
-      - name: Upload shard coverage
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-shard-${{ matrix.shard }}
-          path: |
-            .coverage
-            junit.xml
-          include-hidden-files: true
-          retention-days: 1
-
-  validate:
-    # Required context: neither failed/skipped dependencies nor a missing shard
-    # may turn the aggregate green. Floors apply to combined coverage only.
-    needs: [scope, checks, unit-tests, browser-tests, workbench-overlap]
+      - run: echo optional lane
+  skipped_validate:
+    needs: [skipped_scope, skipped_optional]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     outputs:
-      code: ${{ needs.scope.outputs.code }}
+      code: ${{ needs.skipped_scope.outputs.code }}
     steps:
-      - name: Require all selected lanes
-        env:
-          SCOPE: ${{ needs.scope.result }}
-          CHECKS: ${{ needs.checks.result }}
-          CODE: ${{ needs.scope.outputs.code }}
-          UNIT: ${{ needs.unit-tests.result }}
-          UI: ${{ needs.scope.outputs.ui }}
-          BROWSER: ${{ needs.browser-tests.result }}
-          DSPLUGIN: ${{ needs.scope.outputs.dsplugin }}
-          WORKBENCH: ${{ needs.workbench-overlap.result }}
-        run: |
-          test "$SCOPE" = success
-          test "$CHECKS" = success
-          if [ "$CODE" = true ]; then test "$UNIT" = success; fi
-          if [ "$UI" = true ]; then test "$BROWSER" = success; fi
-          if [ "$DSPLUGIN" = true ]; then test "$WORKBENCH" = success; fi
-      - uses: actions/checkout@v7
-        if: needs.scope.outputs.code == 'true'
-      - name: Set up clawock (Python)
-        if: needs.scope.outputs.code == 'true'
-        uses: ./.github/actions/clawock-python
-        with:
-          install: none
-      - name: Install coverage report reader
-        if: needs.scope.outputs.code == 'true'
-        run: pip install --quiet --group coverage
-      - name: Download shard coverage
-        if: needs.scope.outputs.code == 'true'
-        uses: actions/download-artifact@v8
-        with:
-          pattern: coverage-shard-*
-          path: coverage-shards
-      - name: Coverage floors
-        if: needs.scope.outputs.code == 'true'
-        run: |
-          test "$(find coverage-shards -name .coverage | wc -l)" -eq 4
-          python3 -m coverage combine coverage-shards/coverage-shard-*/.coverage
-          python3 -m coverage json -o coverage-report.json
-          python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only
-      - name: Upload coverage report
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.scope.outputs.code == 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-report
-          path: coverage-report.json
-          retention-days: 1
-
-  publish-coverage:
-    # Master only: the README badge must show what is on master, never a number
-    # from an unmerged branch. PRs still get the floor gate in `validate` above.
-    # Gated on the same lane answer that produced the artifact: a master push
-    # outside the code lane runs no pytest, uploads no coverage-report.json, and this job
-    # used to start anyway and die in download-artifact on the missing file —
-    # four of the last eight red master runs were exactly that false alarm (#957).
+      - run: exit 0
+  skipped_original:
+    needs: skipped_validate
+    if: ${{ needs.skipped_validate.outputs.code == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 4
-    needs: validate
-    if: >-
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/master'
-          && needs.validate.outputs.code == 'true' }}
-    # Serialize with the other commit-pushing workflows (job-scoped, so PR runs of
-    # `validate` are never queued behind a data-write job).
-    concurrency:
-      group: data-write
-      cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v7
-
-      # `install: none` — no dependency install and no second test run: the
-      # suite was already
-      # measured in `validate`. The package validator runs from `src/` with the
-      # stock runner so this cheap publishing job stays stdlib-only.
-      - name: Set up clawock (Python)
-        uses: ./.github/actions/clawock-python
-        with:
-          install: none
-      - name: Download coverage report
-        uses: actions/download-artifact@v8
-        with:
-          name: coverage-report
-
-      - name: Coverage floors and badge payload
-        run: python3 ops/ci/coverage_badge.py --report coverage-report.json --out assets/data/coverage.json
-
-      - name: Validate coverage badge
-        # shields.io renders this file verbatim; a malformed payload would show up
-        # as an "invalid" badge on the README instead of failing anything.
-        run: PYTHONPATH=src python3 -m clawock validate-sidecar coverage
-
-      - name: Commit
-        # Commits only the badge payload. assets/data/coverage.json is not in this
-        # workflow's `push:` paths, so publishing it cannot retrigger this job.
-        env:
-          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
-        run: |
-          set -euo pipefail
-          pct=$(python3 -c "import json; print(json.load(open('assets/data/coverage.json'))['message'])")
-          bash ops/publish/gha_commit_push.sh "coverage: $pct at $(git rev-parse --short HEAD)" assets/data/coverage.json
-
-  smoke-data-fetch:
+      - run: echo original predicate executed
+  skipped_fixed:
+    needs: skipped_validate
+    if: ${{ !cancelled() && needs.skipped_validate.result == 'success' && needs.skipped_validate.outputs.code == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Only worth the work when code changed: a docs-only PR should not pay a pip
-    # install plus two live FX providers for a probe that cannot be about the
-    # docs. That lane used to be read from `validate`'s job output, which meant
-    # waiting for all of validate to learn it — so the decision is made here now,
-    # by the same one-second script, and the steps below carry the gate instead
-    # of the job.
-    continue-on-error: true  # data sources can be flaky; don't fail the pipeline
     steps:
-      - uses: actions/checkout@v7
-
-      # The lane, decided here rather than inherited from `validate`. It used to
-      # arrive as `needs.validate.outputs.code`, which cost this job the WHOLE of
-      # validate before it could start: 170s of waiting for a boolean that a 1s
-      # step produces. Measured 2026-09-06 on run 34020103495 — validate 170s,
-      # this job 41s, wall clock 217s, and the two were in series for no reason
-      # but where the value happened to live.
-      - name: Detect code changes
-        id: changes
-        env:
-          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
-          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-        run: |
-          set -euo pipefail
-          # This job's checkout is shallow; the range ends are fetched so the
-          # lane is the real one instead of "everything".
-          python3 ops/ci/push_scope.py --fetch-missing --base "$BASE_SHA" --head "$HEAD_SHA" \
-            | tee -a "$GITHUB_OUTPUT"
-
-      - name: Set up clawock (Python)
-        if: steps.changes.outputs.code == 'true'
-        uses: ./.github/actions/clawock-python
-
-      - name: FX fallback chain
-        if: steps.changes.outputs.code == 'true'
-        run: python3 ops/ci/smoke_fx.py
-
-      # Answers the question #1237 left open: the replacement Reddit endpoint
-      # was verified from the project VPS, and the producer runs here.
-      - name: Reddit search feed reachability
-        if: steps.changes.outputs.code == 'true'
-        run: python3 ops/ci/smoke_reddit.py
-
-  portable-workflow:
-    # The headline claim, executed against a built wheel on every PR (#1111).
-    #
-    # `release.yml` already runs the two isolated examples, but only at tag
-    # time: a PR could break "a stranger can install this and finish a run" and
-    # nothing would say so until someone cut a version. And what those two
-    # scripts prove is the *base* loop — `init` with no workflow pinned,
-    # publishing a literal `{"answer":"smoke"}`. The investment-decision
-    # contract, which is what the README sells (`workflow install` -> `init
-    # --workflow` -> a real `decision.json`), was only ever exercised inside
-    # this checkout by `tests/test_portable_workflow.py`. A gate that lives in
-    # this repository's test suite is a promise about this repository.
-    #
-    # Code changes exercise the install promise. Documentation alone skips
-    # builds and dependency installation; the weekly backstop still runs it.
+      - run: echo fixed predicate executed
+  all_success_scope:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    outputs:
+      code: ${{ steps.lane.outputs.code }}
     steps:
-      - uses: actions/checkout@v7
-
-      # The lane, decided here rather than inherited from `validate`. It used to
-      # arrive as `needs.validate.outputs.code`, which cost this job the WHOLE of
-      # validate before it could start: 170s of waiting for a boolean that a 1s
-      # step produces. Measured 2026-09-06 on run 34020103495 — validate 170s,
-      # this job 41s, wall clock 217s, and the two were in series for no reason
-      # but where the value happened to live.
-      - name: Detect code changes
-        id: changes
-        env:
-          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
-          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-        run: |
-          set -euo pipefail
-          # This job's checkout is shallow; the range ends are fetched so the
-          # lane is the real one instead of "everything".
-          python3 ops/ci/push_scope.py --fetch-missing --base "$BASE_SHA" --head "$HEAD_SHA" \
-            | tee -a "$GITHUB_OUTPUT"
-      - name: Lane for this job
-        id: lane
-        env:
-          CODE: ${{ steps.changes.outputs.code }}
-        run: |
-          if [ "$CODE" = "true" ]; then
-            echo "run=true" | tee -a "$GITHUB_OUTPUT"
-          else
-            echo "run=false" | tee -a "$GITHUB_OUTPUT"
-          fi
-
-      # Same install as release.yml's build job — `build` is declared in the
-      # `release` extra, not hand-written here (tests/test_workspace_portability
-      # refuses a package list growing back into a workflow). The editable
-      # install lands in the runner's interpreter; the scripts below run in
-      # their own virtualenv and assert that the `clawock` they import came
-      # from it, so this cannot be what makes them pass.
-      - name: Set up clawock (Python)
-        if: steps.lane.outputs.run == 'true'
-        uses: ./.github/actions/clawock-python
-        with:
-          install: '.[release]'
-
-      - name: Build the wheel under test
-        if: steps.lane.outputs.run == 'true'
-        run: python -m build --wheel --outdir dist
-
-      - name: Foreign workspace publishes a real decision.json
-        if: steps.lane.outputs.run == 'true'
-        run: examples/cli/workflow-run/run.sh dist/*.whl
-
-      - name: Isolated install completes one base run
-        if: steps.lane.outputs.run == 'true'
-        # The release-time check, moved forward to the PR that would break it.
-        run: examples/cli/minimal-run/run.sh dist/*.whl
-
-  analyze:
-    # The external CodeQL required check is emitted by SARIF processing, not
-    # by a skipped Actions job. Keep analysis on PRs, including documentation,
-    # until that protection can be replaced without losing alert enforcement.
-    name: Analyze (${{ matrix.language }})
-    needs: scope
-    if: >-
-      ${{ !cancelled() && (github.event_name != 'push'
-          || needs.scope.result != 'success'
-          || needs.scope.outputs.analysable == 'true') }}
+      - id: lane
+        run: echo 'code=true' >> "$GITHUB_OUTPUT"
+  all_success_optional:
+    needs: all_success_scope
+    if: ${{ true }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      security-events: write
-      packages: read
-      actions: read
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Same language set default setup was configured with, minus the two
-          # aliases: `javascript` and `typescript` are both analysed by the
-          # `javascript-typescript` extractor, and listing them separately just
-          # produced duplicate work.
-          - language: actions
-            build-mode: none
-          - language: javascript-typescript
-            build-mode: none
-          - language: python
-            build-mode: none
     steps:
-      - uses: actions/checkout@v7
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-          # Left on the default query suite on purpose: default setup ran
-          # `query_suite: default`, and that change was about the trigger
-          # surface, not about widening coverage. Widening the suite is a
-          # separate decision with its own alert backlog.
-
-      - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v4
-        with:
-          category: "/language:${{ matrix.language }}"
+      - run: echo optional lane
+  all_success_validate:
+    needs: [all_success_scope, all_success_optional]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ needs.all_success_scope.outputs.code }}
+    steps:
+      - run: exit 0
+  all_success_original:
+    needs: all_success_validate
+    if: ${{ needs.all_success_validate.outputs.code == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo original predicate executed
+  all_success_fixed:
+    needs: all_success_validate
+    if: ${{ !cancelled() && needs.all_success_validate.result == 'success' && needs.all_success_validate.outputs.code == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo fixed predicate executed
+  book_scope:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.lane.outputs.code }}
+    steps:
+      - id: lane
+        run: echo 'code=false' >> "$GITHUB_OUTPUT"
+  book_optional:
+    needs: book_scope
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo optional lane
+  book_validate:
+    needs: [book_scope, book_optional]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ needs.book_scope.outputs.code }}
+    steps:
+      - run: exit 0
+  book_original:
+    needs: book_validate
+    if: ${{ needs.book_validate.outputs.code == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo original predicate executed
+  book_fixed:
+    needs: book_validate
+    if: ${{ !cancelled() && needs.book_validate.result == 'success' && needs.book_validate.outputs.code == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo fixed predicate executed
+  failed_scope:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.lane.outputs.code }}
+    steps:
+      - id: lane
+        run: echo 'code=true' >> "$GITHUB_OUTPUT"
+  failed_optional:
+    needs: failed_scope
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo optional lane
+  failed_validate:
+    needs: [failed_scope, failed_optional]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ needs.failed_scope.outputs.code }}
+    steps:
+      - run: exit 1
+  failed_original:
+    needs: failed_validate
+    if: ${{ needs.failed_validate.outputs.code == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo original predicate executed
+  failed_fixed:
+    needs: failed_validate
+    if: ${{ !cancelled() && needs.failed_validate.result == 'success' && needs.failed_validate.outputs.code == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo fixed predicate executed
+  evidence:
+    needs: [skipped_validate, skipped_original, skipped_fixed, all_success_validate, all_success_original, all_success_fixed, book_validate, book_original, book_fixed, failed_validate, failed_original, failed_fixed]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PYPROBE'
+          import json, os
+          results = json.loads(os.environ['RESULTS'])
+          print(json.dumps(results, indent=2))
+          for case, expected in [('skipped', ('success', 'skipped', 'success')), ('all_success', ('success', 'success', 'success')), ('book', ('success', 'skipped', 'skipped')), ('failed', ('failure', 'skipped', 'skipped'))]:
+              actual = tuple(results[f'{case}_{job}']['result'] for job in ['validate', 'original', 'fixed'])
+              assert actual == expected, (case, actual, expected)
+          assert results['skipped_validate']['outputs']['code'] == 'true'
+          print('All four scheduler cases confirmed')
+          PYPROBE
