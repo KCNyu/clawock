@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "81ff391e597f33481ce26e4272e9686fc35db85f24bafc58e63b3d55c50b7aec",
-  "bytes": 14739,
+  "content_sha256": "d866def9f4859495bb81768300d76d0f045e2d7d3634c23d692653bc4cdcdb6f",
+  "bytes": 15133,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -149,6 +149,15 @@
       "heading": "## Dreaming 晋升 2026-10-27（28-30）",
       "lines": 5,
       "sha256": "e1861d38a231e6112ecfeb78146eaf04d4abb00b50ce72253f24b66d0da4e62b"
+    },
+    {
+      "slug": "lessons-dreaming-2026-10-22-11-11",
+      "order": 17,
+      "publish": "public",
+      "separator": true,
+      "heading": "## Dreaming 晋升 2026-10-22（11-11）",
+      "lines": 5,
+      "sha256": "8b7a6dd2ccde54e2d5e342746b2868616db1472fb2dcd95b159b5b06a31cc730"
     }
   ]
 }

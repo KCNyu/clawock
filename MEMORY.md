@@ -230,3 +230,11 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 <!-- openclaw-memory-promotion:memory:memory/2026-10-27.md:28:30 -->
 - Dependabot 分支可以直接合并，required checks 在 bot 分支上同样跑绿，无需从 claude/ 分支重开；release.yml 的 pin 必须写 40 位 commit SHA 加注释，annotated tag 需解引用到 commit SHA。
 - Source: memory/2026-10-27.md:28-30 (reviewed 2026-11-13; SHA256 4dbecf3a9e3f454bee0fa8046858d4b31f7ff5b881654e89230410cb1d730723)
+
+---
+
+## Dreaming 晋升 2026-10-22（11-11）
+
+<!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:11:11 -->
+- coding agent 派发后若未收到通知，应检查 dispatch 的 notify 通道配置，不能默认“通知成功”等于手机已收到。
+- Source: memory/2026-10-22.md:11-11 (reviewed 2026-11-18; SHA256 c42f16478095a957c2ece72f4dbc3c299435fa1650a86e3fe89c4480e0889771)
