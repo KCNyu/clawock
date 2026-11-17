@@ -163,3 +163,29 @@ def test_a_missing_or_torn_cache_is_null_with_a_warning_not_a_guess(
         fx = fetch_fx.read_cached_usdhkd(str(path))
         assert fx["rate"] is None
         assert fx["warning"]
+
+
+def test_failed_sources_record_hardcoded_and_stale_use_without_refreshing_cache(tmp_path, monkeypatch):
+    import json
+    from datetime import datetime, timezone
+    ledger = tmp_path / 'fx-rates.jsonl'
+    cache = tmp_path / 'cache.json'
+    monkeypatch.setattr(fetch_fx, 'LEDGER_PATH', str(ledger))
+    monkeypatch.setattr(fetch_fx, 'CACHE_PATH', str(cache))
+    for name in ('_get_frankfurter', '_get_open_er_api', '_get_yahoo'):
+        monkeypatch.setattr(fetch_fx, name, lambda: None)
+    used_day = datetime.now(timezone.utc).astimezone(fetch_fx.HKT).date().isoformat()
+    result = fetch_fx.get_usdhkd(force_refresh=True)
+    assert fetch_fx.read_rate_ledger()[used_day]['source'] == 'HARDCODED_PEG_FALLBACK'
+    assert not cache.exists()
+    old = _entry(7.8011, day='2020-01-01')
+    cache.write_text(json.dumps(old))
+    import os
+    os.utime(cache, (0, 0))
+    result = fetch_fx.get_usdhkd(force_refresh=True)
+    recorded = fetch_fx.read_rate_ledger()[used_day]
+    assert recorded['rate'] == result['rate'] == old['rate']
+    assert recorded['fetched_at'] == old['fetched_at']
+    assert recorded['fallback_used'] is True
+    assert 'stale cache' in recorded['source']
+    assert json.loads(cache.read_text()) == old

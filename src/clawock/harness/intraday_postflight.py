@@ -234,7 +234,11 @@ def normalize_intraday_insights(path, generated_at=None, *, written_after=None):
 # (「…下一触发：恒科 4,300 / 07226 3.0 / 02208 8.84（已破，待收线对账）」,
 # 2026-09-25 14:33), where nothing could check it and kcn had to find it.
 NEXT_TRIGGER = '下一触发：'
-_NEXT_TRIGGER_LINE = re.compile(r'^[ \t]*下一触发[ \t]*[:：][ \t]*(\S.*?)[ \t]*$', re.MULTILINE)
+# Paired bold may wrap the label or the whole standalone line.
+_NEXT_TRIGGER_LINE = re.compile(
+    r'^[ \t]*(?:\*\*下一触发[ \t]*[:：]\*\*[ \t]*(\S.*?)'
+    r'|\*\*下一触发[ \t]*[:：][ \t]*(\S.*?)\*\*'
+    r'|下一触发[ \t]*[:：][ \t]*(\S.*?))[ \t]*$', re.MULTILINE)
 _NEXT_TRIGGER_ITEM = re.compile(r'[；;]|\s/\s')
 _TRIGGER_NUMBER = re.compile(r'(?<![A-Za-z0-9.])(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?')
 _TABLE_TICKER = re.compile(r'^\|\s*([A-Z0-9]{2,6})\s*\|', re.MULTILINE)
@@ -254,7 +258,8 @@ def split_next_trigger(prose):
     if not matches:
         return None, text
     rest = _NEXT_TRIGGER_LINE.sub('', text).strip('\n')
-    line = NEXT_TRIGGER + '；'.join(match.group(1) for match in matches)
+    line = NEXT_TRIGGER + '；'.join(
+        next(value for value in match.groups() if value is not None) for match in matches)
     return line, re.sub(r'\n{3,}', '\n\n', rest)
 
 
@@ -563,7 +568,7 @@ def validate(text, ctx, model_text):
         # 变化，下一触发 X". The 60-char floor would push it into padding or an
         # invented move, so a short body passes only when it says no change.
         honest_quiet = bool(ctx.get('semantic_unchanged')) and re.search(
-            r'无实质性?变化|没有实质性?变化|无新变化|没有新变化|无变化', section_body)
+            r'无实质性?变化|没(?:有)?(?:实质性?|新)?变化|无新变化|无变化|与上次一致|无新增(?:变化|异动)', section_body)
         if len(section_body) < 60 and not honest_quiet:
             issues.append(
                 f'"{REQUIRED_SECTION}" 段仅 {len(section_body)} 字，太敷衍 '

@@ -45,7 +45,7 @@ def _watch_rows(bundle, levels, holdings=()):
     fn = re.search(r"^  function computeWatchRows\(\) \{.*?^  \}$", source,
                    re.MULTILINE | re.DOTALL).group(0)
     data = {"recent_plans": [{"date": "2026-09-17", "plan": {"watch_levels": levels}}],
-            "totals": TOTALS, "indices": {}, "watch_holdings": list(holdings)}
+            "totals": TOTALS, "indices": {key: {"price": 3758} for key in ("HSTECH", "HSI", "SPX", "NDX")}, "watch_holdings": list(holdings)}
     script = (
         "const DATA = " + json.dumps(data) + ";\n"
         "const safe = (o, ...ks) => ks.reduce((v, k) => v == null ? undefined : v[k], o);\n"
@@ -193,3 +193,15 @@ def test_unique_holding_name_resolves_watch_level_and_keeps_null_unknown(bundle)
     holding['current_price'] = None
     row = _watch_rows(bundle, {'minimax_trigger': 182}, [holding])['MINIMAX/182']
     assert row['cur'] is None and row['dist'] is None
+
+
+@pytest.mark.skipif(shutil.which('node') is None, reason='node required')
+@pytest.mark.parametrize('bundle', BUNDLES)
+@pytest.mark.parametrize('index', ['hstech', 'hsi', 'spx', 'ndx'])
+def test_index_percent_threshold_never_uses_index_price(bundle, index):
+    rows = _ordered_rows(bundle, {f'{index}_07226_rearm_pnl_pct': -57.8,
+                                  f'{index}_derisk_close': 3758})
+    pct = next(r for r in rows if r['val'] == -57.8)
+    assert (pct['isPct'], pct['ccy'], pct['cur'], pct['dist']) == (True, '%', None, None)
+    price = next(r for r in rows if r['val'] == 3758)
+    assert (price['isPct'], price['cur'], price['dist']) == (False, 3758, 0)

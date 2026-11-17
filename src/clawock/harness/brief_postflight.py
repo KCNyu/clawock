@@ -45,7 +45,7 @@ from clawock.decision import packet as brief_decision_packet
 from clawock.decision import risk as risk_discipline
 
 WS = workspace_root()
-_CHECKOUT = WS
+_CHECKOUT = Path(__file__).resolve().parents[3]
 
 from clawock.automation import cron_heartbeat, workflow_outcomes  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402

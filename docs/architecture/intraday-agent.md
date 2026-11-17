@@ -327,7 +327,8 @@ as live.
 | reference entries have stated fetch conditions; the prompt no longer asks for the whole of `peer_scan` / `source_signals_detail` every slot while calling the layer on-demand | live (#2806) |
 | `signals_detail` belongs only to the reference layer; signal reasons remain in core `analyzer_block` | live (#2107) |
 | add-side line (block 10b; primary information moved to `📑`) | live (#1872) |
-| `下一触发` line (block 11) | live (#1873; all lines checked #2077) |
+| `下一触发` line (block 11) | live (#1873; all lines checked #2077); paired Markdown bold around the label or whole line is accepted |
+| short unchanged-slot judgment | live; `semantic_unchanged` also accepts 没有变化 / 与上次一致 / 无新增异动 (`test_unchanged_slot_accepts_plain_quiet_language`) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
 | sentiment archive is not a consumed source and cannot cause a news gap (`test_missing_archive_is_not_a_source_gap_and_future_source_is_not_fresh`) | live (#2859) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |

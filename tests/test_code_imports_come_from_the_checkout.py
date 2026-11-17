@@ -164,3 +164,33 @@ def test_no_compatibility_shim_re_exports_the_package():
                 offenders.append(f"{path.relative_to(ROOT).as_posix()}:{lineno}")
     assert not offenders, (
         f"these import the retired workspace shim rather than the package: {offenders}")
+
+
+def test_host_guards_follow_code_while_gold_git_follows_foreign_book(tmp_path):
+    import json
+    (tmp_path / 'portfolio.json').write_text(json.dumps({'gold_dca': {
+        'fund_code': 'fixture', 'principal_invested': 1, 'units_held': 1}}))
+    script = '''
+import os, sys
+from pathlib import Path
+from types import SimpleNamespace
+from clawock.harness import brief_postflight as brief
+from clawock.market_data.gold import update as gold
+root = Path(sys.argv[1])
+book = Path(os.environ['CLAWOCK_WORKSPACE'])
+assert brief.WS == book
+assert brief._CHECKOUT == root
+calls = []
+def run(command, **kwargs):
+    calls.append((command, Path.cwd()))
+    return SimpleNamespace(returncode=0)
+gold.subprocess.run = run
+sys.argv = ['gold', '--principal', '2', '--units', '2', '--no-refresh', '--publish']
+assert gold.main() == 0
+assert calls[-1][0] == ['bash', str(root / 'ops/publish/safe_push.sh')]
+assert all(cwd == book for _, cwd in calls)
+'''
+    proc = subprocess.run([sys.executable, '-c', script, str(ROOT)],
+                          env={**os.environ, 'CLAWOCK_WORKSPACE': str(tmp_path)},
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr

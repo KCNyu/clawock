@@ -435,10 +435,15 @@ def _derive_final(record):
 
     if preflight == "skipped":
         status, reason = "skipped", "market/session closed"
-    elif (watchdog == "success" and preflight == "failed"
-          and llm in {"unknown", "pending"} and postflight in {"unknown", "pending"}
+    elif (watchdog == "success" and (
+            preflight == "failed"
+            or stages["watchdog_delivery"].get("action") == "deterministic-fallback"
+            or stages["watchdog_delivery"].get("watchdog_state") == "deterministic_fallback")
+          and llm in {"unknown", "pending", "failed"} and postflight in {"unknown", "pending"}
           and primary in {"unknown", "pending"}):
-        return {"status": "degraded", "reason": "采集崩了，兜底卡代替", "fallback_only": True}
+        return {"status": "degraded", "reason": (
+            "采集崩了，兜底卡代替" if preflight == "failed" else "没有语义报告，兜底只含数据块"),
+            "fallback_only": True}
     elif watchdog == "success":
         status, reason = "recovered", "watchdog delivered a usable product"
     elif primary == "not_required" and postflight in {"success", "warning"}:

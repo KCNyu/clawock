@@ -86,6 +86,7 @@ for every installation. Use the saved receipts and measurements for that host.
 - 合同：`config/cron-schedules.json` 的 job `SQLite 维护`，payload profile
   `sqlite-maintenance`（`payload_kind=command`）；
 - 时间：`17 4 1 1,4,7,10 *`（Asia/Hong_Kong，1/4/7/10 月 1 日 04:17）；
+- 健康检查：`cron_health_check.py` 在排程日核对本机结构化报告的完成状态与数据库 quick_check；报告缺失/失败会报错，不以 systemd launcher 成功代替维护成功。Actions 无本机报告时明确显示 unmeasured。
 - 运行时：`openclaw cron` 创建，不手改 cron 存储；`ops/host/sync_cron_payloads.py`
   可核对/修复 payload 漂移；
 - 为什么不是直接 `python3 ... --apply`：command job 由 gateway 的进程树启动，
