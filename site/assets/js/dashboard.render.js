@@ -2461,9 +2461,11 @@
 
     // 总回报率 (option C 2026-05-22): (浮+已实现) / (当前持仓成本 + 累计已实现)
     // 不再用 Σbuys（会被 rotation churn 重复计算）
-    const totalPnl = (realizedUsd ?? 0) + (unrealizedUsd ?? 0);
+    const totalPnl = Number.isFinite(realizedUsd) && Number.isFinite(unrealizedUsd)
+      ? realizedUsd + unrealizedUsd : null;
     const capUsd = safe(cap, "combined_usd");
-    const totalRetPct = capUsd && capUsd > 0 ? (totalPnl / capUsd) * 100 : null;
+    const totalRetPct = totalPnl != null && Number.isFinite(capUsd) && capUsd > 0
+      ? (totalPnl / capUsd) * 100 : null;
 
     // Win days
     const realDays = dailyPnl.filter(d => d.pnl != null && d.pnl !== 0);
@@ -2513,7 +2515,7 @@
     setClass("kpi-floatpct", pnlClass(floatPct));
 
     setVal("kpi-totalret", totalRetPct != null ? fmtPct(totalRetPct, 2) : DASH);
-    setVal("kpi-totalret-abs", capUsd
+    setVal("kpi-totalret-abs", totalRetPct != null
       ? `${fmtMoney(totalPnl, "USD")} ÷ ${fmtMoney(capUsd, "USD")} 基准`
       : "(浮+已实现) ÷ 累计投入");
     setClass("kpi-totalret", pnlClass(totalRetPct));
