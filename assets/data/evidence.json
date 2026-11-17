@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-11-14T13:00:04+08:00",
+  "generated_at": "2026-11-17T05:07:45+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -50,7 +50,7 @@
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "58 / 需要 24 · ✅"
+          "value": "59 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -70,7 +70,7 @@
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.02562, 0.02559] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.02297, 0.02679] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
@@ -134,7 +134,7 @@
       "verdict": "🟢 通过",
       "verdict_key": "passed",
       "tone": "good",
-      "sample": "留痕 114 天",
+      "sample": "留痕 115 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 2/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -148,11 +148,11 @@
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 59.7% · CI95 [50.3%, 68.1%] · n=526（95 日 × 12 标的）· ✅ 可入决策"
+          "value": "命中率 60.0% · CI95 [50.7%, 68.5%] · n=530（96 日 × 12 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 59.5% · CI95 [50.6%, 68.3%] · n=650（106 日 × 11 标的）· ✅ 可入决策"
+          "value": "命中率 60.0% · CI95 [51.0%, 68.5%] · n=657（107 日 × 11 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_on_follow`",
@@ -165,5 +165,5 @@
       ]
     }
   ],
-  "built_at": "2026-11-16T00:04:59.887723+00:00"
+  "built_at": "2026-11-17T00:04:42.788765+00:00"
 }

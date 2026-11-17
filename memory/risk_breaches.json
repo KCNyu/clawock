@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-16T00:16:59+00:00",
+  "updated_at": "2026-11-17T00:37:38+00:00",
   "records": [
     {
       "breach_id": "risk-0a0af7ae3b3a",
@@ -11,16 +11,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-11-16T00:05:07+00:00",
-      "last_changed_at": "2026-11-16T00:05:07+00:00",
-      "age_days": 124,
+      "last_seen_at": "2026-11-17T00:04:50+00:00",
+      "last_changed_at": "2026-11-17T00:04:50+00:00",
+      "age_days": 125,
       "recurrence_count": 1,
-      "detail": "RKLX 浮亏 -47.8% ≤ 硬止损线 -18%",
+      "detail": "RKLX 浮亏 -54.8% ≤ 硬止损线 -18%",
       "required_action": "RKLX 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 RKLB（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 30.0,
-        "minimum_value": 345.0,
+        "minimum_value": 298.5,
         "currency": "USD",
         "target_tickers": [
           "RKLX"
@@ -43,10 +43,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "f601934572677f39",
+      "fingerprint": "161020d40a288f7f",
       "resolution": null,
       "standing": {
-        "days_open": 124,
+        "days_open": 125,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -58,13 +58,13 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -47.8
+        "value": -54.8
       },
       "adaptive": {
         "eligible": true,
-        "may_stand": true,
-        "must_reissue": false,
-        "must_reason": "",
+        "may_stand": false,
+        "must_reissue": true,
+        "must_reason": "浮亏 -39.1% → -54.8%（比上次重提时再深 ≥10pp）",
         "stance": {
           "stance": "contrary",
           "since": "2026-07-15",
@@ -74,24 +74,19 @@
           "sells_on_target": 0,
           "buys_on_target": 1,
           "last_buy_on_target": "2026-11-06",
-          "trades_elsewhere_recent": 1,
-          "last_trade_elsewhere": "2026-11-06"
+          "trades_elsewhere_recent": 2,
+          "last_trade_elsewhere": "2026-11-16"
         },
         "anchor": {
           "kind": "pnl_pct",
-          "value": -39.1
+          "value": -54.8
         },
         "anchor_severity": "critical",
-        "last_reissued_on": "2026-11-12",
-        "days_since_reissue": 4,
-        "forced_on": "2026-12-10",
-        "rearm_at": "浮亏 ≤ -49.1%",
+        "last_reissued_on": "2026-11-17",
+        "days_since_reissue": 0,
+        "forced_on": "2026-12-15",
+        "rearm_at": "浮亏 ≤ -64.8%",
         "stances": [
-          {
-            "date": "2026-10-30",
-            "choice": "stand",
-            "why": "硬止损 risk-0a0af7ae3b3a 已开 107 天，仍未执行、未确认或记录有效豁免；上次重提在 10-29，今天没有新的关键位突破或一手催化。今天明确选择暂缓并留痕，不把暂缓视作风险解除；加仓继续关闭。"
-          },
           {
             "date": "2026-11-02",
             "choice": "reissue",
@@ -136,6 +131,11 @@
             "date": "2026-11-16",
             "choice": "stand",
             "why": "两条义务今天都维持：硬止损记录 risk-0a0af7ae3b3a 挂 124 个日历天（未确认、执行 0 次、例外 0 次），制度降杠杆那条 risk-17fa752f4860 挂 19 天，两条都是未决状态，但按登记在案的规矩，允许维持的这条今天默认维持、只有实质变化才重提，而重提闸是浮亏 -49.1%，现在是 -47.8%，还没到。维持不是重复第 N 遍该砍：这个打法是等标的继续走强再把两倍换成一倍，所以最该盯的位是标的 RKLB 的 78.28（200 日线）和 53"
+          },
+          {
+            "date": "2026-11-17",
+            "choice": "reissue",
+            "why": "这是全账本最老的一条义务，今天必须重提。风险记录 risk-0a0af7ae3b3a 在账上挂了 125 个日历天（按账本日历天口径），未确认、执行 0 次、例外 0 次，强制日 12 月 10 日；浮亏从上次重提时的 -39.1% 走到 -54.8%，再深了 15.7 个百分点，越过了浮亏到 -49.1% 就必须重提的闸。标的处境没有变好：RKLB 收 57.37，比 200 日线 78.168 低 26.6%，年化波动 105.6%，昨天 ULA 发射失败把太空股一起打下"
           }
         ]
       }
@@ -149,16 +149,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-08-13T00:02:17+00:00",
-      "last_seen_at": "2026-11-16T00:05:07+00:00",
-      "last_changed_at": "2026-11-16T00:05:07+00:00",
-      "age_days": 95,
+      "last_seen_at": "2026-11-17T00:04:50+00:00",
+      "last_changed_at": "2026-11-17T00:04:50+00:00",
+      "age_days": 96,
       "recurrence_count": 3,
-      "detail": "07226 浮亏 -47.8% ≤ 硬止损线 -18%",
+      "detail": "07226 浮亏 -44.9% ≤ 硬止损线 -18%",
       "required_action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
-        "minimum_shares": 7200,
-        "minimum_value": 15465.6,
+        "minimum_shares": 8200,
+        "minimum_value": 17515.2,
         "currency": "HKD",
         "target_tickers": [
           "07226"
@@ -181,10 +181,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "2155d045e1ed82b7",
+      "fingerprint": "dcfba7d8be5722ee",
       "resolution": null,
       "standing": {
-        "days_open": 95,
+        "days_open": 96,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -196,7 +196,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -47.8
+        "value": -44.9
       },
       "adaptive": {
         "eligible": true,
@@ -210,8 +210,8 @@
             "07226"
           ],
           "sells_on_target": 0,
-          "buys_on_target": 1,
-          "last_buy_on_target": "2026-10-02",
+          "buys_on_target": 2,
+          "last_buy_on_target": "2026-11-16",
           "trades_elsewhere_recent": 2,
           "last_trade_elsewhere": "2026-11-06"
         },
@@ -221,15 +221,10 @@
         },
         "anchor_severity": "critical",
         "last_reissued_on": "2026-11-16",
-        "days_since_reissue": 0,
+        "days_since_reissue": 1,
         "forced_on": "2026-12-14",
         "rearm_at": "浮亏 ≤ -57.8%",
         "stances": [
-          {
-            "date": "2026-10-30",
-            "choice": "stand",
-            "why": "硬止损 risk-4ab7eff27f15 已开 78 天，至今未执行、未确认或记录有效豁免。上次重提后没有新的制度切换或一手催化，今天使用允许的暂缓例外并明确留痕；这表示接受继续承担杠杆风险，不表示风险解除。加仓继续关闭。"
-          },
           {
             "date": "2026-11-02",
             "choice": "stand",
@@ -274,6 +269,11 @@
             "date": "2026-11-16",
             "choice": "reissue",
             "why": "这是义务不是判断，今天只把它从有价条件单变成执行单。这条账在硬止损上挂了 95 个日历天，未确认、执行 0 次、例外 0 次，强制日是 12 月 11 日，三个出口只剩砍腿这一条；标的处境没变好也没变坏：恒科收在 3813.19，比 200 日线 4724.65 低 19.3%，20 日 z 值 -0.94 贴在中轴，是无方向区间而不是下跌趋势，而无方向正是两倍产品收费的环境——横盘每月白付 1.18% 的租金。半年窗里两倍要恒科涨 43.5% 回本、换成现货要 91.7%，"
+          },
+          {
+            "date": "2026-11-17",
+            "choice": "stand",
+            "why": "硬止损这条今天维持，不重提。风险记录 risk-4ab7eff27f15 在账上挂了 96 个日历天（按账本日历天口径），未确认、执行 0 次、例外 0 次，强制日 12 月 14 日；今天和上次重提的 2026-11-16 比，变了什么：浮亏从 -47.8% 收窄到 -44.9%，重提闸是浮亏到 -57.8%，没到；而且 kcn 昨天 09:31 在 2.166 又加了 1000 股（8200 股），这笔加仓今天在 2.136 已经浮亏，换仓的 1x 落点 03033 今天"
           }
         ]
       }
@@ -287,16 +287,16 @@
       "severity": "critical",
       "first_seen_at": "2026-11-09T00:00:00+00:00",
       "current_opened_at": "2026-11-09T00:00:00+00:00",
-      "last_seen_at": "2026-11-16T00:05:07+00:00",
-      "last_changed_at": "2026-11-16T00:05:07+00:00",
-      "age_days": 7,
+      "last_seen_at": "2026-11-17T00:04:50+00:00",
+      "last_changed_at": "2026-11-17T00:04:50+00:00",
+      "age_days": 8,
       "recurrence_count": 2,
-      "detail": "07709 浮亏 -19.9% ≤ 硬止损线 -18%",
+      "detail": "07709 浮亏 -31.6% ≤ 硬止损线 -18%",
       "required_action": "07709 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 SKHY（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 100,
-        "minimum_value": 1605.0,
+        "minimum_value": 1370.0,
         "currency": "HKD",
         "target_tickers": [
           "07709"
@@ -319,14 +319,14 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "649152b98cd47f44",
+      "fingerprint": "b9de8f1485f13e8b",
       "resolution": null,
       "pressure": {
         "kind": "pnl_pct",
-        "value": -19.9
+        "value": -31.6
       },
       "standing": {
-        "days_open": 7,
+        "days_open": 8,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": false,
@@ -341,11 +341,10 @@
         "may_stand": false,
         "must_reissue": false,
         "not_eligible_because": [
-          "open 7d < 10d",
-          "stance=silent"
+          "open 8d < 10d"
         ],
         "stance": {
-          "stance": "silent",
+          "stance": "declined",
           "since": "2026-11-09",
           "target_tickers": [
             "07709"
@@ -353,8 +352,8 @@
           "sells_on_target": 0,
           "buys_on_target": 0,
           "last_buy_on_target": null,
-          "trades_elsewhere_recent": 0,
-          "last_trade_elsewhere": null
+          "trades_elsewhere_recent": 1,
+          "last_trade_elsewhere": "2026-11-16"
         },
         "stances": []
       }
@@ -368,11 +367,11 @@
       "severity": "high",
       "first_seen_at": "2026-07-27T00:00:00+00:00",
       "current_opened_at": "2026-10-28T00:04:39+00:00",
-      "last_seen_at": "2026-11-16T00:05:07+00:00",
-      "last_changed_at": "2026-11-16T00:05:07+00:00",
-      "age_days": 19,
+      "last_seen_at": "2026-11-17T00:04:50+00:00",
+      "last_changed_at": "2026-11-17T00:04:50+00:00",
+      "age_days": 20,
       "recurrence_count": 5,
-      "detail": "🧭 RKLX=2xRKLB 标的破200线 (-21.4%)+波动 105% 过热 → 杠杆制度 red",
+      "detail": "🧭 RKLX=2xRKLB 标的破200线 (-26.6%)+波动 108% 过热 → 杠杆制度 red",
       "required_action": "RKLX 2x→RKLB 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减；RKLB 收复200线(green)再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
@@ -381,7 +380,7 @@
         ],
         "swap_to": "RKLB",
         "minimum_shares": 30.0,
-        "minimum_value": 345.0,
+        "minimum_value": 298.5,
         "currency": "USD"
       },
       "acknowledgement": {
@@ -400,10 +399,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "6f817f859c894987",
+      "fingerprint": "fc6f9d554daced21",
       "resolution": null,
       "standing": {
-        "days_open": 19,
+        "days_open": 20,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -415,7 +414,7 @@
       },
       "pressure": {
         "kind": "minimum_value",
-        "value": 345.0,
+        "value": 298.5,
         "currency": "USD"
       },
       "adaptive": {
@@ -432,19 +431,19 @@
           "sells_on_target": 0,
           "buys_on_target": 1,
           "last_buy_on_target": "2026-11-06",
-          "trades_elsewhere_recent": 1,
-          "last_trade_elsewhere": "2026-11-06"
+          "trades_elsewhere_recent": 2,
+          "last_trade_elsewhere": "2026-11-16"
         },
         "anchor": {
           "kind": "minimum_value",
-          "value": 402.0,
+          "value": 298.5,
           "currency": "USD"
         },
         "anchor_severity": "high",
-        "last_reissued_on": "2026-11-12",
-        "days_since_reissue": 4,
-        "forced_on": "2026-12-10",
-        "rearm_at": "需减额 ≥ 603 USD",
+        "last_reissued_on": "2026-11-17",
+        "days_since_reissue": 0,
+        "forced_on": "2026-12-15",
+        "rearm_at": "需减额 ≥ 448 USD",
         "stances": [
           {
             "date": "2026-11-10",
@@ -470,6 +469,11 @@
             "date": "2026-11-16",
             "choice": "stand",
             "why": "两条义务今天都维持：硬止损记录 risk-0a0af7ae3b3a 挂 124 个日历天（未确认、执行 0 次、例外 0 次），制度降杠杆那条 risk-17fa752f4860 挂 19 天，两条都是未决状态，但按登记在案的规矩，允许维持的这条今天默认维持、只有实质变化才重提，而重提闸是浮亏 -49.1%，现在是 -47.8%，还没到。维持不是重复第 N 遍该砍：这个打法是等标的继续走强再把两倍换成一倍，所以最该盯的位是标的 RKLB 的 78.28（200 日线）和 53"
+          },
+          {
+            "date": "2026-11-17",
+            "choice": "reissue",
+            "why": "这是全账本最老的一条义务，今天必须重提。风险记录 risk-0a0af7ae3b3a 在账上挂了 125 个日历天（按账本日历天口径），未确认、执行 0 次、例外 0 次，强制日 12 月 10 日；浮亏从上次重提时的 -39.1% 走到 -54.8%，再深了 15.7 个百分点，越过了浮亏到 -49.1% 就必须重提的闸。标的处境没有变好：RKLB 收 57.37，比 200 日线 78.168 低 26.6%，年化波动 105.6%，昨天 ULA 发射失败把太空股一起打下"
           }
         ]
       }

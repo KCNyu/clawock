@@ -1,34 +1,35 @@
-{"as_of":"2026-09-28","generation_id":"6bd7f6a28bcd5112","rows":{"CRCL":{"leg":"US","mode":"observe","gate":"thesis_unrecorded","rungs":[90.197,83.6555,77.114],"invalidation_price":70.5725,"trend_floor":86.091,"depth_atr":2.18,"close":89.0,"authorization":null}}}
-{"as_of":"2026-09-29","generation_id":"c471fa4d99bd0b5a","rows":{}}
-{"as_of":"2026-09-30","generation_id":"6e05bc8a4f96eaf3","rows":{}}
-{"as_of":"2026-10-01","generation_id":"bedb89d356576774","rows":{}}
-{"as_of":"2026-10-02","generation_id":"f945721d1802a2fc","rows":{}}
-{"as_of":"2026-10-05","generation_id":"35b082da7a455468","rows":{}}
-{"as_of":"2026-10-06","generation_id":"26bd0d56b231c61a","rows":{}}
-{"as_of":"2026-10-07","generation_id":"048d69a4d13f80bb","rows":{}}
-{"as_of":"2026-10-08","generation_id":"c3f65a7beaebb24e","rows":{}}
-{"as_of":"2026-10-12","generation_id":"57f3012b490c2e7f","rows":{}}
-{"as_of":"2026-10-13","generation_id":"361b5096046da80d","rows":{}}
-{"as_of":"2026-10-14","generation_id":"18ce9da5ed63ee44","rows":{}}
-{"as_of":"2026-10-15","generation_id":"719fc91e66e2daad","rows":{}}
-{"as_of":"2026-10-16","generation_id":"f5708e255bd6dceb","rows":{"CRCL":{"leg":"US","mode":"observe","gate":"thesis_unrecorded","rungs":[88.2117,82.3325,76.4533],"invalidation_price":70.5741,"trend_floor":86.07,"depth_atr":2.21,"close":86.97,"authorization":null}}}
-{"as_of":"2026-10-19","generation_id":"f1a243fdc860947a","rows":{}}
-{"as_of":"2026-10-20","generation_id":"bd071e00eca3847c","rows":{}}
-{"as_of":"2026-10-21","generation_id":"7d1fbfef28a874c7","rows":{}}
-{"as_of":"2026-10-22","generation_id":"5e2ecfed85296f96","rows":{}}
-{"as_of":"2026-10-26","generation_id":"17a225981bf5148c","rows":{}}
-{"as_of":"2026-10-27","generation_id":"f8cfb730622bf200","rows":{}}
-{"as_of":"2026-10-28","generation_id":"dce6b4041bcd2a09","rows":{}}
-{"as_of":"2026-10-29","generation_id":"2d1c6b9dd421151e","rows":{}}
-{"as_of":"2026-10-30","generation_id":"f04a0643fb533a80","rows":{}}
-{"as_of":"2026-11-02","generation_id":"fbca481e60a978bc","rows":{}}
-{"as_of":"2026-11-03","generation_id":"d78b5a9b0134cb95","rows":{}}
-{"as_of":"2026-11-04","generation_id":"dcc1da57c276d4b2","rows":{}}
-{"as_of":"2026-11-05","generation_id":"52f6f45dcb523904","rows":{}}
-{"as_of":"2026-11-06","generation_id":"cff27b41fd23f26a","rows":{}}
-{"as_of":"2026-11-09","generation_id":"4369fe263af1b07e","rows":{}}
-{"as_of":"2026-11-10","generation_id":"dba294f472b9a2fe","rows":{}}
-{"as_of":"2026-11-11","generation_id":"851db67f427b2327","rows":{}}
-{"as_of":"2026-11-12","generation_id":"a099f985f733e36d","rows":{}}
-{"as_of":"2026-11-13","generation_id":"b79feadc0937db07","rows":{}}
-{"as_of":"2026-11-16","generation_id":"4f52b15bcb6deb7b","rows":{}}
+{"as_of": "2026-09-28", "generation_id": "6bd7f6a28bcd5112", "rows": {"CRCL": {"authorization": null, "close": 89.0, "depth_atr": 2.18, "gate": "thesis_unrecorded", "invalidation_price": 70.5725, "leg": "US", "mode": "observe", "rungs": [90.197, 83.6555, 77.114], "trend_floor": 86.091}}}
+{"as_of": "2026-09-29", "generation_id": "c471fa4d99bd0b5a", "rows": {}}
+{"as_of": "2026-09-30", "generation_id": "6e05bc8a4f96eaf3", "rows": {}}
+{"as_of": "2026-10-01", "generation_id": "bedb89d356576774", "rows": {}}
+{"as_of": "2026-10-02", "generation_id": "f945721d1802a2fc", "rows": {}}
+{"as_of": "2026-10-05", "generation_id": "35b082da7a455468", "rows": {}}
+{"as_of": "2026-10-06", "generation_id": "26bd0d56b231c61a", "rows": {}}
+{"as_of": "2026-10-07", "generation_id": "048d69a4d13f80bb", "rows": {}}
+{"as_of": "2026-10-08", "generation_id": "c3f65a7beaebb24e", "rows": {}}
+{"as_of": "2026-10-12", "generation_id": "57f3012b490c2e7f", "rows": {}}
+{"as_of": "2026-10-13", "generation_id": "361b5096046da80d", "rows": {}}
+{"as_of": "2026-10-14", "generation_id": "18ce9da5ed63ee44", "rows": {}}
+{"as_of": "2026-10-15", "generation_id": "719fc91e66e2daad", "rows": {}}
+{"as_of": "2026-10-16", "generation_id": "f5708e255bd6dceb", "rows": {"CRCL": {"authorization": null, "close": 86.97, "depth_atr": 2.21, "gate": "thesis_unrecorded", "invalidation_price": 70.5741, "leg": "US", "mode": "observe", "rungs": [88.2117, 82.3325, 76.4533], "trend_floor": 86.07}}}
+{"as_of": "2026-10-19", "generation_id": "f1a243fdc860947a", "rows": {}}
+{"as_of": "2026-10-20", "generation_id": "bd071e00eca3847c", "rows": {}}
+{"as_of": "2026-10-21", "generation_id": "7d1fbfef28a874c7", "rows": {}}
+{"as_of": "2026-10-22", "generation_id": "5e2ecfed85296f96", "rows": {}}
+{"as_of": "2026-10-26", "generation_id": "17a225981bf5148c", "rows": {}}
+{"as_of": "2026-10-27", "generation_id": "f8cfb730622bf200", "rows": {}}
+{"as_of": "2026-10-28", "generation_id": "dce6b4041bcd2a09", "rows": {}}
+{"as_of": "2026-10-29", "generation_id": "2d1c6b9dd421151e", "rows": {}}
+{"as_of": "2026-10-30", "generation_id": "f04a0643fb533a80", "rows": {}}
+{"as_of": "2026-11-02", "generation_id": "fbca481e60a978bc", "rows": {}}
+{"as_of": "2026-11-03", "generation_id": "d78b5a9b0134cb95", "rows": {}}
+{"as_of": "2026-11-04", "generation_id": "dcc1da57c276d4b2", "rows": {}}
+{"as_of": "2026-11-05", "generation_id": "52f6f45dcb523904", "rows": {}}
+{"as_of": "2026-11-06", "generation_id": "cff27b41fd23f26a", "rows": {}}
+{"as_of": "2026-11-09", "generation_id": "4369fe263af1b07e", "rows": {}}
+{"as_of": "2026-11-10", "generation_id": "dba294f472b9a2fe", "rows": {}}
+{"as_of": "2026-11-11", "generation_id": "851db67f427b2327", "rows": {}}
+{"as_of": "2026-11-12", "generation_id": "a099f985f733e36d", "rows": {}}
+{"as_of": "2026-11-13", "generation_id": "b79feadc0937db07", "rows": {}}
+{"as_of": "2026-11-16", "generation_id": "4f52b15bcb6deb7b", "rows": {}}
+{"as_of": "2026-11-17", "generation_id": "d6f5a5418104b722", "rows": {}}
