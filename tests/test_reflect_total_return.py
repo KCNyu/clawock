@@ -37,6 +37,6 @@ for (const [combined, capital, expected] of cases) {
   };
   new Function(...Object.keys(environment), owner + '\n' + formatters + '\n' + renderer + '\nrenderReflectKpi();')(...Object.values(environment));
   assert.equal(nodes['kpi-totalret'].textContent, expected, JSON.stringify([combined, capital]));
-  if (expected === '—') assert.ok(!nodes['kpi-totalret-abs'].textContent.includes('÷ 100'));
+  if (expected === '—') assert.equal(nodes['kpi-totalret-abs'].textContent, '(浮+已实现) ÷ 累计投入');
 }
 '''], cwd=Path(__file__).resolve().parents[1], check=True)
