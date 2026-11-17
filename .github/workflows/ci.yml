@@ -806,8 +806,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     needs: validate
+    # validate accepts intentionally skipped optional lanes. Override the implicit
+    # success() check over its ancestors, but still require a successful gate.
     if: >-
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/master'
+      ${{ !cancelled() && needs.validate.result == 'success'
+          && github.event_name == 'push' && github.ref == 'refs/heads/master'
           && needs.validate.outputs.code == 'true' }}
     # Serialize with the other commit-pushing workflows (job-scoped, so PR runs of
     # `validate` are never queued behind a data-write job).
