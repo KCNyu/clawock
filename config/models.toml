@@ -87,8 +87,8 @@ compat = { supportsUsageInStreaming = true, supportsReasoningEffort = true, maxT
 params = { contextTokens = 1048576, maxTokens = 393216 }
 
 [models.sol]
-ref = "openai/gpt-6.1-sol"
-name = "GPT-6.1-Sol"
+ref = "openai/gpt-6.2-sol"
+name = "GPT-6.2-Sol"
 reasoning = true
 input = ["text", "image"]
 contextWindow = 272000
@@ -96,8 +96,9 @@ maxTokens = 128000
 compat = { supportsReasoningEffort = true, supportedReasoningEfforts = ["low", "medium", "high", "xhigh", "max", "ultra"] }
 runtime = "codex"
 # Codex OAuth subscription: list price for reference, not billed per token.
-# OpenAI standard rates 2026-09-29: $2 / $10, cached input 90% off.
-cost = { input = 2, output = 10, cacheRead = 0.2, cacheWrite = 0 }
+# OpenAI GPT-6.2 launch rates: $2 input / $10 output / $0.10 cached input.
+# https://openai.com/index/introducing-gpt-6-2-astra-sol/
+cost = { input = 2, output = 10, cacheRead = 0.1, cacheWrite = 0 }
 params = { thinking = "medium" }
 
 [models.luna]

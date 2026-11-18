@@ -625,7 +625,7 @@ def test_strategy_cron_provider_order_is_fixed_policy():
                 'minimax/MiniMax-M3.1-Flash',
                 'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
-                'openai/gpt-6.1-sol',
+                'openai/gpt-6.2-sol',
             ],
         },
         'intraday': {
@@ -635,7 +635,7 @@ def test_strategy_cron_provider_order_is_fixed_policy():
                 'minimax/MiniMax-M3.1-Flash',
                 'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
-                'openai/gpt-6.1-sol',
+                'openai/gpt-6.2-sol',
             ],
         },
         'brief': {
@@ -645,7 +645,7 @@ def test_strategy_cron_provider_order_is_fixed_policy():
                 'minimax/MiniMax-M3.1-Flash',
                 'minimax-2/MiniMax-M3.1-Flash',
                 'openai/gpt-6-luna',
-                'openai/gpt-6.1-sol',
+                'openai/gpt-6.2-sol',
             ],
         },
     }

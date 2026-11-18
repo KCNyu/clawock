@@ -1194,8 +1194,13 @@ def check_codex_runtime(r):
     except Exception:  # noqa: BLE001
         pass  # check_fallback_chain_shape already reports an unreadable contract
     try:
-        chat = ((json.loads(OPENCLAW_CONFIG.read_text()).get('agents') or {})
-                .get('defaults') or {}).get('model') or {}
+        defaults = ((json.loads(OPENCLAW_CONFIG.read_text()).get('agents') or {})
+                    .get('defaults') or {})
+        # Registered Codex models can be selected manually even off the chains.
+        for ref, entry in (defaults.get('models') or {}).items():
+            if isinstance(entry, dict) and (entry.get('agentRuntime') or {}).get('id') == 'codex':
+                refs.add(ref)
+        chat = defaults.get('model') or {}
         if isinstance(chat, dict):
             refs.update([chat.get('primary'), *(chat.get('fallbacks') or [])])
     except Exception:  # noqa: BLE001
@@ -1206,7 +1211,15 @@ def check_codex_runtime(r):
     versions = _codex_runtime_versions()
     if not versions:
         return
-    minimum = (0, 159, 2) if 'openai/gpt-6.1-sol' in gpt6 else CODEX_GPT6_MIN_RUNTIME
+    # 0.169.1 is the verified native-openai runtime for 6.2 Sol; 0.159.2
+    # accepts its name but the ChatGPT backend rejects the turn as model_not_found.
+    # Keep the verified floor separate from the host's independently chosen pin.
+    if 'openai/gpt-6.2-sol' in gpt6:
+        minimum = (0, 169, 1)
+    elif 'openai/gpt-6.1-sol' in gpt6:
+        minimum = (0, 159, 2)
+    else:
+        minimum = CODEX_GPT6_MIN_RUNTIME
     need = '.'.join(map(str, minimum))
     stale = {name: v for name, v in versions.items()
              if (_version_tuple(v) or (0,)) < minimum}
