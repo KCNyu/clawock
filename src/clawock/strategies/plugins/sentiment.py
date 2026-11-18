@@ -60,7 +60,7 @@ SIGNAL_SOURCE = {
                'the two morning scans with an explicit status.',
     'inputs': [
         {'name': 'sentiment.json', 'what': 'per-holding Reddit mention counts and Google News titles',
-         'source': 'market_data.sentiment, run off-host by sentiment-scan; Reddit search RSS and '
+         'source': 'market_data.sentiment, run off-host by sentiment-scan; Arctic Shift Reddit archive and '
                    'Google News RSS, both unauthenticated'},
         {'name': 'influencer_feed.json', 'what': 'statements and trades scored 0-100 for relevance',
          'source': 'automation.influencer, run off-host by influencer-scan; primary feeds, ARK '
@@ -81,7 +81,7 @@ SIGNAL_SOURCE = {
         {'field': 'attention.age_hours / statements.age_hours', 'unit': 'hours rounded to 0.1', 'window': 'since generated_at', 'missing': 'reading omitted if age unknown'},
         {'field': 'attention.sources / statements.sources', 'unit': 'source labels or label-to-endpoint mapping', 'window': 'scan', 'missing': 'empty list/map'},
         {'field': 'attention.tickers[].ticker / name / region', 'unit': 'instrument identity strings', 'window': 'current scan universe', 'missing': 'null if not supplied'},
-        {'field': 'attention.tickers[].reddit_status', 'unit': 'ok or source failure/unknown label', 'window': '7-day search', 'missing': 'unknown if mentions unmeasured'},
+        {'field': 'attention.tickers[].reddit_status', 'unit': 'ok or source failure/unknown label', 'window': '7-day sample', 'missing': 'unknown if mentions unmeasured'},
         {'field': 'attention.tickers[].reddit_top', 'unit': 'at most 3 {title,url} records; text, no score or votes', 'window': '7-day Reddit search', 'missing': 'empty list'},
         {'field': 'attention.tickers[].recent_move.px_pct',
          'unit': 'percent price return',
@@ -107,7 +107,7 @@ SIGNAL_SOURCE = {
              'null when the payload carries no readable stamp, and the reading is then stale'),
         _out('attention.tickers[].reddit_mentions_7d', 'posts', '7 days before the scan',
              'null when Reddit did not answer for the name, with reddit_status saying so; '
-             'zero only when it answered and found none'),
+             'zero when the selected sample contained no match'),
         _out('attention.tickers[].news_top', 'up to 3 titles', 'the scan\'s Google News answer',
              'empty list when the scan returned none'),
         _out('attention.tickers[].recent_move', 'percent over n sessions', '5 closed sessions',
@@ -186,9 +186,7 @@ class Sentiment:
                     'region': row.get('region'),
                     'reddit_mentions_7d': mentions,
                     'reddit_status': reddit_status,
-                    # Title and link only: the search feed carries no score or
-                    # comment count, and a default of 0 would read as a post
-                    # nobody upvoted.
+                    'reddit_sampled': row.get('reddit_sampled') is True,
                     'reddit_top': [{'title': post.get('title'), 'url': post.get('url')}
                                    for post in (row.get('reddit_posts') or [])[:3]],
                     'news_top': [item.get('title') for item in (english + chinese)[:3]

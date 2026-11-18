@@ -108,6 +108,18 @@ def test_hk_padding_cannot_match_inside_longer_numbers(text):
     assert not mentions_ticker(text, '07226')
 
 
+@pytest.mark.parametrize('spelling', ['00100', '0100', '100.HK跌', 'hk:１００'])
+def test_short_hk_codes_need_padding_or_market_qualification(spelling):
+    assert mentions_ticker(f'等 {spelling} 回到止损线', '00100')
+
+
+def test_a_share_quantity_does_not_cover_a_short_hk_anomaly():
+    ctx = _intraday_ctx(should_alert=True, anomalies=[{'ticker': '00100'}])
+    prose = '▎我的看法\n今天减 100 股，保留观察仓，按计划等待收盘再判断。'
+    assert not mentions_ticker(prose, '00100')
+    assert any('未提任何异动票' in issue for issue in _intraday_issues(ctx, prose))
+
+
 def test_section_indent_accepts_cjk_spaces_but_preserves_markdown_code_boundary():
     from clawock.harness.validation import has_section_marker
     assert has_section_marker('　▎我的看法\n判断', '▎我的看法')

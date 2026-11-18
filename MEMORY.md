@@ -147,7 +147,7 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
   13:54 HKT）在同一会话自动续跑并重放上下文。派发授权仍要一次写全（含合并/部署），
   但「worker 直接交白卷」只发生在续跑次数用完时。
 - codex `gpt-6-astra` + high 是额度老虎：2026-10-21 一次 6 条 issue 的 sweep 15 分钟烧完
-  整个 5h 窗（token 与金额随时变，不写死）。默认的 `gpt-6.1-sol`/medium 慢而省；派 astra 前
+  整个 5h 窗（token 与金额随时变，不写死）。模型与推理档以 `dispatch.sh` 的 Codex 默认配置为准；派 astra 前
   先估算要几个额度窗口。
 - 跨调度源的 HKT 时间线：`bash ops/host/check_crons.sh --timeline`。
 - 查 gateway：走 gateway 的本地 health 端点（地址见本机运维配置）。

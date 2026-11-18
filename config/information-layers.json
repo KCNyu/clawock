@@ -150,7 +150,7 @@
         },
         {
           "command": "sentiment",
-          "note": "Reddit search RSS and Google News scan per active holding"
+          "note": "Reddit archive title sample and Google News scan per active holding"
         },
         {
           "command": "clawock-influencer-scan",

@@ -890,9 +890,7 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: python3 ops/ci/smoke_fx.py
 
-      # Answers the question #1237 left open: the replacement Reddit endpoint
-      # was verified from the project VPS, and the producer runs here.
-      - name: Reddit search feed reachability
+      - name: Reddit archive reachability
         if: steps.changes.outputs.code == 'true'
         run: python3 ops/ci/smoke_reddit.py
 

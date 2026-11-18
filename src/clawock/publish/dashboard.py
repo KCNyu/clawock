@@ -24,7 +24,7 @@ import re
 import statistics
 import sys
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time as wall_time, timedelta, timezone
 from pathlib import Path
 from typing import NamedTuple
 from zoneinfo import ZoneInfo
@@ -1024,7 +1024,7 @@ _INDEX_SOURCE_DATE = re.compile(
 
 
 def _index_session(source, market):
-    """The session an index quote belongs to, read off its `source` stamp.
+    """Return the session date and whether its stamped quote is intraday.
 
     The stamp is the fetch time in the market's own clock, and fetchers run on
     closed days and before the open too. A date the market did not trade, or a
@@ -1033,17 +1033,17 @@ def _index_session(source, market):
     """
     m = _INDEX_SOURCE_DATE.search(source or '')
     if not m:
-        return None
+        return None, None
     try:
         day = date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
         opening = trading_calendar.SESSION_WINDOWS[market][0][0]
-        before_open = (m.group(4) is not None
-                       and (int(m.group(4)), int(m.group(5))) < (opening.hour, opening.minute))
-        if before_open or trading_calendar.closed_reason(market, day) is not None:
-            day = trading_calendar.previous_trading_day(market, day)
+        stamp = wall_time(int(m.group(4)), int(m.group(5))) if m.group(4) is not None else None
+        if ((stamp is not None and stamp < opening)
+                or trading_calendar.closed_reason(market, day) is not None):
+            return trading_calendar.previous_trading_day(market, day), False
+        return day, stamp < trading_calendar.session_close(market, day) if stamp is not None else None
     except Exception:
-        return None
-    return day
+        return None, None
 
 
 def _aggregate_indices(us_pf, hk_pf, at=None):
@@ -1053,7 +1053,7 @@ def _aggregate_indices(us_pf, hk_pf, at=None):
     indices (HSI/HSTECH) were invisible to the frontend even though they're
     fetched daily by analyze_hk_stocks.py. Normalize key shape to:
 
-        { TICKER: {name, price, prev_close, change_pct, source, session, stale} }
+        { TICKER: {name, price, prev_close, change_pct, source, session, intraday, stale} }
 
     where TICKER is NDX/SPX/HSI/HSTECH/etc. `session` and `stale` are decided
     here, against the market's own calendar: the page used to count calendar
@@ -1070,7 +1070,7 @@ def _aggregate_indices(us_pf, hk_pf, at=None):
         for k, v in idx.items():
             if not isinstance(v, dict):
                 continue
-            session = _index_session(v.get('source'), market)
+            session, intraday = _index_session(v.get('source'), market)
             # Different sources use chg_pct vs change_pct — normalize
             normalized = {
                 'name':       v.get('name', k),
@@ -1079,7 +1079,9 @@ def _aggregate_indices(us_pf, hk_pf, at=None):
                 'change_pct': v.get('change_pct') if v.get('change_pct') is not None else v.get('chg_pct'),
                 'source':     v.get('source', 'unknown'),
                 'session':    session.isoformat() if session else None,
-                'stale':      (session < newest) if session and newest else None,
+                'intraday':   intraday,
+                'stale':      (session < newest or (session == newest and intraday is True))
+                              if session and newest else None,
             }
             out[k] = normalized
     return out

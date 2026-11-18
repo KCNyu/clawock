@@ -431,16 +431,17 @@ def _derive_final(record):
     llm = stages["llm"]["status"]
     postflight = stages["postflight"]["status"]
     primary = stages["primary_delivery"]["status"]
-    watchdog = stages["watchdog_delivery"]["status"]
+    watchdog_stage = stages["watchdog_delivery"]
+    watchdog = watchdog_stage["status"]
+    data_only = (watchdog_stage.get("action") == "deterministic-fallback"
+                 or watchdog_stage.get("watchdog_state") == "deterministic_fallback")
 
     if preflight == "skipped":
         status, reason = "skipped", "market/session closed"
     elif (watchdog == "success" and (
-            preflight == "failed"
-            or stages["watchdog_delivery"].get("action") == "deterministic-fallback"
-            or stages["watchdog_delivery"].get("watchdog_state") == "deterministic_fallback")
-          and llm in {"unknown", "pending", "failed"} and postflight in {"unknown", "pending"}
-          and primary in {"unknown", "pending"}):
+            (data_only and postflight != "success" and primary not in {"success", "not_required"})
+            or (preflight == "failed" and llm in {"unknown", "pending", "failed"}
+                and postflight in {"unknown", "pending"} and primary in {"unknown", "pending"}))):
         return {"status": "degraded", "reason": (
             "采集崩了，兜底卡代替" if preflight == "failed" else "没有语义报告，兜底只含数据块"),
             "fallback_only": True}

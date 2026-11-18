@@ -680,7 +680,8 @@
       // Each cell names its own session: the five indices routinely span two
       // closes, and one max-date as-of makes 11-11 closes look like 11-12 (#3422).
       const sess = (typeof r.session === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.session))
-        ? `${r.session.slice(5)} 收盘` : "";
+        ? [r.session.slice(5), r.intraday === true ? "盘中" : r.intraday === false ? "收盘" : ""]
+            .filter(Boolean).join(" ") : "";
       return `
         <div class="market-cell ${stale ? "stale" : ""}" title="${escapeHtml(r.source || "")}">
           <div class="lbl">${escapeHtml(k)}</div>
@@ -2169,7 +2170,8 @@
                </div>
                <div class="muted" style="font-size:var(--fs-xs);margin-top:3px;text-transform:none;letter-spacing:0">
                  现货 <b style="color:var(--text-primary)">$${num(de.spot_usd_oz, 2)}</b>/oz · 回本需涨 <b style="color:${beColor}">${de.breakeven_upside_pct >= 0 ? '+' : ''}${num(de.breakeven_upside_pct, 2)}%</b>
-                 ${de.current_value_cny != null ? `· 对应现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
+                 ${de.principal_cny != null ? `· 模拟投入 ¥${num(de.principal_cny)}${de.days != null ? ` / ${num(de.days)} 次` : ''}` : ''}
+                 ${de.current_value_cny != null ? `· 模拟现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
                </div>
              </div>`;
           // 摊薄轨迹：继续同额定投伦敦金 → 均成本 $/oz 移动方向由数据说话

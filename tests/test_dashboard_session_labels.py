@@ -87,6 +87,23 @@ def test_a_fetch_before_the_opening_bell_belongs_to_the_previous_session():
         "SPX": "2026-10-05", "HSI": "2026-10-05"}
 
 
+def test_index_labels_classify_the_quote_at_its_own_timestamp():
+    legs = _legs("Tencent usINX index @ 2026-11-17 19:03 ET",
+                 "Tencent qt.gtimg.cn 2026/11/18 12:33 HKT")
+    rows = dashboard._aggregate_indices(
+        *legs, at=datetime(2026, 11, 18, 5, 0, tzinfo=timezone.utc))
+    assert rows["SPX"]["intraday"] is False
+    assert rows["HSI"]["intraday"] is True
+    assert rows["HSI"]["stale"] is False
+    # Later publication must not turn the saved lunch quote into a close.
+    rows = dashboard._aggregate_indices(
+        *legs, at=datetime(2026, 11, 18, 10, 0, tzinfo=timezone.utc))
+    assert rows["HSI"]["intraday"] is True
+    assert rows["HSI"]["stale"] is True
+    assert dashboard._index_session("Tencent 2026/11/18", "hk")[1] is None
+    assert dashboard._index_session("Tencent 2026/11/27 13:05", "us")[1] is False
+
+
 def test_holding_quote_session_is_the_fetchers_session_not_the_fetch_clock():
     from clawock import sessions as trading_calendar
 
