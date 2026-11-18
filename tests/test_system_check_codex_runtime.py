@@ -140,3 +140,16 @@ def test_it_reads_without_spawning(system_check, monkeypatch, tmp_path):
     rows = _rows(system_check, monkeypatch, _host(tmp_path, runtime="0.144.3"))
 
     assert [row[1] for row in rows] == [system_check.WARNING]
+
+
+@pytest.mark.parametrize("runtime,severity", [
+    ("0.159.2", "WARNING"), ("0.169.1", "OK"),
+])
+def test_gpt62_sol_requires_the_verified_native_runtime(
+        system_check, monkeypatch, tmp_path, runtime, severity):
+    rows = _rows(system_check, monkeypatch, _host(
+        tmp_path, runtime=runtime, chat_fallback="openai/gpt-6.2-sol"))
+
+    assert [row[1] for row in rows] == [getattr(system_check, severity)]
+    assert "0.169.1" in rows[0][2]
+    assert "openai/gpt-6.2-sol" in rows[0][2]
