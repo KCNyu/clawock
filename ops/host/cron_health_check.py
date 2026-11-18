@@ -36,6 +36,7 @@ sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.scheduling import parse_cron_slots  # noqa: E402
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.publish import cron_schedule as _panel_schedule  # noqa: E402
+from clawock.publish.outcomes import delivered_data_only_fallback  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import openclaw  # noqa: E402
 
@@ -427,15 +428,13 @@ def load_workflow_outcomes(path=None):
 
 
 def backstop_covered_slots(job_name, slots, tz_name, outcomes, today=None):
-    """Which of `slots` (HH:MM local, today) has a workflow-outcomes record whose
-    final_product is 'recovered' — i.e. watchdog_delivery succeeded.
+    """Which of `slots` (HH:MM local, today) the ledger confirms the watchdog delivered.
 
     #696: a staged report cron's Telegram backstop is DELIBERATELY commit-free
     (report_watchdog.py, 2026-07-09 kcn's call: no WeChat resend, Telegram-only
     mirror) — so counting git commits alone reads every backstop-covered slot as
     total non-delivery, the same red as a report kcn genuinely never got. This
-    reads the one ledger that already tells the two apart (`final_product.status
-    == 'recovered'` is set only when `watchdog_delivery` itself succeeded).
+    reads the ledger for a recovered product or a confirmed data-only fallback.
 
     `today` must be checked, not just HH:MM: the ledger keeps 96h of records
     (workflow_outcomes.KEEP_HOURS), so a same-time slot recovered on an earlier
@@ -454,7 +453,8 @@ def backstop_covered_slots(job_name, slots, tz_name, outcomes, today=None):
     for record in outcomes.get('records', []):
         if record.get('job') != job_name:
             continue
-        if record.get('final_product', {}).get('status') != 'recovered':
+        if ((record.get('final_product') or {}).get('status') != 'recovered'
+                and not delivered_data_only_fallback(record)):
             continue
         try:
             slot_dt = datetime.fromisoformat(record['slot'])

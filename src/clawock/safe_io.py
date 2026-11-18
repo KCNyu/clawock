@@ -198,14 +198,19 @@ def safe_write_json(path: str, data, indent: int = 2, strict: bool = False) -> N
 
 
 def safe_write_text(path: str, text: str) -> None:
-    """Atomic text-file write — same guarantees as safe_write_json."""
+    """Atomic UTF-8 text-file write — same guarantees as safe_write_json."""
+    safe_write_bytes(path, text.encode('utf-8'))
+
+
+def safe_write_bytes(path: str | os.PathLike, data: bytes) -> None:
+    """Atomically replace a file with the exact input bytes."""
     path = os.path.abspath(path)
     dirname = os.path.dirname(path) or '.'
     os.makedirs(dirname, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=dirname, prefix='.tmp-')
     try:
-        with os.fdopen(fd, 'w', encoding='utf-8') as f:
-            f.write(text)
+        with os.fdopen(fd, 'wb') as f:
+            f.write(data)
             f.flush()
             os.fsync(f.fileno())
         os.replace(tmp, path)

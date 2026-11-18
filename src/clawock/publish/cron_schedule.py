@@ -27,6 +27,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from clawock.publish.outcomes import delivered_data_only_fallback
 from clawock.scheduling import effective_schedule, parse_cron_slots
 from clawock.sessions import HKT
 
@@ -126,7 +127,22 @@ def _narrate_degraded(record):
     # purpose (`brief_postflight.readability_issues`), but it is a length
     # problem, not a correctness one. On 2026-09-11 it was the only one, and the
     # card still said「报告已投递但可能有误」— a claim about the content that
-    # nothing had made. Name it, and keep the generic line for whatever is left.
+    # nothing had made. Name length findings and refer remaining findings to
+    # the delivered card, where the validator actually lists them.
+    length_warnings = postflight.get('length_warnings') or {}
+    lengths = []
+    for kind, label in (('judgment', '判断段'), ('report', '报告')):
+        warning = length_warnings.get(kind) if isinstance(length_warnings, dict) else None
+        if not isinstance(warning, dict):
+            continue
+        chars, limit = warning.get('chars'), warning.get('limit')
+        if type(chars) is int and type(limit) is int and chars > limit > 0:
+            lengths.append(f'{label} {chars} 字，超过 {limit} 字软上限')
+    if escalating and lengths:
+        text = '；'.join(lengths)
+        if (others := escalating - len(lengths)) > 0:
+            text += f'；另有 {others} 条需核查，见本档卡片顶部的校验警告'
+        return _note(NEEDS_ACTION, text)
     readability = postflight.get('readability') or {}
     if escalating and readability.get('status') == 'extreme':
         length = (f'简报正文 {readability.get("bytes", 0) / 1000:.1f}KB，超过 '
@@ -136,12 +152,11 @@ def _narrate_degraded(record):
         if others <= 0:
             return _note(NEEDS_ACTION, length + '；内容校验没有别的实质问题')
         return _note(NEEDS_ACTION,
-                    f'{length}；另有 {others} 条不是仅供参考的内容问题'
-                    '——报告已投递但可能有误，查 workflow-outcomes.json 这一槽的 stages')
+                    f'{length}；另有 {others} 条需核查，见本档卡片顶部的校验警告')
     if escalating:
         return _note(NEEDS_ACTION,
-                    f'内容校验有 {issues} 条问题，其中 {escalating} 条不是仅供参考的'
-                    '——报告已投递但可能有误，查 workflow-outcomes.json 这一槽的 stages')
+                    f'校验有 {issues} 条意见，其中 {escalating} 条需核查，'
+                    '见本档卡片顶部的校验警告')
     # The other way `_advisory_only`'s AND fails: content was clean but the
     # dashboard commit had not published yet the moment this record was
     # written. The scheduled publisher ticks every 20 minutes and catches up
@@ -247,12 +262,22 @@ def _delivered_at(record):
 
     `updated_at` moves on every stage write, and each watchdog pass that finds
     the slot already delivered writes one — the panel then printed the pass as
-    the success time (#2634). A recovered slot was delivered by the watchdog.
+    the delivery time (#2634). Recoveries and data-only fallbacks use the
+    watchdog's receipt. Legacy clean outcomes may only have an update time.
     """
     stages = record.get('stages') or {}
-    recovered = (record.get('final_product') or {}).get('status') == 'recovered'
-    stage = stages.get('watchdog_delivery' if recovered else 'primary_delivery') or {}
-    return stage.get('at') or record.get('updated_at')
+    final = (record.get('final_product') or {}).get('status')
+    watchdog = stages.get('watchdog_delivery') or {}
+    primary = stages.get('primary_delivery') or {}
+    if delivered_data_only_fallback(record):
+        return watchdog.get('at')
+    if final == 'recovered':
+        return watchdog.get('at') or record.get('updated_at') or record.get('slot')
+    if final == 'success':
+        return primary.get('at') or record.get('updated_at') or record.get('slot')
+    if final == 'degraded' and primary.get('status') == 'success':
+        return primary.get('at')
+    return None
 
 
 def timetable(contract, records, *, now=None):
@@ -286,17 +311,18 @@ def timetable(contract, records, *, now=None):
                          'slots': [{'at': slot, 'state': 'unmonitored',
                                    'note': _UNMONITORED_NOTE} for slot in slots]})
             continue
-        # The slot grid covers today; the last successful delivery may belong to
-        # yesterday. Use the ledger's own delivery timestamp, never infer a
-        # success from a scheduled slot that has no outcome.
-        successes = []
+        # The slot grid covers today; the last delivery may belong to yesterday.
+        deliveries = []
         for record in records:
-            if record.get('job') != name or (record.get('final_product') or {}).get('status') not in {'success', 'recovered'}:
+            if record.get('job') != name:
+                continue
+            delivered_at = _delivered_at(record)
+            if not delivered_at:
                 continue
             try:
-                completed = datetime.fromisoformat(_delivered_at(record) or record['slot'])
+                completed = datetime.fromisoformat(delivered_at)
                 if completed.tzinfo and completed <= now:
-                    successes.append(completed)
+                    deliveries.append(completed)
             except (KeyError, TypeError, ValueError):
                 continue
         found = _records_by_slot(records, name, day, tz, slots)
@@ -321,7 +347,7 @@ def timetable(contract, records, *, now=None):
                 cell['note'] = note
             cells.append(cell)
         rows.append({'job': name, 'tz': tz_name, 'slots': cells,
-                     'last_success_at': max(successes).isoformat() if successes else None})
+                     'last_success_at': max(deliveries).isoformat() if deliveries else None})
     return {
         'date': now.astimezone(HKT).strftime('%Y-%m-%d'),
         'grace_minutes': GRACE_MINUTES,

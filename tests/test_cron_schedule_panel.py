@@ -66,6 +66,37 @@ def test_a_recovered_slot_was_delivered_when_the_watchdog_sent_it():
     assert result['jobs'][0]['last_success_at'] == '2026-09-03T10:24:00+08:00'
 
 
+def test_intraday_length_warning_is_named_on_the_panel():
+    from clawock.publish.cron_schedule import _narrate_degraded
+
+    record = _record('2026-09-03T10:03:00+08:00', 'degraded')
+    postflight = {'issue_count': 1, 'escalating_count': 1,
+                  'length_warnings': {'judgment': {'chars': 826, 'limit': 600}}}
+    record['stages'] = {'postflight': postflight}
+
+    note = _narrate_degraded(record)['text']
+    assert '判断段 826 字' in note and '600' in note
+    assert '可能有误' not in note
+    postflight.update(issue_count=2, escalating_count=2)
+    note = _narrate_degraded(record)['text']
+    assert '另有 1 条' in note and '卡片' in note
+    del postflight['length_warnings']
+    note = _narrate_degraded(record)['text']
+    assert '校验警告' in note and '可能有误' not in note
+
+
+def test_a_delivered_fallback_updates_delivery_time_and_stays_degraded():
+    at = datetime(2026, 9, 3, 12, tzinfo=HKT)
+    record = _record('2026-09-03T10:03:00+08:00', 'degraded')
+    record['final_product']['fallback_only'] = True
+    record['stages'] = {
+        'primary_delivery': {'status': 'failed', 'at': '2026-09-03T10:09:00+08:00'},
+        'watchdog_delivery': {'status': 'success', 'at': '2026-09-03T10:24:00+08:00'}}
+    result = timetable(_contract('3 10 * * 1-5'), [record], now=at)
+    assert result['jobs'][0]['last_success_at'] == '2026-09-03T10:24:00+08:00'
+    assert _states(result) == ['degraded']
+
+
 def test_an_unmapped_ledger_status_shows_as_unknown_not_as_green():
     """A default of 'ok' would render a status nobody has looked at as healthy."""
     at = datetime(2026, 9, 3, 12, 0, tzinfo=HKT)
@@ -193,7 +224,7 @@ def test_degraded_with_a_real_content_issue_reads_as_needs_action():
 
     note = result['jobs'][0]['slots'][0]['note']
     assert note['disposition'] == 'needs_action'
-    assert '3 条问题' in note['text'] and '1 条不是仅供参考' in note['text']
+    assert '3 条意见' in note['text'] and '1 条需核查' in note['text']
 
 
 def test_an_overlong_brief_is_named_as_length_not_as_possibly_wrong():
@@ -216,7 +247,7 @@ def test_an_overlong_brief_is_named_as_length_not_as_possibly_wrong():
     }, primary_delivery={'wechat_ok': True, 'telegram_ok': True})
     note = timetable(_contract('3 10 * * 1-5'), [both],
                      now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))['jobs'][0]['slots'][0]['note']
-    assert '另有 1 条' in note['text'] and '可能有误' in note['text']
+    assert '另有 1 条' in note['text'] and '校验警告' in note['text']
 
 
 def test_degraded_from_a_publish_lag_alone_reads_as_watch_not_needs_action():

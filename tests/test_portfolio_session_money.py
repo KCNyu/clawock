@@ -228,6 +228,23 @@ def test_unknown_quote_session_is_a_named_money_error(tmp_path, stamp):
                for f in report['findings'])
 
 
+def test_reconcile_clears_day_change_if_the_trade_cannot_be_placed_in_a_session():
+    holding = dict(ticker='00001', shares=100, cost_basis=300, current_price=305,
+                   prev_close=290, today_change=1500, today_change_pct=5.17,
+                   trades=[dict(date='2026-11-18', action='buy', shares=100, price=300)])
+    leg = {'holdings': [holding], 'today_total_change': 1500}
+    book = {'last_updated': '2026/11/18 15:30 HKT', 'portfolios': {'hk_stocks': leg}}
+
+    aggregates.recompute(book)
+    assert holding['today_change'] is None
+    assert holding['today_change_pct'] is None
+    assert leg['today_total_change'] == 0
+
+    holding['day_session_date'] = '2026-11-18'
+    aggregates.recompute(book)
+    assert holding['today_change'] == leg['today_total_change'] == 500
+
+
 def test_a_quote_without_a_prior_close_clears_the_stale_day_change():
     """#3437: the book total excludes the row, so the row must not keep 777."""
     data = {'last_updated': '2026/11/12 09:33 HKT', 'portfolios': {'us_stocks': {

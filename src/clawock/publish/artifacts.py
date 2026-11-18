@@ -927,7 +927,36 @@ def _assert_dashboard_money_reconciles(
     if fx_source_available:
         fx_source = json.loads(Path(fx_path).read_text(encoding='utf-8'))
         same_number(fx_rate, fx_source.get('rate'), 'fx.usdhkd', 0.00005)
-    if fx_ledger_path is not None and data['fx'].get('usdhkd') is not None:
+    if same_book:
+        from clawock.publish.dashboard import (
+            compute_capital_deployed, compute_net_principal_return,
+            compute_realized_vs_unrealized,
+        )
+        for field, project in (
+                ('realized_vs_unrealized', compute_realized_vs_unrealized),
+                ('net_principal_return', compute_net_principal_return),
+                ('capital_deployed', compute_capital_deployed)):
+            block = data.get(field)
+            assert isinstance(block, dict), f'{field} missing or not an object'
+            for key, expected in project(portfolio, fx_rate).items():
+                if key != 'combined' and not key.startswith('combined_'):
+                    continue
+                label = f'{field}.{key}'
+                assert key in block, f'{label} missing'
+                if not isinstance(expected, dict):
+                    same_optional_number(block[key], expected, label)
+                    continue
+                actual = block[key]
+                assert isinstance(actual, dict), f'{label} must be an object'
+                for name, value in expected.items():
+                    path = f'{label}.{name}'
+                    assert name in actual, f'{path} missing'
+                    if isinstance(value, str):
+                        assert actual[name] == value, f'{path} does not reconcile to portfolio.json'
+                    else:
+                        same_optional_number(actual[name], value, path)
+
+    if fx_ledger_path is not None and fx_rate is not None:
         # No published rate means no cross-leg figure to trace; a rebuild
         # without the live cache has fx=null on every field.
         _assert_published_fx_is_in_ledger(data, fx_ledger_path)

@@ -444,6 +444,9 @@ def test_detailed_judgment_kept_for_filing_plan_and_add_side():
     prose = '▎我的看法\n' + ('一级披露核验；纪律单仍挂；加仓侧 candidate/wait/reject 不授权。' * 18)
     issues = post.validate(post.assemble_message(ctx, prose), ctx, prose)
     assert any('判断段长度' in issue and '软上限' in issue for issue in issues)
+    assert post._length_warnings(post.assemble_message(ctx, prose), prose) == {
+        'judgment': {'chars': len(prose), 'limit': post.JUDGMENT_SOFT_LIMIT},
+    }
     assert post.categorize(issues) != 'fail'
 
 

@@ -949,7 +949,7 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
                 add('SESSION_STAMP_INVALID', 'ERROR',
                     f'{t} 无法确定报价 session；检查 day_session_date、data_source 和 last_updated；'
                     'STALE_PRICE 与跨 session 校验缺少依据', region, t)
-            if cur is not None and sh and prev is not None and tchg is not None:
+            if sess_date and cur is not None and sh and prev is not None and tchg is not None:
                 want_tc, _ = day_pnl(h, sess_date, market=market)
                 if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02) + 1e-9:
                     add('TODAY_LEG', 'ERROR',

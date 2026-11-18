@@ -144,6 +144,9 @@ memory/*.md
 # file is not. The version directory is staged whole by the brief commit.
 memory/brief-versions/**/.tmp-*
 
+# Brief postflight also stages the whole snapshot directory.
+memory/snapshots/.tmp-*
+
 # Misc
 share/
 

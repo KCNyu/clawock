@@ -62,7 +62,7 @@ from clawock.workspace import workspace_root
 from clawock.plugin_host import live as live_plugins
 from clawock import sessions as trading_calendar
 from clawock import history_store
-from clawock.safe_io import safe_write_text, jsonl_line
+from clawock.safe_io import safe_write_bytes, safe_write_text, jsonl_line
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision.book import pnl_totals
@@ -1898,7 +1898,7 @@ def _collect(argv=None):
     print('[4/14] Portfolio snapshot')
     portfolio_path = WS / 'portfolio.json'
     snapshot_path  = SNAPSHOT_DIR / f'{today}.json'
-    snapshot_path.write_bytes(portfolio_path.read_bytes())
+    safe_write_bytes(snapshot_path, portfolio_path.read_bytes())
     print(f'   ✓ {snapshot_path.name}')
 
     # Roll cold snapshots into _archive/ (#1040): readers look at ≤90 entries,
