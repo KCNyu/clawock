@@ -24,7 +24,8 @@ components rather than a second visual language.
    Each item carries its next step and is visible without any click. Watch-level
    items never enter this list.
 4. **Scheduled-jobs board.** One row per job, with columns for name, state, last
-   success (time and age), today's slots, and next run. Rows with issues sort
+   delivery (time and age, including confirmed watchdog fallbacks), today's
+   slots, and next run. Rows with issues sort
    first (`需处理` → `观察` → `状态未知` → `账本看不到`). Quiet rows (`运行中`,
    `待跑`, `正常`) keep schedule order and use a lighter text step. The slot strip
    has one mark per slot (uptime-bar style). The header counts double as the

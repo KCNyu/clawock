@@ -35,6 +35,14 @@ MAX_NAMED = 8
 DEGRADATIONS_KEY = "degradations"
 
 
+def delivered_data_only_fallback(record) -> bool:
+    """The watchdog delivered a data block and the product still needs attention."""
+    final = record.get('final_product') or {}
+    watchdog = (record.get('stages') or {}).get('watchdog_delivery') or {}
+    return (final.get('status') == 'degraded' and final.get('fallback_only') is True
+            and watchdog.get('status') == 'success')
+
+
 def degradations_of(payload) -> list:
     """The observation chain's own faults, out of a ledger payload (#1214).
 

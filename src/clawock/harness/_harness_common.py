@@ -6,6 +6,7 @@ across multiple postflight scripts. All functions accept the workspace root
 as path argument or default to the resolved workspace root.
 """
 
+from clawock.safe_io import safe_write_bytes
 from clawock.safe_io import to_number as _share_number
 from clawock.utilities import PACKAGED_UTILITIES
 import hashlib
@@ -150,7 +151,7 @@ def refresh_today_snapshot(ws=None):
         except OSError:
             unchanged = False
         if not unchanged:
-            snap.write_bytes(current)
+            safe_write_bytes(snap, current)
         return True, snap.name
     except Exception as e:
         return False, str(e)

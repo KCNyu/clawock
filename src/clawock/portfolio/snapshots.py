@@ -8,16 +8,14 @@ rows use the share balance to resolve same-day timing, and other adjustments
 use their ledger date without changing shares. Crediting a
 sell too early inflates equity; crediting it too late deflates it.
 
-The canonical portfolio.json `trades[]` ledger is the single source of truth.
-A sell is "reflected" in a snapshot when:
-  * sell.date <  snapshot.date                              (settled on a prior day), OR
-  * sell.date == snapshot.date AND snapshot_shares <= post_sell_balance
-    (same-day tie broken by the snapshot's own share count — handles the
-     a morning snapshot taken before that day's later market session).
+The canonical portfolio.json `trades[]` ledger is the source of truth.
+Entries from sessions before the snapshot date always count, including when a
+later trade has changed the balance again. On the snapshot date:
 
-The same-day share check uses the running balance *after* the sell, so a sell is
-only counted once the holding has actually been drawn down to (or below) it. The
-strict date-`<` branch handles later sell→rebuy cycles without false negatives.
+* A buy counts once snapshot shares reach or exceed the post-buy balance.
+* A sell counts once snapshot shares reach or fall below the post-sell balance,
+  floored at zero for a partial trade ledger.
+* An adjustment with any other action counts by date alone.
 """
 
 from clawock.safe_io import to_number as _share_number

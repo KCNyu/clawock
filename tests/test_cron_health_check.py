@@ -150,6 +150,21 @@ def test_backstop_covered_slots_finds_a_recovered_slot():
     assert covered == {"13:11"}
 
 
+def test_backstop_commit_evidence_accepts_delivered_data_only_fallback():
+    from datetime import date
+    job = '港股午后快报'
+    delivered = _outcome_record(job, '2026-08-14T13:11:00+08:00', 'degraded')
+    unconfirmed = _outcome_record(job, '2026-08-14T13:41:00+08:00', 'degraded')
+    for row in (delivered, unconfirmed):
+        row['final_product']['fallback_only'] = True
+    delivered['stages'] = {'watchdog_delivery': {'status': 'success'}}
+    unconfirmed['stages'] = {'watchdog_delivery': {'status': 'failed'}}
+    covered = cron_health_check.backstop_covered_slots(
+        job, ['13:11', '13:41'], 'Asia/Hong_Kong', _outcomes([delivered, unconfirmed]),
+        today=date(2026, 8, 14))
+    assert covered == {'13:11'}
+
+
 def test_backstop_covered_slots_ignores_other_jobs_and_non_recovered_status():
     outcomes = _outcomes([
         _outcome_record("美股收盘报告", "2026-08-14T13:11:00+08:00", "recovered"),  # wrong job

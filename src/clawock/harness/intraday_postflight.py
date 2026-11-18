@@ -521,6 +521,19 @@ def render_for_channel(message, ctx, channel):
     return '\n'.join(out)
 
 
+def _length_warnings(text, model_text):
+    """Soft length findings published as counts and thresholds."""
+    warnings = {}
+    chars = len(model_text)
+    if chars > JUDGMENT_SOFT_LIMIT:
+        limit = JUDGMENT_REVIEW_LIMIT if chars > JUDGMENT_REVIEW_LIMIT else JUDGMENT_SOFT_LIMIT
+        warnings['judgment'] = {'chars': chars, 'limit': limit}
+    chars = len(text)
+    if REPORT_CHAR_LIMITS['soft'] < chars <= REPORT_CHAR_LIMITS['hard']:
+        warnings['report'] = {'chars': chars, 'limit': REPORT_CHAR_LIMITS['soft']}
+    return warnings
+
+
 def validate(text, ctx, model_text):
     """Validate the delivered check-in.
 
@@ -578,23 +591,14 @@ def validate(text, ctx, model_text):
     if ctx.get('semantic_unchanged') and re.search(r'新异动|新触发|本档新', checked):
         issues.append('语义未变的档位，判断却写了新异动/新触发 (advisory)')
 
-    # Only the model slot is bounded here; the harness-owned table can be long
-    # without forcing the model to copy it or making a sound quote fail.
-    if len(checked) > JUDGMENT_REVIEW_LIMIT:
-        issues.append(f'判断段长度 {len(checked)} 字 > {JUDGMENT_REVIEW_LIMIT} 软上限 (warn)')
-    elif len(checked) > JUDGMENT_SOFT_LIMIT:
-        issues.append(f'判断段长度 {len(checked)} 字 > {JUDGMENT_SOFT_LIMIT} 软上限 (warn)')
-
-    # Length is a property of what actually gets pushed to WeChat, so it — and
-    # only it — measures the assembled body. The thresholds are Mode 6's, shared
-    # rather than copied: this file used to carry its own 3000/3500 literals,
-    # so the two modes could drift apart with nothing to notice.
-    n = len(text)
-    soft, hard = REPORT_CHAR_LIMITS['soft'], REPORT_CHAR_LIMITS['hard']
-    if n > hard:
-        issues.append(f'报告长度 {n} 字 > {hard} 上限')
-    elif n > soft:
-        issues.append(f'报告长度 {n} 字 > {soft} 软上限 (warn)')
+    # Judgment length measures the model slot. The channel limit measures
+    # the complete card, including the harness-owned table.
+    for kind, warning in _length_warnings(text, checked).items():
+        label = '判断段' if kind == 'judgment' else '报告'
+        issues.append(f'{label}长度 {warning["chars"]} 字 > {warning["limit"]} 软上限 (warn)')
+    hard = REPORT_CHAR_LIMITS['hard']
+    if len(text) > hard:
+        issues.append(f'报告长度 {len(text)} 字 > {hard} 上限')
 
     # Two independent requirements, not a fallback chain. An alert slot can
     # carry anomalies AND signals; the signal check used to live in an `elif`
@@ -912,6 +916,8 @@ def main(argv=None):
               if stale_generation
               else ([] if receipt_only else validate(text, ctx, model_text)))
     status = 'fail' if stale_generation else categorize(issues)
+    length_warnings = ({} if stale_generation or receipt_only
+                       else _length_warnings(text, model_text))
 
     # ── Revise once (contract §7) ───────────────────────────────────────────
     # A rule the model keeps breaking becomes a gate, and a gate that only
@@ -1189,6 +1195,7 @@ def main(argv=None):
             # The ledger needs the same escalating/advisory split the banner uses:
             # an advisory-only slot delivered a clean report (#764).
             escalating_count=len(escalating), advisory_count=len(advisories),
+            length_warnings=length_warnings,
             # None is dropped by record(): only a genuine decline carries the flag
             # that tells the outcome bridge this process holds no delivery verdict.
             send_claim_declined=send_claim_declined or None,

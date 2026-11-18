@@ -229,6 +229,43 @@ def test_an_unchanged_portfolio_does_not_move_the_snapshot(tmp_path, monkeypatch
     assert dashboard_input_fingerprint(ws) != fingerprint
 
 
+def test_snapshot_readers_keep_the_old_bytes_until_the_replace(tmp_path, monkeypatch):
+    from datetime import datetime
+
+    from clawock import safe_io
+    from clawock.harness import _harness_common as harness
+
+    class Weekday(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 8, 31, 12)
+
+    monkeypatch.setattr('datetime.datetime', Weekday)
+    ws = _desk(tmp_path)
+    portfolio = ws / 'portfolio.json'
+    old = b'{"holdings": []}\r\n'
+    new = b'{"holdings": [1]}\r\n'
+    portfolio.write_bytes(old)
+    ok, name = harness.refresh_today_snapshot(ws)
+    assert ok, name
+    snap = ws / 'memory' / 'snapshots' / name
+    portfolio.write_bytes(new)
+
+    def failed_replace(source, destination):
+        assert Path(destination) == snap
+        assert snap.read_bytes() == old
+        assert Path(source).read_bytes() == new
+        raise OSError('replace interrupted')
+
+    with monkeypatch.context() as patch:
+        patch.setattr(safe_io.os, 'replace', failed_replace)
+        assert harness.refresh_today_snapshot(ws) == (False, 'replace interrupted')
+    assert list(snap.parent.iterdir()) == [snap]
+    assert snap.read_bytes() == old
+    assert harness.refresh_today_snapshot(ws)[0]
+    assert snap.read_bytes() == new
+
+
 def test_the_builds_own_telemetry_does_not_move_the_fingerprint(tmp_path, monkeypatch):
     """#1247: the second self-writer, found because the gate never fired once.
 

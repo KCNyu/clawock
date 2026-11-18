@@ -187,6 +187,9 @@ symbol, one meaning); the add-side line carries `三态都不是下单授权`; i
 most 4 tickers with `why`/`needs` cut to a fixed length and `…另有 N 条` beyond.
 A failed check sends the data block with a `🔴` banner on top; an escalating
 warning puts a `🟠` banner on top (not `⚠️`, which belongs to block 8).
+For a judgment or card over its soft length limit, the slot ledger also records
+the measured length and threshold. The timetable shows those lengths and
+points to the card's warning banner for other findings.
 
 **Channels.** WeChat bolds the table rows the `↑` line names as new move/trigger
 (markdown `**` around each cell); Telegram always gets the plain table. The

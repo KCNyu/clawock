@@ -1310,10 +1310,7 @@
 
   function dhJobRow(j, v, cs, now, index, open) {
     const slots = j.slots || [];
-    const successful = slots.filter(s => ["ok", "recovered", "degraded"].includes(dhSlotState(s)));
-    const fallback = successful.length && cs.date
-      ? `${cs.date}T${successful[successful.length - 1].at}:00+08:00` : null;
-    const last = new Date(j.last_success_at || fallback || "");
+    const last = new Date(j.last_success_at || "");
     const lastText = isNaN(last) ? "" : last.toLocaleString("zh-CN", { timeZone: "Asia/Hong_Kong",
       month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
     const next = slots.find(s => ["upcoming", "running"].includes(dhSlotState(s)));
@@ -1337,8 +1334,8 @@
       + slots.map(s => `<i data-s="${dhSlotState(s)}"></i>`).join("") + `</span>`
       + `<span class="dh-job-when">`
       + `<span class="dh-job-last">${lastText
-          ? `<span class="dh-k">成功 </span><span class="dh-abs">${escapeHtml(lastText)} · </span>${escapeHtml(dhAgo(last, now))}`
-          : "暂无成功记录"}</span>`
+          ? `<span class="dh-k">送达 </span><span class="dh-abs">${escapeHtml(lastText)} · </span>${escapeHtml(dhAgo(last, now))}`
+          : "暂无送达记录"}</span>`
       + `<span class="dh-job-next${next ? "" : " is-none"}">${next
           ? `<span class="dh-k">下次 </span>${escapeHtml(next.at)}` : "—"}</span>`
       + `</span>`

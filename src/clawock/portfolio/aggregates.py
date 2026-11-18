@@ -170,7 +170,14 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
             # Otherwise `today_total_change` excludes the row, so clear any
             # stale pair rather than publish a number the prices cannot
             # support (TODAY_TOTAL, #3437).
-            measurable = pc is not None or (old_shares == 0 and base > 0)
+            # With a fill and no quote session, the prior close alone cannot
+            # tell whether those shares belong to the old lot or this session.
+            unplaced_fill = session is None and any(
+                t.get('action') in {'buy', 'sell'}
+                and (number(t.get('shares')) or 0) > 0
+                and number(t.get('price')) is not None
+                for t in ledger_rows(h.get('trades')))
+            measurable = not unplaced_fill and (pc is not None or (old_shares == 0 and base > 0))
             if not measurable:
                 for field in ('today_change', 'today_change_pct'):
                     if h.get(field) is not None:
