@@ -1194,8 +1194,13 @@ def check_codex_runtime(r):
     except Exception:  # noqa: BLE001
         pass  # check_fallback_chain_shape already reports an unreadable contract
     try:
-        chat = ((json.loads(OPENCLAW_CONFIG.read_text()).get('agents') or {})
-                .get('defaults') or {}).get('model') or {}
+        defaults = ((json.loads(OPENCLAW_CONFIG.read_text()).get('agents') or {})
+                    .get('defaults') or {})
+        # Registered Codex models can be selected manually even off the chains.
+        for ref, entry in (defaults.get('models') or {}).items():
+            if isinstance(entry, dict) and (entry.get('agentRuntime') or {}).get('id') == 'codex':
+                refs.add(ref)
+        chat = defaults.get('model') or {}
         if isinstance(chat, dict):
             refs.update([chat.get('primary'), *(chat.get('fallbacks') or [])])
     except Exception:  # noqa: BLE001

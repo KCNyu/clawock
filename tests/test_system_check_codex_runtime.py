@@ -153,3 +153,18 @@ def test_gpt62_sol_requires_the_verified_native_runtime(
     assert [row[1] for row in rows] == [getattr(system_check, severity)]
     assert "0.169.1" in rows[0][2]
     assert "openai/gpt-6.2-sol" in rows[0][2]
+
+
+def test_registered_sol_off_the_chains_still_needs_its_runtime(
+        system_check, monkeypatch, tmp_path):
+    host = _host(tmp_path, runtime="0.159.2", chat_fallback="openai/gpt-5.6-sol")
+    config = json.loads(host[1].read_text())
+    config["agents"]["defaults"]["models"] = {
+        "openai/gpt-6.2-sol": {"agentRuntime": {"id": "codex"}}}
+    host[1].write_text(json.dumps(config))
+
+    rows = _rows(system_check, monkeypatch, host)
+
+    assert [row[1] for row in rows] == [system_check.WARNING]
+    assert "openai/gpt-6.2-sol" in rows[0][2]
+    assert "0.169.1" in rows[0][2]
