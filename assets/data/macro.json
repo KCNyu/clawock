@@ -1,69 +1,74 @@
 {
   "vix": {
     "symbol": "^VIX",
-    "price": 25.46,
-    "prev": 22.91,
-    "change_pct": 11.13,
+    "price": 24.56,
+    "prev": 25.46,
+    "change_pct": -3.53,
     "source": "yahoo",
-    "as_of": 1794950101
+    "as_of": 1795036501
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 5.103,
-    "prev": 5.121,
-    "change_pct": -0.35,
+    "price": 5.066,
+    "prev": 5.103,
+    "change_pct": -0.73,
     "source": "yahoo",
-    "as_of": 1794945593,
-    "yield_pct": 5.103
+    "as_of": 1795031995,
+    "yield_pct": 5.066
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 103.598,
-    "prev": 103.549,
-    "change_pct": 0.05,
+    "price": 103.813,
+    "prev": 103.485,
+    "change_pct": 0.32,
     "source": "yahoo",
-    "as_of": 1794956698
+    "as_of": 1795043098
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 23508.17,
-    "prev": 23753.84,
-    "change_pct": -1.03,
+    "price": 23294.75,
+    "prev": 23508.17,
+    "change_pct": -0.91,
     "source": "tencent",
-    "as_of": "2026-11-17"
+    "as_of": "2026-11-18"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 3758.17,
-    "prev": 3801.64,
-    "change_pct": -1.14,
+    "price": 3736.33,
+    "prev": 3758.17,
+    "change_pct": -0.58,
     "source": "tencent",
-    "as_of": "2026-11-17"
+    "as_of": "2026-11-18"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7340.53,
-    "prev": 7416.59,
-    "change_pct": -1.03,
+    "price": 7323.63,
+    "prev": 7340.53,
+    "change_pct": -0.23,
     "source": "tencent",
-    "as_of": "2026-11-17"
+    "as_of": "2026-11-18"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 24328.38,
-    "prev": 24509.76,
-    "change_pct": -0.74,
+    "price": 24429.88,
+    "prev": 24328.38,
+    "change_pct": 0.42,
     "source": "tencent",
-    "as_of": "2026-11-17"
+    "as_of": "2026-11-18"
   },
   "fear_greed": {
-    "score": 25.2,
-    "rating": "fear",
-    "prev_close": 31.0,
-    "prev_1_week": 37.4,
-    "as_of": "2026-11-17T23:03:55+00:00"
+    "score": 24.6,
+    "rating": "extreme fear",
+    "prev_close": 25.2,
+    "prev_1_week": 35.9,
+    "as_of": "2026-11-18T23:00:47+00:00"
   },
   "fed_press": [
+    {
+      "date": "2026-11-18",
+      "title": "Minutes of the Federal Open Market Committee, October 27-28, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261118a.htm"
+    },
     {
       "date": "2026-11-13",
       "title": "Agencies extend comment period for proposed third-party risk management guidance",
@@ -87,53 +92,53 @@
   ],
   "treasury_curve": {
     "source": "us_treasury",
-    "as_of": "2026-11-17",
+    "as_of": "2026-11-18",
     "status": "ok",
     "age_days": 0,
     "unit": "percent",
     "frequency": "daily_par_yield",
     "yields": {
-      "1m": 4.09,
+      "1m": 4.1,
       "1.5m": 4.24,
-      "2m": 4.26,
-      "3m": 4.33,
-      "4m": 4.32,
-      "6m": 4.41,
-      "1y": 4.6,
+      "2m": 4.27,
+      "3m": 4.34,
+      "4m": 4.35,
+      "6m": 4.43,
+      "1y": 4.62,
       "2y": 4.8,
       "3y": 4.84,
-      "5y": 4.9,
-      "7y": 4.99,
-      "10y": 5.1,
-      "20y": 5.5,
-      "30y": 5.46
+      "5y": 4.89,
+      "7y": 4.96,
+      "10y": 5.07,
+      "20y": 5.44,
+      "30y": 5.41
     },
     "missing_maturities": [],
-    "spread_10y_2y_bps": 30.0,
-    "spread_10y_3m_bps": 77.0,
+    "spread_10y_2y_bps": 27.0,
+    "spread_10y_3m_bps": 73.0,
     "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
   },
   "volatility": {
     "vix": null,
     "vix9d": {
       "symbol": "VIX9D",
-      "price": 26.7,
-      "prev": 23.15,
-      "change_pct": 15.33,
+      "price": 23.95,
+      "prev": 26.7,
+      "change_pct": -10.3,
       "source": "cboe",
-      "as_of": "2026-11-17",
-      "previous_as_of": "2026-11-16",
+      "as_of": "2026-11-18",
+      "previous_as_of": "2026-11-17",
       "frequency": "daily_close",
       "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
     },
     "vix3m": {
       "symbol": "VIX3M",
-      "price": 24.98,
-      "prev": 23.02,
-      "change_pct": 8.51,
+      "price": 24.29,
+      "prev": 24.98,
+      "change_pct": -2.76,
       "source": "cboe",
-      "as_of": "2026-11-17",
-      "previous_as_of": "2026-11-16",
+      "as_of": "2026-11-18",
+      "previous_as_of": "2026-11-17",
       "frequency": "daily_close",
       "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
     },
@@ -153,5 +158,5 @@
     "skew": "unavailable",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-11-17T23:20:26.765374+00:00"
+  "generated_at": "2026-11-18T23:20:24.614303+00:00"
 }
