@@ -238,3 +238,11 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 <!-- openclaw-memory-promotion:memory:memory/2026-10-22.md:11:11 -->
 - coding agent 派发后若未收到通知，应检查 dispatch 的 notify 通道配置，不能默认“通知成功”等于手机已收到。
 - Source: memory/2026-10-22.md:11-11 (reviewed 2026-11-18; SHA256 c42f16478095a957c2ece72f4dbc3c299435fa1650a86e3fe89c4480e0889771)
+
+---
+
+## Dreaming 晋升 2026-11-08（8-8）
+
+<!-- openclaw-memory-promotion:memory:memory/2026-11-08.md:8:8 -->
+- 记忆统一、删除机制与向量召回等方案讨论不算代码，可留在 chat 中处理。
+- Source: memory/2026-11-08.md:8-8 (reviewed 2026-11-19; SHA256 aa253e1dcc53f98e09606ad4007cfe9dd2fcf81994382539c9c5c2b43ed68951)
