@@ -35,7 +35,7 @@ HEADERS = {'User-Agent': UA}
 
 REDDIT_INDEX = 'https://arctic-shift.photon-reddit.com/api/posts/search'
 REDDIT_SUBREDDITS = ('stocks', 'investing', 'wallstreetbets')
-REDDIT_LIMIT = 100
+REDDIT_LIMIT = 25
 REDDIT_MAX_LAG = timedelta(days=2)
 MENTION_WINDOW_DAYS = 7
 TIMEOUT = 10
