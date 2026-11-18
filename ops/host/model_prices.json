@@ -10,6 +10,7 @@
     },
     "openai": {
       "models": "gpt-*",
+      "gpt-6.2-sol": {"url": "https://openai.com/index/introducing-gpt-6-2-astra-sol/", "as_of": "2026-11-18", "tier": "Standard processing: $2 input, $0.10 cached input, $10 output per million tokens"},
       "url": "https://developers.openai.com/api/docs/pricing",
       "as_of": "2026-09-30",
       "tier": "Standard processing, short context (the page's 'Flagship models' table; gpt-5.6-sol from its 'Cyber models' table). Not Batch/Flex/Fast mode, not the long-context column, no data-residency uplift.",
@@ -39,6 +40,7 @@
     "claude-sonnet-4-6": {"in": 3.0, "out": 15.0},
     "claude-haiku-4-5": {"in": 1.0, "out": 5.0},
     "gpt-6-astra": {"in": 10.0, "out": 50.0, "cache_read": 1.0},
+    "gpt-6.2-sol": {"in": 2.0, "out": 10.0, "cache_read": 0.1},
     "gpt-6.1-sol": {"in": 2.0, "out": 10.0, "cache_read": 0.2},
     "gpt-6-sol": {"in": 2.0, "out": 10.0, "cache_read": 0.2},
     "gpt-6-luna": {"in": 0.1, "out": 0.5, "cache_read": 0.01},
