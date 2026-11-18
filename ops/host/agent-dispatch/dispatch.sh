@@ -39,7 +39,7 @@
 #                          a re-review is a new task quoting the earlier findings, not a resume)
 #   --cwd <dir>            only with --resume, for a session recorded under another project dir;
 #                          new tasks always run in /root (AGENTS/CLAUDE.md + shared memory load from there)
-#   --model <m>            default: claude-opus-5-5 / gpt-6.1-sol (gpt-6-astra costs several times the quota)
+#   --model <m>            default: claude-opus-5-5 / gpt-6.2-sol (gpt-6-astra costs several times the quota)
 #                          / opencode: the pool file's first model (see --fallback-models)
 #                          / dsh: <provider>/<model> of a dsh route, deepseek-official/deepseek-flash
 #                          (DeepSeek-V4.1-Flash-1017); paid per token from the DeepSeek balance
@@ -444,7 +444,7 @@ fi
 if [ -n "$FALLBACK_MODELS" ] && [ "$AGENT" != opencode ]; then echo "--fallback-models is for opencode" >&2; exit 2; fi
 case "$AGENT" in
   claude) MODEL=${MODEL:-claude-opus-5-5} EFFORT=${EFFORT:-high} ;;
-  codex) MODEL=${MODEL:-gpt-6.1-sol} EFFORT=${EFFORT:-medium} ;;
+  codex) MODEL=${MODEL:-gpt-6.2-sol} EFFORT=${EFFORT:-medium} ;;
   # dsh headless (0.2.1+) runs one task per process like `claude -p`; the runner turns MODEL and
   # EFFORT into a patch overlay for the headless profile, so they must name a dsh route.
   dsh) MODEL=${MODEL:-deepseek-official/deepseek-flash} EFFORT=${EFFORT:-max}
