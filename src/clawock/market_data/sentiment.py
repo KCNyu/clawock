@@ -120,11 +120,18 @@ def _matcher(term: str):
 def fetch_reddit_community(subreddit, *, now=None, get=None):
     """Read and validate the newest indexed submissions for one community."""
     now = now or datetime.now(timezone.utc)
-    response = (get or requests.get)(
-        REDDIT_INDEX, params={
-            'subreddit': subreddit, 'sort': 'desc', 'limit': REDDIT_LIMIT,
-            'fields': 'subreddit,title,id,created_utc,author',
-        }, headers=HEADERS, timeout=TIMEOUT)
+    get = get or requests.get
+    params = {
+        'subreddit': subreddit, 'sort': 'desc', 'limit': REDDIT_LIMIT,
+        'after': (now - timedelta(days=MENTION_WINDOW_DAYS)).date().isoformat(),
+        'fields': 'subreddit,title,id,created_utc,author',
+    }
+    response = get(REDDIT_INDEX, params=params, headers=HEADERS, timeout=TIMEOUT)
+    if response.status_code == 422:
+        # This archive can time out behind an otherwise valid request.
+        # Give its index one more attempt; a second 422 still fails the probe.
+        time.sleep(2)
+        response = get(REDDIT_INDEX, params=params, headers=HEADERS, timeout=TIMEOUT)
     response.raise_for_status()
     payload = response.json()
     posts = payload.get('data') if isinstance(payload, dict) else None

@@ -703,7 +703,7 @@ def _sentiment_view(rows: list[dict], ticker: str, source_ticker: str) -> dict:
         # status travels with it so the reader can tell silence from absence.
         "reddit_mentions_7d": _mention_count(row.get("reddit_mentions_7d")),
         "reddit_status": row.get("reddit_status") or ("ok" if row else "missing"),
-        "reddit_sampled": row.get("reddit_sampled") is True,
+        **({"reddit_sampled": True} if row.get("reddit_sampled") is True else {}),
         "recent_move": row.get("recent_move") if isinstance(row.get("recent_move"), dict) else {},
         "headline_count": len(headlines),
         "headlines": headlines,
@@ -3025,6 +3025,7 @@ def compile_pages_projection(
                 for key in (
                     "source_ticker", "reddit_mentions_7d", "reddit_sampled", "headline_count", "coverage",
                 )
+                if key != "reddit_sampled" or (row.get("sentiment") or {}).get(key) is True
             },
             "risk": {
                 "count": len(risks),

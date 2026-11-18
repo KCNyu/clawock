@@ -79,3 +79,19 @@ def test_archive_rejects_a_stale_listing_and_excludes_deleted_titles():
         ]}))
     assert count == 2
     assert [entry['url'] for entry in entries] == ['https://www.reddit.com/r/stocks/comments/abc/']
+
+
+def test_archive_retries_an_index_timeout_once(monkeypatch):
+    now = datetime.now(timezone.utc)
+    post = {'subreddit': 'stocks', 'created_utc': now.timestamp(), 'title': 'MSFT', 'id': 'abc'}
+    responses = iter([_response(422, {}), _response(200, {'data': [post]})])
+    waits = []
+    monkeypatch.setattr(sentiment.time, 'sleep', waits.append)
+
+    def get(url, *, params, **_kwargs):
+        assert params['after'] == (now - timedelta(days=7)).date().isoformat()
+        return next(responses)
+
+    entries, count = sentiment.fetch_reddit_community('stocks', now=now, get=get)
+    assert count == len(entries) == 1
+    assert len(waits) == 1

@@ -186,7 +186,7 @@ class Sentiment:
                     'region': row.get('region'),
                     'reddit_mentions_7d': mentions,
                     'reddit_status': reddit_status,
-                    'reddit_sampled': row.get('reddit_sampled') is True,
+                    **({'reddit_sampled': True} if row.get('reddit_sampled') is True else {}),
                     'reddit_top': [{'title': post.get('title'), 'url': post.get('url')}
                                    for post in (row.get('reddit_posts') or [])[:3]],
                     'news_top': [item.get('title') for item in (english + chinese)[:3]

@@ -2,9 +2,15 @@
 """Probe the same Reddit archive and schema the sentiment producer uses."""
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import requests
 
-from clawock.market_data.sentiment import REDDIT_SUBREDDITS, fetch_reddit_community
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / 'src'))
+from clawock.market_data.sentiment import REDDIT_SUBREDDITS, fetch_reddit_community  # noqa: E402
 
 
 class Unreachable(Exception):

@@ -805,6 +805,31 @@ def _judge_commit_evidence(name, tz, verify_date, expected_past, commit_n, revis
     return 'ok', detail
 
 
+def _judge_heartbeat(coverage, expected):
+    if not coverage['monitored']:
+        return 'monitoring-grace', f'{expected} slot(s) before heartbeat monitoring start'
+    ratio = f"{len(coverage['healthy'])}/{len(coverage['monitored'])}"
+    if coverage['missing'] or coverage['failed']:
+        bits = [key + '=' + ','.join(coverage[key])
+                for key in ('missing', 'failed') if coverage[key]]
+        return 'missing', f"heartbeat {ratio}; " + '; '.join(bits)
+    if coverage['pending']:
+        return 'running', 'heartbeat pending within grace: ' + ','.join(coverage['pending'])
+    return 'ok-heartbeat', f'heartbeat {ratio} slots OK'
+
+
+def _judge_dreaming(runs_n, job_id, expected):
+    if runs_n is None and not job_id:
+        # A tracked --jobs-file job has no runtime id or run store (#2564).
+        return ('unmeasured', 'no run history on this path '
+                '(contract job without a runtime id); Dreaming is not judged here')
+    if runs_n is None:
+        return 'execution-unknown', 'Dreaming run history unreadable on this host; no-change is allowed'
+    if runs_n < expected:
+        return 'missing', f'Dreaming successful runs {runs_n}/{expected}'
+    return 'ok-run', f'Dreaming successful runs {runs_n}; no-change is allowed'
+
+
 def _judge_job(job, now, scheduled_day, heartbeat_ledger, outcomes_ledger):
     name = job.get('name', job.get('id','?'))
     sched = job.get('schedule', {})
@@ -817,7 +842,6 @@ def _judge_job(job, now, scheduled_day, heartbeat_ledger, outcomes_ledger):
     expected = parse_cron_slots(expr, tz, expected_day)
     # Only check slots already past
     try:
-        from zoneinfo import ZoneInfo
         now_local = now.astimezone(ZoneInfo(tz)).strftime('%H:%M')
     except Exception:
         now_local = now.strftime('%H:%M')
@@ -872,62 +896,26 @@ def _judge_job(job, now, scheduled_day, heartbeat_ledger, outcomes_ledger):
             'status': 'holiday', 'detail': f'{label} · 跳过(无需 commit)',
         }, False, False
 
-    has_missing = has_warn = False
-    status = 'ok'
-    detail = ''
-    if not expected_past:
-        status = 'idle'  # nothing scheduled today yet
-        detail = f'next: {expected[0] if expected else "n/a"}'
-    elif commit_pat:
-        status, detail = _judge_commit_evidence(
-            name, tz, verify_date, expected_past, commit_n, revision_n, outcomes_ledger)
-        has_missing = status == "missing"
-        has_warn = status in {"evidence-unavailable", "backstop", "over"}
-    elif name in ('盘中盯盘', '美股盘中盯盘', '美股盘中盯盘-overnight'):
-        coverage = heartbeat_coverage(name, expected_past, tz, now,
-                                      heartbeat_ledger, day=verify_date)
-        if not coverage['monitored']:
-            detail = f'{len(expected_past)} slot(s) before heartbeat monitoring start'
-            status = 'monitoring-grace'
-        elif coverage['missing'] or coverage['failed']:
-            status = 'missing'
-            bits = []
-            if coverage['missing']:
-                bits.append('missing=' + ','.join(coverage['missing']))
-            if coverage['failed']:
-                bits.append('failed=' + ','.join(coverage['failed']))
-            detail = (f"heartbeat {len(coverage['healthy'])}/{len(coverage['monitored'])}; "
-                      + '; '.join(bits))
-            has_missing = True
-        elif coverage['pending']:
-            status = 'running'
-            detail = 'heartbeat pending within grace: ' + ','.join(coverage['pending'])
-        else:
-            status = 'ok-heartbeat'
-            detail = f"heartbeat {len(coverage['healthy'])}/{len(coverage['monitored'])} slots OK"
-    elif name == 'SQLite 维护':
-        status, detail = sqlite_maintenance_evidence(verify_date)
-        has_missing |= status in {'missing', 'failed'}
-        has_warn |= status == 'evidence-unavailable'
-    elif name == 'Memory Dreaming Promotion':
-        if runs_n is None and not job.get('id'):
-            # A tracked --jobs-file job (CI) has no runtime id, so there is no
-            # run store to ask. Not measured is not a warning: it made every
-            # CI run exit 2, healthy or not (#2564).
-            status, detail = 'unmeasured', 'no run history on this path (contract job without a runtime id); Dreaming is not judged here'
-        elif runs_n is None:
-            status, detail = 'execution-unknown', 'Dreaming run history unreadable on this host; no-change is allowed'
-            has_warn = True
-        elif runs_n < len(expected_past):
-            status, detail = 'missing', f'Dreaming successful runs {runs_n}/{len(expected_past)}'
-            has_missing = True
-        else:
-            status, detail = 'ok-run', f'Dreaming successful runs {runs_n}; no-change is allowed'
-    else:
-        detail = f'{len(expected_past)} slots expected; no health evidence handler registered'
-        status = 'untracked'
-        has_warn = True
+    match name:
+        case _ if not expected_past:
+            status, detail = 'idle', f'next: {expected[0] if expected else "n/a"}'
+        case _ if commit_pat:
+            status, detail = _judge_commit_evidence(
+                name, tz, verify_date, expected_past, commit_n, revision_n, outcomes_ledger)
+        case '盘中盯盘' | '美股盘中盯盘' | '美股盘中盯盘-overnight':
+            coverage = heartbeat_coverage(name, expected_past, tz, now,
+                                          heartbeat_ledger, day=verify_date)
+            status, detail = _judge_heartbeat(coverage, len(expected_past))
+        case 'SQLite 维护':
+            status, detail = sqlite_maintenance_evidence(verify_date)
+        case 'Memory Dreaming Promotion':
+            status, detail = _judge_dreaming(runs_n, job.get('id'), len(expected_past))
+        case _:
+            status = 'untracked'
+            detail = f'{len(expected_past)} slots expected; no health evidence handler registered'
 
+    has_missing = status in {'missing', 'failed'}
+    has_warn = status in {'evidence-unavailable', 'backstop', 'over', 'execution-unknown', 'untracked'}
     return {
         'name': name,
         'schedule': expr,
