@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "d866def9f4859495bb81768300d76d0f045e2d7d3634c23d692653bc4cdcdb6f",
-  "bytes": 15133,
+  "content_sha256": "0ace9866ace6ab610f8e3f3025021adf30f0f24cc3cff8a5da7fbdefc9f64194",
+  "bytes": 15157,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -94,7 +94,7 @@
       "separator": true,
       "heading": "## OpenClaw 运维",
       "lines": 16,
-      "sha256": "10fd754413098aabe7f5698104932c7e54c1362d4cef3e4ec599f0e43ec6bd79"
+      "sha256": "bf4c36d9703c9a26c4603950c88f132856885dce63cf03f741197ea0873e6420"
     },
     {
       "slug": "project-openclaw-model-policy",

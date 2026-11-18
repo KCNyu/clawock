@@ -32,6 +32,16 @@ KEY16 = "Q3" * 8
 FH = "FINNHUB" + "_API_KEY"
 
 
+def test_reviewed_client_analytics_id_does_not_disable_other_findings():
+    for path in ("site/index.html", "site/_layouts/default.html"):
+        beacon = next(line for line in (ROOT / path).read_text().splitlines()
+                      if "data-cf-beacon" in line)
+        other = f' api_key = "{KEY16}"'
+        addition = f"+++ b/{path}\n+{beacon}{other}\n"
+        assert [hit.value for hit in scan.scan_diff(addition)] == [KEY16]
+        assert len(scan.scan_diff(addition.replace(f"b/{path}", "b/README.md"))) == 2
+
+
 def _patch(path: str, *added: str) -> str:
     body = "\n".join(f"+{line}" for line in added)
     return f"commit {'a' * 40}\ndiff --git a/{path} b/{path}\n+++ b/{path}\n{body}\n"

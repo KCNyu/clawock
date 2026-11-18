@@ -234,6 +234,7 @@ def _attention(loaded, per_ticker):
             attention[row['ticker']] = {
                 'reddit_mentions_7d': row.get('reddit_mentions_7d'),
                 'reddit_status': row.get('reddit_status'),
+                **({'reddit_sampled': True} if row.get('reddit_sampled') is True else {}),
                 'google_news_en': len(row.get('google_news_en') or []),
                 'google_news_zh': len(row.get('google_news_zh') or []),
             }

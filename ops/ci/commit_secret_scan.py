@@ -102,6 +102,11 @@ STRUCTURAL: list[tuple[str, re.Pattern[str]]] = [
 
 _PLACEHOLDER = re.compile(r"(?i)your|example|placeholder|xxxx|dummy|redacted|changeme")
 
+# Cloudflare Web Analytics publishes this site identifier in the client HTML.
+# Analytics rotation must review the new public identifier and update its hash.
+_PUBLIC_BEACON_PATHS = {"site/index.html", "site/_layouts/default.html"}
+_PUBLIC_BEACON_SHA256 = "703bbbb585f6a94cd795fb6f99961aba0037abc9a81445797d72fba59b785d51"
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -166,6 +171,10 @@ def scan_diff(text: str) -> list[Finding]:
             path = target[2:] if target.startswith("b/") else target
         elif line.startswith("+") and not line.startswith("+++"):
             for kind, name, value in scan_line(line[1:]):
+                if (path in _PUBLIC_BEACON_PATHS and "data-cf-beacon" in line
+                        and kind == "quoted credential literal" and name == "token"
+                        and hashlib.sha256(value.encode()).hexdigest() == _PUBLIC_BEACON_SHA256):
+                    continue
                 findings.append(Finding(commit, path, kind, name, value))
     return findings
 

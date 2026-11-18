@@ -403,9 +403,9 @@ def build_compare_series(nav_history, xau_hist, start, keep=90):
 
 
 def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, start, daily):
-    """反事实「对应现值」：同样的钱、同样的定投日子，改买伦敦金现货（CNY 计价）现在值多少。
+    """模拟按固定计划直接买伦敦金现货（CNY 计价）现在值多少。
 
-    直接对标你的基金 current_value —— 两边都是 DCA、同一节奏，唯一变量是标的（基金 vs 伦敦金）。
+    本金来自模拟买入计划，基金实际本金来自对账后的现金流。
     每个 A 股交易日投 daily 元，按当日伦敦金 CNY 价（xau_usd×USDCNY）买入盎司，累加后用当前
     现价×汇率算现值。历史 XAU / USDCNY 缺天 → forward-fill（对齐不同交易日历）。
     关键源缺失 → 返回 None（调用方沿用旧值，绝不清空）。"""
@@ -419,6 +419,7 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
     fx = sorted(usdcny_hist.items()) if usdcny_hist else []
     fxd, fxv = [d for d, _ in fx], [v for _, v in fx]
     oz, principal_cny, usd_spent = 0.0, 0.0, 0.0
+    purchases = 0
     for d in dates:
         x = _xau_at(xd, xv, d)
         if not x:
@@ -426,6 +427,7 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
         r = _xau_at(fxd, fxv, d) or usdcny_cur  # 汇率缺天 → forward-fill，再兜底当前
         oz += daily / (x * r)                    # daily 元 ÷ 每盎司人民币价 = 买到的盎司
         principal_cny += daily
+        purchases += 1
         usd_spent += daily / r                    # 当日 daily 元折算的美元（算 USD/oz 均价）
     if principal_cny <= 0 or oz <= 0:
         return None
@@ -455,7 +457,7 @@ def build_london_dca(nav_history, xau_hist, usdcny_hist, xau_cur, usdcny_cur, st
         'current_value_cny': round(value, 2),
         'pnl_abs': round(value - principal_cny, 2),
         'pnl_pct': round((value / principal_cny - 1) * 100, 2),
-        'days': len(dates),
+        'days': purchases,
         'daily_grams': round(oz_per_day * GRAMS_PER_OZ, 3),
         'projection': projection,
     }
@@ -780,11 +782,11 @@ def main(argv=None):
             print(f"  ℹ️ {ld['hist_advisory']}")
         de = ld.get('dca_equiv')
         if de:
-            print(f"  ↳ 同额定投伦敦金：平均成本 ${de['avg_cost_usd_oz']:,.2f}/oz "
+            print(f"  ↳ 按计划定投伦敦金（模拟）：平均成本 ${de['avg_cost_usd_oz']:,.2f}/oz "
                   f"(¥{de['avg_cost_cny_g']:,.2f}/克) vs 现货 ${de['spot_usd_oz']:,.2f}/oz "
                   f"→ 回本需涨 {de['breakeven_upside_pct']:+.2f}%")
-            print(f"     现值 ¥{de['current_value_cny']:,.0f} (投入 ¥{de['principal_cny']:,.0f}, "
-                  f"{de['pnl_pct']:+.2f}%) vs 你的基金 {g['pnl_percent']:+.2f}%")
+            print(f"     模拟投入 ¥{de['principal_cny']:,.0f}，现值 ¥{de['current_value_cny']:,.0f}"
+                  f"（{de['pnl_pct']:+.2f}%）")
 
     if dry:
         print('  [dry-run] 不写盘')

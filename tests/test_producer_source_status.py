@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
+import requests
 
 from clawock.automation import influencer as fetch_influencer_feed
 from clawock.automation import news_digest as gh_action_news_digest
@@ -15,6 +16,10 @@ from clawock.market_data import sentiment as fetch_sentiment
 class _Empty200:
     status_code = 200
     text = '<rss><channel></channel></rss>'
+
+    @staticmethod
+    def raise_for_status():
+        pass
 
     @staticmethod
     def json():
@@ -42,13 +47,13 @@ def _run_sentiment(tmp_path, monkeypatch, get):
     return output, json.loads(output.read_text(encoding='utf-8'))
 
 
-def test_sentiment_producer_marks_successful_empty_http_sources_ok(
+def test_sentiment_producer_marks_quiet_news_and_unavailable_archive(
         tmp_path, monkeypatch):
     output, payload = _run_sentiment(
         tmp_path, monkeypatch, lambda *args, **kwargs: _Empty200())
 
     assert payload['source_status'] == {
-        'reddit': 'ok',
+        'reddit': 'failed',
         'google_news': 'ok',
     }
     validate_sidecars.validate_sentiment(
@@ -58,7 +63,7 @@ def test_sentiment_producer_marks_successful_empty_http_sources_ok(
 def test_sentiment_producer_marks_total_http_outage_failed(
         tmp_path, monkeypatch):
     def fail(*args, **kwargs):
-        raise RuntimeError('network unavailable')
+        raise requests.ConnectionError('network unavailable')
 
     output, payload = _run_sentiment(tmp_path, monkeypatch, fail)
 
@@ -107,7 +112,7 @@ def _run_influencer(tmp_path, monkeypatch, statuses, previous=None):
     monkeypatch.setattr(
         fetch_influencer_feed, 'llm_filter',
         lambda _candidates, _held: {})
-    fetch_influencer_feed.main()
+    fetch_influencer_feed.main([])
     return output, json.loads(output.read_text(encoding='utf-8'))
 
 
@@ -174,7 +179,7 @@ def test_news_producer_writes_explicit_quiet_artifact(tmp_path, monkeypatch):
         gh_action_news_digest, 'chat',
         lambda **kwargs: pytest.fail('quiet news run must not call the LLM'))
 
-    gh_action_news_digest.main()
+    gh_action_news_digest.main([])
 
     output = tmp_path / 'assets/data/us_news_digest.json'
     payload = json.loads(output.read_text(encoding='utf-8'))
@@ -202,6 +207,6 @@ def test_news_producer_total_source_outage_fails_without_writing(
         ))
 
     with pytest.raises(RuntimeError, match='news: all sources failed'):
-        gh_action_news_digest.main()
+        gh_action_news_digest.main([])
 
     assert not (tmp_path / 'assets/data/us_news_digest.json').exists()

@@ -39,26 +39,6 @@ def _rows():
     ]
 
 
-def _feed(entries):
-    """An Atom feed shaped like Reddit's search RSS."""
-    parts = ['<?xml version="1.0" encoding="UTF-8"?>',
-             '<feed xmlns="http://www.w3.org/2005/Atom">']
-    for sub, title, when, content in entries:
-        parts.append(
-            f'<entry><category term="{sub}"/><title>{title}</title>'
-            f'<link href="https://example.invalid/x"/>'
-            f'<updated>{when.isoformat()}</updated>'
-            f'<content type="html">{content}</content></entry>')
-    parts.append('</feed>')
-    return ''.join(parts)
-
-
-class _Response:
-    def __init__(self, status_code, text=''):
-        self.status_code = status_code
-        self.text = text
-
-
 def test_search_terms_look_through_to_the_name_people_write(monkeypatch):
     """Nobody posts about RKLX; they post about Rocket Lab, which it holds."""
     assert sp.search_terms('RKLX', REGISTRY['RKLX']['name'], REGISTRY) == [
@@ -80,95 +60,53 @@ def test_a_chinese_name_is_matched_without_word_boundaries():
         'a Latin term still has to be a whole word')
 
 
-def test_a_throttled_feed_publishes_no_count_at_all():
-    """The whole point. `None`, never `0`, and the status says which."""
-    rows = _rows()
-    sp.scan_reddit(rows, REGISTRY, sleep=lambda _seconds: None,
-                   fetch=lambda query, sleep=None, between=None: (None, 'throttled'))
+def test_missing_community_discards_all_counts(monkeypatch):
+    import requests
 
-    assert [row['reddit_mentions_7d'] for row in rows] == [None, None, None]
-    assert {row['reddit_status'] for row in rows} == {'throttled'}
-    assert sp.SOURCE_STATUS['reddit'] == 'throttled', (
-        'throttled is a source that works; failed is one that does not, and a '
-        'single bucket cannot tell anyone which happened')
-
-
-def test_an_unparseable_feed_also_publishes_no_count():
-    rows = _rows()
-    sp.scan_reddit(rows, REGISTRY, sleep=lambda _seconds: None,
-                   fetch=lambda query, sleep=None, between=None: ('not xml at all', 'ok'))
-
-    assert [row['reddit_mentions_7d'] for row in rows] == [None, None, None]
-    assert sp.SOURCE_STATUS['reddit'] == 'failed'
-
-
-def test_a_dictionary_word_in_an_unrelated_subreddit_is_not_a_mention():
-    """MINIMAX is a game-theory algorithm and one of this book's holdings.
-
-    Measured on the live book before the subreddit gate: 16 mentions in a week,
-    from r/abstractgames and r/PiCodingAgent. Publishing 16 would have replaced
-    a false zero with a false sixteen.
-    """
     now = datetime.now(timezone.utc)
     rows = _rows()
-    feed = _feed([
-        ('abstractgames', 'A minimax search idea', now - timedelta(days=1), ''),
-        ('PiCodingAgent', 'minimax code found my skills', now - timedelta(hours=3), ''),
-        ('stocks', 'RKLB is up 20%', now - timedelta(days=2), 'Rocket Lab earnings'),
-        ('u/The_optiontrader', 'MINIMAX update', now - timedelta(days=1), ''),
-    ])
-    sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
-                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
-    by_ticker = {row['ticker']: row for row in rows}
-
-    assert by_ticker['00100']['reddit_mentions_7d'] == 0
-    assert by_ticker['RKLX']['reddit_mentions_7d'] == 1
-    assert by_ticker['RKLX']['reddit_posts'][0]['sub'] == 'stocks'
-    assert sp.is_finance_sub('u/The_optiontrader') is False, (
-        'a user profile is not a community, and it passes the substring test '
-        'on "option" alone')
-
-
-def test_a_mention_older_than_the_window_does_not_count():
-    """`sort=new&t=week` is ignored by the endpoint — probed entries ran to 2012."""
-    now = datetime.now(timezone.utc)
-    rows = _rows()
-    feed = _feed([
-        ('stocks', 'Rocket Lab in 2012', now - timedelta(days=400), ''),
-        ('investing', 'Rocket Lab today', now - timedelta(days=1), ''),
-    ])
-    sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
-                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
-
-    assert {r['ticker']: r['reddit_mentions_7d'] for r in rows}['RKLX'] == 1
-
-
-def test_a_full_feed_reports_the_count_as_a_floor():
-    now = datetime.now(timezone.utc)
-    rows = _rows()
-    feed = _feed([('stocks', 'Rocket Lab', now - timedelta(hours=index), '')
-                  for index in range(sp.REDDIT_LIMIT)])
-    sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
-                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
-
-    assert all(row['reddit_mentions_capped'] for row in rows), (
-        'there is no page two, so a busier week looks like this one'
-    )
-
-
-def test_the_producer_retries_a_throttle_before_giving_up(monkeypatch):
     calls = []
 
-    def get(url, **kwargs):
-        calls.append(url)
-        return _Response(429) if len(calls) < 2 else _Response(200, _feed([]))
+    def fetch(subreddit, *, now):
+        calls.append(subreddit)
+        if subreddit == 'stocks':
+            return [{'title': 'RKLB', 'url': 'https://www.reddit.com/r/stocks/comments/x/',
+                     'sub': subreddit, 'created': now}], 1
+        response = requests.Response()
+        response.status_code = 429
+        raise requests.HTTPError(response=response)
 
-    monkeypatch.setattr(sp.requests, 'get', get)
-    text, status = sp.fetch_reddit('RKLB', sleep=lambda _seconds: None)
+    assert sp.scan_reddit(rows, REGISTRY, now=now, fetch=fetch) == 0
+    assert calls == ['stocks', 'investing']
+    assert all(row['reddit_mentions_7d'] is None for row in rows)
+    assert {row['reddit_status'] for row in rows} == {'throttled'}
+    assert sp.FEED_SUMMARY == {'entries': None, 'within_window': None}
 
-    assert (status, len(calls)) == ('ok', 2)
-    assert text is not None
-    assert len(calls) <= len(sp.REDDIT_RETRY_WAITS)
+
+def test_archive_filters_dates_counts_sample_and_keeps_denominator(monkeypatch):
+    now = datetime.now(timezone.utc)
+    rows = _rows()
+    monkeypatch.setattr(sp, 'REDDIT_LIMIT', 2)
+
+    def fetch(subreddit, *, now):
+        if subreddit == 'stocks':
+            titles = [('Rocket Lab', 1), ('RKLB', 400)]
+        elif subreddit == 'investing':
+            titles = [('无关', 1), ('今天金风科技上涨', 2)]
+        else:
+            titles = [('Rocket Lab today', 0)]
+        posts = [{'title': title, 'created': now - timedelta(days=age),
+                  'sub': subreddit, 'url': 'https://www.reddit.com/'} for title, age in titles]
+        return posts, len(posts)
+
+    assert sp.scan_reddit(rows, REGISTRY, now=now, fetch=fetch) == 2
+    by_ticker = {row['ticker']: row for row in rows}
+    assert by_ticker['RKLX']['reddit_mentions_7d'] == 2
+    assert by_ticker['RKLX']['reddit_posts'][0]['sub'] == 'wallstreetbets'
+    assert by_ticker['02208']['reddit_mentions_7d'] == 1
+    assert by_ticker['00100']['reddit_mentions_7d'] == 0
+    assert all(row['reddit_sampled'] and row['reddit_mentions_capped'] for row in rows)
+    assert sp.FEED_SUMMARY == {'entries': 5, 'within_window': 4}
 
 
 def test_the_validator_refuses_a_number_from_a_source_that_did_not_answer(tmp_path):
@@ -238,92 +176,3 @@ def test_the_brief_prints_the_move_the_preflight_actually_wrote():
     assert '近 5 日 +2.3%' in render({'px_pct': 2.3, 'n_sessions': 5})
     assert '近 3 日 -1.0%' in render({'px_pct': -1.0, 'n_sessions': 3})
     assert f'近 5 日 {brief_render.MISSING}' in render(None)
-
-
-def test_the_retry_backoff_is_reachable_by_a_test_that_patches_this_module(monkeypatch):
-    """A `sleep=time.sleep` default is captured at import, not at call.
-
-    Measured before this was fixed: `test_sentiment_producer_marks_total_http_outage_failed`
-    spent **105 seconds** sleeping through the real 35s + 70s backoff, because
-    it patches `sentiment.time.sleep` and the signature default had already
-    bound the real one.
-    """
-    slept = []
-    monkeypatch.setattr(sp.time, 'sleep', slept.append)
-    monkeypatch.setattr(sp.requests, 'get', lambda *a, **k: _Response(429))
-
-    text, status = sp.fetch_reddit('RKLB')
-
-    assert (text, status) == (None, 'throttled')
-    waits = [w for w in sp.REDDIT_RETRY_WAITS if w]
-    assert len(slept) == len(waits), (
-        'the backoff has to go through the module attribute a test can reach'
-    )
-    for actual, wait in zip(slept, waits):
-        assert 0 < actual <= wait, (
-            f'{actual} is not the spacing still owed against {wait}'
-        )
-
-
-def test_the_backoff_is_paid_with_the_other_source_instead_of_a_sleep(monkeypatch):
-    """Up to 105 idle seconds inside a five-minute job, before this.
-
-    Google News does not share Reddit's rate limit, so a minute of news fetching
-    satisfies Reddit's spacing for free. What must be slept is only whatever is
-    still owed afterwards — here the fake news pass burns the whole wait, so
-    nothing is.
-    """
-    clock = {'t': 0.0}
-    slept, ran = [], []
-
-    def news():
-        clock['t'] += 90.0  # a real news sweep, in fake seconds
-        ran.append(True)
-
-    monkeypatch.setattr(sp.requests, 'get', lambda *a, **k: _Response(429))
-
-    text, status = sp.fetch_reddit(
-        'RKLB', sleep=slept.append, monotonic=lambda: clock['t'],
-        between=sp.run_once(news))
-
-    assert (text, status) == (None, 'throttled')
-    assert ran == [True], 'the other source runs once, not once per retry'
-    assert slept == [], (
-        'ninety seconds of news covers a thirty-five second spacing; sleeping '
-        'on top of it is the tax this change removes'
-    )
-    assert len(sp.REDDIT_RETRY_WAITS) == 2, (
-        'a third attempt is a second wait, and the news pass can only pay for '
-        'one — the rest would be idle time in a five-minute job'
-    )
-
-
-def test_the_news_pass_still_runs_when_reddit_answers_immediately():
-    """The fast path never spends the backoff, so the caller must run it."""
-    ran = []
-    once = sp.run_once(lambda: ran.append(True))
-
-    sp.scan_reddit(_rows(), REGISTRY, sleep=lambda _s: None, between=once,
-                   fetch=lambda query, sleep=None, between=None: (_feed([]), 'ok'))
-    once()
-
-    assert ran == [True], 'exactly once, on either path'
-
-
-def test_the_feed_denominator_is_published_beside_the_counts():
-    """Two runs eleven minutes apart scored SPCX 2 and then 0.
-
-    `sort=new` over a fuzzy OR match samples the newest matching posts; it does
-    not enumerate them. Without the sample size beside the counts a daily wobble
-    reads as a change in what people are talking about.
-    """
-    now = datetime.now(timezone.utc)
-    rows = _rows()
-    feed = _feed([
-        ('stocks', 'Rocket Lab today', now - timedelta(days=1), ''),
-        ('stocks', 'Rocket Lab in 2012', now - timedelta(days=400), ''),
-    ])
-    sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
-                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
-
-    assert sp.FEED_SUMMARY == {'entries': 2, 'within_window': 1}

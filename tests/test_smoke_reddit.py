@@ -1,96 +1,97 @@
-"""The Reddit reachability probe must not redden a commit for a source that
-blocks the runner's datacenter range — but it must still fail on an answer that
-is not an answer. These tests pin both sides of that line."""
+"""The probe exercises the same request and payload checks as the producer."""
 from __future__ import annotations
 
-import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import sys
 
 import pytest
 import requests
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "ops" / "ci"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'ops' / 'ci'))
 import smoke_reddit  # noqa: E402
-
-FEED_XML = """<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <entry><title>MSFT one</title></entry>
-  <entry><title>MSFT two</title></entry>
-</feed>"""
-EMPTY_FEED_XML = '<feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+from clawock.market_data import sentiment  # noqa: E402
 
 
-class _Response:
-    def __init__(self, status_code: int, text: str = ""):
-        self.status_code = status_code
-        self.text = text
+def _response(code, data):
+    class Response(requests.Response):
+        def json(self):
+            return data
+
+    result = Response()
+    result.status_code = code
+    return result
 
 
-def _respond(monkeypatch, response):
-    monkeypatch.setattr(smoke_reddit.requests, "get", lambda *a, **k: response)
+@pytest.mark.parametrize('code, expected', [(403, 0), (429, 0), (404, 1), (502, 1)])
+def test_probe_only_warns_for_block_and_throttle(monkeypatch, capsys, code, expected):
+    monkeypatch.setattr(requests, 'get', lambda *args, **kwargs: _response(code, {}))
+    assert smoke_reddit.main() == expected
+    assert ('::error::' if expected else '::warning::') in capsys.readouterr().out
 
 
-def test_a_reachable_feed_passes(monkeypatch, capsys):
-    _respond(monkeypatch, _Response(200, FEED_XML))
+@pytest.mark.parametrize('error', [requests.ConnectionError, requests.Timeout, TimeoutError])
+def test_probe_warns_for_network_failures(monkeypatch, capsys, error):
+    def get(*args, **kwargs):
+        raise error()
 
+    monkeypatch.setattr(requests, 'get', get)
     assert smoke_reddit.main() == 0
-    out = capsys.readouterr().out
-    assert "reachable (2 entries)" in out
-    assert "::warning::" not in out
+    assert '::warning::' in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("status, verdict", [(403, "blocked"), (429, "throttled")])
-def test_blocked_or_throttled_is_a_visible_warning_not_a_failure(
-        monkeypatch, capsys, status, verdict):
-    _respond(monkeypatch, _Response(status))
-
-    assert smoke_reddit.main() == 0
-    out = capsys.readouterr().out
-    assert f"{verdict} (HTTP {status})" in out
-    assert "not reachable from this runner" in out
-    assert "::warning::" in out
-
-
-@pytest.mark.parametrize("error", [
-    requests.exceptions.Timeout("read timed out"),
-    requests.exceptions.ConnectionError("network unreachable"),
-])
-def test_a_network_failure_is_a_visible_warning_not_a_failure(
-        monkeypatch, capsys, error):
-    def boom(*args, **kwargs):
-        raise error
-
-    monkeypatch.setattr(smoke_reddit.requests, "get", boom)
-
-    assert smoke_reddit.main() == 0
-    out = capsys.readouterr().out
-    assert f"unreachable ({type(error).__name__})" in out
-    assert "::warning::" in out
-
-
-@pytest.mark.parametrize("response", [
-    _Response(404),
-    _Response(500),
-    _Response(200, "this is not xml"),
-    _Response(200, EMPTY_FEED_XML),
-])
-def test_a_real_failure_still_exits_nonzero(monkeypatch, capsys, response):
-    _respond(monkeypatch, response)
-
+@pytest.mark.parametrize('payload', [{}, {'data': []}, {'data': [{'subreddit': 'other'}]}])
+def test_probe_fails_for_unusable_success_responses(monkeypatch, capsys, payload):
+    monkeypatch.setattr(requests, 'get', lambda *args, **kwargs: _response(200, payload))
     assert smoke_reddit.main() == 1
-    out = capsys.readouterr().out
-    assert "::error::reddit search feed probe failed:" in out
+    assert '::error::' in capsys.readouterr().out
 
 
-def test_check_names_the_verdict_and_count(monkeypatch):
-    _respond(monkeypatch, _Response(200, FEED_XML))
+def test_probe_exercises_all_production_communities():
+    calls = []
+    stamp = (datetime.now(timezone.utc) - timedelta(hours=1)).timestamp()
 
-    assert smoke_reddit.check() == ("reachable", 2)
+    def get(url, *, params, **_kwargs):
+        assert url == sentiment.REDDIT_INDEX
+        assert params['limit'] == sentiment.REDDIT_LIMIT
+        sub = params['subreddit']
+        calls.append(sub)
+        return _response(200, {'data': [
+            {'subreddit': sub, 'created_utc': stamp, 'title': 'Stock question', 'id': 'abc'},
+        ]})
+
+    assert smoke_reddit.check(get=get) == ('reachable', len(sentiment.REDDIT_SUBREDDITS))
+    assert calls == list(sentiment.REDDIT_SUBREDDITS)
 
 
-def test_check_raises_unreachable_for_a_block(monkeypatch):
-    _respond(monkeypatch, _Response(403))
+def test_archive_rejects_a_stale_listing_and_excludes_deleted_titles():
+    now = datetime.now(timezone.utc)
+    row = {'subreddit': 'stocks', 'title': 'MSFT', 'id': 'abc'}
+    recent = {**row, 'created_utc': (now - timedelta(hours=1)).timestamp()}
+    old = {**row, 'created_utc': (now - timedelta(days=3)).timestamp()}
+    with pytest.raises(ValueError, match='stale'):
+        sentiment.fetch_reddit_community(
+            'stocks', now=now, get=lambda *a, **k: _response(200, {'data': [old]}))
 
-    with pytest.raises(smoke_reddit.Unreachable, match="blocked"):
-        smoke_reddit.check()
+    entries, count = sentiment.fetch_reddit_community(
+        'stocks', now=now, get=lambda *a, **k: _response(200, {'data': [
+            recent, {**recent, 'id': 'def', 'author': '[deleted]'},
+        ]}))
+    assert count == 2
+    assert [entry['url'] for entry in entries] == ['https://www.reddit.com/r/stocks/comments/abc/']
+
+
+def test_archive_retries_an_index_timeout_once(monkeypatch):
+    now = datetime.now(timezone.utc)
+    post = {'subreddit': 'stocks', 'created_utc': now.timestamp(), 'title': 'MSFT', 'id': 'abc'}
+    responses = iter([_response(422, {}), _response(200, {'data': [post]})])
+    waits = []
+    monkeypatch.setattr(sentiment.time, 'sleep', waits.append)
+
+    def get(url, *, params, **_kwargs):
+        assert params['after'] == (now - timedelta(days=7)).date().isoformat()
+        return next(responses)
+
+    entries, count = sentiment.fetch_reddit_community('stocks', now=now, get=get)
+    assert count == len(entries) == 1
+    assert len(waits) == 1

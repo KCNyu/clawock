@@ -1541,10 +1541,18 @@ def test_receipt_before_heartbeat_allows_initial_product_verdict(tmp_path, monke
 
 @pytest.mark.parametrize('detail', [{'action': 'deterministic-fallback'},
                                      {'watchdog_state': 'deterministic_fallback'}])
-def test_deterministic_data_block_is_not_a_recovered_semantic_product(tmp_path, monkeypatch, detail):
+@pytest.mark.parametrize('postflight,primary', [
+    (None, None), ('failed', None), ('failed', 'failed'), ('warning', 'failed'),
+])
+def test_deterministic_data_block_is_not_a_recovered_semantic_product(
+        tmp_path, monkeypatch, detail, postflight, primary):
     _isolate(tmp_path, monkeypatch)
     job, slot = '港股午后快报', FROZEN_NOW.isoformat()
     outcomes.record_stage(job, 'preflight', 'success', slot=slot)
+    if postflight:
+        outcomes.record_stage(job, 'postflight', postflight, slot=slot)
+    if primary:
+        outcomes.record_stage(job, 'primary_delivery', primary, slot=slot)
     row = outcomes.record_stage(job, 'watchdog_delivery', 'success', slot=slot, **detail)
     assert row['final_product']['status'] == 'degraded'
     assert row['final_product']['fallback_only'] is True

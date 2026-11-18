@@ -3992,6 +3992,46 @@ async function testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base) {
 
 // #2233: the headline Brier population is active calls; passive HOLD episodes
 // must not inflate either the displayed denominator or the confidence tier.
+async function testSessionLabelsAndReflectUnits(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await stubLiveOrigin(page, { patch: (name, json) => {
+    if (name === "overview.json") {
+      json.indices = {
+        SPX: { price: 100, session: "2026-11-17", intraday: false },
+        DJI: { price: 90, session: "2026-11-17" },
+        HSI: { price: 50, session: "2026-11-18", intraday: true },
+      };
+    } else if (name === "dashboard.json") {
+      json.decision_metrics = { raw_decisions: 195, episodes: 51, settled_episodes: 43 };
+      json.realized_vs_unrealized = {
+        us: { realized: null, unrealized: 20 },
+        hk: { realized: 0, unrealized: 20 },
+      };
+      json.totals = { ...json.totals, us: { ...json.totals?.us, cost_usd: 100 },
+        hk: { ...json.totals?.hk, cost_hkd: 100 } };
+    }
+    return json;
+  } });
+  await page.goto(base, { waitUntil: "domcontentloaded" });
+  await waitForData(page);
+  const session = index => page.locator("#market-grid .market-cell")
+    .filter({ has: page.locator(".lbl", { hasText: index }) }).locator(".sess").textContent();
+  assert.equal(await session("SPX"), "11-17 收盘");
+  assert.equal(await session("DJI"), "11-17");
+  assert.equal(await session("HSI"), "11-18 盘中");
+
+  await clickTab(page, "reflect");
+  await waitForTab(page, "reflect");
+  assert.equal(await page.locator("#plan-total").textContent(), "195");
+  assert.equal(await page.locator("#plan-total-sub").textContent(), "30 天 · 策略线程已结算 43/51");
+  const us = page.locator('.mkt-card[data-mkt="us"]');
+  assert.equal(await us.locator(".mkt-stat").filter({ hasText: "总盈亏" }).locator(".v").textContent(), "—");
+  assert.equal(await us.locator(".mkt-chip").filter({ hasText: "总回报率" }).locator("b").textContent(), "—");
+  const hk = page.locator('.mkt-card[data-mkt="hk"]');
+  assert.equal(await hk.locator(".mkt-chip").filter({ hasText: "总回报率" }).locator("b").textContent(), "+20.0%");
+  await page.close();
+}
+
 async function testCalibrationUsesTheActiveSampleCount(browser, base) {
   const cases = [
     { n: 4, brier: 0.2418, total: 18, tier: "样本少" },
@@ -4669,6 +4709,7 @@ async function main() {
     await run("testNoChartPaintsOneLabelOverAnother", () => testNoChartPaintsOneLabelOverAnother(browser, base));
     await run("testOnlyActivePanelAcceptsFocus", () => testOnlyActivePanelAcceptsFocus(browser, base));
     await run("runtime", () => testRuntime(browser, base));
+    await run("testSessionLabelsAndReflectUnits", () => testSessionLabelsAndReflectUnits(browser, base));
     await run("testCalibrationUsesTheActiveSampleCount", () => testCalibrationUsesTheActiveSampleCount(browser, base));
     await run("testAStaleFxRateSaysSoOnTheHero", () => testAStaleFxRateSaysSoOnTheHero(browser, base));
     await run("testTheHeroCurveReadsOutTheDayUnderThePointer", () =>

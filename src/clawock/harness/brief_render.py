@@ -986,7 +986,8 @@ def sentiment_section(context, judgment):
             str((item.get("title") or item.get("headline") or "")
                 if isinstance(item, dict) else item)[:36]
             for item in (row.get("news_top") or [])[:3])
-        mentions = (f"Reddit 7d {row['reddit_mentions_7d']} mentions"
+        reddit_label = "Reddit 7 日标题样本" if row.get("reddit_sampled") else "Reddit 7d"
+        mentions = (f"{reddit_label} {row['reddit_mentions_7d']} mentions"
                     if row.get("reddit_mentions_7d") is not None else MISSING)
         # brief_preflight._recent_price_moves writes {px_pct, n_sessions} (#963);
         # this read `pct_5d` and printed 近 5 日 — every day (#1892).

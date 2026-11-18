@@ -83,7 +83,15 @@ def mentions_ticker(text, ticker):
         text = (text or '').translate(str.maketrans('０１２３４５６７８９', '0123456789'))
         if len(ticker) == 5 and ticker.startswith('0') and ticker.strip('0'):
             bare = ticker.lstrip('0')
-            code = rf'0{{0,{len(ticker) - len(bare)}}}{bare}'
+            padding = len(ticker) - len(bare)
+            if len(bare) >= 4:
+                code = rf'0{{0,{padding}}}{bare}'
+            else:
+                # A short unqualified number could be a quantity or a price.
+                shortened = rf'0{{0,{padding}}}{bare}'
+                four_digits = rf'0{{{4 - len(bare)},{padding}}}{bare}'
+                code = (rf'(?:{four_digits}|(?<=(?i:HK:)){shortened}|'
+                        rf'{shortened}(?=(?i:\.HK)(?![A-Za-z0-9])))')
     elif ticker.isalpha():
         kind = r'A-Za-z'
     else:

@@ -892,15 +892,16 @@
       const totalReddit = measured.reduce((sum, t) => sum + t.reddit_mentions_7d, 0);
       const totalNews = s.tickers.reduce((sum, t) => sum + ((t.google_news_en || []).length + (t.google_news_zh || []).length), 0);
       const redditStatus = (s.source_status || {}).reddit;
+      const redditLabel = s.tickers.some(t => t.reddit_sampled) ? 'Reddit 7 日标题样本' : 'Reddit 7d';
       if (measured.length) {
-        cells.push({lbl: 'Reddit 7d', val: totalReddit,
+        cells.push({lbl: redditLabel, val: totalReddit,
                     sub: measured.length === s.tickers.length
                       ? 'mentions' : `mentions · ${measured.length}/${s.tickers.length} 只票`});
       } else if (s.tickers.length && redditStatus && redditStatus !== 'ok') {
         // Zero measured names is not "nothing was said": the source failed or
         // throttled this run. Dropping the cell made both indistinguishable
         // from a quiet feed (#3423 was the failed half; throttled is the other).
-        cells.push({lbl: 'Reddit 7d', val: DASH,
+        cells.push({lbl: redditLabel, val: DASH,
                     sub: redditSourceNote(redditStatus) || '源不可用'});
       }
       if (totalNews > 0) cells.push({lbl: 'News 7d', val: totalNews, sub: 'articles'});
@@ -958,6 +959,7 @@
         region: t.region || '',
         reddit: typeof t.reddit_mentions_7d === 'number' ? t.reddit_mentions_7d : null,
         reddit_status: t.reddit_status || '',
+        reddit_sampled: t.reddit_sampled === true,
         reddit_posts: t.reddit_posts || [],
         news: [...(t.google_news_en || []), ...(t.google_news_zh || [])],
       }))
@@ -971,15 +973,13 @@
       // 把它变成洞。与 influencer feed 的 escapeHtml 同一约定。
       const newsLis = t.news.slice(0, 3).map(n =>
         `<li>${escapeHtml(n.title || '')}</li>`).join('');
-      // No score and no comment count: the search feed does not carry them, and
-      // `p.score || 0` printed "0↑" on every post ever rendered here.
       const redditLis = t.reddit_posts.slice(0, 3).map(p =>
         `<li>${escapeHtml(p.title || '')}</li>`).join('');
       return `<details class="sd-row">
         <summary>
           <span class="sd-tk">${escapeHtml(t.ticker)}</span>
           <span class="sd-reg">${regionTag(t.region)}</span>
-          <span class="sd-counts">Reddit <strong>${t.reddit == null ? (t.reddit_status && t.reddit_status !== 'ok' ? '— ' + redditSourceNote(t.reddit_status) : '—') : t.reddit}</strong> · 新闻 <strong>${t.news.length}</strong></span>
+          <span class="sd-counts">${t.reddit_sampled ? 'Reddit 标题样本' : 'Reddit'} <strong>${t.reddit == null ? (t.reddit_status && t.reddit_status !== 'ok' ? '— ' + redditSourceNote(t.reddit_status) : '—') : t.reddit}</strong> · 新闻 <strong>${t.news.length}</strong></span>
         </summary>
         <div class="sd-body">
           ${newsLis ? `<div class="sd-grp">News</div><ul>${newsLis}</ul>` :
@@ -2582,23 +2582,28 @@
         : (v < 0 ? MINUS : "+") + Math.abs(Math.round(v)).toLocaleString("en-US");
       const pct1 = v => (v != null ? fmtPct(v, 1) : DASH);
       const buildCard = (key, label, ccy) => {
-        const r = safe(rv, key, "realized") ?? 0;
-        const u = safe(rv, key, "unrealized") ?? 0;
-        const cost = safe(DATA, "totals", key, ccy === "USD" ? "cost_usd" : "cost_hkd") ?? 0;
-        const profit = r + u;
+        const r = safe(rv, key, "realized");
+        const u = safe(rv, key, "unrealized");
+        const cost = safe(DATA, "totals", key, ccy === "USD" ? "cost_usd" : "cost_hkd");
+        const hasRealized = Number.isFinite(r);
+        const hasUnrealized = Number.isFinite(u);
+        const hasCost = Number.isFinite(cost);
+        const profit = hasRealized && hasUnrealized ? r + u : null;
         // 本金优先用后端 true_principal（现金流账本峰值净投入＝真实自掏现金），
         // 否则回退 净投入本金=成本−已实现。回报率同源，避免卡片本地重算出 142% 虚高。
         const nprK = safe(DATA, "net_principal_return", key) || {};
         const tp = nprK.true_principal;
-        const usingTrue = tp != null && tp > 0;
-        const net = usingTrue ? tp : (cost - r);
-        const netPct = (nprK.return_pct != null) ? nprK.return_pct : (net > 0 ? profit / net * 100 : null);
+        const usingTrue = Number.isFinite(tp) && tp > 0;
+        const net = usingTrue ? tp : (hasCost && hasRealized ? cost - r : null);
+        const netPct = Number.isFinite(nprK.return_pct) ? nprK.return_pct
+          : (net > 0 && profit != null ? profit / net * 100 : null);
         const netLabel = usingTrue ? "真实本金" : "净投入本金";
-        const floPct = cost > 0 ? u / cost * 100 : null;
-        const totPct = (cost + r) > 0 ? profit / (cost + r) * 100 : null;
-        const ref = Math.max(Math.abs(r), Math.abs(u), 1);
-        const rW = Math.min(Math.abs(r) / ref * 100, 100);
-        const uW = Math.min(Math.abs(u) / ref * 100, 100);
+        const floPct = hasCost && cost > 0 && hasUnrealized ? u / cost * 100 : null;
+        const capital = hasCost && hasRealized ? cost + r : null;
+        const totPct = capital > 0 && profit != null ? profit / capital * 100 : null;
+        const ref = Math.max(hasRealized ? Math.abs(r) : 0, hasUnrealized ? Math.abs(u) : 0, 1);
+        const rW = hasRealized ? Math.abs(r) / ref * 100 : 0;
+        const uW = hasUnrealized ? Math.abs(u) / ref * 100 : 0;
         return `<div class="mkt-card" data-mkt="${key}">`
           + `<div class="mkt-head"><span class="mkt-dot"></span>${label} <span class="muted">· ${ccy}</span></div>`
           + `<div class="mkt-ret-label">净本金回报率</div>`
@@ -2623,7 +2628,8 @@
 
   function renderPlanReview() {
     const calib = safe(DATA, "decision_metrics") || {};
-    const settled = calib.settled_episodes || 0;
+    const settled = calib.settled_episodes;
+    const episodes = calib.episodes || 0;
     const raw = calib.raw_decisions || 0;
     // Only the active leg is a real follow-through decision: "following" a hold
     // means sitting still, which scores itself ~97% and dragged the blended
@@ -2641,10 +2647,9 @@
       if (el) { el.classList.remove("pos","neg","neutral"); el.classList.add(c); }
     };
 
-    // 44 was labelled "plans logged" but is settled_episodes — settled strategy
-    // threads, not plans, and not the same unit as the execution counts beside it.
     setVal("plan-total", raw > 0 ? String(raw) : DASH);
-    setSub("plan-total-sub", settled > 0 ? `30 天 · 其中 ${settled} 条已能算输赢` : "30 天");
+    setSub("plan-total-sub", episodes > 0 && Number.isInteger(settled)
+      ? `30 天 · 策略线程已结算 ${settled}/${episodes}` : "30 天");
 
     if (act.rate == null) {
       setVal("plan-followed", DASH);
