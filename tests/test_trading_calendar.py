@@ -323,3 +323,18 @@ def test_us_intraday_early_close_uses_the_exchange_date_and_preserves_open_slots
     assert trading_calendar.intraday_closed_reason(
         "us", datetime(2026, 11, 21, 2, 33, tzinfo=hkt),
     ) is None
+
+
+def test_hk_intraday_half_day_keeps_a_morning_generation_after_noon():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    hkt = ZoneInfo("Asia/Hong_Kong")
+    morning = datetime(2026, 12, 24, 11, 33, tzinfo=hkt)
+    noon = morning.replace(hour=12, minute=0)
+    finished = noon + timedelta(minutes=5)
+    closed = trading_calendar.intraday_closed_reason
+    assert closed("hk", finished, started_at=morning) is None
+    assert closed("hk", finished) == closed("hk", finished, started_at=noon) == "半日市·午后休市"
+    assert closed("hk", finished, started_at=morning - timedelta(days=1)) == "半日市·午后休市"
+    assert closed("hk", finished + timedelta(days=1), started_at=morning) == "节假日休市"
