@@ -31,7 +31,7 @@ from zoneinfo import ZoneInfo
 
 from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
-from clawock.publish.outcomes import summarize_records
+from clawock.publish.outcomes import ProductStatus, summarize_records
 from clawock.workspace import without_host_paths, workspace_root
 # Ledger writes use the shared atomic JSON writer (fsync, orphan-tmp cleanup,
 # non-finite guard) after checking that local evidence can be read (#2620).
@@ -437,18 +437,18 @@ def _derive_final(record):
                  or watchdog_stage.get("watchdog_state") == "deterministic_fallback")
 
     if preflight == "skipped":
-        status, reason = "skipped", "market/session closed"
+        status, reason = ProductStatus.SKIPPED, "market/session closed"
     elif (watchdog == "success" and (
             (data_only and postflight != "success" and primary not in {"success", "not_required"})
             or (preflight == "failed" and llm in {"unknown", "pending", "failed"}
                 and postflight in {"unknown", "pending"} and primary in {"unknown", "pending"}))):
-        return {"status": "degraded", "reason": (
+        return {"status": ProductStatus.DEGRADED.value, "reason": (
             "采集崩了，兜底卡代替" if preflight == "failed" else "没有语义报告，兜底只含数据块"),
             "fallback_only": True}
     elif watchdog == "success":
-        status, reason = "recovered", "watchdog delivered a usable product"
+        status, reason = ProductStatus.RECOVERED, "watchdog delivered a usable product"
     elif primary == "not_required" and postflight in {"success", "warning"}:
-        status, reason = "no_change", "healthy unchanged slot; silence recorded, no send owed"
+        status, reason = ProductStatus.NO_CHANGE, "healthy unchanged slot; silence recorded, no send owed"
     elif primary == "success":
         degraded = (
             llm == "failed"
@@ -472,7 +472,7 @@ def _derive_final(record):
             # `pending` behind a delivered product.
             or preflight in {"pending", "unknown"}
         )
-        status = "degraded" if degraded else "success"
+        status = ProductStatus.DEGRADED if degraded else ProductStatus.SUCCESS
         reasons = []
         if stages['postflight'].get('data_plane_status') not in {None, 'published', 'current', 'skipped'}:
             reasons.append('数据面 push 丢了')
@@ -492,14 +492,14 @@ def _derive_final(record):
     elif primary == "failed" and watchdog == "failed":
         # Ahead of artifact_only (#1921): that state means delivery is not yet
         # confirmed, and here both routes to the reader confirmed a failure.
-        status, reason = "failed", "primary and watchdog delivery both failed"
+        status, reason = ProductStatus.FAILED, "primary and watchdog delivery both failed"
     elif postflight in {"success", "warning"}:
-        status, reason = "artifact_only", "usable artifact exists; delivery unconfirmed"
+        status, reason = ProductStatus.ARTIFACT_ONLY, "usable artifact exists; delivery unconfirmed"
     elif preflight == "failed" or postflight == "failed":
-        status, reason = "failed", "no successful product recovery stage"
+        status, reason = ProductStatus.FAILED, "no successful product recovery stage"
     else:
-        status, reason = "pending", "terminal product evidence not recorded yet"
-    return {"status": status, "reason": reason}
+        status, reason = ProductStatus.PENDING, "terminal product evidence not recorded yet"
+    return {"status": status.value, "reason": reason}
 
 
 def _prune(records, now, ledger=None):

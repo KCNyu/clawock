@@ -299,6 +299,7 @@ written down.
 | Rule | Kind | Where | Why this kind |
 |---|---|---|---|
 | block order, symbols, table bytes | gate | `test_card_layout_contract`, `test_preflight_main_never_rewrites_the_analyzer_table` | the harness renders it; there is no model step to comply |
+| scheduled slots on closed days or after an early close are skipped | gate | `sessions.intraday_closed_reason` in `intraday_preflight`, `intraday_delta`, and `intraday_postflight` | preflight writes a blockless `market_closed` sentinel for the watchdog |
 | a slot always sends | gate | `always_full` + `test_with_the_live_config_an_unchanged_healthy_slot_still_sends_honestly` | kcn final decision |
 | `analyzer_block` stays in the model's view | gate | `test_the_model_packet_keeps_reason_lines_the_card_folded` | #1862 once removed it |
 | alert slot names its movers and at least one new signal ticker when present | gate (escalating) | `intraday_postflight.validate`; `intraday_delta.seen_signal_identities` also drives card folding | signal identity is (level, ticker), compared with this trading session’s delivered seen set; repeated signals stay in block 10 without forced prose (#2829); a STOP on a name today's plan holds (`plans.plan_holds`, the card's `stop_is_action` rule) is printed 「计划持有」, any owed hard stop under 欠着的账, and needs no prose either |

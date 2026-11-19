@@ -351,7 +351,13 @@ def leverage_context(ticker: str, bars_of=None) -> dict:
         return {}
     read = bars_of or (lambda name: load_bars(name).get('bars') or {})
     try:
-        return {'multiple': multiple, 'underlying': read(symbol) or {}}
+        underlying = read(symbol)
+        substitute = meta.get('one_x_substitute')
+        # A tracked 1x substitute can supply paired closes when the economic
+        # underlying (e.g. HSTECH) has no stored bars.
+        if not underlying and substitute and substitute != symbol:
+            underlying = read(substitute)
+        return {'multiple': multiple, 'underlying': underlying or {}}
     except Exception:  # noqa: BLE001 — no evidence means the plain 50% line
         return {'multiple': multiple, 'underlying': {}}
 

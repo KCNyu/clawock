@@ -841,9 +841,16 @@ def main(argv=None):
                              'prose and the harness prepends the data block.')
     args = parser.parse_args(argv)
 
-    # Holiday/weekend gate: no send/publish on a closed market.
-    closed = trading_calendar.closed_reason(
-        args.market, session=trading_calendar.slot_session(args.market))
+    # A matching preflight that started before a US early close may finish
+    # after it. A closed sentinel has no context_id and cannot use this path.
+    ctx, err = load_context(args.market)
+    started_at = None
+    if ctx and ctx.get('context_id') == args.context_id:
+        try:
+            started_at = datetime.fromisoformat(ctx.get('generated_at'))
+        except (TypeError, ValueError):
+            pass
+    closed = trading_calendar.intraday_closed_reason(args.market, started_at=started_at)
     if closed:
         market_cn = '港股' if args.market == 'hk' else '美股'
         result = {'status': 'market_closed', 'market': args.market, 'reason': closed,
@@ -852,7 +859,6 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
-    ctx, err = load_context(args.market)
     if ctx is None:
         job_name, slot = cron_heartbeat.slot_for(args.market)
         if slot_shipped(TMP, 'intraday', market=args.market, slot=slot):

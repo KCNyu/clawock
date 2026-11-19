@@ -1569,8 +1569,7 @@ def _collect(argv=None):
 
     # Holiday/weekend gate (before fetch): closed market → no stale price write,
     # emit a market_closed sentinel (no alert), exit 0.
-    reason = trading_calendar.closed_reason(
-        args.market, session=trading_calendar.slot_session(args.market, now))
+    reason = trading_calendar.intraday_closed_reason(args.market, now)
     if reason:
         cron_heartbeat.record(
             args.market, 'market_closed', job_name=heartbeat['job'],

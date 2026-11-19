@@ -27,7 +27,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from clawock.publish.outcomes import delivered_data_only_fallback
+from clawock.publish.outcomes import ProductStatus, delivered_data_only_fallback
 from clawock.scheduling import effective_schedule, parse_cron_slots
 from clawock.sessions import HKT
 
@@ -45,18 +45,18 @@ SNAP_MINUTES = 15
 #: nobody mapped shows up as `unknown` rather than silently rendering green —
 #: the failure mode of a `.get(status, 'ok')` default.
 STATE_OF_VERDICT = {
-    'success': 'ok',
-    'degraded': 'degraded',
-    'recovered': 'recovered',
-    'failed': 'failed',
-    'pending': 'running',
-    'skipped': 'closed',
+    ProductStatus.SUCCESS: 'ok',
+    ProductStatus.DEGRADED: 'degraded',
+    ProductStatus.RECOVERED: 'recovered',
+    ProductStatus.FAILED: 'failed',
+    ProductStatus.PENDING: 'running',
+    ProductStatus.SKIPPED: 'closed',
     # #1853: a healthy unchanged intraday slot is silent on purpose and files
     # `no_change`; unmapped it read as `unknown` on the card.
-    'no_change': 'quiet',
+    ProductStatus.NO_CHANGE: 'quiet',
     # #2262: the artifact exists and no send is confirmed. Unmapped it read
     # 「状态未知」 while the product section of the same card said 「仅存档」.
-    'artifact_only': 'unconfirmed',
+    ProductStatus.ARTIFACT_ONLY: 'unconfirmed',
 }
 
 #: Every state `timetable` can emit. The page's `DH_SLOT` must name each one;
@@ -103,23 +103,20 @@ def _narrate_degraded(record):
         return _note(NEEDS_ACTION, "模型链未产出语义报告，确定性兜底只含数据块；查模型链失败原因")
     postflight = (record.get('stages') or {}).get('postflight') or {}
     delivery = (record.get('stages') or {}).get('primary_delivery') or {}
-    wechat_ok = delivery.get('wechat_ok')
-    telegram_ok = delivery.get('telegram_ok')
+    wechat_drop = delivery.get('wechat_ok') is False and delivery.get('telegram_ok')
+    wechat_note = ('微信投递失败，Telegram 已接住；微信问题已知不修（#771）'
+                   if wechat_drop else '')
+
+    def with_delivery(disposition, text):
+        return _note(disposition, f'{text}；{wechat_note}' if wechat_note else text)
+
     escalating = postflight.get('escalating_count')
     issues = postflight.get('issue_count') or 0
     data_plane = postflight.get('data_plane_status')
-
     llm = (record.get('stages') or {}).get('llm') or {}
     if llm.get('status') == 'failed':
-        return _note(NEEDS_ACTION,
-                     '模型链失败后按确定性兜底出货；这一档没有语义报告，兜底只含数据块')
-
-    # WeChat's context-token drop is diagnosed and deliberately left unfixed
-    # (#771) — Telegram is the reliable channel on those slots, not a gap.
-    if wechat_ok is False and telegram_ok:
-        return _note(KNOWN_NOT_FIXED,
-                    '微信投递失败（上游 ret=-2 prepare failed），Telegram 已接住；'
-                    '已知不修（#771）')
+        return with_delivery(NEEDS_ACTION,
+                             '模型链失败后按确定性兜底出货；这一档没有语义报告，兜底只含数据块')
     # `escalating_count` is the exact field `_advisory_only` reads — a nonzero
     # count is the same signal that made the ledger call this slot degraded,
     # not a re-judgment of it.
@@ -142,7 +139,7 @@ def _narrate_degraded(record):
         text = '；'.join(lengths)
         if (others := escalating - len(lengths)) > 0:
             text += f'；另有 {others} 条需核查，见本档卡片顶部的校验警告'
-        return _note(NEEDS_ACTION, text)
+        return with_delivery(NEEDS_ACTION, text)
     readability = postflight.get('readability') or {}
     if escalating and readability.get('status') == 'extreme':
         length = (f'简报正文 {readability.get("bytes", 0) / 1000:.1f}KB，超过 '
@@ -150,11 +147,11 @@ def _narrate_degraded(record):
                   '（全文已送达，下次生成须按分段预算收敛）')
         others = escalating - 1
         if others <= 0:
-            return _note(NEEDS_ACTION, length + '；内容校验没有别的实质问题')
-        return _note(NEEDS_ACTION,
+            return with_delivery(NEEDS_ACTION, length + '；内容校验没有别的实质问题')
+        return with_delivery(NEEDS_ACTION,
                     f'{length}；另有 {others} 条需核查，见本档卡片顶部的校验警告')
     if escalating:
-        return _note(NEEDS_ACTION,
+        return with_delivery(NEEDS_ACTION,
                     f'校验有 {issues} 条意见，其中 {escalating} 条需核查，'
                     '见本档卡片顶部的校验警告')
     # The other way `_advisory_only`'s AND fails: content was clean but the
@@ -166,20 +163,24 @@ def _narrate_degraded(record):
         count = postflight.get('unpushed_commits')
         oldest = postflight.get('unpushed_oldest_h')
         if not isinstance(count, (int, float)):
-            return _note(NEEDS_ACTION,
+            return with_delivery(NEEDS_ACTION,
                          '此记录尚未确认公开面板已更新；本档未测到发布积压，需检查发布状态')
         measured_age = isinstance(oldest, (int, float))
         if count >= UNPUSHED_WARN_COMMITS or (count and measured_age and oldest >= UNPUSHED_WARN_HOURS):
-            return _note(NEEDS_ACTION,
+            return with_delivery(NEEDS_ACTION,
                          f'发布积压 {count} 个提交，'
                          + (f'最老 {oldest:.1f} 小时；' if measured_age else '最老年龄未测到；')
                          +
                          '公开面板仍是上一代，需要检查 push 失败原因')
-        return _note(WATCH,
-                    '两个渠道都已送达，内容校验没有问题；仪表盘发布还在排队，'
+        return with_delivery(WATCH,
+                    '内容校验没有问题；仪表盘发布还在排队，'
                     '等待定时发布器追上；此记录尚未确认公开面板已更新')
     reason = (record.get('final_product') or {}).get('reason')
-    return _note(WATCH, reason or '降级送达')
+    if llm.get('status') == 'warning' and llm.get('escalating_count') != 0:
+        return with_delivery(NEEDS_ACTION, reason or '模型输出校验有意见，需核查')
+    if wechat_note and reason in {None, '', 'primary delivery succeeded'}:
+        return _note(KNOWN_NOT_FIXED, wechat_note)
+    return with_delivery(WATCH, reason or '降级送达')
 
 
 def _narrate_failed(record):

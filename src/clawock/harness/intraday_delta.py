@@ -14,7 +14,7 @@ from clawock.safe_io import to_number as _share_number
 import argparse
 import hashlib
 import json
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from clawock.workspace import workspace_root
@@ -307,9 +307,7 @@ def snapshot(market, *, at=None, fetcher=fetch_peers.fetch_all):
     # The market's own session date, not the HKT one: HKT Saturday 02:00 is
     # Friday's US session, and HKT Monday 02:00 is a US Sunday (#1927).
     session_date = market_session_date(market, at)
-    closed = trading_calendar.closed_reason(
-        market, date.fromisoformat(session_date),
-        session=trading_calendar.slot_session(market, at))
+    closed = trading_calendar.intraday_closed_reason(market, at)
     holdings = _active_holdings(market)
     requests = [
         {"ticker": holding["ticker"], "region": market}

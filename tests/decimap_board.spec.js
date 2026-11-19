@@ -145,9 +145,44 @@ async function noCellUsesColourAsItsOnlyChannel(browser, base) {
   await context.close();
 }
 
-async function aCellOpensTheDecisionsItCounts(browser, base) {
-  const { context, page } = await open(browser, base, 1280);
-  await page.click("#dm-board .dm-cell");
+function interactivePayload(payload) {
+  // The publisher can retain aggregate cards while dropping all decision rows.
+  // Supply source rows and dates so the browser still measures the interactive
+  // contract. The rest of this suite reads the actual published aggregate.
+  const { signal: kind, by_action: buckets } = payload.source_kind_cards[0];
+  const action = Object.keys(buckets).find(name => buckets[name].count > 0);
+  const signal = payload.signal_order.findIndex(name => name.startsWith(kind + "."));
+  assert(action && signal >= 0, "a source/action bucket is required for the fixture");
+
+  const indices = Array.from({ length: 25 }, (_, index) => index);
+  const tickers = indices.map(index => index % 2 ? "TEST-A" : "TEST-B");
+  const snapshot = Array(payload.signal_order.length).fill(null);
+  snapshot[signal] = 1.25;
+  const fixture = {
+    ...payload,
+    codes: {},
+    decisions: {
+      decision_id: indices.map(index => `test-${index}`),
+      action: indices.map(() => action),
+      plan_date: indices.map(index => index ? `2026-01-${String(index).padStart(2, "0")}` : ""),
+      ticker: tickers,
+      confidence: indices.map(() => 0.8),
+      snapshot_age_sessions: indices.map(() => 0),
+      t1: indices.map(() => null),
+      t5: indices.map(() => null),
+      t20: indices.map(() => null),
+    },
+    decision_snapshots: indices.map(() => snapshot),
+    ticker_timelines: Object.fromEntries([...new Set(tickers)].map(ticker =>
+      [ticker, indices.filter(index => tickers[index] === ticker)])),
+  };
+  return { fixture, kind, action, signal: payload.signal_order[signal] };
+}
+
+async function aCellOpensTheDecisionsItCounts(browser, base, { fixture, kind, action, signal }) {
+  const { context, page } = await open(browser, base, 1280, JSON.stringify(fixture));
+  await page.click(`#dm-board .dm-cell[data-row=${JSON.stringify(kind)}]`
+    + `[data-action=${JSON.stringify(action)}]`);
   await page.waitForSelector(".dm-drawer.is-open");
   const heading = await page.textContent(".dm-drawer h3");
   assert(heading.includes("·"), `drawer heading is not "source · action": ${heading}`);
@@ -156,12 +191,13 @@ async function aCellOpensTheDecisionsItCounts(browser, base) {
   assert(hits > 0, "the bucket drawer listed no decisions");
   await page.click(".dm-hits button");
   await page.waitForTimeout(120);
-  assert((await page.textContent(".dm-drawer")).includes("决策时的信号"),
+  const detail = await page.textContent(".dm-drawer");
+  assert(detail.includes("决策时的信号") && detail.includes(signal),
     "a decision in the bucket does not open its own snapshot");
   await context.close();
 }
 
-async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
+async function theDrawerTrapsFocusAndGivesItBack(browser, base, { fixture, kind, action }) {
   /* The drawer is modal for the mouse — scrim, Escape — and until #1350 it was
      not modal for the keyboard: Tab walked straight out of it into the board
      behind the scrim, and closing dropped focus on <body>, so a reader lost
@@ -170,13 +206,12 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
      Behavioural on purpose. `inert` is the mechanism, but asserting the
      attribute would pass on a page where the drawer never opens; what has to
      hold is that the tabbing reader cannot leave and gets their cell back. */
-  const { context, page } = await open(browser, base, 1280);
-  await page.evaluate(() => document.querySelector("#dm-board .dm-cell").focus());
-  const opener = await page.evaluate(() => {
-    const cell = document.querySelector("#dm-board .dm-cell");
-    cell.click();
-    return cell.textContent.trim();
-  });
+  const { context, page } = await open(browser, base, 1280, JSON.stringify(fixture));
+  const selector = `#dm-board .dm-cell[data-row=${JSON.stringify(kind)}]`
+    + `[data-action=${JSON.stringify(action)}]`;
+  const opener = await page.locator(selector).textContent();
+  await page.locator(selector).focus();
+  await page.keyboard.press("Enter");
   await page.waitForSelector(".dm-drawer.is-open");
 
   // 抽屉与遮罩挂在 <body> 下（面板是 content-visibility: auto ⇒ paint
@@ -242,7 +277,7 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
   assert.equal(back.inertLeft, 0, "closing the drawer left the page inert");
   assert.notEqual(back.tag, "BODY",
     "closing the drawer dropped focus on <body> instead of the cell that opened it");
-  assert.equal(back.text, opener,
+  assert.equal(back.text, opener.trim(),
     `focus came back to ${back.tag}#${back.id}, not the cell that opened the drawer`);
   // Closed is the other half of the contract: aria-hidden alone left the
   // off-screen 「×」 in the Tab order with nothing announced (#2220).
@@ -429,15 +464,15 @@ async function theCaveatReportsWhatSurvivedItsPlacebo(browser, base, payload) {
 }
 
 
-// 时间线画的是真 payload，不是一份写死 left 的合成 fixture。
+// 给时间线传入原始日期，让浏览器计算坐标。
 //
 // 2026-09-09 实测：`codes.plan_date[0]` 是空串，第 0 条决策正好用它 ⇒ 轴的
 // 起点是 `Date.parse('')` = NaN ⇒ 每个点的 left 都是 "NaN%" ⇒ 浏览器丢掉这条
 // 声明 ⇒ 18 行里 800 多个标记全叠在 x=0。线上那张独立页也一直是这么坏着的：
 // 唯一碰过时间线的断言用的是自己造的 dots（left 写死 12/34/61/88%），所以它
-// 永远绿。这条闸改成量真数据画出来的位置。
-async function theTimelineSpreadsRealDatesAcrossItsAxis(browser, base) {
-  const { context, page } = await open(browser, base, 1280);
+// 永远绿。这条闸测量浏览器从日期算出的位置。
+async function theTimelineSpreadsRealDatesAcrossItsAxis(browser, base, { fixture }) {
+  const { context, page } = await open(browser, base, 1280, JSON.stringify(fixture));
   const timeline = await page.evaluate(async () => {
     document.querySelector("#dm-timeline-note > summary").click();
     await new Promise(resolve => setTimeout(resolve, 60));
@@ -464,9 +499,7 @@ async function theTimelineSpreadsRealDatesAcrossItsAxis(browser, base) {
     `the rightmost marker sits at ${timeline.max}% — the axis is not spanning its own range`);
   assert.equal(timeline.unnamed, 0, "a timeline row has no ticker name");
   // 放不上轴的那些不许无声消失。
-  const payload = JSON.parse(fs.readFileSync(PAYLOAD, "utf8"));
-  const undated = (payload.decisions.plan_date || [])
-    .filter(code => !(payload.codes.plan_date || [])[code]).length;
+  const undated = fixture.decisions.plan_date.filter(date => !date).length;
   if (undated) {
     assert(timeline.undated.includes(String(undated)),
       `${undated} decisions have no plan date and the card never says so: `
@@ -541,10 +574,11 @@ async function main() {
   try {
     await theBoardIsATreeOverThePublishedRollUps(browser, base, payload);
     await noCellUsesColourAsItsOnlyChannel(browser, base);
-    await aCellOpensTheDecisionsItCounts(browser, base);
-    await theDrawerTrapsFocusAndGivesItBack(browser, base);
+    const interactive = interactivePayload(payload);
+    await aCellOpensTheDecisionsItCounts(browser, base, interactive);
+    await theDrawerTrapsFocusAndGivesItBack(browser, base, interactive);
     await theBoardFitsAPhoneOneActionAtATime(browser, base, payload);
-    await theTimelineSpreadsRealDatesAcrossItsAxis(browser, base);
+    await theTimelineSpreadsRealDatesAcrossItsAxis(browser, base, interactive);
     await theKpiStripPrintsWhatThePayloadHolds(browser, base, payload);
     await theCaveatReportsWhatSurvivedItsPlacebo(browser, base, payload);
     await theSwitchersReadInBothThemes(browser, base);
