@@ -2699,6 +2699,29 @@ async function testUnconfirmedDeliveryIsNotAllDelivered(browser, base) {
   await context.close();
 }
 
+async function testIndependentProductEvidenceInDeliveryPanel(browser, base) {
+  const { context, page } = await openDataHealth(browser, base, 1280, { outcomes: {
+    window_hours: 36, counts: { degraded: 1, artifact_only: 1, recovered: 1 }, due_no_record: 0,
+    product_evidence: {
+      primary_delivery: { wechat: 1, telegram: 1, any_channel: 1, both: 1, neither: 1, unknown: 1 },
+      judgment: { valid: 2, flagged: 0, unavailable: 1, unknown: 0 },
+      actionable: { changed: 1, unchanged: 0, unknown: 2 },
+    },
+  } });
+  try {
+    const cell = page.locator('#dh-cells .dh-cell[data-key="delivery"]');
+    assert.equal((await cell.locator(".dh-cell-value").textContent()).trim(), "1/3主投送达");
+    await cell.click();
+    const panel = page.locator("#dh-panel-delivery");
+    const text = await panel.textContent();
+    assert.ok(text.includes("主渠道送达") && text.includes("双渠道 1"));
+    assert.ok(text.includes("有效判断") && text.includes("通过 2"));
+    assert.ok(text.includes("可执行变化") && text.includes("未核 2"));
+  } finally {
+    await context.close();
+  }
+}
+
 async function testCrashedCollectionFallbackNeedsAttention(browser, base) {
   const { context, page } = await openDataHealth(browser, base, 1280, { outcomes: {
     window_hours: 36, counts: { degraded: 1 }, fallback_only: 1, due_no_record: 0,
@@ -4756,6 +4779,7 @@ async function main() {
     await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
     await run("testCrashedCollectionFallbackNeedsAttention", () => testCrashedCollectionFallbackNeedsAttention(browser, base));
     await run("testUnconfirmedDeliveryIsNotAllDelivered", () => testUnconfirmedDeliveryIsNotAllDelivered(browser, base));
+    await run("testIndependentProductEvidenceInDeliveryPanel", () => testIndependentProductEvidenceInDeliveryPanel(browser, base));
     await run("testUncountedDueSlotsAreNotAllDelivered", () => testUncountedDueSlotsAreNotAllDelivered(browser, base));
     await run("testACopiedDeliveryReadingSaysSo", () => testACopiedDeliveryReadingSaysSo(browser, base));
     await run("testFooterDegradationsCountOnlyTheWindow", () => testFooterDegradationsCountOnlyTheWindow(browser, base));
