@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-18T08:03:32.186266+08:00",
+  "generated_at": "2026-11-19T08:46:44.741522+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-18",
-  "window_end": "2026-12-02",
+  "window_start": "2026-11-19",
+  "window_end": "2026-12-03",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -10,17 +10,6 @@
   ],
   "earnings": [],
   "recent_earnings": [
-    {
-      "ticker": "CRCL",
-      "name": "CRCL",
-      "date": "2026-11-04",
-      "time": "bmo",
-      "eps_estimate": 0.377,
-      "eps_actual": 0.878,
-      "revenue_estimate_m": 793.68,
-      "quarter": 3,
-      "year": 2026
-    },
     {
       "ticker": "RKLB",
       "name": "RKLB",
