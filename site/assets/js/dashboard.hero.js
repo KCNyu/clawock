@@ -1574,7 +1574,7 @@
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
         tone: failed || noRecord || fallbackOnly ? "bad" : (deliveryAttention ? "warn" : "ok"),
         state: failed || noRecord || fallbackOnly ? "需处理" : (deliveryAttention ? "观察" : "正常"),
-        value: slotTotal ? `${primary?.any_channel ?? deliveredCount}/${slotTotal}` : DASH,
+        value: slotTotal ? `${numText(primary?.any_channel ?? deliveredCount)}/${slotTotal}` : DASH,
         unit: primary ? "主投送达" : "送达",
         note: wfCopied ? `这一格来自上一次发布（${wfCopied}），本次构建没读到投递台账`
           : failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
@@ -1584,7 +1584,7 @@
           : soft ? `${nameThem(soft, slotsWith("recovered", "degraded")) || `${soft} 档恢复或降级`}，成品已送达`
           : noRecordUnknown && slotTotal ? "到期槽位未核对（排程契约读不到），只数了已有记录"
           : (pending ? `${pending} 档进行中` : (slotTotal
-            ? (primary ? `主投双渠道 ${primary.both} 档 · ${primary.unknown} 档回执不全` : "全部按时送达")
+            ? (primary ? `主投双渠道 ${numText(primary.both)} 档 · ${numText(primary.unknown)} 档回执不全` : "全部按时送达")
             : "窗口内没有成品投递记录")) },
       { key: "cron", label: "定时任务 · 今天", static: true,
         tone: cronTone, state: scheduleStale ? "过期" : cronTone === "bad" ? "需处理" : cronTone === "warn" ? "观察" : "正常",
@@ -1644,9 +1644,9 @@
     const judgment = productEvidence?.judgment;
     const actionable = productEvidence?.actionable;
     const evidenceRows = primary && judgment && actionable ? [
-      item("主渠道送达", "", `微信 ${primary.wechat} · Telegram ${primary.telegram} · 双渠道 ${primary.both} · 均失败 ${primary.neither} · 回执不全 ${primary.unknown}`, ""),
-      item("有效判断", "", `通过 ${judgment.valid} · 有校验告警 ${judgment.flagged} · 缺失或未通过 ${judgment.unavailable} · 未知 ${judgment.unknown}`, ""),
-      item("可执行变化", "", `盘中新满足已定尺寸价格条件 ${actionable.changed} · 未见 ${actionable.unchanged} · 未核 ${actionable.unknown}`, ""),
+      item("主渠道送达", "", `微信 ${numText(primary.wechat)} · Telegram ${numText(primary.telegram)} · 双渠道 ${numText(primary.both)} · 均失败 ${numText(primary.neither)} · 回执不全 ${numText(primary.unknown)}`, ""),
+      item("有效判断", "", `通过 ${numText(judgment.valid)} · 有校验告警 ${numText(judgment.flagged)} · 缺失或未通过 ${numText(judgment.unavailable)} · 未知 ${numText(judgment.unknown)}`, ""),
+      item("可执行变化", "", `盘中新满足已定尺寸价格条件 ${numText(actionable.changed)} · 未见 ${numText(actionable.unchanged)} · 未核 ${numText(actionable.unknown)}`, ""),
     ].join("") : "";
     const panels = {
       files: { title: `数据面 · ${files.length} 个文件`, body: `<ul class="dh-items">${filesPanel}</ul>` },
