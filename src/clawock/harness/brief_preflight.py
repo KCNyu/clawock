@@ -2148,14 +2148,18 @@ def _collect(argv=None):
     # Write the complete audit context plus a budgeted, generation-bound model
     # boundary. The full JSON remains available for postflight/audit; the skill
     # reads manifest+core and lazy-loads feature bundles.
-    # 简报上下文里的 portfolio 拷贝去掉 gold_dca.nav_history(~140条/3.3KB 黄金每日净值流水):
-    # 简报 LLM 不逐日分析黄金(黄金有独立 cron)，dashboard 🥇卡也是直接读 portfolio.json，
-    # 都用不到这段 → 纯占 token。浅拷贝只替换 gold_dca 键，不改原始 portfolio(下游仍用全量)。
+    # 黄金历史流水和供故障排查的校验明细由黄金刷新及看板消费。简报只需要模拟状态。
     portfolio_ctx = portfolio
     _g = portfolio.get('gold_dca')
-    if isinstance(_g, dict) and _g.get('nav_history'):
-        _g_trim = {k: v for k, v in _g.items() if k != 'nav_history'}
-        _g_trim['nav_history_omitted'] = len(_g['nav_history'])  # 留计数标记=故意省略非丢失
+    if isinstance(_g, dict):
+        _g_trim = dict(_g)
+        if _g.get('nav_history'):
+            _g_trim['nav_history_omitted'] = len(_g_trim.pop('nav_history'))
+        if isinstance(_g.get('london'), dict):
+            _g_trim['london'] = {
+                k: v for k, v in _g['london'].items()
+                if k not in ('hist_advisory', 'hist_series', 'fx_hist_series')
+            }
         portfolio_ctx = {**portfolio, 'gold_dca': _g_trim}
 
     active_tickers = [

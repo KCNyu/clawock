@@ -1115,12 +1115,30 @@ def _reader_facing(diagnostic):
     return line
 
 
+def _gold_history_notice(context):
+    gold = (context.get("portfolio") or {}).get("gold_dca") or {}
+    if "london" not in gold:
+        return None
+    london = gold.get("london") or {}
+    simulation = london.get("dca_equiv") or {}
+    if simulation.get("stale") is True:
+        as_of = simulation.get("as_of")
+        date_note = f"截至 {as_of}" if as_of else "估值日期未记录"
+        return f"伦敦金定投沿用上次模拟结果（{date_note}）"
+    if not simulation and (not london or "dca_equiv" in london):
+        return "伦敦金定投模拟暂无足够的参考数据"
+    return None
+
+
 def data_holes_section(context, judgment):
     holes = list(_narrative(judgment).get("data_holes") or [])
     surface = (context.get("research_surface") or {}).get("errors") or []
     diagnostics = [_reader_facing(row)
                    for row in list(context.get("issues") or []) + list(surface)]
     holes += [row for row in diagnostics if row]
+    gold_notice = _gold_history_notice(context)
+    if gold_notice:
+        holes.append(gold_notice)
     withheld = sum(1 for row in diagnostics if row is None)
     if withheld:
         holes.append(f"另有 {withheld} 条数据准备阶段的内部诊断，已记入运行日志，不在此展开")
@@ -1372,6 +1390,9 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
                  ["集中度", num((concentration.get('hk') or {}).get('hhi'), 3),
                   num((concentration.get('us') or {}).get('hhi'), 3)]], first=":---"),
              "", f"USDHKD {num(fx.get('rate'), 4)}", ""]
+    gold_notice = _gold_history_notice(context)
+    if gold_notice:
+        lines += [gold_notice, ""]
     lines += ["**核心结论**", quote(text(judgment.get("portfolio_assessment"))), ""]
 
     actions = [d for d in (plan.get("decisions") or [])

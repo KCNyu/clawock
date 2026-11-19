@@ -4619,6 +4619,34 @@ async function testButtonDefaultsDoNotOverrideComponentFonts(browser) {
   } finally { await page.close(); }
 }
 
+async function testGoldHistoryDetailsExpandFromOneLine(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const summary = "伦敦金历史使用 COMEX 期货补位 · 美元兑人民币历史沿用上次数据";
+  const advisory = "沿用 106 个已结算点；最大新旧偏差 1.45%（2026-07-30，源 eastmoney_gc00y_fallback）";
+  try {
+    await stubLiveOrigin(page, {
+      patch: (name, payload) => {
+        if (!["overview.json", "dashboard.json"].includes(name)) return null;
+        payload.gold_dca = {
+          nav: 3, principal_invested: 100, fund_code: "000217", fund_name: "黄金",
+          london: { xau_usd: 2000, usdcny: 7, hist_summary: summary, hist_advisory: advisory },
+        };
+        return payload;
+      },
+    });
+    await page.goto(base + "#overview");
+    const details = page.locator("#gold-london details").filter({ hasText: summary });
+    const label = details.locator("summary");
+    await label.waitFor({ state: "visible" });
+    assert.equal(await label.innerText(), summary);
+    assert.equal(await details.getByText(advisory).isVisible(), false);
+    await label.click();
+    assert.equal(await details.getByText(advisory).isVisible(), true);
+  } finally {
+    await page.close();
+  }
+}
+
 async function testSessionMoneyAndPassiveCoverageAreExplicit(browser, base) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   try {
@@ -4726,6 +4754,7 @@ async function main() {
     console.log(`${name}: ${Date.now() - started}ms`);
   };
   try {
+    await run("testGoldHistoryDetailsExpandFromOneLine", () => testGoldHistoryDetailsExpandFromOneLine(browser, base));
     await run("testSessionMoneyAndPassiveCoverageAreExplicit", () => testSessionMoneyAndPassiveCoverageAreExplicit(browser, base));
     await run("testBenchmarkScoresShowBothDenominators", () => testBenchmarkScoresShowBothDenominators(browser, base));
     await run("testDailyPnlUsesOneLatestReadingPerMarketSession", () => testDailyPnlUsesOneLatestReadingPerMarketSession(browser, base));
