@@ -157,3 +157,26 @@ def test_registration_freezes_account_and_tariff_provenance(tmp_path):
     assert frozen['regulatory_fees']['hk']['ccass']['effective_from'] == '2025-06-30'
     assert frozen['stamp_duty_exemptions']['tickers']['02800']['type'] == 'ETF'
     assert costs.CostModel(**frozen).as_dict() == costs.CostModel.load().as_dict()
+
+
+def test_automatic_expiry_report_is_local_and_idempotent(tmp_path):
+    import json
+
+    from ops.host.report_due_method_trials import report_due
+
+    tid = mt.register(tmp_path, spec(), now=NOW)["trial_id"]
+    mt.submit(tmp_path, tid, "old_policy", {"status": "ok", "raw_response": "hold",
+              "plan": {"date": "2026-07-02", "decisions": []}}, now=NOW)
+    mt.replay(tmp_path, tid, now=NOW)
+    finish = datetime(2026, 7, 8, 23, 59, tzinfo=timezone.utc)
+    assert report_due(tmp_path, now=finish) == {"generated": [], "failures": []}
+    assert report_due(tmp_path, now=LATER) == {"generated": [tid], "failures": []}
+    directory = mt._directory(tmp_path, tid)
+    summary = json.loads((directory / "expiry-summary.json").read_text())
+    assert summary["as_of"] == "2026-07-08"
+    assert list(summary["arms"]) == list(mt.ARMS)
+    assert summary["arms"]["old_policy"]["currencies"]["USD"]["modeled_cost_charged"] == 0
+    assert summary["arms"]["observations_only"]["status"] == "missing"
+    assert not summary["automatic_selection"]
+    assert (directory / summary["report"]).exists()
+    assert report_due(tmp_path, now=LATER) == {"generated": [], "failures": []}

@@ -334,6 +334,16 @@ never claims causal superiority, automatically promotes a method, or rewrites
 history to roll one back. Stop submitting to a trial to stop it; its archives
 remain intact. Legacy records without a stated method stay `unknown`.
 
+The host dashboard tick also runs `python3 ops/host/report_due_method_trials.py`.
+On the first tick after the registered UTC end date, it replays that date
+and writes a local `expiry-summary.json` alongside the frozen report. The
+summary lists all three arms, modeled charges, missed gain and drawdown by
+currency, including unavailable arms and missing marks. When the installed
+evaluator differs it uses the registered commit from local Git history, verifies
+its evaluator fingerprints and runs it in a separate process. A failed replay
+leaves the trial due for a later tick. Reviewing the report and deciding
+whether to expand the trial remain manual steps.
+
 ## Broad-market relative direction scores
 
 `clawock decision-audit [--json]` and Reflect's episode scorecard show absolute
