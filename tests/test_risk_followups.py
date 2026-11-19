@@ -72,3 +72,19 @@ def test_card_keeps_deadline_timezone_and_review_distinct_from_orders(tmp_path):
     text = '\n'.join(review_sections(risk_followups=risk.followups(path, now=NOW)))
     assert '11/02 16:00 港时' in text and '不是新的买卖指令' in text
     assert '**待你处理**' not in text
+
+
+def test_reassessment_request_and_review_leave_the_obligation_and_execution_open(tmp_path):
+    path = write(tmp_path, [record('long', age_days=120), record('new', age_days=2)])
+    assert risk.followups(path, now=NOW)['rows'][0]['breach_id'] == 'long'
+    risk.request_reassessment(path, 'long', 'new company disclosure')
+    reread = risk.followups(path)['rows'][0]
+    assert reread['state'] == 'due' and reread['decision_overdue']
+    assert reread['reassessment']['reason'] == 'new company disclosure'
+    risk.request_reassessment(path, 'long', 'risk still open', reviewed=True)
+    reread = risk.followups(path)['rows'][0]
+    assert reread['state'] == 'undecided' and reread['decision_overdue']
+    saved = risk.load_ledger(path)['records'][0]
+    assert saved['status'] == 'open'
+    assert not any(key in saved for key in ('execution', 'override', 'acknowledgement'))
+    assert saved['reassessment']['review_note'] == 'risk still open'

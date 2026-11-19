@@ -228,6 +228,8 @@ def debt_rows(debts, *, ordered=(), held=(), error=None) -> list[str]:
         subject = '、'.join(ticker(t) for t in targets) or ticker(debt.get('leg') or '账户')
         rule = _DEBT_RULE.get(debt.get('type'), '风控')
         text = f"{subject} {rule} · {debt.get('days_open', 0)} 天未结"
+        if debt.get('decision_overdue') and debt.get('breach_id'):
+            text += f" · `{debt['breach_id']}`"
         with_order = [t for t in targets if t in ordered]
         if with_order:
             text += f" · 出口：上面 {'、'.join(with_order)} 的单"
@@ -235,8 +237,7 @@ def debt_rows(debts, *, ordered=(), held=(), error=None) -> list[str]:
             text += f' · 今日{HELD_BY_PLAN}'
         rows.append(bullet(text))
     if rows:
-        rows.append(bullet('都还没记执行、确认或豁免：成交（自动核对）/ '
-                           '`clawock risk ack` 留痕 / `clawock risk override` 写理由，三选一'))
+        rows.append(bullet('回复「风险待复查」查看编号，可确认承担、设到期豁免或请求重新评估。'))
     return rows
 
 

@@ -282,6 +282,7 @@ def _reconcile_guardrail_merge(row, previous, portfolio, current_time, stamp, hi
             record["recurrence_count"] = int(
                 record.get("recurrence_count") or 1) + 1
             if not _same_episode(record, current_time):
+                record.pop("reassessment", None)
                 record["current_opened_at"] = stamp
                 record["acknowledgement"] = {
                     "status": "unacknowledged",
@@ -540,6 +541,9 @@ def followups(path: Path = LEDGER, *, leg=None, now=None, limit=12) -> dict:
             override = record.get("override") or {}
             adaptive = record.get("adaptive") or {}
             execution = record.get("execution") or {}
+            reassessment = record.get("reassessment") or {}
+            requested = (_parse_stamp(reassessment.get("requested_at"))
+                         if not reassessment.get("reviewed_at") else None)
             expires = _parse_stamp(override.get("expires_at"))
             due = None
             if override_is_active(record, current):
@@ -564,12 +568,20 @@ def followups(path: Path = LEDGER, *, leg=None, now=None, limit=12) -> dict:
                 state, reason = "watch", "已确认承担风险，仍待风险消退"
             else:
                 state, reason = "undecided", "尚未记录处置决定"
+            if requested:
+                state = "due"
+                reason += "；已请求重新评估"
+                due = _stamp(requested)
+            standing = _standing(record)
             rows.append({"breach_id": record.get("breach_id"), "ticker": record.get("ticker"),
                          "leg": record.get("leg"), "type": record.get("type"),
                          "state": state, "reason": reason, "review_at": due,
-                         "last_seen_at": record.get("last_seen_at")})
+                         "last_seen_at": record.get("last_seen_at"),
+                         "days_open": standing["days_open"], "decision_overdue": standing["decision_overdue"],
+                         "reassessment": reassessment or None})
         rank = {"due": 0, "verify": 1, "undecided": 2, "scheduled": 3, "watch": 4}
-        rows.sort(key=lambda row: (rank[row["state"]], row["review_at"] or "", str(row["breach_id"])))
+        rows.sort(key=lambda row: (rank[row["state"]], not row["decision_overdue"],
+                                   row["review_at"] or "", -row["days_open"], str(row["breach_id"])))
         out.update(rows=rows[:limit], total=len(rows), omitted=max(0, len(rows) - limit))
     except (OSError, ValueError, TypeError, AttributeError):
         out.update(status="unavailable", rows=[], error="风控账本缺失或不可读，复查清单未生成")
@@ -1144,6 +1156,27 @@ def acknowledge(path: Path, breach_id: str, note: str) -> dict:
     }))
 
 
+def request_reassessment(path: Path, breach_id: str, reason: str, *, reviewed=False) -> dict:
+    if not reason.strip() or len(reason) > 1000:
+        raise ValueError("reassessment reason must contain 1..1000 characters")
+
+    def mutate(row):
+        if row.get("status") == "resolved":
+            raise ValueError("cannot change reassessment of a resolved breach")
+        prior = row.get("reassessment") or {}
+        if reviewed:
+            if not prior.get("requested_at"):
+                raise ValueError("no reassessment request on this breach")
+            if not prior.get("reviewed_at"):
+                prior.update(reviewed_at=_stamp(), review_note=reason.strip())
+                row["last_changed_at"] = _stamp()
+        elif prior.get("reason") != reason.strip() or prior.get("reviewed_at"):
+            row["reassessment"] = {"requested_at": _stamp(), "reason": reason.strip()}
+            row["last_changed_at"] = _stamp()
+
+    return _mutate_record(path, breach_id, mutate)
+
+
 def grant_override(path: Path, breach_id: str, reason: str,
                    ttl_hours: int) -> dict:
     if not reason.strip():
@@ -1209,6 +1242,10 @@ def main(argv=None) -> int:
     override.add_argument("breach_id")
     override.add_argument("--reason", required=True)
     override.add_argument("--ttl-hours", type=int, required=True)
+    reassess = sub.add_parser("reassess", help="record a request for a fresh risk review")
+    reassess.add_argument("breach_id")
+    reassess.add_argument("--reason", required=True)
+    reassess.add_argument("--reviewed", action="store_true", help="record the completed review and its findings")
     confirm = sub.add_parser("confirm")
     confirm.add_argument("breach_id")
     confirm.add_argument("--evidence", required=True)
@@ -1225,7 +1262,8 @@ def main(argv=None) -> int:
                 print(f"风险待复查：{view['total']} 项；账本核对于 {view['ledger_updated_at'] or '未知'}")
                 for item in view["rows"]:
                     print(item["breach_id"], item["ticker"] or item["leg"], item["reason"],
-                          item["review_at"] or "无约定日期")
+                          item["review_at"] or "无约定日期", f"{item['days_open']} 天",
+                          "处置逾期" if item["decision_overdue"] else "")
                 if view["omitted"]:
                     print(f"另有 {view['omitted']} 项未展开")
             return 0 if view["status"] == "ok" else 2
@@ -1245,6 +1283,8 @@ def main(argv=None) -> int:
         elif args.command == "override":
             row = grant_override(
                 args.ledger, args.breach_id, args.reason, args.ttl_hours)
+        elif args.command == "reassess":
+            row = request_reassessment(args.ledger, args.breach_id, args.reason, reviewed=args.reviewed)
         else:
             row = confirm_execution(
                 args.ledger, args.breach_id, args.evidence)

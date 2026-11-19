@@ -152,8 +152,8 @@ def test_the_owed_hard_stop_stays_on_the_card_until_an_exit_is_recorded():
     debts = risk.open_debts([_ledger_record()], leg='HK')
     lines = _card(HK_CLOSE, HK_PLAN, risk_debts=debts)
     owed = _section(lines, '**欠着的账**')
-    assert owed[0] == '- **07226** 硬止损 · 74 天未结 · 今日计划持有'
-    assert 'clawock risk ack' in owed[-1] and 'clawock risk override' in owed[-1]
+    assert owed[0] == f"- **07226** 硬止损 · 74 天未结 · `{debts[0]['breach_id']}` · 今日计划持有"
+    assert '风险待复查' in owed[-1] and '重新评估' in owed[-1]
     assert lines.index('**待你处理**') < lines.index('**欠着的账**') < lines.index(
         next(line for line in lines if line.startswith('| 代码')))
     # Each of the three exits closes it; a resolved breach or another leg is not owed.
@@ -171,7 +171,7 @@ def test_the_owed_hard_stop_stays_on_the_card_until_an_exit_is_recorded():
     with_order = _section(_card(US_OPEN, US_PLAN, risk_debts=risk.open_debts([_ledger_record(
         breach_id='risk-0a0af7ae3b3a', leg='US', ticker='RKLX', age_days=103,
         required_reduction={'target_tickers': ['RKLX']})], leg='US')), '**欠着的账**')
-    assert with_order[0] == '- **RKLX** 硬止损 · 103 天未结 · 出口：上面 RKLX 的单'
+    assert with_order[0] == '- **RKLX** 硬止损 · 103 天未结 · `risk-0a0af7ae3b3a` · 出口：上面 RKLX 的单'
     # An unreadable ledger is said, not skipped.
     assert _section(_card(HK_CLOSE, HK_PLAN, risk_debts=None, risk_debts_error='ValueError: x'),
                     '**欠着的账**') == ['- 风控账本未读到（ValueError: x），欠账未列']
@@ -193,7 +193,7 @@ def test_the_intraday_card_files_the_same_stop_the_same_way():
     # A newly seen stop on a held name is this slot's news, marked; seen ones are not repeated.
     assert [row for row in parts['changes'] if 'STOP' in row] == [
         '- STOP? 02208 x：今日-1.0% 浮-30.0%（计划持有）']
-    assert parts['debts'][0] == '- **07226** 硬止损 · 74 天未结 · 今日计划持有'
+    assert parts['debts'][0] == '- **07226** 硬止损 · 74 天未结 · `risk-4ab7eff27f15` · 今日计划持有'
     card = chat_card.render(analyzer=HK_CLOSE, **parts).splitlines()
     assert card.index(chat_card.ACTION) < card.index(chat_card.DEBTS) < card.index(chat_card.CHANGES)
 
