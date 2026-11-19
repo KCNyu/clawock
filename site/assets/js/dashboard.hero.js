@@ -1547,6 +1547,10 @@
     const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
     const fallbackOnly = Number(wf.fallback_only) || crashedFallbacks.length;
     const deliveredCount = okCount + soft - fallbackOnly;
+    const productEvidence = wf.product_evidence;
+    const primary = productEvidence?.primary_delivery;
+    const deliveryAttention = wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal
+      || primary?.unknown || primary?.neither;
     const landed = n("ok") + n("recovered") + n("degraded") + n("quiet");
     const due = cells.length - n("upcoming") - n("running") - n("unmonitored") - n("closed");
     const nowAt = dhHktClock(now);
@@ -1568,9 +1572,10 @@
         note: igFinding ? String(igFinding.msg || igFinding.code || "")
           : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
-        tone: failed || noRecord || fallbackOnly ? "bad" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "warn" : "ok"),
-        state: failed || noRecord || fallbackOnly ? "需处理" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "观察" : "正常"),
-        value: slotTotal ? `${deliveredCount}/${slotTotal}` : DASH, unit: "送达",
+        tone: failed || noRecord || fallbackOnly ? "bad" : (deliveryAttention ? "warn" : "ok"),
+        state: failed || noRecord || fallbackOnly ? "需处理" : (deliveryAttention ? "观察" : "正常"),
+        value: slotTotal ? `${primary?.any_channel ?? deliveredCount}/${slotTotal}` : DASH,
+        unit: primary ? "主投送达" : "送达",
         note: wfCopied ? `这一格来自上一次发布（${wfCopied}），本次构建没读到投递台账`
           : failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
           : noRecord ? `${noRecord} 档到期无记录${noRecordNames ? `（${noRecordNames}${noRecord > (wf.no_record_slots || []).length ? " 等" : ""}）` : ""}`
@@ -1578,7 +1583,9 @@
           : fallbackOnly ? `${nameThem(fallbackOnly, crashedFallbacks) || `${fallbackOnly} 档采集失败、只有兜底卡`}，需处理`
           : soft ? `${nameThem(soft, slotsWith("recovered", "degraded")) || `${soft} 档恢复或降级`}，成品已送达`
           : noRecordUnknown && slotTotal ? "到期槽位未核对（排程契约读不到），只数了已有记录"
-          : (pending ? `${pending} 档进行中` : (slotTotal ? "全部按时送达" : "窗口内没有成品投递记录")) },
+          : (pending ? `${pending} 档进行中` : (slotTotal
+            ? (primary ? `主投双渠道 ${primary.both} 档 · ${primary.unknown} 档回执不全` : "全部按时送达")
+            : "窗口内没有成品投递记录")) },
       { key: "cron", label: "定时任务 · 今天", static: true,
         tone: cronTone, state: scheduleStale ? "过期" : cronTone === "bad" ? "需处理" : cronTone === "warn" ? "观察" : "正常",
         value: jobs.length ? `${landed}/${Math.max(due, landed)}` : DASH, unit: "落地",
@@ -1634,11 +1641,19 @@
       + (unnamed ? item(`另有 ${unnamed} 档`, "", "更早的槽位见 workflow-outcomes.json", "") : "");
     const countBits = [[okCount, "成功"], [wc.recovered || 0, "恢复"], [wc.degraded || 0, "降级"],
       [failed, "未落地"], [unconfirmed, "仅存档"], [pending, "进行中"]].filter(([v]) => v).map(([v, k]) => `${v} ${k}`).join(" · ");
+    const judgment = productEvidence?.judgment;
+    const actionable = productEvidence?.actionable;
+    const evidenceRows = primary && judgment && actionable ? [
+      item("主渠道送达", "", `微信 ${primary.wechat} · Telegram ${primary.telegram} · 双渠道 ${primary.both} · 均失败 ${primary.neither} · 回执不全 ${primary.unknown}`, ""),
+      item("有效判断", "", `通过 ${judgment.valid} · 有校验告警 ${judgment.flagged} · 缺失或未通过 ${judgment.unavailable} · 未知 ${judgment.unknown}`, ""),
+      item("可执行变化", "", `盘中新满足已定尺寸价格条件 ${actionable.changed} · 未见 ${actionable.unchanged} · 未核 ${actionable.unknown}`, ""),
+    ].join("") : "";
     const panels = {
       files: { title: `数据面 · ${files.length} 个文件`, body: `<ul class="dh-items">${filesPanel}</ul>` },
       integrity: { title: `体检 · ${igErr} ERROR · ${igWarn} WARN`, body: `<ul class="dh-items">${integrityPanel}</ul>` },
       delivery: { title: `成品${winH ? ` · ${winH} 小时内 ${slotTotal} 档` : ` · ${slotTotal} 档`}`,
         body: `<p class="dh-panel-note">${escapeHtml(countBits || "窗口内没有成品记录")}</p>`
+          + (evidenceRows ? `<ul class="dh-items">${evidenceRows}</ul>` : "")
           + (softRows ? `<ul class="dh-items">${softRows}</ul>` : "")
           + (dropRows ? `<h5 class="dh-sub">微信掉投 ${droppedTotal} 档 · 上游 ret=-2，TG 已兜，已知不修</h5>`
             + `<ul class="dh-items">${dropRows}</ul>` : "") },

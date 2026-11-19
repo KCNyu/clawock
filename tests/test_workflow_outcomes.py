@@ -1564,3 +1564,24 @@ def test_deterministic_data_block_is_not_a_recovered_semantic_product(
     outcomes.record_stage(job, 'llm', 'success', slot=slot)
     row = outcomes.record_stage(job, 'postflight', 'success', slot=slot)
     assert row['final_product']['status'] == 'recovered'
+
+
+def test_product_evidence_keeps_delivery_judgment_and_action_independent():
+    def slot(primary, llm, changes=None, **final):
+        return {"slot": FROZEN_NOW.isoformat(), "final_product": final, "stages": {
+            "primary_delivery": primary, "llm": llm, "preflight": {"actionable_changes": changes}}}
+
+    rows = [
+        slot({"status": "success", "wechat_ok": True, "telegram_ok": True},
+             {"status": "failed"}, 1, status="degraded"),
+        slot({"status": "failed", "wechat_ok": False, "telegram_ok": False},
+             {"status": "success"}, 0, status="recovered"),
+        slot({}, {"status": "warning"}),
+        slot({"status": "not_required"}, {"status": "not_required"}, status="no_change"),
+        slot({}, {}, status="skipped"),
+    ]
+    evidence = summarize_records(rows, now=FROZEN_NOW)["product_evidence"]
+    assert evidence["primary_delivery"] == dict(both=1, wechat_only=0, telegram_only=0,
+        neither=1, unknown=1, not_required=1, wechat=1, telegram=1, any_channel=1)
+    assert evidence["judgment"] == dict(valid=1, flagged=1, unavailable=1, unknown=0, not_required=1)
+    assert evidence["actionable"] == dict(changed=1, unchanged=1, unknown=2)

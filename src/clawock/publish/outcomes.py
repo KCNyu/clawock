@@ -77,6 +77,50 @@ def degradations_of(payload) -> list:
     return [row for row in rows or [] if isinstance(row, dict)]
 
 
+def _product_evidence(records):
+    delivery = dict(both=0, wechat_only=0, telegram_only=0, neither=0, unknown=0, not_required=0,
+                    wechat=0, telegram=0, any_channel=0)
+    judgment = dict(valid=0, flagged=0, unavailable=0, unknown=0, not_required=0)
+    action = dict(changed=0, unchanged=0, unknown=0)
+    for record in records:
+        if (record.get("final_product") or {}).get("status") == "skipped":
+            continue
+        stages = record.get("stages") or {}
+        primary = stages.get("primary_delivery") or {}
+        wechat, telegram = primary.get("wechat_ok"), primary.get("telegram_ok")
+        if primary.get("status") == "not_required":
+            channel = "not_required"
+        elif wechat is True:
+            channel = "both" if telegram is True else ("wechat_only" if telegram is False else "unknown")
+        elif telegram is True:
+            channel = "telegram_only" if wechat is False else "unknown"
+        else:
+            channel = "neither" if wechat is False and telegram is False else "unknown"
+        delivery[channel] += 1
+        if channel != "not_required":
+            delivery["wechat"] += wechat is True
+            delivery["telegram"] += telegram is True
+            delivery["any_channel"] += wechat is True or telegram is True
+
+        llm = stages.get("llm") or {}
+        status = llm.get("status")
+        if status == "not_required":
+            quality = "not_required"
+        elif status == "failed" or (record.get("final_product") or {}).get("fallback_only"):
+            quality = "unavailable"
+        elif status == "success" or (status == "warning" and llm.get("escalating_count") == 0):
+            quality = "valid"
+        elif status == "warning":
+            quality = "flagged"
+        else:
+            quality = "unknown"
+        judgment[quality] += 1
+
+        count = (stages.get("preflight") or {}).get("actionable_changes")
+        action[("changed" if count else "unchanged") if type(count) is int and count >= 0 else "unknown"] += 1
+    return {"primary_delivery": delivery, "judgment": judgment, "actionable": action}
+
+
 def summarize_records(records, *, hours: int = 36, now: datetime | None = None) -> dict:
     """Fold ledger records into counts, false-red tally and the recent window."""
     now = now or datetime.now(LEDGER_TZ)
@@ -148,5 +192,6 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
         "wechat_dropped_telegram_covered": wechat_dropped,
         "wechat_dropped_slots": wechat_dropped_slots,
         "degraded_slots": degraded_slots,
+        "product_evidence": _product_evidence(recent),
         "recent": recent[:MAX_RECENT],
     }
