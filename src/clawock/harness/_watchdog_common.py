@@ -450,11 +450,6 @@ def chain_exhausted(runs):
     return bool(runs) and all(r.get('status') == 'error' for r in runs)
 
 
-# The run row records both retries and ordinary next ticks in nextRunAtMs.
-# Only a tick strictly before the next natural cron slot is a scheduled retry.
-_RETRY_START_GRACE_MS = 30_000
-
-
 def live_cron_job(job_name):
     runtime = _openclaw.read_jobs('sqlite')
     if runtime.source == 'sqlite':
@@ -492,11 +487,13 @@ def retry_matches(job, previous, started_ms):
     """The scheduler launched the pending retry, before any new regular slot."""
     retry_ms = scheduled_retry_at(job, previous)
     return (retry_ms is not None and isinstance(started_ms, (int, float))
-            and retry_ms <= started_ms <= retry_ms + _RETRY_START_GRACE_MS
+            and retry_ms <= started_ms
             and _before_next_cron_slot(job, previous['ts'], started_ms))
 
 
 def scheduled_retry_at(job, last_run):
+    # nextRunAtMs includes regular ticks. Only a tick before the next
+    # scheduled slot is evidence that the scheduler queued a retry.
     scheduled = last_run.get('nextRunAtMs')
     finished = last_run.get('ts')
     if (last_run.get('status') == 'error' and isinstance(scheduled, (int, float))
@@ -582,12 +579,16 @@ def _attempt_state(context, last_run, *, job_name=None):
         retry_ms = scheduled_retry_at(job, last)
         if retry_ms is not None:
             now_ms = datetime.now(HKT).timestamp() * 1000
-            pending = (state.get('nextRunAtMs') == retry_ms
-                       and now_ms <= retry_ms + _RETRY_START_GRACE_MS)
+            # A due retry can wait in the scheduler queue. Once it starts,
+            # its execution timeout is measured from the actual launch.
+            pending = (running_at is None and state.get('nextRunAtMs') == retry_ms
+                       and (now_ms <= retry_ms or _before_next_cron_slot(job, last['ts'], now_ms)))
             if pending or retry_matches(job, last, running_at):
                 timeout = (job.get('payload') or {}).get('timeoutSeconds')
                 if type(timeout) is int and timeout > 0:
-                    return True, (retry_ms + _RETRY_START_GRACE_MS) / 1000 + timeout
+                    start_ms = retry_ms if pending else running_at
+                    deadline = start_ms / 1000 + timeout
+                    return now_ms / 1000 < deadline, deadline
                 return True, None
         if generated_at and (job.get('status') == 'running' or running_at is not None):
             if isinstance(running_at, (int, float)) and heartbeat.get('slot'):

@@ -716,6 +716,8 @@ def test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency():
                          'skills/_shared/intraday-status-sidecar.md'], name
         assert all((ROOT / path).is_file() for path in paths), name
     body = (ROOT / 'skills/_shared/intraday-mode7.md').read_text()
+    assert 'cron 任务正文的 Step 1' in body and '--cron-job' in body
+    assert 'clawock intraday preflight' not in body  # the rendered payload owns the command
     for path in re.findall(r'`(skills/[^`{]+\.md)`', body):
         assert (ROOT / path).is_file(), f'the Mode 7 body names a missing {path}'
 

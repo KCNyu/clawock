@@ -112,18 +112,20 @@ def test_next_intraday_slot_does_not_hold_previous_slot_open(monkeypatch):
     assert not common.attempt_still_running(context, BEFORE)
 
 
-def test_queued_retry_extends_the_wait_and_refreshes_the_run(monkeypatch, logged):
+@pytest.mark.parametrize("launch_delay", [0, 65])
+def test_queued_retry_extends_the_wait_and_refreshes_the_run(monkeypatch, logged, launch_delay):
     from clawock.providers.openclaw import CronRead
 
     job_name = '美股开盘报告'
     first_start = datetime(2026, 11, 18, 22, 33, tzinfo=HKT)
     finished = first_start + timedelta(seconds=1741)
-    retry_start = finished + timedelta(seconds=30)
+    announced = finished + timedelta(seconds=30)
+    retry_start = announced + timedelta(seconds=launch_delay)
     completed = retry_start + timedelta(seconds=214)
     clock = [first_start + timedelta(minutes=20)]
     failed = {
         'status': 'error', 'runAtMs': first_start.timestamp() * 1000,
-        'ts': finished.timestamp() * 1000, 'nextRunAtMs': retry_start.timestamp() * 1000,
+        'ts': finished.timestamp() * 1000, 'nextRunAtMs': announced.timestamp() * 1000,
     }
     ok = {'status': 'ok', 'runAtMs': retry_start.timestamp() * 1000,
           'ts': completed.timestamp() * 1000}
@@ -160,7 +162,7 @@ def test_queued_retry_extends_the_wait_and_refreshes_the_run(monkeypatch, logged
         context, common.UNFINISHED_RUN, refresh=refresh, budget_s=600, poll_s=30,
         tag='us-open', job_name=job_name, sleep=sleep,
     )
-    assert last is ok and waited == 810
+    assert last is ok and completed <= clock[0] < completed + timedelta(seconds=30)
     assert any(row['reason'] == 'scheduler has a retry for this slot' for row in logged)
 
 
@@ -195,3 +197,32 @@ def test_retry_cannot_claim_the_next_regular_slot(monkeypatch):
     monkeypatch.setattr(common._openclaw, 'read_runs', lambda *_: CronRead([initial], 'sqlite'))
     preflight_at = slot + timedelta(minutes=33, seconds=10)
     assert common.active_intraday_slot('us', job_name, preflight_at) == (job_name, slot.isoformat())
+
+
+def test_delayed_overnight_retry_chain_keeps_the_last_scheduled_slot(monkeypatch):
+    job_name = "美股盘中盯盘-overnight"
+    job = {"name": job_name, "id": "overnight", "payload": {"timeoutSeconds": 1740},
+           "schedule": {"kind": "cron", "expr": "3,33 0-2 * * 2-6", "tz": "Asia/Hong_Kong"}}
+    slot = datetime(2026, 11, 19, 2, 30, tzinfo=HKT)
+
+    def ms(hour, minute, second):
+        return int(slot.replace(hour=hour, minute=minute, second=second).timestamp() * 1000)
+
+    first = {"runAtMs": ms(2, 33, 0), "ts": ms(3, 2, 1), "status": "error",
+             "nextRunAtMs": ms(3, 2, 31)}
+    second = {"runAtMs": ms(3, 3, 6), "ts": ms(3, 32, 7), "status": "error",
+              "nextRunAtMs": ms(3, 33, 7)}
+    third = {"runAtMs": ms(3, 33, 7), "status": "ok"}
+    assert [owner for _, owner in common.intraday_run_slots([first, second, third], "us", job)] == [
+        (job_name, slot.isoformat())] * 3
+
+    class DuringRetry(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return slot.replace(hour=3, minute=4).astimezone(tz)
+
+    monkeypatch.setattr(common, 'datetime', DuringRetry)
+    monkeypatch.setattr(common, 'live_cron_job', lambda _: {
+        **job, 'state': {'runningAtMs': second['runAtMs']}})
+    assert common._attempt_state({}, first, job_name=job_name) == (
+        True, second["runAtMs"] / 1000 + 1740)
