@@ -12,8 +12,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
+
 from clawock import code_identity
 from clawock.decision.method_trials import ARMS, _digest, _evaluator_version, _registration, _write_once
+from clawock.workspace import workspace_root
 
 _FINGERPRINTS = {
     "clawock.decision.ledger": "decision/ledger.py",
@@ -30,13 +35,12 @@ def _replay_registered(workspace, trial, now):
         from clawock.decision.method_trials import replay
         return replay(workspace, trial_id, now=now)
 
-    source = Path(__file__).resolve().parents[3]
     revision = trial.get("evaluator", {}).get("code") or ""
     if not re.fullmatch(r"[0-9a-f]{7,40}", revision):
         raise ValueError("registration lacks a usable evaluator commit")
 
     def git(*args):
-        return subprocess.check_output(["git", "-C", str(source), *args], timeout=15,
+        return subprocess.check_output(["git", "-C", str(ROOT), *args], timeout=15,
                                        stderr=subprocess.DEVNULL)
 
     commit = git("rev-parse", "--verify", f"{revision}^{{commit}}").decode().strip()
@@ -110,3 +114,13 @@ def report_due(workspace, *, now=None):
         except (OSError, ValueError, TypeError, KeyError, tarfile.TarError, subprocess.SubprocessError) as exc:
             failures.append({"trial_id": trial_id, "error": str(exc)})
     return {"generated": generated, "failures": failures}
+
+
+def main():
+    result = report_due(workspace_root(ROOT))
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return int(bool(result["failures"]))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -162,7 +162,7 @@ def test_registration_freezes_account_and_tariff_provenance(tmp_path):
 def test_automatic_expiry_report_is_local_and_idempotent(tmp_path):
     import json
 
-    from clawock.decision.method_trial_expiry import report_due
+    from ops.host.report_due_method_trials import report_due
 
     tid = mt.register(tmp_path, spec(), now=NOW)["trial_id"]
     mt.submit(tmp_path, tid, "old_policy", {"status": "ok", "raw_response": "hold",

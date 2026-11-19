@@ -69,7 +69,7 @@ fi
 /root/.local/bin/clawock-cron-heartbeat --publish
 /root/.local/bin/clawock-workflow-outcomes --publish
 # Local frozen-trial reports are independent of dashboard publication.
-if ! /root/.local/bin/clawock evaluate-methods --report-due; then
+if ! python3 ops/host/report_due_method_trials.py; then
   echo "publish_dashboard: expired method trial report failed; will retry next tick" >&2
 fi
 # --skip-if-unchanged (#846): the inputs' fingerprint is hashed first and an

@@ -334,7 +334,7 @@ never claims causal superiority, automatically promotes a method, or rewrites
 history to roll one back. Stop submitting to a trial to stop it; its archives
 remain intact. Legacy records without a stated method stay `unknown`.
 
-The host dashboard tick also runs `clawock evaluate-methods --report-due`.
+The host dashboard tick also runs `python3 ops/host/report_due_method_trials.py`.
 On the first tick after the registered UTC end date, it replays that date
 and writes a local `expiry-summary.json` alongside the frozen report. The
 summary lists all three arms, modeled charges, missed gain and drawdown by
