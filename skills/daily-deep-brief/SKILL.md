@@ -1027,7 +1027,9 @@ clawock brief postflight
 逐票检查 `quant.preposition` / `technical.setups` 的 `preposition_scale_in`，不要只找突破。
 这是 kcn 授权的前瞻试验，不是已验证 alpha。可按给出的 `price_below`、失效位、campaign、
 下一档编号和 `constraints.max_add_shares` 写 `add_only_on_trigger`；须写可证伪的 hypothesis
-和 method，说明尺寸取自持仓比例×资讯倾斜，以及 `evidence_strength` 中支持/不支持的范围。
+和 method。判断试验能否成手，直接读该票的 `constraints.max_add_shares` 与 `constraints.lot_size`。
+constraints 折叠时，先读同代摘要的 `preposition_limits`，缺项再查该票的 constraints。
+持仓比例只是尺寸输入。上限已够一手仍选择观察，写投资判断的理由。说明尺寸取自持仓比例×资讯倾斜，以及 `evidence_strength` 中支持/不支持的范围。
 unknown 论点不冒充 intact；已有 damaged/broken 状态不自动洗白。两档成交后不因换日重置。
 每个可用试验候选必须明确选择：写有尺寸的单，或在该票判断中说明本次不买的原因，
 不能无声退回“等突破”。硬止损、制度降杠杆、现金、整手和未成交单闸优先。

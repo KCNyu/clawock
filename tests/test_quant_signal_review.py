@@ -68,6 +68,11 @@ def _run_review(monkeypatch, days):
     return captured["data"]
 
 
+# Consecutive US sessions for synthetic signals, including Friday to Monday.
+_SESSION_DATES = ('2026-08-03', '2026-08-04', '2026-08-05', '2026-08-06',
+                  '2026-08-07', '2026-08-10', '2026-08-11', '2026-08-12')
+
+
 def _factor_days(factor_name, outcomes):
     predicate, direction, horizon = review.FACTOR_TESTS[factor_name]
     del predicate
@@ -79,7 +84,7 @@ def _factor_days(factor_name, outcomes):
         "zscore_extreme_revert": {"zscore20": -2},
         "stop_breach_continue": {"stop_distance_pct": -0.01},
     }[factor_name]
-    days = [{"as_of": f"day-{i:03d}", "rows": {}} for i in range(horizon + 1)]
+    days = [{"as_of": _SESSION_DATES[i], "rows": {}} for i in range(horizon + 1)]
     for index, won in enumerate(outcomes):
         symbol = f"S{index:03d}"
         days[0]["rows"][symbol] = {"close": 100.0, **trigger_fields}
@@ -101,7 +106,7 @@ def _clustered_factor_days(factor_name, outcomes_by_date):
     }[factor_name]
     step = horizon + 1
     total_days = (len(outcomes_by_date) - 1) * step + horizon + 1
-    days = [{"as_of": f"day-{i:03d}", "rows": {}} for i in range(total_days)]
+    days = [{"as_of": _SESSION_DATES[i], "rows": {}} for i in range(total_days)]
     for date_index, outcomes in enumerate(outcomes_by_date):
         base = date_index * step
         for ticker_index, won in enumerate(outcomes):
@@ -314,7 +319,7 @@ def _frozen_feed_days():
         for symbol, series in closes.items():
             if index < len(series):
                 rows[symbol] = {"close": series[index], "trend_on": True}
-        days.append({"as_of": f"day-{index}", "rows": rows})
+        days.append({"as_of": _SESSION_DATES[index], "rows": rows})
     return days
 
 
@@ -334,9 +339,9 @@ def test_short_flat_pairs_still_count_as_observations(monkeypatch):
     # keep producing observations (weekday labels: ISO weekends are a
     # different gate — see test_weekend_as_of_rows_never_settle...).
     days = [
-        {"as_of": "thu", "rows": {"W": {"close": 100.0, "trend_on": True}}},
-        {"as_of": "fri", "rows": {"W": {"close": 100.0, "trend_on": True}}},
-        {"as_of": "mon", "rows": {"W": {"close": 100.5, "trend_on": True}}},
+        {"as_of": "2026-08-06", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "2026-08-07", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "2026-08-10", "rows": {"W": {"close": 100.5, "trend_on": True}}},
     ]
     result = _run_review(monkeypatch, days)
 

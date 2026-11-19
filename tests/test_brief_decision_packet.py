@@ -1199,6 +1199,22 @@ def test_a_book_past_the_summary_budget_folds_instead_of_refusing(monkeypatch):
     assert "summary" in packet_mod.read_budget_report(packet)["over_budget"]
 
 
+def test_folded_summary_keeps_registered_trial_units_within_budget():
+    row = {"ticker": "03033", "constraints": {
+        "lot_size": 200, "max_add_shares": 200, "detail": "x" * 10000}}
+    packet = {"tickers": {"03033": row}, "add_alpha_diagnostics": {"candidates": [
+        {"ticker": "03033", "tier": "user_experiment", "state": "eligible",
+         "allowed": True, "max_add_shares": 200}]}}
+    summary = packet_mod.summary_view(packet, budget=4000)
+    assert "constraints" in summary["folded"]
+    assert summary["preposition_limits"] == {"03033": {"lot_size": 200, "max_add_shares": 200}}
+    assert packet_mod._printed_bytes(summary) <= 3600
+    # An oversized book still has the same escape route to the full query.
+    tiny = packet_mod.summary_view(packet, budget=100)
+    assert "preposition_limits" not in tiny
+    assert tiny["folded"]["constraints"].endswith("section=constraints")
+
+
 def test_a_crossed_summary_is_folded_to_ten_percent_headroom(monkeypatch):
     """#3418: stopping one byte under the cap re-refused the read next day."""
     context = _book_with(12)

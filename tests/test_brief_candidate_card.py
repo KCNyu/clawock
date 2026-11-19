@@ -54,7 +54,7 @@ def test_rich_card_gets_a_deterministic_deduplicated_candidate_section(
 
     # An older card file's ▎ header is replaced by the current section.
     assert result.count("提前布局候选") == 1
-    assert "提示 2 个底层机会 · 可小仓试探 0 · 当前可加仓 0" in result
+    assert "早期趋势信号 2 个底层 · 其中可试探 0" in result
     assert "SPCX（SPCH 映射）" in result
     assert "模型遗漏的旧文字" not in result
     assert "缺一手披露" in result
@@ -69,8 +69,8 @@ def test_plan_fallback_also_reports_zero_candidate_truth(tmp_path, monkeypatch):
 
     result = common.build_brief_card(TODAY, decision_packet=packet)
 
-    assert "提示 0 个底层机会 · 可小仓试探 0 · 当前可加仓 0" in result
-    assert "不是“模型没写”" in result
+    assert "早期趋势信号 0 个底层 · 其中可试探 0" in result
+    assert "登记策略允许条件买腿 0 票" in result
     assert result.index("**提前布局候选**") < result.index("完整报告：")
 
 
@@ -96,3 +96,21 @@ def test_a_card_without_a_version_keeps_its_old_shape(tmp_path, monkeypatch):
         TODAY, decision_packet={"add_alpha_diagnostics": {"candidates": []}})
 
     assert "本卡版本" not in result
+
+
+def test_conditional_buy_legs_do_not_create_early_signals():
+    rows = [
+        {"ticker": "03033", "allowed": True, "tier": "user_experiment",
+         "state": "eligible", "max_add_shares": 200},
+        {"ticker": "SPCX", "allowed": False, "tier": "user_experiment",
+         "state": "risk_blocked", "max_add_shares": 1},
+        {"ticker": "RKLB", "allowed": True, "tier": "none"},
+    ]
+    for row in rows:
+        row["early_trend"] = {"observed": False, "state": "not_candidate"}
+    result = common._early_candidate_section({"add_alpha_diagnostics": {"candidates": rows}})
+    assert "早期趋势信号 0 个底层" in result
+    assert "登记策略允许条件买腿 2 票" in result
+    assert "03033 200 股" in result
+    assert "not_candidate" not in result
+    assert "SPCX" not in result

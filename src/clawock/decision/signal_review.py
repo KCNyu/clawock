@@ -29,10 +29,8 @@ CI 整体成立时才允许反向解读。T+5/T+20 窗口逐日重叠 → 披露
 一行，而周六/周日和节假日永远没有对应市场的交易时段——闭市日报价源会漂移，或与
 下一交易日盘前快照逐字重复（实测 07-26≡07-27、08-09≡08-10 全 ticker 收盘集相同；
 07-03 美股休市日 MSFT/HOOD 收盘 = 下周一遍），跨它结算的 forward return 是伪观测
-（重复行 fwd 恒 0，对 ±方向都是必 miss）。结算按「标的所属市场的开市留痕日」序列走：
-触发日闭市的因子行不产生观测并计入 closed_market_rows_excluded；开市触发的窗口
-顺延到该标的自己的第 N 个开市留痕行（周五顺延周一的同语义推广），horizon 数的是
-时段行而不是原始行。市场归属单一出处 instruments registry；日历未覆盖的年份
+（重复行 fwd 恒 0，对 ±方向都是必 miss）。按该市场交易日历确定目标场次，目标场次无留痕则不计；中间缺行不延长窗口。
+市场归属单一出处 instruments registry；日历未覆盖的年份
 fail-open 不剔数据。
 """
 import random
@@ -40,7 +38,9 @@ from datetime import date
 
 from clawock import seeds
 from clawock import history_store
-from clawock.decision.session_history import normalize_days, session_open_for_symbol
+from clawock.decision.session_history import (
+    horizon_marks, logged_sessions, normalize_days, session_open_for_symbol,
+)
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
@@ -160,31 +160,26 @@ def main(argv=None):
              for k, (_, _, h) in FACTOR_TESTS.items()}
     frozen = frozen_ticker_days(days)
     frozen_excluded = 0
-    # 闭市留痕行不是交易时段（#1050/#1056）：每只标的走自己的开市留痕日序列，
-    # 触发日闭市的因子行由 _closed_trigger_rows 单独披露；horizon 数的是该
-    # 标的自己的时段行数，跨闭市日的窗口顺延到它的下一个时段行。
+    # Closed-day triggers have a separate diagnostic. Missing open days keep
+    # their place in the calendar, even when no symbol logged a mark.
     closed_excluded = _closed_trigger_rows(days)
     universe = sorted({sym for day in days for sym in ((day.get('rows')) or {})})
     seq_max = 0
+    horizons = {horizon for _, _, horizon in FACTOR_TESTS.values()}
     for sym in universe:
-        seq = []
-        for day in days:
-            if not session_open_for_symbol(sym, day.get('as_of')):
-                continue
-            sig = (day.get('rows') or {}).get(sym)
-            if sig is not None:
-                seq.append((day['as_of'], sig))
-        seq_max = max(seq_max, len(seq))
-        for i, (as_of, sig) in enumerate(seq):
+        rows = logged_sessions(days, sym)
+        seq_max = max(seq_max, len(rows))
+        marks = {h: horizon_marks(rows, sym, h) for h in horizons}
+        for session, sig in rows.items():
             c0 = sig.get('close')
             if not c0:
                 continue
+            as_of = session.isoformat()
             for name, (cond, direction, horizon) in FACTOR_TESTS.items():
-                if i + horizon >= len(seq):
-                    continue          # 窗口未到期，留给未来结算
-                if not cond(sig):
+                end = marks[horizon].get(session)
+                if end is None or not cond(sig):
                     continue
-                settle_as_of, settle_sig = seq[i + horizon]
+                settle_as_of, settle_sig = end.isoformat(), rows[end]
                 c1 = settle_sig.get('close')
                 if not c1:
                     continue
