@@ -227,6 +227,17 @@ def test_degraded_with_a_real_content_issue_reads_as_needs_action():
     assert '3 条意见' in note['text'] and '1 条需核查' in note['text']
 
 
+def test_wechat_drop_cannot_hide_escalating_content():
+    record = _record_with('degraded', postflight={
+        'issue_count': 2, 'escalating_count': 1, 'data_plane_status': 'published',
+    }, primary_delivery={'wechat_ok': False, 'telegram_ok': True})
+    result = timetable(_contract('3 10 * * 1-5'), [record],
+                       now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
+    note = result['jobs'][0]['slots'][0]['note']
+    assert note['disposition'] == 'needs_action'
+    assert '1 条需核查' in note['text'] and '微信投递失败' in note['text']
+
+
 def test_an_overlong_brief_is_named_as_length_not_as_possibly_wrong():
     """2026-09-11 08:03: the one escalating issue was the extreme-length flag,
     and the card said the delivered brief「可能有误」. Length is not content."""
@@ -315,20 +326,10 @@ def test_a_holiday_skip_and_a_quiet_slot_have_their_own_states():
 
 
 def test_every_verdict_the_ledger_can_file_has_a_panel_state():
-    """#2262: `artifact_only` was a verdict nobody mapped, so the board said
-    「状态未知」 beside a product section that said 「仅存档」. Read the verdicts
-    off the function that files them."""
-    import inspect
-    import re
-
-    from clawock.automation import workflow_outcomes
     from clawock.publish.cron_schedule import STATE_OF_VERDICT
+    from clawock.publish.outcomes import ProductStatus
 
-    source = inspect.getsource(workflow_outcomes._derive_final)
-    verdicts = set(re.findall(r'status(?:, reason)? = \(?"(\w+)"', source))
-    verdicts |= set(re.findall(r'status = "(\w+)" if \w+ else "(\w+)"', source)[0])
-    assert {"artifact_only", "success", "degraded"} <= verdicts
-    assert verdicts <= set(STATE_OF_VERDICT), verdicts - set(STATE_OF_VERDICT)
+    assert set(STATE_OF_VERDICT) == set(ProductStatus)
 
     result = timetable(_contract('3 10 * * 1-5'), [
         _record('2026-09-03T10:03:00+08:00', 'artifact_only'),

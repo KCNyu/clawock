@@ -124,6 +124,20 @@ def test_ledger_grades_a_leveraged_fund_with_its_underlying_from_the_same_store(
     assert 'implausible_move' not in ledger.bar('PLTR', '2026-08-04')
 
 
+def test_hstech_leveraged_fund_can_use_its_registered_one_x_substitute():
+    fund = {
+        '2026-08-03': {'open': 100, 'low': 99, 'high': 101, 'close': 100},
+        '2026-08-04': {'open': 157, 'low': 156, 'high': 159, 'close': 158},
+    }
+    proxy = {'2026-08-03': {'close': 100}, '2026-08-04': {'close': 129.5}}
+    from clawock.market_data.integrity import flag_implausible_moves
+
+    without = bars.leverage_context('07226', bars_of={}.get)
+    assert 'implausible_move' in flag_implausible_moves(fund, **without)['2026-08-04']
+    with_proxy = bars.leverage_context('07226', bars_of={'03033': proxy}.get)
+    assert 'implausible_move' not in flag_implausible_moves(fund, **with_proxy)['2026-08-04']
+
+
 def test_merge_grades_a_batch_in_date_order_not_input_order(tmp_path, monkeypatch):
     """#3416: a provider response is not guaranteed to be chronological.
 

@@ -475,8 +475,11 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
 
     反事实与对比线读起投以来的完整净值 `nav_series`（compute() 传入）；`nav_history`
     只是写盘的迷你图窗口，拿它当输入会把起投日挪到窗口首日（#2999）。"""
+    previous = gold.get('london') or {}
+    cached = previous.get('dca_equiv')
+    stale_equiv = {**cached, 'stale': True} if cached else None
     if not spot or not spot.get('xau_usd') or not usdcny:
-        return gold.get('london')  # 抓空：沿用旧值，绝不清空
+        return {**previous, 'dca_equiv': stale_equiv} if cached else gold.get('london')
     xau = spot['xau_usd']
     cur_value_cny = derived.get('current_value') or 0
     intl_usd = cur_value_cny / usdcny if usdcny else None
@@ -496,8 +499,12 @@ def compute_london(derived, gold, spot, usdcny, usdcny_hist, xau_hist,
     dca_equiv = build_london_dca(nav_series, xau_hist, usdcny_hist,
                                  xau, usdcny, start,
                                  float(gold.get('daily_amount', 200))) if covered else None
-    if not dca_equiv and gold.get('london', {}).get('dca_equiv'):
-        dca_equiv = gold['london']['dca_equiv']  # 历史限流 → 沿用旧值
+    # Date only a fresh calculation. A legacy cached block may already be older
+    # than the previous London quote, so that quote's date cannot date the block.
+    if dca_equiv:
+        dca_equiv.update(as_of=spot.get('date'), stale=False)
+    else:
+        dca_equiv = stale_equiv
     coverage_start = _london_history_coverage_start(
         derived.get('nav_history') or [],
         gold.get('start_date', ''),
@@ -782,6 +789,11 @@ def main(argv=None):
             print(f"  ℹ️ {ld['hist_advisory']}")
         de = ld.get('dca_equiv')
         if de:
+            if de.get('stale') is True:
+                date_note = f"截至 {de['as_of']}" if de.get('as_of') else '日期未记录'
+                print(f"  ⚠️ 以下为上次模拟结果（{date_note}）")
+            elif 'stale' not in de:
+                print('  ⚠️ 模拟估值日期未记录')
             print(f"  ↳ 按计划定投伦敦金（模拟）：平均成本 ${de['avg_cost_usd_oz']:,.2f}/oz "
                   f"(¥{de['avg_cost_cny_g']:,.2f}/克) vs 现货 ${de['spot_usd_oz']:,.2f}/oz "
                   f"→ 回本需涨 {de['breakeven_upside_pct']:+.2f}%")

@@ -305,3 +305,21 @@ def test_us_early_closes_are_half_trading_days():
         # Before the early close the settled answer is still the prior session.
         assert (trading_calendar.latest_completed_session("us", at("12:30")).isoformat()
                 < day)
+
+
+def test_us_intraday_early_close_uses_the_exchange_date_and_preserves_open_slots():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    hkt = ZoneInfo("Asia/Hong_Kong")
+    last_open = datetime(2026, 11, 28, 1, 33, tzinfo=hkt)
+    assert trading_calendar.intraday_closed_reason("us", last_open) is None
+    for minute in (3, 33):
+        after_close = datetime(2026, 11, 28, 2, minute, tzinfo=hkt)
+        assert "13:00 ET" in trading_calendar.intraday_closed_reason("us", after_close)
+    assert trading_calendar.intraday_closed_reason(
+        "us", datetime(2026, 11, 28, 2, 1, tzinfo=hkt), started_at=last_open,
+    ) is None
+    assert trading_calendar.intraday_closed_reason(
+        "us", datetime(2026, 11, 21, 2, 33, tzinfo=hkt),
+    ) is None

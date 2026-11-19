@@ -249,7 +249,7 @@ def test_london_counterfactual_spans_the_whole_dca_not_the_chart_window():
     "起投=100" line must start where the DCA started (#2999)."""
     book, history, xau = _lifetime_book(gold.HISTORY_KEEP + 160)
     derived = gold.compute(
-        book, history, None, {"xau_usd": 4300.0}, 6.9,
+        book, history, None, {"xau_usd": 4300.0, "date": "2026-11-18"}, 6.9,
         {day: 6.9 for day, _, _ in history}, xau,
         {"name": gold.XAU_PRIMARY_SOURCE, "points": len(xau)},
         {"name": "frankfurter_usdcny", "points": len(history)},
@@ -257,6 +257,8 @@ def test_london_counterfactual_spans_the_whole_dca_not_the_chart_window():
     london = derived["london"]
 
     assert len(derived["nav_history"]) == gold.HISTORY_KEEP
+    assert london["dca_equiv"]["as_of"] == "2026-11-18"
+    assert london["dca_equiv"]["stale"] is False
     assert london["dca_equiv"]["days"] == derived["days_invested"] == len(history)
     assert london["dca_equiv"]["principal_cny"] == 200 * len(history)
     # Baseline is the start date: the London index of the last point is
@@ -270,14 +272,15 @@ def test_london_history_short_of_the_start_keeps_the_previous_counterfactual():
     """A failed fetch leaves only the stored window; recomputing on it would
     quietly drop the oldest purchases again, so the old values stand."""
     book, history, xau = _lifetime_book(gold.HISTORY_KEEP + 160)
-    previous = {"dca_equiv": {"days": len(history) - 1},
+    previous = {"xau_date": "2026-11-18",
+                "dca_equiv": {"days": len(history) - 1},
                 "compare_series": [["2025-01-01", 100.0, 100.0]]}
     derived = gold.compute(
         {**book, "london": previous}, history, None, {"xau_usd": 4300.0}, 6.9,
         {day: 6.9 for day, _, _ in history}, xau[-gold.HISTORY_KEEP:],
     )
 
-    assert derived["london"]["dca_equiv"] == previous["dca_equiv"]
+    assert derived["london"]["dca_equiv"] == {**previous["dca_equiv"], "stale": True}
     assert derived["london"]["compare_series"] == previous["compare_series"]
 
 

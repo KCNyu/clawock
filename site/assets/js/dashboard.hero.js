@@ -2157,16 +2157,20 @@
         if (de && de.avg_cost_usd_oz != null) {
           const beColor = de.breakeven_upside_pct > 0 ? 'var(--negative)' : 'var(--positive)';
           const dColor = de.pnl_pct >= 0 ? 'var(--positive)' : 'var(--negative)';
+          const dateNote = de.as_of ? `截至 ${escapeHtml(de.as_of)}` : '估值日期未记录';
+          const estimateNote = de.stale === true ? `沿用上次模拟结果（${dateNote}）`
+            : de.stale === undefined || de.as_of ? dateNote : '';
           html +=
             `<details style="margin-top:8px;padding-top:8px;border-top:1px dashed color-mix(in srgb,var(--warning) 28%,transparent)">
                <summary class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;cursor:pointer">模拟对照 · 若每个基金交易日直接买伦敦金</summary>
                <div style="margin-top:6px">
+               ${estimateNote ? `<div class="muted" style="font-size:var(--fs-micro)">${estimateNote}</div>` : ''}
                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
                  <span style="font-size:var(--fs-lg);font-weight:700">$${num(de.avg_cost_usd_oz, 2)}<span style="font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary)">/oz</span></span>
                  <span style="font-size:var(--fs-sm);font-weight:700;color:var(--text-secondary)">¥${num(de.avg_cost_cny_g, 2)}/克</span>
                </div>
                <div class="muted" style="font-size:var(--fs-xs);margin-top:3px;text-transform:none;letter-spacing:0">
-                 现货 <b style="color:var(--text-primary)">$${num(de.spot_usd_oz, 2)}</b>/oz · 回本需涨 <b style="color:${beColor}">${de.breakeven_upside_pct >= 0 ? '+' : ''}${num(de.breakeven_upside_pct, 2)}%</b>
+                 模拟所用金价 <b style="color:var(--text-primary)">$${num(de.spot_usd_oz, 2)}</b>/oz · 回本需涨 <b style="color:${beColor}">${de.breakeven_upside_pct >= 0 ? '+' : ''}${num(de.breakeven_upside_pct, 2)}%</b>
                  ${de.principal_cny != null ? `· 模拟投入 ¥${num(de.principal_cny)}${de.days != null ? ` / ${num(de.days)} 次` : ''}` : ''}
                  ${de.current_value_cny != null ? `· 模拟现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
                </div>

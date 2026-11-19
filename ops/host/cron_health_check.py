@@ -36,7 +36,7 @@ sys.path.insert(0, str(_CHECKOUT / "src"))
 from clawock.scheduling import parse_cron_slots  # noqa: E402
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.publish import cron_schedule as _panel_schedule  # noqa: E402
-from clawock.publish.outcomes import delivered_data_only_fallback  # noqa: E402
+from clawock.publish.outcomes import backstop_delivered  # noqa: E402
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.providers import openclaw  # noqa: E402
 
@@ -453,8 +453,7 @@ def backstop_covered_slots(job_name, slots, tz_name, outcomes, today=None):
     for record in outcomes.get('records', []):
         if record.get('job') != job_name:
             continue
-        if ((record.get('final_product') or {}).get('status') != 'recovered'
-                and not delivered_data_only_fallback(record)):
+        if not backstop_delivered(record):
             continue
         try:
             slot_dt = datetime.fromisoformat(record['slot'])

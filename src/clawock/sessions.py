@@ -402,6 +402,26 @@ def slot_session(market: str, at: datetime | None = None) -> str:
     return "afternoon" if now.time() >= time(12, 0) else "full"
 
 
+def intraday_closed_reason(market: str, at: datetime | None = None, *,
+                           started_at: datetime | None = None) -> str | None:
+    """Closed-date or early-close reason for a scheduled intraday slot."""
+    market = market.lower()
+    tz = ZoneInfo(MARKET_TZ[market])
+    local = at.astimezone(tz) if at else datetime.now(tz)
+    day = local.date()
+    reason = closed_reason(market, day, session=slot_session(market, local))
+    if reason:
+        return reason
+    if market == "us" and day.isoformat() in US_HALF_DAYS:
+        close = session_close(market, day)
+        if local.time() >= close:
+            # A valid preflight from the same session can finish after the bell.
+            started = started_at.astimezone(tz) if started_at else local
+            if started.date() != day or started.time() >= close:
+                return f"半日市·{close:%H:%M} ET 提前收盘"
+    return None
+
+
 def phase_session(market: str, phase: str | None) -> str:
     """Map a harness phase to a calendar session (HK afternoon = pm/close)."""
     if market == "hk" and phase in ("pm", "close"):

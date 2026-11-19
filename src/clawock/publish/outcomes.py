@@ -11,11 +11,25 @@ it (the direction the wheel may never depend in).
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from enum import StrEnum
 from clawock.sessions import HKT
 
 # Slots are recorded in the desk's local wall clock and some are written without
 # an offset; assuming HKT for those is the ledger's own long-standing rule.
 LEDGER_TZ = HKT
+
+class ProductStatus(StrEnum):
+    """Final product states stored in the workflow outcome ledger."""
+
+    SUCCESS = 'success'
+    DEGRADED = 'degraded'
+    RECOVERED = 'recovered'
+    FAILED = 'failed'
+    PENDING = 'pending'
+    SKIPPED = 'skipped'
+    NO_CHANGE = 'no_change'
+    ARTIFACT_ONLY = 'artifact_only'
+
 
 # A raw error whose final product still shipped is a false red, not a failure.
 USABLE_PRODUCT_STATES = {"success", "recovered", "degraded", "artifact_only"}
@@ -39,8 +53,14 @@ def delivered_data_only_fallback(record) -> bool:
     """The watchdog delivered a data block and the product still needs attention."""
     final = record.get('final_product') or {}
     watchdog = (record.get('stages') or {}).get('watchdog_delivery') or {}
-    return (final.get('status') == 'degraded' and final.get('fallback_only') is True
+    return (final.get('status') == ProductStatus.DEGRADED and final.get('fallback_only') is True
             and watchdog.get('status') == 'success')
+
+
+def backstop_delivered(record) -> bool:
+    """Whether the ledger confirms recovery, including a data-only fallback."""
+    final = record.get('final_product') or {}
+    return final.get('status') == ProductStatus.RECOVERED or delivered_data_only_fallback(record)
 
 
 def degradations_of(payload) -> list:
