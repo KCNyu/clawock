@@ -133,3 +133,32 @@ def test_public_gate_link_is_pinned_and_disappears_after_local_edit(tmp_path):
     assert I._published_gates(tmp_path)[path] == f"https://github.com/KCNyu/clawock/blob/{commit}/{path}"
     artifact.write_text('{"changed": true}')
     assert path not in I._published_gates(tmp_path)
+
+
+def test_weekly_handoff_reserves_room_for_backlog_and_caps_distinct_dispositions(tmp_path):
+    def ingest(tickers, day):
+        I.ingest(tmp_path, [{**CANDIDATE, "ticker": ticker} for ticker in tickers], today=day)
+
+    ingest(["OLD", "BACK"], DAY)
+    today = "2026-11-02"
+    ingest(["NEW", "FRESH", "MORE"], today)
+    assert [row["ticker"] for row in I.weekly(tmp_path, today=today)["queue"]] == [
+        "FRESH", "BACK", "MORE", "OLD"]
+    assessment = {"thesis": "unit volume rose", "counterevidence": "margin contracted",
+                  "primary_sources": ["https://www.sec.gov/company"], "completed": True,
+                  "benchmark": "SPY"}
+
+    def mark(ticker):
+        return I.set_status(tmp_path, "US", ticker, "deferred", reason="wait for filing",
+                            review_on="2026-11-09", today=today, assessment=assessment)
+
+    for ticker in ("FRESH", "BACK", "MORE", "OLD", "OLD"):
+        mark(ticker)
+    with pytest.raises(ValueError, match="weekly research limit"):
+        mark("NEW")
+    view = I.weekly(tmp_path, today=today)
+    assert view["completed"] == 4 and view["completion_rate"] == 1
+    assert view["processed"][0]["first_processing_days"] == 2
+    assert view["queue"] == []
+    assert I.weekly(tmp_path, today="2026-11-09")["queue"][0]["ticker"] == "BACK"
+    assert not (tmp_path / "memory/entry-gates").exists()

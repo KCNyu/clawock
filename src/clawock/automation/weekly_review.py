@@ -496,6 +496,8 @@ def build_user_prompt(payload):
         "`bundle_evidence.nav_change`（口径=期末减期初 NAV, 含期内任何出入金）——"
         "直接引用, 不要自己再从 snapshots 相减; 你要写的是主要贡献者与主要拖累的归因\n"
         "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
+        "点名可核验的代表决策及结果，用日期、标的和决策编号定位。"
+        "对仍未解决或连续多次出现的判断错误，写明待验证的反证和下一复查条件；只引用包内有记录的研究。\n"
         "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
         "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
         "四个小节的二级标题必须逐字使用下面四行（行尾可以加括号说明，不要改写标题本身）：\n"
