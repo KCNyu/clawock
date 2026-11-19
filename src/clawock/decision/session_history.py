@@ -30,6 +30,36 @@ def session_open_for_symbol(symbol, day) -> bool:
         return True
 
 
+def logged_sessions(days, symbol):
+    """Index marks by the symbol's own open market dates."""
+    market = instruments.market_for_symbol(symbol)
+    result = {}
+    for day in days:
+        row = (day.get('rows') or {}).get(symbol)
+        if row is None:
+            continue
+        try:
+            session = date.fromisoformat(day['as_of'])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if sessions.is_trading_day(market, session):
+            result[session] = row
+    return result
+
+
+def horizon_marks(rows, symbol, horizon):
+    """Map each logged trigger to its exact T+horizon mark, when both exist."""
+    market = instruments.market_for_symbol(symbol)
+    marks = {}
+    for end in rows:
+        start = end
+        for _ in range(horizon):
+            start = sessions.previous_trading_day(market, start)
+        if start in rows:
+            marks[start] = end
+    return marks
+
+
 def normalize_days(records):
     """Last logged row per ticker/source session, preserving legacy fallbacks."""
     cached = {}

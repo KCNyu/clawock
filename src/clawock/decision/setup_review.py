@@ -20,9 +20,8 @@
      留痕器任何时刻跑都会落一行，而闭市日报价源会漂移、或与下一交易日的
      盘前快照逐字重复——跨它算出的 forward return 是伪观测（实测周末行把
      chase_low_quality 的 T+1 命中率从干净段 63.0% 拖到公开值 54.0%，解锁判词被压翻转；
-     节假日重复行 fwd 恒 0，对 ±方向都是必 miss）。结算按「标的所属市场的开市留痕日」
-     序列走：触发日闭市的行不产生观测，开市触发的窗口顺延到该标的自己的第 N 个
-     开市留痕日（周五顺延周一的同语义推广）。市场归属单一出处 instruments registry，
+     节假日重复行 fwd 恒 0，对 ±方向都是必 miss）。按交易日历确定目标场次，目标场次无留痕则不计。
+     市场归属单一出处 instruments registry，
      日历未覆盖的年份 fail-open 不剔数据。读取侧防御、数据不改写，与 quant_signal_review
      的冻结价闸同一模式。
  输出 assets/data/t0_setup_review.json。brief preflight 每日顺跑，dashboard🎯卡展示。
@@ -32,7 +31,9 @@ import math
 import sys
 from datetime import date
 
-from clawock.decision.session_history import normalize_days, session_open_for_symbol
+from clawock.decision.session_history import (
+    horizon_marks, logged_sessions, normalize_days, session_open_for_symbol,
+)
 
 
 def wilson_ci(hits, n, z=1.96):
@@ -120,11 +121,8 @@ def _closed_trigger_rows(days):
 def _settle(days, horizon):
     """Run the grade-vs-forward-return accounting for one horizon.
 
-    Settlement walks each ticker's own open-market logged-day sequence
-    (#1050, extended to weekday holidays by #1056): a trigger on a closed
-    day produces no observation at all, and a window crossing a closed day
-    settles against that ticker's next open logged day — the same deferral
-    that already carried a Friday trigger to Monday.
+    Settle only at the exact market-session horizon. Missing intermediate
+    observations do not move the mark.
 
     Returns (stats, grades, usable_lines) — the same three things main()
     assembles, so a multi-horizon run is one loop instead of a copy.
@@ -133,16 +131,13 @@ def _settle(days, horizon):
     universe = sorted({t for d in days for t in (d.get('rows') or {})})
     seq_max = 0
     for t in universe:
-        # 该标的自己的时段序列：开市留痕日上有它一行才入列。
-        seq = [row for d in days if session_open_for_symbol(t, d.get('as_of'))
-               for row in [(d.get('rows') or {}).get(t)] if row is not None]
-        seq_max = max(seq_max, len(seq))
-        for i, m in enumerate(seq):
-            if i + horizon >= len(seq):
-                continue  # 窗口未到期
+        rows = logged_sessions(days, t)
+        seq_max = max(seq_max, len(rows))
+        for start, end in horizon_marks(rows, t, horizon).items():
+            m = rows[start]
             c0 = m.get('close')
             lab = m.get('grade_label') or ''
-            c1 = (seq[i + horizon] or {}).get('close')
+            c1 = rows[end].get('close')
             if not c0 or not c1:
                 continue
             fwd = c1 / c0 - 1

@@ -96,3 +96,27 @@ def test_session_open_is_judged_on_the_symbols_own_market():
     assert session_open_for_symbol("NVDA", "2026-07-04") is False     # Saturday
     # Fail open: an unparseable day drops no real session.
     assert session_open_for_symbol("NVDA", "not-a-date") is True
+
+
+def test_missing_open_session_never_moves_the_factor_or_setup_mark(monkeypatch, tmp_path):
+    # Friday's T+1 is missing. Its T+5 is present despite the missing Monday.
+    days = [
+        {'as_of': '2026-08-07', 'rows': {'NVDA': {
+            'close': 100, 'grade_label': '追高低质', 'trend_on': True, 'rsi14': 20}}},
+        {'as_of': '2026-08-11', 'rows': {'NVDA': {'close': 80}}},
+        {'as_of': '2026-08-14', 'rows': {'NVDA': {'close': 110}}},
+    ]
+    assert setup_review._settle(days, 1)[1]['chase_low_quality']['n'] == 0
+    assert setup_review._settle(days, 5)[1]['chase_low_quality']['hit_rate'] == 0
+    for day in days:
+        day['rows']['NVDA']['row_as_of'] = day['as_of']
+    hist = tmp_path / 'history.jsonl'
+    hist.touch()
+    monkeypatch.setattr(signal_review, 'HIST', hist)
+    monkeypatch.setattr(signal_review.history_store, 'load_series', lambda _: days)
+    captured = {}
+    monkeypatch.setattr(signal_review, 'safe_write_json', lambda _, data: captured.update(data))
+    signal_review.main()
+    factors = captured['factors']
+    assert factors['trend_on_follow']['n_events'] == 0
+    assert factors['rsi_oversold_bounce']['hit_rate'] == 1

@@ -15,7 +15,7 @@ manifest, Pages contract); no network, no send.
 import json
 
 from clawock.scheduling import BRIEF_SLOT_HKT
-from clawock.decision import add_policy
+from clawock.decision import preposition
 from clawock.decision.book import plan_totals
 from clawock.workspace import workspace_root
 from clawock.harness.chat_card import table
@@ -76,7 +76,6 @@ def _early_candidate_section(packet):
     observed = [
         row for row in candidates
         if (row.get('early_trend') or {}).get('observed')
-        or add_policy.is_authorised_tier(row.get('tier'))
     ]
     by_source = {}
     for row in observed:
@@ -94,7 +93,8 @@ def _early_candidate_section(packet):
     allowed_count = sum(bool(row.get('allowed')) for row in candidates)
     lines = [
         _EARLY_SECTION_HEADER,
-        f'提示 {idea_count} 个底层机会 · 可小仓试探 {exploration_count} · 当前可加仓 {allowed_count}',
+        f'早期趋势信号 {idea_count} 个底层 · 其中可试探 {exploration_count}',
+        f'登记策略允许条件买腿 {allowed_count} 票（含换仓买腿，实际动作见计划）',
     ]
     ranked = sorted(
         by_source.items(),
@@ -121,8 +121,15 @@ def _early_candidate_section(packet):
         ][:2]
         suffix = f"；{'、'.join(blockers)}" if blockers else ''
         lines.append(f'- {name}: {state}{suffix}')
-    if not ranked:
-        lines.append('- 暂无确定性提前提示；不是“模型没写”，而是价格/同业条件未同时成立')
+    sizes = [
+        f"{row['ticker']} {row['max_add_shares']} 股"
+        for row in candidates
+        if row.get('tier') == preposition.TIER and row.get('state') == 'eligible'
+        and row.get('allowed') and row.get('max_add_shares') and row.get('ticker')
+    ]
+    if sizes:
+        suffix = f' 等 {len(sizes)} 票' if len(sizes) > 6 else ''
+        lines.append('其中预埋试验单票上限（各自单独计算）：' + '、'.join(sizes[:6]) + suffix)
     from clawock.market_data.stock_discovery import candidate_lines
     discovery_lines = candidate_lines(packet.get('stock_discovery'))
     if discovery_lines:
