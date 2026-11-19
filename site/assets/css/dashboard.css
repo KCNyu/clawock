@@ -3071,7 +3071,7 @@
   .hs-read {
     position: absolute; left: 0; bottom: 100%; margin-bottom: 3px;
     padding: 1px 6px; border-radius: var(--radius-sm);
-    background: var(--overlay); box-shadow: var(--shadow-card);
+    background: var(--surface-3); box-shadow: var(--shadow-card);
     font: 500 var(--fs-xs)/1.4 var(--font); color: var(--text-secondary);
     font-variant-numeric: tabular-nums; white-space: nowrap;
     pointer-events: none; visibility: hidden;

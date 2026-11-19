@@ -277,6 +277,15 @@ def test_every_tinted_chip_meets_aa_on_every_surface_in_both_themes():
         "token (or --text-secondary) for the text:\n" + "\n".join(failures))
 
 
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_scrub_readout_negative_value_meets_aa(theme):
+    css = CSS.read_text(encoding="utf-8")
+    tokens = _theme_tokens(css)[theme]
+    background = _paint(_rule_value(css, ".hs-read", "background"), tokens, _hex(tokens["--surface-1"]))
+    foreground = _paint(_rule_value(css, ".hs-read b.neg", "color"), tokens, background)
+    assert _contrast(foreground, background) >= AA_NORMAL_TEXT
+
+
 def test_plain_negative_text_meets_aa_on_the_light_inset_layers():
     """A semantic token can pass on white and still fail where it is used.
 
