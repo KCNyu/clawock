@@ -80,7 +80,14 @@ clawock research-inbox set AAPL --market US --status deferred --reason '等财�
 `list` 默认最多 50 项，`--limit` 可设至 2000；
 简报最多 6 项、投递卡最多 3 项，截断时提示查看队列。
 达到 2000 项、损坏文件或写入失败会显式降级，保持原文件，仍展示本次候选。
-写入使用文件锁内重读与原子替换；源失败仍保留到期项，无后台调度或额外模型调用。
+写入使用文件锁内重读与原子替换；源失败仍保留到期项。
+
+`clawock research-inbox weekly` 在每个港时 ISO 周提供最多四项研究容量，
+先取到期项，其余名额在本周新增和较早积压之间交替。晨报完成持仓判断后可处理一项。
+`set --assessment FILE` 附上 `thesis`、`counterevidence`、`primary_sources`、
+`completed` 和可选的 `benchmark`（HK 的 HSI 或 US 的 SPY），同时填写理由和未来复查日期。
+同票同周重试只用一个名额。周视图显示首次处理时长、完成比例和后续同市场同标的战术加仓记录，
+用决策计分的 T+1 基准配对，有效样本缺失时留空。它们是后续相关决策，因果归因需逐笔核对。
 
 ## 港股可行性与当前边界
 

@@ -2,16 +2,18 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import json
 from pathlib import Path
 import re
+from urllib.parse import urlsplit
 
 from clawock.safe_io import file_lock, safe_write_json
 from clawock.workspace import workspace_root
 
 STATES = {"pending": "待看", "researching": "研究中", "deferred": "暂缓", "rejected": "已否决"}
 MAX_ROWS = 2000
+WEEKLY_LIMIT = 4
 
 
 def _date(value):
@@ -78,7 +80,8 @@ def ingest(workspace, candidates, *, today):
     return doc
 
 
-def set_status(workspace, market, ticker, status, *, reason, review_on=None):
+def set_status(workspace, market, ticker, status, *, reason, review_on=None,
+               assessment=None, today=None):
     key = _key(market, ticker)
     if status not in STATES or not reason.strip() or len(reason) > 1000:
         raise ValueError("a known status and a reason (1..1000 characters) are required")
@@ -93,10 +96,125 @@ def set_status(workspace, market, ticker, status, *, reason, review_on=None):
         doc = _load(path)
         if key not in doc["rows"]:
             raise ValueError("candidate not in inbox")
-        doc["rows"][key].update(status=status, reason=reason.strip(), review_on=review_on,
-                               updated_at=datetime.now(timezone.utc).isoformat())
+        row = doc["rows"][key]
+        if assessment is not None:
+            today = today or _today()
+            _validate_assessment(assessment, status, today, review_on, market)
+            if today < row["first_seen"]:
+                raise ValueError("assessment predates discovery")
+            history = row.setdefault("assessments", {})
+            week = _week_start(today)
+            if week not in history and _processed(doc, week) >= WEEKLY_LIMIT:
+                raise ValueError("weekly research limit reached")
+            row.setdefault("first_processed_on", today)
+            history[week] = {"on": today, "status": status, "reason": reason.strip(),
+                             "review_on": review_on, **assessment}
+        row.update(status=status, reason=reason.strip(), review_on=review_on,
+                   updated_at=datetime.now(timezone.utc).isoformat())
         safe_write_json(str(path), doc)
     return doc["rows"][key]
+
+
+def _today():
+    from clawock.sessions import hkt_today
+    return hkt_today().isoformat()
+
+
+def _week_start(today):
+    day = _date(today)
+    return (day - timedelta(days=day.weekday())).isoformat()
+
+
+def _processed(doc, week):
+    return sum(week in row.get("assessments", {}) for row in doc["rows"].values())
+
+
+def _validate_assessment(assessment, status, today, review_on, market):
+    fields = {"thesis", "counterevidence", "primary_sources", "completed"}
+    if not isinstance(assessment, dict) or not fields <= assessment.keys() or (
+            assessment.keys() - fields - {"benchmark"}):
+        raise ValueError("assessment needs thesis, counterevidence, primary_sources and completed")
+    if status == "pending" or not review_on or review_on <= today:
+        raise ValueError("assessment needs a disposition and future review date")
+    for field in ("thesis", "counterevidence"):
+        value = assessment[field]
+        if not isinstance(value, str) or not 1 <= len(value.strip()) <= 1000:
+            raise ValueError(f"assessment needs {field} (1..1000 characters)")
+    sources = assessment["primary_sources"]
+    if not isinstance(sources, list) or not 1 <= len(sources) <= 5 or not all(
+            isinstance(url, str) and len(url) <= 500 and urlsplit(url).scheme == "https"
+            and urlsplit(url).hostname and not urlsplit(url).username for url in sources):
+        raise ValueError("supply 1..5 primary disclosure HTTPS links")
+    if type(assessment["completed"]) is not bool:
+        raise ValueError("completed must be a boolean")
+    benchmark = assessment.get("benchmark")
+    if benchmark is not None and benchmark != ("HSI" if market.upper() == "HK" else "SPY"):
+        raise ValueError("benchmark must be the market's HSI or SPY, or null when unavailable")
+
+
+def weekly(workspace, *, today):
+    """Review one bounded queue and its dispositions without refreshing discovery."""
+    doc = _load(_path(workspace))
+    week = _week_start(today)
+    processed, due, recent, backlog = [], [], [], []
+    for key, row in doc["rows"].items():
+        if row["first_seen"] > today:
+            continue
+        receipt = row.get("assessments", {}).get(week)
+        if receipt and receipt["on"] <= today:
+            processed.append({"candidate": key, **receipt, "first_processing_days":
+                              (_date(row["first_processed_on"]) - _date(row["first_seen"])).days})
+            continue
+        if row.get("review_on") and row["review_on"] <= today:
+            due.append((row["review_on"], key))
+        elif row["status"] == "pending":
+            (recent if row["first_seen"] >= week else backlog).append((row["first_seen"], key))
+    ordered = [key for _, key in sorted(due)]
+    # Give both fresh discoveries and the oldest unprocessed rows a turn.
+    pairs = zip(sorted(recent), sorted(backlog))
+    ordered.extend(key for pair in pairs for _, key in pair)
+    shared = min(len(recent), len(backlog))
+    ordered.extend(key for _, key in sorted(recent)[shared:] + sorted(backlog)[shared:])
+    remaining = max(0, WEEKLY_LIMIT - len(processed))
+    completed = sum(row["completed"] for row in processed)
+    return {"week_start": week, "as_of": today, "capacity": WEEKLY_LIMIT,
+            "queue": [{"ticker": doc["rows"][key]["ticker"], "market": doc["rows"][key]["market"],
+                       "first_seen": doc["rows"][key]["first_seen"], "review_on": doc["rows"][key]["review_on"]}
+                      for key in ordered[:remaining]],
+            "processed": sorted(processed, key=lambda row: row["candidate"]),
+            "completed": completed, "completion_rate": completed / len(processed) if processed else None,
+            "followup": _proposal_followup(workspace, today, doc)}
+
+
+def _proposal_followup(workspace, today, doc):
+    from . import ledger
+    from .actions import ADD_ACTIONS
+
+    workspace = Path(workspace)
+    decisions = []
+    for row in ledger.load_decisions(workspace / "memory/decisions.jsonl"):
+        candidate = doc["rows"].get(f'{row.get("leg")}:{row.get("ticker")}') or {}
+        first = candidate.get("first_processed_on")
+        day = row.get("plan_date") or ""
+        if (not first or not first < day <= today or row.get("strategy_id") != "tactical_entry"
+                or row.get("action") not in ADD_ACTIONS or not row.get("decision_id")):
+            continue
+        # One published call per pair here. The normal scorecard averages calls by episode.
+        evaluation = row.get("evaluation") or {}
+        mark = evaluation.get("mark_t1_session") or ""
+        decisions.append({**row, "episode_id": row["decision_id"],
+                          "evaluation": evaluation if mark and mark <= today else {}})
+    if not decisions:
+        return []
+    try:
+        benchmark = json.loads((workspace / "assets/data/benchmark.json").read_text())
+    except (OSError, ValueError):
+        benchmark = {}
+    reps = [{"episode_id": row["episode_id"]} for row in decisions]
+    ledger._benchmark_pairs(decisions, reps, "t1", benchmark if isinstance(benchmark, dict) else {})
+    return [{"decision_id": row["decision_id"], "ticker": row["ticker"], "market": row["leg"],
+             "plan_date": row["plan_date"], "t1_benchmark": rep["benchmark_pair"]}
+            for row, rep in list(zip(decisions, reps))[-WEEKLY_LIMIT:]]
 
 
 def _published_gates(workspace):
@@ -192,6 +310,7 @@ def main(argv=None):
     listing = sub.add_parser("list")
     listing.add_argument("--highlights", action="store_true")
     listing.add_argument("--limit", type=int, default=50)
+    sub.add_parser("weekly", help="show the bounded weekly research queue and dispositions")
     drafting = sub.add_parser("draft", help="emit an unassessed entry-gate JSON template; does not clear the gate")
     drafting.add_argument("ticker")
     drafting.add_argument("--market", required=True, choices=["US", "HK"])
@@ -201,9 +320,9 @@ def main(argv=None):
     setting.add_argument("--status", required=True, choices=sorted(STATES))
     setting.add_argument("--reason", required=True)
     setting.add_argument("--review-on")
+    setting.add_argument("--assessment", type=Path, help="record a sourced weekly assessment JSON")
     args = parser.parse_args(argv)
-    from clawock.sessions import hkt_today
-    today = hkt_today().isoformat()
+    today = _today()
     try:
         if args.command == "collect":
             from clawock.market_data.stock_discovery import collect
@@ -212,7 +331,11 @@ def main(argv=None):
             result = draft(workspace_root(), args.market, args.ticker)
         elif args.command == "set":
             result = set_status(workspace_root(), args.market, args.ticker, args.status,
-                                reason=args.reason, review_on=args.review_on)
+                                reason=args.reason, review_on=args.review_on,
+                                assessment=json.loads(args.assessment.read_text()) if args.assessment else None,
+                                today=today)
+        elif args.command == "weekly":
+            result = weekly(workspace_root(), today=today)
         else:
             if not 1 <= args.limit <= MAX_ROWS:
                 raise ValueError("limit must be 1..2000")
