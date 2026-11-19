@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-18T21:00:10.467526+00:00",
+  "generated_at": "2026-11-19T21:06:15.693046+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n\n- **RKLB**: 核心事实：报道称 Neutron 时间表已滑至 2027 年且火箭尚未飞行，执行进度成为主要矛盾。  \n  **Implication**：kcn 通过 **RKLX** 持有，**2x** 会放大延期引发的估值下修与波动，短线偏空。\n- **SPCX**: 核心事实：SpaceX 的 180 天 IPO 锁定期将于 12 月 8 日结束，约 7.98 亿股可能解禁，形成板块供给压制。  \n  **Implication**：kcn 通过 **SPCH** 持有，**2x** 会放大解禁引发的流动性与估值冲击；新闻未披露 SPCH 的直接持仓构成。\n- **CRCL**: 核心事实：World Bank 将与 Citi、Circle 研究在部分市场使用受监管美元稳定币支付项目款。  \n  **Implication**：验证 USDC 的机构采用场景，但目前仅为研究，未披露合同、收入或指引，对 CRCL 温和利好。\n\n### Per-ticker 简报 (有新闻才列)\n\n- **CRCL**: World Bank/Citi 合作提升 USDC 支付采用预期，但商业贡献尚未量化。\n- **RKLB**: Neutron 延至 2027 年的负面意义高于 backlog 与现金储备叙事。\n- **SPCX**: 12 月 8 日潜在解禁是主要事件，属于私募及太空板块估值压力信号。\n\n### 风险 watch (若有)\n\n- **RKLB**: 发射与工程执行风险仍是核心风险；若再次延期，**RKLX 2x** 将放大回撤。\n- **SPCX**: 约 7.98 亿股潜在解禁带来流动性风险，**SPCH 2x** 会放大板块情绪传导。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **CRCL**：阿布扎比法院文件显示，包括 Circle 在内的18家公司须在12月1日听证前继续锁定 Binance 被盗案相关代币。  \n  **Implication：**司法路径打开但资产暂不可动用，CRCL 仍面临听证结果与资产解锁的事件性折价。\n- **RKLB**：Electron 完成第100次发射，报道指其为最快达到该里程碑的商业火箭。  \n  **Implication：**为发射执行能力提供运营验证；kcn 持有 **RKLX（2x RKLB）**，消息冲击会被放大约2倍。\n- **SPCX**：Anthropic IPO 募资规模创华尔街纪录、估值超过1万亿美元，并被直接用于对比 SpaceX。  \n  **Implication：**形成 SpaceX 估值锚但并非基本面催化；kcn 持有 **SPCH（2x SPCX）**，IPO 情绪与估值回撤均会被放大。\n- **RKLB**：Neutron 尚未首飞，订单已排至2030年代，但财报后股价仍下跌。  \n  **Implication：**订单能见度强，市场更关注兑现时点与估值；RKLX 的2x结构会同步放大订单溢价和执行折价。\n- **CRCL**：与 Global Citizen 达成多年协议，在非洲活动及营销中推广 USDC 数字支付。  \n  **Implication：**提升 USDC 跨境采用与品牌触达，但未披露金额、用户目标或收入贡献，短线财务弹性有限。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**：非洲 USDC 多年合作构成采用率利好；涉案代币继续锁定至听证前，法律结果未定。\n- **RKLB**：Electron 达成100次发射里程碑；Neutron 订单强劲但尚未飞行，兑现时点仍是核心变量。\n- **SPCX**：Anthropic IPO 提供高估值参照；SpaceX 与 Nvidia 的深度绑定强化 AI 敞口，也增加集中度风险。\n\n### 风险 watch (若有)\n- **CRCL / 诉讼与司法**：12月1日听证可能引发资产解锁、追偿责任及估值跳变。\n- **RKLB / 执行与估值**：Neutron 尚未首飞且时点不确定；股价三年约涨11倍后，市场质疑收入能否支撑估值，RKLX 2x 会放大去估值波动。\n- **SPCX / 集中度与高估值**：报道称 SpaceX 为 Nvidia 最大客户，而 Nvidia 对 SpaceX 的头寸约197亿美元；双向绑定亦集中了供应商、交易对手及 IPO 情绪风险。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Citi and Circle to Help World Bank Study Stablecoin Payouts",
-        "datetime": 1795000556,
+        "headline": "Bitcoin Price: Heading For The $50,000s?",
+        "datetime": 1795086109,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=18ee9b3b81597ba8cba79ad55ee436b4055532739b0b270a4ba3794ef682b0eb"
+        "url": "https://finnhub.io/api/news?id=42fadab59deee11aac3ff9bb6cbc4547b8f00764f21a8ae3117e633e1a37ad49"
       },
       {
-        "headline": "Circle Internet Group vs. Strategy: Crypto's Brutal Sell-Off Is Exposing a Critical Difference Between These 2 Stocks",
-        "datetime": 1794998702,
+        "headline": "Abu Dhabi Ruling Gives Binance a Legal Path to Reclaim Billions Frozen in Its Hack",
+        "datetime": 1795085130,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2bf28775b013a13e3afbd307dc9dae4770f0f3c3505650025dfe7947d5267412"
+        "url": "https://finnhub.io/api/news?id=0bbbb7f7fb75ed7db6a311253331d0f1f63add156e49fe4c826c78c5b41abdf8"
       },
       {
-        "headline": "Crypto Stocks Rebound As Nvidia’s Earnings Beat Lifts Risk Appetite — Why COIN, CRCL, NXXT Are Moving Today",
-        "datetime": 1794995602,
-        "source": "Yahoo",
+        "headline": "Bitcoin in the 'Value Zone' but Anthropic IPO Bounce Could Trap Bulls",
+        "datetime": 1795083188,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8d84a0ae33c91722d1ec8315a6ed8b81c589368330aa6edbc22331e726475976"
+        "url": "https://finnhub.io/api/news?id=5cd86ad8803fe994beae13d072992a6adecc74913f26d382478d6250727e9c84"
       },
       {
-        "headline": "Bitcoin Price Struggles Under $65K as World Bank Explores USDC Rails: Follow the Dollar Liquidity?",
-        "datetime": 1794991134,
+        "headline": "Circle Internet Group (CRCL) Ties USDC Push In Africa To A Multi Year Deal",
+        "datetime": 1795072466,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9287efe51e4600b255843a2defbd85f297c237d0c7d310cbb183bf397084ad5b"
+        "url": "https://finnhub.io/api/news?id=533da8662d97905de8ae096bb5f7b0fc26b71bd8d3c7b9ff1d6752320ef33d98"
       },
       {
-        "headline": "OKX-ICE Tokenized Stocks Lean on 6 Crypto Firms: Will Wall Street Ever Follow?",
-        "datetime": 1794988800,
+        "headline": "Why Did Cathie Wood Sell Nvidia Before Earnings and Buy Crypto Stocks?",
+        "datetime": 1795064400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=70b8c53de71b9c2672f6db8429e4ffde6033f4e5a632057c95481cb1f2147973"
+        "url": "https://finnhub.io/api/news?id=04eec56be3a947472808df27b48c8dc27aa88eb932946df328fe17a67e8d0082"
       }
     ],
     "RKLB": [
       {
-        "headline": "AST SpaceMobile Just Touched a 52-Week Low. Will ASTS Stock Hit $20 or $40 First?",
-        "datetime": 1795028577,
+        "headline": "Rocket Lab (RKLB) Stock Could Be Overvalued On Record Backlog Growth",
+        "datetime": 1795112216,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6e6c1276f118d6bc84f615e77e014e8386a126ef62f488947b3cd464336e5117"
+        "url": "https://finnhub.io/api/news?id=b56da9841a0834fef94a408521d0650d885ec8219a09a13c0db544b2faace0e3"
       },
       {
-        "headline": "Will 798 Million Unlocked SpaceX Shares on December 8 Swamp Starship’s Catch?",
-        "datetime": 1795027125,
+        "headline": "AST SpaceMobile Is Down 37% in a Month. Can B. Riley’s Upgrade Get ASTS Stock Back to $48?",
+        "datetime": 1795107823,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=62852bebb8d009f6a827016b9358165eafccfa4252ff7342be2cb5b2bfd3c8c8"
+        "url": "https://finnhub.io/api/news?id=71de7df699fa05d5664ee7ad24238091ac5b0a8414b2a441b6765bd15c13e618"
       },
       {
-        "headline": "How To Structure Rocket Lab and Planet Labs as a Space Play Flywheel in a $40 Billion Addressable Market",
-        "datetime": 1795023921,
+        "headline": "Jim Cramer Says Rocket Lab Has ‘Gotten Too Cheap’ Just After Its Electron Rocket Hit 100 Launches Faster Than Any Other Commercial Rocket",
+        "datetime": 1795106074,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=23bd970539367e5e03a1379eb35e9eab8e1e10f4f14340ca6c9c5e8e90c6b74f"
+        "url": "https://finnhub.io/api/news?id=7ad49ee7ee3e4632e90164cf79e6b892e5b875f83401efc480e4fae6137ce47c"
       },
       {
-        "headline": "AST SpaceMobile Falls 5% After Jim Cramer Calls It ‘a Very Hard Stock to Own’; SpaceX Rises 3%, Rocket Lab Holds Steady",
-        "datetime": 1795017471,
+        "headline": "Rocket Lab Has 2 Big Opportunities Ahead. Either One Could Change the Stock’s Trajectory",
+        "datetime": 1795106066,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8823e49106adaa4036f1a50e4ba6585b16231706a8da37ed5d37054ffe7f2d99"
+        "url": "https://finnhub.io/api/news?id=54a6f51f0ab7086ecbc37c1adf17082f9bbe51760e286e4f98c17cee0fbbe47a"
       },
       {
-        "headline": "There Are 8 Billion Reasons to Buy Rocket Lab At $50",
-        "datetime": 1795009545,
+        "headline": "Rocket Lab Sold Out Neutron Through the 2030s Before It Ever Flew. Here’s Why the Stock Fell After Earnings Anyway.",
+        "datetime": 1795100702,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d6836e13ca421bdbcd641a6b2fca4304d1f66785304563274d12091929bde93d"
+        "url": "https://finnhub.io/api/news?id=edc1b7760647c173dbff94c2ecd52324e34fd1b6f2b72343d04115a0bf2b50ef"
       }
     ],
     "SPCX": [
       {
-        "headline": "Why potential Anthropic investors might want to consider a 'wait-and-see' approach",
-        "datetime": 1795029369,
+        "headline": "Ripple CEO Blames Anthropic IPO for Crypto Selloff, Predicts Rally",
+        "datetime": 1795117680,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=938aae6c8b3b496d3b691d7f4ce9ce7fde5a8d28af454bb28bcc85d11c39c3c8"
+        "url": "https://finnhub.io/api/news?id=43c9c8c376df0c6e2df42a210d53ac1a0c57bc5e8e74fa547ebbef3aa6d44107"
       },
       {
-        "headline": "Nvidia, Micron and TSMC Face a Massive Wave of Bearish Bets",
-        "datetime": 1795029072,
+        "headline": "Billionaire Stanley Druckenmiller Cut TSMC 94% in One Quarter, Leaving Just $14.9 Million",
+        "datetime": 1795117611,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ca83b61119f7250e04016379d2ea19ec86893538ebdd84b791fbe30dc0e3f5de"
+        "url": "https://finnhub.io/api/news?id=eb77753cac79e94cc854f23a10a3f565a7b6761a2b976b593310ccc7a3a3804a"
       },
       {
-        "headline": "AST SpaceMobile Just Touched a 52-Week Low. Will ASTS Stock Hit $20 or $40 First?",
-        "datetime": 1795028577,
+        "headline": "‘SpaceX Has Gone All In With Nvidia’: Nvidia’s Biggest Customer Is Also Its Biggest Stock Holding at $19.7B",
+        "datetime": 1795117337,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6e6c1276f118d6bc84f615e77e014e8386a126ef62f488947b3cd464336e5117"
+        "url": "https://finnhub.io/api/news?id=7571f738999d03e723c6bd002c6640c79ec07f69ea5c4bd327e807d708cba6d6"
       },
       {
-        "headline": "Ellison confirms Musk invested roughly $1 billion in Skydance",
-        "datetime": 1795028287,
+        "headline": "Anthropic pulled off the biggest IPO ever. What that means, by the numbers",
+        "datetime": 1795117062,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=45de9d38412c0ef8384ab01ef2cd0ff486c935a44c9e10437b73dea1e2b8ab03"
+        "url": "https://finnhub.io/api/news?id=5b41035516ee2670b26d2175b5341c7b9661b55ea9f1509cc802fda41a94c07a"
       },
       {
-        "headline": "Will 798 Million Unlocked SpaceX Shares on December 8 Swamp Starship’s Catch?",
-        "datetime": 1795027125,
+        "headline": "Anthropic vs. SpaceX: How 2026's Two Biggest IPOs Stack Up.",
+        "datetime": 1795116902,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=62852bebb8d009f6a827016b9358165eafccfa4252ff7342be2cb5b2bfd3c8c8"
+        "url": "https://finnhub.io/api/news?id=26cfd8dd63ffb42d93bfcef9fff3cbcb5ea378ca2dde6885ee6784fe7ab9215d"
       }
     ]
   },
