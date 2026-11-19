@@ -753,3 +753,22 @@ def test_naming_an_old_signal_cannot_cover_a_new_signal(pf):
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
     missed = [i for i in issues if '未提任何信号票' in i]
     assert len(missed) == 1 and 'CRCL' in missed[0] and 'RKLX' not in missed[0]
+
+
+def test_delivered_reading_order_links_holdings_and_preserves_the_context(pf, tmp_path):
+    from clawock.harness import chat_card
+
+    config = tmp_path / 'config'
+    config.mkdir()
+    (config / 'pages-public.json').write_text('{"site_url":"https://desk.example"}')
+    raw = chat_card.render(analyzer=BLOCK, health=['⛔ 行情部分未核'],
+                           action=['- 已有挂单'], changes=['- 新变化'])
+    context = _ctx(raw_wechat_block=raw)
+    assembled = pf.assemble_message(context, PROSE)
+    focused = chat_card.focused_delivery(assembled, workspace=tmp_path, intraday=True)
+    assert focused.index('⛔') < focused.index(chat_card.CHANGES) < focused.index(chat_card.ACTION)
+    assert focused.index(chat_card.ACTION) < focused.index(chat_card.JUDGMENT) < focused.index(chat_card.WATCH)
+    assert '站上 `17.07`' in focused
+    assert '| RKLX' not in focused and 'https://desk.example/#drill' in focused
+    assert '| RKLX' in assembled and context['raw_wechat_block'] == raw
+    assert chat_card.focused_delivery(assembled, workspace=tmp_path / 'missing', intraday=True) == assembled
