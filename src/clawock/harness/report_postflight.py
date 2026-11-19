@@ -495,7 +495,8 @@ def main(argv=None):
     if status == 'fail':
         body = assemble_message(ctx, '')
     else:
-        body = text
+        from clawock.harness.chat_card import focused_delivery
+        body = focused_delivery(text, workspace=WS, intraday=False)
     # Appended after validation, so the footer's numbers are never read as the
     # report's own claims. A manual/dry postflight has no live run and adds
     # nothing; the receipt on a failed send carries this exact body.

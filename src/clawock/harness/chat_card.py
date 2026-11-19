@@ -26,7 +26,9 @@ Everything the card leaves out stays in the context for the model
 """
 from __future__ import annotations
 
+import json
 import re
+from urllib.parse import urlsplit
 
 # Small bold labels, not emoji headings: in a 318px bubble six ### headers and
 # their icons were most of what the eye saw (kcn 2026-10-19: 「太丑了」).
@@ -403,6 +405,50 @@ def trigger_text(item: str) -> str:
     """A checked 下一触发 item in card style: leading ticker bold, levels as code."""
     item = re.sub(r'^([A-Z0-9]{2,6})(?=\s)', r'**\1**', item.strip())
     return re.sub(r'(?<![A-Za-z0-9_.`+*-])(\d+(?:,\d{3})*(?:\.\d+)?)(?![A-Za-z0-9_.%`*])', r'`\1`', item)
+
+
+def focused_delivery(message: str, *, workspace, intraday: bool) -> str:
+    """Lead with the decision and link to the desk's published holdings."""
+    try:
+        contract = json.loads((workspace / 'config/pages-public.json').read_text())
+        root = contract['site_url'].rstrip('/')
+        page = urlsplit(root)
+        if page.scheme != 'https' or not page.hostname or page.query or page.fragment or page.username:
+            return message
+    except (OSError, ValueError, TypeError, AttributeError, KeyError):
+        return message
+
+    lines = message.splitlines()
+    if not lines or not lines[0].startswith('**'):
+        return message
+    first = (CHANGES, ACTION, JUDGMENT, WATCH) if intraday else (ACTION, '**操作建议**')
+    front = {label: [] for label in first}
+    health = []
+    rest = []
+    target = rest
+    holdings = False
+    for line in lines[1:]:
+        if line.startswith('⛔'):
+            health.append(line)
+            continue
+        if re.match(r'^\|\s*代码\s*\|', line):
+            holdings = True
+        if holdings and line.startswith('|'):
+            continue
+        holdings = False
+        if re.fullmatch(r'\*\*[^*]+\*\*', line):
+            target = front.get(line, rest)
+        elif line.startswith('|'):
+            target = rest
+        target.append(line)
+    if ACTION in front and not front[ACTION]:
+        front[ACTION] = [ACTION, bullet('本档未列新增待办')]
+    if intraday and not front[WATCH]:
+        front[WATCH] = [WATCH, bullet('本档未给出已核验的新触发位')]
+    blocks = [lines[0], *(part for rows in (health, *front.values(), rest)
+                         if (part := '\n'.join(rows).strip())),
+              f'[持仓行情 · 最近发布]({root}/#drill) · [计划与证据]({root}/#plan) · [长期复盘]({root}/#reflect)']
+    return '\n\n'.join(blocks)
 
 
 def quote(text: str) -> str:

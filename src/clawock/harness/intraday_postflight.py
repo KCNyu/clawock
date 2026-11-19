@@ -1047,6 +1047,8 @@ def main(argv=None):
         block_first = raw_block.splitlines()
         block_first = block_first[0] if block_first else ''
         body = raw_block if status == 'fail' else text
+        if status != 'fail' and not receipt_only:
+            body = chat_card.focused_delivery(body, workspace=WS, intraday=True)
         if status == 'fail' and not raw_block:
             # Nothing trustworthy to deliver: the banner alone is the scary empty
             # send this harness already fixed once (2026-06-17). Leave it to the

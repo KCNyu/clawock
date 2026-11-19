@@ -374,7 +374,8 @@ def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
     assert rc == 0 and out['status'] == 'pass' and out['mode'] == 'prose'
     assert out['commit_ok'] is True
     body = sent['messages'][0]
-    assert body.startswith('**🌙 美股收盘日报') and _carries(FRESH_BLOCK, body) and '**情绪面**' in body
+    assert body.startswith('**🌙 美股收盘日报') and '**情绪面**' in body
+    assert not _carries(FRESH_BLOCK, body) and '#drill' in body
 
 
 def test_nothing_new_to_commit_is_current_even_with_other_dirt_in_the_checkout(pf, monkeypatch, tmp_path):
@@ -660,3 +661,16 @@ def test_section_markers_named_inside_a_sentence_do_not_count(pf):
     # The real layout (markers on their own lines) is unaffected.
     proper = PROSE + '\n▎风险提示\n杠杆腿波动放大。\n'
     assert pf.validate(pf.assemble_message(ctx, proper), ctx, proper) == []
+
+
+def test_delivered_report_moves_recommendation_before_supporting_detail(pf, tmp_path):
+    from clawock.harness.chat_card import focused_delivery
+
+    config = tmp_path / 'config'
+    config.mkdir()
+    (config / 'pages-public.json').write_text('{"site_url":"https://desk.example"}')
+    assembled = pf.assemble_message(_ctx(), PROSE)
+    body = focused_delivery(assembled, workspace=tmp_path, intraday=False)
+    assert body.index('**操作建议**') < body.index('**技术面**')
+    assert '| CRCL' not in body and '| CRCL' in assembled
+    assert 'https://desk.example/#plan' in body
