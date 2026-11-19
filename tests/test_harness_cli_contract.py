@@ -218,7 +218,7 @@ def test_every_subcommand_the_parser_offers_can_actually_be_dispatched():
 
 
 FORWARDED_FLAGS = {"--market", "--phase", "--context-id", "--text-file", "--date",
-                   "--dry-run", "--judgment-packet", "--page-url"}
+                   "--dry-run", "--judgment-packet", "--page-url", "--cron-job"}
 
 
 def _flags_the_phase_module_declares(workflow, phase):
@@ -256,6 +256,7 @@ def test_every_flag_a_lifecycle_help_prints_is_accepted_by_a_phase_it_names(monk
                "--context-id": ["--context-id", "c1"], "--text-file": ["--text-file", "p.md"],
                "--date": ["--date", "2026-10-05"], "--dry-run": ["--dry-run"],
                "--judgment-packet": ["--judgment-packet"],
+               "--cron-job": ["--cron-job", "盘中盯盘"],
                "--page-url": ["--page-url", "https://example.com/brief"]}
     for workflow in ("brief", "report", "intraday"):
         phases = [phase for name, phase in cli.PHASE_FLAGS if name == workflow]

@@ -243,7 +243,7 @@ PHASE_FLAGS = {
     ("brief", "render"): ("--date", "--dry-run", "--page-url"),
     ("report", "preflight"): ("--market", "--phase"),
     ("report", "postflight"): ("--market", "--phase", "--context-id", "--text-file"),
-    ("intraday", "preflight"): ("--market", "--judgment-packet"),
+    ("intraday", "preflight"): ("--market", "--judgment-packet", "--cron-job"),
     ("intraday", "postflight"): ("--market", "--context-id", "--text-file"),
 }
 
@@ -269,6 +269,7 @@ def _harness(args, workflow=None) -> int:
         ("--text-file", getattr(args, "text_file", None)),
         ("--date", getattr(args, "date", None)),
         ("--page-url", getattr(args, "page_url", None)),
+        ("--cron-job", getattr(args, "cron_job", None)),
     ):
         if value is not None:
             given.append(flag)
@@ -695,6 +696,7 @@ def build_parser() -> argparse.ArgumentParser:
             ("--date", {"help": "artifact date, default today in HKT"}),
             ("--page-url", {"help": "URL printed at the foot of the card"}),
             ("--dry-run", {"action": "store_true"}),
+            ("--cron-job", {"help": "OpenClaw job name for scheduled slot attribution"}),
             ("--judgment-packet", {
                 "action": "store_true",
                 "help": "print the complete decision context; "

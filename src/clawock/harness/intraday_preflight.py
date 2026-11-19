@@ -60,7 +60,7 @@ WS = workspace_root()
 TMP = WS / 'memory' / '.tmp'
 
 from ._harness_common import compute_context_id
-from ._watchdog_common import slot_shipped
+from ._watchdog_common import active_intraday_slot, slot_shipped
 
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
@@ -1542,6 +1542,7 @@ def _parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--judgment-packet', action='store_true')
+    parser.add_argument('--cron-job', help='OpenClaw job name for scheduled slot attribution')
     return parser.parse_args(argv)
 
 
@@ -1550,7 +1551,10 @@ def _collect(argv=None):
 
     now = datetime.fromisoformat(os.environ['CLAWOCK_PREFLIGHT_STARTED_AT']) if os.environ.get('CLAWOCK_PREFLIGHT_STARTED_AT') else datetime.now(trading_calendar.HKT)
     stamp = now.strftime('%Y-%m-%d_%H%M')
-    job_name, slot = cron_heartbeat.slot_for(args.market, now)
+    job_name = os.environ.get('CLAWOCK_PREFLIGHT_JOB')
+    slot = os.environ.get('CLAWOCK_PREFLIGHT_SLOT')
+    if not job_name or not slot:
+        job_name, slot = cron_heartbeat.slot_for(args.market, now)
     # A re-run of a slot an earlier attempt already delivered keeps building its
     # context (the retry's postflight reads it) but files no heartbeat: the
     # slot's row belongs to the attempt that delivered it (see slot_shipped).
@@ -2091,7 +2095,7 @@ def main(argv=None):
     # The parent records preflight_crashed if the collector leaves no outcome.
     args = _parse_args(argv)
     now = datetime.now(trading_calendar.HKT)
-    job, slot = cron_heartbeat.slot_for(args.market, now)
+    job, slot = active_intraday_slot(args.market, args.cron_job, now)
     shipped = slot_shipped(TMP, 'intraday', market=args.market, slot=slot)
     return supervise_preflight('clawock.harness.intraday_preflight', argv, workspace=WS, job=job,
                                slot=slot, started=now, shipped=shipped)

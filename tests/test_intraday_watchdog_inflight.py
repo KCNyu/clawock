@@ -325,7 +325,7 @@ def test_only_an_earlier_slots_run_still_waits_for_this_slots_attempt(
         wd, tmp_path, monkeypatch):
     earlier = [{'runAtMs': _ms(9, 30), 'sessionId': 'old', 'status': 'ok',
                 'summary': '上一档', 'ts': _ms(9, 36)}]
-    monkeypatch.setattr(wd, 'run_for_slot', lambda runs, *a: None)
+    monkeypatch.setattr(wd, 'run_for_slot', lambda runs, *a, **kw: None)
     sent, slept = _drive(wd, tmp_path, monkeypatch, script=[earlier, earlier])
 
     assert slept and sent

@@ -38,7 +38,8 @@ def supervise_preflight(module, argv, *, workspace, job, slot, started, shipped)
                'raise SystemExit(_collect(sys.argv[1:]))',
                *(sys.argv[1:] if argv is None else argv)]
     code = run_bounded(command, timeout=None, cwd=workspace,
-                       env={**os.environ, 'CLAWOCK_PREFLIGHT_STARTED_AT': started.isoformat()})
+                       env={**os.environ, 'CLAWOCK_PREFLIGHT_STARTED_AT': started.isoformat(),
+                            'CLAWOCK_PREFLIGHT_JOB': job, 'CLAWOCK_PREFLIGHT_SLOT': slot})
     if code and not shipped:
         died = (f'signal {signal.Signals(-code).name}'
                 if -code in set(signal.Signals) else f'exit {code}')

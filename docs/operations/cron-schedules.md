@@ -32,9 +32,11 @@ for judgment, delivery and local work. Brief preflight has an additional
 generation and closes the delivery gate. The contract rejects a turn
 limit that cannot cover that reservation. These are ceilings, not expected
 durations. Brief collection cannot spend the time reserved for judgment and publication.
-Report/intraday watchdogs fire 20 minutes after the slot and wait up to 10
-minutes for an in-flight attempt, so their verdict clears the 28-minute limit.
-The intraday turn plus the 30-second retry backoff still clears the next slot.
+Report and intraday watchdogs fire 20 minutes after the slot and normally wait
+up to 10 minutes, which covers the first attempt's timeout. When OpenClaw
+schedules a retry before the next regular tick, the watchdog can wait through
+that attempt's configured timeout. An intraday retry keeps the first attempt's
+slot even if the retry starts in the following half-hour.
 
 ## OpenClaw jobs + watchdogs
 
