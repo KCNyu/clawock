@@ -24,11 +24,12 @@ import subprocess
 import sys
 import time
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from clawock.automation import delivery_receipts
-from clawock.scheduling import HKT
+from clawock.scheduling import HKT, parse_cron_slots
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -449,7 +450,98 @@ def chain_exhausted(runs):
     return bool(runs) and all(r.get('status') == 'error' for r in runs)
 
 
-def attempt_still_running(context, last_run):
+# The run row records both retries and ordinary next ticks in nextRunAtMs.
+# Only a tick strictly before the next natural cron slot is a scheduled retry.
+_RETRY_START_GRACE_MS = 30_000
+
+
+def live_cron_job(job_name):
+    runtime = _openclaw.read_jobs('sqlite')
+    if runtime.source == 'sqlite':
+        return next((job for job in runtime.entries if job.get('name') == job_name), None)
+    return None
+
+
+def _before_next_cron_slot(job, finished_ms, candidate_ms):
+    schedule = job.get('schedule') or {}
+    expr = schedule.get('expr')
+    if schedule.get('kind') != 'cron' or not isinstance(expr, str) or len(expr.split()) != 5:
+        return False
+    # Only the short backoff window is relevant, and never a daily catch-up.
+    if not 0 < candidate_ms - finished_ms < 24 * 60 * 60 * 1000:
+        return False
+    try:
+        tz_name = schedule['tz']
+        tz = ZoneInfo(tz_name)
+        end = datetime.fromtimestamp(finished_ms / 1000, tz)
+        candidate = datetime.fromtimestamp(candidate_ms / 1000, tz)
+        days = (candidate.date() - end.date()).days
+        for offset in range(days + 1):
+            local_day = end + timedelta(days=offset)
+            for slot in parse_cron_slots(expr, tz_name, local_day):
+                hour, minute = map(int, slot.split(':'))
+                regular = local_day.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                if end < regular <= candidate:
+                    return False
+    except (KeyError, TypeError, ValueError, OverflowError, OSError, ZoneInfoNotFoundError):
+        return False
+    return True
+
+
+def retry_matches(job, previous, started_ms):
+    """The scheduler launched the pending retry, before any new regular slot."""
+    retry_ms = scheduled_retry_at(job, previous)
+    return (retry_ms is not None and isinstance(started_ms, (int, float))
+            and retry_ms <= started_ms <= retry_ms + _RETRY_START_GRACE_MS
+            and _before_next_cron_slot(job, previous['ts'], started_ms))
+
+
+def scheduled_retry_at(job, last_run):
+    scheduled = last_run.get('nextRunAtMs')
+    finished = last_run.get('ts')
+    if (last_run.get('status') == 'error' and isinstance(scheduled, (int, float))
+            and isinstance(finished, (int, float))
+            and _before_next_cron_slot(job, finished, scheduled)):
+        return scheduled
+    return None
+
+
+def intraday_run_slots(runs, market, job):
+    """Yield each finished run with the slot of its first attempt."""
+    from clawock.automation.cron_heartbeat import slot_for
+
+    previous = {}
+    owner = None
+    for run in runs:
+        started = run.get('runAtMs')
+        if not isinstance(started, (int, float)):
+            continue
+        if not job or not retry_matches(job, previous, started):
+            owner = slot_for(market, datetime.fromtimestamp(started / 1000, HKT))
+        yield run, owner
+        previous = run
+
+
+def active_intraday_slot(market, job_name, now):
+    """Resolve the scheduled invocation from its live start and retry chain."""
+    from clawock.automation.cron_heartbeat import slot_for
+
+    job = live_cron_job(job_name) if job_name else None
+    if job and job.get('id'):
+        started = (job.get('state') or {}).get('runningAtMs')
+        if isinstance(started, (int, float)):
+            history = _openclaw.read_runs(job['id'], 'sqlite').entries
+            for _, owner in intraday_run_slots([*history, {'runAtMs': started}], market, job):
+                pass
+            return owner
+    return slot_for(market, now)
+
+
+def attempt_still_running(context, last_run, *, job_name=None):
+    return _attempt_state(context, last_run, job_name=job_name)[0]
+
+
+def _attempt_state(context, last_run, *, job_name=None):
     """Is a newer attempt in flight than the newest FINISHED run for this slot?
 
     openclaw writes a run record only with `action: "finished"`, so an attempt
@@ -476,56 +568,66 @@ def attempt_still_running(context, last_run):
     second mode never learned what lived in the first one's file — the exact
     drift the same_generation_window sharing note (#458) already warned about.
     """
-    generated_at = (context or {}).get('generated_at')
-    job_name = ((context or {}).get('heartbeat') or {}).get('job')
-    if not job_name and (context or {}).get('market') and (context or {}).get('phase'):
+    context, last = context or {}, last_run or {}
+    generated_at = context.get('generated_at')
+    heartbeat = context.get('heartbeat') or {}
+    job_name = job_name or heartbeat.get('job')
+    if not job_name and context.get('market') and context.get('phase'):
         from clawock.automation.workflow_outcomes import job_for
         job_name = job_for(context['market'], context['phase'])
-    if generated_at and job_name:
-        runtime = _openclaw.read_jobs('sqlite')
-        if runtime.source == 'sqlite':
-            job = next((row for row in runtime.entries if row.get('name') == job_name), None)
-            state = (job or {}).get('state') or {}
-            running_at = state.get('runningAtMs')
-            if (job or {}).get('status') == 'running' or running_at is not None:
-                heartbeat = (context or {}).get('heartbeat') or {}
-                if isinstance(running_at, (int, float)) and heartbeat.get('slot'):
-                    from clawock.automation.cron_heartbeat import slot_for
-                    active = datetime.fromtimestamp(running_at / 1000, HKT)
-                    return slot_for(context.get('market'), active)[1] == heartbeat['slot']
-                return True
-            if isinstance(state.get('lastRunAtMs'), (int, float)):
-                # An idle runtime is affirmative evidence, unlike an old finished
-                # run or preflight_ok (the scheduled agent can still be writing).
-                return False
+    job = live_cron_job(job_name) if job_name else None
+    if job:
+        state = job.get('state') or {}
+        running_at = state.get('runningAtMs')
+        retry_ms = scheduled_retry_at(job, last)
+        if retry_ms is not None:
+            now_ms = datetime.now(HKT).timestamp() * 1000
+            pending = (state.get('nextRunAtMs') == retry_ms
+                       and now_ms <= retry_ms + _RETRY_START_GRACE_MS)
+            if pending or retry_matches(job, last, running_at):
+                timeout = (job.get('payload') or {}).get('timeoutSeconds')
+                if type(timeout) is int and timeout > 0:
+                    return True, (retry_ms + _RETRY_START_GRACE_MS) / 1000 + timeout
+                return True, None
+        if generated_at and (job.get('status') == 'running' or running_at is not None):
+            if isinstance(running_at, (int, float)) and heartbeat.get('slot'):
+                from clawock.automation.cron_heartbeat import slot_for
+                active = datetime.fromtimestamp(running_at / 1000, HKT)
+                return slot_for(context.get('market'), active)[1] == heartbeat['slot'], None
+            return True, None
+        if generated_at and isinstance(state.get('lastRunAtMs'), (int, float)):
+            # An idle runtime is affirmative evidence when there is no
+            # scheduler-confirmed retry for the finished run.
+            return False, None
     if last_run is UNFINISHED_RUN:
         # No attempt of this slot has finished at all, and the slot's own
         # preflight context is already on disk: the first attempt is the one
         # in flight (#2646).
-        return bool(generated_at)
+        return bool(generated_at), None
     finished_ms = (last_run or {}).get('ts')
     if not generated_at or not isinstance(finished_ms, (int, float)):
-        return False
+        return False, None
     try:
         started = datetime.fromisoformat(generated_at)
     except (TypeError, ValueError):
-        return False
+        return False, None
     if started.tzinfo is None:
         started = started.replace(tzinfo=HKT)
     finished = datetime.fromtimestamp(finished_ms / 1000, HKT)
-    return started > finished
+    return started > finished, None
 
 
 def wait_out_inflight(context, last, *, refresh, budget_s, poll_s, tag,
-                      lead=None, trail=None, sleep=None):
+                      lead=None, trail=None, sleep=None, job_name=None):
     """Hold the slot open while a newer attempt is still running. Returns
     `(context, last, waited_s)`.
 
     WAIT, DON'T DEFER (#988 report, #1532 intraday). A watchdog pass is the
     verdict for its slot. Returning with a `defer` left a retry chain that then
     died with no report, no backstop and one log line. So poll until the attempt
-    finishes (then judge on ITS run and context) or until `budget_s` runs out
-    (then judge anyway, see `log_after_wait`). Callers run their marker gate
+    finishes (then judge on ITS run and context) or until the wait budget
+    runs out. A retry backed by scheduler evidence can extend that budget
+    through its configured timeout. Callers run their marker gate
     after this, so an attempt that lands during the wait counts as delivered and
     is not sent a second time.
 
@@ -537,24 +639,34 @@ def wait_out_inflight(context, last, *, refresh, budget_s, poll_s, tag,
     lead, trail = lead or {}, trail or {}
     sleep = sleep or time.sleep  # resolved per call, so a patched time.sleep is seen
     waited = 0
-    while attempt_still_running(context, last) and waited < budget_s:
+    started_s = datetime.now(HKT).timestamp()
+    budget = budget_s
+    while budget_s > 0:
+        running, retry_deadline_s = _attempt_state(context, last, job_name=job_name)
+        if not running:
+            break
+        if retry_deadline_s is not None:
+            budget = max(budget, retry_deadline_s - started_s)
+        if waited >= budget:
+            break
         log({'tag': tag, 'action': 'wait-inflight',
-             'reason': 'runtime reports an active attempt, or a newer context '
-                       'has no authoritative completion evidence',
+             'reason': ('scheduler has a retry for this slot' if retry_deadline_s else
+                        'runtime or newer context shows an active attempt'),
              **lead,
-             'context_generated_at': context.get('generated_at'),
+             'context_generated_at': (context or {}).get('generated_at'),
              'last_finished_ms': last.get('ts'),
-             'waited_s': waited, 'budget_s': budget_s,
+             'waited_s': waited, 'budget_s': budget,
              **trail})
-        sleep(min(poll_s, budget_s - waited))
-        waited += poll_s
+        delay = min(poll_s, budget - waited)
+        sleep(delay)
+        waited += delay
         context, last = refresh(context, last)
     return context, last, waited
 
 
-def log_after_wait(context, last, *, waited, budget_s, tag, run_at, lead=None):
+def log_after_wait(context, last, *, waited, budget_s, tag, run_at, lead=None, job_name=None):
     """The line that always follows a wait: the verdict below is real, never a defer."""
-    still_running = attempt_still_running(context, last)
+    still_running = attempt_still_running(context, last, job_name=job_name)
     log({'tag': tag,
          # Never `defer` again: this line always precedes a real verdict.
          'action': 'proceed-after-wait' if still_running else 'attempt-finished',
@@ -562,8 +674,8 @@ def log_after_wait(context, last, *, waited, budget_s, tag, run_at, lead=None):
                     'that exists' if still_running else
                     'the in-flight attempt finished; judging on its run'),
          **(lead or {}),
-         'waited_s': waited, 'budget_s': budget_s,
-         'context_generated_at': context.get('generated_at'),
+         'waited_s': waited, 'budget_s': max(budget_s, waited),
+         'context_generated_at': (context or {}).get('generated_at'),
          'last_finished_ms': last.get('ts'), 'run_at': run_at})
 
 

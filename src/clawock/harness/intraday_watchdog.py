@@ -92,7 +92,7 @@ from ._watchdog_common import (
     # re-export below keeps `intraday_watchdog.attempt_still_running` importable
     # for the tests and callers that learned the rule here first.
     attempt_still_running,  # noqa: F401  re-export
-    wait_out_inflight, log_after_wait, UNFINISHED_RUN,
+    wait_out_inflight, log_after_wait, UNFINISHED_RUN, live_cron_job, intraday_run_slots,
     send_wechat, resolve_wechat_target, wechat_backstop,
     wechat_gap_reason, chain_exhausted,
 )
@@ -180,22 +180,15 @@ def watchdog_target(market, now=None):
     return wall_now, job_name, slot
 
 
-def runs_for_slot(runs, market, job_name, slot):
+def runs_for_slot(runs, market, job_name, slot, *, job=None):
     """Every completed run belonging to exactly ``job_name/slot``, oldest first."""
-    matches = []
-    for run in runs:
-        run_at = run.get('runAtMs')
-        if not isinstance(run_at, (int, float)):
-            continue
-        run_dt = datetime.fromtimestamp(run_at / 1000, HKT)
-        if cron_heartbeat.slot_for(market, run_dt) == (job_name, slot):
-            matches.append(run)
-    return matches
+    return [run for run, owner in intraday_run_slots(runs, market, job)
+            if owner == (job_name, slot)]
 
 
-def run_for_slot(runs, market, job_name, slot):
+def run_for_slot(runs, market, job_name, slot, *, job=None):
     """Select the newest completed run belonging to exactly ``job_name/slot``."""
-    matches = runs_for_slot(runs, market, job_name, slot)
+    matches = runs_for_slot(runs, market, job_name, slot, job=job)
     return matches[-1] if matches else None
 
 
@@ -356,7 +349,9 @@ def main():
     if evidence.cron_evidence_unreadable(evidence.LAST_RUNS_SOURCE, tag=tag, dry_run=args.dry_run):
         return 0
     ctx_path = WS / 'memory' / '.tmp' / f'intraday-context-{args.market}-latest.json'
-    last = run_for_slot(runs_today or [], args.market, expected_job, expected_slot)
+    scheduler_job = live_cron_job(args.job_name)
+    last = run_for_slot(runs_today or [], args.market, expected_job, expected_slot,
+                        job=scheduler_job)
     if not last:
         # The run record only holds FINISHED attempts, so "no run for this
         # slot" is also what a first attempt that is still running looks like.
@@ -383,7 +378,44 @@ def main():
     # --- Context gate: only assess this slot's own preflight data -------------
     summary = last.get('summary', '')
     context = context_for_slot(ctx_path, expected_job, expected_slot)
-    slot_runs = runs_for_slot(runs_today or [], args.market, expected_job, expected_slot)
+    # --- In-flight gate: never judge a slot that has not finished -----------
+    # WAIT, DON'T DEFER (#1532). Returning here used to be "the next pass looks
+    # again", but the next pass owns the next slot (watchdog_target is wall
+    # clock), so a retry chain that then died left this slot with no report, no
+    # backstop and one `defer` line. Hold the slot open as report_watchdog does
+    # (#988): poll until the attempt finishes, or judge anyway when the budget
+    # runs out. The marker gate below still runs first, so an attempt that lands
+    # during the wait is recognised as delivered, not doubled.
+    slot_fields = {'expected_job': expected_job, 'expected_slot': expected_slot}
+
+    def refresh(context, last):
+        nonlocal runs_today
+        runs_today = today_runs(job_id) or runs_today
+        last = run_for_slot(runs_today or [], args.market, expected_job,
+                            expected_slot, job=scheduler_job) or last
+        # A context that no longer names this slot is not evidence about it;
+        # keep the one this slot wrote and judge on that.
+        context = context_for_slot(ctx_path, expected_job, expected_slot) or context
+        return context, last
+
+    context, last, waited = wait_out_inflight(
+        context, last, refresh=refresh, budget_s=inflight_wait_s,
+        poll_s=INFLIGHT_POLL_S, tag=tag, lead=slot_fields, job_name=args.job_name)
+    if waited:
+        # The slot's facts moved: re-derive every field taken from `last` before
+        # judging on them. The dedupe flag is per slot, so it is only re-read.
+        run_at = last.get('runAtMs')
+        session_id = last.get('sessionId')
+        summary = last.get('summary', '')
+        if flag.exists():
+            log({'tag': tag, 'action': 'skip',
+                 'reason': 'already handled this slot (dedupe flag, after wait)'})
+            return 0
+        log_after_wait(context, last, waited=waited, budget_s=inflight_wait_s,
+                       tag=tag, run_at=run_at, lead=slot_fields, job_name=args.job_name)
+
+    slot_runs = runs_for_slot(runs_today or [], args.market, expected_job, expected_slot,
+                              job=scheduler_job)
     if context is None and chain_exhausted(slot_runs):
         # Every attempt died before preflight wrote this slot's context — on
         # 2026-10-26 the US 23:00 and 23:30 slots failed in ~10s with the whole
@@ -445,39 +477,6 @@ def main():
              'run_at': run_at})
         return 0
 
-    # --- In-flight gate: never judge a slot that has not finished -----------
-    # WAIT, DON'T DEFER (#1532). Returning here used to be "the next pass looks
-    # again", but the next pass owns the next slot (watchdog_target is wall
-    # clock), so a retry chain that then died left this slot with no report, no
-    # backstop and one `defer` line. Hold the slot open as report_watchdog does
-    # (#988): poll until the attempt finishes, or judge anyway when the budget
-    # runs out. The marker gate below still runs first, so an attempt that lands
-    # during the wait is recognised as delivered, not doubled.
-    slot_fields = {'expected_job': expected_job, 'expected_slot': expected_slot}
-
-    def refresh(context, last):
-        last = run_for_slot(today_runs(job_id) or [], args.market,
-                            expected_job, expected_slot) or last
-        # A context that no longer names this slot is not evidence about it;
-        # keep the one this slot wrote and judge on that.
-        context = context_for_slot(ctx_path, expected_job, expected_slot) or context
-        return context, last
-
-    context, last, waited = wait_out_inflight(
-        context, last, refresh=refresh, budget_s=inflight_wait_s,
-        poll_s=INFLIGHT_POLL_S, tag=tag, lead=slot_fields)
-    if waited:
-        # The slot's facts moved: re-derive every field taken from `last` before
-        # judging on them. The dedupe flag is per slot, so it is only re-read.
-        run_at = last.get('runAtMs')
-        session_id = last.get('sessionId')
-        summary = last.get('summary', '')
-        if flag.exists():
-            log({'tag': tag, 'action': 'skip',
-                 'reason': 'already handled this slot (dedupe flag, after wait)'})
-            return 0
-        log_after_wait(context, last, waited=waited, budget_s=inflight_wait_s,
-                       tag=tag, run_at=run_at, lead=slot_fields)
     # Every age check below compares evidence against THIS moment, not the entry
     # clock: the wait above can run for up to INFLIGHT_WAIT_S, and a marker or
     # claim stamped during it is fresher evidence than the entry clock allows for

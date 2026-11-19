@@ -49,7 +49,7 @@ def test_the_wait_never_runs_past_its_budget(logged):
         CONTEXT, BEFORE, refresh=lambda c, r: (c, r), budget_s=70, poll_s=30,
         tag='us-close', sleep=slept.append)
 
-    assert slept == [30, 30, 10] and waited == 90
+    assert slept == [30, 30, 10] and waited == 70
 
 
 def test_a_finished_slot_never_sleeps(logged):
@@ -110,3 +110,88 @@ def test_next_intraday_slot_does_not_hold_previous_slot_open(monkeypatch):
     monkeypatch.setattr(common._openclaw, 'read_jobs', lambda *_: CronRead([
         {'name': '盘中盯盘', 'state': {'runningAtMs': next_run}}], 'sqlite'))
     assert not common.attempt_still_running(context, BEFORE)
+
+
+def test_queued_retry_extends_the_wait_and_refreshes_the_run(monkeypatch, logged):
+    from clawock.providers.openclaw import CronRead
+
+    job_name = '美股开盘报告'
+    first_start = datetime(2026, 11, 18, 22, 33, tzinfo=HKT)
+    finished = first_start + timedelta(seconds=1741)
+    retry_start = finished + timedelta(seconds=30)
+    completed = retry_start + timedelta(seconds=214)
+    clock = [first_start + timedelta(minutes=20)]
+    failed = {
+        'status': 'error', 'runAtMs': first_start.timestamp() * 1000,
+        'ts': finished.timestamp() * 1000, 'nextRunAtMs': retry_start.timestamp() * 1000,
+    }
+    ok = {'status': 'ok', 'runAtMs': retry_start.timestamp() * 1000,
+          'ts': completed.timestamp() * 1000}
+
+    class FakeDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return clock[0].astimezone(tz)
+
+    def read_jobs(_source):
+        state = {'lastRunAtMs': first_start.timestamp() * 1000}
+        if finished <= clock[0] < retry_start:
+            state['nextRunAtMs'] = failed['nextRunAtMs']
+        elif clock[0] < completed:
+            start = retry_start if clock[0] >= retry_start else first_start
+            state['runningAtMs'] = start.timestamp() * 1000
+        return CronRead([{
+            'name': job_name, 'state': state, 'payload': {'timeoutSeconds': 1740},
+            'schedule': {'kind': 'cron', 'expr': '33 22 * * 1-5', 'tz': 'Asia/Hong_Kong'},
+        }], 'sqlite')
+
+    def sleep(seconds):
+        clock[0] += timedelta(seconds=seconds)
+
+    def refresh(context, last):
+        if clock[0] >= completed:
+            return context, ok
+        return context, failed if clock[0] >= finished else last
+
+    monkeypatch.setattr(common, 'datetime', FakeDateTime)
+    monkeypatch.setattr(common._openclaw, 'read_jobs', read_jobs)
+    context = {'generated_at': first_start.isoformat()}
+    _, last, waited = common.wait_out_inflight(
+        context, common.UNFINISHED_RUN, refresh=refresh, budget_s=600, poll_s=30,
+        tag='us-open', job_name=job_name, sleep=sleep,
+    )
+    assert last is ok and waited == 810
+    assert any(row['reason'] == 'scheduler has a retry for this slot' for row in logged)
+
+
+def test_retry_cannot_claim_the_next_regular_slot(monkeypatch):
+    from clawock.harness import intraday_watchdog
+    from clawock.providers.openclaw import CronRead
+
+    job_name = '美股盘中盯盘-overnight'
+    job = {'name': job_name, 'id': 'overnight', 'schedule': {
+        'kind': 'cron', 'expr': '3,33 0-2 * * 2-6', 'tz': 'Asia/Hong_Kong',
+    }}
+    slot = datetime(2026, 11, 17, 2, tzinfo=HKT)
+    ms = lambda at: int(at.timestamp() * 1000)  # noqa: E731
+    retry_at = slot + timedelta(minutes=32, seconds=31)
+    initial = {'runAtMs': ms(slot + timedelta(minutes=3)),
+               'status': 'error', 'ts': ms(slot + timedelta(minutes=32, seconds=1)),
+               'nextRunAtMs': ms(retry_at)}
+    retry = {'runAtMs': ms(retry_at), 'status': 'ok'}
+    regular_at = slot + timedelta(minutes=33)
+    regular = {'runAtMs': ms(regular_at), 'status': 'ok'}
+    assert intraday_watchdog.run_for_slot(
+        [initial, retry, regular], 'us', job_name, slot.isoformat(), job=job,
+    ) is retry
+    assert intraday_watchdog.run_for_slot(
+        [initial, retry, regular], 'us', job_name, (slot + timedelta(minutes=30)).isoformat(), job=job,
+    ) is regular
+    assert common.scheduled_retry_at(job, {**initial, 'nextRunAtMs': ms(regular_at)}) is None
+
+    monkeypatch.setattr(common, 'live_cron_job', lambda _name: {
+        **job, 'state': {'runningAtMs': ms(retry_at)},
+    })
+    monkeypatch.setattr(common._openclaw, 'read_runs', lambda *_: CronRead([initial], 'sqlite'))
+    preflight_at = slot + timedelta(minutes=33, seconds=10)
+    assert common.active_intraday_slot('us', job_name, preflight_at) == (job_name, slot.isoformat())

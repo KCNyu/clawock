@@ -4,7 +4,7 @@
 
 {{include:_memory-lookup.md}}
 
-Step 1：`clawock intraday preflight --market {{market}} --judgment-packet`
+Step 1：`clawock intraday preflight --market {{market}} --judgment-packet --cron-job "{{job_name}}"`
 脚本把完整审计 context 留在 `memory/.tmp/intraday-context-{{market}}-latest.json`；stdout 是核心包：影响本档判断的字段（计划、观察线、历史变化、分析器原样输出 `analyzer_block`、加仓侧、异动证据、来源与失败状态）全部直接给出，`index.references` 列出参考层条目（名称、一行说明、大小、可切片的票、取法）。参考层按需用条目里的 `fetch` 命令取（`clawock tool intraday_reference …`，同代 context_id 锁定）；加 `--arg ticker=<代码>` 只取一只票，需要整份就不加。短卡只约束用户消息。保留 `context_id`。`market_closed` 直接结束，不 postflight。所有脚本 exec 调用都显式设置 `timeout: 300`，postflight 除外；若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度。
 
 `delivery_mode=no_change`：不要生成散文、不要写 prose/sidecar，直接 `clawock intraday postflight --market {{market}} --context-id {CTXID}`。postflight 记录健康心跳与同档静默标记，不发微信或 Telegram；这不是跳过检查，闸失败由 watchdog 兜底。

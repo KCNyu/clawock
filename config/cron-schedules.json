@@ -66,7 +66,7 @@
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/_shared/intraday-mode7.md`",
         "`/root/.openclaw/workspace/skills/_shared/intraday-status-sidecar.md`（sidecar 规范）与 Step 1 preflight",
         "skills catalog 只有索引，不含 SKILL.md 正文", "探测「东西在不在」的命令必须整条链退出 0",
-        "clawock intraday preflight --market {market} --judgment-packet",
+        "clawock intraday preflight --market {market} --judgment-packet --cron-job \"{job_name}\"",
         "market_closed",
         "所有脚本 exec 调用都显式设置 `timeout: 300`",
         "若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度",
@@ -172,6 +172,7 @@
       "harness": "intraday --us",
       "payload_profile": "intraday",
       "payload_vars": {
+        "job_name": "美股盘中盯盘-overnight",
         "market": "us",
         "market_name": "美股",
         "skill": "us-stock-analysis"
@@ -323,6 +324,7 @@
       "harness": "intraday --hk",
       "payload_profile": "intraday",
       "payload_vars": {
+        "job_name": "盘中盯盘",
         "market": "hk",
         "market_name": "港股",
         "skill": "hk-stock-analysis"
@@ -487,6 +489,7 @@
       "harness": "intraday --us",
       "payload_profile": "intraday",
       "payload_vars": {
+        "job_name": "美股盘中盯盘",
         "market": "us",
         "market_name": "美股",
         "skill": "us-stock-analysis"

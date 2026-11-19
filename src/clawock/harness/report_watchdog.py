@@ -250,6 +250,44 @@ def main():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
 
+    # --- In-flight gate: never judge a slot that has not finished -------------
+    # Shared rule, born in intraday_watchdog after 2026-08-11 00:00 US: the run
+    # record only holds FINISHED attempts, so the newest completed run can be an
+    # error from an attempt a later retry has already superseded. Judging then
+    # sends the deterministic fallback while the real report is still being
+    # generated — kcn gets both, one minute apart. A context written after the
+    # newest finished run ended is the on-disk proof another attempt is live.
+    #
+    # WAIT, DON'T DEFER (#988). This watchdog is a single crontab line per slot
+    # — returning here IS the verdict, and a retry chain that never delivers
+    # would leave kcn with no report and no backstop, with one `defer` line as
+    # the only trace. So hold
+    # the slot open instead: poll until the attempt finishes (then judge on ITS
+    # run record and context), or until the budget runs out (then judge anyway
+    # and say so). The marker gate below still runs first either way, so an
+    # attempt that lands during the wait is recognised as delivered, not doubled.
+    def refresh(_ctx, _last):
+        nonlocal runs_today
+        runs_today = today_runs(job_id) or runs_today
+        return _read_json(ctx_path), (runs_today[-1] if runs_today else _last)
+
+    ctx, last, waited = wait_out_inflight(
+        ctx, last, refresh=refresh, budget_s=inflight_wait_s,
+        poll_s=INFLIGHT_POLL_S, tag=tag, trail={'run_at': run_at}, job_name=args.job_name)
+    if waited:
+        # Whatever the wait produced, the slot's facts moved: re-derive every
+        # field taken from `last` or `ctx` above before judging on them.
+        run_at = last.get('runAtMs')
+        session_id = last.get('sessionId')
+        summary = last.get('summary', '')
+        flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{_flag_key(run_at, today)}.done'
+        if flag.exists():
+            log({'tag': tag, 'action': 'skip',
+                 'reason': 'already handled this slot (dedupe flag, after wait)'})
+            return 0
+        log_after_wait(ctx, last, waited=waited, budget_s=inflight_wait_s,
+                       tag=tag, run_at=run_at, job_name=args.job_name)
+
     # --- Generation gate: generated report or deterministic fallback ----------
     # The clean report block's first line comes from the preflight context. If the
     # context is missing, preflight never ran → nothing to resend, unless every
@@ -290,50 +328,6 @@ def main():
                         'no preflight raw_wechat_block (cron likely never ran)'),
              'closed_reason': closed})
         return 0
-
-    # --- In-flight gate: never judge a slot that has not finished -------------
-    # Shared rule, born in intraday_watchdog after 2026-08-11 00:00 US: the run
-    # record only holds FINISHED attempts, so the newest completed run can be an
-    # error from an attempt a later retry has already superseded. Judging then
-    # sends the deterministic fallback while the real report is still being
-    # generated — kcn gets both, one minute apart. A context written after the
-    # newest finished run ended is the on-disk proof another attempt is live.
-    #
-    # WAIT, DON'T DEFER (#988). This watchdog is a single crontab line per slot
-    # — returning here IS the verdict, and a retry chain that never delivers
-    # would leave kcn with no report and no backstop, with one `defer` line as
-    # the only trace. So hold
-    # the slot open instead: poll until the attempt finishes (then judge on ITS
-    # run record and context), or until the budget runs out (then judge anyway
-    # and say so). The marker gate below still runs first either way, so an
-    # attempt that lands during the wait is recognised as delivered, not doubled.
-    def refresh(_ctx, _last):
-        nonlocal runs_today
-        runs_today = today_runs(job_id) or runs_today
-        return _read_json(ctx_path), (runs_today[-1] if runs_today else _last)
-
-    ctx, last, waited = wait_out_inflight(
-        ctx, last, refresh=refresh, budget_s=inflight_wait_s,
-        poll_s=INFLIGHT_POLL_S, tag=tag, trail={'run_at': run_at})
-    if waited:
-        # Whatever the wait produced, the slot's facts moved: re-derive every
-        # field taken from `last` or `ctx` above before judging on them.
-        run_at = last.get('runAtMs')
-        session_id = last.get('sessionId')
-        summary = last.get('summary', '')
-        flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{_flag_key(run_at, today)}.done'
-        if flag.exists():
-            log({'tag': tag, 'action': 'skip',
-                 'reason': 'already handled this slot (dedupe flag, after wait)'})
-            return 0
-        raw_block = (ctx.get('raw_wechat_block') or '').strip()
-        raw_block_first = raw_block.splitlines()[0] if raw_block else None
-        if not raw_block_first:
-            log({'tag': tag, 'action': 'skip',
-                 'reason': 'no preflight raw_wechat_block after wait'})
-            return 0
-        log_after_wait(ctx, last, waited=waited, budget_s=inflight_wait_s,
-                       tag=tag, run_at=run_at)
 
     ctx_id = ctx.get('context_id')
 
