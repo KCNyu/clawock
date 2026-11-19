@@ -313,25 +313,60 @@ def test_capture_chat_reads_the_private_corpus_and_drops_probes(tmp_path):
     store = make_store(tmp_path)
     repo = make_repo(tmp_path, store)
     env = env_for(tmp_path, store, repo)
+    sessions = tmp_path / "openclaw/agents/main/sessions"
+    sessions.mkdir(parents=True)
+    env["CLAWOCK_OPENCLAW_HOME"] = str(tmp_path / "openclaw")
+    conf = tmp_path / "notify.env"
+    conf.write_text("NOTIFY_CHANNEL=chat\nNOTIFY_TARGET='Owner'\nTELEGRAM_TARGET=123\n")
+    env["AGENT_DISPATCH_NOTIFY_CONF"] = str(conf)
+    day = "2026-11-13"
+    active, archived, probe, stranger = [f"{n:08x}-1111-2222-3333-444444444444" for n in range(4)]
+    (sessions / "sessions.json").write_text(json.dumps({
+        "agent:main:chat:direct:owner": {"sessionId": active},
+        "agent:main:chat:direct:another": {"sessionId": stranger},
+    }))
+    for sid, key in ((archived, "agent:main:telegram:direct:123"),
+                     (probe, "agent:main:compatibility-check")):
+        (sessions / f"{sid}.trajectory.jsonl").write_text(
+            json.dumps({"sessionId": sid, "sessionKey": key}) + "\n")
     corpus = repo / "memory/.dreams/session-corpus"
     corpus.mkdir(parents=True)
-    (corpus / "2026-11-13.txt").write_text(
-        "[main/sessions/main/aaaaaaaa-1111-2222-3333-444444444444.jsonl#L39] User: 我指的是不要信任issues本身的描述\n"
-        "[main/sessions/main/aaaaaaaa-1111-2222-3333-444444444444.jsonl#L54] User: 这个我们之前委派了那么多次为什么你没有印象\n"
-        "[main/sessions/main/bbbbbbbb-1111-2222-3333-444444444444.jsonl#L2] User: Call memory_search once: query 'x'\n",
-        encoding="utf-8")
-    result = subprocess.run([sys.executable, str(INTAKE), "capture-chat",
-                             "--date", "2026-11-13", "--workspace", str(repo)],
-                            env=env, capture_output=True, text=True, timeout=60)
-    assert result.returncode == 0, result.stderr
-    assert json.loads(result.stdout)["queued"] == 1
-    # The filename carries a content hash; find the only chat item.
-    items = list((tmp_path / "state/intake/queue").glob("chat-2026-11-13-*.json"))
-    assert len(items) == 1
-    item = json.loads(items[0].read_text())
-    assert "不要信任issues" in item["user_words"]
-    assert "Call memory_search" not in item["user_words"]
-    assert "aaaaaaaa-1111" in item["result"]["session"]
+    source = corpus / f"{day}.txt"
+    source.write_text("".join(
+        f"[main/sessions/main/{sid}.jsonl#L{n}] User: {words}\n"
+        for n, (sid, words) in enumerate([
+            (active, "核实原始数据"), (active, "Call memory_search once"),
+            (archived, "更新判断"), (probe, "Compatibility test only"),
+            (stranger, "其他人的偏好"),
+        ], 1)))
+
+    def capture_day():
+        proc = run(env, tmp_path, store, repo, "capture-chat", "--date", day, "--workspace", str(repo))
+        assert proc.returncode == 0, proc.stderr
+        return json.loads(proc.stdout)["queued"]
+
+    assert capture_day() == 2
+    queue = tmp_path / "state/intake/queue"
+    assert {json.loads(p.read_text())["user_words"] for p in queue.glob("*.json")} == {
+        "核实原始数据", "更新判断"}
+    reply = tmp_path / "reply.json"
+    reply.write_text(json.dumps({"store": False, "reason": "one-off"}))
+    legacy = {"task_id": "legacy-probe", "stage": "chat", "id": "legacy", "attempts": 0,
+              "result": {"session": f"main/sessions/main/{probe}.jsonl"}}
+    (queue / "legacy-probe.json").write_text(json.dumps(legacy))
+    trace = sessions / f"{archived}.trajectory.jsonl"
+    saved = trace.read_bytes()
+    trace.unlink()  # retention can expire a trace while the model is offline
+    consumed = run(env, tmp_path, store, repo, "run", "--llm-response", str(reply))
+    assert consumed.returncode == 0, consumed.stderr
+    assert sorted(r["reason"] for r in json.loads(consumed.stdout)["results"]) == [
+        "one-off", "one-off", "outside configured owner DMs"]
+    trace.write_bytes(saved)
+    assert capture_day() == 0
+    assert not list(queue.glob("*.json"))
+    with source.open("a") as fp:
+        fp.write(f"[main/sessions/main/{active}.jsonl#L9] User: 新的原话\n")
+    assert capture_day() == 1
 
 
 def test_outcome_capture_includes_appended_instructions_and_the_report(tmp_path):

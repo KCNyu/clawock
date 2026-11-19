@@ -66,8 +66,10 @@ if [ -r "$MEMORY_KIT/scripts/intake.py" ]; then
   # Direct chat is a source even when the dreaming score ranked nothing: queue the
   # user lines from yesterday's and today's private corpus, then distil everything.
   for day in "$(date -d yesterday +%F)" "$(date +%F)"; do
-    timeout 60 python3 "$MEMORY_KIT/scripts/intake.py" capture-chat \
-      --date "$day" --workspace "$WS" >/dev/null 2>&1 || true
+    if ! timeout 60 python3 "$MEMORY_KIT/scripts/intake.py" capture-chat \
+      --date "$day" --workspace "$WS" >/dev/null; then
+      echo "$(date -Is) dreaming-commit: direct-chat capture failed for $day" >&2
+    fi
   done
   if ! timeout 600 python3 "$MEMORY_KIT/scripts/intake.py" --store "$STORE" \
       --repo "$WS" run --limit 20; then

@@ -238,8 +238,58 @@ CHAT_SKIP = ("[agent-dispatch 事件]", "Call memory_search", "Reply with ONLY",
              "HEARTBEAT_OK", "System: [")
 
 
+def owner_chat_routes() -> tuple[Path, set[str], set[str]]:
+    """Resolve this host's owner DMs from the same targets as dispatch notifications."""
+    tools_dir = Path(os.environ.get("AGENT_DISPATCH_DIR") or Path.home() / "tools/agent-dispatch")
+    conf = Path(os.environ.get("AGENT_DISPATCH_NOTIFY_CONF") or tools_dir / "notify.env")
+    settings = {}
+    for line in conf.read_text(encoding="utf-8").splitlines():
+        key, _, value = line.partition("=")
+        settings[key.strip()] = value.strip().strip("'\"")
+    keys = set()
+    for channel, target in ((settings.get("NOTIFY_CHANNEL"), settings.get("NOTIFY_TARGET")),
+                            (settings.get("TELEGRAM_CHANNEL", "telegram"), settings.get("TELEGRAM_TARGET"))):
+        if channel and target:
+            keys.add(f"agent:main:{channel}:direct:{target}".casefold())
+    if not keys:
+        raise IntakeError("no owner DM targets in dispatch notify configuration")
+    home = Path(os.environ.get("CLAWOCK_OPENCLAW_HOME") or os.environ.get("OPENCLAW_HOME")
+                or Path.home() / ".openclaw").expanduser()
+    sessions = home / "agents/main/sessions"
+    registry = sessions / "sessions.json"
+    current = json.loads(registry.read_text(encoding="utf-8")) if registry.exists() else {}
+    active = {row["sessionId"] for key, row in current.items()
+              if key.casefold() in keys and isinstance(row, dict) and row.get("sessionId")}
+    return sessions, keys, active
+
+
+def is_owner_chat(session: str, sessions: Path, keys: set[str], active: set[str]) -> bool:
+    match = re.fullmatch(r"main/sessions/main/([a-fA-F0-9-]{36})\.jsonl", session)
+    if not match:
+        return False
+    session_id = match[1]
+    if session_id in active:
+        return True
+    # A reset rotates the registry's sessionId. The trajectory retains the
+    # original session key even when yesterday's transcript has been renamed.
+    trace = sessions / f"{session_id}.trajectory.jsonl"
+    if not trace.is_file():
+        return False
+    with trace.open(encoding="utf-8") as stream:
+        first = stream.readline()
+    if not first:
+        return False
+    try:
+        header = json.loads(first)
+    except ValueError:
+        print(f"intake: unreadable trajectory header for {session_id}", file=sys.stderr)
+        return False
+    return (isinstance(header, dict) and header.get("sessionId") == session_id
+            and str(header.get("sessionKey") or "").casefold() in keys)
+
+
 def capture_chat(day: str, workspace: Path) -> list[Path]:
-    """Queue one item per direct/cron transcript that has user text that day.
+    """Queue the owner’s direct-chat excerpts from the private daily corpus.
 
     The dreaming ingest writes the day's excerpts to `session-corpus`; this reads
     that private file rather than the transcript again. It is the direct-chat
@@ -257,14 +307,20 @@ def capture_chat(day: str, workspace: Path) -> list[Path]:
         if not text or any(skip in text for skip in CHAT_SKIP):
             continue
         groups.setdefault(match.group("path"), []).append(text)
+    if not groups:
+        return []
+    routes = owner_chat_routes()
     paths = []
     for session, lines in groups.items():
+        if not is_owner_chat(session, *routes):
+            continue
         words = "\n".join(lines)[:MAX_ITEM_CHARS]
         identity = digest(f"{day}\n{session}\n{words}")[:16]
         item = {
             "schema": 1,
             "task_id": f"chat-{day}-{identity[:8]}",
             "stage": "chat",
+            "owner_dm_verified": True,
             "created": datetime.now().astimezone().isoformat(timespec="seconds"),
             "prompt_sha256": digest(words),
             "user_words": scrub(words),
@@ -273,6 +329,8 @@ def capture_chat(day: str, workspace: Path) -> list[Path]:
             "id": identity,
         }
         path = state_dir() / "queue" / f"chat-{day}-{identity[:8]}.json"
+        if any((state_dir() / stage / path.name).exists() for stage in ("processed", "failed")):
+            continue
         if path.exists():
             paths.append(path)
             continue
@@ -554,6 +612,11 @@ def process(item: dict, *, dry_run: bool, llm_response: str | None,
             "at": datetime.now().astimezone().isoformat(timespec="seconds")}
     if str(item.get("task_id", "")).startswith("patrol-"):
         return {**base, "action": "skipped", "reason": "patrol brief is supervisor-generated"}
+    # Pre-upgrade items did not bind a source at capture. New items retain
+    # that verdict across a delayed model run and transcript rotation.
+    if (item["stage"] == "chat" and item.get("owner_dm_verified") is not True
+            and not is_owner_chat(item["result"].get("session", ""), *owner_chat_routes())):
+        return {**base, "action": "skipped", "reason": "outside configured owner DMs"}
     topics = store_topics(store)
     prompt = curator_prompt(item, topics)
     if llm_response is not None:
@@ -596,7 +659,16 @@ def run_queue(args) -> dict:
     for path in item_paths[:args.limit]:
         handle = lock()
         try:
+            if not path.exists():
+                continue
             item = json.loads(path.read_text(encoding="utf-8"))
+            # A previous worker may have written the receipt just before exit
+            # or while capture was publishing the same content-addressed item.
+            if item["stage"] == "chat" and (state_dir() / "processed" / path.name).exists():
+                summary["skipped"] += 1
+                if not args.dry_run:
+                    path.unlink()
+                continue
             try:
                 result = process(item, dry_run=args.dry_run, llm_response=args.llm_response,
                                  repo=args.repo.resolve(), store=args.store.resolve())

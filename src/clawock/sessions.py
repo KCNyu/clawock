@@ -409,16 +409,17 @@ def intraday_closed_reason(market: str, at: datetime | None = None, *,
     tz = ZoneInfo(MARKET_TZ[market])
     local = at.astimezone(tz) if at else datetime.now(tz)
     day = local.date()
-    reason = closed_reason(market, day, session=slot_session(market, local))
+    # The exchange date gates the whole run. Within that date a matching
+    # preflight owns its slot even if postflight finishes past the early bell.
+    started = started_at.astimezone(tz) if started_at else local
+    slot = started if started.date() == day and started <= local else local
+    reason = closed_reason(market, day, session=slot_session(market, slot))
     if reason:
         return reason
     if market == "us" and day.isoformat() in US_HALF_DAYS:
         close = session_close(market, day)
-        if local.time() >= close:
-            # A valid preflight from the same session can finish after the bell.
-            started = started_at.astimezone(tz) if started_at else local
-            if started.date() != day or started.time() >= close:
-                return f"半日市·{close:%H:%M} ET 提前收盘"
+        if slot.time() >= close:
+            return f"半日市·{close:%H:%M} ET 提前收盘"
     return None
 
 

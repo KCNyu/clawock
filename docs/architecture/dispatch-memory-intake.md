@@ -75,7 +75,11 @@ job drains anything still queued as a retry path.
 
 Direct chat is captured separately from a dispatch. At 03:20 `intake.py capture-chat`
 reads the previous and current day's private `session-corpus` and queues one item per
-transcript's `User:` lines (probe prompts, heartbeats and dispatch events are dropped).
+owner DM's `User:` lines. The host's dispatch notification targets identify the
+WeChat and Telegram conversations. The active session registry supplies the transcript
+ID, and a rotated session's trajectory header retains its original key. Unattributed
+transcripts, probes, heartbeats and dispatch events are skipped. The same corpus
+content keeps its terminal receipt across nightly passes. New content can be reviewed.
 This exists because the short-term score needs repeated recalls and ranked 0 candidates
 on a one-day conversation: the corpus was fixed, but the score threshold still starved
 a new instruction. The raw lines stay private; the same model and screen decide.

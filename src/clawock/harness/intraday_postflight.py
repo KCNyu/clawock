@@ -841,7 +841,7 @@ def main(argv=None):
                              'prose and the harness prepends the data block.')
     args = parser.parse_args(argv)
 
-    # A matching preflight that started before a US early close may finish
+    # A matching preflight that started before an early close may finish
     # after it. A closed sentinel has no context_id and cannot use this path.
     ctx, err = load_context(args.market)
     started_at = None
