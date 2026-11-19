@@ -197,7 +197,7 @@ async function aCellOpensTheDecisionsItCounts(browser, base, { fixture, kind, ac
   await context.close();
 }
 
-async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
+async function theDrawerTrapsFocusAndGivesItBack(browser, base, { fixture, kind, action }) {
   /* The drawer is modal for the mouse — scrim, Escape — and until #1350 it was
      not modal for the keyboard: Tab walked straight out of it into the board
      behind the scrim, and closing dropped focus on <body>, so a reader lost
@@ -206,13 +206,12 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
      Behavioural on purpose. `inert` is the mechanism, but asserting the
      attribute would pass on a page where the drawer never opens; what has to
      hold is that the tabbing reader cannot leave and gets their cell back. */
-  const { context, page } = await open(browser, base, 1280);
-  await page.evaluate(() => document.querySelector("#dm-board .dm-cell").focus());
-  const opener = await page.evaluate(() => {
-    const cell = document.querySelector("#dm-board .dm-cell");
-    cell.click();
-    return cell.textContent.trim();
-  });
+  const { context, page } = await open(browser, base, 1280, JSON.stringify(fixture));
+  const selector = `#dm-board .dm-cell[data-row=${JSON.stringify(kind)}]`
+    + `[data-action=${JSON.stringify(action)}]`;
+  const opener = await page.locator(selector).textContent();
+  await page.locator(selector).focus();
+  await page.keyboard.press("Enter");
   await page.waitForSelector(".dm-drawer.is-open");
 
   // 抽屉与遮罩挂在 <body> 下（面板是 content-visibility: auto ⇒ paint
@@ -278,7 +277,7 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
   assert.equal(back.inertLeft, 0, "closing the drawer left the page inert");
   assert.notEqual(back.tag, "BODY",
     "closing the drawer dropped focus on <body> instead of the cell that opened it");
-  assert.equal(back.text, opener,
+  assert.equal(back.text, opener.trim(),
     `focus came back to ${back.tag}#${back.id}, not the cell that opened the drawer`);
   // Closed is the other half of the contract: aria-hidden alone left the
   // off-screen 「×」 in the Tab order with nothing announced (#2220).
@@ -577,7 +576,7 @@ async function main() {
     await noCellUsesColourAsItsOnlyChannel(browser, base);
     const interactive = interactivePayload(payload);
     await aCellOpensTheDecisionsItCounts(browser, base, interactive);
-    await theDrawerTrapsFocusAndGivesItBack(browser, base);
+    await theDrawerTrapsFocusAndGivesItBack(browser, base, interactive);
     await theBoardFitsAPhoneOneActionAtATime(browser, base, payload);
     await theTimelineSpreadsRealDatesAcrossItsAxis(browser, base, interactive);
     await theKpiStripPrintsWhatThePayloadHolds(browser, base, payload);
