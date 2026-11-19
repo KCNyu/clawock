@@ -85,6 +85,7 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
         if not isinstance(pf, dict):
             continue
         diffs = {}
+        hk_book = region == 'hk_stocks' or pf.get('currency') == 'HKD'
         # The book's percent precision is the fetcher's (us_quotes rounds to
         # 4 places, hk_analysis to 2), so a reconcile that leaves the prices
         # alone lands on exactly the value the next fetch writes.
@@ -161,7 +162,10 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
                 diffs.setdefault('holdings.current_value', []).append((h.get('ticker'), h.get('current_value'), cv))
             if not dry_run:
                 h['current_value'] = cv
-            pc = number(h.get('prev_close'))
+            # HK fallbacks keep the last known close and its original date.
+            # That retained value cannot price the old shares for this session.
+            pc = (None if hk_book and h.get('quote_incomplete_prev_close')
+                  else number(h.get('prev_close')))
             session = holding_session(h, data.get('last_updated'), region)
             amount, base, old_shares = day_pnl_basis(h, session, market=region)
             # A quote without a prior close cannot value shares that predate

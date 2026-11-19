@@ -37,7 +37,7 @@ from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import session_change_pct
-from clawock.portfolio.math import day_pnl, ledger_rows, trade_session_date
+from clawock.portfolio.math import day_pnl_basis, ledger_rows, trade_session_date
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
 
@@ -429,25 +429,15 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     # the shape this repository keeps paying for — a degraded fetch that
     # publishes as a healthy one (#1116).
     #
-    # The prior close is a stored fact, not something today's quote has to
-    # carry. So the approximation is dropped and the holding's own
-    # `prev_close` is used, keeping its real `prev_close_date`: the day
-    # change then remains arithmetically consistent with what is published
-    # (TODAY_LEG still reconciles) while the date says which session it is
-    # measured from. When that stored close is older than the session we
-    # should be comparing against — or absent entirely — the day change is
-    # not today's, and the holding says so through `quote_incomplete` (the
-    # aggregate bit older readers still consult) plus the narrower
-    # `quote_incomplete_prev_close` that the day-change arithmetic vetoes on.
-    # A provider that supplies the price but no intraday range does not
-    # invalidate this comparison; HK range fields are preserved or cleared
-    # per session below, never inferred from a missing field.
+    # Keep the stored close and its date for provenance. It can price
+    # old shares only if it belongs to the immediately preceding session.
     approximated_pc = q.get('_pc_quality') in ('open-as-pc', 'missing')
     raw_pc = h.get('prev_close')
     stored_pc = float(raw_pc) if isinstance(raw_pc, (int, float)) and raw_pc > 0 else None
-    if approximated_pc and stored_pc:
+    prev_close_ok = not approximated_pc or (
+        stored_pc is not None and h.get('prev_close_date') == hk_prev_session)
+    if approximated_pc:
         pc = stored_pc
-        q = dict(q, pc=pc, dp=_pct(c, pc))
 
     # 越界闸：current 必须落在本次行情自带的当日 [low, high] 内（同一条 gtimg 行，
     # 同源才有可比性 — 别拿可能陈旧的 h['day_low/high'] 残留值来判）。破位 = 供应商
@@ -466,45 +456,34 @@ def _hk_apply_quote(h, q, now_hkt, hk_prev_session, range_warns):
     h['current_value']    = round(c * shrs, 2)
     h['pnl_abs']          = round((c - cost) * shrs, 2)
     h['pnl_percent']      = round((c - cost) / cost * 100, 2) if cost else 0
-    if approximated_pc:
-        # Everything above comes from the price the fallback did give. The
-        # four fields below are the ones that need a prior close.
-        if stored_pc:
-            h['today_change_pct'] = round(q['dp'], 2)
-            h['today_change']     = round((c - pc) * shrs, 2)
-        else:
-            h['today_change'] = None
-            h['today_change_pct'] = None
-        incomplete = not stored_pc or h.get('prev_close_date') != hk_prev_session
-        if incomplete:
-            h['quote_incomplete'] = True
-            h['quote_incomplete_prev_close'] = True
-        else:
-            h.pop('quote_incomplete', None)
-            h.pop('quote_incomplete_prev_close', None)
-    else:
-        h['prev_close']       = round(pc, 3)
-        h['prev_close_date']  = hk_prev_session
-        h['today_change_pct'] = round(q['dp'], 2)
-        h['today_change']     = round((c - pc) * shrs, 2)
-        # A healthy fetch clears it; a flag nobody retires is its own defect.
+    if not approximated_pc:
+        h['prev_close'] = round(pc, 3)
+        h['prev_close_date'] = hk_prev_session
+    if prev_close_ok:
         h.pop('quote_incomplete', None)
         h.pop('quote_incomplete_prev_close', None)
-    if not approximated_pc or stored_pc:
-        quote_day = _hk_quote_session(now_hkt)
-        amount, base = day_pnl(h, quote_day.isoformat(), current=c, market='hk')
+    else:
+        h['quote_incomplete'] = True
+        h['quote_incomplete_prev_close'] = True
+
+    quote_day = _hk_quote_session(now_hkt).isoformat()
+    amount, base, old_shares = day_pnl_basis(h, quote_day, current=c, market='hk')
+    if not prev_close_ok and (old_shares > 0 or base <= 0):
+        h['today_change'] = None
+        h['today_change_pct'] = None
+    else:
         h['today_change'] = round(amount, 2)
-        # With no new lot, the vendor percentage retains its quote precision.
-        # Same folded session as `day_pnl` and `aggregates`: a fill dated
-        # on a closed day belongs to the session before it (#2630).
-        if any(t.get('action') == 'buy'
-               and trade_session_date('hk', t) == quote_day.isoformat()
-               for t in ledger_rows(h.get('trades'))):
+        # With no new lot, keep the quote's percentage precision.
+        if not prev_close_ok or any(
+                t.get('action') == 'buy' and trade_session_date('hk', t) == quote_day
+                for t in ledger_rows(h.get('trades'))):
             h['today_change_pct'] = round(amount / base * 100, 2) if base else 0
+        else:
+            h['today_change_pct'] = round(_pct(c, pc) if approximated_pc else q['dp'], 2)
     h.pop('today_change_abs', None)
-    h['stock_name']       = q.get('name', h.get('stock_name', code))
-    same_session = h.get('day_session_date') == _hk_quote_session(now_hkt).isoformat()
-    h['day_session_date'] = _hk_quote_session(now_hkt).isoformat()
+    h['stock_name'] = q.get('name', h.get('stock_name', code))
+    same_session = h.get('day_session_date') == quote_day
+    h['day_session_date'] = quote_day
     source = q.get('_src', 'Tencent')
     divergence = q.get('_divergence')
     if divergence:

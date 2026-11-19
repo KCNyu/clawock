@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from clawock.market_data import hk_analysis as hk
+from clawock.portfolio import aggregates
 
 CASES = json.loads((Path(__file__).parent / 'fixtures' / 'hk_quote_policies.json').read_text())
 
@@ -21,7 +22,8 @@ def run_case(module, case, monkeypatch, path, capsys):
     class Clock(datetime):
         @classmethod
         def now(cls, tz=None):
-            return instant.astimezone(tz) if tz else instant.replace(tzinfo=None)
+            local = instant.astimezone(tz) if tz else instant.replace(tzinfo=None)
+            return cls.fromisoformat(local.isoformat())
 
     monkeypatch.setattr(module, 'datetime', Clock)
     monkeypatch.setattr(module, 'PORTFOLIO_PATH', str(path))
@@ -46,13 +48,7 @@ def run_case(module, case, monkeypatch, path, capsys):
 
 @pytest.mark.parametrize('case', CASES, ids=lambda case: case['name'])
 def test_writer_replays_pre_extraction_results(case, monkeypatch, tmp_path, capsys):
-    expected = copy.deepcopy(case['expected'])
-    if case['name'] == 'approx-absent':
-        # #3023: absence is now explicit and cannot carry yesterday's value.
-        for key in ('returned', 'written'):
-            row = expected[key]['portfolios']['hk_stocks']['holdings'][0]
-            row.update(today_change=None, today_change_pct=None)
-    assert run_case(hk, case, monkeypatch, tmp_path / 'portfolio.json', capsys) == expected
+    assert run_case(hk, case, monkeypatch, tmp_path / 'portfolio.json', capsys) == case['expected']
 
 
 def test_numeric_string_shares_refresh_without_rewriting_ledger(monkeypatch, tmp_path, capsys):
@@ -76,6 +72,32 @@ def test_missing_fallback_prior_close_clears_previous_day_change():
     assert holding['quote_incomplete']
     assert holding['today_change'] is None and holding['today_change_pct'] is None
     assert 'today_change_abs' not in holding
+
+
+@pytest.mark.parametrize('bought, expected', [(0, None), (50, None), (100, 960.0)])
+def test_degraded_prior_close_respects_remaining_lots_on_refresh_and_reconcile(bought, expected):
+    case = next(c for c in CASES if c['name'] == 'approx-old')
+    data = copy.deepcopy(case['portfolio'])
+    book = data['portfolios']['hk_stocks']
+    holding = book['holdings'][0]
+    now = datetime.fromisoformat(case['now'])
+    session = hk._hk_quote_session(now).isoformat()
+    if bought:
+        holding['trades'] = [{'action': 'buy', 'date': session, 'shares': bought, 'price': 290}]
+    quote = next(iter(case['quotes'].values()))
+
+    hk._hk_apply_quote(holding, quote, now, hk._hk_prev_close_session(now).isoformat(), [])
+
+    assert holding['quote_incomplete_prev_close'] is True
+    assert holding['today_change'] == expected
+    assert holding['today_change_pct'] == (None if expected is None else 3.31)
+
+    # An older writer may already have stored a numeric change on the row.
+    holding.update(today_change=-1260.0, today_change_pct=-4.04)
+    aggregates.recompute(data)
+    assert holding['today_change'] == expected
+    assert holding['today_change_pct'] == (None if expected is None else 3.31)
+    assert book['today_total_change'] == (expected or 0)
 
 
 def test_divergence_survives_fetch_write_and_clears_on_new_quote(monkeypatch, tmp_path, capsys):

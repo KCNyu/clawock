@@ -4283,6 +4283,8 @@ test("workbench client: every API cost estimate is USD, and the total is the sum
     throw new Error(`unexpected require: ${s}`);
   });
   const t = translatorFor(api);
+  assert.match(t("workbench.history.costNote"), /美元.*API 目录价估算/);
+  assert.match(translatorFor(api, "en")("workbench.history.costNote"), /estimated in USD using API list prices/);
   const agent = (name, cost, extra = {}) => ({ agent: name, tasks: 1, live: 0, states: [],
     outcomes: [{ name: "DONE", count: 1 }], tokensTotal: 1000, tokensUnknown: 0,
     costUsdEstimate: cost, costUnpriced: 0, costFree: 0, ...extra });
