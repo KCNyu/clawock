@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "78d84762d1e10cdc5e660bfd3e9b679b0fa83c4cf44cc9189d55b5e9a083921c",
-  "bytes": 15502,
+  "content_sha256": "14337a280d74ae08d7465d3e2fc378d889b89924e48d7128507df75008f6a0d0",
+  "bytes": 15815,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -167,6 +167,15 @@
       "heading": "## Dreaming 晋升 2026-11-08（8-8）",
       "lines": 5,
       "sha256": "35a1436631e53398f94010bba6c8a43db47d0df0957caea9f3df979bc55b843c"
+    },
+    {
+      "slug": "feedback-null-number-rendering",
+      "order": 19,
+      "publish": "public",
+      "separator": true,
+      "heading": "# 运营面板的缺失数值不得直接显示 null，须使用既有格式化或占位约定。",
+      "lines": 5,
+      "sha256": "f487b31669b60b2f5950c21441983b828400d65a9caa42cfd6110c6b7f2dd04b"
     }
   ]
 }

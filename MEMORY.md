@@ -246,3 +246,11 @@ kcn 让我把事情交给 coding agent 时，我是传话的，不替他作主�
 <!-- openclaw-memory-promotion:memory:memory/2026-11-08.md:8:8 -->
 - 记忆统一、删除机制与向量召回等方案讨论不算代码，可留在 chat 中处理。
 - Source: memory/2026-11-08.md:8-8 (reviewed 2026-11-19; SHA256 aa253e1dcc53f98e09606ad4007cfe9dd2fcf81994382539c9c5c2b43ed68951)
+
+---
+
+# 运营面板的缺失数值不得直接显示 null，须使用既有格式化或占位约定。
+
+运营面板遇到缺失数值时，应使用 numText/fmtNum 或既有未知、占位表示，禁止将 null 作为文本渲染，并由浏览器契约测试校验。
+
+<!-- memory-intake:b02db266a8009b64 -->
