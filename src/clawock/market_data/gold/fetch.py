@@ -31,6 +31,7 @@ import subprocess
 import sys
 import os
 import bisect
+import time
 from datetime import datetime, timezone
 
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
@@ -73,19 +74,49 @@ XAU_PRIMARY_SOURCE = 'sina_global_futures_xau'
 XAU_FALLBACK_SOURCE = 'eastmoney_gc00y_fallback'
 
 
-def _curl(url, referer):
-    for _ in range(4):
+# DNS, connection, partial transfer, timeout, TLS, and HTTP stream failures.
+_RETRYABLE_CURL_ERRORS = {5, 6, 7, 16, 18, 28, 35, 52, 55, 56, 92, 95, 96}
+
+
+def _curl(url, referer, *, parse=None):
+    """Fetch one URL. For structured feeds, retry unusable bodies in the same budget."""
+    for delay in (0, 0.5, 1):
+        if delay:
+            time.sleep(delay)
         try:
             # errors='replace'：gtimg 等源名字段是 GBK，UTF-8 严格解码会抛异常被吞成空串；
             # 数值字段全是 ASCII，replace 不影响解析（只有中文名变成替换符）。
-            out = subprocess.run(
-                ['curl', '-sL', url, '-m', '15', '-H', f'Referer: {referer}'],
-                capture_output=True, text=True, errors='replace', timeout=20).stdout
-            if out and len(out) > 40:
-                return out
-        except Exception:
-            pass
-    return ''
+            response = subprocess.run(
+                ['curl', '-sL', url, '-m', '15', '-H', f'Referer: {referer}',
+                 '-w', '\n%{http_code}'],
+                capture_output=True, text=True, errors='replace', timeout=20)
+        except subprocess.TimeoutExpired:
+            continue
+        except OSError:
+            break
+        body, _, status = response.stdout.rpartition('\n')
+        http_code = int(status) if status.isdecimal() else 0
+        if 400 <= http_code < 500 and http_code not in (408, 429):
+            break
+        if response.returncode in _RETRYABLE_CURL_ERRORS:
+            continue
+        if response.returncode:
+            break
+        if http_code in (408, 429) or 500 <= http_code < 600:
+            continue
+        if not 200 <= http_code < 300:
+            break
+        if parse is None:
+            if len(body) > 40:
+                return body
+            continue
+        try:
+            parsed = parse(body)
+        except (ValueError, TypeError, KeyError, AttributeError):
+            continue
+        if parsed:
+            return parsed
+    return None if parse is not None else ''
 
 
 def _em_text(url, referer, *, params=None, label='gold DCA'):
@@ -232,28 +263,36 @@ def fetch_london_spot():
         return None
 
 
+def _parse_usdcny_latest(body):
+    return float(json.loads(body)['rates']['CNY'])
+
+
+def _parse_usdcny_history(body):
+    return {day: float(rates['CNY']) for day, rates in json.loads(body)['rates'].items()
+            if rates.get('CNY')}
+
+
 def fetch_usdcny(start):
     """frankfurter USD→CNY：当前值 + start..今天 历史。返回 (cur, {date: rate}) 或 (None, {})。"""
     today = hkt_today().isoformat()
-    cur, hist = None, {}
-    raw = _curl('https://api.frankfurter.app/latest?from=USD&to=CNY',
-                'https://www.frankfurter.app/')
-    try:
-        cur = float(json.loads(raw)['rates']['CNY'])
-    except Exception:
-        cur = None
+    cur = _curl('https://api.frankfurter.app/latest?from=USD&to=CNY',
+                'https://www.frankfurter.app/', parse=_parse_usdcny_latest)
+    hist = {}
     if start:
-        rawh = _curl(f'https://api.frankfurter.app/{start}..{today}?from=USD&to=CNY',
-                     'https://www.frankfurter.app/')
-        try:
-            for d, r in json.loads(rawh).get('rates', {}).items():
-                if r.get('CNY'):
-                    hist[d] = float(r['CNY'])
-        except Exception:
-            pass
+        hist = _curl(f'https://api.frankfurter.app/{start}..{today}?from=USD&to=CNY',
+                     'https://www.frankfurter.app/', parse=_parse_usdcny_history) or {}
     if cur is None and hist:
         cur = hist[max(hist)]
     return cur, hist
+
+
+def _parse_sina_xau(body):
+    import re
+    match = re.search(r'\(\s*(\[.*\])\s*\)\s*;?\s*\Z', body, re.S)
+    if not match:
+        return []
+    return [(row['date'], float(row['close'])) for row in json.loads(match.group(1))
+            if isinstance(row.get('date'), str) and row['date'] and row.get('close')]
 
 
 def fetch_xau_history(start):
@@ -262,20 +301,12 @@ def fetch_xau_history(start):
     主源 = 新浪全球期货（真·伦敦金现货，回溯 2006，稳）；兜底 = 东财 101.GC00Y（COMEX 连续，会限流）。"""
     s = start or ''
     # ① 新浪 GlobalFutures XAU
-    raw = _curl('https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var_=/'
-                'GlobalFuturesService.getGlobalFuturesDailyKLine?symbol=XAU',
-                'https://finance.sina.com.cn')
-    try:
-        import re
-        m = re.search(r'(\[.*\])', raw, re.S)
-        arr = json.loads(m.group(1)) if m else []
-        out = [(x['date'], float(x['close'])) for x in arr
-               if x.get('date', '') >= s and x.get('close')]
-        if out:
-            out = sorted(out)
-            return out, {'name': XAU_PRIMARY_SOURCE, 'points': len(out)}
-    except Exception:
-        pass
+    primary = _curl('https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var_=/'
+                    'GlobalFuturesService.getGlobalFuturesDailyKLine?symbol=XAU',
+                    'https://finance.sina.com.cn', parse=_parse_sina_xau)
+    out = sorted((day, value) for day, value in (primary or []) if day >= s)
+    if out:
+        return out, {'name': XAU_PRIMARY_SOURCE, 'points': len(out)}
     # ② 兜底 东财 GC00Y（限流时退避重试）
     raw = _em_text(
         'https://push2his.eastmoney.com/api/qt/stock/kline/get',
