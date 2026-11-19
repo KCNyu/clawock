@@ -4786,7 +4786,7 @@ def _gold_card(portfolio):
     """The gold DCA card, trimmed for the browser; None when the book has none."""
     # 🥇 黄金定投卡（000217 华安黄金ETF联接C）— 独立成卡，CNY，不并入跨币种总额
     # （见记忆 openclaw-fx-rule）。数据由 KCNyu gold automation 每日刷进 portfolio.json['gold_dca']，
-    # 这里只做体积裁剪后透传。portfolio.json 已 commit，GHA fresh-checkout 也有，无 .tmp 依赖。
+    # portfolio.json 已 commit，GHA fresh-checkout 也有，无 .tmp 依赖。
     _gold = portfolio.get('gold_dca')
     if _gold:
         _gold = dict(_gold)
@@ -4794,7 +4794,10 @@ def _gold_card(portfolio):
         if isinstance(_gold.get('nav_history'), list):
             _gold['nav_history'] = _gold['nav_history'][-90:]  # 迷你图够用，控体积
         if isinstance(_gold.get('london'), dict):
-            _gold['london'] = dict(_gold['london'])
+            from clawock.market_data.gold.history_status import history_summary
+
+            london = _gold['london']
+            _gold['london'] = {**london, 'hist_summary': history_summary(london)}
             # 结算窗的原始参考序列只属于 fetcher 持久状态；dashboard 只需要
             # 来源、点数和可见 advisory，不把整条内部校验账本发到浏览器。
             _gold['london'].pop('hist_series', None)

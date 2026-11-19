@@ -37,6 +37,9 @@ from datetime import datetime, timezone
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 
 from clawock.market_data.eastmoney_http import em_get
+from clawock.market_data.gold.history_status import (
+    XAU_FALLBACK_SOURCE, XAU_PRIMARY_SOURCE, history_summary,
+)
 from clawock.sessions import hkt_today
 from clawock.workspace import workspace_root
 
@@ -70,8 +73,6 @@ HISTORY_PAGES = 8     # 8×20 = 160 交易日，够画迷你图 + 取区间高�
 HISTORY_KEEP = 140    # 写回 portfolio.json 的最大点数（控体积）
 XAU_SETTLEMENT_DAYS = 5
 XAU_SETTLED_DRIFT_PCT = 0.3
-XAU_PRIMARY_SOURCE = 'sina_global_futures_xau'
-XAU_FALLBACK_SOURCE = 'eastmoney_gc00y_fallback'
 
 
 # DNS, connection, partial transfer, timeout, TLS, and HTTP stream failures.
@@ -774,8 +775,6 @@ def main(argv=None):
     ) or None
     if not spot:
         print('  warn: 伦敦金现货(hf_XAU)抓空，沿用旧 london', file=sys.stderr)
-    elif not xau_fresh:
-        print('  warn: 伦敦金历史(GC00Y)限流抓空，对比线沿用旧线', file=sys.stderr)
     if history_advisory:
         print(f'  advisory: {history_advisory}', file=sys.stderr)
 
@@ -807,6 +806,12 @@ def main(argv=None):
         print(f"  上金所 Au99.99 ¥{dg['price_cny_g']:,.2f}/克 @ {dg.get('date')} "
               f"→ 真持仓回本 ¥{dg['breakeven_cny_g']:,.2f}/克 "
               f"({dg.get('breakeven_upside_pct', 0):+.2f}%, {dg.get('quote_status')})")
+    summary = history_summary({
+        'hist_source': xau_source,
+        'hist_series': xau_hist,
+        'fx_hist_source': fx_source,
+        'fx_hist_series': fx_hist,
+    })
     if g.get('london'):
         ld = g['london']
         print(f"  伦敦金 ${ld.get('xau_usd')}/oz ({(ld.get('xau_change_pct') or 0):+.2f}%) "
@@ -814,10 +819,8 @@ def main(argv=None):
               f"(国际口径 ${ld.get('intl_value_usd'):,.0f})  对比线 {len(ld.get('compare_series') or [])} 点")
         print(f"  ↳ 真持仓伦敦金回本 ${ld.get('fund_breakeven_usd_oz'):,.2f}/oz "
               f"(假设汇率/内外盘价差不变)")
-        hs = ld.get('hist_source') or {}
-        print(f"  ↳ 历史源 {hs.get('name', 'unknown')} · {hs.get('points', 0)} 点")
-        if ld.get('hist_advisory'):
-            print(f"  ℹ️ {ld['hist_advisory']}")
+        if summary:
+            print(f"  ↳ {summary}")
         de = ld.get('dca_equiv')
         if de:
             if de.get('stale') is True:
@@ -830,6 +833,8 @@ def main(argv=None):
                   f"→ 回本需涨 {de['breakeven_upside_pct']:+.2f}%")
             print(f"     模拟投入 ¥{de['principal_cny']:,.0f}，现值 ¥{de['current_value_cny']:,.0f}"
                   f"（{de['pnl_pct']:+.2f}%）")
+    elif summary:
+        print(f"  {summary}")
 
     if dry:
         print('  [dry-run] 不写盘')

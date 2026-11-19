@@ -2152,20 +2152,15 @@
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
                · USDCNY ${num(ld.usdcny, 4)}
              </div>`;
-        const histSource = ld.hist_source || {};
-        const histNames = {
-          sina_global_futures_xau: '新浪 XAU 现货',
-          eastmoney_gc00y_fallback: '东财 GC00Y 兜底',
-          unavailable: '历史抓取失败',
-          not_attempted: '历史未抓取',
-        };
-        html += `<div class="muted" style="font-size:var(--fs-micro);margin-top:4px;text-transform:none;letter-spacing:0">
-          历史源 ${escapeHtml(histNames[histSource.name] || histSource.name || '未知')} · ${num(histSource.points || 0)} 点
-        </div>`;
+        const historyLabel = ld.hist_summary || '伦敦金历史详情';
+        const historyStyle = 'font-size:var(--fs-micro);margin-top:4px;text-transform:none;letter-spacing:0';
         if (ld.hist_advisory) {
-          html += `<div role="status" style="font-size:var(--fs-micro);color:var(--warning);margin-top:4px;text-transform:none;letter-spacing:0">
-            ℹ️ ${escapeHtml(ld.hist_advisory)}
-          </div>`;
+          html += `<details class="muted" style="${historyStyle}">
+            <summary style="cursor:pointer">${escapeHtml(historyLabel)}</summary>
+            <div style="margin-top:4px">${escapeHtml(ld.hist_advisory)}</div>
+          </details>`;
+        } else if (ld.hist_summary) {
+          html += `<div class="muted" style="${historyStyle}">${escapeHtml(historyLabel)}</div>`;
         }
         // 反事实 DCA 只是模拟对照，默认折叠，不再叫「我的平均成本」。
         const de = ld.dca_equiv;
