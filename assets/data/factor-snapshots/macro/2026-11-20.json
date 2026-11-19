@@ -1,0 +1,152 @@
+{
+  "vix": {
+    "symbol": "^VIX",
+    "price": 28.44,
+    "prev": 24.56,
+    "change_pct": 15.8,
+    "source": "yahoo",
+    "as_of": 1795122901
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 5.052,
+    "prev": 5.066,
+    "change_pct": -0.28,
+    "source": "yahoo",
+    "as_of": 1795118395,
+    "yield_pct": 5.052
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 103.924,
+    "prev": 103.863,
+    "change_pct": 0.06,
+    "source": "yahoo",
+    "as_of": 1795129499
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 22841.62,
+    "prev": 23294.75,
+    "change_pct": -1.95,
+    "source": "tencent",
+    "as_of": "2026-11-19"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 3649.14,
+    "prev": 3736.33,
+    "change_pct": -2.33,
+    "source": "tencent",
+    "as_of": "2026-11-19"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7175.83,
+    "prev": 7323.63,
+    "change_pct": -2.02,
+    "source": "tencent",
+    "as_of": "2026-11-19"
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 23879.2,
+    "prev": 24429.88,
+    "change_pct": -2.25,
+    "source": "tencent",
+    "as_of": "2026-11-19"
+  },
+  "fear_greed": {
+    "score": 18.7,
+    "rating": "extreme fear",
+    "prev_close": 24.6,
+    "prev_1_week": 40.3,
+    "as_of": "2026-11-19T23:04:03+00:00"
+  },
+  "fed_press": [
+    {
+      "date": "2026-11-19",
+      "title": "Federal Reserve Board issues enforcement action with former employee of First Security Bancorp",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261119a.htm"
+    },
+    {
+      "date": "2026-11-18",
+      "title": "Minutes of the Federal Open Market Committee, October 27-28, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261118a.htm"
+    },
+    {
+      "date": "2026-11-13",
+      "title": "Agencies extend comment period for proposed third-party risk management guidance",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20261113a.htm"
+    }
+  ],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-11-19",
+    "status": "ok",
+    "age_days": 0,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.2,
+      "1.5m": 4.27,
+      "2m": 4.29,
+      "3m": 4.34,
+      "4m": 4.35,
+      "6m": 4.42,
+      "1y": 4.62,
+      "2y": 4.76,
+      "3y": 4.81,
+      "5y": 4.86,
+      "7y": 4.94,
+      "10y": 5.04,
+      "20y": 5.43,
+      "30y": 5.4
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 28.0,
+    "spread_10y_3m_bps": 70.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
+  "volatility": {
+    "vix": null,
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 29.26,
+      "prev": 23.95,
+      "change_pct": 22.17,
+      "source": "cboe",
+      "as_of": "2026-11-19",
+      "previous_as_of": "2026-11-18",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 27.03,
+      "prev": 24.29,
+      "change_pct": 11.28,
+      "source": "cboe",
+      "as_of": "2026-11-19",
+      "previous_as_of": "2026-11-18",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": null
+  },
+  "volatility_term_structure": null,
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "unavailable",
+    "treasury_curve": "ok"
+  },
+  "generated_at": "2026-11-19T23:20:39.257582+00:00"
+}
