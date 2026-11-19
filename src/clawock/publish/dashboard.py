@@ -348,6 +348,7 @@ def compile_overview_projection(dashboard):
                 # whose window is unknown is not a number a reader can act on.
                 'window_hours',
                 'raw_error_but_product_usable',
+                'product_evidence',
                 # Computed since #772 and, until now, dropped here: the card
                 # could not answer "how many did WeChat drop this window" even
                 # though the ledger knew. A count with no consumer is not a fix.

@@ -249,7 +249,9 @@ def test_the_unread_workflow_stage_detail_stays_out(payload):
     # And the overview projection carries the same values, not just the keys:
     # it once read the pre-trim position and published every slot as null (#2147).
     from clawock.publish.dashboard import compile_overview_projection
-    projected = compile_overview_projection(payload)["workflow_outcomes"]["recent"]
+    overview = compile_overview_projection(payload)["workflow_outcomes"]
+    assert overview["product_evidence"] == wf["product_evidence"]
+    projected = overview["recent"]
     assert [r["primary_delivery"] for r in projected] == [
         r["primary_delivery"] for r in wf["recent"]]
 

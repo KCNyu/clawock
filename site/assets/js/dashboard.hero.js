@@ -1549,6 +1549,8 @@
     const deliveredCount = okCount + soft - fallbackOnly;
     const productEvidence = wf.product_evidence;
     const primary = productEvidence?.primary_delivery;
+    const deliveryAttention = wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal
+      || primary?.unknown || primary?.neither;
     const landed = n("ok") + n("recovered") + n("degraded") + n("quiet");
     const due = cells.length - n("upcoming") - n("running") - n("unmonitored") - n("closed");
     const nowAt = dhHktClock(now);
@@ -1570,8 +1572,8 @@
         note: igFinding ? String(igFinding.msg || igFinding.code || "")
           : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
-        tone: failed || noRecord || fallbackOnly ? "bad" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "warn" : "ok"),
-        state: failed || noRecord || fallbackOnly ? "需处理" : (wfCopied || soft || unconfirmed || noRecordUnknown || !slotTotal ? "观察" : "正常"),
+        tone: failed || noRecord || fallbackOnly ? "bad" : (deliveryAttention ? "warn" : "ok"),
+        state: failed || noRecord || fallbackOnly ? "需处理" : (deliveryAttention ? "观察" : "正常"),
         value: slotTotal ? `${primary?.any_channel ?? deliveredCount}/${slotTotal}` : DASH,
         unit: primary ? "主投送达" : "送达",
         note: wfCopied ? `这一格来自上一次发布（${wfCopied}），本次构建没读到投递台账`
