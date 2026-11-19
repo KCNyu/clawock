@@ -21,6 +21,7 @@ from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 from clawock.market_data import peer_quotes as fetch_peers
 from clawock.automation import cron_heartbeat
+from clawock.decision.actions import PASSIVE_ACTIONS, positive_whole_shares
 from clawock.safe_io import load_json_cached, safe_write_json
 
 WS = workspace_root()
@@ -157,6 +158,24 @@ def prior_session_breaches(current, previous):
     if not current.get("session") or previous.get("session") != current["session"]:
         return []
     return previous.get("breaches_seen") or previous.get("breaches") or []
+
+
+def actionable_price_changes(state, previous, hits, plan, unrefreshed):
+    """Count new, freshly quoted sized plan conditions within this session."""
+    seen = set(previous.get("actionable_hits_seen") or ()) if (
+        previous.get("session") == state.get("session")) else set()
+    stale = set(unrefreshed or ())
+    current = {json.dumps([row.get(key) for key in (
+        "ticker", "action", "condition", "condition_price")], separators=(",", ":"))
+        for row in hits if row.get("ticker") not in stale
+        and positive_whole_shares(row.get("shares")) is not None
+        and row.get("action") not in PASSIVE_ACTIONS}
+    state["actionable_hits_seen"] = sorted(seen | current)
+    if current - seen:
+        return len(current - seen)
+    if not plan.get("plan_date") or plan.get("truncated") or stale:
+        return None
+    return 0
 
 
 def seen_signal_identities(current, previous):

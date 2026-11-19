@@ -1857,6 +1857,8 @@ def _collect(argv=None):
     # not re-wake a full card for a state kcn already got this session. Only
     # an identity first seen today counts; the current set stays for audit.
     old_breaches = intraday_delta.prior_session_breaches(semantic_state, prior_state)
+    actionable_changes = intraday_delta.actionable_price_changes(
+        semantic_state, prior_state, plan_triggers, plan_ctx, coverage.get('unrefreshed'))
     semantic_state['breaches_seen'] = sorted(
         {json.dumps(row, sort_keys=True, ensure_ascii=False): row
          for row in [*old_breaches, *semantic_state['breaches']]}.values(),
@@ -2074,7 +2076,7 @@ def _collect(argv=None):
         cron_heartbeat.record(
             args.market, 'preflight_ok', job_name=heartbeat['job'],
             slot=heartbeat['slot'], should_alert=should_alert,
-            anomaly_count=len(anomalies),
+            anomaly_count=len(anomalies), actionable_changes=actionable_changes,
         )
 
     TMP.mkdir(parents=True, exist_ok=True)

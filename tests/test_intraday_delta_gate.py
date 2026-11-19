@@ -832,3 +832,15 @@ def test_same_second_preflights_bind_distinct_generations(monkeypatch, tmp_path)
     second = run(copy.deepcopy(current))
     assert first['generated_at'][:19] == second['generated_at'][:19]
     assert first['context_id'] != second['context_id']
+
+
+def test_actionable_change_requires_fresh_sized_condition_and_dedupes_within_session():
+    first = {"session": "hk:2026-11-19"}
+    plan = {"plan_date": "2026-11-19"}
+    hit = {"ticker": "00100", "action": "trim_on_rebound", "condition": "price_above",
+           "condition_price": 115.0, "shares": 100}
+    assert gate.actionable_price_changes(first, {}, [hit], plan, ["00100"]) is None
+    assert gate.actionable_price_changes(first, {}, [hit, {**hit, "shares": 0}], plan, []) == 1
+    next_slot = {"session": first["session"]}
+    assert gate.actionable_price_changes(next_slot, first, [hit], plan, []) == 0
+    assert gate.actionable_price_changes(next_slot, first, [{**hit, "condition_price": 116.0}], plan, []) == 1
