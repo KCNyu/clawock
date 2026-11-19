@@ -33,6 +33,7 @@ no investment data, provider catalog, cron map or repository investigation is ne
 | "分析 00100" / "07226 怎么样" / "恒科今天" / 港股问题 | `hk-stock-analysis` | 4 模式 + 港股专属 sentiment（雪球/富途）+ 南向资金 |
 | "看下持仓 / 节后操作 / 持仓有什么风险" | `portfolio-risk-review` | 单 pass、4 lens、快速可行动 |
 | "哪些风险需要复查 / 豁免什么时候到期" | `clawock risk followups --leg HK` 或 `--leg US`（可加 `--json`） | 只读现有风险账本；列到期、待核验和后续复查，不创建订单、不自动确认风险消失 |
+| 「确认承担这条风险 / 豁免到某时 / 请重评这条风险」 | 先用 `clawock risk followups --json` 核对风险编号；用户明确指示后才执行 `clawock risk ack ID --note 理由`、`clawock risk override ID --reason 理由 --ttl-hours 小时`（1–168）或 `clawock risk reassess ID --reason 理由` | 回执应写编号、处置和期限。重评请求进入待复查清单；按投资 SOP 完成重评后，用同一命令加 `--reviewed` 并以 `--reason` 保存结论。沉默、持有或查看清单不等于确认、豁免或已成交 |
 | "深度复盘 / 持仓全面诊断 / 大幅调仓前" | `portfolio-swarm-review` | 3 tier（analyst→bull/bear→risk debate）+ confidence 评分，重，慢 |
 | "用 Serenity 的方式看 X" / 产业链卡点深挖 / AI半导体瓶颈选股 / thesis 压力测试 | `serenity-skill` | 供应链 chokepoint 框架（8 因子评分卡 `skills/serenity-skill/scripts/serenity_scorecard.py`）；**重、手动深挖、不进 cron**；证据阶梯把 KOL/社媒判弱证据 → 对冲追微盘 pump |
 | 教育性问题（"什么是 MACD"、"position sizing 怎么算"） | 直接回答 | 概念和示例无需 skill；涉及真实标的、价格或仓位时转上述分析入口，不把教学参数当成组合授权 |

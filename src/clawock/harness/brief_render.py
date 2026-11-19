@@ -477,6 +477,8 @@ def risk_section(context, plan=None):
         f"{discipline.get('unacknowledged_count', 0)} / oldest "
         f"{discipline.get('oldest_open_days', 0)}d / decision_overdue "
         f"{discipline.get('decision_overdue_count', 0)}")
+    if discipline.get("decision_overdue_count"):
+        lines += ["", "在私聊回复「风险待复查」查看编号，可确认承担、设到期豁免或请求重新评估。"]
     lines.append("")
     if rows:
         lines.append(table(["闸", "标的", "严重度", "detail", "breach_id"], rows))
