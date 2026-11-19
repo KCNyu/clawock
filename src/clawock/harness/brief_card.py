@@ -15,7 +15,7 @@ manifest, Pages contract); no network, no send.
 import json
 
 from clawock.scheduling import BRIEF_SLOT_HKT
-from clawock.decision import preposition
+from clawock.decision.packet import preposition_limits
 from clawock.decision.book import plan_totals
 from clawock.workspace import workspace_root
 from clawock.harness.chat_card import table
@@ -122,10 +122,8 @@ def _early_candidate_section(packet):
         suffix = f"；{'、'.join(blockers)}" if blockers else ''
         lines.append(f'- {name}: {state}{suffix}')
     sizes = [
-        f"{row['ticker']} {row['max_add_shares']} 股"
-        for row in candidates
-        if row.get('tier') == preposition.TIER and row.get('state') == 'eligible'
-        and row.get('allowed') and row.get('max_add_shares') and row.get('ticker')
+        f"{ticker} {limits['max_add_shares']} 股"
+        for ticker, limits in preposition_limits(packet).items()
     ]
     if sizes:
         suffix = f' 等 {len(sizes)} 票' if len(sizes) > 6 else ''

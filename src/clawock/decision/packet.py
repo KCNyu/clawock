@@ -2203,6 +2203,21 @@ def _fold(rows: list, key: str) -> None:
             row.pop(key, None)
 
 
+def preposition_limits(packet):
+    """Per-instrument trial limits from this generation, before any plan choice."""
+    candidates = (packet.get("add_alpha_diagnostics") or {}).get("candidates") or []
+    tickers = packet.get("tickers") or {}
+    return {
+        row["ticker"]: {
+            "max_add_shares": row["max_add_shares"],
+            "lot_size": ((tickers.get(row["ticker"]) or {}).get("constraints") or {}).get("lot_size"),
+        }
+        for row in candidates
+        if row.get("tier") == preposition.TIER and row.get("state") == "eligible"
+        and row.get("allowed") and row.get("max_add_shares") and row.get("ticker")
+    }
+
+
 def summary_view(packet: dict, budget: int | None = None) -> dict:
     """The resident whole-book read (SKILL.md Step 2), fitted to its budget.
 
@@ -2272,6 +2287,14 @@ def summary_view(packet: dict, budget: int | None = None) -> dict:
         _fold(rows, key)
         view.setdefault("folded", {})[key] = (
             f"decision_packet_query ticker=<T> section={section}")
+    if "constraints" in view.get("folded", {}):
+        limits = preposition_limits(packet)
+        if limits:
+            view["preposition_limits"] = limits
+            # Keep these decision inputs after reference detail is exhausted,
+            # even in an already near-budget read. The hard cap still applies.
+            if _printed_bytes(view) > budget:
+                del view["preposition_limits"]
     return view
 
 
