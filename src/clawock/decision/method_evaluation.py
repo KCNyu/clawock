@@ -335,7 +335,16 @@ def main(argv=None) -> int:
     parser.add_argument("--arm", choices=("old_policy", "observations_only", "policy_reference"))
     parser.add_argument("--submission", metavar="JSON", help="freeze an arm response before the start date")
     parser.add_argument("--as-of", help="replay through this completed date")
+    parser.add_argument("--report-due", action="store_true", help="report expired trials locally")
     args = parser.parse_args(argv)
+    if args.report_due:
+        if args.register or args.trial or args.arm or args.submission or args.as_of or args.brief:
+            parser.error("--report-due is a standalone operation")
+        from clawock.decision.method_trial_expiry import report_due
+
+        result = report_due(workspace_root())
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return int(bool(result["failures"]))
     if args.register or args.trial:
         from clawock.decision import method_trials
         if args.register:

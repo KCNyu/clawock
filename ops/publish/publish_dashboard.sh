@@ -68,6 +68,10 @@ fi
 # degraded run publishes the last good cards instead of blanking them.
 /root/.local/bin/clawock-cron-heartbeat --publish
 /root/.local/bin/clawock-workflow-outcomes --publish
+# Local frozen-trial reports are independent of dashboard publication.
+if ! /root/.local/bin/clawock evaluate-methods --report-due; then
+  echo "publish_dashboard: expired method trial report failed; will retry next tick" >&2
+fi
 # --skip-if-unchanged (#846): the inputs' fingerprint is hashed first and an
 # unchanged desk skips the whole rebuild (~12MB of JSON parsing + settlement,
 # 72x/day before the gate). A changed desk builds exactly as before.
