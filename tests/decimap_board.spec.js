@@ -145,9 +145,27 @@ async function noCellUsesColourAsItsOnlyChannel(browser, base) {
   await context.close();
 }
 
-async function aCellOpensTheDecisionsItCounts(browser, base) {
+async function aCellOpensTheDecisionsItCounts(browser, base, payload) {
+  // The aggregate counts older decisions even when publication trims their
+  // snapshots. Pick a bucket with a retained snapshot to exercise the drilldown.
+  const cards = new Map(payload.source_kind_cards.map(card => [card.signal, card]));
+  let target;
+  for (const [index, row] of payload.decision_snapshots.entries()) {
+    const action = payload.decisions.action[index];
+    const signalIndex = row?.findIndex((value, signal) => {
+      const kind = payload.signal_order[signal]?.split(".")[0];
+      return value != null && cards.get(kind)?.by_action?.[action]?.count > 0;
+    });
+    if (signalIndex >= 0) {
+      target = { kind: payload.signal_order[signalIndex].split(".")[0], action };
+      break;
+    }
+  }
+  assert(target, "the published generation has no drilldown with a retained snapshot");
+
   const { context, page } = await open(browser, base, 1280);
-  await page.click("#dm-board .dm-cell");
+  await page.click(`#dm-board .dm-cell[data-row=${JSON.stringify(target.kind)}]`
+    + `[data-action=${JSON.stringify(target.action)}]`);
   await page.waitForSelector(".dm-drawer.is-open");
   const heading = await page.textContent(".dm-drawer h3");
   assert(heading.includes("·"), `drawer heading is not "source · action": ${heading}`);
@@ -541,7 +559,7 @@ async function main() {
   try {
     await theBoardIsATreeOverThePublishedRollUps(browser, base, payload);
     await noCellUsesColourAsItsOnlyChannel(browser, base);
-    await aCellOpensTheDecisionsItCounts(browser, base);
+    await aCellOpensTheDecisionsItCounts(browser, base, payload);
     await theDrawerTrapsFocusAndGivesItBack(browser, base);
     await theBoardFitsAPhoneOneActionAtATime(browser, base, payload);
     await theTimelineSpreadsRealDatesAcrossItsAxis(browser, base);
