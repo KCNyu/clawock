@@ -15,7 +15,7 @@ is built from the slot's structured data, in the order a reader asks:
     **盘前至本档** / **风险待复查**  session recap and existing ledger review dates
     holdings table            the analyzer's table, byte for byte
     **接下来盯**              setups and candidates; postflight adds 下一触发
-    **加仓侧**                only rows that are not a plain 等待
+    **加仓侧**                up to four reads, including 等待; evidence gaps
     **我的看法**              the model's judgment (postflight)
 
 WeChat renders markdown bold, tables and lists but not headings: `## title`
@@ -404,34 +404,6 @@ def trigger_text(item: str) -> str:
     """A checked 下一触发 item in card style: leading ticker bold, levels as code."""
     item = re.sub(r'^([A-Z0-9]{2,6})(?=\s)', r'**\1**', item.strip())
     return re.sub(r'(?<![A-Za-z0-9_.`+*-])(\d+(?:,\d{3})*(?:\.\d+)?)(?![A-Za-z0-9_.%`*])', r'`\1`', item)
-
-
-def focused_delivery(message: str, *, intraday: bool) -> str:
-    """Move decision sections ahead of the supporting detail and tables."""
-    lines = message.splitlines()
-    if not lines or not lines[0].startswith('**'):
-        return message
-    first = (CHANGES, ACTION, JUDGMENT, WATCH) if intraday else (ACTION, '**操作建议**')
-    front = {label: [] for label in first}
-    health = []
-    rest = []
-    target = rest
-    for line in lines[1:]:
-        if line.startswith('⛔'):
-            health.append(line)
-            continue
-        if re.fullmatch(r'\*\*[^*]+\*\*', line):
-            target = front.get(line, rest)
-        elif line.startswith('|'):
-            target = rest
-        target.append(line)
-    if ACTION in front and not front[ACTION]:
-        front[ACTION] = [ACTION, bullet('本档未列新增待办')]
-    if intraday and not front[WATCH]:
-        front[WATCH] = [WATCH, bullet('本档未给出已核验的新触发位')]
-    blocks = [lines[0], *(part for rows in (health, *front.values(), rest)
-                         if (part := '\n'.join(rows).strip()))]
-    return '\n\n'.join(blocks)
 
 
 def quote(text: str) -> str:

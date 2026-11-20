@@ -158,15 +158,14 @@ field the prompt names is in the core or the index).
 
 ## 4. Card blocks (what kcn reads)
 
-On a validated timed check-in, postflight puts health warnings, slot changes,
-actions, the judgment and watch conditions before the supporting detail. An
-open/mid/close report puts the action and recommendation first. Both cards
-carry the summary and the complete holdings table after the front sections.
-The data-only fallback also carries the holdings table. Scheduled delivery
-cadence stays in `config/intraday-delivery.json`.
+Postflight delivers the harness-rendered card in its original order. The
+summary table leads both the intraday and open/mid/pm/close cards, and both
+carry the complete holdings table before the model's prose. On the intraday
+card, checked triggers are part of **接下来盯**, followed by **加仓侧** when
+present and then **我的看法**. The data-only fallback also carries the holdings
+table. Scheduled delivery cadence stays in `config/intraday-delivery.json`.
 
-The following are the underlying context and fallback blocks. A block with
-nothing to say is omitted unless it reports a missing decision or trigger.
+The following table describes the data and prose behind the card.
 
 | # | Block | Answers | Omitted when | Owner |
 |---|---|---|---|---|
@@ -180,7 +179,7 @@ nothing to say is omitted unless it reports a missing decision or trigger.
 | 8 | `⚠️ 信号` | signals new today, in full with their reason lines | no signal is new today (ones already sent are block 10's) | analyzer + harness fold |
 | 9 | candidates | setups, trend, radar, primary information, plan triggers; the `△ SEC直连降级、镜像已检查` line only when its list differs from the last delivered card this session, otherwise one `名单未变，不再逐档印` sentence (`partial_unchanged`) | none | harness |
 | 10 | `▎持续状态` | standing state, plain lines without icons, in this order: `今日已报、仍在：STOP? a、b；STOP-LOSS c` (signals delivered earlier this session, the level said once); the analyzer's `📉` book line (`亏损持仓 n/m｜…`); one row per held leveraged leg (map = `t0_setups.rows.<t>.leveraged`) — `<leg>：<underlying> x% → 2x 应 y%，实测 z%，差 d pp`, the underlying's move from the holdings table, the index strip, or today's bar in the daily bars the radar fetched this slot (no extra request), written with commas in the validator's derived-figure form (a `；` would end the sentence the gap is checked in); `今日涨跌本档未取到，不算差值` when no reading exists; `↳ 行情未证实` when a leg or underlying is in block 4; rows in `leverage_legs`; then one `未成交计划：<ticker> <action> <n>股｜<condition>[｜风控纪律][｜<date> 挂起]` line per open plan decision with a positive share count (`plans.order_lines`, ledger values only; the report card prints the same lines as its `📋 未成交计划` block, #2840). A cut or trim on a holding whose strategy sets `forbid_reduce_advice` is not printed on the intraday card; it stays in `strategy_conflicts` | nothing standing: no folded signal, risk line, leveraged holding or sized open order | analyzer + harness |
-| 10b | `🛰️ 加仓侧：…` | the add-side read per ticker: ticker, three-state, one-line why/needs; a holding whose strategy evidence is incomplete gets the reason here (`↳` under its row, or `观望：… → 本档不给尺寸`, not a verdict) | no rows and no evidence gap Not part of layout A: header, icon, rows and position (the last data block) are as before it (kcn 2026-10-09: 「千万不要影响到我们的加仓侧」) | harness |
+| 10b | **加仓侧** | up to four per-ticker verdicts and their reasons and next conditions; incomplete strategy evidence appears under its ticker or on a separate evidence-gap line | no rows and no evidence gap | harness |
 | 11 | `下一触发：…` | what would change the picture next | never on a prose card | model, validated |
 | 12 | `▎我的看法` | the judgment | fail-closed card | model |
 | 13 | `ℹ️ 校验提示` | advisory checker findings | none | harness |
@@ -190,8 +189,8 @@ layout A of #2805): nothing in block 10 is dropped for being old, it is only
 said once and without an icon per line.
 
 Rules: `⛔` is only data health and `⚠️` only the analyzer's signal header (one
-symbol, one meaning); the add-side line carries `三态都不是下单授权`; it lists at
-most 4 tickers with `why`/`needs` cut to a fixed length and `…另有 N 条` beyond.
+symbol, one meaning). The add-side block includes waits, clips `why`/`needs`
+text and shows `…另有 N 条` after the visible verdicts when more are available.
 A failed check sends the data block with a `🔴` banner on top; an escalating
 warning puts a `🟠` banner on top (not `⚠️`, which belongs to block 8).
 For a judgment or card over its soft length limit, the slot ledger also records

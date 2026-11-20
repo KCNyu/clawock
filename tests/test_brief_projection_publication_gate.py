@@ -39,7 +39,7 @@ def _filled_judgment(generation_id="generation-fixture", tickers=()):
 
 
 def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, price_refresh_failed=False,
-                    shipped=False, rejected=False):
+                    shipped=False, rejected=False, deliver=False):
     today = '2026-09-14'
     monkeypatch.setattr(postflight.trading_calendar, 'hkt_today',
                         lambda: date.fromisoformat(today))
@@ -97,7 +97,7 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, pri
                         lambda *_a, **_k: ['plan rejected (fixture)'] if rejected else [])
     if rejected:
         monkeypatch.setattr(postflight, 'categorize', lambda _issues: 'fail')
-    monkeypatch.setattr(postflight, 'already_delivered', lambda _path: True)
+    monkeypatch.setattr(postflight, 'already_delivered', lambda _path: not deliver)
 
     def maybe_commit(status, _today, dry_run=False, **_kw):
         commits.append((status, dry_run))
@@ -176,6 +176,31 @@ def test_written_deterministic_projection_releases_existing_publish_route(
     # The preflight filed its own stage with its diagnostics; a present context
     # must not be rewritten to {success, context_present} here (#1875).
     assert [stage for _, stage, _, _ in stages].count('preflight') == 0
+
+
+def test_postflight_delivers_the_rendered_brief_card(tmp_path, monkeypatch, capsys):
+    from clawock.harness import brief_card
+
+    rendered, sent = [], []
+    monkeypatch.setattr(brief_card, 'WS', tmp_path)
+    monkeypatch.setattr(postflight, 'run_usage_footer', lambda **_: '')
+
+    def render(*args, **kwargs):
+        card = brief_card.build_brief_card(*args, **kwargs)
+        rendered.append(card)
+        return card
+
+    def send(kind, message, **_):
+        assert kind == 'brief'
+        sent.append(message)
+        return True, 'sent', True
+
+    monkeypatch.setattr(postflight, 'build_brief_card', render)
+    monkeypatch.setattr(postflight, 'send_per_policy', send)
+    code, result, *_ = _run_postflight(tmp_path, monkeypatch, capsys, deliver=True)
+    assert code == 0 and result['wechat_sent']
+    assert len(rendered) == 1
+    assert sent == [rendered[0]]
 
 
 @pytest.mark.parametrize('failure', ['price_refresh_failed', 'preflight_timeout'])

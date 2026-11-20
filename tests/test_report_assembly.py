@@ -368,15 +368,18 @@ def test_incident_replay_stale_prose_is_refused_not_married_to_fresh_numbers(
     assert _carries(FRESH_BLOCK, body) and '情绪面' not in body and not _carries(STALE_BLOCK, body)
 
 
-def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
+def test_happy_path_assembles_commits_and_records_delivered(pf, run_main, sent, monkeypatch):
+    monkeypatch.setattr(pf, 'run_usage_append', lambda message, **_: message)
     rc, out = run_main(PROSE, context_id='abc123def456')
 
     assert rc == 0 and out['status'] == 'pass' and out['mode'] == 'prose'
     assert out['commit_ok'] is True
     body = sent['messages'][0]
-    assert body.startswith('**🌙 美股收盘日报') and '**情绪面**' in body
+    assert body == pf.assemble_message(_ctx(), PROSE)
     table = FRESH_BLOCK.split('\n\n')[-1]
-    assert body.index('**待你处理**') < body.index('**操作建议**') < body.index(table)
+    sections = ('| 市值', table, '**情绪面**', '**技术面**', '**操作建议**')
+    positions = [body.index(section) for section in sections]
+    assert positions == sorted(positions)
 
 
 def test_nothing_new_to_commit_is_current_even_with_other_dirt_in_the_checkout(pf, monkeypatch, tmp_path):
@@ -662,14 +665,3 @@ def test_section_markers_named_inside_a_sentence_do_not_count(pf):
     # The real layout (markers on their own lines) is unaffected.
     proper = PROSE + '\n▎风险提示\n杠杆腿波动放大。\n'
     assert pf.validate(pf.assemble_message(ctx, proper), ctx, proper) == []
-
-
-def test_delivered_report_moves_recommendation_before_supporting_detail(pf):
-    from clawock.harness.chat_card import ACTION, focused_delivery
-
-    assembled = pf.assemble_message(_ctx(), PROSE)
-    body = focused_delivery(assembled, intraday=False)
-    table = FRESH_BLOCK.split('\n\n')[-1]
-    assert body.index(ACTION) < body.index('**操作建议**') < body.index(table) < body.index('**技术面**')
-    assert [line for line in body.splitlines() if line.startswith('|')] == [
-        line for line in assembled.splitlines() if line.startswith('|')]
