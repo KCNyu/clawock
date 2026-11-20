@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-19T21:01:07.633924+00:00",
+  "generated_at": "2026-11-20T02:32:19.259698+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,84 +13,56 @@
   },
   "source_status": {
     "trump": "success",
-    "musk": "failed",
+    "musk": "success",
     "ark": "success",
     "serenity": "failed",
     "duan": "success",
-    "honghao": "failed",
+    "honghao": "success_empty",
     "burry": "success",
     "pelosi": "success"
   },
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 14,
+    "total": 18,
     "held_hits": 0,
-    "new_ideas": 9,
-    "sector_hits": 4
+    "new_ideas": 10,
+    "sector_hits": 5
   },
   "items": [
     {
       "author": "Burry",
-      "text": "Michael Burry Agrees Nvidia Looks 'Suspicious' After Company Delays 10-Q Filing: 'Exactly'",
-      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPZ3ZmSWtHeU1lc2x2Vlk3dUVfa1EwUE1jRG9zOThlUEJNWGpsOGhudklad0ZNeE5lX0c0c3RsbTN4cmlEUjFTcmY2UXpSOXZOR25hLUMwaTdHSUdORkhVTTBLZ1JzNXp3LVBLUnJNM2pJcGZfdDlFa1VVY3pvVmdxLWJMMkJLY2hab1NIRVVEUUN2M0dGTEU5Mlo1bWRTenFjWnR4UFZ2UXZXdEhCRVA0aFdYUzhzR1ZocXRobWkybFlEaEhldkhGUlpfUTBVNVl1V3N3dnZaOGttdw?oc=5",
-      "published": "2026-11-18T11:53:40+00:00",
+      "text": "Michael Burry Says He Tried to Warn You About Nvidia, CoreWeave and Nebius. Here's What the 'Big Short' Investor Saw",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQZGRrc1VrMldqYWVBbVlYN0hWeDBZX25tWDdzaVZvWnZaNGtpM1BuMGtYS0ozMWo3WjNEazhneVlMRXk2X0hYbEZXdWhva20xZFpaQjlObzlnWnFYU3JhcnlpZ3M3eWFNZDRKZXN0ZjFQV21pR0dJYWFOdWJlNURieGpmcENSdElaOUI3NXd6MUg5X2VNTlF1MWNR?oc=5",
+      "published": "2026-11-20T01:03:00+00:00",
       "origin": "gnews-rss",
-      "source": "Benzinga",
+      "source": "Yahoo Finance",
       "tickers": [
-        "NVDA"
+        "NVDA",
+        "CRWV",
+        "NBIS"
       ],
       "held": [],
       "new_ideas": [
+        "CRWV",
+        "NBIS",
         "NVDA"
       ],
       "sectors": [
         "半导体",
         "人工智能",
-        "公司治理"
+        "云计算",
+        "数据中心"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
-        "07226",
-        "07709"
+        "07226"
       ],
       "stance": "attack",
-      "relevance": 82,
-      "summary_cn": ""
-    },
-    {
-      "author": "段永平",
-      "text": "段永平悉售阿里 減持輝達",
-      "url": "https://news.google.com/rss/articles/CBMiwgJBVV95cUxPeC1iQjZKWmlsT0Y0ZzM1RE4wZkFfLWU4VkU1eGpHLVNnNjlBN2luY0N5czhtLU1fZnYwdjNSNWx3ejFwZ09SYi1wTmREbnpuSzNjUHROR1JOVHlKZnh0bE5fdTA0YVVyc1J4cC11WE9ZUG1xelBiMFdoc0pwZjhXMjZ2bFFfZVBKNDc1RC1VR3JVUDVXX0ZkeUFLaVJDWWpjbnFMcjE2RGVtaHB5SVNZdkdVZ05LWTZwN3NPMlpfemRfdVBQdi1keXJPMmt0a09SUmhMWGc3REh0UWlXWkpYVlRFM0toTVZUaDh5Q3B5aWZtT3pxTEdrVHh5Q29FelVKSzZXM2lRd0ptdHRQaVVNbnJfSFRRTmc5dnctcnRRNFFhNHRpenVZSWRnSG4yQW1mMTlaMkphRGIycUxSbXRCU1Jn?oc=5",
-      "published": "2026-11-18T15:50:25+00:00",
-      "origin": "gnews-rss",
-      "source": "信報網站",
-      "tickers": [
-        "BABA",
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BABA",
-        "NVDA"
-      ],
-      "sectors": [
-        "中国互联网",
-        "半导体",
-        "人工智能"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "sell",
-      "relevance": 75,
-      "summary_cn": ""
+      "relevance": 87,
+      "summary_cn": "据报道，Michael Burry此前曾警示英伟达、CoreWeave和Nebius的AI业务风险，凸显高估值算力基础设施标的的下行担忧。"
     },
     {
       "author": "段永平",
@@ -101,31 +73,94 @@
       "source": "香港經濟日報HKET",
       "tickers": [
         "BABA",
-        "AAPL",
-        "TSLA"
+        "AAPL"
       ],
       "held": [],
       "new_ideas": [
         "AAPL",
-        "BABA",
-        "TSLA"
+        "BABA"
       ],
       "sectors": [
         "中国互联网",
         "消费电子",
+        "人工智能",
         "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "sell",
+      "relevance": 82,
+      "summary_cn": "据报道，段永平已清仓阿里巴巴并减持苹果，同时增加与马斯克相关的标的敞口，反映其调整中美科技股仓位。"
+    },
+    {
+      "author": "段永平",
+      "text": "恒指再跌穿23,500點！段永平清倉阿里、減持63% Nvidia！科技股是否開始出現大特價？明天7500、7552要留意！",
+      "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPaGhRd3ctZVFaai1XQWUtZ3lUNjRJaG8zVTdsVG9FbnkxT09Pb2xlcWFnTDc3SS1QX2VlbWpWWXl3U2hfamk0UFNoY0ZfcEFLVUFycmlPWkplWGRSdVNMYUV5UXdoQUcxVU1mdWFKeWg5X1dpSzlQdWd2OGVYR3h5VHR3bzJSS2lhM1FqdkJtZnVuSjJVcExQRnhtS0hscEFsWDJrX3lvaVB2a2pZeWc?oc=5",
+      "published": "2026-11-18T08:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Moomoo",
+      "tickers": [
+        "BABA",
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BABA",
+        "NVDA"
+      ],
+      "sectors": [
+        "中国互联网",
+        "半导体",
         "人工智能"
       ],
       "sector_holdings": [
-        "00100",
-        "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "sell",
-      "relevance": 72,
-      "summary_cn": ""
+      "relevance": 80,
+      "summary_cn": "据报道，段永平清仓阿里巴巴并减持约63%的英伟达持仓，显示其大幅降低中美科技股敞口。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Shops the Sell-Off with Bets on JD, BYD, Sprouts and More",
+      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOT2tIelRwU1o2V2YwMkdYSmdyUHYyM2ZIdjF4VHRPMnVIbm8zWVU5Z1o3QlpEVVd2WDhmZnJOenB1ZFVZNE9manBhbXhMR3FtSl9hMnFPNE95MXN4VEJINHRtem1tOTZrWUVzeGI5WjdHQXhoaW1neWYyRXJra01nNUFtZjU1MmdyT1BubzRnQkZtdEU4bWxrTXR2djBDSXdINm5zbVhXRDJHR19zUEt0aFhFdndwUThVRnUzRWFXMHBxR0kxdlpNRXVGT0kzbVk?oc=5",
+      "published": "2026-11-19T23:21:36+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "JD",
+        "BYD",
+        "SFM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BYD",
+        "JD",
+        "SFM"
+      ],
+      "sectors": [
+        "中国电商",
+        "电动车",
+        "零售",
+        "农产品"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 79,
+      "summary_cn": "据报道，Michael Burry在市场抛售中买入京东、比亚迪和Sprouts等股票，表达对中国消费及电动车相关标的的逆向布局。"
     },
     {
       "author": "Burry",
@@ -143,42 +178,46 @@
       ],
       "sectors": [
         "中国互联网",
-        "电商"
+        "云计算",
+        "人工智能"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "buy",
-      "relevance": 70,
-      "summary_cn": ""
+      "relevance": 72,
+      "summary_cn": "据报道，在阿里巴巴一年下跌约45%后，Michael Burry披露了自己愿意买入该股的价格水平，释放逆向关注信号。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry questions progress on Wall Street’s massive Nvidia financing initiative",
-      "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxORzVlMjVGN093N0VBUXJhcTg5SXhOVjE5SjdVQ3BVbG9ZY1N2RE91bHdORFdnbUVobVplekwzZDkzRVZ5S1Z6eExTckJldzE3RTNlVjl6N1Y1WGhwTFp6TUo4UFNYR2w3ZE5EMzdqQ3d4Sm5XaFZWenpaNFlTZ29FZ1ItTTBkcXlIeUpvNHRucU5FeS13Q1JLM2h4SnQ2YVB0blg0SE5RanZ0NVJEQ2o4Y1hnZE10bnVDUDFWSUdqb0M?oc=5",
-      "published": "2026-11-19T07:06:40+00:00",
+      "author": "Musk",
+      "text": "Verizon’s CEO knows Elon Musk is coming for his business. He says it’ll cost SpaceX over $300 billion to compete",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 17:46:00 GMT",
       "origin": "gnews-rss",
-      "source": "Seeking Alpha",
+      "source": "Fortune",
       "tickers": [
-        "NVDA"
+        "VZ"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "VZ"
       ],
       "sectors": [
-        "半导体",
-        "人工智能",
-        "资本市场"
+        "通信服务",
+        "卫星通信",
+        "航天",
+        "电信竞争"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
       "stance": "attack",
       "relevance": 68,
-      "summary_cn": ""
+      "summary_cn": "Verizon首席执行官称马斯克旗下业务将发起竞争，并估计SpaceX为与其竞争可能需投入逾3000亿美元，凸显卫星通信竞争压力。"
     },
     {
       "author": "Cathie Wood",
@@ -197,17 +236,13 @@
       ],
       "sectors": [
         "人工智能",
-        "AI软件"
+        "自动驾驶",
+        "物流科技"
       ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "buy",
-      "relevance": 60,
-      "summary_cn": ""
+      "relevance": 54,
+      "summary_cn": "ARK Invest在ARKQ中买入506,083股Kodiak AI，占单只ETF比重0.03%，属于规模较小的常规加仓。"
     },
     {
       "author": "Cathie Wood",
@@ -226,13 +261,13 @@
       ],
       "sectors": [
         "生物科技",
-        "基因测序",
-        "医疗"
+        "合成生物学",
+        "DNA测序"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 60,
-      "summary_cn": ""
+      "relevance": 52,
+      "summary_cn": "ARK Invest在ARKG中买入2,835股Twist Bioscience，占单只ETF比重0.02%，属于规模较小的常规加仓。"
     },
     {
       "author": "Cathie Wood",
@@ -251,12 +286,13 @@
       ],
       "sectors": [
         "金融科技",
-        "哈萨克斯坦"
+        "支付",
+        "新兴市场电商"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 58,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "ARK Invest在ARKF中卖出4,403股Kaspi.kz，占单只ETF比重0.05%，属于规模较小的常规减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -276,37 +312,37 @@
       "sectors": [
         "电动车",
         "新能源汽车",
-        "汽车"
+        "汽车制造"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 57,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "ARK Invest在ARKQ中卖出59,498股比亚迪ADR，占单只ETF比重0.03%，属于规模较小的常规减仓。"
     },
     {
-      "author": "Trump",
-      "text": "I am now heading to China, from the Philippines, where we had a wonderful meeting on Trade, National Security, and other subjects. I am pleased to announce that we made a new and completely different Trade Deal with the Philippines, one that will be a true landmark and, in particular, a Deal that will be great for our Farmers and those in the business of “Energy.” President Marcos is a powerful leader, and a man of high integrity and substance. It was an Honor to be with him, and his beautiful wife and son. See you in China! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43616",
-      "published": "2026-11-18T07:44:12+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk's Latest Calls For Tesla-SpaceX Merger; Explains Pay Package",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 14:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "贸易",
-        "能源",
-        "中国"
+        "电动车",
+        "航天",
+        "公司并购",
+        "股权激励"
       ],
       "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "特朗普称已与菲律宾达成新的贸易协议，并提到协议将利好美国农民及能源业务，显示亚洲贸易与能源合作信号。"
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "媒体称马斯克再次呼吁特斯拉与SpaceX合并，并解释管理层薪酬安排，显示两家公司可能进一步整合。"
     },
     {
       "author": "Trump",
@@ -319,53 +355,58 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "贸易",
-        "中国"
+        "中美贸易",
+        "东南亚贸易",
+        "供应链"
       ],
       "sector_holdings": [
-        "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普表示将赴中国并讨论贸易协议，同时涉及菲律宾等国的贸易安排，释放中美及亚洲贸易政策信号。"
+      "relevance": 72,
+      "summary_cn": "特朗普表示将公布中国行成果及与泰国、菲律宾等国的贸易协议，释放中美与东南亚贸易政策信号。"
     },
     {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/Schoenlaw/statuses/117632129147481602Biggest drop in gasoline in 18 years. Notice that they waited until after the “Election?” President DJTQuoted Schoenlawhttps://tradersunion.com/news/market-voices/show/4212469-us-gasoline-prices-drop/. Last week saw the biggest drop in retail gas prices at the pump in 18 years!  The blockade is working.  Where is the media???Credit President Trump!!!  @realDonaldTrump",
-      "url": "https://www.trumpstruth.org/statuses/43613",
-      "published": "2026-11-17T22:09:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "原油",
-        "汽油"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": ""
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Zeroes In on One AI Giant's $500 Billion Push",
-      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxObl9GOWxIbUx3c05hUjh5aTcyZHl6RmhCRzB4dXdiNUhEVjFzdkVUQnZHQjkzb2pqNW1VSWFtSDI1TXF4aW15akZrRW81SnNpc01DckJCd2VqbzJhaXJhY05lRjJ2M2hoSjBFY3FpbVFKOW9uTl9la2pyNnhoOGo5VDNXMWRVY0tqbGthakNVc1ljN0hDa3hxclI4aXFXeEM0UG12QjZtbGx4SU5IalVEd2dYZXBwdFRadnc?oc=5",
-      "published": "2026-11-19T18:03:19+00:00",
+      "author": "Musk",
+      "text": "‘Misanthropic and evil’: Elon Musk’s SpaceX may get up to $120.5 billion from Anthropic, the AI lab he once slammed",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 14:45:00 GMT",
       "origin": "gnews-rss",
-      "source": "TradingView",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "人工智能",
-        "AI基础设施"
+        "航天",
+        "企业融资"
+      ],
+      "sector_holdings": [
+        "00100",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "媒体称SpaceX可能从Anthropic获得最高1205亿美元收入，若落地将扩大马斯克体系在AI与航天领域的商业联系。"
+    },
+    {
+      "author": "Burry",
+      "text": "\"The Big Short's\" Michael Burry Issued a Blunt Warning about Anthropic",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPNVJyaUpJaDlxemlSbmlpVE8zYTliY2tZVlhleGFuc0UzbE9JQU5OVlFydFNwcDJLbksxRkJBU0ttY3NCamtGaVltMXVvMTFCNDBaYTNwckdSa1cwQzdYOUJWOHhPTklKVEVKY0dVTkMxNks5RWdhcXBPYV9mS2pSN1IzN2FYN3NGX2Zwb0pkaEpyWW13TTJxdDVPTnZtSTFIS0ZJVHd6VGQtTVB2Q200Tg?oc=5",
+      "published": "2026-11-19T21:28:02+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "风险投资",
+        "估值风险"
       ],
       "sector_holdings": [
         "00100",
@@ -373,9 +414,73 @@
         "03033",
         "07226"
       ],
+      "stance": "attack",
+      "relevance": 63,
+      "summary_cn": "据报道，Michael Burry就Anthropic发出严厉警告，指向未上市AI公司的商业模式或估值风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "What the Blue Wave in Texas Means for Elon Musk’s Tesla and SpaceX",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 18:02:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天",
+        "美国中期选举"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": ""
+      "summary_cn": "媒体称美国中期选举结果可能改变特斯拉与SpaceX面临的政治及监管环境，但未给出具体政策动作。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Factories Are Coming Home, ISM Just Confirmed It: https://www.realclearmarkets.com/articles/2026/11/02/the_factories_are_coming_home_ism_just_confirmed_it_1214700.html",
+      "url": "https://www.trumpstruth.org/statuses/43642",
+      "published": "2026-11-20T00:37:35+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "制造业",
+        "美国经济",
+        "供应链"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 67,
+      "summary_cn": "特朗普称制造业回流正获ISM数据确认，指向关税和供应链调整对工业生产的潜在影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am now heading to China, from the Philippines, where we had a wonderful meeting on Trade, National Security, and other subjects. I am pleased to announce that we made a new and completely different Trade Deal with the Philippines, one that will be a true landmark and, in particular, a Deal that will be great for our Farmers and those in the business of “Energy.” President Marcos is a powerful leader, and a man of high integrity and substance. It was an Honor to be with him, and his beautiful wife and son. See you in China! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43616",
+      "published": "2026-11-18T07:44:12+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "菲律宾贸易",
+        "能源",
+        "农产品"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 66,
+      "summary_cn": "特朗普称已与菲律宾达成新贸易协议，并将涉及农民和能源行业，显示东南亚贸易谈判取得进展。"
     },
     {
       "author": "Trump",
@@ -388,78 +493,50 @@
       "new_ideas": [],
       "sectors": [
         "农业",
-        "粮食安全",
-        "贸易政策"
+        "食品价格",
+        "美国财政政策"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普呼吁国会尽快通过新农业法案，为2027年种植季提供政策确定性，涉及农业和粮食安全板块。"
+      "relevance": 58,
+      "summary_cn": "特朗普敦促国会尽快通过新农业法案，强调农民确定性和粮食安全，政策落地或影响农产品及农业股。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Burry",
-      "text": "Michael Burry Agrees Nvidia Looks 'Suspicious' After Company Delays 10-Q Filing: 'Exactly'",
-      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPZ3ZmSWtHeU1lc2x2Vlk3dUVfa1EwUE1jRG9zOThlUEJNWGpsOGhudklad0ZNeE5lX0c0c3RsbTN4cmlEUjFTcmY2UXpSOXZOR25hLUMwaTdHSUdORkhVTTBLZ1JzNXp3LVBLUnJNM2pJcGZfdDlFa1VVY3pvVmdxLWJMMkJLY2hab1NIRVVEUUN2M0dGTEU5Mlo1bWRTenFjWnR4UFZ2UXZXdEhCRVA0aFdYUzhzR1ZocXRobWkybFlEaEhldkhGUlpfUTBVNVl1V3N3dnZaOGttdw?oc=5",
-      "published": "2026-11-18T11:53:40+00:00",
+      "text": "Michael Burry Says He Tried to Warn You About Nvidia, CoreWeave and Nebius. Here's What the 'Big Short' Investor Saw",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQZGRrc1VrMldqYWVBbVlYN0hWeDBZX25tWDdzaVZvWnZaNGtpM1BuMGtYS0ozMWo3WjNEazhneVlMRXk2X0hYbEZXdWhva20xZFpaQjlObzlnWnFYU3JhcnlpZ3M3eWFNZDRKZXN0ZjFQV21pR0dJYWFOdWJlNURieGpmcENSdElaOUI3NXd6MUg5X2VNTlF1MWNR?oc=5",
+      "published": "2026-11-20T01:03:00+00:00",
       "origin": "gnews-rss",
-      "source": "Benzinga",
+      "source": "Yahoo Finance",
       "tickers": [
-        "NVDA"
+        "NVDA",
+        "CRWV",
+        "NBIS"
       ],
       "held": [],
       "new_ideas": [
+        "CRWV",
+        "NBIS",
         "NVDA"
       ],
       "sectors": [
         "半导体",
         "人工智能",
-        "公司治理"
+        "云计算",
+        "数据中心"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
-        "07226",
-        "07709"
+        "07226"
       ],
       "stance": "attack",
-      "relevance": 82,
-      "summary_cn": ""
-    },
-    {
-      "author": "段永平",
-      "text": "段永平悉售阿里 減持輝達",
-      "url": "https://news.google.com/rss/articles/CBMiwgJBVV95cUxPeC1iQjZKWmlsT0Y0ZzM1RE4wZkFfLWU4VkU1eGpHLVNnNjlBN2luY0N5czhtLU1fZnYwdjNSNWx3ejFwZ09SYi1wTmREbnpuSzNjUHROR1JOVHlKZnh0bE5fdTA0YVVyc1J4cC11WE9ZUG1xelBiMFdoc0pwZjhXMjZ2bFFfZVBKNDc1RC1VR3JVUDVXX0ZkeUFLaVJDWWpjbnFMcjE2RGVtaHB5SVNZdkdVZ05LWTZwN3NPMlpfemRfdVBQdi1keXJPMmt0a09SUmhMWGc3REh0UWlXWkpYVlRFM0toTVZUaDh5Q3B5aWZtT3pxTEdrVHh5Q29FelVKSzZXM2lRd0ptdHRQaVVNbnJfSFRRTmc5dnctcnRRNFFhNHRpenVZSWRnSG4yQW1mMTlaMkphRGIycUxSbXRCU1Jn?oc=5",
-      "published": "2026-11-18T15:50:25+00:00",
-      "origin": "gnews-rss",
-      "source": "信報網站",
-      "tickers": [
-        "BABA",
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BABA",
-        "NVDA"
-      ],
-      "sectors": [
-        "中国互联网",
-        "半导体",
-        "人工智能"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "sell",
-      "relevance": 75,
-      "summary_cn": ""
+      "relevance": 87,
+      "summary_cn": "据报道，Michael Burry此前曾警示英伟达、CoreWeave和Nebius的AI业务风险，凸显高估值算力基础设施标的的下行担忧。"
     },
     {
       "author": "段永平",
@@ -470,31 +547,94 @@
       "source": "香港經濟日報HKET",
       "tickers": [
         "BABA",
-        "AAPL",
-        "TSLA"
+        "AAPL"
       ],
       "held": [],
       "new_ideas": [
         "AAPL",
-        "BABA",
-        "TSLA"
+        "BABA"
       ],
       "sectors": [
         "中国互联网",
         "消费电子",
+        "人工智能",
         "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "sell",
+      "relevance": 82,
+      "summary_cn": "据报道，段永平已清仓阿里巴巴并减持苹果，同时增加与马斯克相关的标的敞口，反映其调整中美科技股仓位。"
+    },
+    {
+      "author": "段永平",
+      "text": "恒指再跌穿23,500點！段永平清倉阿里、減持63% Nvidia！科技股是否開始出現大特價？明天7500、7552要留意！",
+      "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPaGhRd3ctZVFaai1XQWUtZ3lUNjRJaG8zVTdsVG9FbnkxT09Pb2xlcWFnTDc3SS1QX2VlbWpWWXl3U2hfamk0UFNoY0ZfcEFLVUFycmlPWkplWGRSdVNMYUV5UXdoQUcxVU1mdWFKeWg5X1dpSzlQdWd2OGVYR3h5VHR3bzJSS2lhM1FqdkJtZnVuSjJVcExQRnhtS0hscEFsWDJrX3lvaVB2a2pZeWc?oc=5",
+      "published": "2026-11-18T08:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Moomoo",
+      "tickers": [
+        "BABA",
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BABA",
+        "NVDA"
+      ],
+      "sectors": [
+        "中国互联网",
+        "半导体",
         "人工智能"
       ],
       "sector_holdings": [
-        "00100",
-        "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "sell",
-      "relevance": 72,
-      "summary_cn": ""
+      "relevance": 80,
+      "summary_cn": "据报道，段永平清仓阿里巴巴并减持约63%的英伟达持仓，显示其大幅降低中美科技股敞口。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Shops the Sell-Off with Bets on JD, BYD, Sprouts and More",
+      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOT2tIelRwU1o2V2YwMkdYSmdyUHYyM2ZIdjF4VHRPMnVIbm8zWVU5Z1o3QlpEVVd2WDhmZnJOenB1ZFVZNE9manBhbXhMR3FtSl9hMnFPNE95MXN4VEJINHRtem1tOTZrWUVzeGI5WjdHQXhoaW1neWYyRXJra01nNUFtZjU1MmdyT1BubzRnQkZtdEU4bWxrTXR2djBDSXdINm5zbVhXRDJHR19zUEt0aFhFdndwUThVRnUzRWFXMHBxR0kxdlpNRXVGT0kzbVk?oc=5",
+      "published": "2026-11-19T23:21:36+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "JD",
+        "BYD",
+        "SFM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BYD",
+        "JD",
+        "SFM"
+      ],
+      "sectors": [
+        "中国电商",
+        "电动车",
+        "零售",
+        "农产品"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 79,
+      "summary_cn": "据报道，Michael Burry在市场抛售中买入京东、比亚迪和Sprouts等股票，表达对中国消费及电动车相关标的的逆向布局。"
     },
     {
       "author": "Burry",
@@ -512,42 +652,46 @@
       ],
       "sectors": [
         "中国互联网",
-        "电商"
+        "云计算",
+        "人工智能"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "buy",
-      "relevance": 70,
-      "summary_cn": ""
+      "relevance": 72,
+      "summary_cn": "据报道，在阿里巴巴一年下跌约45%后，Michael Burry披露了自己愿意买入该股的价格水平，释放逆向关注信号。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry questions progress on Wall Street’s massive Nvidia financing initiative",
-      "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxORzVlMjVGN093N0VBUXJhcTg5SXhOVjE5SjdVQ3BVbG9ZY1N2RE91bHdORFdnbUVobVplekwzZDkzRVZ5S1Z6eExTckJldzE3RTNlVjl6N1Y1WGhwTFp6TUo4UFNYR2w3ZE5EMzdqQ3d4Sm5XaFZWenpaNFlTZ29FZ1ItTTBkcXlIeUpvNHRucU5FeS13Q1JLM2h4SnQ2YVB0blg0SE5RanZ0NVJEQ2o4Y1hnZE10bnVDUDFWSUdqb0M?oc=5",
-      "published": "2026-11-19T07:06:40+00:00",
+      "author": "Musk",
+      "text": "Verizon’s CEO knows Elon Musk is coming for his business. He says it’ll cost SpaceX over $300 billion to compete",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 17:46:00 GMT",
       "origin": "gnews-rss",
-      "source": "Seeking Alpha",
+      "source": "Fortune",
       "tickers": [
-        "NVDA"
+        "VZ"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "VZ"
       ],
       "sectors": [
-        "半导体",
-        "人工智能",
-        "资本市场"
+        "通信服务",
+        "卫星通信",
+        "航天",
+        "电信竞争"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
       "stance": "attack",
       "relevance": 68,
-      "summary_cn": ""
+      "summary_cn": "Verizon首席执行官称马斯克旗下业务将发起竞争，并估计SpaceX为与其竞争可能需投入逾3000亿美元，凸显卫星通信竞争压力。"
     },
     {
       "author": "Cathie Wood",
@@ -566,17 +710,13 @@
       ],
       "sectors": [
         "人工智能",
-        "AI软件"
+        "自动驾驶",
+        "物流科技"
       ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "buy",
-      "relevance": 60,
-      "summary_cn": ""
+      "relevance": 54,
+      "summary_cn": "ARK Invest在ARKQ中买入506,083股Kodiak AI，占单只ETF比重0.03%，属于规模较小的常规加仓。"
     },
     {
       "author": "Cathie Wood",
@@ -595,13 +735,13 @@
       ],
       "sectors": [
         "生物科技",
-        "基因测序",
-        "医疗"
+        "合成生物学",
+        "DNA测序"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 60,
-      "summary_cn": ""
+      "relevance": 52,
+      "summary_cn": "ARK Invest在ARKG中买入2,835股Twist Bioscience，占单只ETF比重0.02%，属于规模较小的常规加仓。"
     },
     {
       "author": "Cathie Wood",
@@ -620,12 +760,13 @@
       ],
       "sectors": [
         "金融科技",
-        "哈萨克斯坦"
+        "支付",
+        "新兴市场电商"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 58,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "ARK Invest在ARKF中卖出4,403股Kaspi.kz，占单只ETF比重0.05%，属于规模较小的常规减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -645,39 +786,39 @@
       "sectors": [
         "电动车",
         "新能源汽车",
-        "汽车"
+        "汽车制造"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 57,
-      "summary_cn": ""
+      "relevance": 50,
+      "summary_cn": "ARK Invest在ARKQ中卖出59,498股比亚迪ADR，占单只ETF比重0.03%，属于规模较小的常规减仓。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Trump",
-      "text": "I am now heading to China, from the Philippines, where we had a wonderful meeting on Trade, National Security, and other subjects. I am pleased to announce that we made a new and completely different Trade Deal with the Philippines, one that will be a true landmark and, in particular, a Deal that will be great for our Farmers and those in the business of “Energy.” President Marcos is a powerful leader, and a man of high integrity and substance. It was an Honor to be with him, and his beautiful wife and son. See you in China! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43616",
-      "published": "2026-11-18T07:44:12+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk's Latest Calls For Tesla-SpaceX Merger; Explains Pay Package",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 14:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "贸易",
-        "能源",
-        "中国"
+        "电动车",
+        "航天",
+        "公司并购",
+        "股权激励"
       ],
       "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "特朗普称已与菲律宾达成新的贸易协议，并提到协议将利好美国农民及能源业务，显示亚洲贸易与能源合作信号。"
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "媒体称马斯克再次呼吁特斯拉与SpaceX合并，并解释管理层薪酬安排，显示两家公司可能进一步整合。"
     },
     {
       "author": "Trump",
@@ -690,53 +831,58 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "贸易",
-        "中国"
+        "中美贸易",
+        "东南亚贸易",
+        "供应链"
       ],
       "sector_holdings": [
-        "02208",
         "03032",
         "03033",
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普表示将赴中国并讨论贸易协议，同时涉及菲律宾等国的贸易安排，释放中美及亚洲贸易政策信号。"
+      "relevance": 72,
+      "summary_cn": "特朗普表示将公布中国行成果及与泰国、菲律宾等国的贸易协议，释放中美与东南亚贸易政策信号。"
     },
     {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/Schoenlaw/statuses/117632129147481602Biggest drop in gasoline in 18 years. Notice that they waited until after the “Election?” President DJTQuoted Schoenlawhttps://tradersunion.com/news/market-voices/show/4212469-us-gasoline-prices-drop/. Last week saw the biggest drop in retail gas prices at the pump in 18 years!  The blockade is working.  Where is the media???Credit President Trump!!!  @realDonaldTrump",
-      "url": "https://www.trumpstruth.org/statuses/43613",
-      "published": "2026-11-17T22:09:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "原油",
-        "汽油"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": ""
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Zeroes In on One AI Giant's $500 Billion Push",
-      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxObl9GOWxIbUx3c05hUjh5aTcyZHl6RmhCRzB4dXdiNUhEVjFzdkVUQnZHQjkzb2pqNW1VSWFtSDI1TXF4aW15akZrRW81SnNpc01DckJCd2VqbzJhaXJhY05lRjJ2M2hoSjBFY3FpbVFKOW9uTl9la2pyNnhoOGo5VDNXMWRVY0tqbGthakNVc1ljN0hDa3hxclI4aXFXeEM0UG12QjZtbGx4SU5IalVEd2dYZXBwdFRadnc?oc=5",
-      "published": "2026-11-19T18:03:19+00:00",
+      "author": "Musk",
+      "text": "‘Misanthropic and evil’: Elon Musk’s SpaceX may get up to $120.5 billion from Anthropic, the AI lab he once slammed",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 14:45:00 GMT",
       "origin": "gnews-rss",
-      "source": "TradingView",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "人工智能",
-        "AI基础设施"
+        "航天",
+        "企业融资"
+      ],
+      "sector_holdings": [
+        "00100",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "媒体称SpaceX可能从Anthropic获得最高1205亿美元收入，若落地将扩大马斯克体系在AI与航天领域的商业联系。"
+    },
+    {
+      "author": "Burry",
+      "text": "\"The Big Short's\" Michael Burry Issued a Blunt Warning about Anthropic",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPNVJyaUpJaDlxemlSbmlpVE8zYTliY2tZVlhleGFuc0UzbE9JQU5OVlFydFNwcDJLbksxRkJBU0ttY3NCamtGaVltMXVvMTFCNDBaYTNwckdSa1cwQzdYOUJWOHhPTklKVEVKY0dVTkMxNks5RWdhcXBPYV9mS2pSN1IzN2FYN3NGX2Zwb0pkaEpyWW13TTJxdDVPTnZtSTFIS0ZJVHd6VGQtTVB2Q200Tg?oc=5",
+      "published": "2026-11-19T21:28:02+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "人工智能",
+        "风险投资",
+        "估值风险"
       ],
       "sector_holdings": [
         "00100",
@@ -744,9 +890,33 @@
         "03033",
         "07226"
       ],
+      "stance": "attack",
+      "relevance": 63,
+      "summary_cn": "据报道，Michael Burry就Anthropic发出严厉警告，指向未上市AI公司的商业模式或估值风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "What the Blue Wave in Texas Means for Elon Musk’s Tesla and SpaceX",
+      "url": "",
+      "published": "Thu, 19 Nov 2026 18:02:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天",
+        "美国中期选举"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": ""
+      "summary_cn": "媒体称美国中期选举结果可能改变特斯拉与SpaceX面临的政治及监管环境，但未给出具体政策动作。"
     }
   ]
 }
