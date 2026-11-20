@@ -675,9 +675,9 @@ jobs:
     # resolves to. The workbench job is pinned for the same reason; keep the
     # browser contract on a supported image instead of disabling the gate.
     runs-on: ubuntu-24.04
-    # A slow runner can spend nearly 8 minutes on Playwright OS dependencies
-    # even with a cached browser. Leave time for the checks after setup.
-    timeout-minutes: 12
+    # OS dependency downloads can take over 10 minutes even on a browser
+    # cache hit. Fit the bounded setup and leave time for every browser check.
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -685,6 +685,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Playwright for the browser contract
+        timeout-minutes: 16
         uses: ./.github/actions/clawock-playwright
       - name: Fetch the published generation
         # The live page's payloads are published on data-plane, not master.
