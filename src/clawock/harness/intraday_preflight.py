@@ -1481,11 +1481,8 @@ def card_inputs(*, signals_detail, holding_policies, seen_signals, p0_lines, pla
         'watch': (chat_card.setup_rows(setups)
                   + chat_card.section_rows(early.strip())
                   + chat_card.section_rows(radar.strip())),
-        # Plain 等待 rows say nothing new; a candidate, a reject or a holding
-        # whose strategy evidence is incomplete (its reason) does.
-        'add_side': [row for row in chat_card.section_rows(
-                         append_add_side_section('', add_side_reads, gaps).strip())
-                     if f" {ADD_SIDE_WORDS['wait']}：" not in row],
+        'add_side': chat_card.section_rows(
+            append_add_side_section('', add_side_reads, gaps).strip()),
     }
 
 

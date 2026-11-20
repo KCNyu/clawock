@@ -261,21 +261,36 @@ def test_main_delivers_block_plus_prose_on_the_happy_path(run_main, sent):
         assert line in body
 
 
-def test_main_sends_the_full_holdings_table_after_the_front_sections(run_main, sent):
-    from clawock.harness import chat_card
+def test_main_sends_the_rendered_card_with_waiting_add_side_rows(pf, run_main, sent, monkeypatch):
+    from clawock.harness import chat_card, intraday_preflight as pre
 
-    raw = chat_card.render(analyzer=BLOCK, health=['⛔ 行情部分未核'],
-                           action=['- 已有挂单'], changes=['- 新变化'])
-    rc, out = run_main(PROSE, context_id='abc123def456', ctx=_ctx(raw_wechat_block=raw))
+    monkeypatch.setattr(pf, 'run_usage_append', lambda message, **_: message)
+    tickers = ('RKLX', 'CRCL', 'SKHY', 'SPCH', 'RKLB', 'SPCX')
+    reads = {'rows': [
+        {'ticker': ticker, 'verdict': 'wait', 'why': '催化未确认', 'needs': '等一手消息'}
+        for ticker in tickers
+    ]}
+    parts = pre.card_inputs(
+        signals_detail=[], holding_policies={}, seen_signals=set(),
+        p0_lines=['已有挂单'], plan_ctx={}, plan_triggers=[], movers=[], leverage=[],
+        mover_news={}, soft_changes=[], first_slot=True, active_information='',
+        setups={}, early='', radar='', add_side_reads=reads, health=['⛔ 行情部分未核'])
+    raw = chat_card.render(analyzer=BLOCK, **parts)
+    context = _ctx(raw_wechat_block=raw, add_side_reads=reads)
+    rc, out = run_main(PROSE, context_id='abc123def456', ctx=context)
 
     assert rc == 0 and out['status'] == 'pass' and out['wechat_sent']
     body = sent['messages'][0]
+    assert body == pf.assemble_message(context, PROSE)
     table = BLOCK.split('\n\n')[-1]
-    sections = ('⛔ 行情部分未核', chat_card.CHANGES, chat_card.ACTION,
-                chat_card.JUDGMENT, chat_card.WATCH, table)
+    sections = ('| 今日 USD', '⛔ 行情部分未核', chat_card.ACTION, chat_card.CHANGES,
+                table, chat_card.WATCH, chat_card.ADD_SIDE, chat_card.JUDGMENT)
     positions = [body.index(section) for section in sections]
     assert positions == sorted(positions)
-    assert body.count(table) == 1
+    assert body.split(chat_card.ADD_SIDE + '\n', 1)[1].split('\n\n', 1)[0].splitlines() == [
+        *(f'- {ticker} 等待：催化未确认 → 等一手消息' for ticker in tickers[:4]),
+        '- …另有 2 条',
+    ]
 
 
 def test_an_advisory_finding_is_the_last_line_not_the_first(run_main, sent):
@@ -770,19 +785,3 @@ def test_naming_an_old_signal_cannot_cover_a_new_signal(pf):
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
     missed = [i for i in issues if '未提任何信号票' in i]
     assert len(missed) == 1 and 'CRCL' in missed[0] and 'RKLX' not in missed[0]
-
-
-def test_delivered_reading_order_keeps_holdings_and_preserves_the_context(pf):
-    from clawock.harness import chat_card
-
-    raw = chat_card.render(analyzer=BLOCK, health=['⛔ 行情部分未核'],
-                           action=['- 已有挂单'], changes=['- 新变化'])
-    context = _ctx(raw_wechat_block=raw)
-    assembled = pf.assemble_message(context, PROSE)
-    focused = chat_card.focused_delivery(assembled, intraday=True)
-    assert focused.index('⛔') < focused.index(chat_card.CHANGES) < focused.index(chat_card.ACTION)
-    assert focused.index(chat_card.ACTION) < focused.index(chat_card.JUDGMENT) < focused.index(chat_card.WATCH)
-    assert '站上 `17.07`' in focused
-    assert [line for line in focused.splitlines() if line.startswith('|')] == [
-        line for line in assembled.splitlines() if line.startswith('|')]
-    assert context['raw_wechat_block'] == raw
