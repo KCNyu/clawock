@@ -669,13 +669,22 @@
     const roster = document.getElementById('infl-roster');
     if (!wrap) return;
     const d = safe(DATA, 'influencer_feed') || {};
-    const items = d.items || [];
     const failedSources = Object.entries(d.source_status || {})
       .filter(([, status]) => status === 'failed')
       .map(([key]) => (d.sources || {})[key] || key);
     // The relevance filter failing is what empties the card; a source that
     // always fails from CI would otherwise take the blame for it (#2189).
-    const filterFailed = d.llm_filter_status === 'failed_kept_previous';
+    const filterFailed = ['failed', 'failed_kept_previous'].includes(d.llm_filter_status);
+    const items = filterFailed ? [] : (d.items || []);
+    if (asOf) {
+      asOf.textContent = '';
+      if (d.generated_at && (items.length || filterFailed)) {
+        const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
+        asOf.textContent = ` · ${ago}h前`
+          + (filterFailed ? ' · 本轮筛选失败' : '')
+          + (failedSources.length ? ` · 来源失败：${failedSources.join('、')}` : '');
+      }
+    }
     if (!items.length) {
       if (sumEl) sumEl.innerHTML = '';
       const lines = [];
@@ -698,12 +707,6 @@
     }
     const authors = [...new Set(items.map(it => it.author).filter(Boolean))];
     if (roster && authors.length) roster.textContent = authors.join(' · ');
-    if (asOf && d.generated_at) {
-      const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
-      asOf.textContent = ` · ${ago}h前`
-        + (filterFailed ? ' · 本轮筛选失败，显示上轮保留条目' : '')
-        + (failedSources.length ? ` · 来源失败：${failedSources.join('、')}` : '');
-    }
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');
     const stanceTxt = (s) => ({endorse:'看多', buy:'买入', attack:'看空', sell:'卖出', neutral:'中性'}[s] || s || '');
     wrap.innerHTML = items.map(it => {

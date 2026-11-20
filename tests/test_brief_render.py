@@ -845,11 +845,11 @@ def test_the_manual_render_defaults_to_the_hk_desk_date(tmp_path, monkeypatch):
 def test_a_failed_influencer_filter_says_so_instead_of_dropping_the_section():
     # #2189: an empty radar used to drop the section outright, so a failed
     # relevance filter read exactly like a quiet day.
-    quiet = {"influencer": {"counts": {"total": 0}, "llm_filter_status": "ok"}}
+    quiet = {"influencer": {"counts": {"total": 0}, "llm_filter_status": "no_candidates"}}
     assert render.influencer_section(quiet) == ""
 
     failed = {"influencer": {"counts": {"total": 0}, "age_hours": 14.3,
-                             "llm_filter_status": "failed_kept_previous"}}
+                             "llm_filter_status": "failed"}}
     section = render.influencer_section(failed)
     assert section.startswith("### 名人异动 / 政策风向")
     assert "LLM 相关性筛选本轮失败" in section
@@ -857,9 +857,13 @@ def test_a_failed_influencer_filter_says_so_instead_of_dropping_the_section():
     kept = {"influencer": {"counts": {"total": 1, "held_hits": 1}, "age_hours": 3.0,
                            "llm_filter_status": "failed_kept_previous",
                            "held_hits": [{"author": "A", "stance": "buy", "summary_cn": "x"}]}}
-    assert "上一轮保留" in render.influencer_section(kept)
+    section = render.influencer_section(kept)
+    assert "LLM 相关性筛选本轮失败" in section
+    assert "[撞持仓]" not in section
     kept["influencer"]["llm_filter_status"] = "ok"
-    assert "筛选" not in render.influencer_section(kept)
+    section = render.influencer_section(kept)
+    assert "[撞持仓]" in section
+    assert "筛选" not in section
 
 
 def test_calibration_count_matches_active_brier_and_missing_count_is_not_borrowed():
