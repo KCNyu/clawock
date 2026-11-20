@@ -34,6 +34,8 @@
     if (!deskRail || !deskRailToggle || !deskRailExpanded) return;
     deskRail.classList.toggle("is-collapsed", !open);
     deskRailToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (!open && deskRailExpanded.contains(document.activeElement)) deskRailToggle.focus();
+    deskRailExpanded.inert = !open;
     deskRailExpanded.hidden = !open;
     if (persist) {
       try { localStorage.setItem(DESK_RAIL_KEY, open ? "open" : "closed"); } catch (e) {}

@@ -4733,6 +4733,70 @@ async function testPeerDivergenceNamesEachQuoteSession(browser, base) {
   await page.close();
 }
 
+async function testDashboardTraysKeepTheirSummariesAnchored(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  await stubLiveOrigin(page);
+  await page.goto(base);
+  await waitForData(page);
+  await clickTab(page, "drill");
+  await waitForTab(page, "drill");
+
+  for (const id of ["desk-rail-toggle", "shadow-portfolio-toggle"]) {
+    const button = page.locator("#" + id);
+    const trayId = await button.getAttribute("aria-controls");
+    const tray = page.locator("#" + trayId);
+    await button.scrollIntoViewIfNeeded();
+    const settled = () => page.waitForFunction(id =>
+      !document.getElementById(id).getAnimations().length, trayId);
+    const read = () => button.evaluate(el => {
+      const body = document.getElementById(el.getAttribute("aria-controls"));
+      return {
+        top: el.getBoundingClientRect().top,
+        open: el.getAttribute("aria-expanded") === "true",
+        excluded: body.hidden && body.inert,
+        rendered: getComputedStyle(body).display !== "none",
+        animating: body.getAnimations().length > 0,
+      };
+    });
+
+    const closed = await read();
+    assert(closed.excluded && !closed.rendered, id + " starts collapsed");
+    await button.tap();
+    await settled();
+    const open = await read();
+    assert(open.open && open.rendered && !open.excluded, id + " exposes its details");
+    assert.equal(open.top, closed.top, id + " does not move on open");
+
+    // A close updates accessibility immediately. Reversing it before its
+    // display transition finishes must keep the tray in flow.
+    const exit = await button.evaluate(el => {
+      const body = document.getElementById(el.getAttribute("aria-controls"));
+      el.click();
+      const closing = body.hidden && body.inert && getComputedStyle(body).display !== "none";
+      el.click();
+      return closing;
+    });
+    assert(exit, id + " has a visible but inert exit");
+    await settled();
+    assert((await read()).open, id + " reopens during exit");
+
+    await button.press("Enter");
+    const keyboard = await read();
+    assert(keyboard.excluded && !keyboard.rendered && !keyboard.animating,
+      id + " closes immediately from the keyboard");
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await button.tap();
+    const reduced = await read();
+    assert(reduced.open && reduced.rendered && !reduced.animating,
+      id + " opens immediately with reduced motion");
+    await button.tap();
+    assert(!(await read()).rendered, id + " closes immediately with reduced motion");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+  }
+  await page.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -4754,6 +4818,8 @@ async function main() {
     console.log(`${name}: ${Date.now() - started}ms`);
   };
   try {
+    await run("testDashboardTraysKeepTheirSummariesAnchored", () =>
+      testDashboardTraysKeepTheirSummariesAnchored(browser, base));
     await run("testGoldHistoryDetailsExpandFromOneLine", () => testGoldHistoryDetailsExpandFromOneLine(browser, base));
     await run("testSessionMoneyAndPassiveCoverageAreExplicit", () => testSessionMoneyAndPassiveCoverageAreExplicit(browser, base));
     await run("testBenchmarkScoresShowBothDenominators", () => testBenchmarkScoresShowBothDenominators(browser, base));

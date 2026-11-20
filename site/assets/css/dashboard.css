@@ -605,6 +605,30 @@
     details[data-opening][open] > :not(summary) { animation: none; }
     .is-first-paint .hero-deck::after { display: none; }
   }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (transition-behavior: allow-discrete) {
+      /* Keep the trigger anchored; the tray moves by one step. Display
+         switches once, so the pager and chart containers never tween size. */
+      button:not(:focus-visible) + .disclosure-tray {
+        opacity: 1;
+        transform: none;
+        transition: opacity var(--duration-enter) var(--ease-out),
+                    transform var(--duration-enter) var(--ease-out),
+                    display var(--duration-enter) allow-discrete;
+      }
+      button:not(:focus-visible) + .disclosure-tray[hidden] {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--enter-shift)));
+        transition-duration: var(--duration-exit);
+      }
+      @starting-style {
+        button:not(:focus-visible) + .disclosure-tray:not([hidden]) {
+          opacity: 0;
+          transform: translateY(calc(-1 * var(--enter-shift)));
+        }
+      }
+    }
+  }
   /* OS-level reduced transparency: drop the frosted surfaces back to solid
      (apple-design skill: frostier/solid, blur off).
      ⚠ 特异度必须压过文件后段的单类名主规则——2026-08-25 CDP 实测：本块自
@@ -2369,14 +2393,8 @@
   .desk-rail-expanded {
     display: flex; align-items: stretch; gap: 10px;
     padding: 0 10px 10px; border-top: 1px solid var(--border);
-    /* Toggling the rail is an occasional action, so the content may bridge
-       its arrival — 240ms, transform+opacity only. Closing snaps (the global
-       reduced-motion rule also zeroes this). */
-    animation: desk-rail-in var(--duration-standard) var(--ease-out);
-  }
-  .desk-rail-expanded[hidden] { display: none; }
-  @keyframes desk-rail-in {
-    from { opacity: 0; transform: translateY(-4px); }
+    background: var(--fill-inset);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   }
   .desk-rail .dr-narrative {
     margin: 10px 0 0; flex: 1 1 300px; min-width: 0;
@@ -2411,7 +2429,7 @@
     }
     .dr-kpi {
       border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
-      background: var(--fill-inset); padding: 7px 9px;
+      background: var(--fill-inset-2); padding: 7px 9px;
     }
   }
   @media (max-width: 600px) {
@@ -2650,7 +2668,10 @@
     grid-column: 1; color: var(--text); font: 600 var(--fs-xs)/1.5 var(--font);
     font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
   }
-  .shadow-expanded { margin-top: 12px; }
+  .shadow-expanded {
+    margin-top: var(--space-3); padding: var(--space-3);
+    border-radius: var(--radius-sm); background: var(--fill-inset);
+  }
   .shadow-sim-label {
     display: inline-flex; align-items: center; gap: var(--space-2);
     margin: 0 0 var(--space-3); padding: 4px 12px;
@@ -2672,7 +2693,7 @@
   .shadow-fill-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .shadow-stat {
     min-width: 0; padding: var(--space-3); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); background: var(--fill-inset);
+    border-radius: var(--radius-sm); background: var(--fill-inset-2);
   }
   .shadow-stat .lbl {
     color: var(--text-faint); font-size: var(--fs-micro); line-height: 1.3;

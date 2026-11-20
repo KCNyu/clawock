@@ -133,6 +133,8 @@
     const expanded = document.getElementById("shadow-portfolio-expanded");
     if (!toggle || !expanded) return;
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (!open && expanded.contains(document.activeElement)) toggle.focus();
+    expanded.inert = !open;
     expanded.hidden = !open;
     if (!open) return;
     whenEcharts(() => {
