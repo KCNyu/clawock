@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-20T02:32:19.259698+00:00",
+  "generated_at": "2026-11-20T20:47:47.632420+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,19 +24,52 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 18,
+    "total": 21,
     "held_hits": 0,
-    "new_ideas": 10,
-    "sector_hits": 5
+    "new_ideas": 12,
+    "sector_hits": 6
   },
   "items": [
     {
       "author": "Burry",
-      "text": "Michael Burry Says He Tried to Warn You About Nvidia, CoreWeave and Nebius. Here's What the 'Big Short' Investor Saw",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQZGRrc1VrMldqYWVBbVlYN0hWeDBZX25tWDdzaVZvWnZaNGtpM1BuMGtYS0ozMWo3WjNEazhneVlMRXk2X0hYbEZXdWhva20xZFpaQjlObzlnWnFYU3JhcnlpZ3M3eWFNZDRKZXN0ZjFQV21pR0dJYWFOdWJlNURieGpmcENSdElaOUI3NXd6MUg5X2VNTlF1MWNR?oc=5",
-      "published": "2026-11-20T01:03:00+00:00",
+      "text": "Michael Burry Sells Half His SMH Puts. But His Biggest Market Warning Remains - VanEck Semiconductor ETF",
+      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQSU1HVjljWGFqcHdyVUVqTUZfWXdIcWRDTjFwb1lacTFhbkc0ZGEzSlFhTlo3ZW9PTjlRQzhoUGhETV81WW93Tm9NTDRRZHVMdWlfVGhaNzRKZDZucDRuZmJMMkd4WTBCTngtRlBuMWdadWRGUG9WZzg5UUpnOVhZV3FuX1dIT0hzZktfT3Fya0gzejRRVEVzalZDRVNwblZrcXd6UWt1QmlUOFlWRVhRUWZseS1TblB0T2c?oc=5",
+      "published": "2026-11-20T20:15:57+00:00",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Benzinga",
+      "tickers": [
+        "NVDA",
+        "CRWV",
+        "NBIS",
+        "SMH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CRWV",
+        "NBIS",
+        "NVDA",
+        "SMH"
+      ],
+      "sectors": [
+        "半导体",
+        "AI算力",
+        "云计算",
+        "ETF期权"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 86,
+      "summary_cn": "据报道，Michael Burry卖出了所持SMH一半看跌期权，但仍对英伟达、CoreWeave和Nebius发出财务风险警告。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry warns of financial trouble for Nvidia, CoreWeave, Nebius",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxObUJjX2RwNEU2aTllV2xFY0NKOXQ1eVhoa2UxSHNuM0FkbkloRkdXTlgydXNwY01OQjUwUFByWmpjbnJsZjM5M1ZsTm05S2RWeGVzaFYwQ0lKYTJVMTFjVlVYV281clkzS0tJaFQtTGNMajRrRVppM3M2M3F4S2twTTFaTnk1clYyd1M3NGM2b0FlS051ODhfQWxZWUg?oc=5",
+      "published": "2026-11-20T16:36:56+00:00",
+      "origin": "gnews-rss",
+      "source": "Crypto Briefing",
       "tickers": [
         "NVDA",
         "CRWV",
@@ -49,20 +82,17 @@
         "NVDA"
       ],
       "sectors": [
+        "AI算力",
         "半导体",
-        "人工智能",
         "云计算",
         "数据中心"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "07709"
       ],
       "stance": "attack",
-      "relevance": 87,
-      "summary_cn": "据报道，Michael Burry此前曾警示英伟达、CoreWeave和Nebius的AI业务风险，凸显高估值算力基础设施标的的下行担忧。"
+      "relevance": 84,
+      "summary_cn": "据报道，Michael Burry警告英伟达、CoreWeave和Nebius存在财务困境风险，并称此前曾试图提醒投资者。"
     },
     {
       "author": "段永平",
@@ -72,53 +102,19 @@
       "origin": "gnews-rss",
       "source": "香港經濟日報HKET",
       "tickers": [
-        "BABA",
+        "9988.HK",
         "AAPL"
       ],
       "held": [],
       "new_ideas": [
-        "AAPL",
-        "BABA"
+        "9988.HK",
+        "AAPL"
       ],
       "sectors": [
         "中国互联网",
-        "消费电子",
-        "人工智能",
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "sell",
-      "relevance": 82,
-      "summary_cn": "据报道，段永平已清仓阿里巴巴并减持苹果，同时增加与马斯克相关的标的敞口，反映其调整中美科技股仓位。"
-    },
-    {
-      "author": "段永平",
-      "text": "恒指再跌穿23,500點！段永平清倉阿里、減持63% Nvidia！科技股是否開始出現大特價？明天7500、7552要留意！",
-      "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPaGhRd3ctZVFaai1XQWUtZ3lUNjRJaG8zVTdsVG9FbnkxT09Pb2xlcWFnTDc3SS1QX2VlbWpWWXl3U2hfamk0UFNoY0ZfcEFLVUFycmlPWkplWGRSdVNMYUV5UXdoQUcxVU1mdWFKeWg5X1dpSzlQdWd2OGVYR3h5VHR3bzJSS2lhM1FqdkJtZnVuSjJVcExQRnhtS0hscEFsWDJrX3lvaVB2a2pZeWc?oc=5",
-      "published": "2026-11-18T08:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Moomoo",
-      "tickers": [
-        "BABA",
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BABA",
-        "NVDA"
-      ],
-      "sectors": [
-        "中国互联网",
-        "半导体",
-        "人工智能"
+        "电商",
+        "苹果",
+        "科技股"
       ],
       "sector_holdings": [
         "03032",
@@ -126,198 +122,8 @@
         "07226"
       ],
       "stance": "sell",
-      "relevance": 80,
-      "summary_cn": "据报道，段永平清仓阿里巴巴并减持约63%的英伟达持仓，显示其大幅降低中美科技股敞口。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Shops the Sell-Off with Bets on JD, BYD, Sprouts and More",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOT2tIelRwU1o2V2YwMkdYSmdyUHYyM2ZIdjF4VHRPMnVIbm8zWVU5Z1o3QlpEVVd2WDhmZnJOenB1ZFVZNE9manBhbXhMR3FtSl9hMnFPNE95MXN4VEJINHRtem1tOTZrWUVzeGI5WjdHQXhoaW1neWYyRXJra01nNUFtZjU1MmdyT1BubzRnQkZtdEU4bWxrTXR2djBDSXdINm5zbVhXRDJHR19zUEt0aFhFdndwUThVRnUzRWFXMHBxR0kxdlpNRXVGT0kzbVk?oc=5",
-      "published": "2026-11-19T23:21:36+00:00",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [
-        "JD",
-        "BYD",
-        "SFM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BYD",
-        "JD",
-        "SFM"
-      ],
-      "sectors": [
-        "中国电商",
-        "电动车",
-        "零售",
-        "农产品"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
       "relevance": 79,
-      "summary_cn": "据报道，Michael Burry在市场抛售中买入京东、比亚迪和Sprouts等股票，表达对中国消费及电动车相关标的的逆向布局。"
-    },
-    {
-      "author": "Burry",
-      "text": "With Alibaba Stock Down 45% In The Last Year, Michael Burry Reveals The Price He’d Buy",
-      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNdkhzbVg5SUtGVkFHT0hVOUZIcW9CU1R1OUZ1R2RiRC01eXFCQlpfRTJ4WXdSSFJSUHJic3VQYVlLa2F4UFYtRVJLM0F3MTFUTlRUdEtJc213aXF5SW1KYl80OVJ1LTBZZFpIdlE0dHR0VHRKbEdxNkx4cFpNaHF6cl9ZV0VuRmxldy1MRktPbC03UnZfMkZQZmRicGRaOVlJOUg2RURyWTlaMEdJRkRiYkxjbzhmZW5RXzgtT1JENVJlc0Nvd3c?oc=5",
-      "published": "2026-11-19T15:55:00+00:00",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [
-        "BABA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BABA"
-      ],
-      "sectors": [
-        "中国互联网",
-        "云计算",
-        "人工智能"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，在阿里巴巴一年下跌约45%后，Michael Burry披露了自己愿意买入该股的价格水平，释放逆向关注信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Verizon’s CEO knows Elon Musk is coming for his business. He says it’ll cost SpaceX over $300 billion to compete",
-      "url": "",
-      "published": "Thu, 19 Nov 2026 17:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "VZ"
-      ],
-      "held": [],
-      "new_ideas": [
-        "VZ"
-      ],
-      "sectors": [
-        "通信服务",
-        "卫星通信",
-        "航天",
-        "电信竞争"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "Verizon首席执行官称马斯克旗下业务将发起竞争，并估计SpaceX为与其竞争可能需投入逾3000亿美元，凸显卫星通信竞争压力。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：Kodiak AI Inc(KDK) 买入 ARKQ 506,083 股（最大单只 ETF 占比 0.03%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0342,
-      "tickers": [
-        "KDK"
-      ],
-      "held": [],
-      "new_ideas": [
-        "KDK"
-      ],
-      "sectors": [
-        "人工智能",
-        "自动驾驶",
-        "物流科技"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 54,
-      "summary_cn": "ARK Invest在ARKQ中买入506,083股Kodiak AI，占单只ETF比重0.03%，属于规模较小的常规加仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：Twist Bioscience Corporation(TWST) 买入 ARKG 2,835 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0172,
-      "tickers": [
-        "TWST"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TWST"
-      ],
-      "sectors": [
-        "生物科技",
-        "合成生物学",
-        "DNA测序"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 52,
-      "summary_cn": "ARK Invest在ARKG中买入2,835股Twist Bioscience，占单只ETF比重0.02%，属于规模较小的常规加仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：Kaspi.kz AO(KSPI) 卖出 ARKF 4,403 股（最大单只 ETF 占比 0.05%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0537,
-      "tickers": [
-        "KSPI"
-      ],
-      "held": [],
-      "new_ideas": [
-        "KSPI"
-      ],
-      "sectors": [
-        "金融科技",
-        "支付",
-        "新兴市场电商"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK Invest在ARKF中卖出4,403股Kaspi.kz，占单只ETF比重0.05%，属于规模较小的常规减仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：BYD Company Limited(BYDDY) 卖出 ARKQ 59,498 股（最大单只 ETF 占比 0.03%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0295,
-      "tickers": [
-        "BYDDY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BYDDY"
-      ],
-      "sectors": [
-        "电动车",
-        "新能源汽车",
-        "汽车制造"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK Invest在ARKQ中卖出59,498股比亚迪ADR，占单只ETF比重0.03%，属于规模较小的常规减仓。"
+      "summary_cn": "据报道，段永平清仓阿里巴巴、减持苹果并增加对Musk相关资产的敞口。"
     },
     {
       "author": "Musk",
@@ -326,23 +132,232 @@
       "published": "Thu, 19 Nov 2026 14:30:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
         "电动车",
         "航天",
-        "公司并购",
-        "股权激励"
+        "公司并购"
       ],
       "sector_holdings": [
         "RKLX",
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
+      "stance": "neutral",
+      "relevance": 74,
+      "summary_cn": "媒体报道称，Musk再次提出特斯拉与SpaceX合并，并解释相关薪酬安排，可能影响特斯拉及未上市SpaceX的资本结构。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：NVIDIA Corporation(NVDA) 卖出 ARKQ 33,430 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkq/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2629,
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "AI算力",
+        "ARK Invest"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "sell",
       "relevance": 72,
-      "summary_cn": "媒体称马斯克再次呼吁特斯拉与SpaceX合并，并解释管理层薪酬安排，显示两家公司可能进一步整合。"
+      "summary_cn": "ARK Invest从ARKQ卖出33430股英伟达，单只ETF占比0.26%，属于规模较明显的机构减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：3iQ Ether Staking ETF(ETHQ.U) 卖出 ARKW 281,318 股 / ARKF 143,682 股（最大单只 ETF 占比 0.13%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1344,
+      "tickers": [
+        "ETHQ.U"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ETHQ.U"
+      ],
+      "sectors": [
+        "加密货币",
+        "以太坊",
+        "数字资产质押",
+        "ARK Invest"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 72,
+      "summary_cn": "ARK Invest从ARKW和ARKF卖出合计逾42万股3iQ以太坊质押ETF，单只ETF占比约0.13%，显示机构降低该加密敞口。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Eli Lilly and Company(LLY) 卖出 ARKG 2,094 股（最大单只 ETF 占比 0.15%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1527,
+      "tickers": [
+        "LLY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LLY"
+      ],
+      "sectors": [
+        "医药",
+        "医疗健康",
+        "ARK Invest"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest从ARKG卖出2094股礼来制药，单只ETF占比0.15%，属于可见的机构减仓动作。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Adaptive Biotechnologies Corporation(ADPT) 卖出 ARKG 93,430 股（最大单只 ETF 占比 0.14%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1421,
+      "tickers": [
+        "ADPT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADPT"
+      ],
+      "sectors": [
+        "生物科技",
+        "精准医疗",
+        "ARK Invest"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest从ARKG卖出93430股Adaptive Biotechnologies，单只ETF占比0.14%，属于可见的机构减仓动作。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Garmin Ltd.(GRMN) 卖出 ARKX 2,803 股（最大单只 ETF 占比 0.13%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1259,
+      "tickers": [
+        "GRMN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "GRMN"
+      ],
+      "sectors": [
+        "消费电子",
+        "可穿戴设备",
+        "ARK Invest"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest从ARKX卖出2803股Garmin，单只ETF占比0.13%，属于可见的机构减仓动作。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Has A Radical New Plan For The Tesla Model Y",
+      "url": "",
+      "published": "Fri, 20 Nov 2026 16:04:32 GMT",
+      "origin": "gnews-rss",
+      "source": "SlashGear",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "特斯拉",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 67,
+      "summary_cn": "媒体报道称，Musk提出对特斯拉Model Y进行重大改款，反映特斯拉正调整产品设计和未来车型路线。"
+    },
+    {
+      "author": "段永平",
+      "text": "鉅亨速報 - Factset 最新調查：拼多多控股(PDD-US)EPS預估上修至10.31元，預估目標價為113.77元",
+      "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE9OeGNETk9oM3VGMTZSajBOcXpySld0SmhCdFdVSnEzZUE0X3hVZnppNzNaRkFXZk5CbVY2WG4wS2F1OUJ0aHJnNFY2RDVZeWpRd1owOFJ0THNtRnpadDU1clBtMEM?oc=5",
+      "published": "2026-11-19T22:16:43+00:00",
+      "origin": "gnews-rss",
+      "source": "TradingView",
+      "tickers": [
+        "PDD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PDD"
+      ],
+      "sectors": [
+        "中国互联网",
+        "电商",
+        "拼多多"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 66,
+      "summary_cn": "据报道，Factset将拼多多每股收益预测上调至10.31元、目标价升至113.77元，释放基本面改善信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Wants to Remove the Steering Wheel From Tesla's Model Y. That’s Not the Riskiest Part",
+      "url": "",
+      "published": "Fri, 20 Nov 2026 19:34:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Inc.com",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "特斯拉",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 64,
+      "summary_cn": "媒体报道称，Musk计划移除特斯拉Model Y方向盘，涉及特斯拉产品设计与自动驾驶战略调整。"
     },
     {
       "author": "Trump",
@@ -354,10 +369,10 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
         "中美贸易",
+        "关税",
         "东南亚贸易",
-        "供应链"
+        "宏观经济"
       ],
       "sector_holdings": [
         "03032",
@@ -365,48 +380,25 @@
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "特朗普表示将公布中国行成果及与泰国、菲律宾等国的贸易协议，释放中美与东南亚贸易政策信号。"
+      "relevance": 76,
+      "summary_cn": "特朗普表示将公布中国之行成果及与泰国、菲律宾等国的贸易协议，释放新一轮贸易谈判信号。"
     },
     {
-      "author": "Musk",
-      "text": "‘Misanthropic and evil’: Elon Musk’s SpaceX may get up to $120.5 billion from Anthropic, the AI lab he once slammed",
-      "url": "",
-      "published": "Thu, 19 Nov 2026 14:45:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Anthropic, PBC(ANT) 买入 ARKK 556,777 股 / ARKW 146,183 股 / ARKQ 90,923 股 / ARKX 24,574 股 / ARKF 38,729 股 / ARKG 77,782 股（最大单只 ETF 占比 0.52%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.5171,
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
-        "航天",
-        "企业融资"
-      ],
-      "sector_holdings": [
-        "00100",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "媒体称SpaceX可能从Anthropic获得最高1205亿美元收入，若落地将扩大马斯克体系在AI与航天领域的商业联系。"
-    },
-    {
-      "author": "Burry",
-      "text": "\"The Big Short's\" Michael Burry Issued a Blunt Warning about Anthropic",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPNVJyaUpJaDlxemlSbmlpVE8zYTliY2tZVlhleGFuc0UzbE9JQU5OVlFydFNwcDJLbksxRkJBU0ttY3NCamtGaVltMXVvMTFCNDBaYTNwckdSa1cwQzdYOUJWOHhPTklKVEVKY0dVTkMxNks5RWdhcXBPYV9mS2pSN1IzN2FYN3NGX2Zwb0pkaEpyWW13TTJxdDVPTnZtSTFIS0ZJVHd6VGQtTVB2Q200Tg?oc=5",
-      "published": "2026-11-19T21:28:02+00:00",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "风险投资",
-        "估值风险"
+        "AI",
+        "生成式AI",
+        "软件",
+        "ARK Invest"
       ],
       "sector_holdings": [
         "00100",
@@ -414,33 +406,106 @@
         "03033",
         "07226"
       ],
-      "stance": "attack",
-      "relevance": 63,
-      "summary_cn": "据报道，Michael Burry就Anthropic发出严厉警告，指向未上市AI公司的商业模式或估值风险。"
+      "stance": "buy",
+      "relevance": 74,
+      "summary_cn": "ARK Invest在多只ETF中合计买入未上市公司Anthropic，显示其继续加仓生成式AI方向。"
     },
     {
-      "author": "Musk",
-      "text": "What the Blue Wave in Texas Means for Elon Musk’s Tesla and SpaceX",
-      "url": "",
-      "published": "Thu, 19 Nov 2026 18:02:00 GMT",
+      "author": "段永平",
+      "text": "段永平：字节跳动估值约6000亿美元，此价位有兴趣",
+      "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5wR1VHb29MUjNTZFJxODI4eW54RkVwUEFsTXpzT19QSl9iQkhjVW9IZ2VVRTlCX1F4cDZZMmpwRmgweUJSUmtBYW9YeUdPV2w2eVFhQUJOZEhpUEJkeEZ1LWJpQVBRdw?oc=5",
+      "published": "2026-11-20T09:52:22+00:00",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "TradingView",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "航天",
-        "美国中期选举"
+        "中国互联网",
+        "AI",
+        "字节跳动",
+        "科技股"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 73,
+      "summary_cn": "据报道，段永平认为字节跳动估值约6000亿美元，并表示在该价位有兴趣。"
+    },
+    {
+      "author": "段永平",
+      "text": "芒格資產管理人李錄重倉兩中資股",
+      "url": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxPSElxdHlDSllYOUxUb3VaOHotbXpXeFZJTnM4MlZTT3YwcXdXNlBYTGxHb0tCMG03enJfRDh3a0JaWGVVRFl5bnRVc3lxbGZwVjRsRUhEWVl5RTFLY25Ma00tUHVOb2xCNFpaSDRoSXJlVll3anplSXp1ZEhrYjVvV19WUnJ4RHVCWDV3NmJWYnR1RFVJd2EwdjFaWWx3QzE3b1ZKYjJFaHBOc0lqckNBTGwxS3pEWHZ0UldPNVU4UXcxSzgxR3V6MmxTX0xrSUczV1pyZ3NQdS13dDVlWU1lTHVLY1dPUVZHbVF0ZlJPY252aVN6MkdPR2V2cHRLU0FES01rSEhmUWZfdWs?oc=5",
+      "published": "2026-11-19T02:03:51+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国股票",
+        "科技股",
+        "机构持仓"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 58,
+      "summary_cn": "据报道，芒格旗下资产管理人李录重仓两只中资股，但标题未披露具体标的。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @SchoenlawBy engaging in an unprecedented tripartite summit with the leaders of China and Russia, countries with which we have profound differences, President Trump not only continues his well-founded policy of always seeking to keep dialogue open, but that policy is consistent with the great statesmen of generations past: Abraham Lincoln: “Do I not destroy my enemies when I make them my friends?\"   Yitzhak Rabin:  “You don't make peace with friends. You make it with very unsavory enemies.\"                                                Winston Churchill:  “It is better to jaw-jaw than to w",
+      "url": "https://www.trumpstruth.org/statuses/43646",
+      "published": "2026-11-20T13:03:07+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中美俄关系",
+        "地缘政治",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "媒体称美国中期选举结果可能改变特斯拉与SpaceX面临的政治及监管环境，但未给出具体政策动作。"
+      "relevance": 56,
+      "summary_cn": "特朗普称与中国、俄罗斯举行三方峰会有助于保持对话，释放地缘政治边际缓和信号。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Haney camp says Christine Pelosi’s Chinese signs trade on her mother’s name",
+      "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNVnpFdDc3N0xrczZiZ2VlS3BISGx1Z2RwMFNONFJ1eEhlaXQtaEFObDNzYk95ODNrNmZUaldQV2lxcHZzNy1TYUIyYlp4ZnA1anNzbnRyN1VkYlpjZXVnNkdqd1p4ZzFnUnhmZ2hlNGZXbEVhbDF4N2VVcndUX0dNcnp2OTNQdFpqNk5wQTJ3YVVVdw?oc=5",
+      "published": "2026-11-19T03:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The San Francisco Standard",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中美贸易",
+        "中国议题",
+        "美国政治"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 51,
+      "summary_cn": "报道聚焦Pelosi家族相关人士与中国贸易签署事项的联系，但未披露具体交易或可交易标的。"
     },
     {
       "author": "Trump",
@@ -452,35 +517,34 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "制造业",
+        "制造业回流",
         "美国经济",
-        "供应链"
+        "关税"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 67,
-      "summary_cn": "特朗普称制造业回流正获ISM数据确认，指向关税和供应链调整对工业生产的潜在影响。"
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "特朗普以美国制造业数据为由宣传“工厂回流”，支持强化本土制造及贸易保护政策。"
     },
     {
-      "author": "Trump",
-      "text": "I am now heading to China, from the Philippines, where we had a wonderful meeting on Trade, National Security, and other subjects. I am pleased to announce that we made a new and completely different Trade Deal with the Philippines, one that will be a true landmark and, in particular, a Deal that will be great for our Farmers and those in the business of “Energy.” President Marcos is a powerful leader, and a man of high integrity and substance. It was an Honor to be with him, and his beautiful wife and son. See you in China! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43616",
-      "published": "2026-11-18T07:44:12+00:00",
-      "origin": "truthsocial",
+      "author": "Pelosi",
+      "text": "Trump Bought At Least $5 Million Of This Dividend ETF Before AI Sell-Off",
+      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxQeW5SNEM1b25WcGtMWDdrODJBbGVyRURoMVNZQ3pLX0ZWTFRjd3ZzTmtjWGc2RWpYelhuaFhzdXpHa0lRRV9odDNybjFWTHJJLUZjZm8ydUJISlJBZTJWSjZvdGJ2WkdXd1R6WEZjSzlHVjVYWHNJRXZPNHZZMVI3QXk4Sk5uaV9MajJVM05hTzFvNFVjWkRSQjNKSnVTT2IySGxQaDUtc3FuSE9pNnE3UndQYzBpeEJfd3kw?oc=5",
+      "published": "2026-11-20T19:33:00+00:00",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "菲律宾贸易",
-        "能源",
-        "农产品"
+        "股息ETF",
+        "AI估值",
+        "美股"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 66,
-      "summary_cn": "特朗普称已与菲律宾达成新贸易协议，并将涉及农民和能源行业，显示东南亚贸易谈判取得进展。"
+      "stance": "buy",
+      "relevance": 61,
+      "summary_cn": "报道提到特朗普在AI板块抛售前买入至少500万美元的某只股息ETF，但标题未指明具体ETF。"
     },
     {
       "author": "Trump",
@@ -493,24 +557,57 @@
       "new_ideas": [],
       "sectors": [
         "农业",
-        "食品价格",
+        "食品安全",
         "美国财政政策"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "特朗普敦促国会尽快通过新农业法案，强调农民确定性和粮食安全，政策落地或影响农产品及农业股。"
+      "relevance": 53,
+      "summary_cn": "特朗普敦促国会尽快通过新农业法案，以在2027年种植季前为美国农民提供政策确定性。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Burry",
-      "text": "Michael Burry Says He Tried to Warn You About Nvidia, CoreWeave and Nebius. Here's What the 'Big Short' Investor Saw",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQZGRrc1VrMldqYWVBbVlYN0hWeDBZX25tWDdzaVZvWnZaNGtpM1BuMGtYS0ozMWo3WjNEazhneVlMRXk2X0hYbEZXdWhva20xZFpaQjlObzlnWnFYU3JhcnlpZ3M3eWFNZDRKZXN0ZjFQV21pR0dJYWFOdWJlNURieGpmcENSdElaOUI3NXd6MUg5X2VNTlF1MWNR?oc=5",
-      "published": "2026-11-20T01:03:00+00:00",
+      "text": "Michael Burry Sells Half His SMH Puts. But His Biggest Market Warning Remains - VanEck Semiconductor ETF",
+      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQSU1HVjljWGFqcHdyVUVqTUZfWXdIcWRDTjFwb1lacTFhbkc0ZGEzSlFhTlo3ZW9PTjlRQzhoUGhETV81WW93Tm9NTDRRZHVMdWlfVGhaNzRKZDZucDRuZmJMMkd4WTBCTngtRlBuMWdadWRGUG9WZzg5UUpnOVhZV3FuX1dIT0hzZktfT3Fya0gzejRRVEVzalZDRVNwblZrcXd6UWt1QmlUOFlWRVhRUWZseS1TblB0T2c?oc=5",
+      "published": "2026-11-20T20:15:57+00:00",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Benzinga",
+      "tickers": [
+        "NVDA",
+        "CRWV",
+        "NBIS",
+        "SMH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CRWV",
+        "NBIS",
+        "NVDA",
+        "SMH"
+      ],
+      "sectors": [
+        "半导体",
+        "AI算力",
+        "云计算",
+        "ETF期权"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 86,
+      "summary_cn": "据报道，Michael Burry卖出了所持SMH一半看跌期权，但仍对英伟达、CoreWeave和Nebius发出财务风险警告。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry warns of financial trouble for Nvidia, CoreWeave, Nebius",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxObUJjX2RwNEU2aTllV2xFY0NKOXQ1eVhoa2UxSHNuM0FkbkloRkdXTlgydXNwY01OQjUwUFByWmpjbnJsZjM5M1ZsTm05S2RWeGVzaFYwQ0lKYTJVMTFjVlVYV281clkzS0tJaFQtTGNMajRrRVppM3M2M3F4S2twTTFaTnk1clYyd1M3NGM2b0FlS051ODhfQWxZWUg?oc=5",
+      "published": "2026-11-20T16:36:56+00:00",
+      "origin": "gnews-rss",
+      "source": "Crypto Briefing",
       "tickers": [
         "NVDA",
         "CRWV",
@@ -523,20 +620,17 @@
         "NVDA"
       ],
       "sectors": [
+        "AI算力",
         "半导体",
-        "人工智能",
         "云计算",
         "数据中心"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "07709"
       ],
       "stance": "attack",
-      "relevance": 87,
-      "summary_cn": "据报道，Michael Burry此前曾警示英伟达、CoreWeave和Nebius的AI业务风险，凸显高估值算力基础设施标的的下行担忧。"
+      "relevance": 84,
+      "summary_cn": "据报道，Michael Burry警告英伟达、CoreWeave和Nebius存在财务困境风险，并称此前曾试图提醒投资者。"
     },
     {
       "author": "段永平",
@@ -546,53 +640,19 @@
       "origin": "gnews-rss",
       "source": "香港經濟日報HKET",
       "tickers": [
-        "BABA",
+        "9988.HK",
         "AAPL"
       ],
       "held": [],
       "new_ideas": [
-        "AAPL",
-        "BABA"
+        "9988.HK",
+        "AAPL"
       ],
       "sectors": [
         "中国互联网",
-        "消费电子",
-        "人工智能",
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "sell",
-      "relevance": 82,
-      "summary_cn": "据报道，段永平已清仓阿里巴巴并减持苹果，同时增加与马斯克相关的标的敞口，反映其调整中美科技股仓位。"
-    },
-    {
-      "author": "段永平",
-      "text": "恒指再跌穿23,500點！段永平清倉阿里、減持63% Nvidia！科技股是否開始出現大特價？明天7500、7552要留意！",
-      "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPaGhRd3ctZVFaai1XQWUtZ3lUNjRJaG8zVTdsVG9FbnkxT09Pb2xlcWFnTDc3SS1QX2VlbWpWWXl3U2hfamk0UFNoY0ZfcEFLVUFycmlPWkplWGRSdVNMYUV5UXdoQUcxVU1mdWFKeWg5X1dpSzlQdWd2OGVYR3h5VHR3bzJSS2lhM1FqdkJtZnVuSjJVcExQRnhtS0hscEFsWDJrX3lvaVB2a2pZeWc?oc=5",
-      "published": "2026-11-18T08:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Moomoo",
-      "tickers": [
-        "BABA",
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BABA",
-        "NVDA"
-      ],
-      "sectors": [
-        "中国互联网",
-        "半导体",
-        "人工智能"
+        "电商",
+        "苹果",
+        "科技股"
       ],
       "sector_holdings": [
         "03032",
@@ -600,201 +660,9 @@
         "07226"
       ],
       "stance": "sell",
-      "relevance": 80,
-      "summary_cn": "据报道，段永平清仓阿里巴巴并减持约63%的英伟达持仓，显示其大幅降低中美科技股敞口。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Shops the Sell-Off with Bets on JD, BYD, Sprouts and More",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOT2tIelRwU1o2V2YwMkdYSmdyUHYyM2ZIdjF4VHRPMnVIbm8zWVU5Z1o3QlpEVVd2WDhmZnJOenB1ZFVZNE9manBhbXhMR3FtSl9hMnFPNE95MXN4VEJINHRtem1tOTZrWUVzeGI5WjdHQXhoaW1neWYyRXJra01nNUFtZjU1MmdyT1BubzRnQkZtdEU4bWxrTXR2djBDSXdINm5zbVhXRDJHR19zUEt0aFhFdndwUThVRnUzRWFXMHBxR0kxdlpNRXVGT0kzbVk?oc=5",
-      "published": "2026-11-19T23:21:36+00:00",
-      "origin": "gnews-rss",
-      "source": "Benzinga",
-      "tickers": [
-        "JD",
-        "BYD",
-        "SFM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BYD",
-        "JD",
-        "SFM"
-      ],
-      "sectors": [
-        "中国电商",
-        "电动车",
-        "零售",
-        "农产品"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
       "relevance": 79,
-      "summary_cn": "据报道，Michael Burry在市场抛售中买入京东、比亚迪和Sprouts等股票，表达对中国消费及电动车相关标的的逆向布局。"
+      "summary_cn": "据报道，段永平清仓阿里巴巴、减持苹果并增加对Musk相关资产的敞口。"
     },
-    {
-      "author": "Burry",
-      "text": "With Alibaba Stock Down 45% In The Last Year, Michael Burry Reveals The Price He’d Buy",
-      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNdkhzbVg5SUtGVkFHT0hVOUZIcW9CU1R1OUZ1R2RiRC01eXFCQlpfRTJ4WXdSSFJSUHJic3VQYVlLa2F4UFYtRVJLM0F3MTFUTlRUdEtJc213aXF5SW1KYl80OVJ1LTBZZFpIdlE0dHR0VHRKbEdxNkx4cFpNaHF6cl9ZV0VuRmxldy1MRktPbC03UnZfMkZQZmRicGRaOVlJOUg2RURyWTlaMEdJRkRiYkxjbzhmZW5RXzgtT1JENVJlc0Nvd3c?oc=5",
-      "published": "2026-11-19T15:55:00+00:00",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [
-        "BABA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BABA"
-      ],
-      "sectors": [
-        "中国互联网",
-        "云计算",
-        "人工智能"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，在阿里巴巴一年下跌约45%后，Michael Burry披露了自己愿意买入该股的价格水平，释放逆向关注信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Verizon’s CEO knows Elon Musk is coming for his business. He says it’ll cost SpaceX over $300 billion to compete",
-      "url": "",
-      "published": "Thu, 19 Nov 2026 17:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [
-        "VZ"
-      ],
-      "held": [],
-      "new_ideas": [
-        "VZ"
-      ],
-      "sectors": [
-        "通信服务",
-        "卫星通信",
-        "航天",
-        "电信竞争"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "Verizon首席执行官称马斯克旗下业务将发起竞争，并估计SpaceX为与其竞争可能需投入逾3000亿美元，凸显卫星通信竞争压力。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：Kodiak AI Inc(KDK) 买入 ARKQ 506,083 股（最大单只 ETF 占比 0.03%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0342,
-      "tickers": [
-        "KDK"
-      ],
-      "held": [],
-      "new_ideas": [
-        "KDK"
-      ],
-      "sectors": [
-        "人工智能",
-        "自动驾驶",
-        "物流科技"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 54,
-      "summary_cn": "ARK Invest在ARKQ中买入506,083股Kodiak AI，占单只ETF比重0.03%，属于规模较小的常规加仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：Twist Bioscience Corporation(TWST) 买入 ARKG 2,835 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0172,
-      "tickers": [
-        "TWST"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TWST"
-      ],
-      "sectors": [
-        "生物科技",
-        "合成生物学",
-        "DNA测序"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 52,
-      "summary_cn": "ARK Invest在ARKG中买入2,835股Twist Bioscience，占单只ETF比重0.02%，属于规模较小的常规加仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：Kaspi.kz AO(KSPI) 卖出 ARKF 4,403 股（最大单只 ETF 占比 0.05%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0537,
-      "tickers": [
-        "KSPI"
-      ],
-      "held": [],
-      "new_ideas": [
-        "KSPI"
-      ],
-      "sectors": [
-        "金融科技",
-        "支付",
-        "新兴市场电商"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK Invest在ARKF中卖出4,403股Kaspi.kz，占单只ETF比重0.05%，属于规模较小的常规减仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-18 调仓：BYD Company Limited(BYDDY) 卖出 ARKQ 59,498 股（最大单只 ETF 占比 0.03%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-11-18T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0295,
-      "tickers": [
-        "BYDDY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BYDDY"
-      ],
-      "sectors": [
-        "电动车",
-        "新能源汽车",
-        "汽车制造"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK Invest在ARKQ中卖出59,498股比亚迪ADR，占单只ETF比重0.03%，属于规模较小的常规减仓。"
-    }
-  ],
-  "sector_hits": [
     {
       "author": "Musk",
       "text": "Elon Musk's Latest Calls For Tesla-SpaceX Merger; Explains Pay Package",
@@ -802,24 +670,183 @@
       "published": "Thu, 19 Nov 2026 14:30:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
         "电动车",
         "航天",
-        "公司并购",
-        "股权激励"
+        "公司并购"
       ],
       "sector_holdings": [
         "RKLX",
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "媒体称马斯克再次呼吁特斯拉与SpaceX合并，并解释管理层薪酬安排，显示两家公司可能进一步整合。"
+      "stance": "neutral",
+      "relevance": 74,
+      "summary_cn": "媒体报道称，Musk再次提出特斯拉与SpaceX合并，并解释相关薪酬安排，可能影响特斯拉及未上市SpaceX的资本结构。"
     },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：NVIDIA Corporation(NVDA) 卖出 ARKQ 33,430 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkq/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2629,
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "AI算力",
+        "ARK Invest"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "sell",
+      "relevance": 72,
+      "summary_cn": "ARK Invest从ARKQ卖出33430股英伟达，单只ETF占比0.26%，属于规模较明显的机构减仓。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：3iQ Ether Staking ETF(ETHQ.U) 卖出 ARKW 281,318 股 / ARKF 143,682 股（最大单只 ETF 占比 0.13%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1344,
+      "tickers": [
+        "ETHQ.U"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ETHQ.U"
+      ],
+      "sectors": [
+        "加密货币",
+        "以太坊",
+        "数字资产质押",
+        "ARK Invest"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 72,
+      "summary_cn": "ARK Invest从ARKW和ARKF卖出合计逾42万股3iQ以太坊质押ETF，单只ETF占比约0.13%，显示机构降低该加密敞口。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Eli Lilly and Company(LLY) 卖出 ARKG 2,094 股（最大单只 ETF 占比 0.15%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1527,
+      "tickers": [
+        "LLY"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LLY"
+      ],
+      "sectors": [
+        "医药",
+        "医疗健康",
+        "ARK Invest"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest从ARKG卖出2094股礼来制药，单只ETF占比0.15%，属于可见的机构减仓动作。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Adaptive Biotechnologies Corporation(ADPT) 卖出 ARKG 93,430 股（最大单只 ETF 占比 0.14%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1421,
+      "tickers": [
+        "ADPT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADPT"
+      ],
+      "sectors": [
+        "生物科技",
+        "精准医疗",
+        "ARK Invest"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest从ARKG卖出93430股Adaptive Biotechnologies，单只ETF占比0.14%，属于可见的机构减仓动作。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Garmin Ltd.(GRMN) 卖出 ARKX 2,803 股（最大单只 ETF 占比 0.13%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1259,
+      "tickers": [
+        "GRMN"
+      ],
+      "held": [],
+      "new_ideas": [
+        "GRMN"
+      ],
+      "sectors": [
+        "消费电子",
+        "可穿戴设备",
+        "ARK Invest"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest从ARKX卖出2803股Garmin，单只ETF占比0.13%，属于可见的机构减仓动作。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Has A Radical New Plan For The Tesla Model Y",
+      "url": "",
+      "published": "Fri, 20 Nov 2026 16:04:32 GMT",
+      "origin": "gnews-rss",
+      "source": "SlashGear",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "特斯拉",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 67,
+      "summary_cn": "媒体报道称，Musk提出对特斯拉Model Y进行重大改款，反映特斯拉正调整产品设计和未来车型路线。"
+    }
+  ],
+  "sector_hits": [
     {
       "author": "Trump",
       "text": "Heading back to Washington, D.C., from China. It was a Great and Highly Consequential Trip. I will be giving a News Conference tomorrow at 12 P.M., the White House. Also, will be discussing the Trade Deals with Thailand, the Philippines, and others. President DONALD J. TRUMP",
@@ -830,10 +857,10 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
         "中美贸易",
+        "关税",
         "东南亚贸易",
-        "供应链"
+        "宏观经济"
       ],
       "sector_holdings": [
         "03032",
@@ -841,48 +868,25 @@
         "07226"
       ],
       "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "特朗普表示将公布中国行成果及与泰国、菲律宾等国的贸易协议，释放中美与东南亚贸易政策信号。"
+      "relevance": 76,
+      "summary_cn": "特朗普表示将公布中国之行成果及与泰国、菲律宾等国的贸易协议，释放新一轮贸易谈判信号。"
     },
     {
-      "author": "Musk",
-      "text": "‘Misanthropic and evil’: Elon Musk’s SpaceX may get up to $120.5 billion from Anthropic, the AI lab he once slammed",
-      "url": "",
-      "published": "Thu, 19 Nov 2026 14:45:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-19 调仓：Anthropic, PBC(ANT) 买入 ARKK 556,777 股 / ARKW 146,183 股 / ARKQ 90,923 股 / ARKX 24,574 股 / ARKF 38,729 股 / ARKG 77,782 股（最大单只 ETF 占比 0.52%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-11-19T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.5171,
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
-        "航天",
-        "企业融资"
-      ],
-      "sector_holdings": [
-        "00100",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "媒体称SpaceX可能从Anthropic获得最高1205亿美元收入，若落地将扩大马斯克体系在AI与航天领域的商业联系。"
-    },
-    {
-      "author": "Burry",
-      "text": "\"The Big Short's\" Michael Burry Issued a Blunt Warning about Anthropic",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPNVJyaUpJaDlxemlSbmlpVE8zYTliY2tZVlhleGFuc0UzbE9JQU5OVlFydFNwcDJLbksxRkJBU0ttY3NCamtGaVltMXVvMTFCNDBaYTNwckdSa1cwQzdYOUJWOHhPTklKVEVKY0dVTkMxNks5RWdhcXBPYV9mS2pSN1IzN2FYN3NGX2Zwb0pkaEpyWW13TTJxdDVPTnZtSTFIS0ZJVHd6VGQtTVB2Q200Tg?oc=5",
-      "published": "2026-11-19T21:28:02+00:00",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "风险投资",
-        "估值风险"
+        "AI",
+        "生成式AI",
+        "软件",
+        "ARK Invest"
       ],
       "sector_holdings": [
         "00100",
@@ -890,33 +894,106 @@
         "03033",
         "07226"
       ],
-      "stance": "attack",
-      "relevance": 63,
-      "summary_cn": "据报道，Michael Burry就Anthropic发出严厉警告，指向未上市AI公司的商业模式或估值风险。"
+      "stance": "buy",
+      "relevance": 74,
+      "summary_cn": "ARK Invest在多只ETF中合计买入未上市公司Anthropic，显示其继续加仓生成式AI方向。"
     },
     {
-      "author": "Musk",
-      "text": "What the Blue Wave in Texas Means for Elon Musk’s Tesla and SpaceX",
-      "url": "",
-      "published": "Thu, 19 Nov 2026 18:02:00 GMT",
+      "author": "段永平",
+      "text": "段永平：字节跳动估值约6000亿美元，此价位有兴趣",
+      "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5wR1VHb29MUjNTZFJxODI4eW54RkVwUEFsTXpzT19QSl9iQkhjVW9IZ2VVRTlCX1F4cDZZMmpwRmgweUJSUmtBYW9YeUdPV2w2eVFhQUJOZEhpUEJkeEZ1LWJpQVBRdw?oc=5",
+      "published": "2026-11-20T09:52:22+00:00",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "TradingView",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "航天",
-        "美国中期选举"
+        "中国互联网",
+        "AI",
+        "字节跳动",
+        "科技股"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 73,
+      "summary_cn": "据报道，段永平认为字节跳动估值约6000亿美元，并表示在该价位有兴趣。"
+    },
+    {
+      "author": "段永平",
+      "text": "芒格資產管理人李錄重倉兩中資股",
+      "url": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxPSElxdHlDSllYOUxUb3VaOHotbXpXeFZJTnM4MlZTT3YwcXdXNlBYTGxHb0tCMG03enJfRDh3a0JaWGVVRFl5bnRVc3lxbGZwVjRsRUhEWVl5RTFLY25Ma00tUHVOb2xCNFpaSDRoSXJlVll3anplSXp1ZEhrYjVvV19WUnJ4RHVCWDV3NmJWYnR1RFVJd2EwdjFaWWx3QzE3b1ZKYjJFaHBOc0lqckNBTGwxS3pEWHZ0UldPNVU4UXcxSzgxR3V6MmxTX0xrSUczV1pyZ3NQdS13dDVlWU1lTHVLY1dPUVZHbVF0ZlJPY252aVN6MkdPR2V2cHRLU0FES01rSEhmUWZfdWs?oc=5",
+      "published": "2026-11-19T02:03:51+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中国股票",
+        "科技股",
+        "机构持仓"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "buy",
+      "relevance": 58,
+      "summary_cn": "据报道，芒格旗下资产管理人李录重仓两只中资股，但标题未披露具体标的。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @SchoenlawBy engaging in an unprecedented tripartite summit with the leaders of China and Russia, countries with which we have profound differences, President Trump not only continues his well-founded policy of always seeking to keep dialogue open, but that policy is consistent with the great statesmen of generations past: Abraham Lincoln: “Do I not destroy my enemies when I make them my friends?\"   Yitzhak Rabin:  “You don't make peace with friends. You make it with very unsavory enemies.\"                                                Winston Churchill:  “It is better to jaw-jaw than to w",
+      "url": "https://www.trumpstruth.org/statuses/43646",
+      "published": "2026-11-20T13:03:07+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中美俄关系",
+        "地缘政治",
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "媒体称美国中期选举结果可能改变特斯拉与SpaceX面临的政治及监管环境，但未给出具体政策动作。"
+      "relevance": 56,
+      "summary_cn": "特朗普称与中国、俄罗斯举行三方峰会有助于保持对话，释放地缘政治边际缓和信号。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Haney camp says Christine Pelosi’s Chinese signs trade on her mother’s name",
+      "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNVnpFdDc3N0xrczZiZ2VlS3BISGx1Z2RwMFNONFJ1eEhlaXQtaEFObDNzYk95ODNrNmZUaldQV2lxcHZzNy1TYUIyYlp4ZnA1anNzbnRyN1VkYlpjZXVnNkdqd1p4ZzFnUnhmZ2hlNGZXbEVhbDF4N2VVcndUX0dNcnp2OTNQdFpqNk5wQTJ3YVVVdw?oc=5",
+      "published": "2026-11-19T03:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The San Francisco Standard",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中美贸易",
+        "中国议题",
+        "美国政治"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 51,
+      "summary_cn": "报道聚焦Pelosi家族相关人士与中国贸易签署事项的联系，但未披露具体交易或可交易标的。"
     }
   ]
 }
