@@ -371,7 +371,8 @@ def _pullback_band(level):
 
 def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
               mover_news=None, mover_thesis=None, plan_context=None,
-              close_confirmed=False, information=None, leveraged=(), policy=None, unverified=()):
+              close_confirmed=False, information=None, leveraged=(), policy=None,
+              current_prices=None, unverified=()):
     """Join the packet's own answers into add-side reads, most acute first.
 
     Every field is copied from an input; nothing here is derived arithmetic, so a
@@ -381,6 +382,12 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
     rows = []
     seen = set()
     leveraged, unverified = set(leveraged or ()), set(unverified or ())
+
+    def pullback_level(ticker):
+        level = _level(levels, ticker)
+        if level and current_prices is not None:
+            return {**level, "close": current_prices.get(ticker)}
+        return level
 
     def add(ticker, triggers, evidence, support=None):
         if not ticker or ticker in seen:
@@ -395,8 +402,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         if support is None:
             support = _support(ticker, mover_news, information)
         grade = support[0]["grade"] if support else None
-        own_level = levels.get(ticker) if levels else None
-        level = _level(levels, ticker)
+        level = pullback_level(ticker)
         kind = None
         extra = {}
         if breach:
@@ -496,7 +502,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                 extra = {**extra, "invalidation": own["left_invalidation"]}
                 evidence = {**evidence, "left_rung": own["left_rung"]}
             elif (evidence.get("move_pct") or 0) < 0 and ticker not in unverified:
-                prices = _pullback_prices(own_level)
+                prices = _pullback_prices(pullback_level(ticker))
                 if prices and prices[1] < prices[2]:
                     low, close, high = prices
                     kind = "pullback_watch"
@@ -604,7 +610,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             continue
         # Below the radar's in-play band a supported pullback can still qualify.
         # A proxy chart cannot supply this holding's own five-day floor.
-        if label not in unverified and _pullback_band(level):
+        if label not in unverified and _pullback_band(pullback_level(label)):
             support = _support(label, mover_news, information)
             if support and not (label in leveraged and support[0]["grade"] == "soft"):
                 add(label, ["supported_pullback"], {}, support=support)

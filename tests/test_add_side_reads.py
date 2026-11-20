@@ -670,8 +670,17 @@ def test_supported_pullback_without_an_anomaly_reaches_the_card_before_other_can
     assert '失效位亏损 ≤0.4% 市值' in body
     assert '…另有 1 条' in body
 
-    unavailable = add_side.read_rows(
-        radar={'rows': []}, levels=PULLBACK_LEVELS, information=INFO_POSITIVE,
-        unverified={'02208'},
+    for quote in ({'unverified': {'02208'}}, {'current_prices': {}},
+                  {'current_prices': {'02208': 10.6}}):
+        unavailable = add_side.read_rows(
+            radar={'rows': []}, levels=PULLBACK_LEVELS, information=INFO_POSITIVE, **quote,
+        )
+        assert unavailable['rows'] == []
+
+    broken = add_side.read_rows(
+        anomalies=[{'ticker': '02208', 'move_pct': -3.4}], radar={'rows': []},
+        levels=PULLBACK_LEVELS, information=INFO_POSITIVE, current_prices={'02208': 10.5},
     )
-    assert unavailable['rows'] == []
+    blocked_card = pre.append_add_side_section('', broken)
+    assert '回踩加仓等待：现价触及或跌破前5日低 10.6，等收复' in blocked_card
+    assert '本档不给尺寸' in blocked_card and '上限探索档' not in blocked_card

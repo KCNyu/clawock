@@ -1855,7 +1855,7 @@ def _collect(argv=None):
         # Contract §5: graded news support, the leveraged sleeve, and the
         # exploration tranche the desk configured (quoted as the size cap).
         information=information['summary'],
-        unverified=coverage.get('unrefreshed') or (),
+        current_prices=prices, unverified=coverage.get('unrefreshed') or (),
         leveraged={row['ticker'] for row in full_holdings
                    if is_leveraged_holding({'ticker': row['ticker']})},
         policy=_load_json(WS / 'config' / 'add-alpha-policy.json'))

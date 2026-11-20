@@ -218,8 +218,8 @@ The watchdog's backstop resend is the plain card on both channels.
   `add_policy.tier_terms` (the number the brief packet sizes with) as its size
   cap. A daily-reset leveraged
   product needs more than soft evidence. The own-chart band is checked even
-  below the radar range and without an anomaly. Intraday requires a refreshed
-  quote. A falling anomaly that hit or broke the prior 5-day low shows that
+  below the radar range and without an anomaly. Intraday compares the refreshed
+  analyzer quote with the two historical levels. A falling anomaly that hit or broke the prior 5-day low shows that
   blocker and the price to recover, with size withheld. Only-a-breakout is not the rule either.
 - **Discipline**: an unfinished `risk_rule` action downgrades the read and says
   why; it does not turn the lane into reject-only. A live thesis red line is
