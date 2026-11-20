@@ -1782,8 +1782,7 @@
     if (!n) return;
     const dotsBox = document.getElementById("verdict-deck-dots");
     const RM = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const SPRING = 0.26;      // 换牌弹簧 response（秒）：实测到位（≤1.7px
-                              // 残差）397ms，压在「轮播切换 ≤400ms」之内
+    const SPRING = 0.26;      // 换牌弹簧 response（秒）
     const PROJ_D = 0.998;     // 动量投影衰减（iOS 食谱）
     const HORIZON = PROJ_D / (1 - PROJ_D) / 1000;   // ≈0.499s
     const PEEK = 8;           // 每层露边（px；恒定，不随宽度变）
@@ -1856,12 +1855,17 @@
       cancelAnimationFrame(raf);
       if (RM.matches) { cur = target; idx = target; velC = 0; raf = 0; enter(); paint(); paintDots(); return; }
       const omega = 2 * Math.PI / SPRING;
-      const k = omega * omega, c = 2 * omega;     // ζ=1：临界阻尼，换牌不过冲
       let t0 = performance.now();
       const step = (t) => {
-        const dt = Math.min(Math.max((t - t0) / 1000, 0.001), 1 / 30); t0 = t;
-        velC += (-k * (cur - target) - c * velC) * dt;
-        cur += velC * dt;
+        const dt = Math.max(0, (t - t0) / 1000);
+        t0 = t;
+        // Exact critical damping keeps slow frames from reversing a dot click
+        // at the halfway boundary and preserves the velocity of a drag release.
+        const displacement = cur - target;
+        const slope = velC + omega * displacement;
+        const decay = Math.exp(-omega * dt);
+        cur = target + (displacement + slope * dt) * decay;
+        velC = (velC - omega * slope * dt) * decay;
         if (Math.abs(cur - target) < 0.0015 && Math.abs(velC) < 0.02) {
           cur = target; velC = 0; idx = target; raf = 0;
           enter(); paint(); paintDots();
