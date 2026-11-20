@@ -1033,12 +1033,15 @@ def append_add_side_section(block, reads, gaps=None):
     「本档不给尺寸」 (kcn 2026-09-25 preview; the ⛔ line keeps a pointer).
     """
     rows = (reads or {}).get('rows') or []
-    # Keep the dip-specific levels visible even on a crowded card.
-    rows = sorted(rows, key=lambda row: (
-        0 if row.get('kind') == 'pullback' and row.get('verdict') == 'candidate' else
-        1 if row.get('verdict') == 'candidate' else
-        2 if row.get('kind') in {'pullback', 'pullback_watch', 'left_scale_in'} else 3
-    ))
+    # Keep dip-specific levels visible on crowded cards. Ordinary reads
+    # already arrive sorted by the strategy and keep their existing order.
+    dip_kinds = {'pullback', 'pullback_watch', 'left_scale_in'}
+    if any(row.get('kind') in dip_kinds for row in rows):
+        rows = sorted(rows, key=lambda row: (
+            0 if row.get('kind') == 'pullback' and row.get('verdict') == 'candidate' else
+            1 if row.get('verdict') == 'candidate' else
+            2 if row.get('kind') in dip_kinds else 3
+        ))
     gaps = dict(gaps or {})
     if not rows and not gaps:
         return block
