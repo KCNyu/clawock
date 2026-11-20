@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "14337a280d74ae08d7465d3e2fc378d889b89924e48d7128507df75008f6a0d0",
-  "bytes": 15815,
+  "content_sha256": "4e9174feb6584db713cf501107a896c31c3febc8eee1b1bd75025ba16e5d4d7c",
+  "bytes": 16197,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -176,6 +176,15 @@
       "heading": "# 运营面板的缺失数值不得直接显示 null，须使用既有格式化或占位约定。",
       "lines": 5,
       "sha256": "f487b31669b60b2f5950c21441983b828400d65a9caa42cfd6110c6b7f2dd04b"
+    },
+    {
+      "slug": "feedback-card-signal-noise-pruning",
+      "order": 20,
+      "publish": "public",
+      "separator": true,
+      "heading": "# 简报卡去噪：普通校验仅记日志，长期风险盘前集中提醒一次",
+      "lines": 5,
+      "sha256": "2c9a09650d4b02922d697840b3a3129d97912afb97188e8bd6ed1ba67ca97fba"
     }
   ]
 }
