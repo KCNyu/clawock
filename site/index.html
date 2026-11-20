@@ -164,7 +164,7 @@ layout: null
       <span class="dr-compact" id="dr-compact">Book — · US — · HK —</span>
       <span class="dr-chevron" aria-hidden="true"></span>
     </button>
-    <div class="desk-rail-expanded" id="desk-rail-expanded" hidden>
+    <div class="desk-rail-expanded disclosure-tray" id="desk-rail-expanded" hidden inert>
       <div class="status-banner dr-narrative is-pending" id="status-banner"
            role="status" aria-live="polite" aria-atomic="true">
         <span class="sb-pulse" aria-hidden="true"></span>
@@ -446,7 +446,7 @@ layout: null
         <span class="shadow-toggle-title">政策模拟</span>
         <span class="shadow-summary" id="shadow-portfolio-summary">模拟·非实盘 · USD差 — · HKD差 — · real — / assumed — / skipped —</span>
       </button>
-      <div class="shadow-expanded" id="shadow-portfolio-expanded" hidden>
+      <div class="shadow-expanded disclosure-tray" id="shadow-portfolio-expanded" hidden inert>
         <div class="shadow-sim-label">模拟·非实盘</div>
         <p class="shadow-estimand"><b id="shadow-estimand-headline">跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha（毛）</b></p>
         <p class="shadow-estimand">毛额按 qty×price 成交，不含任何成本。「净」是同一条回放扣掉预注册的佣金与半点差假设后的结果——假设写在 <code>config/cost-model.json</code>，随每一个净值一起发布，冲击成本未建模。</p>

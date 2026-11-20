@@ -233,6 +233,7 @@ same query. Where the motion carried information, a static form replaces it.
 | Hover lift on a card (fine pointers only) | feedback | `--hover-lift`, `fast` | instant |
 | Tab indicator, carets, fold arrows | state | `fast`, `--ease-out` | instant |
 | Fold opened by the reader | no jump | content fades in, `enter`; layout is immediate; closing is instant | no fade |
+| Desk pulse and policy simulation trays | origin | pointer activation slides and fades the tray below the stationary summary, `enter` / `exit`; keyboard activation is instant | instant |
 | Panel loading | state | 2px line travelling the top edge; content at 55% | the line spans the edge, still |
 | Panel loaded | no jump | content returns to full opacity, `standard` | instant |
 | Panel load error | no jump | box fades in and rises `--enter-shift` | appears |
