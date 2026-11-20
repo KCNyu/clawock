@@ -68,6 +68,11 @@ slot even if the retry starts in the following half-hour.
   a unique WeChat path, Telegram mirror, and an ordered unique subset of the
   fixed model candidates defined by the contract. Runtime rotations must remain
   a prefix of that order; health checks never reorder or skip candidates.
+- The brief starts preflight alongside its first skill read. Preflight owns the
+  two-market closure check on the brief’s HKT date. Market analysis uses the
+  current generation’s documented inputs and queries. The brief makes one
+  correction after a blocking verdict before handing remaining failures
+  to the existing watchdog.
 - Mode 7 writes the public `assets/data/cron-heartbeats.json` ledger through the
   existing single publisher; cron health verifies every monitored slot. Delivery
   confirmation cannot clear `publish_failed`; only a successful publication

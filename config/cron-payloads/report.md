@@ -6,6 +6,8 @@
 
 {{include:_memory-lookup.md}}
 
+{{include:_analysis-inputs.md}}
+
 **Step 1 - Preflight**
 ```
 clawock report preflight --market {{market}} --phase {{phase}}

@@ -48,6 +48,9 @@ marker 确认送达。
 clawock brief preflight
 ```
 
+盘前 cron 在第一轮并行读取本指引并调用 preflight。preflight 按简报的 HKT 日期检查两市，
+返回 `market_closed` 时直接结束。
+
 **行情失败闸**：US 或 HK 刷新失败时，preflight 退出 1，并把本日 context 与
 manifest 换成 `price_refresh_failed` 的失败代（无持仓数字、无 decision packet）。
 看到该状态立即结束本轮，不写 plan/judgment，不调用 postflight；修复行情后重跑
@@ -945,9 +948,9 @@ clawock brief postflight
 **status 不是逐条 issue 判的，别自己猜哪条是硬闸。** `fail` 只由 critical 关键词
 （`缺失` / `解析失败` / `表格 #`）或 issues > 4 条触发；其余都是 warn，照样 commit + 投递。
 
-**`fail` 才需要修：有 critical 就修点名的 critical；若只是 issues > 4，就只修到 ≤4 条。**
-每次改完立刻重跑一次 postflight 拿新 status，到 warn/pass 就停。不要在一次 `fail` 之后
-一路埋头修到自己认为"干净"为止 —— 解除 fail 后剩下的 issue 不阻塞交付。
+**`fail` 才需要修**：按 `issues` 一次修正本次阻断项。保留已通过的字段，
+用 `write` 完整覆盖需要修的文件，再运行一次正式 postflight。
+如果仍返回 `fail`，用最终状态和剩余问题结束本轮，由既有 watchdog 接管。
 
 **`warn` 和 `pass` 一样是终态（`commit_ok: true` 时）：已 commit、已尝试投递，不要为了变成 pass 再跑 postflight。**
 重跑不会再投递（当天已有投递记录就跳过），只会多一次 commit + push + dashboard 重建，
