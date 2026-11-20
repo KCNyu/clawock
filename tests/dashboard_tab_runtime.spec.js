@@ -2019,6 +2019,32 @@ async function testVerdictDeckPagerTracksTheVisualCard(browser, base) {
   await page.mouse.up();
   await page.waitForTimeout(900);
   await assertActive(1);
+
+  // A click from rest should cross the halfway boundary once, even at 30 fps.
+  const activeFrames = await page.evaluate(() => {
+    const requestFrame = window.requestAnimationFrame;
+    const dots = [...document.querySelectorAll("#verdict-deck-dots .deck-dot")];
+    const active = [];
+    let pending;
+    window.requestAnimationFrame = callback => { pending = callback; return 1; };
+    try {
+      dots[0].click();
+      const start = performance.now();
+      for (let i = 1; pending && i <= 20; i++) {
+        const frame = pending;
+        pending = null;
+        frame(start + i * 1000 / 30);
+        active.push(dots.findIndex(dot => dot.getAttribute("aria-current") === "true"));
+      }
+    } finally {
+      window.requestAnimationFrame = requestFrame;
+    }
+    return active;
+  });
+  assert.equal(activeFrames.at(-1), 0, "the slow-frame spring did not reach the first card");
+  assert(activeFrames.every((index, i) => i === 0 || index <= activeFrames[i - 1]),
+    `the pager reversed during a click at 30 fps: ${activeFrames.join(",")}`);
+  await assertActive(0);
   await context.close();
 }
 
