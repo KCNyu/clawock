@@ -261,6 +261,23 @@ def test_main_delivers_block_plus_prose_on_the_happy_path(run_main, sent):
         assert line in body
 
 
+def test_main_sends_the_full_holdings_table_after_the_front_sections(run_main, sent):
+    from clawock.harness import chat_card
+
+    raw = chat_card.render(analyzer=BLOCK, health=['⛔ 行情部分未核'],
+                           action=['- 已有挂单'], changes=['- 新变化'])
+    rc, out = run_main(PROSE, context_id='abc123def456', ctx=_ctx(raw_wechat_block=raw))
+
+    assert rc == 0 and out['status'] == 'pass' and out['wechat_sent']
+    body = sent['messages'][0]
+    table = BLOCK.split('\n\n')[-1]
+    sections = ('⛔ 行情部分未核', chat_card.CHANGES, chat_card.ACTION,
+                chat_card.JUDGMENT, chat_card.WATCH, table)
+    positions = [body.index(section) for section in sections]
+    assert positions == sorted(positions)
+    assert body.count(table) == 1
+
+
 def test_an_advisory_finding_is_the_last_line_not_the_first(run_main, sent):
     """2026-09-25 11:33: the card opened with 'ℹ️ 校验提示…' above the title,
     which on a clean slot read as an error. It stays visible, at the foot."""
@@ -755,20 +772,17 @@ def test_naming_an_old_signal_cannot_cover_a_new_signal(pf):
     assert len(missed) == 1 and 'CRCL' in missed[0] and 'RKLX' not in missed[0]
 
 
-def test_delivered_reading_order_links_holdings_and_preserves_the_context(pf, tmp_path):
+def test_delivered_reading_order_keeps_holdings_and_preserves_the_context(pf):
     from clawock.harness import chat_card
 
-    config = tmp_path / 'config'
-    config.mkdir()
-    (config / 'pages-public.json').write_text('{"site_url":"https://desk.example"}')
     raw = chat_card.render(analyzer=BLOCK, health=['⛔ 行情部分未核'],
                            action=['- 已有挂单'], changes=['- 新变化'])
     context = _ctx(raw_wechat_block=raw)
     assembled = pf.assemble_message(context, PROSE)
-    focused = chat_card.focused_delivery(assembled, workspace=tmp_path, intraday=True)
+    focused = chat_card.focused_delivery(assembled, intraday=True)
     assert focused.index('⛔') < focused.index(chat_card.CHANGES) < focused.index(chat_card.ACTION)
     assert focused.index(chat_card.ACTION) < focused.index(chat_card.JUDGMENT) < focused.index(chat_card.WATCH)
     assert '站上 `17.07`' in focused
-    assert '| RKLX' not in focused and 'https://desk.example/#drill' in focused
-    assert '| RKLX' in assembled and context['raw_wechat_block'] == raw
-    assert chat_card.focused_delivery(assembled, workspace=tmp_path / 'missing', intraday=True) == assembled
+    assert [line for line in focused.splitlines() if line.startswith('|')] == [
+        line for line in assembled.splitlines() if line.startswith('|')]
+    assert context['raw_wechat_block'] == raw

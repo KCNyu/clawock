@@ -160,11 +160,10 @@ field the prompt names is in the core or the index).
 
 On a validated timed check-in, postflight puts health warnings, slot changes,
 actions, the judgment and watch conditions before the supporting detail. An
-open/mid/close report puts the action and recommendation first. The holdings
-table stays in the matching local context, and chat links to the latest
-published holdings, plan and review. When Pages is unavailable in the
-workspace configuration, or postflight falls back to a data-only block, the
-table stays in chat. Scheduled delivery cadence stays in `config/intraday-delivery.json`.
+open/mid/close report puts the action and recommendation first. Both cards
+carry the summary and the complete holdings table after the front sections.
+The data-only fallback also carries the holdings table. Scheduled delivery
+cadence stays in `config/intraday-delivery.json`.
 
 The following are the underlying context and fallback blocks. A block with
 nothing to say is omitted unless it reports a missing decision or trigger.
