@@ -474,8 +474,8 @@ def _collect(argv=None):
     review = session_review.build(
         WS, args.market, now=started_at, plan_triggers=plan_triggers,
         unrefreshed=coverage['unrefreshed'])
-    followups = risk_ledger.followups(
-        WS / 'memory' / 'risk_breaches.json', leg=args.market.upper(), now=started_at)
+    from clawock.harness import risk_notices
+    followups = risk_notices.review(WS, leg=args.market.upper(), now=started_at)
 
     result = {
         'status':             'ok',

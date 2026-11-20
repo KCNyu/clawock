@@ -58,6 +58,7 @@ from datetime import datetime
 
 from clawock.automation import delivery_receipts
 from clawock.sessions import hkt_today
+from clawock.harness import risk_notices
 from clawock.harness.report import fallback_block
 from ._watchdog_common import (
     deterministic_fallback,
@@ -308,6 +309,7 @@ def main():
                  'reason': 'all recorded attempts failed without context; watchdog built the context',
                  'attempts': len(runs_today), 'run_at': run_at, 'target': target, 'out': tg_out})
             if tg_ok and not args.dry_run:
+                risk_notices.record(WS, ctx.get('risk_followups'), body)
                 flag.write_text(datetime.now(HKT).isoformat())
             return 0
         if not ctx.get('status') == 'market_closed':
@@ -350,7 +352,7 @@ def main():
         # mode the transcript never holds the report.
         wechat_body, body_source = _backstop_body(
             marker, session_id, raw_block_first, ctx, tag)
-        wechat_backstop(
+        wechat_ok = wechat_backstop(
             'report', tag, wechat_body.strip(), marker,
             delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'report',
                                            market=args.market, phase=args.phase, date=today),
@@ -358,6 +360,8 @@ def main():
             args.dry_run, market=args.market, wechat=send_wechat,
             telegram=send_telegram, resolve=resolve_wechat_target,
             body_source=body_source)
+        if wechat_ok and not args.dry_run:
+            risk_notices.record(WS, ctx.get('risk_followups'), wechat_body)
 
     # --- Generation gate ------------------------------------------------------
     # In prose mode the model's final answer is a postflight status line, not the
@@ -398,6 +402,7 @@ def main():
              'block_present': block_present, 'loop_score': loop_score, 'run_at': run_at,
              'target': target, 'out': tg_out})
         if tg_ok and not args.dry_run:
+            risk_notices.record(WS, ctx.get('risk_followups'), body)
             flag.write_text(datetime.now(HKT).isoformat())
         print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
                           'dry_run': args.dry_run}, ensure_ascii=False))
@@ -451,6 +456,7 @@ def main():
 
     # Slot handled once Telegram landed — don't keep retrying a report kcn has.
     if tg_ok and not args.dry_run:
+        risk_notices.record(WS, ctx.get('risk_followups'), report)
         flag.write_text(datetime.now(HKT).isoformat())
 
     print(json.dumps({'tag': tag, 'reason': reason, 'mirrored_telegram': tg_ok,

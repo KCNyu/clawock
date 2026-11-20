@@ -317,6 +317,31 @@ def _review_stamp(value):
         return '未知'
 
 
+def risk_notice(item):
+    subject = ticker(item.get('ticker') or item.get('leg') or '账户')
+    due = item.get('review_at')
+    when = f' · 复查 {_review_stamp(due)}' if due else ''
+    rule = _DEBT_RULE.get(item.get('type'), '风控')
+    overdue = ' · 处置已逾期' if item['decision_overdue'] else ''
+    age = f" · {item['days_open']} 天未结" if item['days_open'] else ''
+    reason = item['reason']
+    if item.get('acknowledged') and item['state'] != 'watch':
+        reason += ' · 已确认承担'
+    severity = ' · 严重' if item.get('severity') == 'critical' else ''
+    return bullet(f"{subject} {rule}{severity} · {reason}{age}{overdue}{when}")
+
+
+def risk_review_section(view):
+    if view.get('status') != 'ok':
+        return section('**风险待复查**', [bullet('风控账本未读到，待复查事项未知')])
+    rows = [risk_notice(item) for item in view['notices']]
+    if view.get('notice_omitted'):
+        rows.append(bullet(f"另有 {view['notice_omitted']} 项状态变化。"))
+    if rows:
+        rows.append(bullet('回复「风险待复查」查看编号和处置选项。'))
+    return section('**风险待复查**', rows)
+
+
 def review_sections(session_review=None, risk_followups=None) -> list[str]:
     """Deterministic recap/review blocks shared by intraday and report cards."""
     lines = []
@@ -329,8 +354,9 @@ def review_sections(session_review=None, risk_followups=None) -> list[str]:
             day = view.get('session', '').partition(':')[2]
             rows.append(bullet(f'对照 {day} 盘前计划（当前版本）'))
             counts = view['counts']
-            rows.append(bullet(f"执行账记录：已执行 {counts['followed']}，已记未执行 {counts['not_followed']}，"
-                               f"待核验 {counts['unknown']}；另有 {counts['passive']} 项持有/观察"))
+            if any(counts[key] for key in ('followed', 'not_followed', 'unknown')):
+                rows.append(bullet(f"执行账记录：已执行 {counts['followed']}，已记未执行 {counts['not_followed']}，"
+                                   f"待核验 {counts['unknown']}"))
             changes = [r for r in view.get('rows', []) if r['execution'] in {'followed', 'not_followed'}]
             if changes:
                 labels = {'followed': '已执行', 'not_followed': '已记未执行'}
@@ -357,6 +383,8 @@ def review_sections(session_review=None, risk_followups=None) -> list[str]:
         lines += section('**盘前至本档**', rows)
     if risk_followups is not None:
         view = risk_followups
+        if 'notices' in view:
+            return lines + risk_review_section(view)
         if view.get('status') != 'ok':
             rows = [bullet('风控账本未读到，待复查事项未知')]
         else:

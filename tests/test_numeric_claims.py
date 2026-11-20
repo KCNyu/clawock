@@ -262,9 +262,7 @@ def test_absent_market_units_stay_one_advisory(hc):
 # an advisory and EVERY one of them had escalating_count == 0 — i.e. the gate
 # only ever fired on clean reports. Replaying the five reports of 2026-08-26
 # through it, four of the five findings were the model writing "+8%" where the
-# context said 8.2. A gate that cries on 40% of good reports teaches its reader
-# to skip the line, which is the failure `advisory_prefix` is documented to
-# avoid.
+# context said 8.2. Rounding is accepted at the precision the prose actually uses.
 
 @pytest.mark.parametrize("written, context_value", [
     ("+8%", 8.2),        # 2026-08-26 hk-pm: 02208 +8.2%

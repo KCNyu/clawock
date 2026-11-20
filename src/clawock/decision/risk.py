@@ -578,11 +578,16 @@ def followups(path: Path = LEDGER, *, leg=None, now=None, limit=12) -> dict:
                          "state": state, "reason": reason, "review_at": due,
                          "last_seen_at": record.get("last_seen_at"),
                          "days_open": standing["days_open"], "decision_overdue": standing["decision_overdue"],
+                         "acknowledged": ((record.get("acknowledgement") or {}).get("status")
+                                          == "acknowledged"),
+                         "severity": record.get("severity"),
+                         "recurrence_count": record.get("recurrence_count"),
                          "reassessment": reassessment or None})
         rank = {"due": 0, "verify": 1, "undecided": 2, "scheduled": 3, "watch": 4}
         rows.sort(key=lambda row: (rank[row["state"]], not row["decision_overdue"],
                                    row["review_at"] or "", -row["days_open"], str(row["breach_id"])))
-        out.update(rows=rows[:limit], total=len(rows), omitted=max(0, len(rows) - limit))
+        shown = rows[:limit]
+        out.update(rows=shown, total=len(rows), omitted=len(rows) - len(shown))
     except (OSError, ValueError, TypeError, AttributeError):
         out.update(status="unavailable", rows=[], error="风控账本缺失或不可读，复查清单未生成")
     return out

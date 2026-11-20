@@ -3,9 +3,8 @@
 Three separate ways the harness had learned to notice something and then not
 say it, all fixed together because they are the same mistake:
 
-* #134 — advisory findings shared the banner's truncated issue list, so the
-  invented-number line was cut precisely on reports that already had two or
-  three other findings;
+* #134 — advisory findings must survive in the diagnostic split without
+  escalating the validation verdict;
 * #135 — a failed intraday validation sent nothing at all, while the staged
   reports send the harness-owned data block behind a red banner. A market slot
   with no message is indistinguishable from a dead cron;
@@ -40,42 +39,15 @@ ADVISORY_2 = f"区间 +0.3~-0.4% 自相矛盾 {val.ADVISORY_MARK}"
 
 
 # --------------------------------------------------------------------------
-# #134 — advisory findings get their own line
+# #134 — advisory findings are retained in diagnostics.
 # --------------------------------------------------------------------------
 
 
-def test_advisory_only_report_is_not_dressed_as_a_warning():
-    """It stays `warn` (delivered either way) but reads as information."""
-    escalating, advisories = val.split_advisory([ADVISORY])
-    assert escalating == []
-    assert val.advisory_prefix(advisories).startswith("ℹ️ 校验提示（不影响投递）")
-    assert "⚠️" not in val.advisory_prefix(advisories)
-
-
-def test_advisory_survives_a_banner_full_of_other_issues():
-    """The defect: `issues[:2]` dropped the advisory on exactly the bad reports."""
+def test_advisories_remain_available_alongside_other_findings():
     issues = ["缺段标记 ▎技术面", "报告长度 3100 字 > 3000 软上限 (warn)", ADVISORY]
     escalating, advisories = val.split_advisory(issues)
-    assert len(escalating) == 2
-    prefix = val.advisory_prefix(advisories)
-    assert "07226 6200 股" in prefix
-
-
-def test_advisory_line_bounds_itself():
-    many = [f"{i} 股 未在 context 中 {val.ADVISORY_MARK}" for i in range(5)]
-    prefix = val.advisory_prefix(many)
-    assert "另 3 条" in prefix
-    assert prefix.count(";") <= 2
-
-
-def test_no_advisory_means_no_line():
-    assert val.advisory_prefix([]) == ""
-    assert val.split_advisory(["缺段标记 ▎技术面"]) == (["缺段标记 ▎技术面"], [])
-
-
-def test_the_advisory_mark_is_not_shown_to_the_reader():
-    """`(advisory)` is a routing token for categorize_issues, not prose."""
-    assert val.ADVISORY_MARK not in val.advisory_prefix([ADVISORY])
+    assert escalating == issues[:2]
+    assert advisories == [ADVISORY]
 
 
 def test_advisory_still_cannot_change_the_verdict():

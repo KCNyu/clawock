@@ -293,16 +293,14 @@ def test_main_sends_the_rendered_card_with_waiting_add_side_rows(pf, run_main, s
     ]
 
 
-def test_an_advisory_finding_is_the_last_line_not_the_first(run_main, sent):
-    """2026-09-25 11:33: the card opened with 'ℹ️ 校验提示…' above the title,
-    which on a clean slot read as an error. It stays visible, at the foot."""
+def test_an_advisory_finding_stays_in_diagnostics(run_main, sent):
     prose = PROSE + 'RKLX 深套 -36% 的旧账不在本档新增。\n'
     rc, out = run_main(prose, context_id='abc123def456')
     assert rc == 0 and out['status'] == 'warn'
+    assert any('-36%' in issue for issue in out['issues'])
     body = sent['messages'][0]
     assert body.startswith('🇺🇸 美股盯盘 | 07/27 12:30 ET')
-    assert body.splitlines()[-1].startswith('ℹ️ 校验提示（不影响投递）')
-    assert '-36%' in body.splitlines()[-1]
+    assert '校验提示' not in body and '校验警告' not in body
 
 
 def test_healthy_no_change_is_audited_without_delivery(run_main, sent, tmp_path):
@@ -372,6 +370,7 @@ def test_unchanged_receipt_needs_no_dummy_prose_file(pf, sent, monkeypatch, tmp_
         should_alert=False, semantic_state={"session": "us:2026-08-13"},
     )
     (tmp_path / "intraday-context-us-latest.json").write_text(json.dumps(ctx))
+    monkeypatch.setattr(pf, "run_usage_append", lambda text, **_kw: text)
     monkeypatch.setattr(pf, "TMP", tmp_path)
     monkeypatch.setattr(pf, "WS", tmp_path)
     monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
@@ -685,13 +684,13 @@ def test_wechat_bolds_the_new_rows_and_both_channels_carry_the_same_table_bytes(
     assert sent['messages'][0] == telegram[0]
 
 
-def test_an_escalating_warning_does_not_borrow_the_signal_symbol(run_main, sent):
-    """⚠️ heads the analyzer's signal block and nothing else (contract §4)."""
+def test_a_nonblocking_escalating_warning_stays_in_diagnostics(run_main, sent):
     rc, out = run_main('▎我的看法\nSKHY 太短。\n下一触发：RKLX 站上 17.07\n',
                        context_id='abc123def456')
     assert out['status'] == 'warn'
     first = sent['messages'][0].splitlines()[0]
-    assert first.startswith('🟠 校验警告') and '⚠️' not in first
+    assert first.startswith('🇺🇸 美股盯盘')
+    assert out['issues'] and not out['wechat_prefix']
 
 
 def test_an_unverifiable_next_trigger_is_cut_from_the_card_not_bannered(run_main, sent):
@@ -713,17 +712,18 @@ def test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers(
     run_main, sent, pf
 ):
     """Contract §7: field names leaked into 14 of 17 judgments on 2026-09-24/25
-    and a banner only labels them on kcn's card. For fixable classes the
+    and were sent to the model for correction. For fixable classes the
     model gets the findings back once, nothing is sent; the second call
-    delivers whatever it gets (with its banner). A clean report is never held."""
+    delivers after categorization. A clean report is never held."""
     leaked = PROSE.replace('继续按计划减。', '继续按 risk_rule 计划减。')
     rc, out = run_main(leaked, context_id='abc123def456')
     assert rc == 0 and out['status'] == 'revise' and sent['messages'] == []
     assert any('risk_rule' in issue for issue in out['issues'])
-    # Same generation, second call: delivered, banner on top.
+    # Same generation, second call: diagnostics are retained.
     rc, out = run_main(leaked, context_id='abc123def456')
     assert out['status'] == 'warn' and out['wechat_sent'] is True
-    assert sent['messages'][0].startswith('🟠 校验警告')
+    assert sent['messages'][0].startswith('🇺🇸 美股盯盘')
+    assert not out['wechat_prefix']
     # A revised, clean report on a new generation is not held.
     sent['messages'].clear()
     pf.delivery_receipts.receipt_path(pf.TMP, 'intraday', market='us').unlink()

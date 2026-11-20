@@ -354,9 +354,25 @@ def _open_risk_action(plan_context, ticker):
     return None
 
 
+def _pullback_prices(level):
+    if not level:
+        return None
+    prices = tuple(level.get(key) for key in ("prior_5d_low", "close", "prior_20d_high"))
+    return prices if all(isinstance(price, (int, float)) for price in prices) else None
+
+
+def _pullback_band(level):
+    prices = _pullback_prices(level)
+    if not prices:
+        return False
+    low, close, high = prices
+    return low < close < high
+
+
 def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
               mover_news=None, mover_thesis=None, plan_context=None,
-              close_confirmed=False, information=None, leveraged=(), policy=None):
+              close_confirmed=False, information=None, leveraged=(), policy=None,
+              current_prices=None, unverified=()):
     """Join the packet's own answers into add-side reads, most acute first.
 
     Every field is copied from an input; nothing here is derived arithmetic, so a
@@ -365,8 +381,15 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
     radar_by_ticker = _radar_index(radar)
     rows = []
     seen = set()
+    leveraged, unverified = set(leveraged or ()), set(unverified or ())
 
-    def add(ticker, triggers, evidence):
+    def pullback_level(ticker):
+        level = _level(levels, ticker)
+        if level and current_prices is not None:
+            return {**level, "close": current_prices.get(ticker)}
+        return level
+
+    def add(ticker, triggers, evidence, support=None):
         if not ticker or ticker in seen:
             return
         seen.add(ticker)
@@ -376,9 +399,10 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         soft = _soft_news(mover_news, ticker)
         radar_row = radar_by_ticker.get(ticker)
 
-        support = _support(ticker, mover_news, information)
+        if support is None:
+            support = _support(ticker, mover_news, information)
         grade = support[0]["grade"] if support else None
-        level = _level(levels, ticker)
+        level = pullback_level(ticker)
         kind = None
         extra = {}
         if breach:
@@ -420,11 +444,8 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                        f"回测口径为收盘确认:次日命中过半,T+5/T+20 按非重叠样本约五成、未达显著)")
                 lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
                 needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
-        elif (support and level and level.get("prior_5d_low") is not None
-              and level.get("close") is not None
-              and (level.get("pct_from_high") or 0) <= 0
-              and level["close"] > level["prior_5d_low"]
-              and not (ticker in set(leveraged or ()) and grade == "soft")):
+        elif (support and ticker not in unverified and _pullback_band(level)
+              and not (ticker in leveraged and grade == "soft")):
             # 跌不等于不能加 (kcn 2026-09-25): below the 20-day high, still above
             # the prior 5-day low it could have broken, with supporting news.
             # The 5-day low is the invalidation — below it the pullback is a
@@ -436,7 +457,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             why = f"回踩候选:{GRADE_WORDS.get(grade, grade)}支持《{title}》,守在5日低 {low} 上"
             cap = _size_cap(policy)
             needs = f"跌破 {low} 失效" + (f";{cap}" if cap else "")
-            extra = {"invalidation": low, "size_cap": cap}
+            extra = {"invalidation": low, "size_cap": cap, "pullback_high": level["prior_20d_high"]}
             if evidence.get("prior_20d_high") is None:
                 evidence = {**evidence, "prior_20d_high": level.get("prior_20d_high"),
                             "close": level.get("close"),
@@ -453,7 +474,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                 # #819: wait_rebreak rows now exist and say what they are —
                 # an uptrend pulling back, logged as state, not a silent drop.
                 missing.append(f"技术面{radar_row.get('state_zh') or radar_row.get('state')}")
-            if support and ticker in set(leveraged or ()) and grade == "soft":
+            if support and ticker in leveraged and grade == "soft":
                 missing.append("杠杆产品需一手/权威证据")
             why = "、".join(missing) or "条件不齐"
             level = radar_row or _level(levels, ticker)
@@ -464,7 +485,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             needs = (_needs_level(level) if level
                      else "等一手催化或技术面进入突破区")
             own = (levels or {}).get(ticker) or {}
-            if own.get("left_rung") is not None and ticker not in set(leveraged or ()):
+            if own.get("left_rung") is not None and ticker not in leveraged:
                 # Left side, observe mode (kcn 2026-09-27; `left_side`): the
                 # ladder is printed so it can be seen and measured, never sized.
                 # Its price rule alone carried no edge over holding and no
@@ -480,6 +501,21 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                          + (f" 或收盘破 MA200 {floor}" if floor else "") + " 失效")
                 extra = {**extra, "invalidation": own["left_invalidation"]}
                 evidence = {**evidence, "left_rung": own["left_rung"]}
+            elif (evidence.get("move_pct") or 0) < 0 and ticker not in unverified:
+                prices = _pullback_prices(pullback_level(ticker))
+                if prices and prices[1] < prices[2]:
+                    low, close, high = prices
+                    kind = "pullback_watch"
+                    blockers = []
+                    if close <= low:
+                        blockers.append(f"现价触及或跌破前5日低 {low}，等收复")
+                    if not support:
+                        blockers.append("等正向证据")
+                    elif ticker in leveraged and grade == "soft":
+                        blockers.append("等一手或权威证据")
+                    needs = "、".join(blockers)
+                    extra = {"invalidation": low, "pullback_high": high}
+                    evidence = {**evidence, "prior_5d_low": low}
             if level and evidence.get("prior_20d_high") is None:
                 # The number quoted in `needs` has to be pointable-at in the
                 # packet, not only inside a sentence (数字只能引用 context).
@@ -570,12 +606,17 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         })
 
     for label, level in sorted((levels or {}).items()):
-        # Left-side weakness has no radar row (it is far under the high), so it
-        # gets its own pass — only for a label that reads its own chart, never
-        # for a proxy standing in for a leveraged product.
-        if (level.get("left_rung") is None or label in seen
-                or label in set(leveraged or ())
-                or label not in (level.get("holdings") or [label])):
+        if label in seen or label not in (level.get("holdings") or [label]):
+            continue
+        # Below the radar's in-play band a supported pullback can still qualify.
+        # A proxy chart cannot supply this holding's own five-day floor.
+        if label not in unverified and _pullback_band(pullback_level(label)):
+            support = _support(label, mover_news, information)
+            if support and not (label in leveraged and support[0]["grade"] == "soft"):
+                add(label, ["supported_pullback"], {}, support=support)
+                continue
+        # The left observation ladder is independent and always unsized.
+        if level.get("left_rung") is None or label in leveraged:
             continue
         add(label, ["left_weakness"], {
             "close": level.get("close"),

@@ -1,10 +1,10 @@
 # Session recap and risk follow-ups
 
-Report cards (open, mid, pm, close) and intraday cards include **盘前至本档** and
-**风险待复查**. Both are deterministic projections written into the preflight context,
-covered by its generation id, and rendered without asking the model to copy them.
-Report watchdog fallback carries them too. They do not suppress delivery, grant
-trades, change today's plan, or acknowledge/resolve a risk record.
+Report and intraday cards include **盘前至本档**. The brief carries the open
+risk review queue and market cards carry newly seen or changed entries in
+**风险待复查**. The market views are bound to the preflight generation and the
+watchdog can carry them in its data fallback. Review visibility is separate
+from today's orders and from acknowledgement in the risk ledger.
 
 ## Recap from the current plan version
 
@@ -31,7 +31,7 @@ reads the preceding HKT day's plan. No nearest-date fallback is allowed.
 The structured view holds at most 12 rows per collection and explicit omitted
 counts; aggregate counts cover all plan decisions. Cards show at most three names
 per detail line. This is a compact progress recap, not a full trade or news timeline.
-No new persistent store, embedding index or network request is introduced.
+Hold and watch counts stay in context and are omitted from the card.
 
 ## Review the existing risk ledger
 
@@ -53,11 +53,19 @@ ledger's UTC calendar date. These are deadlines already in the ledger, not new
 policy thresholds. Acknowledgement/confirmation/override still use their existing
 commands and evidence rules. This projection never performs those writes.
 
-The view retains ledger update time and per-record last observation time. It does
-not rerun a quote-based risk detector, so a stale ledger is labelled with its time,
-not represented as a fresh market check. Missing/corrupt ledger is unavailable;
-a readable empty ledger is explicitly empty. Context holds 12 prioritized items;
-the card shows three and states how many more exist.
+The view retains ledger update time and per-record last observation time.
+Missing or corrupt ledger data is identified as unavailable. The daily brief
+shows the unresolved queue once. The report and intraday paths compare each
+breach with its last delivered state in `memory/.tmp/risk-card-notices.json`.
+New or reopened breaches, severity changes, crossing the existing 10-day
+undecided threshold, acknowledgements, reassessment requests and deadline
+transitions can surface again. Age alone does not count as a change. Market
+cards show up to three changes. Additional changes stay eligible until a card
+actually carries them.
+
+Primary delivery or a successful watchdog send advances the receipt for the
+rows sent. The brief also advances it. The review lookup and the receipt
+store leave the risk ledger itself alone.
 
 ```bash
 clawock risk followups --leg HK

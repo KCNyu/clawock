@@ -63,7 +63,7 @@ from ._harness_common import compute_context_id
 from ._watchdog_common import active_intraday_slot, slot_shipped
 
 from clawock.automation import cron_heartbeat  # noqa: E402
-from clawock.harness import intraday_delta  # noqa: E402
+from clawock.harness import intraday_delta, risk_notices  # noqa: E402
 
 
 # Process-local bars cache for one preflight slot (#613): the provisional,
@@ -1033,15 +1033,42 @@ def append_add_side_section(block, reads, gaps=None):
     「本档不给尺寸」 (kcn 2026-09-25 preview; the ⛔ line keeps a pointer).
     """
     rows = (reads or {}).get('rows') or []
+    # Keep dip-specific levels visible on crowded cards. Ordinary reads
+    # already arrive sorted by the strategy and keep their existing order.
+    dip_kinds = {'pullback', 'pullback_watch', 'left_scale_in'}
+    if any(row.get('kind') in dip_kinds for row in rows):
+        rows = sorted(rows, key=lambda row: (
+            0 if row.get('kind') == 'pullback' and row.get('verdict') == 'candidate' else
+            1 if row.get('verdict') == 'candidate' else
+            2 if row.get('kind') in dip_kinds else 3
+        ))
     gaps = dict(gaps or {})
     if not rows and not gaps:
         return block
     lines = ['', ADD_SIDE_HEADER]
     for row in rows[:MAX_ADD_SIDE_ROWS]:
         word = ADD_SIDE_WORDS.get(row.get('verdict'), row.get('verdict'))
-        text = f"  · {row.get('ticker')} {word}：{_clip(row.get('why'), ADD_SIDE_WHY_CHARS)}"
-        if row.get('needs'):
-            text += f" → {_clip(row.get('needs'), ADD_SIDE_NEEDS_CHARS)}"
+        kind = row.get('kind')
+        ticker = row.get('ticker')
+        low, high = row.get('invalidation'), row.get('pullback_high')
+        if kind == 'pullback' and low is not None and high is not None:
+            text = (f"  · {ticker} 回踩加仓{word}：守前5日低 `{low}`、低于前20日高 `{high}`"
+                    f" · 触及 `{low}` 失效")
+            if row.get('discipline_downgraded'):
+                text += f" · {_clip(row.get('why'), ADD_SIDE_WHY_CHARS)} · 本档不给尺寸"
+            else:
+                cap = row.get('size_cap')
+                text += f" · {cap}" if cap else " · 上限未取得"
+                text += f" · {_clip(row.get('why'), ADD_SIDE_WHY_CHARS)} · 待确认"
+        elif kind == 'pullback_watch':
+            text = (f"  · {ticker} 回踩加仓等待：{row.get('needs')}"
+                    f" · 回踩区间 `{low}`–`{high}` · 本档不给尺寸")
+        elif kind == 'left_scale_in':
+            text = f"  · {ticker} 下跌观察（不给尺寸）：{row.get('needs')}"
+        else:
+            text = f"  · {ticker} {word}：{_clip(row.get('why'), ADD_SIDE_WHY_CHARS)}"
+            if row.get('needs'):
+                text += f" → {_clip(row.get('needs'), ADD_SIDE_NEEDS_CHARS)}"
         lines.append(text)
         if row.get('ticker') in gaps:
             lines.append(f"    ↳ 策略升级证据未取全（{'；'.join(gaps.pop(row['ticker']))}）")
@@ -1389,6 +1416,9 @@ def can_silence(ctx, *, allow_soft_review=False):
     """
     soft_only = (ctx.get('semantic_delta') or {}).get('components') == ['soft_candidates_seen']
     if (not ctx.get('semantic_unchanged') and not (allow_soft_review and soft_only)):
+        return False
+    risk_review = ctx.get('risk_followups') or {}
+    if risk_review.get('notices') or risk_review.get('status') == 'unavailable':
         return False
     if ctx.get('always_full') or (ctx.get('intraday_recommendations') or {}).get('rows'):
         return False
@@ -1744,6 +1774,7 @@ def _collect(argv=None):
     # report card reads them.
     risk_debts, risk_debts_error = risk_ledger.leg_debts(
         args.market.upper(), WS / 'memory' / 'risk_breaches.json')
+    followups = risk_notices.review(WS, leg=args.market.upper(), now=now)
     # Does this slot's tape satisfy any condition the 08:00 plan wrote down?
     # Deterministic and harness-owned: the plan already named the price, so the
     # comparison is arithmetic, not judgement. Leaving it to the model is how
@@ -1827,6 +1858,7 @@ def _collect(argv=None):
         # Contract §5: graded news support, the leveraged sleeve, and the
         # exploration tranche the desk configured (quoted as the size cap).
         information=information['summary'],
+        current_prices=prices, unverified=coverage.get('unrefreshed') or (),
         leveraged={row['ticker'] for row in full_holdings
                    if is_leveraged_holding({'ticker': row['ticker']})},
         policy=_load_json(WS / 'config' / 'add-alpha-policy.json'))
@@ -1876,6 +1908,7 @@ def _collect(argv=None):
         'semantic_unchanged': bool(prior_state) and not semantic_delta['changed'],
         'semantic_delta': semantic_delta,
         'always_full': always_full, 'quote_coverage': coverage,
+        'risk_followups': followups,
         'active_information_candidates': active_information_ctx,
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
@@ -1944,7 +1977,6 @@ def _collect(argv=None):
             early=append_early_trend_section('', early_candidates, signals_detail),
             radar=append_opportunity_radar_section('', opportunity_radar, signals_detail),
             add_side_reads=add_side_reads, gaps=gaps,
-            debts=risk_debts, debts_error=risk_debts_error,
             health=[
                 coverage_warning(coverage, gaps),
                 (f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}"
@@ -1970,12 +2002,13 @@ def _collect(argv=None):
         delivery_mode = 'full_delta'
         should_alert = True
         alert_reasons = [*alert_reasons, '条件下单建议待人工确认']
+    if followups['notices']:
+        should_alert = True
+        alert_reasons = [*alert_reasons, '风险复查状态变化']
     from clawock.decision import session_review
     review = session_review.build(
         WS, args.market, now=now, plan_triggers=plan_triggers,
         unrefreshed=coverage.get('unrefreshed') or [])
-    followups = risk_ledger.followups(
-        WS / 'memory' / 'risk_breaches.json', leg=args.market.upper(), now=now)
     if raw_block is None:
         raw_block = chat_card.render(
             session_review=review, risk_followups=followups,

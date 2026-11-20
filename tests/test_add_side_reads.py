@@ -648,3 +648,39 @@ def test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leve
                                                           "shares": 200, "driven_by": "risk_rule"}]},
                                   **base), "02208")
     assert row["verdict"] == "wait" and "回踩候选降级" in row["why"]
+
+
+def test_supported_pullback_without_an_anomaly_reaches_the_card_before_other_candidates():
+    from clawock.harness import intraday_preflight as pre
+
+    reads = add_side.read_rows(
+        radar={'rows': []},
+        levels=PULLBACK_LEVELS,
+        information=INFO_POSITIVE,
+        policy={'sizing': {'basis': 'book_risk', 'tranche_book_pct': {'exploration': 0.01},
+                           'max_tranche_risk_book_pct': 0.004}},
+    )
+    row = _row(reads, '02208')
+    assert row['triggers'] == ['supported_pullback']
+    assert row['verdict'] == 'candidate' and row['authorization'] is None
+    other = [{'ticker': f'T{i}', 'kind': 'breakout', 'verdict': 'candidate', 'why': '突破'}
+             for i in range(4)]
+    body = pre.append_add_side_section('', {'rows': [*other, row]})
+    assert '02208 回踩加仓候选：守前5日低 `10.6`、低于前20日高 `11.72`' in body
+    assert '失效位亏损 ≤0.4% 市值' in body
+    assert '…另有 1 条' in body
+
+    for quote in ({'unverified': {'02208'}}, {'current_prices': {}},
+                  {'current_prices': {'02208': 10.6}}):
+        unavailable = add_side.read_rows(
+            radar={'rows': []}, levels=PULLBACK_LEVELS, information=INFO_POSITIVE, **quote,
+        )
+        assert unavailable['rows'] == []
+
+    broken = add_side.read_rows(
+        anomalies=[{'ticker': '02208', 'move_pct': -3.4}], radar={'rows': []},
+        levels=PULLBACK_LEVELS, information=INFO_POSITIVE, current_prices={'02208': 10.5},
+    )
+    blocked_card = pre.append_add_side_section('', broken)
+    assert '回踩加仓等待：现价触及或跌破前5日低 10.6，等收复' in blocked_card
+    assert '本档不给尺寸' in blocked_card and '上限探索档' not in blocked_card

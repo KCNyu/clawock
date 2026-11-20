@@ -88,3 +88,56 @@ def test_reassessment_request_and_review_leave_the_obligation_and_execution_open
     assert saved['status'] == 'open'
     assert not any(key in saved for key in ('execution', 'override', 'acknowledgement'))
     assert saved['reassessment']['review_note'] == 'risk still open'
+
+
+def test_brief_delivery_suppresses_market_repeat_until_risk_changes(tmp_path, monkeypatch):
+    from clawock.harness import brief_card, chat_card, report, risk_notices
+
+    memory = tmp_path / 'memory'
+    memory.mkdir()
+    path = memory / 'risk_breaches.json'
+
+    def save(**fields):
+        path.write_text(json.dumps({'schema_version': 1, 'records': [
+            {**record('still-open'), **fields},
+        ]}))
+
+    def market_card(now=NOW):
+        view = risk_notices.review(tmp_path, leg='US', now=now)
+        ctx = {'title': '美股报告', 'raw_wechat_block': '行情', 'risk_followups': view,
+               'risk_debts': risk.leg_debts('US', path)[0]}
+        report_text = report.assemble_message(ctx, '')
+        intraday_text = chat_card.render(analyzer='行情', risk_followups=view)
+        assert ('**风险待复查**' in report_text) == ('**风险待复查**' in intraday_text)
+        assert '欠着的账' not in report_text
+        return view, report_text
+
+    save(age_days=9)
+    monkeypatch.setattr(brief_card, 'WS', tmp_path)
+    brief = risk_notices.review(tmp_path, now=NOW)
+    brief_message = brief_card.build_brief_card('2026-11-01', risk_view=brief, footer='usage')
+    assert '9 天未结' in brief_message and brief_message.endswith('usage')
+    risk_notices.record(tmp_path, brief, '盘前简报')  # A body without the row proves nothing.
+    assert '9 天未结' in market_card()[1]
+    risk_notices.record(tmp_path, brief, brief_message)
+    assert '9 天未结' not in market_card()[1]
+
+    save(age_days=10)
+    view, text = market_card('2026-11-02T08:00:00+00:00')
+    assert '处置已逾期' in text
+    risk_notices.record(tmp_path, view, text)
+    save(age_days=11)
+    assert '风险待复查' not in market_card('2026-11-03T08:00:00+00:00')[1]
+
+    save(age_days=11, status='overridden', override={'status': 'active', 'reason': 'wait',
+                                'expires_at': '2026-11-03T09:00:00+00:00'})
+    view, text = market_card('2026-11-03T08:00:00+00:00')
+    assert '限时豁免，到期复查' in text
+    risk_notices.record(tmp_path, view, text)
+    view, text = market_card('2026-11-03T09:00:00+00:00')
+    assert '豁免已到期' in text
+    risk_notices.record(tmp_path, view, text)
+    assert '风险待复查' not in market_card('2026-11-03T09:30:00+00:00')[1]
+
+    save(age_days=11, acknowledgement={'status': 'acknowledged'})
+    assert '已确认承担风险' in market_card('2026-11-03T10:00:00+00:00')[1]

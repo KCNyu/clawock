@@ -48,12 +48,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from clawock.harness import risk_notices
 from clawock.harness.validation import (
     ADVISORY_MARK,
     FORBIDDEN_PHRASES,
     PLAN_CONSISTENCY,
     REPORT_CHAR_LIMITS,
-    advisory_prefix,
     categorize_issues,
     check_identifier_leak,
     check_numeric_claims,
@@ -552,7 +552,7 @@ def validate(text, ctx, model_text):
       signal tickers must be named in prose) live here, because naming what
       fired is what an alert slot is for, and so do context field names in the
       prose (an identifier is never trading language);
-    - advisory (`ADVISORY_MARK`): shown, never counted — secondary reads such as
+    - advisory (`ADVISORY_MARK`): logged, never counted — secondary reads such as
       plan triggers and add-side verdicts, numeric provenance, pipeline jargon.
 
     `fail` is never silence: it delivers the fail-closed data block with a
@@ -967,8 +967,7 @@ def main(argv=None):
         print(f'warn: {insights_path.name} 缺失或不可用 — dashboard status_banner 将过期隐藏 '
               f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)
 
-    # The banner counts and lists ESCALATING issues only; advisory findings get
-    # their own line below, so a truncated list can never drop them (#134).
+    # Validation diagnostics stay in the run result and stage counters.
     escalating, advisories = split_advisory(issues)
     # What shipped, not what the checker noticed — see product_status (#1076).
     product = product_status(status, escalating)
@@ -976,26 +975,13 @@ def main(argv=None):
     # kcn: an unsourced level is cut from the card instead of printed under a
     # banner explaining why it cannot be trusted (kcn 2026-10-19). The issue
     # stays in `issues`, the status and the ledger.
-    shown = [issue for issue in escalating if '下一触发' not in issue]
-    if status == 'warn' and len(shown) < len(escalating) and not stale_generation:
+    if status == 'warn' and any('下一触发' in issue for issue in escalating):
         text = assemble_message(ctx, drop_next_trigger(model_text))
-    if status == 'pass' or not shown:
-        banner = ''
-    elif status == 'warn':
-        # 🟠, not ⚠️: on this card ⚠️ only ever heads the analyzer's signal
-        # block (contract §4, one symbol per meaning).
-        banner = (f'🟠 校验警告 ({len(shown)}): '
-                  + '; '.join(shown[:2])
-                  + '\n\n')
-    else:
-        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
-                  + '\n'.join('- ' + i for i in escalating[:4])
-                  + '\n\n')
-    # Advisory findings keep their own visible line (#134), but at the foot of
-    # the card: on top they were the first thing kcn read on a clean slot and
-    # looked like an error (2026-09-25). Escalating banners stay on top.
-    wechat_prefix = banner
-    advisory_suffix = advisory_prefix(advisories).strip()
+    wechat_prefix = ''
+    if status == 'fail':
+        wechat_prefix = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
+                         + '\n'.join('- ' + i for i in escalating[:4])
+                         + '\n\n')
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron's announce fires at the END of a long agent turn using a token
@@ -1055,8 +1041,6 @@ def main(argv=None):
                   'nothing sent, watchdog owns this slot', file=sys.stderr)
         else:
             message = (wechat_prefix + body).strip()
-            if advisory_suffix:
-                message += '\n\n' + advisory_suffix
             # Same two-line footer as direct chat, appended after validation and
             # stored in the marker so a backstop re-send keeps it. No live run
             # (manual/dry) means no footer, never a zero placeholder.
@@ -1134,6 +1118,8 @@ def main(argv=None):
     # visible, but it has not delivered the intended semantic report.  Keep the
     # old cursor so the next slot retries the full delta instead of collapsing
     # it into an unchanged receipt.
+    if delivered_this_run:
+        risk_notices.record(WS, ctx.get('risk_followups'), wechat_message)
     if delivered_this_run and status != 'fail':
         try:
             intraday_delta.persist_delivered_state(WS, ctx)
@@ -1198,7 +1184,7 @@ def main(argv=None):
             # (#1241). `None` when it cannot be determined — never 0.
             unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
             unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
-            # The ledger needs the same escalating/advisory split the banner uses:
+            # The ledger needs the same escalating/advisory split as product_status:
             # an advisory-only slot delivered a clean report (#764).
             escalating_count=len(escalating), advisory_count=len(advisories),
             length_warnings=length_warnings,

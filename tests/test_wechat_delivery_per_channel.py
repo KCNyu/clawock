@@ -421,7 +421,7 @@ def _wire_brief_watchdog(monkeypatch, tmp_path, wechat_ok=True):
     monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     monkeypatch.setattr(watchdog, 'WS', tmp_path)
     monkeypatch.setattr(watchdog.trading_calendar, 'closed_reason', lambda *a, **kw: None)
-    monkeypatch.setattr(watchdog, 'build_brief_card', lambda _today: '📊 盘前深度简报 card')
+    monkeypatch.setattr(watchdog, 'build_brief_card', lambda _today, **_kwargs: '📊 盘前深度简报 card')
     monkeypatch.setattr(watchdog, 'resolve_wechat_target',
                         lambda *a: ('openclaw-weixin', 'kcn', 'acct'))
     monkeypatch.setattr(watchdog, 'send_wechat',
