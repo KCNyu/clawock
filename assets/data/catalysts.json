@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-19T08:46:44.741522+08:00",
+  "generated_at": "2026-11-20T08:04:24.117266+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-19",
-  "window_end": "2026-12-03",
+  "window_start": "2026-11-20",
+  "window_end": "2026-12-04",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -33,13 +33,18 @@
       "date": "2026-11-25",
       "type": "GDP",
       "detail": "Q3 2026 GDP 2nd estimate"
+    },
+    {
+      "date": "2026-12-04",
+      "type": "NFP",
+      "detail": "Nov jobs report (Non-Farm Payrolls); BLS 8:30 ET"
     }
   ],
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
-    "macro_count": 2,
+    "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
     "highest_impact_within_7d": "PCE 2026-11-25"
