@@ -375,7 +375,8 @@ def test_happy_path_assembles_commits_and_records_delivered(run_main, sent):
     assert out['commit_ok'] is True
     body = sent['messages'][0]
     assert body.startswith('**🌙 美股收盘日报') and '**情绪面**' in body
-    assert not _carries(FRESH_BLOCK, body) and '#drill' in body
+    table = FRESH_BLOCK.split('\n\n')[-1]
+    assert body.index('**待你处理**') < body.index('**操作建议**') < body.index(table)
 
 
 def test_nothing_new_to_commit_is_current_even_with_other_dirt_in_the_checkout(pf, monkeypatch, tmp_path):
@@ -663,14 +664,12 @@ def test_section_markers_named_inside_a_sentence_do_not_count(pf):
     assert pf.validate(pf.assemble_message(ctx, proper), ctx, proper) == []
 
 
-def test_delivered_report_moves_recommendation_before_supporting_detail(pf, tmp_path):
-    from clawock.harness.chat_card import focused_delivery
+def test_delivered_report_moves_recommendation_before_supporting_detail(pf):
+    from clawock.harness.chat_card import ACTION, focused_delivery
 
-    config = tmp_path / 'config'
-    config.mkdir()
-    (config / 'pages-public.json').write_text('{"site_url":"https://desk.example"}')
     assembled = pf.assemble_message(_ctx(), PROSE)
-    body = focused_delivery(assembled, workspace=tmp_path, intraday=False)
-    assert body.index('**操作建议**') < body.index('**技术面**')
-    assert '| CRCL' not in body and '| CRCL' in assembled
-    assert 'https://desk.example/#plan' in body
+    body = focused_delivery(assembled, intraday=False)
+    table = FRESH_BLOCK.split('\n\n')[-1]
+    assert body.index(ACTION) < body.index('**操作建议**') < body.index(table) < body.index('**技术面**')
+    assert [line for line in body.splitlines() if line.startswith('|')] == [
+        line for line in assembled.splitlines() if line.startswith('|')]
