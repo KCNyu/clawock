@@ -211,6 +211,7 @@ class Sentiment:
         def build(feed, age):
             if str(feed.get('llm_filter_status') or '').startswith('failed'):
                 return _answer(UNREADABLE, age=age, error='filter failed',
+                               llm_filter_status='failed',
                                message='statement relevance filter failed; no current scored reading')
             def current(key, limit):
                 return [_trim_statement(item) for item in feed.get(key, [])
