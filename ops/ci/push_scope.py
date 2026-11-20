@@ -26,10 +26,8 @@ Lanes emitted (GITHUB_OUTPUT `key=value` lines, or --json):
               answers --everything before invoking this script, failing
               toward running.
 
-Matching semantics deliberately mirror the shell they replaced: glob lanes
-use fnmatchcase, where `*` crosses `/` exactly like a `case` pattern did;
-the ui/dsplugin lanes use the same regexes the old grep lines carried,
-byte-for-byte.
+Glob lanes use fnmatchcase, where `*` crosses `/` exactly like a shell
+`case` pattern. The ui/dsplugin lanes match paths with regular expressions.
 """
 from __future__ import annotations
 
@@ -155,7 +153,8 @@ DATA_GLOBS = [
 # shipped a two-row nav to every phone: `site/index.html` is `layout: null`, so
 # the dashboard contract never renders the layout, and nothing in this pattern
 # used to make a change to it run a browser at all.
-UI_RE = (r"^(site/assets/(css|js)/|site/index\.html$|site/_layouts/|"
+UI_RE = (r"^(\.github/(workflows/ci\.yml$|actions/clawock-playwright/)|"
+         r"site/assets/(css|js)/|site/index\.html$|site/_layouts/|"
          r"site/decimap/|src/clawock/publish/decision_map\.py$|"
          r"tests/browser_shard\.cjs$|tests/(dashboard_tab_runtime|site_layout_mobile|decimap_board)\.spec\.js$)")
 # `quota.mjs` imports the package's built lib/balance.js and the plugin spec pins its wording.
