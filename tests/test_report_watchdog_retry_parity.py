@@ -80,6 +80,21 @@ def test_context_older_than_the_delivered_one_is_not_a_retry():
     assert delivered is False
 
 
+def test_legacy_marker_must_be_within_clock_skew_tolerance():
+    from clawock.harness import report_watchdog as watchdog
+
+    marker = {'tg_ok': True, 'first_line': BLOCK_FIRST}
+    five_minutes = 5 * 60 * 1000
+    for offset, expected in [
+        (five_minutes, True),
+        (five_minutes + 1, False),
+        (-watchdog.MARKER_FRESH_MS, False),
+    ]:
+        marker['ts'] = NOW_MS + offset
+        delivered, _ = watchdog.slot_delivered(marker, 'ctx', BLOCK_FIRST, NOW_MS)
+        assert delivered is expected
+
+
 def test_postflight_records_the_source_context_timestamp(tmp_path, monkeypatch):
     """Without this field on the marker the window above can never engage."""
     from clawock.harness import report_postflight as postflight

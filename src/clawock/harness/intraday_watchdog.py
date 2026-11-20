@@ -84,6 +84,7 @@ from datetime import datetime, timedelta
 
 from clawock.automation import delivery_receipts
 from ._watchdog_common import (
+    marker_is_fresh,
     deterministic_fallback,
     WS, HKT, log, find_job_id, today_runs, telegram_target,
     transcript_loop_score, last_report_text, send_telegram,
@@ -101,7 +102,6 @@ from clawock.automation import cron_heartbeat  # noqa: E402
 
 LOOP_THRESHOLD = 5         # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
 MARKER_FRESH_MS = 25 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
-MARKER_FUTURE_SKEW_MS = 5 * 60 * 1000  # marker written just after the watchdog's clock read
 WATCHDOG_DELAY_MINUTES = 10
 # Slots are 30 minutes apart, so this window must stay well under that: at or
 # above the cadence it would read the previous slot's context as a retry of this
@@ -287,18 +287,7 @@ def marker_matches_slot(marker, job_name, slot, raw_block_first, now_ms,
             return same_generation_window(
                 marker, ctx_generated_at,
                 window_s=REGEN_WINDOW_S, backward_s=REGEN_BACKWARD_S)
-    ts = marker.get('ts')
-    # Both bounds matter now that the marker is the primary judge: a wildly
-    # future-dated ts (clock skew, corrupted or hand-edited marker) would
-    # otherwise read as infinitely fresh and suppress every backstop.
-    # The tolerance is not symmetric on purpose — postflight can legitimately
-    # finish its send in the seconds AFTER the watchdog reads its own wall clock,
-    # and that marker is fresher evidence, not staler. Rejecting it would re-open
-    # the duplicate this ordering fix exists to close.
-    if not isinstance(ts, (int, float)):
-        return False
-    age_ms = now_ms - ts
-    if not -MARKER_FUTURE_SKEW_MS <= age_ms < MARKER_FRESH_MS:
+    if not marker_is_fresh(marker.get('ts'), now_ms, fresh_ms=MARKER_FRESH_MS):
         return False
     return not raw_block_first or marker.get('first_line') == raw_block_first
 

@@ -41,6 +41,15 @@ _CHECKOUT = WS
 CLAIM_FUTURE_SKEW_MS = 5 * 60 * 1000
 
 
+MARKER_FUTURE_SKEW_MS = 5 * 60 * 1000
+
+
+def marker_is_fresh(ts, now_ms, *, fresh_ms):
+    """Bound legacy receipt age, allowing a send shortly after the clock read."""
+    return (isinstance(ts, (int, float))
+            and -MARKER_FUTURE_SKEW_MS <= now_ms - ts < fresh_ms)
+
+
 def wechat_gap_reason(claim, *, fresh_ms=None, now_ms=None):
     """Name a holder-died-mid-send WeChat gap explicitly.
 

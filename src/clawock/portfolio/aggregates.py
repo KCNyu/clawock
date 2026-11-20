@@ -76,6 +76,157 @@ def _pct_explained(stored, cp, ref, price_step, ref_step, pct_nd):
     return low - slack <= stored <= high + slack
 
 
+def _zero_closed_derived_leaves(holdings, *, dry_run, diffs):
+    # Closed rows are retained for history, but their mark-to-market leaves
+    # must not keep describing the position that used to be open (#1601).
+    for h in ledger_rows(holdings):
+        if 'today_change_abs' in h:
+            diffs.setdefault('holdings.today_change_abs', []).append((h.get('ticker'), h['today_change_abs'], None))
+            if not dry_run:
+                h.pop('today_change_abs')
+        if number(h.get('shares')) != 0:
+            continue
+        for field in ('current_value', 'pnl_abs', 'pnl_percent',
+                      'today_change', 'today_change_pct'):
+            if field not in h:
+                continue
+            if number(h.get(field)) != 0:
+                diffs.setdefault(f'holdings.{field}', []).append(
+                    (h.get('ticker'), h.get(field), 0))
+            if not dry_run:
+                h[field] = 0
+
+
+def _recompute_active_holding_leaves(holdings, *, region, last_updated, hk_book,
+                                     pct_nd, price_step, dry_run, diffs):
+    sum_cv = sum_cost = sum_tc = 0.0
+    for h in active_holdings(holdings):
+        sh = number(h.get('shares'))
+        cp = number(h.get('current_price'))
+        cb = number(h.get('cost_basis'))
+        if sh is None:
+            continue  # missing a required leaf → can't derive; leave untouched
+        if cp is None:
+            # No quote yet: nothing to derive, but the row is still in the
+            # book. Dropping it from the totals made this command write a
+            # total_cost its own COST_TOTAL gate then refused (#2628). Its
+            # value is the one it carries, or its cost before a first quote
+            # (#2967), as TCV_SUM reads it.
+            if cb is not None:
+                sum_cost += sh * cb
+            sum_cv += carried_value(h)
+            # Without a quote neither daily leaf is measurable. The region
+            # excludes this row too; retaining yesterday's pair breaks TODAY_TOTAL.
+            for field in ('today_change', 'today_change_pct'):
+                if h.get(field) is not None:
+                    diffs.setdefault(f'holdings.{field}', []).append(
+                        (h.get('ticker'), h.get(field), None))
+                    if not dry_run:
+                        h[field] = None
+            continue
+        cv = _r(sh * cp)
+        sum_cv += cv
+        if cb is not None:
+            sum_cost += sh * cb
+            pnl = _r(sh * (cp - cb))
+            if number(h.get('pnl_abs')) != pnl:
+                diffs.setdefault('holdings.pnl_abs', []).append((h.get('ticker'), h.get('pnl_abs'), pnl))
+            if not dry_run:
+                h['pnl_abs'] = pnl
+            # Same leaves, same row: a cost correction that moved pnl_abs
+            # and left the fetcher's old percentage beside it showed
+            # +30 USD next to -20% until the next price fetch (#1552).
+            # Zero cost falls back to 0, as hk_analysis does.
+            pct = round((cp - cb) / cb * 100, pct_nd) if cb else 0
+            if number(h.get('pnl_percent')) != pct:
+                diffs.setdefault('holdings.pnl_percent', []).append((h.get('ticker'), h.get('pnl_percent'), pct))
+            if not dry_run:
+                h['pnl_percent'] = pct
+        if number(h.get('current_value')) != cv:
+            diffs.setdefault('holdings.current_value', []).append((h.get('ticker'), h.get('current_value'), cv))
+        if not dry_run:
+            h['current_value'] = cv
+        # HK fallbacks keep the last known close and its original date.
+        # That retained value cannot price the old shares for this session.
+        pc = (None if hk_book and h.get('quote_incomplete_prev_close')
+              else number(h.get('prev_close')))
+        session = holding_session(h, last_updated, region)
+        amount, base, old_shares = day_pnl_basis(h, session, market=region)
+        # A quote without a prior close cannot value shares that predate
+        # this session. It can still measure a row whose remaining shares
+        # were all bought today: the fill is the whole basis (#3451).
+        # Otherwise `today_total_change` excludes the row, so clear any
+        # stale pair rather than publish a number the prices cannot
+        # support (TODAY_TOTAL, #3437).
+        # With a fill and no quote session, the prior close alone cannot
+        # tell whether those shares belong to the old lot or this session.
+        unplaced_fill = session is None and any(
+            t.get('action') in {'buy', 'sell'}
+            and (number(t.get('shares')) or 0) > 0
+            and number(t.get('price')) is not None
+            for t in ledger_rows(h.get('trades')))
+        measurable = not unplaced_fill and (pc is not None or (old_shares == 0 and base > 0))
+        if not measurable:
+            for field in ('today_change', 'today_change_pct'):
+                if h.get(field) is not None:
+                    diffs.setdefault(f'holdings.{field}', []).append(
+                        (h.get('ticker'), h.get(field), None))
+                    if not dry_run:
+                        h[field] = None
+        else:
+            ref = base / sh if sh else 0
+            fresh_lot = bool(session and any(t.get('action') == 'buy' and trade_session_date(region, t) == session
+                                            for t in ledger_rows(h.get('trades'))))
+            tc = _r(amount)
+            sum_tc += tc
+            if number(h.get('today_change')) != tc:
+                diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))
+            if not dry_run:
+                h['today_change'] = tc
+            # The other half of the pair, from the same `ref`: rebuilding
+            # only the amount left "+1000 / +5%" on one row until the next
+            # fetch, and a second pass called it consistent (#1780, the
+            # today-leg twin of #1552). The fetchers take the percentage from
+            # the unrounded quote (us_quotes) or the vendor's own change
+            # (hk_analysis), so a stored value the stored prices cannot tell
+            # apart from ours is kept rather than rewritten by a reconcile
+            # that changed nothing.
+            tc_pct = round((cp - ref) / ref * 100, pct_nd) if ref else 0
+            stored_pct = number(h.get('today_change_pct'))
+            # prev_close is a stored (rounded) price; a fresh lot's cost is
+            # the ledger's own number.
+            ref_step = 0 if fresh_lot else price_step
+            explained = stored_pct is not None and (
+                _pct_explained(stored_pct, cp, ref, price_step, ref_step, pct_nd)
+                if ref and ref - ref_step > 0 else stored_pct == tc_pct)
+            if not explained:
+                diffs.setdefault('holdings.today_change_pct', []).append(
+                    (h.get('ticker'), h.get('today_change_pct'), tc_pct))
+                if not dry_run:
+                    h['today_change_pct'] = tc_pct
+    return sum_cv, sum_cost, sum_tc
+
+
+def _recompute_region_totals(pf, sums, *, pct_nd, dry_run, diffs):
+    sum_cv, sum_cost, sum_tc = sums
+    want = {
+        'total_current_value': _r(sum_cv),
+        'total_cost': _r(sum_cost),
+        'total_pnl': _r(sum_cv - sum_cost),
+        # 0, not None, on a zero-cost book: the quote writers (us_quotes,
+        # hk_analysis) write 0, and a None here flip-flopped with them every
+        # fetch/reconcile round and leaked past `.get(key, 0)` readers (#1856).
+        'total_pnl_percent': (round((sum_cv - sum_cost) / sum_cost * 100, pct_nd) if sum_cost else 0),
+        'today_total_change': _r(sum_tc),
+    }
+    for k, v in want.items():
+        old = pf.get(k)
+        if number(old) != v and not (old is None and v is None):
+            diffs[k] = (old, v)
+        if not dry_run:
+            pf[k] = v
+
+
 def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
     """Mutate `data` in place. Return per-region dict of {field: (old, new)} diffs."""
     changes = {}
@@ -95,149 +246,14 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
         price_nd = price_precision.get(region)
         price_step = 0.5 * 10 ** -price_nd if price_nd is not None else 0
 
-        # Closed rows are retained for history, but their mark-to-market leaves
-        # must not keep describing the position that used to be open (#1601).
-        for h in ledger_rows(pf.get('holdings')):
-            if 'today_change_abs' in h:
-                diffs.setdefault('holdings.today_change_abs', []).append((h.get('ticker'), h['today_change_abs'], None))
-                if not dry_run:
-                    h.pop('today_change_abs')
-            if number(h.get('shares')) != 0:
-                continue
-            for field in ('current_value', 'pnl_abs', 'pnl_percent',
-                          'today_change', 'today_change_pct'):
-                if field not in h:
-                    continue
-                if number(h.get(field)) != 0:
-                    diffs.setdefault(f'holdings.{field}', []).append(
-                        (h.get('ticker'), h.get(field), 0))
-                if not dry_run:
-                    h[field] = 0
-
-        # ── per-holding derived leaves (active only, mirrors the gate's _active) ──
-        sum_cv = sum_cost = sum_tc = 0.0
-        for h in active_holdings(pf.get('holdings', [])):
-            sh = number(h.get('shares'))
-            cp = number(h.get('current_price'))
-            cb = number(h.get('cost_basis'))
-            if sh is None:
-                continue  # missing a required leaf → can't derive; leave untouched
-            if cp is None:
-                # No quote yet: nothing to derive, but the row is still in the
-                # book. Dropping it from the totals made this command write a
-                # total_cost its own COST_TOTAL gate then refused (#2628). Its
-                # value is the one it carries, or its cost before a first quote
-                # (#2967), as TCV_SUM reads it.
-                if cb is not None:
-                    sum_cost += sh * cb
-                sum_cv += carried_value(h)
-                # Without a quote neither daily leaf is measurable. The region
-                # excludes this row too; retaining yesterday's pair breaks TODAY_TOTAL.
-                for field in ('today_change', 'today_change_pct'):
-                    if h.get(field) is not None:
-                        diffs.setdefault(f'holdings.{field}', []).append(
-                            (h.get('ticker'), h.get(field), None))
-                        if not dry_run:
-                            h[field] = None
-                continue
-            cv = _r(sh * cp)
-            sum_cv += cv
-            if cb is not None:
-                sum_cost += sh * cb
-                pnl = _r(sh * (cp - cb))
-                if number(h.get('pnl_abs')) != pnl:
-                    diffs.setdefault('holdings.pnl_abs', []).append((h.get('ticker'), h.get('pnl_abs'), pnl))
-                if not dry_run:
-                    h['pnl_abs'] = pnl
-                # Same leaves, same row: a cost correction that moved pnl_abs
-                # and left the fetcher's old percentage beside it showed
-                # +30 USD next to -20% until the next price fetch (#1552).
-                # Zero cost falls back to 0, as hk_analysis does.
-                pct = round((cp - cb) / cb * 100, pct_nd) if cb else 0
-                if number(h.get('pnl_percent')) != pct:
-                    diffs.setdefault('holdings.pnl_percent', []).append((h.get('ticker'), h.get('pnl_percent'), pct))
-                if not dry_run:
-                    h['pnl_percent'] = pct
-            if number(h.get('current_value')) != cv:
-                diffs.setdefault('holdings.current_value', []).append((h.get('ticker'), h.get('current_value'), cv))
-            if not dry_run:
-                h['current_value'] = cv
-            # HK fallbacks keep the last known close and its original date.
-            # That retained value cannot price the old shares for this session.
-            pc = (None if hk_book and h.get('quote_incomplete_prev_close')
-                  else number(h.get('prev_close')))
-            session = holding_session(h, data.get('last_updated'), region)
-            amount, base, old_shares = day_pnl_basis(h, session, market=region)
-            # A quote without a prior close cannot value shares that predate
-            # this session. It can still measure a row whose remaining shares
-            # were all bought today: the fill is the whole basis (#3451).
-            # Otherwise `today_total_change` excludes the row, so clear any
-            # stale pair rather than publish a number the prices cannot
-            # support (TODAY_TOTAL, #3437).
-            # With a fill and no quote session, the prior close alone cannot
-            # tell whether those shares belong to the old lot or this session.
-            unplaced_fill = session is None and any(
-                t.get('action') in {'buy', 'sell'}
-                and (number(t.get('shares')) or 0) > 0
-                and number(t.get('price')) is not None
-                for t in ledger_rows(h.get('trades')))
-            measurable = not unplaced_fill and (pc is not None or (old_shares == 0 and base > 0))
-            if not measurable:
-                for field in ('today_change', 'today_change_pct'):
-                    if h.get(field) is not None:
-                        diffs.setdefault(f'holdings.{field}', []).append(
-                            (h.get('ticker'), h.get(field), None))
-                        if not dry_run:
-                            h[field] = None
-            else:
-                ref = base / sh if sh else 0
-                fresh_lot = bool(session and any(t.get('action') == 'buy' and trade_session_date(region, t) == session
-                                                for t in ledger_rows(h.get('trades'))))
-                tc = _r(amount)
-                sum_tc += tc
-                if number(h.get('today_change')) != tc:
-                    diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))
-                if not dry_run:
-                    h['today_change'] = tc
-                # The other half of the pair, from the same `ref`: rebuilding
-                # only the amount left "+1000 / +5%" on one row until the next
-                # fetch, and a second pass called it consistent (#1780, the
-                # today-leg twin of #1552). The fetchers take the percentage from
-                # the unrounded quote (us_quotes) or the vendor's own change
-                # (hk_analysis), so a stored value the stored prices cannot tell
-                # apart from ours is kept rather than rewritten by a reconcile
-                # that changed nothing.
-                tc_pct = round((cp - ref) / ref * 100, pct_nd) if ref else 0
-                stored_pct = number(h.get('today_change_pct'))
-                # prev_close is a stored (rounded) price; a fresh lot's cost is
-                # the ledger's own number.
-                ref_step = 0 if fresh_lot else price_step
-                explained = stored_pct is not None and (
-                    _pct_explained(stored_pct, cp, ref, price_step, ref_step, pct_nd)
-                    if ref and ref - ref_step > 0 else stored_pct == tc_pct)
-                if not explained:
-                    diffs.setdefault('holdings.today_change_pct', []).append(
-                        (h.get('ticker'), h.get('today_change_pct'), tc_pct))
-                    if not dry_run:
-                        h['today_change_pct'] = tc_pct
-
-        # ── region aggregates ──
-        want = {
-            'total_current_value': _r(sum_cv),
-            'total_cost': _r(sum_cost),
-            'total_pnl': _r(sum_cv - sum_cost),
-            # 0, not None, on a zero-cost book: the quote writers (us_quotes,
-            # hk_analysis) write 0, and a None here flip-flopped with them every
-            # fetch/reconcile round and leaked past `.get(key, 0)` readers (#1856).
-            'total_pnl_percent': (round((sum_cv - sum_cost) / sum_cost * 100, pct_nd) if sum_cost else 0),
-            'today_total_change': _r(sum_tc),
-        }
-        for k, v in want.items():
-            old = pf.get(k)
-            if number(old) != v and not (old is None and v is None):
-                diffs[k] = (old, v)
-            if not dry_run:
-                pf[k] = v
+        holdings = pf.get('holdings')
+        _zero_closed_derived_leaves(holdings, dry_run=dry_run, diffs=diffs)
+        sums = _recompute_active_holding_leaves(
+            holdings, region=region, last_updated=data.get('last_updated'),
+            hk_book=hk_book, pct_nd=pct_nd, price_step=price_step,
+            dry_run=dry_run, diffs=diffs,
+        )
+        _recompute_region_totals(pf, sums, pct_nd=pct_nd, dry_run=dry_run, diffs=diffs)
 
         if diffs:
             changes[region] = diffs

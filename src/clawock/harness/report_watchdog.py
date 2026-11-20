@@ -66,7 +66,7 @@ from ._watchdog_common import (
     same_generation_window, wait_out_inflight, log_after_wait, UNFINISHED_RUN,
     attempt_still_running,  # noqa: F401  re-export; tests learned the rule here
     send_wechat, resolve_wechat_target, wechat_backstop,
-    wechat_gap_reason, chain_exhausted,
+    wechat_gap_reason, chain_exhausted, marker_is_fresh,
 )
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -157,7 +157,7 @@ def marker_matches_slot(marker, ctx_id, raw_block_first, now_ms, ctx_generated_a
         # fall through to the legacy compare below rather than to a false miss.
         if marker.get('context_generated_at'):
             return _same_generation_window(marker, ctx_generated_at), 'regenerated-context'
-    if now_ms - (marker.get('ts') or 0) >= MARKER_FRESH_MS:
+    if not marker_is_fresh(marker.get('ts'), now_ms, fresh_ms=MARKER_FRESH_MS):
         return False, 'marker-stale'
     same_line = (marker.get('first_line') or '').strip() == (raw_block_first or '').strip()
     return same_line, 'legacy-first-line'

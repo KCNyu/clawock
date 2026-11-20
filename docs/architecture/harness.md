@@ -487,10 +487,9 @@ alone.
   - transport, timeout and retry differ.
 
   Merging them means choosing one behaviour.
-- Watchdog slot identity: `report_watchdog.marker_matches_slot` has no
-  future-skew bound; `intraday_watchdog`'s rejects a marker dated more than
-  `MARKER_FUTURE_SKEW_MS` ahead. The freshness and regeneration windows
-  differ on purpose (hours-apart phases vs 30-minute slots).
+- Watchdog slot identity: report and intraday share a five-minute future
+  tolerance for legacy receipts. Their freshness and regeneration windows
+  differ (hours-apart phases vs 30-minute slots).
 - `decisions.jsonl` readers: `ledger.load_decisions` raises on a corrupt
   line, `plans._load_ledger` skips it, and `publish/decision_map.build`
   parses inline and raises on a missing file.
