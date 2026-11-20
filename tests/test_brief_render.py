@@ -8,13 +8,16 @@ them, and no string reaching a table can add a column to it.
 """
 import copy
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
+from clawock.harness import brief_preflight
 from clawock.harness import brief_render as render
 from clawock.harness.validation import check_md_table_column_consistency
+from clawock.strategies.plugins import sentiment
 
 
 CONTEXT = {
@@ -842,24 +845,37 @@ def test_the_manual_render_defaults_to_the_hk_desk_date(tmp_path, monkeypatch):
     assert seen["date"] == "2026-07-01"
 
 
-def test_a_failed_influencer_filter_says_so_instead_of_dropping_the_section():
+def test_a_failed_influencer_filter_says_so_instead_of_dropping_the_section(tmp_path, monkeypatch):
     # #2189: an empty radar used to drop the section outright, so a failed
     # relevance filter read exactly like a quiet day.
-    quiet = {"influencer": {"counts": {"total": 0}, "llm_filter_status": "ok"}}
+    quiet = {"influencer": {"counts": {"total": 0}, "llm_filter_status": "no_candidates"}}
     assert render.influencer_section(quiet) == ""
 
-    failed = {"influencer": {"counts": {"total": 0}, "age_hours": 14.3,
-                             "llm_filter_status": "failed_kept_previous"}}
-    section = render.influencer_section(failed)
+    path = tmp_path / sentiment.STATEMENTS_FILE
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps({
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "counts": {"total": 0}, "items": [], "llm_filter_status": "failed",
+    }))
+    monkeypatch.setattr(brief_preflight, "WS", tmp_path)
+    monkeypatch.setattr(brief_preflight.live_plugins, "service", lambda name: sentiment.Sentiment(36))
+    issues = []
+    reading = brief_preflight.load_influencer_feed(issues)
+    assert issues == ["influencer load exception: filter failed"]
+    section = render.influencer_section({"influencer": reading})
     assert section.startswith("### 名人异动 / 政策风向")
     assert "LLM 相关性筛选本轮失败" in section
 
     kept = {"influencer": {"counts": {"total": 1, "held_hits": 1}, "age_hours": 3.0,
                            "llm_filter_status": "failed_kept_previous",
                            "held_hits": [{"author": "A", "stance": "buy", "summary_cn": "x"}]}}
-    assert "上一轮保留" in render.influencer_section(kept)
+    section = render.influencer_section(kept)
+    assert "LLM 相关性筛选本轮失败" in section
+    assert "[撞持仓]" not in section
     kept["influencer"]["llm_filter_status"] = "ok"
-    assert "筛选" not in render.influencer_section(kept)
+    section = render.influencer_section(kept)
+    assert "[撞持仓]" in section
+    assert "筛选" not in section
 
 
 def test_calibration_count_matches_active_brier_and_missing_count_is_not_borrowed():

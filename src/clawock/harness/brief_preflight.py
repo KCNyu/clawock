@@ -1091,7 +1091,8 @@ def load_influencer_feed(issues):
     """Read GH-Action-produced influencer_feed.json (Trump/Musk/ARK/人物雷达).
 
     Written by influencer-scan.yml before the brief. Stale (past the configured cutoff)/missing → warn,
-    brief still runs without the 名人异动 section. Returns trimmed dict or {}.
+    brief still runs without the 名人异动 section. A failed relevance filter
+    returns just its status and age so the brief can explain the missing reading.
     The read, the staleness rule and the trim are the `sentiment` service's.
     """
     answer = live_plugins.service('sentiment').statements(WS)
@@ -1107,6 +1108,8 @@ def load_influencer_feed(issues):
     elif status == 'unreadable':
         print(f"   ⚠ influencer feed load failed: {detail['message']}")
         issues.append(f"influencer load exception: {detail['error']}")
+        if detail.get('llm_filter_status') == 'failed':
+            return {'llm_filter_status': 'failed', 'age_hours': answer['age_hours']}
     else:
         c = answer['reading']['counts']
         print(f'   influencer: {c.get("held_hits",0)} held-hits, '
