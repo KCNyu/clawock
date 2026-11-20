@@ -718,12 +718,10 @@ def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_
 
     rows = ctx["add_side_reads"]["rows"]
     assert [row["ticker"] for row in rows] == ["SPCH"]
-    # The card prints the add-side rows that say something: a plain 等待
-    # stays in `add_side_reads` for the model (kcn 2026-10-19).
     shown = _card_section(ctx["raw_wechat_block"], "**加仓侧**")
-    for row in rows:
-        word = preflight.ADD_SIDE_WORDS[row["verdict"]]
-        assert any(line.startswith(f"- SPCH {word}：") for line in shown) == (row["verdict"] != "wait")
+    word = preflight.ADD_SIDE_WORDS[rows[0]["verdict"]]
+    assert len(shown) == 1
+    assert shown[0].startswith(f"- SPCH {word}：")
     # Historical research stays in the context, off the card (kcn 2026-10-19).
     assert "策略研究" not in ctx["raw_wechat_block"]
     assert ctx["intraday_research"]["live_permission"] is False
