@@ -125,7 +125,7 @@ def _narrate_degraded(record):
     # problem, not a correctness one. On 2026-09-11 it was the only one, and the
     # card still said「报告已投递但可能有误」— a claim about the content that
     # nothing had made. Name length findings and refer remaining findings to
-    # the delivered card, where the validator actually lists them.
+    # the postflight run, where the validator records them.
     length_warnings = postflight.get('length_warnings') or {}
     lengths = []
     for kind, label in (('judgment', '判断段'), ('report', '报告')):
@@ -138,7 +138,7 @@ def _narrate_degraded(record):
     if escalating and lengths:
         text = '；'.join(lengths)
         if (others := escalating - len(lengths)) > 0:
-            text += f'；另有 {others} 条需核查，见本档卡片顶部的校验警告'
+            text += f'；另有 {others} 条需核查，详见本档 postflight 日志'
         return with_delivery(NEEDS_ACTION, text)
     readability = postflight.get('readability') or {}
     if escalating and readability.get('status') == 'extreme':
@@ -149,11 +149,11 @@ def _narrate_degraded(record):
         if others <= 0:
             return with_delivery(NEEDS_ACTION, length + '；内容校验没有别的实质问题')
         return with_delivery(NEEDS_ACTION,
-                    f'{length}；另有 {others} 条需核查，见本档卡片顶部的校验警告')
+                    f'{length}；另有 {others} 条需核查，详见本档 postflight 日志')
     if escalating:
         return with_delivery(NEEDS_ACTION,
                     f'校验有 {issues} 条意见，其中 {escalating} 条需核查，'
-                    '见本档卡片顶部的校验警告')
+                    '详见本档 postflight 日志')
     # The other way `_advisory_only`'s AND fails: content was clean but the
     # dashboard commit had not published yet the moment this record was
     # written. The scheduled publisher ticks every 20 minutes and catches up

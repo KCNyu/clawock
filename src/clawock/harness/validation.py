@@ -249,9 +249,7 @@ def _rounding_tolerance(raw, magnitude=None):
     that indistinguishable from a fabrication, and the result was noise at a
     rate nobody could keep reading past: over three days of live runs, 26 of 64
     slots carried an advisory and every one of them was a rounding — measured,
-    not estimated. `advisory_prefix` is documented as needing to read as
-    information rather than a warning; a check that cries at 40% of clean
-    reports trains the opposite.
+    not estimated.
 
     The width is derived from the writing, not configured: "8" claims one
     significant place and admits [7.5, 8.5]; "8.2" claims a tenth and admits
@@ -714,50 +712,16 @@ def is_advisory(issue):
 
 
 def split_advisory(issues):
-    """(escalating, advisory) — the banner must count and show them separately.
-
-    Both banners print a truncated list (`issues[:2]` intraday, `issues[:3]`
-    report). While advisory findings shared that list they were the ones most
-    likely to be cut, because they only appear on reports that already have
-    other findings — i.e. exactly the reports where an invented number matters
-    most. They get their own line instead.
-    """
+    """Separate findings that can escalate from findings kept for diagnostics."""
     return ([i for i in issues if not is_advisory(i)],
             [i for i in issues if is_advisory(i)])
-
-
-def advisory_prefix(advisories, shown=2):
-    """A visible, non-blocking line for advisory findings ('' when there are none).
-
-    Deliberately not styled as a warning: it must read as information, or the
-    next person to see one will start treating it as a failure and the gate
-    becomes the blocker it was designed not to be.
-    """
-    if not advisories:
-        return ''
-    body = '; '.join(a.replace(ADVISORY_MARK, '').strip() for a in advisories[:shown])
-    more = f'；另 {len(advisories) - shown} 条' if len(advisories) > shown else ''
-    return f'ℹ️ 校验提示（不影响投递）：{body}{more}\n\n'
 
 
 def product_status(status, escalating):
     """What the run PRODUCED, as opposed to what the checker noticed.
 
-    `categorize_issues` answers "is there anything worth saying" and so returns
-    `warn` for an advisory-only run. That is right for the checker and wrong for
-    every reader downstream: `split_advisory` already leaves the banner empty,
-    so the delivered report is clean and says so with a `ℹ️ 不影响投递` line —
-    while the commit subject read `(validation warnings)` and the ledger stage
-    read `warning`. The same fact, told two ways, depending on where you looked.
-
-    #768 fixed exactly this for the ledger's `final_product` column and stopped
-    there; measured over the three days after it, 26 of 64 slots were filed as
-    degraded generation and **every one had `escalating_count == 0`**. This is
-    the same correction applied at the two remaining readers, from one place so
-    they cannot drift apart again.
-
-    `fail` is never softened: it is only reachable with a critical or with more
-    escalating issues than `warn_max`, both of which mean escalating is present.
+    An advisory-only run is a passing product. Escalating warnings remain
+    visible in the workflow ledger. A failure still rejects the prose.
     """
     if status == 'warn' and not escalating:
         return 'pass'
@@ -769,9 +733,8 @@ def postflight_exit_code(product):
 
     An exec's exit code is read as the verdict on the whole cron turn: any
     non-zero, even one the model recovered from, files the run as `error`.
-    `warn` means the product shipped with findings — the banner on the card
-    says so and the workflow ledger records the stage as `warning` — so it is
-    not a failed turn. 2026-09-11's brief ended its turn on
+    `warn` means the product shipped with findings and the workflow ledger
+    records the stage as `warning`. 2026-09-11's brief ended its turn on
     `ERR: Exec failed: clawock brief postflight` from the very run that had
     delivered, committed and published it — exit 1 on a size warning (the
     same family as #1429/#1430). Only `fail`

@@ -63,13 +63,15 @@ def assemble_message(ctx, prose):
     # signals, news one line per ticker, and the prose under bold labels.
     from clawock.harness.chat_card import render_report
     from clawock.decision.plans import plan_holds
+    review = ctx.get('risk_followups')
+    legacy_debts = 'notices' not in (review or {})
     return render_report(ctx.get('title', '').strip(),
                          (ctx.get('raw_wechat_block') or '').strip(), prose,
                          held=plan_holds(ctx.get('plan_context')),
-                         debts=ctx.get('risk_debts') or (),
-                         debts_error=ctx.get('risk_debts_error'),
+                         debts=(ctx.get('risk_debts') or ()) if legacy_debts else (),
+                         debts_error=ctx.get('risk_debts_error') if legacy_debts else None,
                          session_review=ctx.get('session_review'),
-                         risk_followups=ctx.get('risk_followups'))
+                         risk_followups=review)
 
 
 def fallback_block(ctx):

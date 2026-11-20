@@ -55,7 +55,7 @@ cron slot ─► preflight ───────────► model ───�
 | cron slot | OpenClaw cron (`config/cron-schedules.json`, payload `config/cron-payloads/intraday.md`) | starts the turn at the slot time | watchdog judges the exact slot |
 | preflight | harness | microsecond generation timestamp binds same-second reruns to distinct context IDs; analyzer run → `analyzer_block`; signals/anomalies; plans, setups, radar, add-side reads; information lane; delta vs last delivery; soft candidates; card blocks; writes the context and prints the core packet | analyzer failure → `preflight_failed`; parent supervision records `preflight_crashed` on an unrecorded collector exit/signal (watchdog sends); any source failure → full card with a `⛔` line, never silence |
 | model | LLM | reads the core packet, fetches references it needs, writes `▎我的看法` and the `下一触发：` line | no prose / stale prose → postflight `input_error`, watchdog sends the data block |
-| postflight | harness | validates the prose (§7), assembles blocks per channel, sends, records | validation fail → data block + top banner (never empty); warn → sent with a banner |
+| postflight | harness | validates the prose (§7), assembles blocks per channel, sends, records | validation fail → data block + top banner (never empty); warn → sent, findings recorded in postflight |
 | delivery | harness via OpenClaw channels | WeChat (primary), Telegram (mirror and backstop), each retried on its own | a failed channel is recorded per channel; the other still sends |
 | watchdog | harness (`intraday_watchdog`) | checks the exact slot marker and live cron running state (a completed manual preflight does not consume the in-flight wait); resends the channel that did not land; when every attempt of the slot failed before preflight wrote its context, runs that preflight itself and sends the deterministic block to Telegram (`_watchdog_common.chain_exhausted`, shared with `report_watchdog`) | WeChat-failed alert to Telegram at most once per market per day (#1861) |
 | ledgers | harness | heartbeat, workflow outcomes, delivered-state cursor, dashboard data plane | collector crashes survive diagnostic preflight retries; a fallback without judgment/postflight is degraded and needs attention; a failed publish is its own state (`publish_failed`); watchdog delivery confirmation cannot clear it (#2234) |
@@ -179,23 +179,22 @@ The following table describes the data and prose behind the card.
 | 8 | `⚠️ 信号` | signals new today, in full with their reason lines | no signal is new today (ones already sent are block 10's) | analyzer + harness fold |
 | 9 | candidates | setups, trend, radar, primary information, plan triggers; the `△ SEC直连降级、镜像已检查` line only when its list differs from the last delivered card this session, otherwise one `名单未变，不再逐档印` sentence (`partial_unchanged`) | none | harness |
 | 10 | `▎持续状态` | standing state, plain lines without icons, in this order: `今日已报、仍在：STOP? a、b；STOP-LOSS c` (signals delivered earlier this session, the level said once); the analyzer's `📉` book line (`亏损持仓 n/m｜…`); one row per held leveraged leg (map = `t0_setups.rows.<t>.leveraged`) — `<leg>：<underlying> x% → 2x 应 y%，实测 z%，差 d pp`, the underlying's move from the holdings table, the index strip, or today's bar in the daily bars the radar fetched this slot (no extra request), written with commas in the validator's derived-figure form (a `；` would end the sentence the gap is checked in); `今日涨跌本档未取到，不算差值` when no reading exists; `↳ 行情未证实` when a leg or underlying is in block 4; rows in `leverage_legs`; then one `未成交计划：<ticker> <action> <n>股｜<condition>[｜风控纪律][｜<date> 挂起]` line per open plan decision with a positive share count (`plans.order_lines`, ledger values only; the report card prints the same lines as its `📋 未成交计划` block, #2840). A cut or trim on a holding whose strategy sets `forbid_reduce_advice` is not printed on the intraday card; it stays in `strategy_conflicts` | nothing standing: no folded signal, risk line, leveraged holding or sized open order | analyzer + harness |
-| 10b | **加仓侧** | up to four per-ticker verdicts and their reasons and next conditions; incomplete strategy evidence appears under its ticker or on a separate evidence-gap line | no rows and no evidence gap | harness |
+| 10b | **加仓侧** | up to four per-ticker verdicts; confirmed evidence for a pullback takes priority and shows its price band, invalidation and exploration cap; a blocked dip names the missing condition; incomplete strategy evidence stays with its ticker | no rows and no evidence gap | harness |
 | 11 | `下一触发：…` | what would change the picture next | never on a prose card | model, validated |
 | 12 | `▎我的看法` | the judgment | fail-closed card | model |
-| 13 | `ℹ️ 校验提示` | advisory checker findings | none | harness |
+| — | **风险待复查** | newly seen or changed risk ledger entries | ledger readable and nothing changed | harness |
 
 Blocks 7–9 are this slot's news and block 10 is what stands (kcn 2026-10-09,
 layout A of #2805): nothing in block 10 is dropped for being old, it is only
 said once and without an icon per line.
 
-Rules: `⛔` is only data health and `⚠️` only the analyzer's signal header (one
-symbol, one meaning). The add-side block includes waits, clips `why`/`needs`
-text and shows `…另有 N 条` after the visible verdicts when more are available.
-A failed check sends the data block with a `🔴` banner on top; an escalating
-warning puts a `🟠` banner on top (not `⚠️`, which belongs to block 8).
-For a judgment or card over its soft length limit, the slot ledger also records
-the measured length and threshold. The timetable shows those lengths and
-points to the card's warning banner for other findings.
+Rules: `⛔` marks data health and `⚠️` marks the analyzer's signal header.
+The add-side block clips generic reasons and next conditions and shows
+`…另有 N 条` when more rows exist. A validation failure sends the data block
+with a red banner. Nonblocking findings remain in the postflight result and
+workflow counters. The workflow also records measured lengths and their soft
+limits when exceeded. See [risk review delivery](session-reviews.md) for the
+brief and market-card review rules.
 
 **Channels.** WeChat bolds the table rows the `↑` line names as new move/trigger
 (markdown `**` around each cell); Telegram always gets the plain table. The
@@ -218,7 +217,10 @@ The watchdog's backstop resend is the plain card on both channels.
   as its invalidation and the exploration tranche from
   `add_policy.tier_terms` (the number the brief packet sizes with) as its size
   cap. A daily-reset leveraged
-  product needs more than soft evidence. Only-a-breakout is not the rule either.
+  product needs more than soft evidence. The own-chart band is checked even
+  below the radar range and without an anomaly. Intraday requires a refreshed
+  quote. A falling anomaly that hit or broke the prior 5-day low shows that
+  blocker and the price to recover, with size withheld. Only-a-breakout is not the rule either.
 - **Discipline**: an unfinished `risk_rule` action downgrades the read and says
   why; it does not turn the lane into reject-only. A live thesis red line is
   still `reject`.
@@ -310,7 +312,7 @@ written down.
 | `analyzer_block` stays in the model's view | gate | `test_the_model_packet_keeps_reason_lines_the_card_folded` | #1862 once removed it |
 | alert slot names its movers and at least one new signal ticker when present | gate (escalating) | `intraday_postflight.validate`; `intraday_delta.seen_signal_identities` also drives card folding | signal identity is (level, ticker), compared with this trading session’s delivered seen set; repeated signals stay in block 10 without forced prose (#2829); a STOP on a name today's plan holds (`plans.plan_holds`, the card's `stop_is_action` rule) is printed 「计划持有」, any owed hard stop under 欠着的账, and needs no prose either |
 | no field names / enum values in prose | gate (escalating) | `check_identifier_leak` | 2026-09-25 14:33 `semantic_unchanged`; an identifier is never trading language |
-| fixable findings (identifiers, `下一触发`, stale headline without time, a `▎我的看法` marker that does not open a line — #2049) are handed back **once** before sending | gate (revise-once) | `REVISABLE` in postflight; `test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers` | a banner only labels the breach on kcn's card; one rewrite removes it, and the second call always delivers so the slot is never lost |
+| fixable findings (identifiers, `下一触发`, stale headline without time, a `▎我的看法` marker that does not open a line — #2049) are handed back **once** before sending | gate (revise-once) | `REVISABLE` in postflight; `test_a_fixable_finding_is_handed_back_once_then_the_slot_always_delivers` | one rewrite can resolve the finding; the second call sends the validated prose or the data-only fallback |
 | pipeline words (`harness`, `packet`) | prompt + advisory | `check_pipeline_self_reference` | the sentence is usually a correct read in the wrong words; failing it would cost the analysis |
 | numbers come from the context | advisory | `check_numeric_claims` | explicit units apply to core and reference fields alike; `range_used_atr` is a harness-derived multiple, not a percentage; cannot tell a real number attached to the wrong thing |
 | add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
@@ -339,12 +341,13 @@ as live.
 | add-side line (block 10b; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873; all lines checked #2077); paired Markdown bold around the label or whole line is accepted |
 | short unchanged-slot judgment | live; `semantic_unchanged` also accepts 没有变化 / 与上次一致 / 无新增异动 (`test_unchanged_slot_accepts_plain_quiet_language`) |
-| WeChat bold per channel, `🟠` warning banner | live (#1874) |
+| WeChat bold per channel and postflight-only nonblocking diagnostics | implemented (`test_a_nonblocking_escalating_warning_stays_in_diagnostics`) |
 | sentiment archive is not a consumed source and cannot cause a news gap (`test_missing_archive_is_not_a_source_gap_and_future_source_is_not_fresh`) | live (#2859) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |
 | ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | live (#1886) |
 | Web search on anomalies (`anomaly_search`: DeepSeek per slot and Tavily once per ticker per session, side by side; `test_each_provider_keeps_its_own_call_policy`, `test_one_provider_failing_is_its_own_gap_and_not_the_others`, `test_a_search_that_did_not_answer_is_on_the_card`) | live (#1887; two providers 2026-10-18) |
 | add-side policy (§5): grades, pullback candidate, discipline downgrade (`test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate`, `test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged`, `test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks`) | live (#1888) |
+| own-chart pullback visibility below the radar range and priority over generic reads | implemented (`test_supported_pullback_without_an_anomaly_reaches_the_card_before_other_candidates`) |
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
 | revise-once gate | live (#1891) |

@@ -84,9 +84,9 @@ def load_context(market, phase, date):
 
 
 
+from clawock.harness import risk_notices
 from clawock.harness.validation import (
     REPORT_CHAR_LIMITS as CHAR_LIMITS,  # noqa: F401 — re-exported, tests read rp.CHAR_LIMITS
-    advisory_prefix,
     postflight_exit_code,
     product_status,
     split_advisory,
@@ -462,27 +462,18 @@ def main(argv=None):
               else validate(text, with_compute_receipts(ctx, WS), model_text))
     status = categorize(issues) if not stale_generation else 'fail'
 
-    # The banner counts and lists ESCALATING issues only; advisory findings get
-    # their own line below, so a truncated list can never drop them (#134).
+    # Validation diagnostics stay in the run result and stage counters.
     # The split happens before the stage record because the ledger needs the same
     # distinction: an advisory-only slot delivers a clean report and must not be
     # filed as a degraded product (#764).
     escalating, advisories = split_advisory(issues)
     # What shipped, not what the checker noticed — see product_status (#1076).
     product = product_status(status, escalating)
-    if status == 'pass' or not escalating:
-        banner = ''
-    elif status == 'warn':
-        banner = (f'⚠️ Validation warnings ({len(escalating)}): '
-                  + '; '.join(escalating[:3])
-                  + ('; ...' if len(escalating) > 3 else '')
-                  + '\n\n')
-    else:
-        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
-                  + '\n'.join('- ' + i for i in escalating[:5])
-                  + ('\n- ...' if len(escalating) > 5 else '')
-                  + '\n\n')
-    wechat_prefix = banner + advisory_prefix(advisories)
+    wechat_prefix = ''
+    if status == 'fail':
+        wechat_prefix = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
+                         + '\n'.join('- ' + i for i in escalating[:5])
+                         + '\n\n')
 
     # ── Fail-closed body selection ───────────────────────────────────────────
     # A rejected report used to be delivered in full behind its banner, which is
@@ -615,6 +606,8 @@ def main(argv=None):
     if not claim_declined and not blocked:
         _, telegram_ok = delivery_receipts.channels(
             delivery_receipts.read_receipt(report_marker))
+        if wechat_sent or telegram_ok:
+            risk_notices.record(WS, ctx.get('risk_followups'), body)
         workflow_outcomes.record_primary_delivery(
             job_name,
             slot=slot,

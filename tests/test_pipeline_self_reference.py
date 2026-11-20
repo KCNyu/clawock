@@ -46,11 +46,6 @@ def test_delivered_report_leak_is_flagged_once_and_stays_advisory():
         == val.product_status(report_core.categorize(rest), val.split_advisory(rest)[0])
 
 
-def test_leak_reaches_the_delivered_banner():
-    _, advisories = val.split_advisory(report_core.validate(REPORT_LEAK, _report_ctx(), REPORT_LEAK))
-    assert 'packet' in val.advisory_prefix(advisories)
-
-
 def test_intraday_prose_leak_is_flagged():
     pf = importlib.import_module('clawock.harness.intraday_postflight')
     ctx = {'raw_wechat_block': '🇭🇰 港股盯盘', 'anomalies': [{'ticker': '00100'}],
@@ -110,8 +105,8 @@ def test_checked_plan_fields_include_downstream_and_page_only_prose():
     (CARD_LEAK, {}, 'preflight'),
     ('今天仍有 4 条风控超限。', PLAN_LEAK, 'packet'),
 ])
-def test_brief_card_leak_reaches_delivered_message_as_information(
-        tmp_path, monkeypatch, assessment, plan, term):
+def test_brief_card_leak_stays_in_diagnostics(
+        tmp_path, monkeypatch, capsys, assessment, plan, term):
     """Exercise brief main through the message handed to the delivery policy."""
     pf = importlib.import_module('clawock.harness.brief_postflight')
     today = '2026-09-14'
@@ -152,8 +147,10 @@ def test_brief_card_leak_reaches_delivered_message_as_information(
 
     assert pf.main(['--dry-run']) == 0
     assert len(sent) == 1
-    assert sent[0].startswith('ℹ️ 校验提示（不影响投递）')
-    assert term in sent[0]
+    assert sent[0].startswith('📊 test card')
+    assert '校验提示' not in sent[0]
+    assert term not in sent[0]
+    assert term in capsys.readouterr().out
     assert '⚠️' not in sent[0]
     assert val.ADVISORY_MARK not in sent[0]
 

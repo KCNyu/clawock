@@ -259,6 +259,8 @@ def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
         "partially_degraded_issuers": ["CRCL"],
     }
     if healthy:
+        (tmp_path / 'memory').mkdir(exist_ok=True)
+        (tmp_path / 'memory/risk_breaches.json').write_text('{"schema_version": 1, "records": []}')
         active['degraded_issuers'] = []
         active['partially_degraded_issuers'] = []
     block = "🇺🇸 美股盯盘 | 08/13 13:33 ET\n| SPCH | 10 | 6 | 7 | +1% | +2% | +3 |"

@@ -73,7 +73,7 @@ from clawock.safe_io import safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
 from .brief_card import build_brief_card
-from . import brief_versions
+from . import brief_versions, risk_notices
 from ._watchdog_common import (
     WS, HKT, log, send_telegram, telegram_target,
     send_wechat, resolve_wechat_target, wechat_backstop,
@@ -822,17 +822,16 @@ def main():
                     and (current_version or {}).get('id') == delivered_version
                     else None)
 
+    risk_view = risk_notices.review(WS)
+
     def card_for_backstop(day):
-        # Keep the one-argument call when there is neither footer nor version, so
-        # a backstop over an old receipt is byte-for-byte the card it always built.
-        if not card_footer and not card_version:
-            return build_brief_card(day)
-        kwargs = {}
+        kwargs = {'risk_view': risk_view}
         if card_footer:
             kwargs['footer'] = card_footer
         if card_version:
             kwargs['version'] = card_version
         return build_brief_card(day, **kwargs)
+
     # WeChat is judged on its own (2026-09-17): Telegram having the card says
     # nothing about WeChat. The receipt path includes today's date, so its age
     # cannot turn a confirmed delivery into a missing delivery (#2121).
@@ -845,10 +844,12 @@ def main():
             wechat_body, body_source = recorded_body, 'recorded-wechat-body'
         else:
             wechat_body, body_source = card_for_backstop(today), 'rebuilt-card'
-        wechat_backstop('brief', tag, wechat_body, marker, marker_path,
+        wechat_ok = wechat_backstop('brief', tag, wechat_body, marker, marker_path,
                         WS / 'memory' / '.tmp' / f'watchdog-brief-wechat-{today}.done',
                         args.dry_run, wechat=send_wechat, telegram=send_telegram,
                         resolve=resolve_wechat_target, body_source=body_source)
+        if wechat_ok and not args.dry_run:
+            risk_notices.record(WS, risk_view, wechat_body)
     # TG is covered iff postflight's cosend confirmed today's card to Telegram.
     if marker and marker.get('tg_ok'):
         log({'tag': tag, 'action': 'ok',
@@ -878,6 +879,7 @@ def main():
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'fail_reason': reason, 'marker': marker, 'target': target, 'out': out})
     if tg_ok and not args.dry_run:
+        risk_notices.record(WS, risk_view, message)
         safe_write_text(str(flag), datetime.now(HKT).isoformat())
 
     print(json.dumps({'tag': tag, 'reason': reason, 'mirrored_telegram': tg_ok,

@@ -382,6 +382,16 @@ def test_happy_path_assembles_commits_and_records_delivered(pf, run_main, sent, 
     assert positions == sorted(positions)
 
 
+def test_report_advisories_are_logged_without_preceding_the_card(pf, run_main, sent, monkeypatch):
+    monkeypatch.setattr(pf, 'validate', lambda *_: ['model diagnostic (advisory)'])
+    rc, out = run_main(PROSE, context_id='abc123def456')
+
+    assert rc == 0 and out['status'] == 'warn' and out['narrative_status'] == 'success'
+    assert 'model diagnostic (advisory)' in out['issues']
+    assert sent['messages'][0].startswith('**')
+    assert 'model diagnostic' not in sent['messages'][0] and not out['wechat_prefix']
+
+
 def test_nothing_new_to_commit_is_current_even_with_other_dirt_in_the_checkout(pf, monkeypatch, tmp_path):
     """git says "no changes added to commit", not "nothing to commit", when
     anything else in the checkout is dirty, which on the live host is always.

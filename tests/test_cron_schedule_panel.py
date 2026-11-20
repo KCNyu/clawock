@@ -79,10 +79,10 @@ def test_intraday_length_warning_is_named_on_the_panel():
     assert '可能有误' not in note
     postflight.update(issue_count=2, escalating_count=2)
     note = _narrate_degraded(record)['text']
-    assert '另有 1 条' in note and '卡片' in note
+    assert '另有 1 条' in note and 'postflight 日志' in note
     del postflight['length_warnings']
     note = _narrate_degraded(record)['text']
-    assert '校验警告' in note and '可能有误' not in note
+    assert 'postflight 日志' in note and '可能有误' not in note
 
 
 def test_a_delivered_fallback_updates_delivery_time_and_stays_degraded():
@@ -258,7 +258,7 @@ def test_an_overlong_brief_is_named_as_length_not_as_possibly_wrong():
     }, primary_delivery={'wechat_ok': True, 'telegram_ok': True})
     note = timetable(_contract('3 10 * * 1-5'), [both],
                      now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))['jobs'][0]['slots'][0]['note']
-    assert '另有 1 条' in note['text'] and '校验警告' in note['text']
+    assert '另有 1 条' in note['text'] and 'postflight 日志' in note['text']
 
 
 def test_degraded_from_a_publish_lag_alone_reads_as_watch_not_needs_action():

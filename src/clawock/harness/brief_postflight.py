@@ -976,7 +976,6 @@ def categorize(issues):
 from clawock.harness.validation import (
     ADVISORY_MARK,
     FORBIDDEN_PHRASES,  # one table for all three entries
-    advisory_prefix,
     categorize_issues,
     check_identifier_leak,
     check_numeric_claims,
@@ -997,6 +996,7 @@ from ._harness_common import (  # noqa: E402
 )
 from . import brief_versions  # noqa: E402
 from .brief_card import brief_url, build_brief_card  # noqa: E402
+from . import risk_notices  # noqa: E402
 from .run_usage import footer as run_usage_footer  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
@@ -1449,7 +1449,7 @@ def _revision_notice(delivered_id, current_id, sent_at, revised_at, archive):
                 + (f'今天的卡片 {sent_at} HKT 送达后，' if sent_at
                    else '今天的卡片送达后，')
                 + f'本页于 {revised_at} HKT 按修正后的判断重新生成；'
-                + '卡片里的内容和校验提示是送达时的版本，与本页如有出入，以本页为准。')
+                + '卡片内容是送达时的版本，与本页如有出入，以本页为准。')
     return body
 
 
@@ -1866,7 +1866,7 @@ def main(argv=None):
             dry_run=args.dry_run,
             context_present=False,
         )
-    # Same escalating/advisory split the report/intraday banners use: an
+    # Same escalating/advisory split as report and intraday: an
     # advisory-only slot delivers a clean product and must not be filed as a
     # degraded one (#764).
     escalating, advisories = split_advisory(issues)
@@ -1934,19 +1934,11 @@ def main(argv=None):
         reason=None if projection_ready else 'pages_projection_failed',
     )
 
-    if status == 'pass' or not escalating:
-        banner = ''
-    elif status == 'warn':
-        banner = (f'⚠️ Validation warnings ({len(escalating)}): '
-                  + '; '.join(escalating[:3])
-                  + ('; ...' if len(escalating) > 3 else '')
-                  + '\n\n')
-    else:
-        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), brief 未发布、未 commit（validation fail）:\n'
-                  + '\n'.join('- ' + i for i in escalating[:5])
-                  + ('\n- ...' if len(escalating) > 5 else '')
-                  + '\n\n')
-    wechat_prefix = banner + advisory_prefix(advisories)
+    wechat_prefix = ''
+    if status == 'fail':
+        wechat_prefix = (f'🔴 Validation FAILED ({len(escalating)} issues), brief 未发布、未 commit（validation fail）:\n'
+                         + '\n'.join('- ' + i for i in escalating[:5])
+                         + '\n\n')
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron now runs delivery=none. The announce used to fire at the END of a
@@ -1998,10 +1990,10 @@ def main(argv=None):
         # Same two-line footer as direct chat. The watchdog reads it back from
         # the receipt and reuses it on a backstop send.
         card_footer = run_usage_footer(job=job_name)
-        card = build_brief_card(today, decision_packet=decision_packet,
-                                footer=card_footer, version=brief_version)
-        message = (wechat_prefix + card).strip()
-        first_line = card.strip().splitlines()[0] if card.strip() else ''
+        risk_view = risk_notices.review(WS)
+        message = build_brief_card(today, decision_packet=decision_packet,
+                                   footer=card_footer, version=brief_version, risk_view=risk_view)
+        first_line = message.strip().splitlines()[0] if message.strip() else ''
         # Take the send right before sending, not after (#508). The marker below
         # is written only once both channels have returned, so two postflights
         # racing on the same day would both read "not delivered yet" and both
@@ -2099,6 +2091,8 @@ def main(argv=None):
             (wechat_sent, send_out, tg_ok), _ = send_under_claim(
                 None if args.dry_run else claim_path, send, write_receipt,
                 receipt_label='brief-sent marker')
+            if not args.dry_run and (wechat_sent or tg_ok):
+                risk_notices.record(WS, risk_view, message)
             if not wechat_sent:
                 print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
                       file=sys.stderr)

@@ -18,7 +18,7 @@ from clawock.scheduling import BRIEF_SLOT_HKT
 from clawock.decision.packet import preposition_limits
 from clawock.decision.book import plan_totals
 from clawock.workspace import workspace_root
-from clawock.harness.chat_card import table
+from clawock.harness.chat_card import risk_review_section, table
 
 WS = workspace_root()
 
@@ -195,7 +195,7 @@ def _with_version(card, version):
     return f'{card.rstrip()}\n\n本卡版本 {version_id}' if version_id else card
 
 
-def build_brief_card(today, decision_packet=None, *, footer='', version=None):
+def build_brief_card(today, decision_packet=None, *, footer='', version=None, risk_view=None):
     """The WeChat card for the 盘前深度简报 — single source of truth shared by
     brief_postflight (primary send) and brief_watchdog (backstop).
 
@@ -212,14 +212,18 @@ def build_brief_card(today, decision_packet=None, *, footer='', version=None):
     """
     url = brief_url(today)
     decision_packet = decision_packet or _brief_decision_packet(today)
+    def finish(card):
+        card = _inject_early_candidate_section(card, decision_packet)
+        if risk_view is not None:
+            card = '\n'.join([card, *risk_review_section(risk_view)])
+        return _with_usage_footer(_with_version(card, version), footer)
+
     card_file = WS / 'memory' / '.tmp' / f'brief-card-{today}.txt'
     try:
         if card_file.exists():
             txt = card_file.read_text().strip()
             if txt:
-                return _with_usage_footer(_with_version(
-                    _inject_early_candidate_section(txt, decision_packet), version),
-                    footer)
+                return finish(txt)
     except Exception:
         pass  # fall through to deterministic build
     from clawock.decision.plans import ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS, PRICE_CONDITIONS
@@ -261,6 +265,4 @@ def build_brief_card(today, decision_packet=None, *, footer='', version=None):
     except Exception:
         pass  # link-only fallback
     lines += ['', f'完整报告：{url}']
-    return _with_usage_footer(_with_version(
-        _inject_early_candidate_section('\n'.join(lines), decision_packet),
-        version), footer)
+    return finish('\n'.join(lines))

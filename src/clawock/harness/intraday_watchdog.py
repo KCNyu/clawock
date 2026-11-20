@@ -82,6 +82,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 
+from clawock.harness import risk_notices
 from clawock.automation import delivery_receipts
 from ._watchdog_common import (
     marker_is_fresh,
@@ -126,7 +127,7 @@ PREFLIGHT_TIMEOUT_S = 600
 
 def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
                      expected_job, expected_slot, run_at, extra=None,
-                     telegram_already_delivered=False):
+                     telegram_already_delivered=False, risk_view=None):
     """Send the deterministic block and record the outcome — success OR failure.
 
     The failure branch records `watchdog_failed` deliberately: a fallback that
@@ -149,6 +150,7 @@ def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
          'out': tg_out, **(extra or {})})
     if not args.dry_run:
         if tg_ok:
+            risk_notices.record(WS, risk_view, body)
             flag.write_text(watchdog_now.isoformat())
             cron_heartbeat.record(
                 args.market, 'watchdog_backstop', at=watchdog_now,
@@ -419,7 +421,8 @@ def main():
             deliver_fallback(
                 raw_block, tag, '盯盘尝试全部失败，未生成上下文', args, watchdog_now, flag,
                 expected_job, expected_slot, run_at,
-                extra={'attempts': len(slot_runs), 'rebuilt_context': True})
+                extra={'attempts': len(slot_runs), 'rebuilt_context': True},
+                risk_view=context.get('risk_followups'))
             return 0
         if (context or {}).get('status') != 'market_closed':
             log({'tag': tag, 'action': 'skip', 'attempts': len(slot_runs),
@@ -520,7 +523,8 @@ def main():
             raw_block, tag, '循环', args, watchdog_now, flag,
             expected_job, expected_slot, run_at,
             extra={'loop_score': loop_score, 'delivered_clean': None},
-            telegram_already_delivered=telegram_already_delivered)
+            telegram_already_delivered=telegram_already_delivered,
+            risk_view=context.get('risk_followups'))
         return 0
 
     # --- WeChat backstop: its own target, judged on its own (2026-09-17) -------
@@ -541,7 +545,7 @@ def main():
                        deterministic_fallback(raw_block, tag, '报告文本不在回执与会话里'))
         body_source = ('receipt' if receipt_body else
                        'transcript' if transcript_body else 'deterministic_fallback')
-        wechat_backstop(
+        wechat_ok = wechat_backstop(
             'intraday', tag, wechat_body.strip(), marker,
             delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'intraday',
                                            market=args.market),
@@ -549,6 +553,8 @@ def main():
             args.dry_run, market=args.market, wechat=send_wechat,
             telegram=send_telegram, resolve=resolve_wechat_target,
             body_source=body_source)
+        if wechat_ok and not args.dry_run:
+            risk_notices.record(WS, context.get('risk_followups'), wechat_body)
 
     # --- Delivery evidence gate: the postflight marker decides -----------------
     # ORDER MATTERS (2026-07-29): this used to sit BELOW the generation gate, so a
@@ -619,7 +625,8 @@ def main():
             raw_block, tag, '未完成', args, watchdog_now, flag,
             expected_job, expected_slot, run_at,
             extra={'loop_score': loop_score, 'delivered_clean': delivered_clean},
-            telegram_already_delivered=telegram_already_delivered)
+            telegram_already_delivered=telegram_already_delivered,
+            risk_view=context.get('risk_followups'))
         return 0
 
     # --- Delivery backstop: Telegram mirror (WeChat only via wechat_backstop) --
@@ -663,6 +670,7 @@ def main():
 
     # Slot handled once Telegram landed — don't keep retrying a report kcn has.
     if tg_ok and not args.dry_run:
+        risk_notices.record(WS, context.get('risk_followups'), report)
         flag.write_text(watchdog_now.isoformat())
         cron_heartbeat.record(
             args.market, 'watchdog_backstop', at=watchdog_now,
