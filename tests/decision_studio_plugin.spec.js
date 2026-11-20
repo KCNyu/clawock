@@ -4239,6 +4239,8 @@ test("workbench client: Overview restores patrol/stats; Providers shows detail",
   assert.equal(find(statsLayer, (p) => p["data-wb-overview"] !== undefined).length, 0,
     "Stats is mutually exclusive with Overview");
   assert.equal(find(statsLayer, (p) => p["data-wb-overview-done"] !== undefined)[0].props["data-wb-overview-done"], "2");
+  assert.match(textOf(statsLayer), /Partial or unfinished 1/);
+  assert.match(textOf(statsLayer), /1 partial · 0 unfinished/);
   assert.match(textOf(statsLayer), /1.2M/, "token metric");
   assert.match(textOf(statsLayer), /\$3.40/, "the dsh-only cost metric uses the estimate's USD unit");
   assert.equal(find(statsLayer, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,

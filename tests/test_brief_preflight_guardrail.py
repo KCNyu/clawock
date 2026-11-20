@@ -270,6 +270,23 @@ def test_measured_multi_name_cluster_above_70_percent_is_factor_breach(preflight
     assert "≤70%" in breach["action"]
 
 
+@pytest.mark.parametrize("cap", [70, 100])
+def test_factor_concentration_excludes_closed_cluster_members(preflight, monkeypatch, cap):
+    monkeypatch.setitem(preflight.GUARDRAIL_CAPS, "correlated_cluster_pct", cap)
+    risk = {"correlation": {
+        "covered_weight_pct": 100, "cluster_rho": 0.8,
+        "clusters": [{"tickers": ["A", "B"], "weight_pct": 100}],
+    }}
+    # The last risk snapshot still knows B, but today's book has closed it.
+    result = _evaluate(preflight, us=[
+        _holding("A", 80),
+        _holding("B", 500, shares=0),
+        _holding("C", 20),
+    ], risk=risk)
+    assert not any(breach["type"] == "factor_concentration"
+                   for breach in result["breaches"])
+
+
 def test_single_name_cluster_never_becomes_factor_breach(preflight):
     risk = {"correlation": {
         "covered_weight_pct": 100, "cluster_rho": 0.8,

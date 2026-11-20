@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from clawock.safe_io import to_number as _share_number
 
-from clawock.portfolio.math import ledger_rows
+from clawock.portfolio.math import active_holdings, ledger_rows
 from clawock.portfolio.math import carried_value
 from clawock.portfolio.valuation import summary as valuation_summary
 
@@ -457,26 +457,26 @@ def _factor_concentration_policy(hk_holdings, us_holdings, risk):
     fx_hkd_to_usd = float(
         ((risk or {}).get('meta') or {}).get('fx_hkd_to_usd_used') or 0
     )
-    book_value_usd = sum(
-        carried_value(w)
-        * (1.0 if leg == 'US' else fx_hkd_to_usd)
-        for leg, holdings in (('HK', hk_holdings), ('US', us_holdings))
-        for w in holdings if (_share_number(w.get('shares', 0)) or 0) > 0
-    )
+    active_hk = active_holdings(hk_holdings)
+    book_usd = [
+        (str(holding.get('ticker')), carried_value(holding) * rate)
+        for holdings, rate in ((active_hk, fx_hkd_to_usd),
+                               (active_holdings(us_holdings), 1.0))
+        for holding in holdings
+    ]
+    book_value_usd = sum(value for _, value in book_usd)
     if (not correlation.get('reason') and isinstance(coverage, (int, float))
             and coverage >= caps['correlation_min_coverage_pct']
             and book_value_usd > 0
-            and (not hk_holdings or fx_hkd_to_usd > 0)):
+            and (not active_hk or fx_hkd_to_usd > 0)):
+        active_tickers = {ticker for ticker, _ in book_usd}
         for cluster in correlation.get('clusters') or []:
-            tickers = [str(t) for t in cluster.get('tickers') or []]
+            # The risk snapshot may predate a close in the current ledger.
+            tickers = [str(t) for t in cluster.get('tickers') or []
+                       if str(t) in active_tickers]
             if len(tickers) < 2:
                 continue
-            cluster_value_usd = sum(
-                carried_value(w)
-                * (1.0 if leg == 'US' else fx_hkd_to_usd)
-                for leg, holdings in (('HK', hk_holdings), ('US', us_holdings))
-                for w in holdings if str(w.get('ticker')) in tickers
-            )
+            cluster_value_usd = sum(value for ticker, value in book_usd if ticker in tickers)
             weight_pct = cluster_value_usd / book_value_usd * 100
             if weight_pct <= caps['correlated_cluster_pct']:
                 continue
