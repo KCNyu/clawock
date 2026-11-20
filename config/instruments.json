@@ -156,6 +156,28 @@
       "peer_bucket": "semiconductor-memory",
       "retired": false
     },
+    "ANT": {
+      "name": "Anthropic",
+      "region": "US",
+      "currency": "USD",
+      "venue": "NASDAQ",
+      "venue_suffix": ".OQ",
+      "tencent_symbol": "usANT.OQ",
+      "eastmoney_secid": "105.ANT",
+      "sector": "AI / Model",
+      "themes": [
+        "AI",
+        "ai-apps"
+      ],
+      "factor": "ANTHROPIC",
+      "leverage_multiple": 1,
+      "underlying": null,
+      "one_x_substitute": null,
+      "signal_symbol": "ANT",
+      "listing_date": "2026-11-19",
+      "peer_bucket": "us-ai-software",
+      "retired": false
+    },
     "CRCL": {
       "name": "Circle Internet Group",
       "region": "US",
