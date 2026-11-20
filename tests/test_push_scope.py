@@ -128,9 +128,13 @@ SCENARIOS = [
         _lanes(code=True, workflows=True, analysable=True), True,
         id="workflow edit: lint + suite + analysis"),
     pytest.param(
+        [".github/workflows/ci.yml"],
+        _lanes(code=True, ui=True, workflows=True, analysable=True), True,
+        id="CI workflow edit: exercise the browser jobs it defines"),
+    pytest.param(
         [".github/actions/clawock-playwright/action.yml"],
-        _lanes(code=True, analysable=True), True,
-        id="composite action edit: suite re-runs on master too"),
+        _lanes(code=True, ui=True, analysable=True), True,
+        id="Playwright setup edit: exercise the browser jobs that use it"),
     pytest.param(
         ["src/clawock/portfolio/fx.py", "assets/data/sentiment.json"],
         _lanes(code=True, analysable=True), True,
