@@ -20,8 +20,8 @@ Side effects:
   - status=pass: rebuild dashboard, commit scoped report artifacts, deliver WeChat + Telegram
   - status=warn: same as pass but commit msg flags validation warnings
   - status=fail: no commit or delivery (preserve commit history clean); print issues
-  - --dry-run: normalize the authored plan in memory, validate, add missing Jekyll
-    front matter, and write the publish-gate status; do not rewrite the authored
+  - --dry-run: validate the normalized plan and rendered preview, and write
+    the publish-gate status; do not rewrite the authored
     plan, write the decision ledger, rebuild/commit the dashboard, push, deliver
     messages, or write the delivery marker
 """
@@ -32,8 +32,10 @@ import os
 import re
 import subprocess
 import sys
+from contextlib import ExitStack
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from clawock.workspace import workspace_root
 from clawock.safe_io import safe_write_json, safe_write_text
@@ -1692,8 +1694,8 @@ def main(argv=None):
     ap.add_argument('--dry-run', action='store_true',
                     help='normalize in memory and validate without rewriting plan.json, '
                          'ledger writes, dashboard rebuild/commit, push, message delivery, '
-                         'or delivery-marker writes; still adds missing Jekyll front matter '
-                         'and writes the publish-gate status')
+                         'or delivery-marker writes; validates the rendered preview and still '
+                         'writes the publish-gate status')
     args = ap.parse_args(argv)
 
     today = trading_calendar.hkt_today().isoformat()
@@ -1790,8 +1792,9 @@ def main(argv=None):
     # published tables then show the same decisions the ledger records.
     # A renderer that cannot run must not take the brief down with it, so the
     # failure is an issue and whatever markdown exists still ships.
+    rendered_markdown = None
     try:
-        render_issues, _ = brief_render.render_from_workspace(
+        render_issues, rendered_markdown = brief_render.render_from_workspace(
             WS, today, plan=normalized_plan,
             page_url=brief_url(today),
             write=not args.dry_run)
@@ -1814,15 +1817,23 @@ def main(argv=None):
         issues.append(f'简报渲染失败（保留现有 pre-open.md）: {exc}')
         print(f'warn: brief render failed: {exc}', file=sys.stderr)
 
-    # Jekyll needs front matter to serve this as a page rather than a blob view.
-    # The renderer emits it, so this now covers the day the renderer could not
-    # run and an earlier file is what ships.
-    _ensure_jekyll_front_matter(md_path, today)
+    with ExitStack() as preview:
+        markdown_to_check = md_path
+        if args.dry_run:
+            if rendered_markdown is not None:
+                # The provenance guard also reads a file. Give every check
+                # the same preview without touching the canonical report.
+                directory = preview.enter_context(TemporaryDirectory(prefix='clawock-brief-'))
+                markdown_to_check = Path(directory) / md_path.name
+                markdown_to_check.write_text(rendered_markdown, encoding='utf-8')
+        else:
+            # The renderer supplies front matter. A retained report may need it.
+            _ensure_jekyll_front_matter(md_path, today)
 
-    readability = assess_brief_readability(md_path)
-    issues += validate_markdown(md_path, context=context)
-    issues += validate_shared_memory_sources(md_path, today)
-    issues += readability_issues(readability)
+        readability = assess_brief_readability(markdown_to_check)
+        issues += validate_markdown(markdown_to_check, context=context)
+        issues += validate_shared_memory_sources(markdown_to_check, today)
+        issues += readability_issues(readability)
     validation_path = (
         _InMemoryPlanPath(plan_path, normalized_plan)
         if args.dry_run and normalized_plan is not None

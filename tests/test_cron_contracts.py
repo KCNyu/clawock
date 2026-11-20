@@ -679,7 +679,7 @@ def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
     assert (
         '并行调用 `read` 读取 '
         '`/root/.openclaw/workspace/skills/daily-deep-brief/SKILL.md` '
-        '与下方 Step 0 的两个休市闸命令'
+        '与 Step 1 preflight'
     ) in brief
 
     assert all(
@@ -773,29 +773,16 @@ def test_every_agent_payload_requires_probe_chains_to_exit_zero():
         assert '`2>/dev/null` 只吞 stderr、不改退出码' in message, profile_name
 
 
-def test_brief_uses_the_installed_calendar_command():
-    """Step 0 calls the guard in the shape whose exit code is not a verdict.
-
-    Without `--status` the command exits 1 on a closed market, and the agent's
-    exec tool reads that as a failed command — so on 2026-08-17, 2026-08-24 and
-    2026-09-08 (every Monday: at 08:00 HKT the US "today" is Sunday in ET) the
-    brief's first mandatory action came back `Exec failed: clawock calendar us`
-    and the whole cron was recorded `error`, in each case after the brief had
-    already been written and pushed. The payload reads OPEN/CLOSED off stdout,
-    so the bare form must not come back.
-    """
+def test_brief_leaves_the_calendar_gate_to_preflight():
+    """The brief checks both markets on its own HKT date in one command."""
     data = contract()
-    profile = data['payload_profiles']['brief']
     brief = next(job for job in data['jobs'] if job['name'] == '盘前深度简报')
     message = cron_contract.render_payload_message(data, brief)
 
+    assert 'clawock brief preflight; echo "EXIT=$?"' in message
+    assert '返回 `market_closed` 就结束' in message
     for market in ('hk', 'us'):
-        command = f'/root/.local/bin/clawock calendar {market} --status'
-        assert command in profile['required_substrings']
-        assert command in message
-        bare = f'/root/.local/bin/clawock calendar {market}`'
-        assert bare not in message
-    assert 'trading_calendar.py' in profile['forbidden_substrings']
+        assert f'clawock calendar {market}' not in message
     assert 'trading_calendar.py' not in message
 
 

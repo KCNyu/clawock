@@ -70,9 +70,10 @@ def desk(tmp_path, monkeypatch):
     rendered = {'body': '现金 13.2 亿美元'}
 
     def render(workspace, today, **kw):
+        text = REPORT.format(today=today, body=rendered['body'])
         if kw.get('write', True):
-            md.write_text(REPORT.format(today=today, body=rendered['body']), encoding='utf-8')
-        return [], None
+            md.write_text(text, encoding='utf-8')
+        return [], text
     monkeypatch.setattr(postflight.brief_render, 'render_from_workspace', render)
 
     class Desk:
@@ -262,6 +263,33 @@ def test_dry_run_does_not_create_a_version(desk, capsys):
     assert result['brief_version'] is None
     assert not desk.versions.exists()
     assert len(desk.sends) == 1 and desk.sends[0].get('dry_run') is True
+
+
+
+@pytest.mark.parametrize('canonical', [None, 'previous report'])
+def test_dry_run_checks_the_fresh_render(desk, capsys, monkeypatch, canonical):
+    if canonical is not None:
+        desk.md.write_text(canonical, encoding='utf-8')
+    checked = {}
+
+    def validate(kind, path):
+        checked[kind] = path.read_text(encoding='utf-8')
+        return []
+
+    monkeypatch.setattr(postflight, 'validate_markdown',
+                        lambda path, **_kw: validate('markdown', path))
+    monkeypatch.setattr(postflight, 'validate_shared_memory_sources',
+                        lambda path, _today: validate('provenance', path))
+    code, result = desk.run(capsys, '--dry-run')
+
+    expected = REPORT.format(today=TODAY, body=desk.rendered['body'])
+    assert code == 0
+    assert result['issues'] == []
+    assert checked == {'markdown': expected, 'provenance': expected}
+    if canonical is None:
+        assert not desk.md.exists()
+    else:
+        assert desk.md.read_text(encoding='utf-8') == canonical
 
 
 def test_a_version_store_failure_does_not_block_the_card(desk, capsys, monkeypatch):
