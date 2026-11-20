@@ -735,7 +735,7 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
 合法 enum：
 - `strategy_id` ∈ {`core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, `tactical_entry`}；迁移历史才允许 `legacy_unknown`
 - `context_generation_id`：必填，逐字符照抄本次 `manifest.generation_id`；postflight 会递归检查 plan 内所有 `*generation_id`，跨代引用直接 fail。
-- 🗣 `rationale` 与 `condition.description` **会原样进入当天之后每一份开盘/午盘/收盘报告和盘中盯盘的上下文**，下游照抄就推到 kcn 微信。所以这两个字段同样不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`：不要把登记策略偏好写成风控禁令；说明真实限制或自己的判断。postflight 会以 advisory 标出。
+- 🗣 `rationale` 与 `condition.description` **会原样进入当天之后每一份开盘/午盘/收盘报告和盘中盯盘的上下文**，下游照抄就推到 kcn 微信。所以这两个字段同样不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`：不要把登记策略偏好写成风控禁令；说明真实限制或自己的判断。postflight 将此类 advisory 留在校验结果里。
 - 每条 `action` 必须在该票的 `constraints.open_actions` 里（持仓外的票看 `swap_targets` / `proposal_universe` 那一行）；不在的动作 `closed_actions` 写了原因，改不了。在 `open_actions` 里而不在 `allowed_actions` 里的动作可以写，会被记成策略异议。卖出腿的 `size.shares` 是正整数且不得超过 `max_sell_shares`；`risk[].kind=hard_stop`（非 `may_stand`）的 cut 是整仓：只写一条 cut 时 `size.shares` 可以留空，postflight 按该行 `required_reduction.minimum_shares` 填；自己写股数（含拆成几条不同条件的腿）则合计要达到它。cap 类 breach（`enforcement=respond`）不强制卖出：`minimum_value` 是到上限的总距离，减不减、分几批由你判断，`constraints.respond_to_breach_ids` 非空的票必须有一条带理由的决策。同一条腿的全部加仓金额合计不得超过 `portfolio.cash_available` 里该腿的现金。
 - `action` ∈ {`cut`, `trim_on_rebound`, `hold_and_watch`, `t_only`, `add_only_on_trigger`, `add_on_breakout`, `watch`}
 - `condition.type` ∈ {`open`, `price_above`, `price_below`, `index_breakdown`, `event`, `manual`}
@@ -917,7 +917,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 想让卡上那句"核心结论"更准，改的是 `judgment.portfolio_assessment`，不是卡本身。
 这句原样推到 kcn 微信，他看不到管线：不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`，
 也不描述你在按什么指令或格式写（「9/9 preflight 仍 4 breach」→「今天仍有 4 条风控超限」）。
-postflight 会以 advisory 标出。
+postflight 将此类 advisory 留在校验结果里。
 
 ### Step 5: 跑 postflight（验证 + commit + 自动投递微信）
 
@@ -975,7 +975,7 @@ clawock brief postflight
 > **🔒 投递已解耦——你绝不要手动发微信、绝不调任何 message/send 工具、也不要把卡片当回复文本贴出来。**
 >
 > pass/warn 时 **`brief_postflight` 自己**会用 fresh-token 短连接把渲染出的
-> `brief-card-{date}.txt` 投到 kcn 微信（cron 已设 `delivery=none`，这是唯一微信路径），
+> `brief-card-{date}.txt` 及当天风险待复查队列组成卡片，投到 kcn 微信（cron 已设 `delivery=none`），
 > 并同步 Telegram，把两路结果记到 `memory/.tmp/brief-sent-{date}.json`。
 > `brief_watchdog`（08:36）在 Telegram marker 缺失/失败时补投 Telegram；微信只在回执明确记录发送失败时补发一次，其余情况不重发。
 >

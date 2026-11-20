@@ -14,7 +14,7 @@ must contain and must not say. Edit here once, not in both market skills.
 - 空间不够时**先砍板块全景的细节，不砍归因**——一次异动没解释，比少列两个同业更贵。
 
 🗣 **读者只看得到这条微信，看不到管线**：三段里不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`/`context_id`，也不描述你在按什么指令、格式或步骤写；约束翻成交易语言（「packet 锁定的破位审议线」→「计划里的破位复核线」）。postflight 会以 advisory 标出。
-context 的字段名与枚举值（任何带下划线的英文标识，如 `hold_and_watch`、`near_breakout`，以及 `verdict=wait` 这类「键=值」）一律不写进正文，翻成中文说法（`hold_and_watch`→持有观察）；postflight 会把它标成正文顶部的校验警告。
+context 的字段名与枚举值（任何带下划线的英文标识，如 `hold_and_watch`、`near_breakout`，以及 `verdict=wait` 这类「键=值」）一律不写进正文，翻成中文说法（`hold_and_watch`→持有观察）；postflight 在校验结果里记录。
 
 **长度由你自己判断**：不设字数目标，把该说的说完，不为凑数注水也不为省字砍内容。
 必须写到的：`peer_scan` 的 Top 5、持仓在同行里的位置、今日/5 日涨跌和归因、异动归因、
