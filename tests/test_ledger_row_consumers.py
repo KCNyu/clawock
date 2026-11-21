@@ -9,6 +9,8 @@ import copy
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import pytest
+
 from clawock.decision import ledger, risk
 from clawock.evidence import research_surface
 from clawock.market_data import us_quotes
@@ -63,3 +65,18 @@ def test_us_quote_writer_reads_a_quoted_cost_basis_as_its_number():
         today_et_date='2026-11-11', expected_prev_session='2026-11-10')
     assert holding['current_price'] == 81
     assert holding['pnl_abs'] == -12.0
+
+
+@pytest.mark.parametrize('prev_closes', [{}, {'X': (81, '2026-11-11')}])
+def test_us_quote_writer_uses_quoted_prior_close_in_fallbacks(prev_closes):
+    holding = _book()['portfolios']['us_stocks']['holdings'][0]
+    holding['prev_close'] = '79'
+    quote = {'c': 81, 'pc': 81, 'h': 82, 'l': 78, 'o': 80, 'dp': 0,
+             'source': 'test'}
+    us_quotes._us_apply_quote(
+        holding, quote, prev_closes,
+        now_et=datetime(2026, 11, 11, 16, 15, tzinfo=ZoneInfo('America/New_York')),
+        today_et_date='2026-11-11', expected_prev_session='2026-11-10')
+    assert holding['current_price'] == 81
+    assert holding['prev_close'] == 79
+    assert holding['prev_close_date'] == '2026-11-10'

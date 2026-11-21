@@ -37,10 +37,17 @@ fi
 # half-merged file again. We match only the OPEN/CLOSE markers (7 brackets + space +
 # label) — unambiguous and always present in a real conflict — so a legit `=======`
 # markdown h1 underline never false-trips this. `git grep` scans HEAD's committed tree.
-if git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD -- 2>/dev/null | grep -q .; then
+scan_status=0
+conflict_markers="$(git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD -- 2>&1)" || scan_status=$?
+if [ "$scan_status" = 0 ]; then
   echo "✗ REFUSING TO PUSH — unresolved git conflict markers in committed files:"
-  git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD -- 2>/dev/null | head -20
+  printf '%s\n' "$conflict_markers" | sed -n '1,20p'
   echo "  Resolve the conflict (or rebuild the generated file) and re-commit before pushing."
+  exit 3
+elif [ "$scan_status" != 1 ] || [ -n "$conflict_markers" ]; then
+  # git grep can exit 1 with a diagnostic when a blob cannot be read.
+  echo "✗ REFUSING TO PUSH — conflict-marker scan failed (git grep rc=$scan_status)" >&2
+  printf '%s\n' "$conflict_markers" | sed -n '1,20p' >&2
   exit 3
 fi
 

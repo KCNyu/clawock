@@ -1049,9 +1049,12 @@ export function providerSignal(row: BalanceRow): ProviderSignal {
   const snapshot = result.snapshot
   if (snapshot === null) return 'none'
   if (snapshot.unit !== 'pct') {
-    const money = (Number(snapshot.totalBalance) || 0) + (Number(snapshot.grantedBalance) || 0)
-    if (money <= 0) return 'alert'
-    return result.low || (Number(snapshot.totalBalance) || 0) < 10 ? 'warn' : 'ok'
+    const total = Number(snapshot.totalBalance)
+    if (snapshot.totalBalance.trim() === '' || !Number.isFinite(total)) return 'none'
+    const credit = Number(snapshot.grantedBalance)
+    if (!Number.isFinite(credit)) return 'none'
+    if (total + credit <= 0) return 'alert'
+    return result.low || total < 10 ? 'warn' : 'ok'
   }
   const windows = (snapshot.windows ?? []).filter((window) => window.percent !== null)
   // The design's one predicate: >=90% used is an alert, 70–90 is a warning.
@@ -1133,7 +1136,7 @@ export function providerRowView(source: PanelSource, row: BalanceRow | undefined
   // every provider gets the same track, and only the colour/width changes.
   const maxUsed = Math.max(0, ...windows.map((window) => window.percent ?? 0))
   const state: ProviderRowView['state'] = row === undefined ? 'free'
-    : row.result.configured === false || row.result.status === 'failed' || row.result.snapshot === null ? 'unknown'
+    : row.result.status === 'failed' || signal === 'none' || row.result.snapshot === null ? 'unknown'
       : signal === 'stale' ? 'stale'
         : maxUsed >= 100 ? 'exhausted'
           : signal === 'alert' ? 'alert'
