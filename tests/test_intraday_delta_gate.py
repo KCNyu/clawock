@@ -835,12 +835,22 @@ def test_same_second_preflights_bind_distinct_generations(monkeypatch, tmp_path)
 
 
 def test_actionable_change_requires_fresh_sized_condition_and_dedupes_within_session():
-    first = {"session": "hk:2026-11-19"}
-    plan = {"plan_date": "2026-11-19"}
+    session = "hk:2026-11-19"
     hit = {"ticker": "00100", "action": "trim_on_rebound", "condition": "price_above",
            "condition_price": 115.0, "shares": 100}
-    assert gate.actionable_price_changes(first, {}, [hit], plan, ["00100"]) is None
-    assert gate.actionable_price_changes(first, {}, [hit, {**hit, "shares": 0}], plan, []) == 1
-    next_slot = {"session": first["session"]}
-    assert gate.actionable_price_changes(next_slot, first, [hit], plan, []) == 0
-    assert gate.actionable_price_changes(next_slot, first, [{**hit, "condition_price": 116.0}], plan, []) == 1
+    plan = {"plan_date": "2026-11-19", "open": [hit]}
+    prices = {"00100": 116.0}
+    first = {"session": session}
+    count = gate.actionable_price_changes
+    assert count(first, {}, [], plan, {}, [], slot="10:05") is None
+    assert count(first, {}, [hit], plan, prices, ["00100"], slot="10:05") is None
+    assert count(first, {}, [hit, {**hit, "shares": 0}], plan, prices, [], slot="10:05") == 1
+
+    retry = {"session": session}
+    assert count(retry, first, [], plan, prices, [], slot="10:05") == 1
+    next_slot = {"session": session}
+    assert count(next_slot, retry, [hit], plan, prices, [], slot="10:35") == 0
+    assert count(next_slot, retry, [{**hit, "condition_price": 116.0}], plan, prices,
+                 [], slot="10:35") == 1
+    assert count({"session": "hk:2026-11-20"}, next_slot, [hit], plan, prices,
+                 [], slot="10:05") == 1

@@ -638,9 +638,12 @@ async function testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base) {
   await stubLiveOrigin(page, {
     patch: (name, json) => {
       if (name === "influencer_feed.json") {
-        return { ...json, items: [], source_status: {}, llm_filtered: false,
-                 llm_filter_status: "failed",
-                 counts: { total: 0, held_hits: 0, new_ideas: 0, sector_hits: 0 } };
+        return {
+          ...json,
+          items: [{ author: "Fixture author" }],
+          source_status: {},
+          llm_filter_status: "ok",
+        };
       }
       if (name === "brief_projection.json") {
         return { ...json, judgment_status: "invalid", portfolio_judgment: null };
@@ -658,13 +661,18 @@ async function testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base) {
 
   await clickTab(page, "market");
   await waitForTab(page, "market");
-  await page.waitForFunction(() =>
-    document.querySelector("#infl-feed .empty-state")?.textContent.trim());
+  await page.waitForFunction(() => document.getElementById("infl-roster")?.textContent === "Fixture author");
+  await page.evaluate(() => {
+    DATA.influencer_feed = { ...DATA.influencer_feed, llm_filter_status: "failed_kept_previous" };
+    refreshTab("market");
+  });
   const empty = (await page.locator("#infl-feed .empty-state").textContent()).trim();
   assert(empty.includes("LLM 相关性筛选本轮失败"),
     `influencer radar did not say its filter failed: ${empty}`);
   assert((await page.locator("#infl-asof").textContent()).includes("本轮筛选失败"),
     "influencer radar timestamp did not flag the failed run");
+  assert.equal(await page.locator("#infl-roster").textContent(), "",
+    "influencer radar kept the previous authors after the filter failed");
   await page.close();
 }
 

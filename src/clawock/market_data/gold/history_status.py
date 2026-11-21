@@ -6,7 +6,10 @@ XAU_FALLBACK_SOURCE = 'eastmoney_gc00y_fallback'
 
 def history_summary(london):
     """Use fetch provenance and retained rows, including portfolios written by older versions."""
-    source = (london.get('hist_source') or {}).get('name')
+    provenance = london.get('hist_source') or {}
+    source = provenance.get('name')
+    if source == XAU_FALLBACK_SOURCE and provenance.get('points') == 0:
+        source = 'unavailable'  # Older refreshes could label an empty fallback as a source.
     if source == XAU_PRIMARY_SOURCE:
         summary = '伦敦金历史 · 新浪现货'
     elif source == XAU_FALLBACK_SOURCE:

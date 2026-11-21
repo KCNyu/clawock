@@ -323,7 +323,8 @@ def fetch_xau_history(start):
     if kl:
         out = sorted((p[0], float(p[1])) for p in (r.split(',') for r in kl)
                      if len(p) >= 2 and p[0] >= s and p[1])
-        return out, {'name': XAU_FALLBACK_SOURCE, 'points': len(out)}
+        if out:
+            return out, {'name': XAU_FALLBACK_SOURCE, 'points': len(out)}
     return [], {'name': 'unavailable', 'points': 0}
 
 

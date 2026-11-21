@@ -77,6 +77,15 @@ def test_exhausted_sina_body_retries_fall_back_once(monkeypatch, request_script)
     fallback.assert_called_once()
 
 
+def test_fallback_rows_before_requested_range_are_unavailable(monkeypatch, request_script):
+    run, _ = request_script
+    run.return_value = response('<html>unavailable</html>')
+    monkeypatch.setattr(gold, "_em_text",
+                        lambda *args, **kwargs: '{"data":{"klines":["2026-11-18,1234.5"]}}')
+
+    assert gold.fetch_xau_history("2026-11-19") == ([], {"name": "unavailable", "points": 0})
+
+
 def test_fx_range_retry_retains_successful_latest_request(request_script):
     run, sleep = request_script
     run.side_effect = [

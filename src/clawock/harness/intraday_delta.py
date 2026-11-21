@@ -22,6 +22,7 @@ from clawock import sessions as trading_calendar
 from clawock.market_data import peer_quotes as fetch_peers
 from clawock.automation import cron_heartbeat
 from clawock.decision.actions import PASSIVE_ACTIONS, positive_whole_shares
+from clawock.decision.plans import PRICE_CONDITIONS
 from clawock.safe_io import load_json_cached, safe_write_json
 
 WS = workspace_root()
@@ -160,20 +161,30 @@ def prior_session_breaches(current, previous):
     return previous.get("breaches_seen") or previous.get("breaches") or []
 
 
-def actionable_price_changes(state, previous, hits, plan, unrefreshed):
-    """Count new, freshly quoted sized plan conditions within this session."""
-    seen = set(previous.get("actionable_hits_seen") or ()) if (
-        previous.get("session") == state.get("session")) else set()
+def actionable_price_changes(state, previous, hits, plan, prices, unrefreshed, *, slot):
+    """Count newly observed sized conditions, independently of card delivery."""
+    same_session = previous.get("session") == state.get("session")
+    seen = set(previous.get("actionable_hits_seen") or ()) if same_session else set()
+    retry = same_session and previous.get("actionable_slot") == slot
+    baseline = set(previous.get("actionable_hits_before_slot") or ()) if retry else seen
     stale = set(unrefreshed or ())
     current = {json.dumps([row.get(key) for key in (
         "ticker", "action", "condition", "condition_price")], separators=(",", ":"))
         for row in hits if row.get("ticker") not in stale
         and positive_whole_shares(row.get("shares")) is not None
         and row.get("action") not in PASSIVE_ACTIONS}
-    state["actionable_hits_seen"] = sorted(seen | current)
-    if current - seen:
-        return len(current - seen)
-    if not plan.get("plan_date") or plan.get("truncated") or stale:
+    observed = seen | current
+    state.update(actionable_slot=slot, actionable_hits_seen=sorted(observed),
+                 actionable_hits_before_slot=sorted(baseline))
+    if new := observed - baseline:
+        return len(new)
+    missing_price = any(
+        row.get("ticker") not in prices for row in plan.get("open") or ()
+        if row.get("condition") in PRICE_CONDITIONS
+        and positive_whole_shares(row.get("shares")) is not None
+        and row.get("action") not in PASSIVE_ACTIONS
+    )
+    if not plan.get("plan_date") or plan.get("truncated") or stale or missing_price:
         return None
     return 0
 
