@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-17T12:24:24Z",
+  "generated_at": "2026-11-21T11:41:36Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -512,6 +512,26 @@
       "timestamp": "2026-11-16T00:00:00Z",
       "count": 8,
       "uniques": 8
+    },
+    {
+      "timestamp": "2026-11-17T00:00:00Z",
+      "count": 8,
+      "uniques": 8
+    },
+    {
+      "timestamp": "2026-11-18T00:00:00Z",
+      "count": 9,
+      "uniques": 9
+    },
+    {
+      "timestamp": "2026-11-19T00:00:00Z",
+      "count": 20,
+      "uniques": 16
+    },
+    {
+      "timestamp": "2026-11-20T00:00:00Z",
+      "count": 3,
+      "uniques": 3
     }
   ],
   "clones": [
@@ -1024,6 +1044,26 @@
       "timestamp": "2026-11-16T00:00:00Z",
       "count": 891,
       "uniques": 188
+    },
+    {
+      "timestamp": "2026-11-17T00:00:00Z",
+      "count": 1023,
+      "uniques": 232
+    },
+    {
+      "timestamp": "2026-11-18T00:00:00Z",
+      "count": 996,
+      "uniques": 201
+    },
+    {
+      "timestamp": "2026-11-19T00:00:00Z",
+      "count": 1457,
+      "uniques": 308
+    },
+    {
+      "timestamp": "2026-11-20T00:00:00Z",
+      "count": 1181,
+      "uniques": 229
     }
   ],
   "referrers_snapshots": [
@@ -1910,6 +1950,32 @@
         },
         {
           "referrer": "vuink.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-11-21T11:41:36Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 23,
+          "uniques": 18
+        },
+        {
+          "referrer": "Google",
+          "count": 10,
+          "uniques": 9
+        },
+        {
+          "referrer": "code.jiangshu.ai",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "skill.miyucaicai.cn",
           "count": 1,
           "uniques": 1
         }
@@ -3764,6 +3830,72 @@
           "uniques": 2
         }
       ]
+    },
+    {
+      "captured_at": "2026-11-21T11:41:36Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 48,
+          "uniques": 42
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 11,
+          "uniques": 7
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 6,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master",
+          "title": "/tree/master",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/dsh/README.md",
+          "title": "/blob/master/examples/dsh/README.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/dsh/packages/clawock-dsh/README.md",
+          "title": "/blob/master/examples/dsh/packages/clawock-dsh/README.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/site/assets/rsi-loop.svg",
+          "title": "/blob/master/site/assets/rsi-loop.svg",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/discussions/3234",
+          "title": "/discussions/3234",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/b8016a14d71dc08cd145aec058fb6658e5e068de/docs/INSTALL.md",
+          "title": "/blob/b8016a14d71dc08cd145aec058fb6658e5e068de/docs/INSTALL.md",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -3941,6 +4073,13 @@
       "forks": 0,
       "watchers": 0,
       "open_issues": 8
+    },
+    {
+      "captured_at": "2026-11-21T11:41:36Z",
+      "stargazers": 25,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 3
     }
   ],
   "package_downloads": [
@@ -4270,6 +4409,19 @@
         "downloads": 1440,
         "start": "2026-10-18",
         "end": "2026-11-16"
+      }
+    },
+    {
+      "captured_at": "2026-11-21T11:41:36Z",
+      "pypi": {
+        "last_day": 0,
+        "last_month": 491,
+        "last_week": 79
+      },
+      "npm": {
+        "downloads": 1464,
+        "start": "2026-10-22",
+        "end": "2026-11-20"
       }
     }
   ]
