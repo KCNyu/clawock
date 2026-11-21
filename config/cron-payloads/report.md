@@ -32,13 +32,14 @@ clawock report postflight --market {{market}} --phase {{phase}} --context-id <St
 
 ⚠️ **postflight 不设超时、不 kill、不因为「已经发出去了」就收尾。** 它是「先投递、后提交」两段（#765），提交那一段要刷 snapshot/dashboard 再 push，几十秒到几分钟。**杀在中间会留下「投递成功但没提交」**——微信/TG 都到了，`portfolio: {{market_name}}{{phase}}价格更新` 那个 commit 却不存在，而所有腿看到的都是成功，所以没有任何东西会重跑。2026-08-31 与 09-01 的港股开盘报告就是这样各丢了一次提交（父壳超时 SIGTERM，模型据此判「子进程早已完成发送，不再重跑」）。
 
-**完成判据只有一条：postflight 自己返回的 `status` + `commit_ok`。** SKILL.md Mode 6 不另写收尾规则，超时后按这里走：
+**完成判据是 postflight 自己返回的结果 JSON。** SKILL.md Mode 6 按这里收尾：
 - exec 超时 / SIGTERM 只杀命令外壳，postflight 可能还在跑：exec 返回 `Command still running` 或给了 session 时，只用 `process` poll 等它返回结果 JSON，不新开命令。
-- 进程已经退出而你没拿到带 `commit_ok` 的结果 JSON：用**同一条** postflight 命令重跑一次。发送有幂等闸——已投递的渠道会跳过，输出里的 `send_claim` 会写明——所以重跑只补做提交，不会双发。
+- 进程已经退出而你没拿到带 `status` 和 `commit_ok` 的结果 JSON：用**同一条** postflight 命令重跑一次。发送有渠道幂等闸。第二次仍没有结果就报告失败并结束。
+- 已拿到完整结果且 `wechat_sent` 或 `telegram_sent` 为 true 时，发布告警（包括 `data_plane_status: committed_local`、`commit_ok: false` 或 `EXIT=2`）直接进入 Step 4 并结束。保留 `commit_msg` 里的失败信息和日志路径，待推提交由现有发布链补推。不要重跑 postflight、手动 push 或检查 Git 和钩子。
 - `memory/.tmp/report-sent-*.json` 只证明「投出去了」，不证明提交完成：不要读它来判完成，也不要因为它存在就收尾。
 
 **Step 4 - 输出**
-把 postflight 返回的 `status` + `issues` 作为本回合最终文本回复（仅留痕）。
+最终回复只留痕，写 `status`、`issues`、渠道回执与 `data_plane_status`。发布告警照录 `commit_msg`，包括它给出的日志路径。
 ❌ **禁用 message/send 工具** —— postflight 已经发过了，你再手动调会撞成双发（2026-06-03 教训）。
 
 {{include:_exec-contract.md}}

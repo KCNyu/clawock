@@ -786,6 +786,22 @@ def test_brief_leaves_the_calendar_gate_to_preflight():
     assert 'trading_calendar.py' not in message
 
 
+def test_report_payload_only_recovers_when_the_exited_process_left_no_result():
+    data = contract()
+    for job in data['jobs']:
+        if job.get('payload_profile') != 'report':
+            continue
+        message = cron_contract.render_payload_message(data, job)
+        assert '只用 `process` poll 等它返回结果 JSON' in message
+        assert '进程已经退出而你没拿到带 `status` 和 `commit_ok` 的结果 JSON' in message
+        assert '第二次仍没有结果就报告失败并结束' in message
+        assert '`wechat_sent` 或 `telegram_sent` 为 true' in message
+        assert '`data_plane_status: committed_local`' in message
+        assert '直接进入 Step 4 并结束' in message
+        assert '保留 `commit_msg` 里的失败信息和日志路径' in message
+        assert '不要重跑 postflight、手动 push 或检查 Git 和钩子' in message
+
+
 def test_intraday_slots_are_unconditional_again():
     """Every Mode 7 slot runs the turn; no pre-model condition gate.
 

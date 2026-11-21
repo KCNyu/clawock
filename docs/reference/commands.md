@@ -207,6 +207,10 @@ silently combined with that prose:
 - **`clawock report postflight --market {hk|us} --phase {open|mid|pm|close} --context-id ID --text-file PATH`**
 - **`clawock intraday postflight --market {hk|us} --context-id ID --text-file PATH`**
 
+If report postflight commits locally and its push fails, the JSON and workflow
+ledger record `committed_local`. The result's `commit_msg` points to a private
+`memory/.tmp/report-push-*.log` containing the push attempts' stdout and stderr.
+
 ### Arguments and operational boundaries
 
 The installed parser owns syntax and defaults: use `clawock COMMAND --help`,

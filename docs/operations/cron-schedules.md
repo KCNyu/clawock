@@ -58,8 +58,11 @@ slot even if the retry starts in the following half-hour.
 ## Operational invariants / 运维不变量
 
 - 12 job identities; exactly 11 enabled in OpenClaw's own scheduler (9 market jobs plus Memory Dreaming Promotion、SQLite 维护).
-  The host crontab fires 港股午后快报 (`clawock cron-trigger`), which stays
-  disabled in OpenClaw so the slot is not fired twice.
+  The host crontab fires 港股午后快报 (`clawock cron-trigger`). Its OpenClaw
+  schedule stays disabled to bypass missed expression ticks in the
+  OpenClaw scheduler (#1443) and prevent duplicate firing. The trigger
+  reads live SQLite first and uses `cron list` if SQLite is unreadable.
+  It queues the disabled job with `openclaw cron run`.
 - 12 watchdog crontab entries are tracked: 6 report, 3 intraday and
   3 brief. An entry is not one pass a day: the intraday entries fire
   18 times under the EDT schedule (16 under EST) on a full trading day, and the brief

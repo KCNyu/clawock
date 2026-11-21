@@ -325,10 +325,7 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     monkeypatch.setattr(pf.trading_calendar, 'phase_session', lambda m, p: 'x')
     monkeypatch.setattr(pf.trading_calendar, 'hkt_today', lambda: date(2026, 7, 24))
     monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda m, session=None: None)
-    monkeypatch.setattr(pf, 'maybe_commit',
-                        lambda status, msg: (True, f'commit({status})'))
-
-    def run(prose, *, context_id, ctx=None, age_minutes=0):
+    def run(prose, *, context_id, ctx=None, age_minutes=0, real_commit=False):
         (tmp_path / f'report-context-us-close-{pf.trading_calendar.hkt_today()}.json'
          ).write_text(json.dumps(ctx or _ctx(), ensure_ascii=False))
         body = tmp_path / 'body.md'
@@ -343,7 +340,9 @@ def run_main(pf, sent, monkeypatch, tmp_path):
         import io
         from contextlib import redirect_stdout
         buf = io.StringIO()
-        with redirect_stdout(buf):
+        with monkeypatch.context() as patch, redirect_stdout(buf):
+            if not real_commit:
+                patch.setattr(pf, 'maybe_commit', lambda status, msg: (True, f'commit({status})'))
             rc = pf.main()
         return rc, json.loads(buf.getvalue())
 
@@ -380,6 +379,44 @@ def test_happy_path_assembles_commits_and_records_delivered(pf, run_main, sent, 
     sections = ('| 市值', table, '**情绪面**', '**技术面**', '**操作建议**')
     positions = [body.index(section) for section in sections]
     assert positions == sorted(positions)
+
+
+@pytest.mark.parametrize('wechat_ok', [True, False])
+def test_delivered_report_keeps_local_commit_and_original_push_error(
+    pf, run_main, sent, monkeypatch, tmp_path, wechat_ok,
+):
+    from clawock.harness import _harness_common as common
+
+    monkeypatch.setattr(common, 'WS', tmp_path)
+    monkeypatch.setattr(pf, 'WS', tmp_path)
+    monkeypatch.setattr(pf, 'rebuild_dashboard', lambda: (True, 'ok'))
+    monkeypatch.setattr(pf, 'dashboard_publication_state', lambda _: 'published')
+    monkeypatch.setattr(pf, '_git', lambda *a: (True, 'ok'))
+    monkeypatch.setattr(pf, 'snapshot_date_for_now', lambda: None)
+    monkeypatch.setattr(pf, 'send_wechat', lambda *a, **k: (wechat_ok, 'transport result'))
+    script = tmp_path / 'ops' / 'publish' / 'safe_push.sh'
+    script.parent.mkdir(parents=True)
+    script.write_text(
+        "echo 'remote: ruleset refused first push' >&2\n"
+        "printf '%1200s\\n' 'retry diagnostic'\n"
+        "echo 'error: failed to push some refs' >&2\n"
+        "exit 1\n",
+    )
+    stages = []
+    monkeypatch.setattr(pf.workflow_outcomes, 'record_stage', lambda *a, **k:
+                        stages.append((a, k)))
+
+    rc, out = run_main(PROSE, context_id='abc123def456', real_commit=True)
+    assert rc == 2 and out['status'] == 'pass'
+    assert out['telegram_sent'] is True and out['wechat_sent'] is wechat_ok
+    assert out['data_plane_status'] == 'committed_local' and out['commit_ok'] is False
+    log, = (tmp_path / 'memory' / '.tmp').glob('report-push-*.log')
+    assert str(log.relative_to(tmp_path)) in out['commit_msg']
+    assert log.read_bytes().splitlines()[0] == b'remote: ruleset refused first push'
+    assert log.read_bytes().splitlines()[-1] == b'error: failed to push some refs'
+    assert log.stat().st_mode & 0o777 == 0o600
+    assert stages[-1][0][1:] == ('postflight', 'warning')
+    assert stages[-1][1]['reason'] == out['commit_msg']
 
 
 def test_report_advisories_are_logged_without_preceding_the_card(pf, run_main, sent, monkeypatch):
@@ -443,7 +480,7 @@ def test_failed_narrative_still_commits_the_money_file_and_nothing_ignored(pf, m
     calls = []
     monkeypatch.setattr(pf, 'rebuild_dashboard', lambda: (True, 'ok'))
     monkeypatch.setattr(pf, 'snapshot_date_for_now', lambda: None)
-    monkeypatch.setattr(pf, 'push_with_rebase_retry', lambda: (True, 'ok'))
+    monkeypatch.setattr(pf, 'push_with_rebase_retry', lambda **_: (True, 'ok'))
 
     def fake_git(*args):
         calls.append(args)
