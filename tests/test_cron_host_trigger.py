@@ -92,7 +92,7 @@ def test_trigger_requires_current_runtime_state(tmp_path, monkeypatch, source, c
     # A migrated job can say disabled even after the live scheduler was enabled.
     # Exercise the production read, not the live_jobs injection used above.
     live = [{"name": "港股午后快报", "id": "job-1", "enabled": False}]
-    monkeypatch.setattr(cron_trigger.openclaw, "read_jobs", lambda:
+    monkeypatch.setattr(cron_trigger.openclaw, "read_jobs", lambda _:
                         cron_trigger.openclaw.CronRead(live if source == "fossil" else [], source))
     ran = []
     code = cron_trigger.trigger(
@@ -107,13 +107,24 @@ def test_trigger_requires_current_runtime_state(tmp_path, monkeypatch, source, c
 @pytest.mark.parametrize("source", ["cli", "sqlite"])
 def test_trigger_accepts_authoritative_runtime_sources(tmp_path, monkeypatch, source):
     live = [{"name": "港股午后快报", "id": "job-1", "enabled": False}]
-    monkeypatch.setattr(cron_trigger.openclaw, "read_jobs", lambda:
-                        cron_trigger.openclaw.CronRead(live, source))
+    reads = []
+
+    def read_jobs(requested):
+        reads.append(requested)
+        return cron_trigger.openclaw.CronRead(live, source) if requested == source else (
+            cron_trigger.openclaw.CronRead([], "empty"))
+
+    monkeypatch.setattr(cron_trigger.openclaw, "read_jobs", read_jobs)
+    monkeypatch.setattr(cron_trigger.openclaw, "run_cron_job", lambda job_id:
+                        (ran.append(job_id) or (True, "queued")))
     ran = []
     assert cron_trigger.trigger(
         "港股午后快报", contract={"jobs": [_job()]}, workspace=tmp_path,
-        run=lambda job_id: (ran.append(job_id) or (True, "queued"))) == 0
+    ) == 0
     assert ran == ["job-1"]
+    assert reads == (["sqlite", "cli"] if source == "cli" else ["sqlite"])
+    entry = json.loads((tmp_path / "logs" / "cron-trigger.jsonl").read_text())
+    assert entry["source"] == source and entry["elapsed_s"] >= 0
 
 
 def test_the_health_check_still_owes_a_host_triggered_job_its_slots(monkeypatch):

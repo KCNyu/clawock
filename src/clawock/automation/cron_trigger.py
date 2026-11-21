@@ -7,11 +7,10 @@ this desk is a cron expression. The multi-turn agent run itself — preflight, m
 turns, postflight, delivery settings — is fine and is what the harness needs.
 
 So a job whose contract says `"trigger": {"by": "host", ...}` is disabled in
-OpenClaw and fired by a host crontab line running this module, which queues exactly
-the same job with `openclaw cron run <id>`. Verified 2026-09-12 on this host: a
-job that is disabled in OpenClaw still runs in full when run this way (mode
-`force`). The payload, the isolated session and the delivery settings stay the
-job's own; only the scheduler that decides "now" changes.
+OpenClaw and fired by a host crontab line running this module. The host reads the
+live SQLite job state first to avoid starting a CLI just to list jobs, then uses
+`openclaw cron run <id>` to queue the disabled job in force mode. The payload,
+isolated session and delivery settings stay the job's own.
 
 Two refusals keep it from double-firing: the contract must say the host owns this
 job, and OpenClaw must have it disabled. Either one missing is exit 2 with the fix.
@@ -55,8 +54,13 @@ def trigger(job_name, *, contract=None, live_jobs=None, run=None, workspace=None
     if not spec.get("enabled", True):
         print(f"· {job_name}: disabled in the contract — nothing to fire")
         return 0
+    started = time.monotonic()
+    source = None
     if live_jobs is None:
-        read = openclaw.read_jobs()
+        read = openclaw.read_jobs("sqlite")
+        if read.source == "empty":
+            read = openclaw.read_jobs("cli")
+        source = read.source
         if read.source not in {"cli", "sqlite"}:
             print(f"✗ {job_name}: current OpenClaw job state unavailable "
                   f"(source={read.source}); cannot verify its scheduler is disabled",
@@ -80,8 +84,10 @@ def trigger(job_name, *, contract=None, live_jobs=None, run=None, workspace=None
               f"{live['id']} (check only, nothing fired)")
         return 0
     ok, out = (run or openclaw.run_cron_job)(live["id"])
-    _log({"job": job_name, "id": live["id"], "ok": ok, "out": out[-300:]}, workspace)
-    print(("✓" if ok else "✗") + f" {job_name}: queued via `openclaw cron run` — {out[-160:]}")
+    _log({"job": job_name, "id": live["id"], "ok": ok, "source": source,
+          "elapsed_s": round(time.monotonic() - started, 3), "out": out[-300:]}, workspace)
+    result = "queued" if ok else "queue failed"
+    print(f"{'✓' if ok else '✗'} {job_name}: {result} via `openclaw cron run` — {out[-160:]}")
     return 0 if ok else 1
 
 

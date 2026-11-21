@@ -113,8 +113,11 @@ def _job_counts(contract: dict) -> str:
     text = (f"- {len(jobs)} job identities; exactly {len(scheduled)} enabled in OpenClaw's own "
             f"scheduler ({len(market)} market jobs{f' plus {others}' if others else ''}).")
     if hosted:
-        text += (f"\n  The host crontab fires {hosted} (`clawock cron-trigger`), which stays\n"
-                 "  disabled in OpenClaw so the slot is not fired twice.")
+        text += (f"\n  The host crontab fires {hosted} (`clawock cron-trigger`). Its OpenClaw\n"
+                 "  schedule stays disabled to bypass missed expression ticks in the\n"
+                 "  OpenClaw scheduler (#1443) and prevent duplicate firing. The trigger\n"
+                 "  reads live SQLite first and uses `cron list` if SQLite is unreadable.\n"
+                 "  It queues the disabled job with `openclaw cron run`.")
     return text
 
 

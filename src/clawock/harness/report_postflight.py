@@ -294,12 +294,12 @@ def maybe_commit(status, commit_msg):
         return False, out[-200:]
 
     # Push so Pages updates; rebase+retry handles races with GH Action commits
-    push_ok, push_out = push_with_rebase_retry()
+    push_ok, push_out = push_with_rebase_retry(keep_failure_log=True)
     if push_ok:
         if rebuild_ok:
             return True, 'committed + pushed'
         return True, f'committed + pushed (dashboard={publication_state})'
-    return False, (f'committed (push failed: {push_out[-150:]}; '
+    return False, (f'committed (push failed: {push_out}; '
                    f'dashboard={publication_state})')
 
 
@@ -603,9 +603,8 @@ def main(argv=None):
     # A declined claim process records nothing: the concurrent holder owns this
     # verdict, and a late false `failed` would stand forever because receipt
     # reconciliation only fills unknown stages (#1006).
+    _, telegram_ok = delivery_receipts.channels(delivery_receipts.read_receipt(report_marker))
     if not claim_declined and not blocked:
-        _, telegram_ok = delivery_receipts.channels(
-            delivery_receipts.read_receipt(report_marker))
         if wechat_sent or telegram_ok:
             risk_notices.record(WS, ctx.get('risk_followups'), body)
         workflow_outcomes.record_primary_delivery(
@@ -630,6 +629,7 @@ def main(argv=None):
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
         'wechat_sent':   wechat_sent,
+        'telegram_sent': telegram_ok,
         # So a re-run that correctly declined to double-send says so in its own
         # output instead of looking like a send failure to whoever reads Step 4.
         'send_claim':    send_claim,
@@ -655,6 +655,7 @@ def main(argv=None):
             slot=slot,
             delivered=result['delivered'],
             data_plane_status=data_plane_status,
+            reason=commit_msg if data_plane_status not in {'published', 'current'} else None,
             unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
             unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
             issue_count=len(issues),

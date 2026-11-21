@@ -139,9 +139,7 @@ clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 c
 ```
 `--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发。返回 JSON 含 `status` (pass/warn/fail)。pass/warn 自动拼装+发送+刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publish/safe_push.sh` 推送。
 
-⏱ **exec 超时 / SIGTERM 之后怎么收尾**：只按任务消息 Step 3 的规则走（源文件
-`config/cron-payloads/report.md`，六个报告任务共用，本节不另写）。完成判据是 postflight 自己返回的
-`status` + `commit_ok`；`report-sent-*` marker 只证明投递，不能据此收尾。
+⏱ postflight 等待、恢复与收尾按任务消息 Step 3（`config/cron-payloads/report.md`）。
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是

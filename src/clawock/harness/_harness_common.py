@@ -14,6 +14,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -564,7 +565,22 @@ def dashboard_publication_state(ws=None):
 # the seconds it reserves.
 
 
-def push_with_rebase_retry(remote='origin', branch='master', attempts=3):
+def _push_failure_detail(reason, output, keep_failure_log):
+    if not keep_failure_log:
+        return output.decode(errors='replace').strip()[-500:] or reason
+    directory = WS / 'memory' / '.tmp'
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=directory, prefix='report-push-',
+                                         suffix='.log', delete=False) as log:
+            log.write(output)
+        return f'{reason}，日志 {Path(log.name).relative_to(WS)}'
+    except OSError as exc:
+        return f'{reason}，日志写入失败 ({exc.strerror})'
+
+
+def push_with_rebase_retry(remote='origin', branch='master', attempts=3, *,
+                           keep_failure_log=False):
     """git push via safe_push.sh — THE single hardened push path. Returns
     (pushed_ok, last_output).
 
@@ -587,11 +603,17 @@ def push_with_rebase_retry(remote='origin', branch='master', attempts=3):
     script = WS / 'ops' / 'publish' / 'safe_push.sh'
     try:
         r = subprocess.run(['bash', str(script), remote, branch],
-                           capture_output=True, text=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                            timeout=PUSH_TIMEOUT_SECONDS, cwd=str(WS))
-        return r.returncode == 0, (r.stdout + r.stderr).strip()[-500:]
-    except Exception as e:
-        return False, str(e)
+    except subprocess.TimeoutExpired as exc:
+        return False, _push_failure_detail(f'safe_push timed out after {exc.timeout}s',
+                                           exc.output or b'', keep_failure_log)
+    except OSError as exc:
+        return False, str(exc)
+    if r.returncode != 0:
+        return False, _push_failure_detail(f'safe_push exit {r.returncode}', r.stdout,
+                                           keep_failure_log)
+    return True, r.stdout.decode(errors='replace').strip()[-500:]
 
 
 # --- numeric claims -------------------------------------------------------
