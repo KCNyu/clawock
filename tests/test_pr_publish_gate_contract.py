@@ -356,11 +356,6 @@ def test_safe_push_refuses_the_money_file_when_the_checker_is_missing(tmp_path):
     assert "checker is unavailable" in result.stdout
 
 
-CRON_ENV = {"PATH": "/usr/bin:/bin", "HOME": "/root", "LANG": "C.UTF-8"}
-"""What a job started from the user crontab actually gets. The installed
-console script lives in ~/.local/bin, which is not on this PATH."""
-
-
 def test_safe_push_finds_the_money_checker_under_a_bare_cron_environment(tmp_path):
     """The gate must resolve the checker without help from PATH.
 
@@ -380,8 +375,10 @@ def test_safe_push_finds_the_money_checker_under_a_bare_cron_environment(tmp_pat
     # The fallback runs the package out of the checkout being pushed.
     (repo / "src").symlink_to(ROOT / "src")
 
+    # Recreate the cron PATH using a home the runner can actually read.
+    cron_env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path), "LANG": "C.UTF-8"}
     result = subprocess.run(["bash", str(script)], cwd=repo, capture_output=True,
-                            text=True, input="", env=CRON_ENV)
+                            text=True, input="", env=cron_env)
 
     assert "running money-conservation check" in result.stdout, (
         "the gate never got as far as checking the book:\n" + result.stdout)

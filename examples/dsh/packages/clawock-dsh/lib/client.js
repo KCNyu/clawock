@@ -9796,8 +9796,12 @@ function providerSignal(row) {
 	const snapshot = result.snapshot;
 	if (snapshot === null) return "none";
 	if (snapshot.unit !== "pct") {
-		if ((Number(snapshot.totalBalance) || 0) + (Number(snapshot.grantedBalance) || 0) <= 0) return "alert";
-		return result.low || (Number(snapshot.totalBalance) || 0) < 10 ? "warn" : "ok";
+		const total = Number(snapshot.totalBalance);
+		if (snapshot.totalBalance.trim() === "" || !Number.isFinite(total)) return "none";
+		const credit = Number(snapshot.grantedBalance);
+		if (!Number.isFinite(credit)) return "none";
+		if (total + credit <= 0) return "alert";
+		return result.low || total < 10 ? "warn" : "ok";
 	}
 	const windows = (snapshot.windows ?? []).filter((window) => window.percent !== null);
 	if (windows.some((window) => window.percent >= 90)) return "alert";
@@ -9868,7 +9872,7 @@ function providerRowView(source, row, result, t, now) {
 	const primaryTone = signal === "alert" ? "alert" : signal === "stale" ? "stale" : signal === "none" ? "none" : isPct && windows[0] !== void 0 ? windowTone(windows[0]) : signal === "warn" ? "warn" : "ok";
 	const secondaryTone = signal === "stale" ? "stale" : isPct && windows[1] !== void 0 ? signal === "alert" ? "alert" : windowTone(windows[1]) : "ok";
 	const maxUsed = Math.max(0, ...windows.map((window) => window.percent ?? 0));
-	const state = row === void 0 ? "free" : row.result.configured === false || row.result.status === "failed" || row.result.snapshot === null ? "unknown" : signal === "stale" ? "stale" : maxUsed >= 100 ? "exhausted" : signal === "alert" ? "alert" : signal === "warn" ? "warn" : "ok";
+	const state = row === void 0 ? "free" : row.result.status === "failed" || signal === "none" || row.result.snapshot === null ? "unknown" : signal === "stale" ? "stale" : maxUsed >= 100 ? "exhausted" : signal === "alert" ? "alert" : signal === "warn" ? "warn" : "ok";
 	const bar = !isPct || signal === "none" || windows.length === 0 ? null : {
 		pct: Math.min(100, maxUsed),
 		state: signal === "stale" ? "stale" : signal === "alert" ? "alert" : signal === "warn" ? "warn" : "ok"

@@ -37,7 +37,7 @@ from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import active_holdings, number, day_pnl, ledger_rows, quote_session_comparable
 from clawock.portfolio.refresh import active_and_zero_closed
-from clawock.safe_io import carried_value
+from clawock.safe_io import carried_value, to_finite_number
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -993,6 +993,8 @@ def _polygon_prev_closes(tickers, polygon_key, *, today_et_date, expected_prev_s
 def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expected_prev_session):
     t = ticker
     c = q['c']
+    existing_pc = to_finite_number(holding.get('prev_close')) or 0
+    existing_pc_date = holding.get('prev_close_date', '')
     # Resolve prev_close with date-stamping:
     # 1st: Polygon historical (date-stamped, immune to after-hours confusion)
     # 2nd: API's pc field if it differs from c (real PreviousClose returned)
@@ -1038,9 +1040,7 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
             # ② prior-session close: prefer the existing dated prev_close (an
             # independent capture from a run before today's bar finalized — robust
             # even if Nasdaq's %change is also stale), then Nasdaq dp, then no-op.
-            existing_pc      = holding.get('prev_close', 0)
-            existing_pc_date = holding.get('prev_close_date', '')
-            api_dp           = q.get('dp', 0)
+            api_dp = q.get('dp', 0)
             if (existing_pc > 0 and quote_session_comparable(holding)
                     and existing_pc_date == expected_prev_session):
                 pc, pc_date = existing_pc, existing_pc_date
@@ -1061,8 +1061,6 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
         # off the TODAY_LEG gate for exactly the rows this bug had touched.
         prev_session = expected_prev_session
         api_pc = q.get('pc')
-        existing_pc      = holding.get('prev_close', 0)
-        existing_pc_date = holding.get('prev_close_date', '')
         api_dp = q.get('dp', 0)
         if api_pc is not None and api_pc != c:
             pc, pc_date = api_pc, prev_session

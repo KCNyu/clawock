@@ -4473,6 +4473,20 @@ test("workbench client: English copy, a zero balance and a failed read", async (
   assert.match(textOf(rows[4]), /Free|free/);
   assert.equal(tabs(page.tree)[0].props["aria-label"], "Tasks, 0 pending");
 
+  const unknownBalance = {
+    ...zero,
+    providers: zero.providers.map((row) => row.provider !== "deepseek" ? row : {
+      ...row, result: { ...row.result, snapshot: { ...row.result.snapshot, totalBalance: "", grantedBalance: "" } },
+    }),
+  };
+  const unknownBalancePage = make(unknownBalance);
+  assert.equal(tabs(unknownBalancePage.tree)[1].props["aria-label"], "Providers, no alerts");
+  tabs(unknownBalancePage.tree)[1].props.onClick();
+  const unknownRow = find(unknownBalancePage.render(), (p) => p["data-wb-provider"] === "deepseek")[0];
+  assert.equal(unknownRow.props["data-wb-provider-signal"], "none");
+  assert.equal(unknownRow.props["data-wb-provider-state"], "unknown");
+  assert.match(textOf(unknownRow), /—/);
+
   // A near-limit window is amber on the reading that caused it, not on the healthy headline.
   const warn = {
     ...BALANCES_OK,

@@ -15,6 +15,27 @@ def _git(cwd, *args):
                           capture_output=True, text=True).stdout.strip()
 
 
+@pytest.mark.parametrize(("status", "diagnostic"), [(128, ""), (1, "unreadable blob")])
+def test_conflict_marker_scan_failure_blocks_before_fetch(tmp_path, status, diagnostic):
+    wrapper = tmp_path / 'git'
+    wrapper.write_text(
+        '#!/bin/sh\n'
+        'case "$1" in\n'
+        f'  grep) printf "%s" "{diagnostic}" >&2; exit {status};;\n'
+        '  fetch) touch fetched;;\n'
+        'esac\n'
+        'exit 99\n'
+    )
+    wrapper.chmod(0o755)
+    env = {**os.environ, 'PATH': f"{tmp_path}:{os.environ['PATH']}"}
+    result = subprocess.run(['bash', str(SCRIPT)], cwd=tmp_path, env=env,
+                            capture_output=True, text=True)
+    assert result.returncode == 3, result.stdout + result.stderr
+    assert f'conflict-marker scan failed (git grep rc={status})' in result.stderr
+    assert diagnostic in result.stderr
+    assert not (tmp_path / 'fetched').exists()
+
+
 def test_hookless_data_push_rejects_a_credential_shaped_added_line(tmp_path):
     origin = tmp_path / 'origin.git'
     subprocess.run(['git', 'init', '--bare', '-b', 'master', str(origin)],
