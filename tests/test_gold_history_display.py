@@ -58,6 +58,16 @@ def test_dashboard_projection_adds_summary_to_legacy_portfolio_with_details():
     assert "hist_summary" not in london
 
 
+def test_dashboard_uses_retained_label_for_legacy_empty_fallback():
+    london = {
+        "hist_source": {"name": gold.XAU_FALLBACK_SOURCE, "points": 0},
+        "hist_series": [["2026-07-01", 100]],
+    }
+    assert _gold_card({"gold_dca": {"london": london}})["london"]["hist_summary"] == (
+        "伦敦金历史沿用上次数据"
+    )
+
+
 @pytest.mark.parametrize(("simulation", "notice"), [
     ({"stale": False, "as_of": "2026-07-01"}, None),
     ({"stale": True, "as_of": "2026-07-01"}, "伦敦金定投沿用上次模拟结果（截至 2026-07-01）"),

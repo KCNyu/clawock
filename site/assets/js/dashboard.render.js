@@ -676,6 +676,9 @@
     // always fails from CI would otherwise take the blame for it (#2189).
     const filterFailed = ['failed', 'failed_kept_previous'].includes(d.llm_filter_status);
     const items = filterFailed ? [] : (d.items || []);
+    if (roster) {
+      roster.textContent = [...new Set(items.map(it => it.author).filter(Boolean))].join(' · ');
+    }
     if (asOf) {
       asOf.textContent = '';
       if (d.generated_at && (items.length || filterFailed)) {
@@ -705,8 +708,6 @@
       if (c.sector_hits) chips.push(`<span class="infl-chip sect">板块相关 ${c.sector_hits}</span>`);
       sumEl.innerHTML = chips.join('');
     }
-    const authors = [...new Set(items.map(it => it.author).filter(Boolean))];
-    if (roster && authors.length) roster.textContent = authors.join(' · ');
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');
     const stanceTxt = (s) => ({endorse:'看多', buy:'买入', attack:'看空', sell:'卖出', neutral:'中性'}[s] || s || '');
     wrap.innerHTML = items.map(it => {

@@ -1780,12 +1780,9 @@ def _collect(argv=None):
     # comparison is arithmetic, not judgement. Leaving it to the model is how
     # 2026-09-07 ended with eight slots of 「跳空/异动」 and a trim trigger blown
     # by 7.7% that nobody said out loud.
-    plan_triggers = plan_surface.triggered_conditions(
-        plan_ctx,
-        {row['ticker']: row['price']
-         for row in _harness_common.parse_holdings_rows(stdout)
-         if row.get('price') is not None},
-    )
+    prices = {row['ticker']: row['price'] for row in
+              _harness_common.parse_holdings_rows(stdout) if row.get('price') is not None}
+    plan_triggers = plan_surface.triggered_conditions(plan_ctx, prices)
     combined_setups = {
         'rows': (live_setups.get('rows') or [])
         + (early_candidates.get('rows') or [])
@@ -1800,8 +1797,6 @@ def _collect(argv=None):
     )
     full_holdings, soft_candidates = decision_sweep(
         stdout, coverage, plan_ctx, opportunity_radar, t0_setups)
-    prices = {row['ticker']: row['price'] for row in
-              _harness_common.parse_holdings_rows(stdout) if row.get('price') is not None}
     # Information lane (contract §6): the morning files, read not refetched,
     # each item labelled with its time; the market-level 7x24 fetch and the
     # tier 2 live feeds, both from the lane started before the analyzer.
@@ -1886,8 +1881,11 @@ def _collect(argv=None):
     # not re-wake a full card for a state kcn already got this session. Only
     # an identity first seen today counts; the current set stays for audit.
     old_breaches = intraday_delta.prior_session_breaches(semantic_state, prior_state)
+    previous_context = _load_json(TMP / f'intraday-context-{args.market}-latest.json')
+    previous_observation = (previous_context or {}).get('semantic_state') or prior_state
     actionable_changes = intraday_delta.actionable_price_changes(
-        semantic_state, prior_state, plan_triggers, plan_ctx, coverage.get('unrefreshed'))
+        semantic_state, previous_observation, plan_triggers, plan_ctx, prices,
+        coverage.get('unrefreshed'), slot=slot)
     semantic_state['breaches_seen'] = sorted(
         {json.dumps(row, sort_keys=True, ensure_ascii=False): row
          for row in [*old_breaches, *semantic_state['breaches']]}.values(),
@@ -1896,8 +1894,8 @@ def _collect(argv=None):
     # Since when the same names have been unverified: the previous slot's
     # context, read before this slot overwrites `-latest.json`.
     coverage = carry_quote_gap(
-        coverage, _load_json(TMP / f'intraday-context-{args.market}-latest.json'),
-        session=semantic_state.get('session'), slot_time=now.strftime('%H:%M'))
+        coverage, previous_context, session=semantic_state.get('session'),
+        slot_time=now.strftime('%H:%M'))
     # The delta is still computed and still stored when the gate is off: the
     # delivered-state cursor has to keep advancing, or flipping the toggle back
     # would compare against a months-old state and send one bogus full slot.

@@ -635,12 +635,16 @@ async function testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base) {
   // blamed a source that fails from CI every run, and the brief card kept
   // its static copy while its date moved to a day with no valid judgment.
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  let filterFailed = false;
   await stubLiveOrigin(page, {
     patch: (name, json) => {
       if (name === "influencer_feed.json") {
-        return { ...json, items: [], source_status: {}, llm_filtered: false,
-                 llm_filter_status: "failed",
-                 counts: { total: 0, held_hits: 0, new_ideas: 0, sector_hits: 0 } };
+        return {
+          ...json,
+          items: [{ author: "Fixture author" }],
+          source_status: {},
+          llm_filter_status: filterFailed ? "failed_kept_previous" : "ok",
+        };
       }
       if (name === "brief_projection.json") {
         return { ...json, judgment_status: "invalid", portfolio_judgment: null };
@@ -658,6 +662,9 @@ async function testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base) {
 
   await clickTab(page, "market");
   await waitForTab(page, "market");
+  await page.waitForFunction(() => document.getElementById("infl-roster")?.textContent === "Fixture author");
+  filterFailed = true;
+  await page.click("#refresh-btn");
   await page.waitForFunction(() =>
     document.querySelector("#infl-feed .empty-state")?.textContent.trim());
   const empty = (await page.locator("#infl-feed .empty-state").textContent()).trim();
@@ -665,6 +672,8 @@ async function testAnEmptyRadarAndBriefCardSayWhatFailed(browser, base) {
     `influencer radar did not say its filter failed: ${empty}`);
   assert((await page.locator("#infl-asof").textContent()).includes("本轮筛选失败"),
     "influencer radar timestamp did not flag the failed run");
+  assert.equal(await page.locator("#infl-roster").textContent(), "",
+    "influencer radar kept the previous authors after the filter failed");
   await page.close();
 }
 
