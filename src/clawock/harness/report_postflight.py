@@ -655,7 +655,7 @@ def main(argv=None):
             slot=slot,
             delivered=result['delivered'],
             data_plane_status=data_plane_status,
-            reason=commit_msg if data_plane_status not in {'published', 'current'} else None,
+            reason=commit_msg if data_plane_status == 'committed_local' else None,
             unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
             unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
             issue_count=len(issues),
