@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "4e9174feb6584db713cf501107a896c31c3febc8eee1b1bd75025ba16e5d4d7c",
-  "bytes": 16197,
+  "content_sha256": "38ea65c4f8a9f5d8b502011640875c1f8bdbdef4dabe8ed027b92a97731eb4d3",
+  "bytes": 16467,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -185,6 +185,15 @@
       "heading": "# 简报卡去噪：普通校验仅记日志，长期风险盘前集中提醒一次",
       "lines": 5,
       "sha256": "2c9a09650d4b02922d697840b3a3129d97912afb97188e8bd6ed1ba67ca97fba"
+    },
+    {
+      "slug": "feedback-codex-single-node",
+      "order": 21,
+      "publish": "public",
+      "separator": true,
+      "heading": "# OpenClaw 后续统一采用单 Node 架构，工程任务默认由 Codex 执行",
+      "lines": 5,
+      "sha256": "f36441a2a1720448f237b469f8719ddc7de182713e4e1dc0e880e67a1b22b03b"
     }
   ]
 }
