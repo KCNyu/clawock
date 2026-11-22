@@ -1370,6 +1370,8 @@
       const open = isOpen ? "1" : "0";
       const proxyMark = (e.proxy || (q && q.is_proxy))
         ? `<sup class="muted" title="杠杆ETF · 量化列取底层 ${escapeHtml(e.proxy || q.source_ticker || "")}">▵</sup>` : "";
+      const prevCloseMissing = h.quote_status?.prev_close_available === false;
+      const quoteSource = h.quote_status?.source || "";
       return `
         <tr class="book-row" tabindex="0" role="button" aria-expanded="${isOpen ? "true" : "false"}" data-open="${open}" data-ticker="${escapeHtml(h.ticker || "")}">
           <td><span class="ticker region-${h.region}">${escapeHtml(h.ticker || DASH)}</span>${proxyMark}<span class="book-caret" aria-hidden="true">›</span></td>
@@ -1382,7 +1384,9 @@
           <td class="num spark-cell col-p3">${sparklineSVG((safe(DATA, "holdings_history", h.ticker) || []), 56, 18)}</td>
           <td class="num cell-stack">
             <div class="${pnlClass(h.today_change)}">仓位当日 ${fmtMoney(h.today_change, ccy)}</div>
-            <div class="cell-sub ${pnlClass(h.today_change_pct)}">标的涨跌 ${fmtPct(h.today_change_pct)}</div>
+            ${prevCloseMissing
+              ? `<div class="cell-sub" title="${escapeHtml(quoteSource)}">标的涨跌未知（缺可信前收）</div>`
+              : `<div class="cell-sub ${pnlClass(h.today_change_pct)}">标的涨跌 ${fmtPct(h.today_change_pct)}</div>`}
             <div class="cell-sub">${escapeHtml(h.day_session_date || safe(DATA, "delta", h.region, "session_date") || "日期未核实")}</div>
           </td>
           <td class="num cell-stack">

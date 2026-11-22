@@ -1143,10 +1143,9 @@ def _assert_published_fx_is_in_ledger(data: dict,
 
     `.cache/fx_rate.json` is gitignored and absent in a clean CI checkout, so
     the cache comparison above never ran there (#3407). The ledger is tracked,
-    append-only, and records the same rate/source/fetched_at the publisher
-    read. A published rate that matches no ledger row for its HKT day cannot
-    be traced back to an observation, so every combined_usd figure beside it
-    is unverified.
+    append-only, and same-day refetches agreeing on rate, source and
+    fallback status reuse the original ledger observation. Match that
+    observation or an earlier equivalent one on the same HKT day.
     """
     ledger_path = Path(ledger_path)
     assert ledger_path.is_file(), f'fx ledger missing: {ledger_path}'
@@ -1161,23 +1160,29 @@ def _assert_published_fx_is_in_ledger(data: dict,
     fx = data.get('fx') or {}
     fetched_at = fx.get('fetched_at')
     try:
-        day = datetime.fromisoformat(
-            str(fetched_at).replace('Z', '+00:00')).astimezone(
-                HKT).date().isoformat()
+        published_at = datetime.fromisoformat(str(fetched_at).replace('Z', '+00:00'))
+        if published_at.tzinfo is None:
+            raise ValueError('timestamp lacks a timezone')
+        day = published_at.astimezone(HKT).date().isoformat()
     except (TypeError, ValueError):
         raise AssertionError(
             'fx.fetched_at is missing or not an ISO-8601 timestamp') from None
-    exact = [row for row in rows
-             if row.get('day') == day
-             and row.get('rate') == fx.get('usdhkd')
-             and row.get('source') == fx.get('source')
-             and row.get('fetched_at') == fetched_at]
-    if exact:
-        return
+    for row in rows:
+        if (row.get('day') != day or row.get('pair', 'USDHKD') != 'USDHKD'
+                or row.get('rate') != fx.get('usdhkd')
+                or row.get('source') != fx.get('source')
+                or row.get('fallback_used', False) != fx.get('fallback_used', False)):
+            continue
+        try:
+            recorded_at = datetime.fromisoformat(str(row.get('fetched_at')).replace('Z', '+00:00'))
+        except ValueError:
+            continue
+        if recorded_at.tzinfo is not None and recorded_at <= published_at:
+            return
     # The ledger is appended by the morning FX fetch on the live host and only
     # committed by the brief postflight. A data-plane generation can therefore
     # land for the current HKT day before master carries that day's row; that
-    # one pending day is allowed. Any *older* day without an exact row is a
+    # one pending day is allowed. Any *older* day without a matching row is a
     # published rate the repo cannot trace, and is rejected (#3407).
     ledger_days = {row.get('day') for row in rows}
     if rows and day > max(d for d in ledger_days if isinstance(d, str)):

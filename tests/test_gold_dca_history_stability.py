@@ -84,6 +84,24 @@ def test_primary_feed_recovery_replaces_fallback_reference():
     assert advisory is None
 
 
+def test_primary_history_keeps_its_prices_and_source_during_a_fallback():
+    primary = rows([(1, 100.0), (2, 101.0)])
+    source = {"name": gold.XAU_PRIMARY_SOURCE, "points": 2}
+    previous = {"hist_series": primary, "hist_source": source}
+    futures = rows([(2, 101.2), (3, 102.0)])
+    fallback = {"name": gold.XAU_FALLBACK_SOURCE, "points": 2}
+
+    history, effective_source, advice = gold._select_xau_history(futures, fallback, previous, None)
+    assert history == primary
+    assert effective_source == source
+    assert "沿用上次 2 个现货参考点" in advice
+
+    assert gold._select_xau_history(futures, fallback, {}, None) == (futures, fallback, None)
+    assert gold._select_xau_history(
+        primary, source, {"hist_series": futures, "hist_source": fallback}, None,
+    ) == (primary, source, None)
+
+
 def test_empty_fetch_preserves_reference_and_emits_advisory():
     previous = rows((day, 100.0 + day) for day in range(1, 4))
 

@@ -712,3 +712,14 @@ def test_section_markers_named_inside_a_sentence_do_not_count(pf):
     # The real layout (markers on their own lines) is unaffected.
     proper = PROSE + '\n▎风险提示\n杠杆腿波动放大。\n'
     assert pf.validate(pf.assemble_message(ctx, proper), ctx, proper) == []
+
+
+def test_report_ignores_section_markers_in_fences(pf):
+    ctx = _ctx()
+    prose = "````md\n" + PROSE + "\n```\n"
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+    assert sum('缺段标记' in issue for issue in issues) == 3
+
+    prose += "````\n" + PROSE
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+    assert not any('缺段标记' in issue for issue in issues)

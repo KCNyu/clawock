@@ -97,7 +97,7 @@ def _zero_closed_derived_leaves(holdings, *, dry_run, diffs):
                 h[field] = 0
 
 
-def _recompute_active_holding_leaves(holdings, *, region, last_updated, hk_book,
+def _recompute_active_holding_leaves(holdings, *, region, last_updated,
                                      pct_nd, price_step, dry_run, diffs):
     sum_cv = sum_cost = sum_tc = 0.0
     for h in active_holdings(holdings):
@@ -146,9 +146,8 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated, hk_book,
             diffs.setdefault('holdings.current_value', []).append((h.get('ticker'), h.get('current_value'), cv))
         if not dry_run:
             h['current_value'] = cv
-        # HK fallbacks keep the last known close and its original date.
-        # That retained value cannot price the old shares for this session.
-        pc = (None if hk_book and h.get('quote_incomplete_prev_close')
+        # Retained HK closes and US placeholders cannot price old shares.
+        pc = (None if h.get('quote_incomplete_prev_close')
               else number(h.get('prev_close')))
         session = holding_session(h, last_updated, region)
         amount, base, old_shares = day_pnl_basis(h, session, market=region)
@@ -236,7 +235,6 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
         if not isinstance(pf, dict):
             continue
         diffs = {}
-        hk_book = region == 'hk_stocks' or pf.get('currency') == 'HKD'
         # The book's percent precision is the fetcher's (us_quotes rounds to
         # 4 places, hk_analysis to 2), so a reconcile that leaves the prices
         # alone lands on exactly the value the next fetch writes.
@@ -250,7 +248,7 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
         _zero_closed_derived_leaves(holdings, dry_run=dry_run, diffs=diffs)
         sums = _recompute_active_holding_leaves(
             holdings, region=region, last_updated=data.get('last_updated'),
-            hk_book=hk_book, pct_nd=pct_nd, price_step=price_step,
+            pct_nd=pct_nd, price_step=price_step,
             dry_run=dry_run, diffs=diffs,
         )
         _recompute_region_totals(pf, sums, pct_nd=pct_nd, dry_run=dry_run, diffs=diffs)

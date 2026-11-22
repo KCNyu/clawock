@@ -556,9 +556,13 @@ def test_published_fx_must_match_a_tracked_ledger_row(tmp_path):
     ledger.write_text(json.dumps(row) + '\n')
     validators._assert_published_fx_is_in_ledger({'fx': fx}, ledger)
 
-    bad = dict(fx, usdhkd=7.90)
-    with pytest.raises(AssertionError, match=r'fx\.usdhkd=7.9 .*no matching row'):
-        validators._assert_published_fx_is_in_ledger({'fx': bad}, ledger)
+    refetch = dict(fx, fetched_at='2026-11-11T13:30:00Z', fallback_used=False)
+    validators._assert_published_fx_is_in_ledger({'fx': refetch}, ledger)
+
+    for bad in (dict(refetch, usdhkd=7.90), dict(refetch, fallback_used=True),
+                dict(refetch, source='other'), dict(refetch, fetched_at='2026-11-10T23:59:00Z')):
+        with pytest.raises(AssertionError, match=r'no matching row'):
+            validators._assert_published_fx_is_in_ledger({'fx': bad}, ledger)
 
     # A published day the ledger has already passed without an exact row is
     # untraceable, not merely pending.

@@ -159,7 +159,7 @@ def _section_markers(text):
     for 今日动作. The label is the name; the sentence after it is prose.
     """
     markers = []
-    for line in text.splitlines():
+    for _, line in section_prose_lines(text):
         if (re.match(r'^\s{0,3}#{1,6}\s+\S', line)
                 or re.match(r'^\s{0,3}▎\s*\S', line)):
             markers.append(line.strip())
@@ -987,6 +987,7 @@ from clawock.harness.validation import (
     mentions_ticker,
     postflight_exit_code,
     product_status,
+    section_prose_lines,
     split_advisory,
     validate_forbidden_phrases,
 )

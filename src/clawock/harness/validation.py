@@ -100,6 +100,27 @@ def mentions_ticker(text, ticker):
     return re.search(pattern, text or '') is not None
 
 
+_FENCE_LINE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
+
+
+def section_prose_lines(text):
+    """Yield (offset, line) for lines outside Markdown fenced code blocks."""
+    fence = None
+    offset = 0
+    for raw_line in (text or '').splitlines(keepends=True):
+        line = raw_line.rstrip('\r\n')
+        match = _FENCE_LINE.match(line)
+        if fence:
+            if (match and match[1][0] == fence[0] and len(match[1]) >= len(fence)
+                    and not match[2].strip(' \t')):
+                fence = None
+        elif match and (match[1][0] == '~' or '`' not in match[2]):
+            fence = match[1]
+        else:
+            yield offset, line
+        offset += len(raw_line)
+
+
 def section_marker_end(text, marker):
     """End offset of `marker` where it opens a line, or -1.
 
@@ -108,9 +129,11 @@ def section_marker_end(text, marker):
     「本报告不含 ▎情绪面、▎技术面…」 used to satisfy every required section
     at once (#2049). Same rule as the brief's section-marker lines.
     """
-    match = re.search(rf'^[ \t\u3000]{{0,3}}(?:#{{1,6}}[ \t\u3000]+|\*\*)?{re.escape(marker)}',
-                      text or '', re.MULTILINE)
-    return match.end() if match else -1
+    pattern = re.compile(rf'^[ \t\u3000]{{0,3}}(?:#{{1,6}}[ \t\u3000]+|\*\*)?{re.escape(marker)}')
+    for offset, line in section_prose_lines(text):
+        if match := pattern.match(line):
+            return offset + match.end()
+    return -1
 
 
 def has_section_marker(text, marker):
