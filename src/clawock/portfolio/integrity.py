@@ -121,7 +121,7 @@ from clawock.portfolio.math import (
     active_holdings as _active,
     carried_value as _carried_value,
     derive_cash,
-    day_pnl,
+    day_pnl_basis,
     holding_session,
     session_change_pct,
     ledger_date as _ledger_date,
@@ -949,9 +949,16 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
                 add('SESSION_STAMP_INVALID', 'ERROR',
                     f'{t} 无法确定报价 session；检查 day_session_date、data_source 和 last_updated；'
                     'STALE_PRICE 与跨 session 校验缺少依据', region, t)
-            if sess_date and cur is not None and sh and prev is not None and tchg is not None:
-                want_tc, _ = day_pnl(h, sess_date, market=market)
-                if abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02) + 1e-9:
+            if sess_date and cur is not None and sh:
+                want_tc, basis, old_shares = day_pnl_basis(h, sess_date, market=market)
+                prior_unavailable = h.get('quote_incomplete_prev_close')
+                if prior_unavailable and (old_shares > 0 or basis <= 0):
+                    if tchg is not None or h.get('today_change_pct') is not None:
+                        add('TODAY_LEG', 'ERROR',
+                            f'{t} 缺可信前收，无法计量旧仓当日盈亏；运行 clawock reconcile',
+                            region, t)
+                elif (tchg is not None and (prev is not None or old_shares == 0)
+                      and abs(tchg - want_tc) > max(PCT_TOL, abs(want_tc) * 0.02) + 1e-9):
                     add('TODAY_LEG', 'ERROR',
                         f'{t} today_change={tchg:.2f} ≠ 按批当日盈亏={want_tc:.2f}'
                         f'（差 {tchg - want_tc:+.2f}）；改过 shares/trades 后未重算，'

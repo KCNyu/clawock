@@ -35,7 +35,7 @@ from clawock import sessions as trading_calendar
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
-from clawock.portfolio.math import active_holdings, number, day_pnl, ledger_rows, quote_session_comparable
+from clawock.portfolio.math import active_holdings, number, day_pnl_basis, ledger_rows, quote_session_comparable
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.safe_io import carried_value, to_finite_number
 from clawock.workspace import workspace_root
@@ -1049,7 +1049,7 @@ def _resolve_prev_close(q, holding, prev_closes, *, ticker, today_et_date, expec
                 pc = round(c / (1 + api_dp / 100), 4)
                 pc_date = expected_prev_session
                 prev_close_ok = True
-            # else: leave pc = today's close (today_change falls back to 0, safe)
+            # Otherwise keep a finite placeholder and leave the return unknown.
         else:
             prev_close_ok = pc_date == expected_prev_session
     else:
@@ -1257,8 +1257,10 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
         holding['quote_incomplete'] = True
     else:
         holding.pop('quote_incomplete', None)
-    amount, base = day_pnl(holding, today_et_date, current=c, market='us')
-    holding['today_change_pct'] = round(amount / base * 100, 4) if base else 0
+    amount, base, old_shares = day_pnl_basis(holding, today_et_date, current=c, market='us')
+    measurable = prev_close_ok or (old_shares == 0 and base > 0)
+    holding['today_change'] = round(amount, 2) if measurable else None
+    holding['today_change_pct'] = (round(amount / base * 100, 4) if base else 0) if measurable else None
     holding.pop('today_change_abs', None)
 
     _accumulate_day_range(holding, q, c, now_et=now_et, today_et_date=today_et_date)
@@ -1267,7 +1269,6 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
     # Zero cost falls back to 0 like hk_analysis and the reconciler (#1570):
     # one zero-cost lot must not abort the whole region's refresh.
     holding['pnl_percent']      = _pct(c, cost)
-    holding['today_change']     = round(amount, 2)
     if q.get('volume'):
         holding['volume'] = q['volume']
 
@@ -1276,8 +1277,10 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
 
     arrow = '↑' if c >= old_price else '↓'
     pnl_sign = '+' if holding['pnl_abs'] >= 0 else ''
+    change_pct = holding['today_change_pct']
+    change = 'unknown' if change_pct is None else f'{change_pct:+.2f}%'
     print(f"  {t:7s}  ${old_price:.4f} {arrow} ${c:.4f}  "
-          f"({holding['today_change_pct']:+.2f}%)  "
+          f"({change})  "
           f"P&L: {pnl_sign}${holding['pnl_abs']:.2f} ({pnl_sign}{holding['pnl_percent']:.2f}%)")
 
 

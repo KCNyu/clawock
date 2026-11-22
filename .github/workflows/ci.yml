@@ -261,10 +261,17 @@ jobs:
 
       - name: Reject conflict markers
         run: |
-          if git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD --; then
+          scan_status=0
+          markers="$(git grep -nE '^(<<<<<<< |>>>>>>> )' HEAD -- 2>&1)" || scan_status=$?
+          if [ "$scan_status" = 0 ]; then
             echo "::error::Tracked files contain unresolved git conflict markers"
-            exit 1
+          elif [ "$scan_status" != 1 ] || [ -n "$markers" ]; then
+            echo "::error::Conflict-marker scan failed (git grep rc=$scan_status)"
+          else
+            exit 0
           fi
+          printf '%s\n' "$markers"
+          exit 1
 
       - name: Tavily credit-ledger unit tests
         # Always runs (no path gate) so the hard-budget guardrail's assertions

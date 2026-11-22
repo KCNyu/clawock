@@ -66,6 +66,17 @@ def test_genuinely_omitted_section_still_raises_same_missing_issue(tmp_path):
     assert brief_postflight.categorize(issues) == 'warn'
 
 
+def test_brief_required_section_cannot_be_inside_a_fence(tmp_path):
+    path = tmp_path / 'pre-open.md'
+    path.write_text(
+        CHINESE_LOCALIZED_BRIEF.replace('## 第二层\n多空辩论。', '~~~md\n## 第二层\n多空辩论。\n~~~'),
+        encoding='utf-8',
+    )
+    assert _missing_section_issues(brief_postflight.validate_markdown(path)) == [
+        'pre-open.md 缺段标记 "多空对辩"'
+    ]
+
+
 def test_harness_action_boundary_is_fail_closed():
     assert brief_postflight.categorize([
         "plan.json harness: decision[0] ABC action outside harness allowed_actions"

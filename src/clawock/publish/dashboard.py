@@ -40,6 +40,7 @@ from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
 from clawock.portfolio.guardrail import hhi_verdict, _holding_pnl_pct
+from clawock.portfolio.math import day_pnl_basis
 from clawock.portfolio.math import number as portfolio_number, ledger_rows, session_change_pct
 
 def benchmark_staleness(benchmark):
@@ -899,6 +900,19 @@ def trim_holding(h, currency):
         value = session_change_pct(h) if field == 'today_change_pct' else _share_number(h.get(field))
         return None if value is None else round(value, 2)
 
+    quote_status = {}
+    position_change = today('today_change')
+    if (_share_number(h.get('shares')) or 0) > 0 and h.get('quote_incomplete_prev_close'):
+        session = h.get('day_session_date')
+        _, base, old_shares = day_pnl_basis(
+            h, session, market='hk' if currency == 'HKD' else 'us')
+        if old_shares > 0 or base <= 0:
+            position_change = None
+        quote_status = {
+            'prev_close_available': False,
+            'source': without_host_paths(h['data_source']) if h.get('data_source') else None,
+        }
+
     return {
         'ticker': h.get('ticker') or h.get('code'),
         'name': (instrument_registry.get(h.get('ticker') or h.get('code')) or {}).get('name')
@@ -911,8 +925,9 @@ def trim_holding(h, currency):
         # above it count it (#2967); 0 here split the row from its own leg.
         'current_value': round(carried_value(h), 2),
         'valuation_basis': valuation_basis(h),
-        'today_change': today('today_change'),
+        'today_change': position_change,
         'today_change_pct': today('today_change_pct'),
+        **({'quote_status': quote_status} if quote_status else {}),
         'day_high': rounded(h.get('day_high'), 4),
         'day_low': rounded(h.get('day_low'), 4),
         'pnl_abs': round(number_or(h.get('pnl_abs')), 2),

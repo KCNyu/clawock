@@ -7,7 +7,8 @@ fb31168ab before the #2754 fix. Tests never regenerate the oracle. No live
 portfolio, credentials or network are involved. The three stored-close reuse
 cases explicitly mark their old aggregate gap as range-only after the quality
 split; their numeric oracles are unchanged. Legacy unknown quality is covered
-by test_quote_incomplete_split.
+by test_quote_incomplete_split. The two no-prior-close cases intentionally
+expect null position day P&L and an unknown diagnostic after #3650.
 """
 import copy
 import json

@@ -401,6 +401,19 @@ def stabilize_history(fresh, previous, fresh_source, previous_source=None,
     return _bounded_london_history(merged.items(), coverage_start), advisory
 
 
+def _select_xau_history(fresh, source, previous, coverage_start):
+    prior = previous.get('hist_series') or []
+    prior_source = previous.get('hist_source') or {}
+    retained = _bounded_london_history(prior, coverage_start)
+    if (retained and prior_source.get('name') == XAU_PRIMARY_SOURCE
+            and source.get('name') == XAU_FALLBACK_SOURCE):
+        # A futures settlement and a spot close are different instruments.
+        return retained, prior_source, f'伦敦金历史主源抓取失败，沿用上次 {len(retained)} 个现货参考点'
+    history, advisory = stabilize_history(
+        fresh, prior, source, prior_source, coverage_start=coverage_start)
+    return history, (prior_source or source) if retained and not fresh else source, advisory
+
+
 def _xau_at(xau_sorted_dates, xau_vals, d):
     """forward-fill：返回 <= d 的最近一个 XAU 值（对齐 A 股/COMEX 不同交易日历）。"""
     i = bisect.bisect_right(xau_sorted_dates, d) - 1
@@ -751,13 +764,8 @@ def main(argv=None):
     # 反事实从起投日算起，XAU/汇率历史要保留到起投日；写盘时 compute_london 仍按
     # 迷你图窗口裁（#198 的体积上限），这里只决定本轮计算可用的范围（#2999）。
     london_coverage_start = _london_history_coverage_start(history, gold.get('start_date', ''))
-    xau_hist, xau_advisory = stabilize_history(
-        xau_fresh,
-        old_london.get('hist_series') or [],
-        xau_source,
-        old_london.get('hist_source') or {},
-        coverage_start=london_coverage_start,
-    )
+    xau_hist, xau_source, xau_advisory = _select_xau_history(
+        xau_fresh, xau_source, old_london, london_coverage_start)
     fx_source = {
         'name': 'frankfurter_usdcny',
         'points': len(usdcny_hist or {}),

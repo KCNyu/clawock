@@ -19,7 +19,7 @@ import pytest
 
 from clawock.harness._harness_common import quote_coverage
 from clawock.market_data import us_quotes as quotes
-from clawock.portfolio import integrity
+from clawock.portfolio import aggregates, integrity
 from clawock.portfolio.math import (
     quote_price_is_current,
     quote_session_comparable,
@@ -113,6 +113,10 @@ def test_dashboard_keeps_the_return_unknown_when_the_prior_close_is_missing():
         _split(_holding(), prev_missing=True, range_missing=True), "USD")
 
     assert row["today_change_pct"] is None
+    assert row["today_change"] is None
+    assert row["quote_status"] == {
+        "prev_close_available": False, "source": _holding()["data_source"],
+    }
 
 
 def _apply(q, holding=None, prev_closes=None):
@@ -157,6 +161,32 @@ def test_writer_flags_the_pc_equals_c_fallback_as_no_prior_close():
     assert "quote_incomplete_range" not in holding
     assert holding["quote_incomplete"] is True
     assert session_change_pct(holding) is None
+    assert holding["today_change"] is holding["today_change_pct"] is None
+
+
+@pytest.mark.parametrize("shares_bought, expected", [(4, None), (10, 15.5)])
+def test_missing_prior_close_preserves_only_a_fully_fill_based_mark(
+        tmp_path, shares_bought, expected):
+    holding = _holding(trades=[{"date": "2026-11-02", "action": "buy",
+                               "shares": shares_bought, "price": 8.0}])
+    holding.pop("prev_close")
+    holding.pop("prev_close_date")
+    _apply({"c": 9.55, "h": 9.95, "l": 9.55, "source": "Nasdaq API (etf)"},
+           holding=holding)
+    assert holding["today_change"] == expected
+    assert trim_holding(holding, "USD")["today_change"] == expected
+    path = tmp_path / "portfolio.json"
+    book = _portfolio(holding)
+    if expected is None:
+        # An older writer stored a numerically consistent but unsupported zero.
+        holding.update(today_change=0, today_change_pct=0)
+        path.write_text(json.dumps(book))
+        assert any(row["code"] == "TODAY_LEG" for row in integrity.check(path)["findings"])
+    aggregates.recompute(book)
+    assert holding["today_change"] == expected
+    assert book["portfolios"]["us_stocks"]["today_total_change"] == (expected or 0)
+    path.write_text(json.dumps(book))
+    assert not any(row["code"] == "TODAY_LEG" for row in integrity.check(path)["findings"])
 
 
 def test_writer_clears_both_flags_on_a_complete_quote():
