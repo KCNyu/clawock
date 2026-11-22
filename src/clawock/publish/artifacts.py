@@ -1168,10 +1168,11 @@ def _assert_published_fx_is_in_ledger(data: dict,
         raise AssertionError(
             'fx.fetched_at is missing or not an ISO-8601 timestamp') from None
     for row in rows:
+        # Older ledger rows stored null; the dashboard projects that as false.
         if (row.get('day') != day or row.get('pair', 'USDHKD') != 'USDHKD'
                 or row.get('rate') != fx.get('usdhkd')
                 or row.get('source') != fx.get('source')
-                or row.get('fallback_used', False) != fx.get('fallback_used', False)):
+                or (row.get('fallback_used') or False) != fx.get('fallback_used', False)):
             continue
         try:
             recorded_at = datetime.fromisoformat(str(row.get('fetched_at')).replace('Z', '+00:00'))
