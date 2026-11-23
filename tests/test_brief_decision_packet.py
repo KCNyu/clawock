@@ -1731,3 +1731,15 @@ def test_ticker_facts_keeps_an_unmeasured_day_change_null():
     facts = packet_mod._ticker_facts(holding, {}, 'TST', 10)
     assert facts['today_change_pct'] is None
     assert facts['shares'] == 10 and facts['current_price'] == 2.0
+
+
+def test_ticker_facts_keep_fresh_lot_day_change_without_prior_close():
+    holding = {
+        'ticker': 'TST', 'shares': 10, 'current_price': 2,
+        'day_session_date': '2026-11-20',
+        'trades': [{'date': '2026-11-20', 'action': 'buy', 'shares': 10, 'price': 1.6}],
+        'quote_incomplete_prev_close': True, 'today_change_pct': 25,
+    }
+    facts = packet_mod._ticker_facts(holding, {}, 'TST', 10, market='us')
+    assert facts['today_change_pct'] == 25
+    assert facts['session_change_pct'] is None

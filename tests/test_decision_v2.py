@@ -1370,6 +1370,12 @@ def test_mark_horizons_names_each_reason_a_mark_is_withheld():
         assert marks(no_bar, "2026-07-09")["pending_reason"] == "mark_bar_missing"
     with _patched(no_bar, days), mock.patch.object(dv2, "last_closed_session", return_value="2026-07-01"):
         assert marks(no_bar, "2026-07-09")["pending_reason"] == "mark_pending"
+    missing_t5 = {day: bar for day, bar in clean.items() if day != "2026-07-06"}
+    with _patched(missing_t5, days):
+        out = marks(missing_t5, "2026-07-09")
+        assert out["status"] == "settled"
+        assert out["mark_t5_reason"] == "mark_bar_missing"
+        assert "mark_t5_reason" not in marks(missing_t5, "2026-07-06")
     suspect = {**clean, "2026-07-02": {**clean["2026-07-02"], "implausible_move": "60.0%"}}
     with _patched(suspect, days):
         out = marks(suspect, "2026-07-09")

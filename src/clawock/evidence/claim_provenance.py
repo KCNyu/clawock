@@ -190,14 +190,14 @@ def scan_text(text: str, *, source: str) -> list[dict]:
         for series, last, unit in PERCENT.findall(line):
             for raw in re.findall(_NUMBER, series) + [last]:
                 values.append((float(raw.replace('−', '-')) / 100.0, 'percent',
-                               _tolerance(raw, 'percent')))
+                               _tolerance(raw, 'percent'), raw.startswith(('+', '-', '−'))))
         for raw in PVALUE.findall(line):
-            values.append((float(raw), 'pvalue', _tolerance(raw, 'pvalue')))
+            values.append((float(raw), 'pvalue', _tolerance(raw, 'pvalue'), False))
         keys = [key_re.pattern for word_re, key_re in FAMILIES if word_re.search(line)]
-        for value, kind, tolerance in values:
+        for value, kind, tolerance, signed in values:
             claims.append({
                 'source': source, 'line': lineno, 'value': value, 'kind': kind,
-                'tolerance': tolerance,
+                'tolerance': tolerance, 'signed': signed,
                 'text': line.strip()[:120], 'cited': cited,
                 'keys': '|'.join(keys),
             })
@@ -205,7 +205,7 @@ def scan_text(text: str, *, source: str) -> list[dict]:
 
 
 def _matches_card(value: float, cards: list[dict], kind='percent', keys='',
-                  tolerance: float = TOLERANCE) -> bool:
+                  tolerance: float = TOLERANCE, *, signed=False) -> bool:
     """A percentage matches only leaves named for a quantity its line names.
 
     A line with no such word (only `p =`) still reads the whole tree: that is
@@ -222,8 +222,10 @@ def _matches_card(value: float, cards: list[dict], kind='percent', keys='',
         else:
             numbers = _numbers_in(metrics, [])
         for number in numbers:
-            difference = (abs(number - value) if kind == 'pvalue'
-                          else abs(abs(number) - abs(value)))
+            # Unsigned drawdown prose may quote a loss magnitude.
+            magnitude = (kind == 'percent' and not signed and key_re is not None
+                         and key_re.pattern == r'drawdown|max_?dd')
+            difference = abs(abs(number) - value) if magnitude else abs(number - value)
             if difference <= tolerance:
                 return True
     return False
@@ -265,7 +267,7 @@ def check(root: Path | None = None, cards_dir: Path | None = None,
                 continue
             if not _matches_card(claim['value'], cited_cards, claim['kind'],
                                  claim.get('keys', ''),
-                                 claim.get('tolerance', TOLERANCE)):
+                                 claim.get('tolerance', TOLERANCE), signed=claim['signed']):
                 problems.append(
                     f"{rel}:{claim['line']}: claims {claim['value']:+.4f}, which "
                     f"no cited run card contains — {claim['text']}")

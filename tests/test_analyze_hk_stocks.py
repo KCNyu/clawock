@@ -145,7 +145,7 @@ def test_parse_gtimg_rejects_empty_short_or_malformed_responses(raw):
     assert hk._parse_gtimg(raw) is None
 
 
-def test_parse_gtimg_missing_previous_close_and_open_fall_back_to_current_only():
+def test_parse_gtimg_missing_previous_close_keeps_change_unknown():
     raw = _gtimg_line(
         "r_hk00100",
         name="MINIMAX-W",
@@ -161,9 +161,10 @@ def test_parse_gtimg_missing_previous_close_and_open_fall_back_to_current_only()
 
     assert parsed is not None
     assert parsed["c"] == 297.4
-    assert parsed["pc"] == 297.4
+    assert parsed["pc"] is None
     assert parsed["o"] == 297.4
-    assert parsed["dp"] == 0.0
+    assert parsed["dp"] is None
+    assert parsed["_pc_quality"] == "missing"
     assert parsed["h"] == 301.0
     assert parsed["l"] == 289.0
 

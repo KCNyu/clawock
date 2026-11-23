@@ -1893,6 +1893,10 @@ def test_the_price_series_is_session_closes_not_file_dated_snapshots(monkeypatch
 
     assert series["00100"] == [250.2, 241.4, 250.2], "ends on prev_close → current"
     assert series["NOBARS"] == [241.4, 250.2, 250.2], "no bars: the snapshot series stays"
+    assert dashboard._session_close_series(
+        "00100", {"current_price": 250.2, "prev_close": 241.4}, 8
+    ) == [250.2, 241.4, 250.2], "short canonical history still wins"
+
 
     # Mid-session: the quote is newer than the last stored close.
     live = tmp_path / "2026-10-02.json"

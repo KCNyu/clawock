@@ -887,3 +887,17 @@ def test_a_provider_without_a_real_prior_close_is_not_complete():
                                      "h": 2.0, "l": 0.5})
     assert F._quote_is_complete({"c": 1.0, "pc": 0.9, "pc_ok": True,
                                  "h": 2.0, "l": 0.5})
+
+
+def test_index_snapshots_keep_unknown_and_flat_distinct(monkeypatch):
+    monkeypatch.setattr(F, 'get_tencent_us_index', lambda _: None)
+    monkeypatch.setattr(F, 'get_yfinance_quote', lambda symbol: {
+        '^NDX': {'c': 100.0, 'pc': 100.0, 'pc_ok': False, 'dp': 0},
+        '^DJI': {'c': 100.0, 'pc': 100.0, 'pc_ok': True, 'dp': 0},
+    }.get(symbol))
+    monkeypatch.setattr(F, 'get_nasdaq_quote', lambda _: {'c': 10.0, 'pc': None, 'dp': 0})
+    rows = F.fetch_us_indices()
+    for symbol in ('SPX', 'NDX'):
+        assert rows[symbol]['prev_close'] is None
+        assert rows[symbol]['change_pct'] is None
+    assert rows['DJI']['change_pct'] == 0

@@ -611,11 +611,21 @@ def fetch_us_indices() -> Dict[str, Dict]:
             is_proxy = True
         if not q or q.get('c') is None:
             continue
+        pc = to_finite_number(q.get('pc'))
+        if pc is None or pc <= 0 or q.get('pc_ok') is False:
+            pc = None
+        dp = to_finite_number(q.get('dp'))
+        # Nasdaq reports a real percentage independently of prior close, but
+        # its adapter also uses a synthetic zero when neither field is present.
+        if pc is None and (not is_proxy or not dp):
+            dp = None
+        elif dp is None:
+            dp = _pct(q['c'], pc)
         entry = {
             'name':       name,
             'price':      round(q['c'], 2),
-            'prev_close': round(q.get('pc') or q['c'], 2),
-            'change_pct': round(q.get('dp') or 0, 3),
+            'prev_close': round(pc, 2) if pc is not None else None,
+            'change_pct': round(dp, 3) if dp is not None else None,
             'source':     src_tag,
         }
         if is_proxy:
