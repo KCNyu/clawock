@@ -1550,7 +1550,7 @@ function useTaskStats(props: TaskQueueInjected & { t: Translate }, open: boolean
     }, (err: unknown) => {
       if (request.current !== id) return
       const message = (err instanceof Error ? err.message : String(err)) || props.t('balance.unknownError')
-      setState((current) => ({ ...current, loading: false, error: message }))
+      setState({ data: null, loading: false, error: message })
     })
   }
   useEffect(() => {
@@ -3477,7 +3477,7 @@ export function WorkbenchPage(props: WorkbenchProps): React.ReactElement {
     : statsMessage !== null
       ? h('div', { className: cx('wb-ov-body', 'pbc') }, h('p', { className: cx('wb-ov-note') }, statsMessage))
       : h('div', null, statsTop, statsData === null ? null : renderStatsBody(statsData, t))
-  const statsSummary = statsFailed ? t('workbench.overview.unavailable', { message: stats.data?.error ?? '' })
+  const statsSummary = statsError ? statsMessage ?? '—'
     : statsData?.summaryLine ?? (stats.loading ? t('workbench.overview.loading') : '—')
   const historyRows = historyRowsView(result, t, now)
   const footer = opsFooter(result, t)
