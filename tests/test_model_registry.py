@@ -69,6 +69,11 @@ def test_minimax_means_m31_flash_and_its_one_thinking_level(registry):
     for model in minimax:
         assert llm._ADAPTIVE_ONLY.match(model.id), model.id
         assert model.params.get('thinking') == 'adaptive', model.key
+    defaults = registry.openclaw_model_defaults()
+    primary, retry, backstop = [registry.chain('cron')['model'],
+                                *registry.chain('cron')['fallbacks']]
+    assert [defaults[ref]['params']['thinking'] for ref in (primary, retry, backstop)] == [
+        'adaptive', 'adaptive', 'max']
     settings = registry.openclaw_settings()
     # Talk consults run the chat chain; a chain made of MiniMax hops alone has
     # no other model to pick a level for.
