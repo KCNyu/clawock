@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T16:19:24Z",
+  "generated_at": "2026-11-23T18:40:38Z",
   "site": "https://kcnyu.github.io/clawock/",
   "note": "windows are fixed-length and end on the last complete day, so consecutive snapshots do not overlap and may be compared directly. `days_with_data` below `days` means GSC had not filled the tail.",
   "snapshots": [
@@ -2051,6 +2051,155 @@
         },
         {
           "date": "2026-11-13",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-11-20",
+      "captured_at": "2026-11-23T18:40:38Z",
+      "windows": {
+        "7": {
+          "start": "2026-11-14",
+          "end": "2026-11-20",
+          "days": 7,
+          "complete": true,
+          "days_with_data": 7,
+          "impressions": 3,
+          "clicks": 0,
+          "position": 33.0
+        },
+        "28": {
+          "start": "2026-10-24",
+          "end": "2026-11-20",
+          "days": 28,
+          "complete": true,
+          "days_with_data": 28,
+          "impressions": 13,
+          "clicks": 0,
+          "position": 11.85
+        }
+      },
+      "queries": {
+        "reported": 1,
+        "top": [
+          {
+            "query": "tencent28420",
+            "impressions": 1,
+            "clicks": 0,
+            "position": 10
+          }
+        ]
+      },
+      "pages_with_impressions": 1,
+      "published_urls": 164,
+      "sitemap": {
+        "path": "https://kcnyu.github.io/clawock/sitemap.xml",
+        "lastSubmitted": "2026-08-16T13:59:14.645Z",
+        "lastDownloaded": null,
+        "isPending": true,
+        "errors": "0"
+      },
+      "coverage": {
+        "/": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "lastCrawlTime": "2026-11-17T17:48:17Z"
+        },
+        "briefs.html": {
+          "verdict": "NEUTRAL",
+          "coverageState": "URL is unknown to Google",
+          "lastCrawlTime": null
+        },
+        "faq.html": {
+          "verdict": "NEUTRAL",
+          "coverageState": "URL is unknown to Google",
+          "lastCrawlTime": null
+        }
+      },
+      "daily": [
+        {
+          "date": "2026-11-07",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-08",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-09",
+          "impressions": 1,
+          "clicks": 0,
+          "position": 4
+        },
+        {
+          "date": "2026-11-10",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-11",
+          "impressions": 6,
+          "clicks": 0,
+          "position": 7.5
+        },
+        {
+          "date": "2026-11-12",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-13",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-14",
+          "impressions": 1,
+          "clicks": 0,
+          "position": 19
+        },
+        {
+          "date": "2026-11-15",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-16",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-17",
+          "impressions": 1,
+          "clicks": 0,
+          "position": 10
+        },
+        {
+          "date": "2026-11-18",
+          "impressions": 1,
+          "clicks": 0,
+          "position": 70
+        },
+        {
+          "date": "2026-11-19",
+          "impressions": 0,
+          "clicks": 0,
+          "position": 0
+        },
+        {
+          "date": "2026-11-20",
           "impressions": 0,
           "clicks": 0,
           "position": 0
