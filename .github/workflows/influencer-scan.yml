@@ -5,8 +5,8 @@ name: Influence Radar (multi-source)
 # Trump 原帖(Truth Social) · Musk 报道(新闻代理) · ARK/Cathie Wood 日度调仓(一手 JSON)
 # · Serenity Substack 公开帖 · 段永平/洪灏(zh-HK 港媒) + Burry/Pelosi(en-US) 报道.
 # Runs twice on (HKT) weekdays:
-#   21:40 UTC Sun–Thu = 05:40 HKT Mon–Fri  → ~2.3h before the 08:00 HKT brief (buffer for
-#                                            GH Actions' 1–2h scheduled-cron delay)
+#   21:40 UTC Sun–Thu = 05:40 HKT Mon–Fri  → morning fallback
+# The host dispatches the morning run via ops/host/dispatch_preopen_scans.sh.
 #   12:50 UTC Mon–Fri = 20:50 HKT Mon–Fri  → nominally 10 min before the US news
 #                                            digest, but this slot's own median drift
 #                                            is ~74min (schedule-drift.json), so in

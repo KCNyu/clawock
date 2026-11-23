@@ -743,7 +743,7 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
 
 
 def publish_data_plane(market):
-    """Publish deterministic dashboard outputs, independent of prose quality."""
+    """Publish deterministic dashboard outputs, returning status, published, and push diagnostics."""
     try:
         ok, _ = rebuild_dashboard()
         publication_state = dashboard_publication_state(WS)
@@ -758,7 +758,7 @@ def publish_data_plane(market):
             paths.append(f'memory/snapshots/{snap}.json')
         added, _ = git_cmd('add', '--', *paths)
         if not added:
-            return 'git_add_failed', False
+            return 'git_add_failed', False, None
         msg = (
             f"dashboard: intraday refresh "
             f"({market} {datetime.now().strftime('%H:%M HKT')})"
@@ -772,27 +772,28 @@ def publish_data_plane(market):
             # steps `run_budgets.POST_DELIVERY_STEPS` charges (#2608).
             clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
             if clean:
-                return ('current', False) if ok else (publication_state, False)
-            return 'commit_failed', False
-        pushed, _ = push_with_rebase_retry()
+                return ('current' if ok else publication_state), False, None
+            return 'commit_failed', False, None
+        pushed, detail = push_with_rebase_retry(keep_failure_log=True)
         if not pushed:
-            return 'committed_local', False
+            return 'committed_local', False, detail
         # The status file must reach master even when the data-plane push failed;
         # otherwise the off-host health check keeps reading the previous green
         # record. Report the actual public outcome after that diagnostic commit.
-        return ('published', True) if ok else (publication_state, False)
+        return ('published' if ok else publication_state), ok, None
     except Exception as exc:
         print(f'warn: dashboard auto-publish failed: {exc}', file=sys.stderr)
-        return 'publish_failed', False
+        return 'publish_failed', False, None
 
 
 def finish_no_change(ctx, args, *, shipped=False, allow_soft_review=False):
     if args.context_id != ctx.get('context_id') or not can_silence(
             ctx, allow_soft_review=allow_soft_review):
         return input_error(args.market, 'no_change context 不匹配或健康闸未通过')
-    data_plane_status, dashboard_published = publish_data_plane(args.market)
+    data_plane_status, dashboard_published, push_detail = publish_data_plane(args.market)
     if data_plane_status not in {'published', 'current'}:
-        return input_error(args.market, f'no_change dashboard 发布失败: {data_plane_status}')
+        detail = f' ({push_detail})' if push_detail else ''
+        return input_error(args.market, f'no_change dashboard 发布失败: {data_plane_status}{detail}')
     try:
         if not intraday_delta.persist_delivered_state(WS, ctx):
             return input_error(args.market, 'no_change 语义游标未写入')
@@ -1129,9 +1130,9 @@ def main(argv=None):
     raw_block = (ctx.get('raw_wechat_block', '') or '').strip()
     data_plane_ready = ctx.get('status') == 'ok' and bool(raw_block)
     if data_plane_ready:
-        data_plane_status, dashboard_published = publish_data_plane(args.market)
+        data_plane_status, dashboard_published, push_detail = publish_data_plane(args.market)
     else:
-        data_plane_status, dashboard_published = 'unavailable', False
+        data_plane_status, dashboard_published, push_detail = 'unavailable', False, None
 
     result = {
         'status':        status,
@@ -1178,6 +1179,7 @@ def main(argv=None):
             if wechat_sent is False else None,
             telegram_sent=tg_ok, dashboard_published=dashboard_published,
             data_plane_status=data_plane_status,
+            reason=push_detail,
             insights_sidecar=insights_written, issue_count=len(issues),
             # Published so a gate that runs elsewhere can see a lane only this
             # machine can measure: commits made here that never reached the remote

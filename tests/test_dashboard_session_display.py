@@ -25,3 +25,16 @@ def test_a_holding_row_carries_its_own_session_or_none():
     row = {'ticker': 'CRCL', 'shares': 1, 'day_session_date': '2026-10-02'}
     assert trim_holding(row, 'USD')['day_session_date'] == '2026-10-02'
     assert trim_holding({'ticker': 'CRCL', 'shares': 1}, 'USD')['day_session_date'] is None
+
+
+def test_hk_index_volatility_is_used_only_for_index_products():
+    rows = [
+        {'ticker': ticker, 'shares': 10, 'cost_basis': 20,
+         'current_price': 10, 'current_value': 100}
+        for ticker in ('07226', '07709')
+    ]
+    projected = {row['ticker']: row for row in compute_breakeven_math(
+        rows, [], {'hk': {'vol_annualized': 0.3477}})['rows']}
+    assert projected['07226']['chop_drag_pct_per_month'] == 1.01
+    assert 'chop_drag_pct_per_month' not in projected['07709']
+    assert projected['07709']['vol_unavailable_reason']

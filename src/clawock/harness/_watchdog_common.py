@@ -1333,7 +1333,8 @@ def claim_send(claim_path, *, stale_after_ms=SEND_CLAIM_STALE_MS, now_ms=None):
     which is what proves it had already reached WeChat).
 
     The claim closes that window because it is taken before the first send, not
-    after the last one. O_EXCL is the whole lock.
+    after the last one. A short file lock serializes initial creation and
+    takeover. The claim itself persists across the send.
 
     A claim whose holder is gone is only taken over when the holder had NOT
     started sending. If it died mid-send we cannot know whether WeChat got the
@@ -1349,6 +1350,16 @@ def claim_send(claim_path, *, stale_after_ms=SEND_CLAIM_STALE_MS, now_ms=None):
     path = Path(claim_path)
     now = int(datetime.now().timestamp() * 1000) if now_ms is None else now_ms
     mine = {'pid': os.getpid(), 'ts': now, 'send_started_at': None}
+    from clawock.safe_io import file_lock
+
+    try:
+        with file_lock(path):
+            return _claim_send_locked(path, mine, stale_after_ms)
+    except OSError as e:
+        return True, f'claim-unavailable-fail-open: {e}'
+
+
+def _claim_send_locked(path, mine, stale_after_ms):
     try:
         fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     except FileExistsError:
@@ -1367,7 +1378,7 @@ def claim_send(claim_path, *, stale_after_ms=SEND_CLAIM_STALE_MS, now_ms=None):
         return True, f'claim-unreadable-fail-open: {e}'
 
     held_ts = held.get('ts')
-    if not isinstance(held_ts, (int, float)) or now - held_ts >= stale_after_ms:
+    if not isinstance(held_ts, (int, float)) or mine['ts'] - held_ts >= stale_after_ms:
         _write_claim(path, mine)
         return True, 'took-over-stale-claim'
     holder = held.get('pid')

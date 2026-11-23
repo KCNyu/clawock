@@ -109,11 +109,11 @@ def test_intraday_commits_the_book_and_its_snapshot_together(tmp_path, monkeypat
         path.write_text('{"generation": 2}')
     monkeypatch.setattr(intraday_postflight, 'git_cmd', git)
     monkeypatch.setattr(intraday_postflight, 'WS', tmp_path)
-    monkeypatch.setattr(intraday_postflight, 'rebuild_dashboard', lambda: (True, ''))
+    monkeypatch.setattr(intraday_postflight, 'rebuild_dashboard', lambda **kwargs: (True, ''))
     monkeypatch.setattr(intraday_postflight, 'dashboard_publication_state', lambda _: 'current')
     monkeypatch.setattr(intraday_postflight, 'snapshot_date_for_now', lambda: '2026-10-02')
-    monkeypatch.setattr(intraday_postflight, 'push_with_rebase_retry', lambda: (True, ''))
-    assert intraday_postflight.publish_data_plane('hk') == ('published', True)
+    monkeypatch.setattr(intraday_postflight, 'push_with_rebase_retry', lambda **kwargs: (True, ''))
+    assert intraday_postflight.publish_data_plane('hk') == ('published', True, None)
     assert git('show', 'HEAD:portfolio.json')[1] == git('show', 'HEAD:memory/snapshots/2026-10-02.json')[1]
 
 
@@ -138,28 +138,39 @@ def test_the_intraday_chain_that_pushes_runs_the_git_steps_the_budget_charges(tm
     assert git('add', 'other.json')[0] and git('commit', '-m', 'seed')[0]
     monkeypatch.setattr(intraday_postflight, 'git_cmd', git)
     monkeypatch.setattr(intraday_postflight, 'WS', tmp_path)
-    monkeypatch.setattr(intraday_postflight, 'rebuild_dashboard', lambda: (True, ''))
+    monkeypatch.setattr(intraday_postflight, 'rebuild_dashboard', lambda **kwargs: (True, ''))
     monkeypatch.setattr(intraday_postflight, 'dashboard_publication_state', lambda _: 'current')
     monkeypatch.setattr(intraday_postflight, 'snapshot_date_for_now', lambda: None)
     monkeypatch.setattr(intraday_postflight, 'push_with_rebase_retry',
-                        lambda: (pushes.append(len(calls)), (True, ''))[1])
+                        lambda **kwargs: (pushes.append(len(calls)), (True, ''))[1])
 
     calls.clear()
-    assert intraday_postflight.publish_data_plane('hk') == ('published', True)
+    assert intraday_postflight.publish_data_plane('hk') == ('published', True, None)
     assert pushes == [run_budgets.GIT_STEPS_PER_POSTFLIGHT]
 
     # Nothing new to commit, with unrelated dirt in the checkout as on the live
     # host: git then says "no changes added to commit", not "nothing to commit".
     (tmp_path / 'other.json').write_text('{"generation": 2}')
     calls.clear()
-    assert intraday_postflight.publish_data_plane('hk') == ('current', False)
+    assert intraday_postflight.publish_data_plane('hk') == ('current', False, None)
 
     # A rejected commit with the files still staged is not "current".
     (tmp_path / 'portfolio.json').write_text('{"generation": 2}')
     reject.append(True)
     calls.clear()
-    assert intraday_postflight.publish_data_plane('hk') == ('commit_failed', False)
+    assert intraday_postflight.publish_data_plane('hk') == ('commit_failed', False, None)
     assert calls == ['add', 'commit', 'diff'] and len(pushes) == 1
+
+    reject.clear()
+    calls.clear()
+    push_detail = 'safe_push exit 1，日志 memory/.tmp/report-push-example.log'
+    def fail_push(*, keep_failure_log=False):
+        assert keep_failure_log
+        return False, push_detail
+
+    monkeypatch.setattr(intraday_postflight, 'push_with_rebase_retry', fail_push)
+    assert intraday_postflight.publish_data_plane('hk') == ('committed_local', False, push_detail)
+
 
 
 @pytest.mark.parametrize('session,shares,fill,current,prev,amount,base', [
