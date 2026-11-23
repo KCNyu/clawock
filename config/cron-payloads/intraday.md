@@ -6,12 +6,14 @@
 
 {{include:_analysis-inputs.md}}
 
-Step 1：`clawock intraday preflight --market {{market}} --judgment-packet --cron-job "{{job_name}}"`
-脚本把完整审计 context 留在 `memory/.tmp/intraday-context-{{market}}-latest.json`；stdout 是核心包：影响本档判断的字段（计划、观察线、历史变化、分析器原样输出 `analyzer_block`、加仓侧、异动证据、来源与失败状态）全部直接给出，`index.references` 列出参考层条目（名称、一行说明、大小、可切片的票、取法）。参考层按需用条目里的 `fetch` 命令取（`clawock tool intraday_reference …`，同代 context_id 锁定）；加 `--arg ticker=<代码>` 只取一只票，需要整份就不加。短卡只约束用户消息。保留 `context_id`。`market_closed` 直接结束，不 postflight。所有脚本 exec 调用都显式设置 `timeout: 300`，postflight 除外；若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度。
+Step 1：`clawock intraday preflight --market {{market}} --packet-files --cron-job "{{job_name}}"`
+preflight exec 参数为 `timeout: 300`、`yieldMs: 120000`。`market_closed` 直接结束。成功回执必须有 `complete: true`、`context_id`、`slot` 与 `parts`。下一轮在同一条回复内并行 `read` 每一个 `parts[].path`（默认从头读到尾）。每份 JSON 自带同档身份，`fields` 中每项为 [字段路径, 原值]，合起来是完整核心包。保留回执的 `context_id`、`prose_path`、`sidecar_path`。缺块、读失败或身份不符就写明失败档和缺块后结束，由 watchdog 兜底。参考层的同代取法见核心包 `index.references`。
 
-`delivery_mode=no_change`：不要生成散文、不要写 prose/sidecar，直接 `clawock intraday postflight --market {{market}} --context-id {CTXID}`。postflight 记录健康心跳与同档静默标记，不发微信或 Telegram；这不是跳过检查，闸失败由 watchdog 兜底。
+Step 2：读完核心包，按 Mode 7 的取证顺序判断。先列本档要说的标的和缺证据的判断，再把同一标的的参考查询、计算与需要的记忆查询合并为一批工具调用。各标的互不依赖的查询在同一轮发出；结果回来后收束判断，确有缺口就在判断里标明。
 
-`delivery_mode=review_candidate`：只有软候选首次出现，模型决定这档值不值得叫醒。若不值得，只向 prose 文件写精确字面值 `SILENT`，调用带 `--text-file` 的 postflight；不写 sidecar，postflight 留审计并静默。若值得，按 full_delta 写判断与 sidecar。
+`delivery_mode=no_change`：不要生成散文、不要写 prose/sidecar，直接 `clawock intraday postflight --market {{market}} --context-id {CTXID}`，按 Step 4 等待。健康心跳与同档静默标记由 harness 处理，闸失败由 watchdog 兜底。
+
+`delivery_mode=review_candidate`：只有软候选首次出现。不值得叫醒时只向 `prose_path` 写精确字面值 `SILENT`，带 `--text-file` 进入 Step 4。值得说时走完整卡流程。
 
 语义未变的 full_delta（每档必发开关打开时的无变化档，context 里 `semantic_unchanged` 为 true）：如实写「本档无实质变化」加继续观察/下一触发，不要为凑字数编异动或把旧信号说成新的。
 
@@ -25,11 +27,13 @@ Step 1：`clawock intraday preflight --market {{market}} --judgment-packet --cro
 
 候选生成不等于议程决定：`full_holdings` 含全持仓现价、日涨跌、报价新鲜度和计划触发线距离；`soft_candidates`、`opportunity_radar`、`early_trend_candidates`、`provisional_setups`、`t0_setups`、`semantic_state` 都是供你比较边缘机会和历史变化的材料；没有硬阈值命中也要看候选是否值得说。`information` 是情绪面/消息面汇总（晨间已落盘的东财/美股摘要/情绪/宏观/证据图谱，本档的东财+同花顺 7×24 市场快讯，以及 `information.live`：本档实时抓的 HKEXnews/SEC 全文检索/Google 新闻/Yahoo 每票条目）：每条带 grade（primary 一手 > authoritative 权威 > soft 软消息/情绪）与 cite；引用时照抄 cite（晨间条目含「截至」时间；实时条目含发布时间与「盘中实时」/「开盘前旧闻」，SEC 全文检索只有提交日、「时刻未知」），`stale=true` 的是开盘前写/发的，不许说成盘中/最新消息；某源没取到会在 ⛔ 行和 `information.sources` 写明，不等于没有消息；全文在参考层 `information_full`。`anomaly_search` 是 harness 为本档异动票做的网页检索（每票每交易日一次，复用缓存）：引用写标题与出处，`unavailable`/`empty` 如实说没查到；你不要自己调 Tavily。`known_catalysts` 衔接晨报，`active_information_candidates` 留一手来源与失败状态；`headline_feed` 是分析器截断的标题流（卡片不再展示、无新旧闸），只作背景线索，不当一手催化。`raw_wechat_block` 是给 kcn 的卡片（已报信号会折叠）；`analyzer_block` 是分析器原样输出，信号理由等细节以它为准。
 
-仅当发送 full_delta 或 review_candidate 判断为值得说时，按第一轮已读的 `skills/_shared/intraday-status-sidecar.md` 写 `memory/.tmp/intraday-insights-{今天YYYY-MM-DD}.json`，只含 status_banner/movers 文本，时间由 harness 写。必须在同一条回复内并行发出两个 `write` 工具调用，分别写 sidecar 与 `/root/.openclaw/workspace/memory/.tmp/intraday-prose-{{market}}.md`。然后调用：
-`clawock intraday postflight --market {{market}} --context-id {CTXID} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-{{market}}.md`
-若 postflight 返回 `status: revise`：什么都还没发，按它给的 `issues` 改写 prose 文件（只改被指出的地方），然后用同一条 postflight 命令再调用一次；只会要求改这一次，第二次无论结果都会投递；不要重跑 preflight。postflight 不设超时、不 kill，等它返回 `commit_ok`；投递与 dashboard 提交是两段。只有它是唯一微信路径，同步 Telegram；禁用 message/send，本 cron `--no-deliver`。
+Step 3：要发卡时，依 sidecar 规范，同一条回复内并行发出两个 `write` 工具调用，分别写 `sidecar_path`（intraday-insights- 日期用回执的 HKT `date`）和 `prose_path`（intraday-prose-{{market}}.md）。这是本代唯一一次成稿写入，工具返回后直接进入 Step 4。
 
-最终回复只写 postflight 的 status、wechat_sent、telegram_sent、commit_ok，供 cron 留痕；不要再输出整条微信或散文。postflight 返回后禁止再读、搜或重建临时文件来确认送达。
+Step 4：`clawock intraday postflight --market {{market}} --context-id {CTXID} --text-file "{PROSE_PATH}"; echo "EXIT=$?"`。postflight exec 设 `yieldMs: 120000`，沿用系统执行超时，不设 `background: true`。只有 exec 返回 `Command still running` 时，才用 `process` 的 `action: poll` 等同一 session，`timeout: 30000` 是等待毫秒数。若仍运行，继续等该 session 退出。禁止新开 exec 用 sleep/ps/ls/grep 探测进度。postflight 是唯一微信路径，同步 Telegram；禁用 message/send，本 cron `--no-deliver`。
+
+`status: revise` 是唯一修订入口，此时尚未送达。只对 `prose_path` 按 `issues` 做一次局部 `edit`，随后用原命令和原 `context_id` 再提交一次。其他结果直接收尾，已有渠道回执时即使 `EXIT=2` 也按实记录，发布失败交给运维路径处理。
+
+最终回复只写 postflight 的 status、wechat_sent、telegram_sent、dashboard_published、data_plane_status 与 heartbeat.state（有值时）。`committed_local` 表示本地已有提交，`published` 表示远端发布完成；渠道结果独立读取。若进程退出却无终态 JSON，记实际退出码和错误后结束，由 watchdog 接管。
 
 {{include:_exec-contract.md}}
 

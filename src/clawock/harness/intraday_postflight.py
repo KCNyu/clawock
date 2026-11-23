@@ -42,13 +42,17 @@ the existing single publisher exposes without introducing another git writer.
 
 import argparse
 import json
-import math
 import re
 import sys
+from contextlib import contextmanager
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
+from time import monotonic
 
+from clawock.context.intraday_packet import packet_dir
 from clawock.harness import risk_notices
+from clawock.harness.intraday_trigger_prices import price_number, subject_code, trigger_prices
 from clawock.harness.validation import (
     ADVISORY_MARK,
     FORBIDDEN_PHRASES,
@@ -154,9 +158,11 @@ def _skip_shipped_slot(market, slot, issue):
     """A retry of a slot an earlier attempt already delivered: file nothing."""
     print(f'idempotency: intraday {market} {slot} already delivered — this attempt '
           f'files no outcome over it ({issue})', file=sys.stderr)
+    marker = delivery_receipts.receipt_path(TMP, 'intraday', market=market)
+    _, telegram_done = delivered_channels(marker, slot=slot)
     print(json.dumps({
         'status': 'already_delivered', 'market': market, 'slot': slot,
-        'issues': [issue], 'wechat_sent': True, 'telegram_sent': None,
+        'issues': [issue], 'wechat_sent': True, 'telegram_sent': telegram_done,
     }, ensure_ascii=False, indent=2))
     return 0
 
@@ -196,7 +202,7 @@ def input_error(market, err):
     return 2
 
 
-def normalize_intraday_insights(path, generated_at=None, *, written_after=None):
+def normalize_intraday_insights(path, generated_at=None, *, written_after=None, output_path=None):
     """Replace model metadata with the current harness generation timestamp.
 
     The model owns narrative only. Malformed/missing sidecars are dashboard
@@ -220,7 +226,7 @@ def normalize_intraday_insights(path, generated_at=None, *, written_after=None):
             'generated_at': generated_at or datetime.now(timezone.utc).isoformat(
                 timespec='seconds').replace('+00:00', 'Z'),
         }
-        safe_write_json(str(path), canonical)
+        safe_write_json(str(output_path or path), canonical)
         return True
     except Exception as exc:
         print(f'warn: {path.name} 解析/规范化失败 — dashboard status_banner 将忽略: '
@@ -282,66 +288,10 @@ def _context_tickers(ctx):
 
 
 def _subject_prices(ctx, subject):
-    """Only the named subject's quoted prices and explicit plan levels.
-
-    Shares, P&L, dates, unrelated tickers and prose numbers are not prices.
-    A proposed near-market level may be within 5% of a current quote; farther
-    levels must already be explicitly sourced to this subject in the context.
-    """
-    from clawock.harness._harness_common import parse_holdings_rows
-    aliases = {
-        '恒科': ('hstech', '恒生科技'), '恒生科技': ('hstech', '恒科'),
-        '恒指': ('hsi', '恒生指数'), '恒生指数': ('hsi', '恒指'),
-        '标普': ('spx', 'spy'), '纳指': ('ndx', 'nasdaq'),
-    }
-    names = (subject.lower(), *aliases.get(subject, ()))
-    from clawock.instruments import watch_level_owner
-
-    # Resolve the longest complete registered display-name prefix. A shorter
-    # name cannot borrow a longer instrument's level; shared names stay
-    # ambiguous. Same owner as the brief's watch-level scale gate (#3476).
-    def plan_named(key):
-        return watch_level_owner(key) == subject
-    levels, current = set(), set()
-    keys = {'price', 'current_price', 'last', 'condition_price', 'trigger_price',
-            'support', 'resistance', 'price_above', 'price_below',
-            'close', 'prior_20d_high', 'proxy_close', 'proxy_prior_20d_high'}
-
-    def number(value, target):
-        if isinstance(value, bool):
-            return
-        try:
-            n = float(value)
-            if math.isfinite(n) and n > 0:
-                target.add(round(n, 4))
-        except (ValueError, TypeError):
-            pass
-
-    def walk(value, belongs=False, in_plan=False):
-        if isinstance(value, dict):
-            identity = str(value.get('ticker') or value.get('symbol') or value.get('label') or '').lower()
-            if identity:
-                belongs = identity in names
-            for key, child in value.items():
-                named = any(name == key.lower() or key.lower().startswith(name + '_') for name in names)
-                named = named or (in_plan and plan_named(key))
-                if belongs and key in keys:
-                    number(child, levels)
-                    if key in {'price', 'current_price', 'last'}:
-                        number(child, current)
-                elif named and not isinstance(child, (dict, list)):
-                    number(child, levels)
-                elif isinstance(child, (dict, list)):
-                    walk(child, belongs or named, in_plan or key == 'watch_levels')
-        elif isinstance(value, list):
-            for child in value:
-                walk(child, belongs, in_plan)
-    walk(ctx)
-    for block in (ctx.get('raw_wechat_block'), ctx.get('analyzer_block')):
-        for row in parse_holdings_rows(block or ''):
-            if str(row.get('ticker') or '').lower() == subject.lower():
-                number(row.get('price'), current)
-                number(row.get('price'), levels)
+    recorded = ctx.get('trigger_prices')
+    entries = (recorded if recorded is not None else trigger_prices(ctx)).get(subject_code(subject), [])
+    levels = {price_number(row['price']) for row in entries}
+    current = {price_number(row['price']) for row in entries if row.get('current')}
     return levels, current
 
 
@@ -358,26 +308,32 @@ def check_next_trigger(prose, ctx):
         inline = '下一触发' in (prose or '')
         return [('「下一触发」没有单独成行' if inline else '缺「下一触发」行')
                 + '（单独一行：下一触发：<标的> <条件><价位>；…）']
-    tickers = _context_tickers(ctx)
+    registered = ctx.get('trigger_prices')
+    if registered is None:
+        registered = trigger_prices(ctx)
+    subjects = sorted(_context_tickers(ctx) | set(registered) | set(TRIGGER_INDEX_NAMES),
+                      key=lambda name: (-len(name), name))
     problems = []
     for item in [part.strip() for part in _NEXT_TRIGGER_ITEM.split(line[len(NEXT_TRIGGER):])
                  if part.strip()]:
-        bare = item
-        for ticker in sorted(tickers, key=len, reverse=True):
-            bare = bare.replace(ticker, ' ')
-        subjects = [ticker for ticker in tickers if mentions_ticker(item, ticker)]
-        subjects += [name for name in TRIGGER_INDEX_NAMES if name in item]
-        if not subjects:
+        # One explicitly named owner per entry. Strip the owner only at the
+        # beginning, so a number equal to an HK ticker is still a price.
+        subject = next((name for name in subjects
+                        if re.match(re.escape(name) + r'(?![A-Za-z0-9])', item, re.I)), None)
+        if subject is None:
             problems.append(f'无标的「{item[:16]}」')
-        numbers = [whole + frac for whole, frac in _TRIGGER_NUMBER.findall(bare)]
+            continue
+        numbers = [whole + frac for whole, frac in _TRIGGER_NUMBER.findall(item[len(subject):])]
         if not numbers:
             problems.append(f'无价位「{item[:16]}」')
-        prices = [_subject_prices(ctx, subject) for subject in subjects]
-        missing = [raw for raw in numbers if not any(
-            round(float(raw.replace(',', '')), 4) in levels or any(
-                abs(float(raw.replace(',', '')) / quote - 1) <= 0.05
-                for quote in current)
-            for levels, current in prices)]
+            continue
+        levels, current = _subject_prices(ctx, subject)
+        missing = []
+        for raw in numbers:
+            number = price_number(raw)
+            if number not in levels and not any(
+                    abs(number / quote - 1) <= Decimal('0.05') for quote in current):
+                missing.append(raw)
         if missing:
             problems.append(f"价位无本标的依据或超出当前价 ±5%：{'、'.join(missing[:3])}")
     if not problems:
@@ -425,12 +381,22 @@ REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻', '缺�
 
 def claim_revise(market, context_id, issues):
     """True once per context: records that this generation was sent back."""
+    if not context_id:
+        return False
+    generation = packet_dir(TMP, market, context_id)
+    if generation.is_dir():
+        try:
+            with (generation / 'revise.json').open('x', encoding='utf-8') as receipt:
+                json.dump({'context_id': context_id, 'issues': issues}, receipt, ensure_ascii=False)
+            return True
+        except OSError:
+            return False
     path = TMP / f'intraday-revise-{market}.json'
     try:
         prior = json.loads(path.read_text())
     except (OSError, ValueError):
         prior = {}
-    if not context_id or prior.get('context_id') == context_id:
+    if prior.get('context_id') == context_id:
         return False
     try:
         safe_write_text(str(path), json.dumps({
@@ -742,39 +708,53 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
     )
 
 
-def publish_data_plane(market):
-    """Publish deterministic dashboard outputs, returning status, published, and push diagnostics."""
+@contextmanager
+def _timed(timings, stage):
+    started = monotonic()
     try:
-        ok, _ = rebuild_dashboard()
-        publication_state = dashboard_publication_state(WS)
+        yield
+    finally:
+        timings[stage] = round(monotonic() - started, 3)
+
+
+def publish_data_plane(market, *, timings=None):
+    """Publish deterministic dashboard outputs, returning status, published, and push diagnostics."""
+    if timings is None:
+        timings = {}
+    try:
+        with _timed(timings, 'dashboard_build'):
+            ok, _ = rebuild_dashboard()
+            publication_state = dashboard_publication_state(WS)
         # No dashboard outputs here: #314 untracked them, and `git add` on a
         # gitignored path fails rather than skipping, which would abort the
         # snapshot commit too. The book is written atomically (`mutate_json`),
         # so a refresh landing between the snapshot and this commit only makes
         # the committed book newer than the snapshot, never torn.
-        paths = ['portfolio.json', 'logs/dashboard_build_status.json']
-        snap = snapshot_date_for_now()
-        if snap:
-            paths.append(f'memory/snapshots/{snap}.json')
-        added, _ = git_cmd('add', '--', *paths)
-        if not added:
-            return 'git_add_failed', False, None
-        msg = (
-            f"dashboard: intraday refresh "
-            f"({market} {datetime.now().strftime('%H:%M HKT')})"
-        )
-        committed, _ = git_cmd('commit', '-m', msg, '--', *paths)
-        if not committed:
-            # "Nothing staged" and "commit rejected" both exit non-zero, and git
-            # words the first by whatever else is dirty in the checkout, so the
-            # index is asked (0 = no diff). Only this branch asks, and it never
-            # reaches the push: the path that does push stays at the two git
-            # steps `run_budgets.POST_DELIVERY_STEPS` charges (#2608).
-            clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
-            if clean:
-                return ('current' if ok else publication_state), False, None
-            return 'commit_failed', False, None
-        pushed, detail = push_with_rebase_retry(keep_failure_log=True)
+        with _timed(timings, 'runtime_commit'):
+            paths = ['portfolio.json', 'logs/dashboard_build_status.json']
+            snap = snapshot_date_for_now()
+            if snap:
+                paths.append(f'memory/snapshots/{snap}.json')
+            added, _ = git_cmd('add', '--', *paths)
+            if not added:
+                return 'git_add_failed', False, None
+            msg = (
+                f"dashboard: intraday refresh "
+                f"({market} {datetime.now().strftime('%H:%M HKT')})"
+            )
+            committed, _ = git_cmd('commit', '-m', msg, '--', *paths)
+            if not committed:
+                # "Nothing staged" and "commit rejected" both exit non-zero, and git
+                # words the first by whatever else is dirty in the checkout, so the
+                # index is asked (0 = no diff). Only this branch asks, and it never
+                # reaches the push: the path that does push stays at the two git
+                # steps `run_budgets.POST_DELIVERY_STEPS` charges (#2608).
+                clean, _ = git_cmd('diff', '--cached', '--quiet', '--', *paths)
+                if clean:
+                    return ('current' if ok else publication_state), False, None
+                return 'commit_failed', False, None
+        with _timed(timings, 'runtime_push'):
+            pushed, detail = push_with_rebase_retry(keep_failure_log=True)
         if not pushed:
             return 'committed_local', False, detail
         # The status file must reach master even when the data-plane push failed;
@@ -790,7 +770,9 @@ def finish_no_change(ctx, args, *, shipped=False, allow_soft_review=False):
     if args.context_id != ctx.get('context_id') or not can_silence(
             ctx, allow_soft_review=allow_soft_review):
         return input_error(args.market, 'no_change context 不匹配或健康闸未通过')
-    data_plane_status, dashboard_published, push_detail = publish_data_plane(args.market)
+    timings = {}
+    data_plane_status, dashboard_published, push_detail = publish_data_plane(
+        args.market, timings=timings)
     if data_plane_status not in {'published', 'current'}:
         detail = f' ({push_detail})' if push_detail else ''
         return input_error(args.market, f'no_change dashboard 发布失败: {data_plane_status}{detail}')
@@ -815,11 +797,12 @@ def finish_no_change(ctx, args, *, shipped=False, allow_soft_review=False):
             delivery_state='no_change'), ensure_ascii=False))
     except OSError as exc:
         return input_error(args.market, f'no_change marker 写入失败: {exc}')
-    cron_heartbeat.record(args.market, 'no_change',
-                          job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
-                          should_alert=False, reasoning_invoked=allow_soft_review,
-                          dashboard_published=dashboard_published,
-                          data_plane_status=data_plane_status)
+    with _timed(timings, 'heartbeat_record'):
+        cron_heartbeat.record(args.market, 'no_change',
+                              job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
+                              should_alert=False, reasoning_invoked=allow_soft_review,
+                              dashboard_published=dashboard_published,
+                              data_plane_status=data_plane_status)
     print(json.dumps({
         'status': 'no_change', 'market': args.market, 'mode': 'no_change',
         'wechat_sent': None, 'telegram_sent': None,
@@ -827,11 +810,14 @@ def finish_no_change(ctx, args, *, shipped=False, allow_soft_review=False):
         'data_plane_status': data_plane_status,
         'heartbeat': {'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
                       'state': 'no_change'},
+        'timings_seconds': timings,
     }, ensure_ascii=False, indent=2))
     return 0
 
 
 def main(argv=None):
+    started = monotonic()
+    timings = {}
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--text-file',
@@ -845,6 +831,19 @@ def main(argv=None):
     # A matching preflight that started before an early close may finish
     # after it. A closed sentinel has no context_id and cannot use this path.
     ctx, err = load_context(args.market)
+    text_path = Path(args.text_file).resolve() if args.text_file else None
+    active_id = (ctx or {}).get('context_id')
+    generation = packet_dir(TMP, args.market, active_id) if active_id else None
+    scoped = text_path is not None and text_path.parent.parent == TMP / 'intraday-packets'
+    authoring = ctx and ctx.get('delivery_mode') not in {'no_change', 'unchanged_receipt'}
+    scoped = scoped or bool(authoring and generation and generation.is_dir())
+    if scoped and (active_id != args.context_id or text_path != generation
+                   / f'intraday-prose-{args.market}.md'):
+        print(json.dumps({'status': 'input_error', 'context_id': args.context_id,
+                          'issues': ['prose path or context_id does not match the active generation'],
+                          'wechat_sent': None, 'telegram_sent': None,
+                          'dashboard_published': False, 'data_plane_status': 'unavailable'}))
+        return 2
     started_at = None
     if ctx and ctx.get('context_id') == args.context_id:
         try:
@@ -909,6 +908,7 @@ def main(argv=None):
         not receipt_only and args.context_id != ctx.get('context_id')
     )
 
+    validation_started = monotonic()
     # Keep the model's own text for the content rules; assemble the delivered
     # body separately, so the prepended block never satisfies a rule on the
     # model's behalf.
@@ -925,6 +925,8 @@ def main(argv=None):
     status = 'fail' if stale_generation else categorize(issues)
     length_warnings = ({} if stale_generation or receipt_only
                        else _length_warnings(text, model_text))
+
+    timings['validation'] = round(monotonic() - validation_started, 3)
 
     # ── Revise once (contract §7) ───────────────────────────────────────────
     # A rule the model keeps breaking becomes a gate, and a gate that only
@@ -944,6 +946,7 @@ def main(argv=None):
         print(json.dumps({
             'status': 'revise', 'market': args.market, 'issues': revisable,
             'wechat_sent': None, 'telegram_sent': None,
+            'timings_seconds': timings,
             'instruction': ('按 issues 改写 prose 文件（只改被指出的地方），再用同一条 postflight '
                             '命令调用一次；只要求改这一次，第二次无论结果都会投递。不要重跑 preflight。'),
         }, ensure_ascii=False, indent=2))
@@ -962,8 +965,9 @@ def main(argv=None):
     insights_path = TMP / f'intraday-insights-{sidecar_date}.json'
     # A receipt has no new model judgement.  Re-normalizing yesterday's file
     # would stamp old prose with the current UTC time and make it look fresh.
+    author_sidecar = text_path.with_name(insights_path.name) if scoped else insights_path
     insights_written = (False if receipt_only else normalize_intraday_insights(
-        insights_path, written_after=ctx.get('generated_at')))
+        author_sidecar, written_after=ctx.get('generated_at'), output_path=insights_path))
     if not insights_written and not receipt_only:
         print(f'warn: {insights_path.name} 缺失或不可用 — dashboard status_banner 将过期隐藏 '
               f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)
@@ -992,6 +996,7 @@ def main(argv=None):
     # --no-deliver so this is the SOLE send → no double, no long-turn drop. We
     # record the real send result to a marker so intraday_watchdog only re-sends on
     # a CONFIRMED failure (never doubles a report that went out here).
+    delivery_started = monotonic()
     wechat_sent = None
     # Why the WeChat leg did not land, when it did not. `wechat_sent=false` is
     # what a health surface counts; without the reason next to it, a channel
@@ -1108,12 +1113,16 @@ def main(argv=None):
                 # (#1743, `send_under_claim`). Keeping the claim when it does not
                 # costs nothing a later slot needs: since #1742 the claim carries
                 # this slot, so it refuses a re-send of THIS slot and no other.
-                (wechat_sent, send_out, tg_ok), _ = send_under_claim(
+                (wechat_sent, send_out, tg_ok), receipt_written = send_under_claim(
                     claim_path, send, write_receipt, receipt_label='marker')
+                if receipt_written:
+                    timings['delivery_receipt_elapsed'] = round(monotonic() - started, 3)
                 delivered_this_run = bool(wechat_sent or tg_ok)
                 if not wechat_sent:
                     print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
                           file=sys.stderr)
+
+    timings['delivery'] = round(monotonic() - delivery_started, 3)
 
     # A failed generation delivers the deterministic block so the slot remains
     # visible, but it has not delivered the intended semantic report.  Keep the
@@ -1130,7 +1139,8 @@ def main(argv=None):
     raw_block = (ctx.get('raw_wechat_block', '') or '').strip()
     data_plane_ready = ctx.get('status') == 'ok' and bool(raw_block)
     if data_plane_ready:
-        data_plane_status, dashboard_published, push_detail = publish_data_plane(args.market)
+        data_plane_status, dashboard_published, push_detail = publish_data_plane(
+            args.market, timings=timings)
     else:
         data_plane_status, dashboard_published, push_detail = 'unavailable', False, None
 
@@ -1168,6 +1178,11 @@ def main(argv=None):
               f'({status}, {heartbeat_state}) files no heartbeat over the delivered slot',
               file=sys.stderr)
     else:
+        # Refresh the tracking ref after the push before measuring backlog (#2298).
+        with _timed(timings, 'heartbeat_fetch'):
+            unpushed_commits = cron_heartbeat.unpushed_commits(refresh=True)
+            unpushed_oldest_h = cron_heartbeat.unpushed_oldest_hours()
+        heartbeat_started = monotonic()
         cron_heartbeat.record(
             args.market,
             heartbeat_state,
@@ -1184,8 +1199,8 @@ def main(argv=None):
             # Published so a gate that runs elsewhere can see a lane only this
             # machine can measure: commits made here that never reached the remote
             # (#1241). `None` when it cannot be determined — never 0.
-            unpushed_commits=cron_heartbeat.unpushed_commits(refresh=True),
-            unpushed_oldest_h=cron_heartbeat.unpushed_oldest_hours(),
+            unpushed_commits=unpushed_commits, unpushed_oldest_h=unpushed_oldest_h,
+            timings_seconds=dict(timings),
             # The ledger needs the same escalating/advisory split as product_status:
             # an advisory-only slot delivered a clean report (#764).
             escalating_count=len(escalating), advisory_count=len(advisories),
@@ -1194,6 +1209,9 @@ def main(argv=None):
             # that tells the outcome bridge this process holds no delivery verdict.
             send_claim_declined=send_claim_declined or None,
         )
+        timings['heartbeat_record'] = round(monotonic() - heartbeat_started, 3)
+    timings['total'] = round(monotonic() - started, 3)
+    result['timings_seconds'] = timings
     result['heartbeat'] = {
         'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
         'state': heartbeat_state,

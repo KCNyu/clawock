@@ -48,7 +48,7 @@ CORE_FIELDS = {
     'leverage_legs': 'holdings',
     # 计划与持仓策略约束
     'plan_context': 'constraints', 'plan_triggers': 'constraints',
-    'watch_levels': 'constraints', 'holding_policies': 'constraints',
+    'watch_levels': 'constraints', 'trigger_prices': 'constraints', 'holding_policies': 'constraints',
     'strategy_checks': 'constraints', 'strategy_conflicts': 'constraints',
     'strategy_escalations': 'constraints', 'policy_evidence_errors': 'constraints',
     'risk_debts': 'constraints', 'risk_debts_error': 'constraints',

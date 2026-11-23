@@ -218,7 +218,7 @@ def test_a_no_change_retry_keeps_the_delivered_receipt(tmp_path, monkeypatch, he
                         lambda *a, **kw: None)
     monkeypatch.setattr(intraday_postflight, 'can_silence', lambda *a, **kw: True)
     monkeypatch.setattr(intraday_postflight, 'publish_data_plane',
-                        lambda market: ('published', True, None))
+                        lambda market, **_: ('published', True, None))
     monkeypatch.setattr(intraday_postflight.intraday_delta, 'persist_delivered_state',
                         lambda *a: True)
     receipt = _receipt(tmp_path / 'intraday-sent-hk.json', slot=SLOT)
@@ -238,7 +238,7 @@ def test_a_no_change_slot_that_never_shipped_still_records_itself(
                         lambda *a, **kw: None)
     monkeypatch.setattr(intraday_postflight, 'can_silence', lambda *a, **kw: True)
     monkeypatch.setattr(intraday_postflight, 'publish_data_plane',
-                        lambda market: ('published', True, None))
+                        lambda market, **_: ('published', True, None))
     monkeypatch.setattr(intraday_postflight.intraday_delta, 'persist_delivered_state',
                         lambda *a: True)
     monkeypatch.setattr(intraday_postflight, 'delivery_marker_payload',

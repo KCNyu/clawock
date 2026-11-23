@@ -513,11 +513,9 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert '<<<' in profile['forbidden_substrings']
     assert 'trading_calendar.py' in profile['forbidden_substrings']
     assert 'market_closed' in profile['required_substrings']
-    assert '所有脚本 exec 调用都显式设置 `timeout: 300`' in profile['required_substrings']
-    assert any(
-        '只用 `process` poll' in line and 'sleep/ps/ls/grep' in line
-        for line in profile['required_substrings']
-    )
+    assert 'preflight exec 参数为 `timeout: 300`、`yieldMs: 120000`' in profile['required_substrings']
+    assert '才用 `process` 的 `action: poll` 等同一 session，`timeout: 30000`' in (
+        profile['required_substrings'])
     assert '同一条回复内并行发出两个 `write` 工具调用' in profile['required_substrings']
     exact_number_rule = (
         '数字必须原样照抄 context 或本次 compute 回执的完整字面值；'
