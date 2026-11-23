@@ -56,6 +56,7 @@ reasoning = true
 # MiniMax domestic list is 1 / 4 / 0.1 CNY per 1M (input / output / cache read),
 # converted at ~7.1 CNY per USD; third-party listings quote USD 0.15 / 0.60 / 0.015.
 cost = { input = 0.14, output = 0.56, cacheRead = 0.014, cacheWrite = 0 }
+compat = { supportsReasoningEffort = true, supportedReasoningEfforts = ["adaptive"] }
 params = { thinking = "adaptive" }
 
 [models.deepseek]
