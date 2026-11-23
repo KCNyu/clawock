@@ -550,29 +550,8 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert cron_contract.payload_errors(data, expected, live) != []
 
 
-def test_strategy_crons_request_max_reasoning_clamped_per_candidate():
-    """The payload asks for `max`; OpenClaw clamps it per fallback candidate.
-
-    The M3 branch exposes only off/adaptive — MiniMax-M3.1-Flash
-    (the current hop; its preview id since 2026-09-27) matches OpenClaw's
-    `/^MiniMax-M3(\b|[-.])/` rule and its `resolveMinimaxThinkingProfile`
-    branch exactly as MiniMax-M3 did — and Codex models reject `adaptive`
-    outright ('Thinking level "adaptive" is not supported for openai/gpt-6-luna.
-    Use one of: off, low, medium, high, xhigh, max.', 2026-09-23; gpt-5.6-sol
-    said the same on 2026-09-13). OpenClaw's cron executor re-resolves the level
-    for each candidate (`resolveCandidateThinkingLevel`) using ranks adaptive=30,
-    max=70, so `max` becomes `adaptive` on both MiniMax hops — exactly today's
-    behaviour — and stays `max` on the Codex `gpt-6-luna` hop. Pinning `adaptive`
-    would clamp Luna down to `medium`. The clamp is logged per run but never written
-    back into the live job (the dreaming job logged it five times since 09-10
-    with its payload unchanged), so it cannot make the contract drift.
-
-    On the MiniMax hops OpenClaw sends `{"type": "adaptive"}` and no
-    `output_config.effort`; MiniMax's Anthropic API reference makes an omitted
-    effort `max` for M3.1-Flash, so `max` is also the depth those hops run at.
-    The cron executor resolves the level once for the turn and re-clamps it per
-    candidate; no per-candidate level exists that would make both hops exact.
-    """
+def test_strategy_crons_keep_max_as_the_chain_default():
+    """Model defaults pick adaptive for both MiniMax hops and max for Luna."""
     profiles = contract()['payload_profiles']
     assert {
         name: profiles[name].get('thinking')

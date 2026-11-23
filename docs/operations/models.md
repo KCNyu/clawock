@@ -80,9 +80,10 @@ So there are two knobs, and they are set in different places:
   `patch-minimax-m3x-adaptive-thinking.sh` sends `{"type": "adaptive"}` whatever
   the level and OpenClaw sends no effort, so every OpenClaw turn on M3.1 runs at
   the endpoint's default `max`. Write `adaptive` wherever only M3.1 reads the
-  value. The cron chain is the exception: one level serves the MiniMax hops and
-  Luna, which has no `adaptive`, so it stays `max` (Luna's top, and the depth the
-  MiniMax hops run at anyway).
+  value. The strategy cron payload retains `max` as its chain default.
+  Each candidate applies its own `params.thinking` before resolving what the
+  model and runtime support. Both MiniMax hops use `adaptive` and Luna uses
+  `max`.
 - **Effort** (clawock's own client, `clawock.automation.llm`): a thinking call
   sends `{"type": "adaptive"}` plus `output_config.effort` when the caller passes
   `thinking_effort` (`llm.MINIMAX_EFFORTS`); none means `max`. The weekly review
@@ -95,7 +96,7 @@ Without `--apply`, `sync_models.py` only reports which owned sections differ.
 `tests/test_model_registry.py` keeps model ids out of the cron contract and keeps
 the client on the registry.
 
-Intentionally not covered: `minimax-2` is an alias of `minimax` (same account,
-retry hop); history in docs and memory; the family matchers
+The registry emits the same model defaults for the `minimax-2` retry alias.
+Out of scope for the registry are history in docs and memory, the family matchers
 (`/^MiniMax-M3(\b|[-.])/`) in OpenClaw/dsh patches; dsh's own default model and
 non-MiniMax dsh catalogs; ports.

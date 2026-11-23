@@ -33,7 +33,7 @@ from clawock.decision.actions import is_risk_swap_buy, positive_whole_shares
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.safe_io import safe_write_json, to_strict_finite_number
 from clawock.safe_io import carried_value
-from clawock.portfolio.math import session_change_pct
+from clawock.portfolio.math import day_pnl_basis, holding_session, session_change_pct
 from clawock.workspace import workspace_root
 
 
@@ -1365,18 +1365,22 @@ def _matching_events(events, ticker, source_ticker) -> list:
     ]
 
 
-def _ticker_facts(holding, context, ticker, shares) -> dict:
+def _ticker_facts(holding, context, ticker, shares, market=None) -> dict:
     """The money fields of one row, and nothing about authority (#3420)."""
+    today_change = _number(holding.get("today_change_pct"), 2)
+    if holding.get("quote_incomplete_prev_close"):
+        session = holding_session(holding, context.get("date"), market=market)
+        _, base, old_shares = day_pnl_basis(holding, session, market=market)
+        if old_shares > 0 or base <= 0:
+            today_change = None
     return {
         "shares": shares,
         "cost_basis": _number(holding.get("cost_basis"), 4),
         "current_price": _number(holding.get("current_price"), 4),
         "pnl_pct": _number(holding.get("pnl_percent"), 2),
         # Position day P&L: new lots count from their fill (#3036).
-        # A row whose quote lacked a real prior close has no measured
-        # day change; printing the writer's 0.00 would read as flat (#3350).
-        "today_change_pct": (None if holding.get("quote_incomplete_prev_close")
-                             else _number(holding.get("today_change_pct"), 2)),
+        # Old shares need a verified prior close. New shares use their fills.
+        "today_change_pct": today_change,
         # The quote against the prior close, what a 「上一场收盘」 column
         # means (#3107).
         "session_change_pct": _number(session_change_pct(holding), 2),
@@ -1496,7 +1500,7 @@ def _ticker_row_views(*, ticker, source_ticker, leg, holding, context, technical
         "ticker": ticker,
         "name": holding.get("name") or holding.get("stock_name") or "",
         "leg": leg,
-        "facts": _ticker_facts(holding, context, ticker, shares),
+        "facts": _ticker_facts(holding, context, ticker, shares, market=leg.lower()),
         "technical": technical,
         "thesis": thesis,
         "execution": execution,

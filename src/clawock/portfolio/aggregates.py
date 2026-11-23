@@ -99,7 +99,7 @@ def _zero_closed_derived_leaves(holdings, *, dry_run, diffs):
 
 def _recompute_active_holding_leaves(holdings, *, region, last_updated,
                                      pct_nd, price_step, dry_run, diffs):
-    sum_cv = sum_cost = sum_tc = 0.0
+    current_values, costs, day_changes = [], [], []
     for h in active_holdings(holdings):
         sh = number(h.get('shares'))
         cp = number(h.get('current_price'))
@@ -113,8 +113,8 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
             # value is the one it carries, or its cost before a first quote
             # (#2967), as TCV_SUM reads it.
             if cb is not None:
-                sum_cost += sh * cb
-            sum_cv += carried_value(h)
+                costs.append(sh * cb)
+            current_values.append(carried_value(h))
             # Without a quote neither daily leaf is measurable. The region
             # excludes this row too; retaining yesterday's pair breaks TODAY_TOTAL.
             for field in ('today_change', 'today_change_pct'):
@@ -125,9 +125,9 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
                         h[field] = None
             continue
         cv = _r(sh * cp)
-        sum_cv += cv
+        current_values.append(cv)
         if cb is not None:
-            sum_cost += sh * cb
+            costs.append(sh * cb)
             pnl = _r(sh * (cp - cb))
             if number(h.get('pnl_abs')) != pnl:
                 diffs.setdefault('holdings.pnl_abs', []).append((h.get('ticker'), h.get('pnl_abs'), pnl))
@@ -177,7 +177,7 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
             fresh_lot = bool(session and any(t.get('action') == 'buy' and trade_session_date(region, t) == session
                                             for t in ledger_rows(h.get('trades'))))
             tc = _r(amount)
-            sum_tc += tc
+            day_changes.append(tc)
             if number(h.get('today_change')) != tc:
                 diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))
             if not dry_run:
@@ -203,7 +203,7 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
                     (h.get('ticker'), h.get('today_change_pct'), tc_pct))
                 if not dry_run:
                     h['today_change_pct'] = tc_pct
-    return sum_cv, sum_cost, sum_tc
+    return sum(current_values), sum(costs), sum(day_changes)
 
 
 def _recompute_region_totals(pf, sums, *, pct_nd, dry_run, diffs):

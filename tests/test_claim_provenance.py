@@ -193,3 +193,12 @@ def test_no_file_with_a_backtest_shaped_number_sits_outside_the_gate():
         f"{unowned} carry a backtest-shaped number: add the file to `surfaces` (and cite its "
         "run card) or to `not_backtest_claims` with the reason it is not one")
     assert sorted(set(reasons) - matched) == [], "an exemption for a file the scanner no longer matches"
+
+
+def test_signed_drawdown_claim_must_agree_with_card(tmp_path):
+    root = _workspace(tmp_path / 'signed', 'Maximum drawdown +71.99%. fixture-20260802-abcdef12',
+                      {'max_drawdown': -0.719895})
+    assert _check(root)
+    root = _workspace(tmp_path / 'unsigned', 'Maximum drawdown 71.99%. fixture-20260802-abcdef12',
+                      {'max_drawdown': -0.719895})
+    assert _check(root) == []

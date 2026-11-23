@@ -873,7 +873,7 @@
       ? ` · ${asOf.slice(5)} 收盘` : '';
 
     // Volatility / rates / dollar (existing)
-    if (m.vix?.price != null) cells.push({lbl: 'VIX', val: fmt(m.vix.price), sub: fmtPct(m.vix.change_pct), cls: trend(m.vix.change_pct)});
+    if (m.vix?.price != null) cells.push({lbl: 'VIX', val: fmt(m.vix.price), sub: fmtPct(m.vix.change_pct), cls: trend(-m.vix.change_pct)});
     if (m.treasury_10y?.yield_pct != null) cells.push({lbl: '10Y Yield', val: fmt(m.treasury_10y.yield_pct, '%'), sub: ''});
     if (m.dxy?.price != null) cells.push({lbl: 'DXY', val: fmt(m.dxy.price), sub: fmtPct(m.dxy.change_pct), cls: trend(m.dxy.change_pct)});
     if (m.fear_greed?.score != null) cells.push({lbl: 'F&G', val: fmt(m.fear_greed.score), sub: escapeHtml(m.fear_greed.rating || '')});  // CNN API text (#1855)

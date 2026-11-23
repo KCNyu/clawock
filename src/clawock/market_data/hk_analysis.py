@@ -82,7 +82,9 @@ def _parse_gtimg(text: str) -> Optional[Dict]:
         if len(parts) < 6:
             return None
         price = float(parts[3])
-        pc    = float(parts[4]) if parts[4] else price
+        pc    = to_finite_number(parts[4])
+        if pc is not None and pc <= 0:
+            pc = None
         op    = float(parts[5]) if parts[5] else price
         # 日内最高/最低 (Tencent HK fields 33/34) — 之前没取，导致 portfolio 的
         # day_high/day_low/day_open 永远是旧交易日残留值（2026-05-29 审计发现）
@@ -106,7 +108,8 @@ def _parse_gtimg(text: str) -> Optional[Dict]:
             'h': hi, 'l': lo,
             'lot_size': lot_size,
             'volume': vol,
-            'dp': _pct(price, pc),
+            'dp': _pct(price, pc) if pc is not None else None,
+            **({'_pc_quality': 'missing'} if pc is None else {}),
         }
     except Exception:
         return None
@@ -552,11 +555,12 @@ def _hk_finalize_region(data, hk_key, region_before_fetch, active, hkt_str,
         for key, short in [('r_hkHSI', 'HSI'), ('r_hkHSTECH', 'HSTECH')]:
             if key in idx_raw:
                 r = idx_raw[key]
+                pc, dp = r.get('pc'), r.get('dp')
                 snap[short] = {
                     'name':       r.get('label', short),
                     'price':      round(r['c'], 2),
-                    'prev_close': round(r.get('pc') or r['c'], 2),
-                    'chg_pct':    round(r.get('dp') or 0, 3),
+                    'prev_close': round(pc, 2) if pc is not None else None,
+                    'chg_pct':    round(dp, 3) if dp is not None else None,
                     'source':     f"Tencent qt.gtimg.cn {hkt_str}",
                 }
         if snap:
@@ -672,7 +676,9 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
     for key in ('r_hkHSI', 'r_hkHSTECH'):
         if key in indices:
             idx = indices[key]
-            idx_parts.append(f"{idx['label']} {idx['c']:,.0f}（{idx['dp']:+.2f}%）")
+            dp = idx['dp']
+            change = f'{dp:+.2f}%' if dp is not None else '涨跌未知'
+            idx_parts.append(f"{idx['label']} {idx['c']:,.0f}（{change}）")
     if idx_parts:
         print("  指数：" + "  |  ".join(idx_parts))
 
@@ -778,8 +784,10 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     for key, emoji in [('r_hkHSI','恒指'), ('r_hkHSTECH','恒科')]:
         if key in indices:
             idx = indices[key]
-            arrow = '▲' if idx['dp'] >= 0 else '▼'
-            idx_bits.append(f"{emoji} {idx['c']:,.0f} {arrow}{abs(idx['dp']):.2f}%")
+            dp = idx['dp']
+            arrow = '▲' if dp is not None and dp >= 0 else '▼'
+            change = f'{arrow}{abs(dp):.2f}%' if dp is not None else '涨跌未知'
+            idx_bits.append(f"{emoji} {idx['c']:,.0f} {change}")
     if idx_bits:
         lines.append('  ' + '  '.join(idx_bits))
 

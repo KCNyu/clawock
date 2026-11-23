@@ -1351,28 +1351,27 @@ def _mark_horizons(d, *, ticker, leg, entry, fill_session, today):
             reason = "implausible_move"
         else:
             u1, b1 = _benefit(d.get("action"), entry, nb["close"])
-    # The longer marks say why they are absent, like T+1 does. A row
-    # that is `settled` with no T+20 and no reason is indistinguishable
-    # from one whose T+20 has not come due, and a replay that withdraws
-    # an already-published T+20 left no trace of which rows or why
-    # (#2336: 19 rows, one ticker's T+20 win rate 20.5% -> 36.0%).
+    def longer_mark(mark):
+        # A mark that has not come due needs no diagnostic. A completed
+        # session with a missing bar must remain distinguishable from it.
+        if mark >= today:
+            return None, None
+        target = bar(ticker, mark)
+        if target is None:
+            if mark <= (last_closed_session(leg) or ""):
+                return None, "mark_bar_missing"
+            return None, None
+        if crosses_suspect_move(mark):
+            return None, "implausible_move"
+        return _benefit(d.get("action"), entry, target["close"])[1], None
+
     r5 = r20 = None
     if len(marks) >= 5:
         m5 = marks[4]
-        nb5 = bar(ticker, m5)
-        if nb5 is not None and m5 < today:
-            if crosses_suspect_move(m5):
-                r5 = "implausible_move"
-            else:
-                _, b5 = _benefit(d.get("action"), entry, nb5["close"])
+        b5, r5 = longer_mark(m5)
     if len(marks) >= 20:
         m20 = marks[19]
-        nb20 = bar(ticker, m20)
-        if nb20 is not None and m20 < today:
-            if crosses_suspect_move(m20):
-                r20 = "implausible_move"
-            else:
-                _, b20 = _benefit(d.get("action"), entry, nb20["close"])
+        b20, r20 = longer_mark(m20)
     out.update({
         "status": "settled" if b1 is not None else "pending",
         "outcome": _outcome(b1),

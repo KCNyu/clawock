@@ -31,7 +31,9 @@ Treat that as an operational trade, not product architecture:
   never pushes to this repository.
 - `GitBranchStore` and the raw URL are instance adapters owned by KCNyu/clawock.
 - A data-plane push is independent of `master`'s ledger gate. The seven required payloads
-  carry generation IDs and are validated as one set before publication.
+  are read as one set and scanned for credentials before the branch is replaced.
+  Where present, generation IDs let the Pages and browser readers detect
+  mismatched dashboard documents.
 - The static Pages artifact remains the cold-start fallback, so a raw-content
   outage degrades to an older but internally complete screen instead of blanking
   the application.

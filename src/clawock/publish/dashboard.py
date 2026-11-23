@@ -1002,8 +1002,8 @@ def build_holdings_history(snapshot_paths, days=8):
 
 def _session_close_series(ticker, holding, n):
     """`n` session-dated closes for `ticker` from the canonical bar store, the
-    last one being the holding's current price while its session is still open;
-    None when the store cannot supply them.
+    last one being the holding's current price while its session is still open.
+    Returns a shorter series when only part of the history is available.
 
     Snapshots are keyed by HKT file date, not by session: a closed day repeats
     the previous close (the heatmap read 0.0% for a session that moved +3.65%)
@@ -1016,7 +1016,7 @@ def _session_close_series(ticker, holding, n):
         bars = sorted((day, float(bar['close'])) for day, bar in doc['bars'].items())
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return None
-    if n < 2 or len(bars) < n:
+    if n < 2 or not bars:
         return None
     closes = [close for _, close in bars]
     current, prev = holding.get('current_price'), holding.get('prev_close')
@@ -1030,7 +1030,7 @@ def _session_close_series(ticker, holding, n):
     if same(prev, closes[-1]):
         # The quote's session is newer than the store's last completed one.
         return closes[-(n - 1):] + [current]
-    if same(prev, closes[-2]) and same(current, closes[-1]):
+    if len(closes) >= 2 and same(prev, closes[-2]) and same(current, closes[-1]):
         return closes[-n:]
     return None
 
