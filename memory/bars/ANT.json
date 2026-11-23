@@ -1,0 +1,30 @@
+{
+ "schema_version": 1,
+ "ticker": "ANT",
+ "leg": "US",
+ "tencent": "usANT.OQ",
+ "em_audit_secid": "105.ANT",
+ "adjustment": "raw",
+ "source": "tencent",
+ "retired": false,
+ "bars": {
+  "2026-11-19": {
+   "open": 111.5,
+   "high": 115.1,
+   "low": 92.72,
+   "close": 97.17,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-11-23T08:03:23+08:00"
+  },
+  "2026-11-20": {
+   "open": 89.86,
+   "high": 92.56,
+   "low": 83.05,
+   "close": 88.91,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-11-23T08:03:23+08:00"
+  }
+ }
+}
