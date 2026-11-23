@@ -4820,6 +4820,139 @@ def _gold_card(portfolio):
     return _gold
 
 
+def _project_decision_cards(out, portfolio, snapshots, plans, fx_rate, shadow_previous):
+    # Decision system v2 is the only live scoring path. No CSV/signal-row
+    # compatibility keys are emitted: frontend, README and harness share this.
+    _decisions, _source_ref = scorecard_provenance.dashboard_source(WS_ROOT)
+    _source_decisions = copy.deepcopy(_decisions)
+    _settlement_day = hkt_today().isoformat()
+    decision_v2.settle_decisions(_decisions, now_date=_settlement_day)
+    # Reflect reads timing_diagnostic plus its episode backtest from this sidecar.
+    # The full per-decision `records` trail (~700KB, recomputable from decisions)
+    # is not rendered or linked anywhere, so it stays unpublished.
+    _audit = build_decision_audit_payload(_decisions, portfolio, fx_rate=fx_rate)
+    # Shadow-portfolio policy simulation (模拟·非实盘): its own sidecar, NOT embedded
+    # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
+    # same-seed buy-and-hold) marked to canonical closes; cumulative diff is a
+    # simulated timing alpha, never live/broker performance.
+    _shadow = build_shadow_sidecar(portfolio, _decisions, shadow_previous)
+    out['decision_schema_version'] = 2
+    out['decision_metrics'] = trim_decision_metrics(
+        decision_v2.compute_metrics(_decisions, fx_rate=fx_rate))
+    scorecard_provenance.record_settlement_view(
+        out['decision_metrics']['provenance'], _source_decisions, settlement_day=_settlement_day,
+        source_ref=_source_ref)
+    scorecard_provenance.verify_public_source(
+        out['decision_metrics']['provenance'], WS_ROOT)
+    # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
+    # chart while still shipping the numbers would be a distinction only a reader of
+    # this file could make: dashboard.json is public, so the retired figure was still
+    # one fetch away, still carrying "positive = following the AI beat not acting".
+    # It summed calls that were never executed, priced against a drifting mark. The
+    # function stays for the rebuild (see the official-bars task) — the field goes.
+    out['decision_delta'] = decision_v2.decision_delta(_decisions)
+    out['recent_decisions'] = decision_v2.recent_decisions(_decisions, limit=20)
+    # Decision trace view: real fills as the spine with soft-paired decisions
+    # and T+1 verdicts against canonical bars. The DSH plugin renders the same
+    # *contract* from its own TypeScript implementation — the two are not shared
+    # code, so the parity fixture in tests/test_decision_traces.py is what keeps
+    # them honest (#739). Pure read of portfolio.json + ledger + bars.
+    _traces = build_decision_traces(limit=40, portfolio=portfolio)
+    out['decision_traces'] = _traces
+    # The card's own totals. Never let it sum its 40-row window and print that
+    # as the ledger total (#737).
+    out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40, portfolio=portfolio)
+    out['debate_metrics'] = compute_debate_metrics()
+    out['magnitude_metrics'] = compute_magnitude_metrics()
+    out['weight_confidence'] = compute_weight_confidence(portfolio)
+    _risk_cards(out, portfolio, snapshots, fx_rate)
+    # Timeline scenarios consume the risk inputs from this same generation.
+    out['plan_timeline'] = compute_plan_timeline(plans, limit=15, context=out)
+    return _audit, _shadow
+
+
+def _embed_scan_cards(out):
+    # Embed GH Action outputs into dashboard.json so the static page can render them
+    def _embed(key, fname):
+        path = WS_ROOT / 'assets' / 'data' / fname
+        if path.exists():
+            try:
+                out[key] = json.loads(path.read_text())
+                return
+            except Exception as e:
+                print(f'  warn: {fname} parse fail: {e}', file=sys.stderr)
+        out[key] = None
+
+    _embed('quant_signals', 'quant_signals.json')      # compute_quant_signals.py: 趋势/动量/RSI/ATR吊灯/vol-target
+    _embed('quant_signal_review', 'quant_signal_review.json')  # quant_signal_review.py: 因子 edge 自检(T+1/T+5 对账)
+    # `cross_sectional_factor`, `peer_residual` and `news_evidence_graph` are
+    # not embedded: no card reads them from here (the brief and the packet read
+    # their sidecars), so they only spent the size cap (#2191).
+    _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
+    _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
+    _embed('catalysts', 'catalysts.json')              # clawock catalysts + brief preflight
+    # The add side: why there is or is not an add today, projected from the
+    # brief context and the add_shapes run card (#1337/#1340/#1341). A book with
+    # no add decisions in it and no way to ask why is how 47 days of sell-only
+    # advice went unquestioned.
+    out['add_side'] = compute_add_side()
+    _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
+    # 基准新鲜度守卫 — Polygon/HSI 抓取偶发限流会让 benchmark.json 停更(曾停到6天),
+    # Re-evaluate retained benchmark bars at publication time using the session owner.
+    _bm = out.get('benchmark')
+    if isinstance(_bm, dict):
+        _bm['staleness'] = benchmark_staleness(_bm)
+    # Option 2 decouple (2026-07-04): the GH-Action / scan sidecars (macro,
+    # sentiment, influencer_feed, us_news_digest, em_news) are NO LONGER embedded
+    # here — index.html fetches them directly. This makes dashboard.json carry only
+    # portfolio-derived data, so a scan's bot commit reaches the page immediately
+    # without any dashboard rebuild (true disjoint writers, the endgame Option 1
+    # started). Their freshness is still monitored via _FRESHNESS_SLA_H below (that
+    # check reads the files from disk, not from `out`).
+
+    # Regime badge stays in dashboard.json (the brief acts on it): read macro.json
+    # directly to classify, without embedding the full macro payload. Defensive —
+    # never break the build if the file or harness module is unavailable.
+    out['regime'] = None
+    try:
+        from clawock.plugin_host import live as live_plugins
+        _scans = live_plugins.service('scans')
+        _macro = _scans.document(_scans.path(WS_ROOT, 'macro'))['payload']
+        if _macro:
+            from clawock.market_data.macro import classify_regime
+            out['regime'] = classify_regime(_macro)
+    except Exception as e:
+        print(f'  warn: regime classify failed: {e}', file=sys.stderr)
+
+
+def _project_build_status(out, portfolio, previous_source, preserved, previous_missing):
+    # A2 健康卡：数据新鲜度 + 体检结论（纯文件运算，零网络）
+    try:
+        # Audit is compiled above and published atomically with this health
+        # card. Its previous disk copy is not an input freshness dependency.
+        out['build_status'] = compute_build_status(
+            portfolio, OUT_DIR, generated_files=('decision_audit.json',))
+    except Exception as e:
+        print(f'  warn: compute_build_status failed: {e}', file=sys.stderr)
+        out['build_status'] = None
+    if isinstance(out.get('build_status'), dict):
+        # Provenance for the only values that did not come from the workspace.
+        # `preserved: []` is the healthy reading and the one the live host is
+        # expected to publish; a non-empty list means this payload is partly a
+        # copy of an older one, which a reader is entitled to know. Attached only
+        # when the health card was computed — a failed build_status is already
+        # its own signal and must keep its `null`.
+        out['build_status']['previous_payload'] = {
+            'source': workspace_relative(previous_source),
+            'preserved': preserved,
+        }
+        # Only present when something is wrong, so a healthy payload stays byte
+        # for byte what it was. `preserved: []` alone cannot tell "every source
+        # was present" from "the recovery file was not there" (#314).
+        if previous_missing:
+            out['build_status']['previous_payload']['missing'] = True
+
+
 def build_projection(previous_source=None, shadow_previous=None):
     """Compute the five public payloads from the workspace. Writes nothing.
 
@@ -5012,106 +5145,9 @@ def build_projection(previous_source=None, shadow_previous=None):
     _preserved = _restore_previous_cards(
         out, _prev_dash, _presence, portfolio, us_rows, hk_rows, known_tickers, _insight_weights,
         _basis_values)
-    # Decision system v2 is the only live scoring path. No CSV/signal-row
-    # compatibility keys are emitted: frontend, README and harness share this.
-    _decisions, _source_ref = scorecard_provenance.dashboard_source(WS_ROOT)
-    _source_decisions = copy.deepcopy(_decisions)
-    _settlement_day = hkt_today().isoformat()
-    decision_v2.settle_decisions(_decisions, now_date=_settlement_day)
-    # Reflect reads timing_diagnostic plus its episode backtest from this sidecar.
-    # The full per-decision `records` trail (~700KB, recomputable from decisions)
-    # is not rendered or linked anywhere, so it stays unpublished.
-    _audit = build_decision_audit_payload(_decisions, portfolio, fx_rate=fx_rate)
-    # Shadow-portfolio policy simulation (模拟·非实盘): its own sidecar, NOT embedded
-    # in dashboard.json. Two cash+inventory ledgers (follow-all-triggered vs
-    # same-seed buy-and-hold) marked to canonical closes; cumulative diff is a
-    # simulated timing alpha, never live/broker performance.
-    _shadow = build_shadow_sidecar(portfolio, _decisions, shadow_previous)
-    out['decision_schema_version'] = 2
-    out['decision_metrics'] = trim_decision_metrics(
-        decision_v2.compute_metrics(_decisions, fx_rate=fx_rate))
-    scorecard_provenance.record_settlement_view(
-        out['decision_metrics']['provenance'], _source_decisions, settlement_day=_settlement_day,
-        source_ref=_source_ref)
-    scorecard_provenance.verify_public_source(
-        out['decision_metrics']['provenance'], WS_ROOT)
-    # decision_money_impact is deliberately NOT published (2026-07-15). Pulling the
-    # chart while still shipping the numbers would be a distinction only a reader of
-    # this file could make: dashboard.json is public, so the retired figure was still
-    # one fetch away, still carrying "positive = following the AI beat not acting".
-    # It summed calls that were never executed, priced against a drifting mark. The
-    # function stays for the rebuild (see the official-bars task) — the field goes.
-    out['decision_delta'] = decision_v2.decision_delta(_decisions)
-    out['recent_decisions'] = decision_v2.recent_decisions(_decisions, limit=20)
-    # Decision trace view: real fills as the spine with soft-paired decisions
-    # and T+1 verdicts against canonical bars. The DSH plugin renders the same
-    # *contract* from its own TypeScript implementation — the two are not shared
-    # code, so the parity fixture in tests/test_decision_traces.py is what keeps
-    # them honest (#739). Pure read of portfolio.json + ledger + bars.
-    _traces = build_decision_traces(limit=40, portfolio=portfolio)
-    out['decision_traces'] = _traces
-    # The card's own totals. Never let it sum its 40-row window and print that
-    # as the ledger total (#737).
-    out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40, portfolio=portfolio)
-    out['debate_metrics'] = compute_debate_metrics()
-    out['magnitude_metrics'] = compute_magnitude_metrics()
-    out['weight_confidence'] = compute_weight_confidence(portfolio)
-    _risk_cards(out, portfolio, snapshots, fx_rate)
-    # Timeline scenarios consume the risk inputs from this same generation.
-    out['plan_timeline'] = compute_plan_timeline(plans, limit=15, context=out)
-
-    # Embed GH Action outputs into dashboard.json so the static page can render them
-    def _embed(key, fname):
-        path = WS_ROOT / 'assets' / 'data' / fname
-        if path.exists():
-            try:
-                out[key] = json.loads(path.read_text())
-                return
-            except Exception as e:
-                print(f'  warn: {fname} parse fail: {e}', file=sys.stderr)
-        out[key] = None
-
-    _embed('quant_signals', 'quant_signals.json')      # compute_quant_signals.py: 趋势/动量/RSI/ATR吊灯/vol-target
-    _embed('quant_signal_review', 'quant_signal_review.json')  # quant_signal_review.py: 因子 edge 自检(T+1/T+5 对账)
-    # `cross_sectional_factor`, `peer_residual` and `news_evidence_graph` are
-    # not embedded: no card reads them from here (the brief and the packet read
-    # their sidecars), so they only spent the size cap (#2191).
-    _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
-    _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
-    _embed('catalysts', 'catalysts.json')              # clawock catalysts + brief preflight
-    # The add side: why there is or is not an add today, projected from the
-    # brief context and the add_shapes run card (#1337/#1340/#1341). A book with
-    # no add decisions in it and no way to ask why is how 47 days of sell-only
-    # advice went unquestioned.
-    out['add_side'] = compute_add_side()
-    _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
-    # 基准新鲜度守卫 — Polygon/HSI 抓取偶发限流会让 benchmark.json 停更(曾停到6天),
-    # Re-evaluate retained benchmark bars at publication time using the session owner.
-    _bm = out.get('benchmark')
-    if isinstance(_bm, dict):
-        _bm['staleness'] = benchmark_staleness(_bm)
-    # Option 2 decouple (2026-07-04): the GH-Action / scan sidecars (macro,
-    # sentiment, influencer_feed, us_news_digest, em_news) are NO LONGER embedded
-    # here — index.html fetches them directly. This makes dashboard.json carry only
-    # portfolio-derived data, so a scan's bot commit reaches the page immediately
-    # without any dashboard rebuild (true disjoint writers, the endgame Option 1
-    # started). Their freshness is still monitored via _FRESHNESS_SLA_H below (that
-    # check reads the files from disk, not from `out`).
-
-    # Regime badge stays in dashboard.json (the brief acts on it): read macro.json
-    # directly to classify, without embedding the full macro payload. Defensive —
-    # never break the build if the file or harness module is unavailable.
-    out['regime'] = None
-    try:
-        from clawock.plugin_host import live as live_plugins
-        _scans = live_plugins.service('scans')
-        _macro = _scans.document(_scans.path(WS_ROOT, 'macro'))['payload']
-        if _macro:
-            from clawock.market_data.macro import classify_regime
-            out['regime'] = classify_regime(_macro)
-    except Exception as e:
-        print(f'  warn: regime classify failed: {e}', file=sys.stderr)
-
+    _audit, _shadow = _project_decision_cards(
+        out, portfolio, snapshots, plans, fx_rate, shadow_previous)
+    _embed_scan_cards(out)
     out['today_ranges'] = compute_today_ranges(portfolio, top_n=8)
     out['realized_vs_unrealized'] = compute_realized_vs_unrealized(portfolio, fx_rate)
     out['capital_deployed'] = compute_capital_deployed(portfolio, fx_rate)
@@ -5119,31 +5155,7 @@ def build_projection(previous_source=None, shadow_previous=None):
 
     out['gold_dca'] = _gold_card(portfolio)
 
-    # A2 健康卡：数据新鲜度 + 体检结论（纯文件运算，零网络）
-    try:
-        # Audit is compiled above and published atomically with this health
-        # card. Its previous disk copy is not an input freshness dependency.
-        out['build_status'] = compute_build_status(
-            portfolio, OUT_DIR, generated_files=('decision_audit.json',))
-    except Exception as e:
-        print(f'  warn: compute_build_status failed: {e}', file=sys.stderr)
-        out['build_status'] = None
-    if isinstance(out.get('build_status'), dict):
-        # Provenance for the only values that did not come from the workspace.
-        # `preserved: []` is the healthy reading and the one the live host is
-        # expected to publish; a non-empty list means this payload is partly a
-        # copy of an older one, which a reader is entitled to know. Attached only
-        # when the health card was computed — a failed build_status is already
-        # its own signal and must keep its `null`.
-        out['build_status']['previous_payload'] = {
-            'source': workspace_relative(previous_source),
-            'preserved': _preserved,
-        }
-        # Only present when something is wrong, so a healthy payload stays byte
-        # for byte what it was. `preserved: []` alone cannot tell "every source
-        # was present" from "the recovery file was not there" (#314).
-        if _previous_missing:
-            out['build_status']['previous_payload']['missing'] = True
+    _project_build_status(out, portfolio, previous_source, _preserved, _previous_missing)
     if brief_ctx_path:
         print(f'  brief-context source: {os.path.basename(brief_ctx_path)}')
 
