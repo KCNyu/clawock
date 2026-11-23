@@ -854,3 +854,27 @@ def test_actionable_change_requires_fresh_sized_condition_and_dedupes_within_ses
                  [], slot="10:35") == 1
     assert count({"session": "hk:2026-11-20"}, next_slot, [hit], plan, prices,
                  [], slot="10:05") == 1
+
+
+def test_scheduled_packet_keeps_the_us_plan_date_across_hkt_midnight(monkeypatch, tmp_path):
+    _wire_preflight(monkeypatch, tmp_path)
+    now = '2026-08-14T00:03:01+08:00'
+    monkeypatch.setenv('CLAWOCK_PREFLIGHT_STARTED_AT', now)
+    monkeypatch.setenv('CLAWOCK_PREFLIGHT_JOB', '美股盘中盯盘-overnight')
+    monkeypatch.setenv('CLAWOCK_PREFLIGHT_SLOT', '2026-08-14T00:00:00+08:00')
+    monkeypatch.setattr(preflight.cron_heartbeat, 'record',
+                        lambda *a, job_name, slot, **k: {'job': job_name, 'slot': slot})
+    monkeypatch.setattr(preflight.plan_surface, 'open_decisions_context',
+                        lambda *, leg, today: {'plan_date': today, 'open': []})
+    watch_dates = []
+    monkeypatch.setattr(preflight.plan_surface, 'watch_levels',
+                        lambda *, today: (watch_dates.append(today) or {'spch_trim_trigger': 8.9}))
+    out = io.StringIO()
+    with redirect_stdout(out):
+        assert preflight._collect(['--market', 'us', '--packet-files']) == 0
+    receipt = json.loads(out.getvalue())
+    ctx = json.loads((preflight.TMP / 'intraday-context-us-latest.json').read_text())
+    assert ctx['plan_context']['plan_date'] == watch_dates[0] == '2026-08-13'
+    assert receipt['context_id'] == ctx['context_id']
+    assert receipt['slot'] == '2026-08-14T00:00:00+08:00'
+    assert receipt['sidecar_path'].endswith('intraday-insights-2026-08-14.json')

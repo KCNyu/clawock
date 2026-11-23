@@ -243,7 +243,7 @@ PHASE_FLAGS = {
     ("brief", "render"): ("--date", "--dry-run", "--page-url"),
     ("report", "preflight"): ("--market", "--phase"),
     ("report", "postflight"): ("--market", "--phase", "--context-id", "--text-file"),
-    ("intraday", "preflight"): ("--market", "--judgment-packet", "--cron-job"),
+    ("intraday", "preflight"): ("--market", "--judgment-packet", "--packet-files", "--cron-job"),
     ("intraday", "postflight"): ("--market", "--context-id", "--text-file"),
 }
 
@@ -277,9 +277,10 @@ def _harness(args, workflow=None) -> int:
     if getattr(args, "dry_run", False):
         given.append("--dry-run")
         forwarded.append("--dry-run")
-    if getattr(args, "judgment_packet", False):
-        given.append("--judgment-packet")
-        forwarded.append("--judgment-packet")
+    for flag in ("--judgment-packet", "--packet-files"):
+        if getattr(args, flag[2:].replace("-", "_"), False):
+            given.append(flag)
+            forwarded.append(flag)
     # Name the phase the flag belongs to here, before the phase module's own
     # parser answers with a bare `unrecognized arguments` (#2616).
     for flag in given:
@@ -697,6 +698,8 @@ def build_parser() -> argparse.ArgumentParser:
             ("--page-url", {"help": "URL printed at the foot of the card"}),
             ("--dry-run", {"action": "store_true"}),
             ("--cron-job", {"help": "OpenClaw job name for scheduled slot attribution"}),
+            ("--packet-files", {"action": "store_true",
+                                "help": "write bounded core JSON files and print their receipt"}),
             ("--judgment-packet", {
                 "action": "store_true",
                 "help": "print the complete decision context; "

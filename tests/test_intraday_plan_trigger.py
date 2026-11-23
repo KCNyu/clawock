@@ -9,6 +9,8 @@ Two things had to be true for that, and both are pinned here: the price has to
 be in the context at all (test_plan_surface), and the slot has to say it out
 loud and wake on it rather than leaving it to the model to notice a number.
 """
+from decimal import Decimal
+
 from clawock.decision import plans
 from clawock.harness import _harness_common as harness_common
 from clawock.harness import intraday_delta, intraday_preflight
@@ -132,7 +134,7 @@ def test_radar_subject_levels_are_available_without_borrowing_other_symbols():
         {'label': 'RKLB', 'close': 73.52, 'prior_20d_high': 75.46},
         {'label': 'SPCX', 'close': 10, 'prior_20d_high': 12}]}}
     levels, _ = _subject_prices(context, 'RKLB')
-    assert {73.52, 75.46} <= levels
+    assert {Decimal('73.52'), Decimal('75.46')} <= levels
     assert not ({10, 12, 68, 80} & levels)
 
 
@@ -149,16 +151,16 @@ def test_display_name_watch_levels_are_prices_only_for_their_own_subject():
                'watch_levels': {key: 231.4}}
         assert check_next_trigger('下一触发：00100 跌破前低 231.4', ctx) == []
         assert check_next_trigger('下一触发：00100 跌破前低 200', ctx)
-        assert 231.4 not in _subject_prices(ctx, 'SPCH')[0]
-    assert 231.4 not in _subject_prices({'minimax_profit': 231.4}, '00100')[0]
-    assert 231.4 not in _subject_prices({'watch_levels': {'minimaximpostor_low': 231.4}}, '00100')[0]
+        assert Decimal('231.4') not in _subject_prices(ctx, 'SPCH')[0]
+    assert Decimal('231.4') not in _subject_prices({'minimax_profit': 231.4}, '00100')[0]
+    assert Decimal('231.4') not in _subject_prices({'watch_levels': {'minimaximpostor_low': 231.4}}, '00100')[0]
 
 
 def test_ambiguous_registry_display_names_do_not_lend_prices(monkeypatch):
     from clawock import instruments
     from clawock.harness.intraday_postflight import _subject_prices
     monkeypatch.setitem(instruments.INSTRUMENTS, 'OTHER', {'name': 'MINIMAX-W'})
-    assert 231.4 not in _subject_prices({'watch_levels': {'mini_max_low': 231.4}}, '00100')[0]
+    assert Decimal('231.4') not in _subject_prices({'watch_levels': {'mini_max_low': 231.4}}, '00100')[0]
 
 
 def test_longer_registry_name_cannot_lend_its_level_to_a_shorter_name(monkeypatch):
@@ -166,8 +168,8 @@ def test_longer_registry_name_cannot_lend_its_level_to_a_shorter_name(monkeypatc
     from clawock.harness.intraday_postflight import _subject_prices
     monkeypatch.setitem(instruments.INSTRUMENTS, 'OTHER', {'name': 'MINIMAX OTHER-W'})
     ctx = {'watch_levels': {'minimax_other_low': 231.4}}
-    assert 231.4 not in _subject_prices(ctx, '00100')[0]
-    assert 231.4 in _subject_prices(ctx, 'OTHER')[0]
+    assert Decimal('231.4') not in _subject_prices(ctx, '00100')[0]
+    assert Decimal('231.4') in _subject_prices(ctx, 'OTHER')[0]
 
 
 def test_mobile_table_keeps_source_price_and_cost_precision():
@@ -267,3 +269,28 @@ def test_analyzer_today_is_session_return_for_both_markets(monkeypatch, capsys):
     assert harness_common.parse_holdings_rows(text)[0]['move_pct'] is None
     assert not harness_common.parse_holdings_anomalies(text)
     assert not any('今日' in reason for reason in us.generate_signal(holding, {}, [])[1])
+
+
+def test_own_and_proxy_prices_cannot_be_swapped_in_next_trigger():
+    from clawock.harness.intraday_postflight import check_next_trigger
+    from clawock.harness.intraday_trigger_prices import trigger_prices
+
+    ctx = {
+        'full_holdings': [{'ticker': 'SPCH', 'price': 7.7, 'quote_fresh': True},
+                          {'ticker': 'SPCX', 'price': 139.05, 'quote_fresh': False}],
+        'add_side_reads': {'rows': [{'ticker': 'SPCH', 'evidence': {
+            'proxy_label': 'SPCX', 'proxy_prior_20d_high': '151.36001',
+            'proxy_close': 138.68, 'prior_5d_low': 6.2},
+        }]},
+        'watch_levels': {'spch_trim_trigger': 6.9, 'spch_swap_cap_usd': 180,
+                         'spch_proxy_price': 138.68},
+    }
+    ctx['trigger_prices'] = trigger_prices(ctx)
+    assert {'price': '151.36001', 'source': 'add_side_reads.evidence.proxy_prior_20d_high'} in (
+        ctx['trigger_prices']['SPCX'])
+    assert check_next_trigger('下一触发：SPCH 跌破 6.9；SPCX 站上 151.36001', ctx) == []
+    assert check_next_trigger('下一触发：SPCH 看 SPCX 站上 151.36001', ctx)
+    assert check_next_trigger('下一触发：SPCH 站上 138.68', ctx)
+    assert check_next_trigger('下一触发：SPCH 站上 180', ctx)
+    assert check_next_trigger('下一触发：SPCX 站上 140', ctx)
+    assert check_next_trigger('下一触发：SPCX 站上 151.36', ctx)

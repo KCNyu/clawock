@@ -5,7 +5,7 @@
 
 `build_dashboard` 读它刷新 dashboard **顶部状态横幅** + **Today's Movers 每条归因**（缺失/解析失败容错，横幅自动隐藏；非关键，漏写不影响 WeChat 报告投递）。**只填下面 `status_banner` 与 `movers` 两个字段的文本，不写其他字段。**
 
-写 `memory/.tmp/intraday-insights-{YYYY-MM-DD}.json`：
+写 Step 1 回执的 `sidecar_path`，文件名为本档 HKT 日期的 `intraday-insights-{YYYY-MM-DD}.json`。
 ```json
 {
   "status_banner": "一句话 ≤160字：regime + 今日盈亏主来源 + 最该盯的一件事（盯盘提醒口吻）",
@@ -21,4 +21,4 @@
 - **催化优先引 `context.mover_news`**：该票有 `signal=interrupt` 的条目就用它的标题要点 + `age_minutes` 写归因；`halts` 命中先写停牌；`no_recent_filing` / `index_fund_no_issuer` / `degraded` 各自照实说（分别是「无一手公告」「指数基金无发行人」「催化源未取到」）。
 - **只用 context.json 的真实数字**；不确定催化就写"无明确个股催化，纯 beta"，**不编造财报/新闻**。
 - SPCH 按无限子弹流处理；不在横幅或归因里重复一般止损/减仓提示。
-- HK / US 两个 intraday 共写这**同一个** per-date 文件，build_dashboard 取最新 mtime（当前在盘的市场覆盖横幅）。
+- postflight 校验后把本代草稿归一化到供 dashboard 读取的 per-date 文件。当前在盘市场的下一份有效 sidecar 更新横幅。

@@ -53,9 +53,9 @@ cron slot ─► preflight ───────────► model ───�
 | Step | Owner | Does | On failure |
 |---|---|---|---|
 | cron slot | OpenClaw cron (`config/cron-schedules.json`, payload `config/cron-payloads/intraday.md`) | starts the turn at the slot time | watchdog judges the exact slot |
-| preflight | harness | microsecond generation timestamp binds same-second reruns to distinct context IDs; analyzer run → `analyzer_block`; signals/anomalies; plans, setups, radar, add-side reads; information lane; delta vs last delivery; soft candidates; card blocks; writes the context and prints the core packet | analyzer failure → `preflight_failed`; parent supervision records `preflight_crashed` on an unrecorded collector exit/signal (watchdog sends); any source failure → full card with a `⛔` line, never silence |
-| model | LLM | reads the core packet, fetches references it needs, writes `▎我的看法` and the `下一触发：` line | no prose / stale prose → postflight `input_error`, watchdog sends the data block |
-| postflight | harness | validates the prose (§7), assembles blocks per channel, sends, records | validation fail → data block + top banner (never empty); warn → sent, findings recorded in postflight |
+| preflight | harness | microsecond generation timestamp binds same-second reruns to distinct context IDs; analyzer run → `analyzer_block`; signals/anomalies; plans, setups, radar, add-side reads; information lane; delta vs last delivery; soft candidates; card blocks; writes the audit context and emits a ready receipt for the bounded core packet | analyzer failure → `preflight_failed`; parent supervision records `preflight_crashed` on an unrecorded collector exit/signal (watchdog sends); any source failure → full card with a `⛔` line, never silence |
+| model | LLM | reads the generation’s core files in one parallel batch, batches missing evidence by instrument, writes one draft of `▎我的看法` and the `下一触发：` line | no prose / stale prose → postflight `input_error`, watchdog sends the data block |
+| postflight | harness | validates the prose (§7), assembles blocks per channel, sends, records, then publishes the dashboard | one local revision on `revise`; validation fail → data block + top banner (never empty); warn → sent, findings recorded in postflight |
 | delivery | harness via OpenClaw channels | WeChat (primary), Telegram (mirror and backstop), each retried on its own | a failed channel is recorded per channel; the other still sends |
 | watchdog | harness (`intraday_watchdog`) | checks the exact slot marker and live cron running state (a completed manual preflight does not consume the in-flight wait); resends the channel that did not land; when every attempt of the slot failed before preflight wrote its context, runs that preflight itself and sends the deterministic block to Telegram (`_watchdog_common.chain_exhausted`, shared with `report_watchdog`) | WeChat-failed alert to Telegram at most once per market per day (#1861) |
 | ledgers | harness | heartbeat, workflow outcomes, delivered-state cursor, dashboard data plane | collector crashes survive diagnostic preflight retries; a fallback without judgment/postflight is degraded and needs attention; a failed publish is its own state (`publish_failed`); watchdog delivery confirmation cannot clear it (#2234) |
@@ -85,11 +85,22 @@ could not fetch.
 
 The split is by **whether the material can change this slot's judgment and
 whether it dilutes attention**, not by size. Anything that can change the
-judgment goes in the core packet however large it is. The reference layer is
-lazy loading in the skills sense — an index in the core packet, content one
-named call away — not truncation.
+judgment goes in the core packet. The reference layer keeps independently
+addressable detail indexed by name.
 
-### Core packet (printed by `clawock intraday preflight --judgment-packet`)
+### Core packet
+
+Scheduled `clawock intraday preflight --packet-files` publishes a generation
+directory atomically and then prints a short ready receipt. Each of at most six
+JSON files is at most 24 KiB in UTF-8. Parts carry the market, HKT slot/date and
+context ID and contain pairs of field paths and complete JSON subtrees. The
+receipt lists absolute paths, exact byte lengths and SHA-256 digests. It also
+gives generation-specific draft paths. All listed files are read in parallel
+in one tool batch. A transfer over budget or a missing part fails explicitly,
+and the stamped and latest audit contexts remain available to the watchdog.
+A same-generation audit copy serves reference queries even after a same-minute
+retry overwrites the stamped file. The transfer directory is kept for two days.
+The manual `--judgment-packet` switch still prints the complete core projection.
 
 | Field | What it answers |
 |---|---|
@@ -99,6 +110,7 @@ named call away — not truncation.
 | `full_holdings` | every holding: price, day move, quote freshness, distance to plan trigger lines |
 | `session_review`, `risk_followups` | same-session plan progress, previously delivered signals, and read-only risk review queue; available in core and rendered deterministically ([contract](session-reviews.md)); live |
 | `plan_context`, `plan_triggers`, `watch_levels` | open plans including 0-share watch decisions; triggers this slot's prices meet; the brief's watch lines |
+| `trigger_prices` | candidate price literals grouped by their own instrument, with source fields; only refreshed same-instrument `current` prices anchor the ±5% window. US overnight plans and watch levels use the ET session date, while receipt and draft dates use HKT. |
 | `holding_policies`, `strategy_*` | per-holding strategy exceptions, checks and escalations |
 | `semantic_state` (seen sets), `semantic_delta`, `semantic_unchanged` | what was already delivered today, what changed since |
 | `anomalies`, `signal_count` | this slot's moves and signal count; `analyzer_block` above retains the signal reason lines. Full `signals_detail` is available in the reference layer |
@@ -112,6 +124,15 @@ or `CONTROL_ENTRIES`. Run control (`card_marks`, `heartbeat`) stays in the
 context on disk for postflight and delivery and is not printed to the model;
 the slot it carries is `index.slot`. `add_side_reads`, `holding_policies` and
 the `strategy_*` fields are core by declaration and may not become references.
+
+Postflight receives the active context ID and the draft in its generation
+directory. It normalizes that generation’s sidecar to the dashboard’s HKT file.
+The first postflight executes with a foreground yield window of up to 120 s and
+returns as soon as it exits. A yielded command is polled in 30 s waits on its
+original session. The terminal receipt carries channel and publication verdicts
+independently. The full-card path reports validation, delivery to receipt,
+dashboard build, runtime commit and push, heartbeat fetch and record timings
+in seconds. Delivery and its marker still precede dashboard construction.
 
 ### Reference layer (addressable, same generation)
 
@@ -350,7 +371,11 @@ as live.
 | own-chart pullback visibility below the radar range and priority over generic reads | implemented (`test_supported_pullback_without_an_anomaly_reaches_the_card_before_other_candidates`) |
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | live (#1890) — SPCX's cold-start slice sizes to 0 shares (one share > the 3% book cap) |
-| revise-once gate | live (#1891) |
+| revise-once gate | live (#1891); scheduled drafts and the atomic revise claim share the generation directory |
+| bounded generation transfer | implemented (`test_core_round_trips_in_bounded_utf8_parts`, `test_concurrent_generations_resolve_references_after_latest_replaced`) |
+| overnight plan and sidecar dates | implemented (`test_scheduled_packet_keeps_the_us_plan_date_across_hkt_midnight`) |
+| same-instrument next-trigger evidence | implemented (`test_own_and_proxy_prices_cannot_be_swapped_in_next_trigger`) |
+| publication receipt and timing | implemented (`test_scoped_draft_sends_full_card_before_build_commit_push_and_heartbeat`) |
 | signal prose coverage and card folding share the session’s delivered identities; new levels still require prose | live (#2829) |
 | T+0 `range_used_atr` is an explicit multiple source for numeric claims | live (#2828) |
 | stale-title matching respects full cited titles and timestamped live duplicates | live (#2106) |

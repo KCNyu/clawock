@@ -59,6 +59,9 @@ from clawock.harness.report_preflight import parse_hk_indices
 WS = workspace_root()
 TMP = WS / 'memory' / '.tmp'
 
+from clawock.context.intraday_packet import write_packet
+from clawock.harness.intraday_trigger_prices import trigger_prices
+
 from ._harness_common import compute_context_id
 from ._watchdog_common import active_intraday_slot, slot_shipped
 
@@ -1568,7 +1571,9 @@ def decision_sweep(stdout, coverage, plan_context, radar, t0_setups):
 def _parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
-    parser.add_argument('--judgment-packet', action='store_true')
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument('--judgment-packet', action='store_true')
+    output.add_argument('--packet-files', action='store_true')
     parser.add_argument('--cron-job', help='OpenClaw job name for scheduled slot attribution')
     return parser.parse_args(argv)
 
@@ -1612,8 +1617,9 @@ def _collect(argv=None):
         # market_closed instead of yesterday's stale block.
         safe_write_text(str(TMP / f'intraday-context-{args.market}-latest.json'), payload)
         market_cn = '港股' if args.market == 'hk' else '美股'
-        print(f'=== MARKET CLOSED — {market_cn}今日{reason} ===')
-        print('SKIP：不要生成报告、不要调用任何 send/postflight、本回合到此结束。')
+        if not args.packet_files:
+            print(f'=== MARKET CLOSED — {market_cn}今日{reason} ===')
+            print('SKIP：不要生成报告、不要调用任何 send/postflight、本回合到此结束。')
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
@@ -1739,9 +1745,9 @@ def _collect(argv=None):
     # sentence is usually "the swap you planned has not filled yet" — before this
     # existed, the 10:05 slot had to shell out six times to find that out and
     # still misquoted the size (issues #119/#120). Never raises.
+    plan_day = intraday_delta.market_session_date(args.market, now)
     plan_ctx = plan_surface.open_decisions_context(
-        leg='HK' if args.market == 'hk' else 'US',
-        today=now.strftime('%Y-%m-%d'),
+        leg='HK' if args.market == 'hk' else 'US', today=plan_day,
     )
 
     # A narrow news window answers "what is new this slot", not "what is known
@@ -2085,7 +2091,7 @@ def _collect(argv=None):
         # The lines the 08:00 plan set for the book and the indices. Carried,
         # not evaluated — see `plan_surface.watch_levels` for why the arithmetic
         # `plan_triggers` does on a decision's price cannot be done on these.
-        'watch_levels':     plan_surface.watch_levels(),
+        'watch_levels':     plan_surface.watch_levels(today=plan_day),
         'mover_thesis':     mover_thesis,
         'mover_news':       mover_news_ctx,
         # Web search for this slot's movers (cached per session): each hit is
@@ -2095,10 +2101,33 @@ def _collect(argv=None):
         'known_catalysts':  known_catalyst_ctx,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
+    result['trigger_prices'] = trigger_prices(result)
     # Last field: the id digests everything above it, and the model echoes it to
     # postflight so prose can never be assembled onto a context that was
     # regenerated mid-turn. Must stay after the dict is otherwise complete.
     result['context_id'] = compute_context_id(result)
+
+    TMP.mkdir(parents=True, exist_ok=True)
+    out_path = TMP / f'intraday-context-{args.market}-{stamp}.json'
+    audit = json.dumps(result, ensure_ascii=False, indent=2)
+    safe_write_text(str(out_path), audit)
+    safe_write_text(str(TMP / f'intraday-context-{args.market}-latest.json'), audit)
+
+    model_output = result
+    if args.packet_files:
+        try:
+            model_output = write_packet(TMP, judgment_packet(result), audit)
+        except (OSError, ValueError) as exc:
+            detail = str(exc)[:400]
+            if not shipped:
+                cron_heartbeat.record(
+                    args.market, 'preflight_failed', job_name=heartbeat['job'],
+                    slot=heartbeat['slot'], failure_stage='core_packet', reason=detail)
+            print(json.dumps({'status': 'preflight_failed', 'context_id': result['context_id'],
+                              'slot': slot, 'error': detail}, ensure_ascii=False))
+            return 2
+    elif args.judgment_packet:
+        model_output = judgment_packet(result)
 
     if not shipped:
         cron_heartbeat.record(
@@ -2106,17 +2135,7 @@ def _collect(argv=None):
             slot=heartbeat['slot'], should_alert=should_alert,
             anomaly_count=len(anomalies), actionable_changes=actionable_changes,
         )
-
-    TMP.mkdir(parents=True, exist_ok=True)
-    out_path = TMP / f'intraday-context-{args.market}-{stamp}.json'
-    safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
-
-    # Also write latest pointer for postflight to pick up easily
-    safe_write_text(str(TMP / f'intraday-context-{args.market}-latest.json'),
-                    json.dumps(result, ensure_ascii=False, indent=2))
-
-    print(json.dumps(judgment_packet(result) if args.judgment_packet else result,
-                     ensure_ascii=False, indent=2))
+    print(json.dumps(model_output, ensure_ascii=False, indent=2))
     return 0
 
 

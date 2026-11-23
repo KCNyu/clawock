@@ -231,7 +231,7 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     read_report_text() still went green while main() ignored its error)."""
     monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, 'record', lambda *a, **k: None)
-    monkeypatch.setattr(pf, 'publish_data_plane', lambda market: ('published', True, None))
+    monkeypatch.setattr(pf, 'publish_data_plane', lambda market, **_: ('published', True, None))
 
     def run(prose, *, context_id, ctx=None):
         (tmp_path / 'intraday-context-us-latest.json').write_text(
@@ -375,7 +375,7 @@ def test_unchanged_receipt_needs_no_dummy_prose_file(pf, sent, monkeypatch, tmp_
     monkeypatch.setattr(pf, "WS", tmp_path)
     monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
-    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False, None))
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m, **_: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
         "intraday_postflight.py", "--market", "us", "--context-id", ctx["context_id"],
     ])
@@ -399,7 +399,7 @@ def test_receipt_ignores_irrelevant_context_id_mismatch(
     (tmp_path / "intraday-context-us-latest.json").write_text(json.dumps(ctx))
     monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
-    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False, None))
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m, **_: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
         "intraday_postflight.py", "--market", "us", "--context-id", "OLD",
     ])
@@ -427,7 +427,7 @@ def test_unchanged_receipt_does_not_refresh_an_old_dashboard_narrative(
     monkeypatch.setattr(pf, "WS", tmp_path)
     monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
-    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False, None))
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m, **_: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
         "intraday_postflight.py", "--market", "us", "--context-id", ctx["context_id"],
     ])
@@ -483,7 +483,7 @@ def test_publish_failure_is_loud_after_report_delivery(
 ):
     """A delivered report cannot turn a frozen public dashboard green."""
     monkeypatch.setattr(
-        pf, 'publish_data_plane', lambda market: ('publish_failed', False, None)
+        pf, 'publish_data_plane', lambda market, **_: ('publish_failed', False, None)
     )
 
     rc, out = run_main(PROSE, context_id='abc123def456')
@@ -785,3 +785,65 @@ def test_naming_an_old_signal_cannot_cover_a_new_signal(pf):
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
     missed = [i for i in issues if '未提任何信号票' in i]
     assert len(missed) == 1 and 'CRCL' in missed[0] and 'RKLX' not in missed[0]
+
+
+def test_scoped_draft_sends_full_card_before_build_commit_push_and_heartbeat(
+    pf, sent, monkeypatch, tmp_path, capsys,
+):
+    from clawock.context.intraday_packet import packet_dir
+
+    context_id = 'abc123def456'
+    slot = '2026-07-28T00:30:00+08:00'
+    ctx = _ctx(heartbeat={'job': '美股盘中盯盘-overnight', 'slot': slot})
+    (tmp_path / 'intraday-context-us-latest.json').write_text(json.dumps(ctx))
+    generation = packet_dir(tmp_path, 'us', context_id)
+    generation.mkdir(parents=True)
+    body = generation / 'intraday-prose-us.md'
+    args = ['--market', 'us', '--context-id', context_id, '--text-file', str(body)]
+    sidecar = generation / 'intraday-insights-2026-07-28.json'
+    sidecar.write_text('{"status_banner":"本档判断","movers":{}}')
+    model_output = PROSE.replace('17.07', '999.0')
+    body.write_text(model_output)
+    events = []
+    monkeypatch.setattr(pf.trading_calendar, 'intraday_closed_reason', lambda *a, **k: None)
+    monkeypatch.setattr(pf.cron_heartbeat, 'record',
+                        lambda *a, **k: events.append(('heartbeat', k['slot'])))
+    monkeypatch.setattr(pf.cron_heartbeat, 'unpushed_commits',
+                        lambda *, refresh: events.append(('fetch', refresh)) or 1)
+    monkeypatch.setattr(pf.cron_heartbeat, 'unpushed_oldest_hours', lambda: 0.5)
+    monkeypatch.setattr(pf.intraday_delta, 'persist_delivered_state', lambda *a: True)
+
+    def build():
+        marker = pf.delivery_receipts.receipt_path(tmp_path, 'intraday', market='us')
+        receipt = json.loads(marker.read_text())
+        assert receipt['context_id'] == context_id and receipt['slot'] == slot
+        assert sent['messages'][0].startswith(BLOCK)
+        events.append(('build', True))
+        return True, ''
+
+    monkeypatch.setattr(pf, 'rebuild_dashboard', build)
+    monkeypatch.setattr(pf, 'dashboard_publication_state', lambda _: 'published')
+    monkeypatch.setattr(pf, 'snapshot_date_for_now', lambda: None)
+    monkeypatch.setattr(pf, 'git_cmd', lambda action, *a: (events.append((action, True)) or True, ''))
+    monkeypatch.setattr(pf, 'push_with_rebase_retry',
+                        lambda **k: (events.append(('push', True)) or False, 'offline'))
+
+    assert pf.main([*args[:-1], str(generation.parent / 'us-wrong' / body.name)]) == 2
+    assert json.loads(capsys.readouterr().out)['status'] == 'input_error'
+    assert pf.main(args) == 0
+    assert json.loads(capsys.readouterr().out)['status'] == 'revise'
+    assert not events and not sent['messages']
+    body.write_text(PROSE)
+    assert pf.main(args) == 2
+    result = json.loads(capsys.readouterr().out)
+    assert result['wechat_sent'] and result['telegram_sent']
+    assert result['data_plane_status'] == 'committed_local'
+    assert result['dashboard_published'] is False
+    assert set(result['timings_seconds']) == {
+        'validation', 'delivery', 'delivery_receipt_elapsed', 'dashboard_build',
+        'runtime_commit', 'runtime_push', 'heartbeat_fetch', 'heartbeat_record', 'total',
+    }
+    assert result['timings_seconds']['delivery_receipt_elapsed'] <= result['timings_seconds']['total']
+    assert events == [('build', True), ('add', True), ('commit', True), ('push', True),
+                      ('fetch', True), ('heartbeat', slot)]
+    assert json.loads((tmp_path / sidecar.name).read_text())['status_banner'] == '本档判断'

@@ -319,12 +319,18 @@ class IntradayReference(BaseTool):
         import json  # noqa: PLC0415
 
         from clawock.context.intraday_layers import REFERENCE_ENTRIES  # noqa: PLC0415
+        from clawock.context.intraday_packet import packet_dir  # noqa: PLC0415
 
         if name not in REFERENCE_ENTRIES:
             raise ToolError(f"{name!r} is not a reference entry; the core packet has "
                             "every other field")
         tmp = Path(workspace) / "memory" / ".tmp"
-        candidates = [tmp / f"intraday-context-{market}-latest.json",
+        try:
+            generation = packet_dir(tmp, market, context_id)
+        except ValueError as exc:
+            raise ToolError(str(exc)) from exc
+        candidates = [generation / "context.json",
+                      tmp / f"intraday-context-{market}-latest.json",
                       *sorted(tmp.glob(f"intraday-context-{market}-*.json"), reverse=True)[:40]]
         for path in candidates:
             try:

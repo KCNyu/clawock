@@ -20,7 +20,8 @@ def _produced_fields():
         key.value for key in node.keys if isinstance(key, ast.Constant)
         and isinstance(key.value, str)
     } for node in dicts), key=len)
-    produced.add('context_id')  # appended after the result dict is complete
+    # These two derived fields are added once data collection is complete.
+    produced.update({'context_id', 'trigger_prices'})
     return produced
 
 
@@ -55,7 +56,8 @@ def test_mode7_named_context_fields_reach_model():
         tokens.update(re.findall(r'`([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*)`', document))
     named = {token.split('.', 1)[0] for token in tokens
              if '_' in token or token == 'anomalies'}
-    non_fields = {'commit_ok', 'market_closed', 'full_delta', 'no_change',
+    non_fields = {'prose_path', 'sidecar_path', 'committed_local',
+                  'market_closed', 'full_delta', 'no_change',
                   'review_candidate',
                   'index',  # the core packet's own index (`index.rule_outputs`)
                   'no_recent_filing', 'index_fund_no_issuer', 'suppressed_noise'}
