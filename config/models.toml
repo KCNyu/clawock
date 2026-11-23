@@ -56,6 +56,7 @@ reasoning = true
 # MiniMax domestic list is 1 / 4 / 0.1 CNY per 1M (input / output / cache read),
 # converted at ~7.1 CNY per USD; third-party listings quote USD 0.15 / 0.60 / 0.015.
 cost = { input = 0.14, output = 0.56, cacheRead = 0.014, cacheWrite = 0 }
+compat = { supportsReasoningEffort = true, supportedReasoningEfforts = ["adaptive"] }
 params = { thinking = "adaptive" }
 
 [models.deepseek]
@@ -113,7 +114,7 @@ maxTokens = 128000
 cost = { input = 0.1, output = 0.5, cacheRead = 0.01, cacheWrite = 0 }
 compat = { supportsReasoningEffort = true, supportedReasoningEfforts = ["low", "medium", "high", "xhigh", "max"] }
 runtime = "codex"
-# Dreaming's fallback is Luna at max; explicit chain thinking still wins.
+# Luna uses max in both cron and dreaming.
 params = { thinking = "max" }
 
 [models.sonnet]
@@ -130,9 +131,9 @@ runtime = "claude-cli"
 # ── Chains: which scenario uses which models ─────────────────────────────────
 # `models` is the rotation, first = primary. `name@alias` runs that model under
 # a provider alias. `also_allowed` may be swapped in by hand without a contract
-# change. `thinking` is the scenario's level for the whole turn: OpenClaw resolves
-# it once and clamps it per fallback candidate to a level that model has, with
-# a warning. A chain without `thinking` takes each model's `params.thinking`.
+# change. For strategy cron, `thinking` is the chain default. Each candidate
+# applies its own `params.thinking` (including provider aliases), then clamps
+# the level to what the model and runtime support.
 
 [chains.chat]  # direct chat with the assistant
 # Parent's call, 2026-10-31: DeepSeek first, MiniMax-M3.1-Flash as the backup.
@@ -151,10 +152,8 @@ models = ["flash", "luna"]
 [chains.cron]  # strategy crons: report / intraday / brief
 models = ["flash", "flash@minimax-2", "luna"]
 also_allowed = ["sol"]
-# One level serves the MiniMax hops and Luna, and they share no level but off.
-# `max` is Luna's top (kcn 2026-09-13: Luna max as the backstop); on the MiniMax
-# hops OpenClaw clamps it to `adaptive` and sends no effort, which the endpoint
-# runs at its default `max`. `adaptive` here would clamp Luna to `medium`.
+# Keep the emitted cron contract stable. Flash sends adaptive with no effort,
+# and the Luna model preference is max.
 thinking = "max"
 
 [chains.memory-cron]  # Memory Dreaming Promotion

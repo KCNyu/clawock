@@ -112,6 +112,8 @@ class Registry:
                 value['params'] = copy.deepcopy(model.params)
             if value:
                 out[model.ref] = value
+                for alias in self.providers[model.provider].get('aliases') or ():
+                    out[f'{alias}/{model.id}'] = copy.deepcopy(value)
         return out
 
     def openclaw_settings(self) -> dict:
