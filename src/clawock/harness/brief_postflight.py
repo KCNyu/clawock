@@ -887,15 +887,6 @@ def validate_markdown(path, context=None):
     for issue in check_md_table_column_consistency(text):
         issues.append(f'pre-open.md {issue}')
 
-    # NEW: peer-rotation enforcement — divergence_signal in context must be addressed
-    if context and context.get('peer_scan'):
-        divergence_tickers = [t for t, p in context['peer_scan'].items()
-                              if p.get('divergence_signal')]
-        unaddressed = [t for t in divergence_tickers if not mentions_ticker(text, t)]
-        if unaddressed:
-            issues.append(f'pre-open.md 漏写 divergence 信号 ticker: {unaddressed} '
-                          f'(preflight 标了 {len(divergence_tickers)} 个，markdown 漏 {len(unaddressed)} 个)')
-
     # NEW: 大盘速读 / 社交舆情速读 段落检查 (warn-only — 数据 fresh 但 LLM 漏写时提醒)
     # context.macro / context.sentiment 由 brief_preflight [13] 写入，stale > 36h 时
     # age_hours 字段已经标了，模板允许 LLM 写"⚠️ 数据 stale, 跳过"代替具体内容
@@ -1590,14 +1581,7 @@ JUDGMENT_ROW_PROSE = ('fundamentals', 'sentiment_read', 'cross_market',
                       'assessment', 'counterargument', 'next_evidence')
 
 
-def _judgment_identifier_issues(judgment_path):
-    """Flag internal field names in model prose that the brief publishes."""
-    try:
-        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
-    except (OSError, ValueError):
-        return []  # _judgment_gap_issues reports unreadable judgment
-    if not isinstance(overlay, dict):
-        return []
+def _judgment_text(overlay):
     narrative = overlay.get('narrative') or {}
     texts = [overlay.get('portfolio_assessment'),
              overlay.get('portfolio_counterargument')]
@@ -1612,7 +1596,41 @@ def _judgment_identifier_issues(judgment_path):
     for row in overlay.get('ticker_judgments') or []:
         if isinstance(row, dict):
             texts.extend(row.get(key) for key in JUDGMENT_ROW_PROSE)
-    prose = '\n'.join(value for value in texts if isinstance(value, str))
+    return '\n'.join(value for value in texts if isinstance(value, str))
+
+
+def _peer_divergence_issues(judgment_path, context):
+    tickers = [t for t, row in (context.get('peer_scan') or {}).items()
+               if row.get('divergence_signal')]
+    if not tickers:
+        return []
+    try:
+        overlay = json.loads(judgment_path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        overlay = {}
+    if not isinstance(overlay, dict):
+        overlay = {}
+    prose = _judgment_text(overlay)
+    # A dedicated peer read already identifies its ticker in the judgment row.
+    peer_reads = {row.get('ticker') for row in overlay.get('ticker_judgments') or []
+                  if isinstance(row, dict) and isinstance(row.get('peer_read'), str)
+                  and row['peer_read'].strip()}
+    missing = [t for t in tickers if t not in peer_reads and not mentions_ticker(prose, t)]
+    if missing:
+        return [f'简报判断正文漏写 divergence 信号 ticker: {missing} '
+                f'(preflight 标了 {len(tickers)} 个，正文漏 {len(missing)} 个)']
+    return []
+
+
+def _judgment_identifier_issues(judgment_path):
+    """Flag internal field names in model prose that the brief publishes."""
+    try:
+        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return []  # _judgment_gap_issues reports unreadable judgment
+    if not isinstance(overlay, dict):
+        return []
+    prose = _judgment_text(overlay)
     return [f'{issue} {ADVISORY_MARK}' for issue in
             check_identifier_leak(prose, label='简报判断正文')]
 
@@ -1783,6 +1801,8 @@ def main(argv=None):
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
     issues += _judgment_identifier_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
+    issues += _peer_divergence_issues(
+        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', context or {})
     issues += _plan_self_reference_issues(normalized_plan)
     issues += _brief_numeric_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', normalized_plan, context)

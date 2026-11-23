@@ -22,7 +22,7 @@ from clawock.portfolio.valuation import summary as valuation_summary
 import math
 import re
 
-from clawock.instruments import is_leveraged_holding, one_x_swap_map
+from clawock.instruments import get as instrument, is_leveraged_holding, one_x_swap_map
 
 def _is_leveraged_etf(holding):
     """Compatibility alias for the product-owned conservative classifier."""
@@ -612,7 +612,6 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
     LLM 报解套/回本相关数字时必须引用这里，不准心算。"""
     us_reg = (lev_regime or {}).get('us') if isinstance(lev_regime, dict) else None
     us_names = {n.get('etf'): n for n in (us_reg or {}).get('names', [])}
-    us_vols = {etf: n.get('vol_annualized') for etf, n in us_names.items()}
     hk_dial = (lev_regime.get('hk') or lev_regime) if isinstance(lev_regime, dict) else {}
     rows = []
     for leg, hold in (('HK', hk_holdings), ('US', us_holdings)):
@@ -633,8 +632,15 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
             if row['leveraged']:
                 row['swap_1x'] = LEV_1X_SWAP.get(h['ticker'])
                 row['underlying_need_if_1x_pct'] = round(need, 1)
-                sigma = us_vols.get(h['ticker']) if leg == 'US' else hk_dial.get('vol_annualized')
-                if isinstance(sigma, (int, float)) and sigma >= 0:
+                if leg == 'US':
+                    dial = us_names.get(h['ticker'], {})
+                else:
+                    underlying = (instrument(h['ticker']) or {}).get('underlying')
+                    # The HK regime dial tracks HSTECH. A single-name product
+                    # requires its own underlying series for a drag estimate.
+                    dial = hk_dial if underlying == 'HSTECH' else {}
+                sigma = dial.get('vol_annualized')
+                if isinstance(sigma, (int, float)) and math.isfinite(sigma) and sigma >= 0:
                     drag_y = sigma ** 2                     # k=2 → (k²−k)/2·σ² = σ²
                     x_2x = math.sqrt((1 + need / 100) * math.exp(drag_y * 0.5)) - 1
                     row.update({
@@ -644,7 +650,6 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
                         'underlying_need_if_1x_pct': round(need, 1),
                     })
                 else:
-                    dial = us_names.get(h['ticker'], {}) if leg == 'US' else hk_dial
                     row['vol_unavailable_reason'] = dial.get('vol_unavailable_reason') or '标的波动率不可用'
             rows.append(row)
     rows.sort(key=lambda r: r['pnl_pct'])

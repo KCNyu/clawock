@@ -24,8 +24,8 @@
     },
     "influencer-scan.yml": {
       "deadline_hkt": "08:00",
-      "enforcement": "enforced",
-      "why": "Morning leg feeds the brief; its header says '~2.3h before the 08:00 HKT brief (buffer for GH Actions' 1-2h scheduled-cron delay)'. The evening leg (20:50 HKT) is measured against the NEXT morning's deadline, which is the run it actually feeds."
+      "enforcement": "accepted",
+      "why": "The morning scan feeds the 08:03 HKT brief. The 2026-11-23 scheduled run finished at 09:56 HKT, after the brief. The host now dispatches the morning scan via ops/host/dispatch_preopen_scans.sh starting at 07:20 HKT. The scheduled morning run covers host outages and the evening run keeps its separate coverage."
     },
     "weekly-health.yml": {
       "deadline_hkt": "08:00",

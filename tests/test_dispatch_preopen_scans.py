@@ -1,8 +1,8 @@
-"""The host starts the two pre-open scans itself (#2516).
+"""The host starts the pre-open scans itself (#2516).
 
 GitHub delivered their schedules hours after the brief, so the brief read the
 previous session's macro block. The script is the trigger the brief depends on:
-it must ask for both workflows, and say so when one request fails.
+it must ask for all three workflows, and say so when one request fails.
 """
 from __future__ import annotations
 
@@ -46,17 +46,18 @@ echo "$((n + 1)) $result"
     return result, dispatched
 
 
-def test_both_scans_are_dispatched_on_master(tmp_path):
+def test_all_scans_are_dispatched_on_master(tmp_path):
     result, calls = _run(tmp_path)
     assert result.returncode == 0
     assert calls == ["workflow run macro-scan.yml -R KCNyu/clawock --ref master",
-                     "workflow run sentiment-scan.yml -R KCNyu/clawock --ref master"]
+                     "workflow run sentiment-scan.yml -R KCNyu/clawock --ref master",
+                     "workflow run influencer-scan.yml -R KCNyu/clawock --ref master"]
 
 
 def test_one_failed_dispatch_is_reported_and_does_not_skip_the_other(tmp_path):
     result, calls = _run(tmp_path, failing="macro-scan.yml")
     assert result.returncode == 1
-    assert len(calls) == 2
+    assert len(calls) == 3
     assert "dispatch FAILED for macro-scan.yml" in result.stdout
     assert "dispatched sentiment-scan.yml" in result.stdout
 
@@ -67,7 +68,7 @@ def test_a_scan_cancelled_while_waiting_in_the_queue_is_dispatched_again(tmp_pat
     result, calls = _run(tmp_path, conclusions={"sentiment-scan.yml": ["cancelled"]})
     assert result.returncode == 0
     assert [c.split()[2] for c in calls] == [
-        "macro-scan.yml", "sentiment-scan.yml", "sentiment-scan.yml"]
+        "macro-scan.yml", "sentiment-scan.yml", "sentiment-scan.yml", "influencer-scan.yml"]
     assert "sentiment-scan.yml was cancelled in the queue — dispatched again" in result.stdout
 
 
@@ -77,7 +78,7 @@ def test_a_retry_that_is_cancelled_again_is_a_failure(tmp_path):
                          conclusions={"sentiment-scan.yml": ["cancelled", "cancelled"]})
     assert result.returncode == 1
     assert [c.split()[2] for c in calls] == [
-        "macro-scan.yml", "sentiment-scan.yml", "sentiment-scan.yml"]
+        "macro-scan.yml", "sentiment-scan.yml", "sentiment-scan.yml", "influencer-scan.yml"]
     assert "macro-scan.yml finished: success" in result.stdout
     assert "sentiment-scan.yml FAILED: run ended cancelled" in result.stdout
 
@@ -85,7 +86,7 @@ def test_a_retry_that_is_cancelled_again_is_a_failure(tmp_path):
 def test_a_scan_that_fails_is_a_failure_and_the_other_still_runs(tmp_path):
     result, calls = _run(tmp_path, conclusions={"macro-scan.yml": ["failure"]})
     assert result.returncode == 1
-    assert [c.split()[2] for c in calls] == ["macro-scan.yml", "sentiment-scan.yml"]
+    assert [c.split()[2] for c in calls] == ["macro-scan.yml", "sentiment-scan.yml", "influencer-scan.yml"]
     assert "macro-scan.yml FAILED: run ended failure" in result.stdout
     assert "sentiment-scan.yml finished: success" in result.stdout
 

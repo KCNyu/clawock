@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# dispatch_preopen_scans.sh — start the macro and sentiment scans from this host
+# dispatch_preopen_scans.sh — start the macro, sentiment and influencer scans from this host
 # shortly before the 08:03 HKT pre-open brief.
+# The influencer job has a 25-minute ceiling. The shorter scans run first,
+# so a slow influencer run does not keep both other inputs from the brief.
 #
-# Why the host: both scans are GitHub-scheduled for 05:30–05:55 HKT, and GitHub
+# Why the host: macro and sentiment are GitHub-scheduled for 05:30–05:55 HKT, and GitHub
 # has been delivering those schedules 3–10 hours late since 2026-09-29, after the
 # brief has read the sidecars. A second cron ten minutes later bought nothing —
 # both attempts arrive in the same wave. No schedule on our side can outrun a
@@ -11,12 +13,12 @@
 # `gh workflow run` is delivered in seconds; it is how brief_watchdog already
 # starts the fallback brief. The scheduled runs stay as the host-down fallback.
 #
-# Scheduled retries now check the latest committed sidecar before fetching:
+# Macro and sentiment scheduled retries check the latest sidecar before fetching:
 # a valid current-cycle copy skips the scan and its commit/Pages deploy.
 # Dispatch remains an explicit refresh, including when an early scheduled leg
 # already succeeded. The live checkout picks commits up on its next publisher pull.
 #
-# Both share the `data-write` concurrency group, which holds one running and one
+# All three share the `data-write` concurrency group, which holds one running and one
 # waiting run: a run that is still waiting when another member of the group
 # queues is cancelled, not delayed. Dispatching the two together left the second
 # one waiting, and it was cancelled the first time this ran (2026-10-04). So each
@@ -63,7 +65,10 @@ run_id() {
 # How the run dispatched after run id $2 ended: its conclusion, `missing` when
 # no newer run showed up, `running` when it has not concluded in time.
 outcome() {
-  local workflow="$1" before="$2" waited=0 line id result
+  local workflow="$1" before="$2" waited=0 line id result wait_seconds="$WAIT_SECONDS"
+  if [ "$workflow" = "influencer-scan.yml" ]; then
+    wait_seconds="${PREOPEN_INFLUENCER_WAIT_SECONDS:-${PREOPEN_SCAN_WAIT_SECONDS:-1500}}"
+  fi
   sleep "$SETTLE_SECONDS"
   while :; do
     line="$(newest "$workflow")"
@@ -77,7 +82,7 @@ outcome() {
     else
       break
     fi
-    [ "$waited" -ge "$WAIT_SECONDS" ] && break
+    [ "$waited" -ge "$wait_seconds" ] && break
     sleep "$POLL_SECONDS"
     waited=$((waited + POLL_SECONDS))
   done
@@ -85,7 +90,7 @@ outcome() {
 }
 
 status=0
-for workflow in macro-scan.yml sentiment-scan.yml; do
+for workflow in macro-scan.yml sentiment-scan.yml influencer-scan.yml; do
   before="$(run_id "$workflow")"
   if ! dispatch "$workflow"; then
     echo "$(date -Is) dispatch FAILED for $workflow — the brief will read whatever the scheduled run left"

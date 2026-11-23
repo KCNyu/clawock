@@ -88,12 +88,15 @@ def test_report_anomaly_is_not_covered_by_a_longer_ticker():
 
 def test_brief_divergence_ticker_needs_its_own_mention(tmp_path):
     brief = importlib.import_module('clawock.harness.brief_postflight')
-    md = tmp_path / 'pre-open.md'
-    md.write_text('| SPCH 2xSPCX | 航天杠杆 | +4.27 |\nSPCH 跟随板块轮动。\n')
+    judgment = tmp_path / 'judgment.json'
+    judgment.write_text('{"portfolio_assessment": "SPCH 跟随板块轮动。"}')
     context = {'peer_scan': {'SPCX': {'divergence_signal': True},
                              'SPCH': {'divergence_signal': True}}}
-    flagged = [i for i in brief.validate_markdown(md, context) if 'divergence' in i]
+    flagged = brief._peer_divergence_issues(judgment, context)
     assert flagged and "['SPCX']" in flagged[0], flagged
+    judgment.write_text('{"ticker_judgments": [{"ticker": "SPCX", "peer_read": "逆板块"}],'
+                        ' "portfolio_assessment": "SPCH 跟随板块轮动。"}')
+    assert brief._peer_divergence_issues(judgment, context) == []
 
 
 @pytest.mark.parametrize('spelling', ['7226', '07226', '７２２６', '０７２２６'])

@@ -231,7 +231,7 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     read_report_text() still went green while main() ignored its error)."""
     monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, 'record', lambda *a, **k: None)
-    monkeypatch.setattr(pf, 'publish_data_plane', lambda market: ('published', True))
+    monkeypatch.setattr(pf, 'publish_data_plane', lambda market: ('published', True, None))
 
     def run(prose, *, context_id, ctx=None):
         (tmp_path / 'intraday-context-us-latest.json').write_text(
@@ -375,7 +375,7 @@ def test_unchanged_receipt_needs_no_dummy_prose_file(pf, sent, monkeypatch, tmp_
     monkeypatch.setattr(pf, "WS", tmp_path)
     monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
-    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False))
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
         "intraday_postflight.py", "--market", "us", "--context-id", ctx["context_id"],
     ])
@@ -399,7 +399,7 @@ def test_receipt_ignores_irrelevant_context_id_mismatch(
     (tmp_path / "intraday-context-us-latest.json").write_text(json.dumps(ctx))
     monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
-    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False))
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
         "intraday_postflight.py", "--market", "us", "--context-id", "OLD",
     ])
@@ -427,7 +427,7 @@ def test_unchanged_receipt_does_not_refresh_an_old_dashboard_narrative(
     monkeypatch.setattr(pf, "WS", tmp_path)
     monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
-    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False))
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
         "intraday_postflight.py", "--market", "us", "--context-id", ctx["context_id"],
     ])
@@ -483,7 +483,7 @@ def test_publish_failure_is_loud_after_report_delivery(
 ):
     """A delivered report cannot turn a frozen public dashboard green."""
     monkeypatch.setattr(
-        pf, 'publish_data_plane', lambda market: ('publish_failed', False)
+        pf, 'publish_data_plane', lambda market: ('publish_failed', False, None)
     )
 
     rc, out = run_main(PROSE, context_id='abc123def456')

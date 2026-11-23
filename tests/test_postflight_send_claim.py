@@ -444,3 +444,41 @@ def test_every_postflight_sends_through_the_one_transaction():
         assert re.search(r'send_under_claim\(', source), f'{name}: sends outside send_under_claim'
         by_hand = re.findall(r'\b(release_claim|mark_send_started)\(', source)
         assert not by_hand, f'{name}: runs the claim sequence by hand: {by_hand}'
+
+
+def test_two_retries_cannot_both_take_over_a_stale_claim(tmp_path, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    c = _common()
+    claim = tmp_path / 'race.claim'
+    claim.write_text(json.dumps({'pid': 1, 'ts': 0}))
+    first_writing, second_entered, allow_write = Event(), Event(), Event()
+    write_claim = c._write_claim
+
+    def delayed_write(path, payload):
+        if not first_writing.is_set():
+            first_writing.set()
+            assert allow_write.wait(2)
+        write_claim(path, payload)
+
+    def retry():
+        second_entered.set()
+        return c.claim_send(claim, now_ms=NOW_MS)
+
+    monkeypatch.setattr(c, '_write_claim', delayed_write)
+    with ThreadPoolExecutor(2) as pool:
+        first = pool.submit(c.claim_send, claim, now_ms=NOW_MS)
+        try:
+            assert first_writing.wait(2)
+            second = pool.submit(retry)
+            assert second_entered.wait(2)
+            # Keep the stale payload visible until the second caller has had
+            # time to attempt the same takeover.
+            from concurrent.futures import TimeoutError
+            with pytest.raises(TimeoutError):
+                second.result(timeout=0.2)
+        finally:
+            allow_write.set()
+        assert first.result(timeout=2) == (True, 'took-over-stale-claim')
+        assert second.result(timeout=2) == (False, 'in-flight')
