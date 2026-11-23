@@ -2012,6 +2012,10 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
   assert.equal(shortInterval.windows[0].resetAtMs, now + 4 * 3600_000);
   assert.throws(() => parseMinimaxRemains({model_remains: [{model_name: "video", current_interval_remaining_percent: 99}]}, AS_OF), /general/);
 
+  assert.throws(() => parseMinimaxRemains({ model_remains: [{
+    model_name: "general", current_interval_total_count: 0, current_weekly_total_count: 0,
+  }] }, AS_OF), /没有可用的额度窗口/);
+
   let minimaxCalls = 0;
   globalThis.fetch = async (url, init) => {
     minimaxCalls += 1;
@@ -5152,7 +5156,7 @@ test("workbench client: a failed stats read offers a retry", async () => {
   let reads = 0;
   const fetchTaskStats = async () => {
     reads += 1;
-    if (reads === 1) throw new Error("stats backend down");
+    if (reads !== 2) throw new Error("stats backend down");
     return stats;
   };
   const stub = makeReactStub();
@@ -5203,6 +5207,20 @@ test("workbench client: a failed stats read offers a retry", async () => {
     assert.equal(find(recovered, (p) => p["data-tq-stats-chart"] !== undefined).length, 1,
       "the recovered read paints the stats detail");
     assert.equal(find(recovered, (p) => p["data-tq-stats-retry"] !== undefined).length, 0);
+
+    find(recovered, (p) => p["data-wb-stats-back"] !== undefined)[0].props.onClick();
+    const overview = render();
+    find(overview, (p) => p.role === "tab")[0].props.onClick();
+    const tasks = render();
+    find(tasks, (p) => p.role === "tab")[2].props.onClick();
+    render();
+    await new Promise((resolve) => setImmediate(resolve));
+    const failedRefresh = render();
+    find(failedRefresh, (p) => p["data-wb-group-button"] === "overview-stats")[0].props.onClick();
+    const stale = render();
+    assert.equal(reads, 3);
+    assert.equal(find(stale, (p) => p["data-tq-stats-chart"] !== undefined).length, 0);
+    assert.equal(find(stale, (p) => p["data-tq-stats-retry"] !== undefined).length, 1);
   } finally {
     disposeReactEffects();
   }

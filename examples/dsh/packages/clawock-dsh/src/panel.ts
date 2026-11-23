@@ -1057,6 +1057,7 @@ export function providerSignal(row: BalanceRow): ProviderSignal {
     return result.low || total < 10 ? 'warn' : 'ok'
   }
   const windows = (snapshot.windows ?? []).filter((window) => window.percent !== null)
+  if (windows.length === 0) return 'none'
   // The design's one predicate: >=90% used is an alert, 70–90 is a warning.
   if (windows.some((window) => (window.percent as number) >= 90)) return 'alert'
   return windows.some((window) => (window.percent as number) >= 70) ? 'warn' : 'ok'

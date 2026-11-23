@@ -204,7 +204,7 @@ function parseMinimaxRemains(body, asOf, now = Date.now()) {
 	const raw = typeof body === "object" && body !== null ? body : {};
 	const entry = (Array.isArray(raw.model_remains) ? raw.model_remains : []).find((b) => (b.model_name ?? b.model) === "general");
 	if (entry === void 0) throw new Error("MiniMax 响应里没有 general model_remains 数据");
-	return quotaSnapshot([quotaWindow({
+	const snapshot = quotaSnapshot([quotaWindow({
 		usedPercent: windowUsedPercent(entry),
 		durationMins: 300,
 		resetsAt: entry.end_time,
@@ -215,6 +215,8 @@ function parseMinimaxRemains(body, asOf, now = Date.now()) {
 		resetsAt: entry.weekly_end_time,
 		fallbackLabel: "周"
 	}, now)], asOf);
+	if (!snapshot.isAvailable) throw new Error("MiniMax 响应里没有可用的额度窗口");
+	return snapshot;
 }
 /**
 * Successful usage payload → snapshot. utilization already IS consumption,

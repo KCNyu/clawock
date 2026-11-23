@@ -188,7 +188,7 @@ needs_venv=0
 needs_plugin=0
 needs_runner=0
 grep -qx 'pyproject.toml' <<<"$changed" && needs_venv=1
-grep -q '^examples/dsh/packages/clawock-dsh/' <<<"$changed" && needs_plugin=1
+grep -qE '^(examples/dsh/packages/clawock-dsh/|ops/host/install_dsh_plugin\.sh$)' <<<"$changed" && needs_plugin=1
 grep -qE '^ops/host/(agent-dispatch/|install_agent_dispatch\.sh$)' <<<"$changed" && needs_runner=1
 needs_patrol=0
 grep -qE '^ops/host/(clawock-patrol/|install_patrol_assets\.sh$)' <<<"$changed" && needs_patrol=1
@@ -274,7 +274,7 @@ fi
 if [ "$needs_plugin" = "1" ]; then
   if command -v dsh >/dev/null; then
     record_restart dsh-plugin
-    bash ops/host/install_dsh_plugin.sh --restart
+    env -u DSH_PROFILE bash ops/host/install_dsh_plugin.sh --restart
   else
     echo "dsh CLI not on PATH — skipped the plugin install" >&2
   fi

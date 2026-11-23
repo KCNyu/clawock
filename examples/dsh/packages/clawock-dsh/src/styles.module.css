@@ -2070,7 +2070,8 @@
   --wb-bad-soft: #fdebee;
   --wb-warn: var(--dsw-alias-state-warn-primary, #8f571b);
   --wb-ok: var(--dsw-alias-state-success-primary, #18763e);
-  --wb-alert: #e5484d;
+  --wb-alert: #bf3039;
+  --wb-alert-fill: #bf3039;
   /* geometry — measured host rhythm */
   --wb-page-pad: 20px;
   --wb-page-top: 28px;
@@ -2143,13 +2144,16 @@ body[data-ds-dark-theme] .wb {
   font-size: var(--wb-font-ui);
   line-height: var(--wb-line-ui);
 }
+body[data-ds-dark-theme] .wb {
+  --wb-alert: #fa716a;
+}
 .wb-icon { position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--wb-text-1); }
 .wb-icon-on { color: var(--wb-text-1); }
 [data-wb-rail=true] .wb-icon { position: relative; }
 .wb-rail-alert {
   display: none; position: absolute; bottom: calc(var(--wb-space-1) * -1); left: calc(var(--wb-space-2) * -1); z-index: 1;
   width: var(--wb-glyph); height: var(--wb-glyph); align-items: center; justify-content: center;
-  border-radius: var(--wb-radius-sm); background: var(--wb-alert); color: var(--wb-text-inverted);
+  border-radius: var(--wb-radius-sm); background: var(--wb-alert-fill); color: var(--wb-text-inverted);
   font-size: var(--fs-micro); line-height: var(--lh-micro); font-weight: var(--fw-bold);
   pointer-events: none;
 }

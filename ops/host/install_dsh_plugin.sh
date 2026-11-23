@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install_dsh_plugin.sh — install clawock-dsh into the live DSH profile through
+# install_dsh_plugin.sh — install clawock-dsh into the live DSH profiles through
 # the official `dsh plugin add` path.
 #
 # Why this looks the way it does — two incidents, one lesson each:
@@ -24,7 +24,7 @@
 #   ops/host/install_dsh_plugin.sh --restart    # and restart dsh afterwards
 #
 # Env:
-#   DSH_PROFILE      profile to install into (default: web)
+#   DSH_PROFILE      install only this profile (default: web and existing headless)
 #   DSH_SKILLS_DIR   user skill root (default: ~/.dsh/skills)
 #
 # It is idempotent: run it after every change to examples/dsh/packages/clawock-dsh.
@@ -32,8 +32,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PKG="$ROOT/examples/dsh/packages/clawock-dsh"
-PROFILE="${DSH_PROFILE:-web}"
-PROFILE_DIR="$HOME/.dsh/profiles/$PROFILE"
+PROFILES_DIR="$HOME/.dsh/profiles"
 SKILLS="${DSH_SKILLS_DIR:-$HOME/.dsh/skills}"
 # Where the installed tarballs live. The profile manifest keeps the spec
 # (`file:<path>`), so it has to outlive this script — a temp-dir path leaves the
@@ -57,6 +56,10 @@ for f in lib/index.js lib/client.js lib/typert.host.js lib/typert.remote-client.
   test -f "$PKG/$f" || { echo "missing build artifact $f — run 'npm run build' in $PKG" >&2; exit 1; }
 done
 
+mkdir -p "$ARTIFACT_DIR"
+exec 9>"$ARTIFACT_DIR/.clawock-dsh-install.lock"
+flock 9
+
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
@@ -77,17 +80,19 @@ ARTIFACT="$ARTIFACT_DIR/clawock-dsh-$version-$content.tgz"
 echo "packing clawock-dsh@$version ($content)"
 packed="$work/$(cd "$PKG" && npm pack --pack-destination "$work" --silent | tail -n 1)"
 test -f "$packed" || { echo "npm pack produced nothing" >&2; exit 1; }
-mkdir -p "$ARTIFACT_DIR"
 mv "$packed" "$ARTIFACT"
 
-# `dsh plugin add` forwards to pnpm, which re-resolves EVERY dependency spec
-# already in the profile manifest — including this package's previous one. A
-# spec pointing at something that no longer exists (the pre-#731 directory
-# link, or a tarball from a temp dir) therefore fails the whole install with an
-# ENOENT that has nothing to do with what is being installed. Repoint a stale
-# spec at the durable artifact first; a healthy profile is left untouched.
-if [ -f "$PROFILE_DIR/package.json" ]; then
-  node -e '
+install_profile() {
+  local PROFILE="$1" PROFILE_DIR="$PROFILES_DIR/$1" installed
+
+  # `dsh plugin add` forwards to pnpm, which re-resolves EVERY dependency spec
+  # already in the profile manifest — including this package's previous one. A
+  # spec pointing at something that no longer exists (the pre-#731 directory
+  # link, or a tarball from a temp dir) therefore fails the whole install with an
+  # ENOENT that has nothing to do with what is being installed. Repoint a stale
+  # spec at the durable artifact first; a healthy profile is left untouched.
+  if [ -f "$PROFILE_DIR/package.json" ]; then
+    node -e '
 const fs = require("node:fs");
 const [manifestPath, artifact] = process.argv.slice(1);
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
@@ -99,17 +104,17 @@ manifest.dependencies["clawock-dsh"] = "file:" + artifact;
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 console.log("  repointed a stale profile spec (" + spec + ") at the current artifact");
 ' "$PROFILE_DIR/package.json" "$ARTIFACT"
-fi
+  fi
 
-echo "installing into the $PROFILE profile (dsh plugin add)"
-dsh plugin --profile "$PROFILE" add "$ARTIFACT"
+  echo "installing into the $PROFILE profile (dsh plugin add)"
+  dsh plugin --profile "$PROFILE" add "$ARTIFACT"
 
-installed="$PROFILE_DIR/node_modules/clawock-dsh"
-test -d "$installed" || { echo "dsh plugin add did not install into $installed" >&2; exit 1; }
-# The profile layer only activates when dsh recorded the bundle row; a package
-# whose dsh.bundle.patch went missing installs as a plain dependency and the
-# tab silently never appears.
-node -e '
+  installed="$PROFILE_DIR/node_modules/clawock-dsh"
+  test -d "$installed" || { echo "dsh plugin add did not install into $installed" >&2; exit 1; }
+  # The profile layer only activates when dsh recorded the bundle row; a package
+  # whose dsh.bundle.patch went missing installs as a plain dependency and the
+  # tab silently never appears.
+  node -e '
 const fs = require("node:fs");
 const manifest = JSON.parse(fs.readFileSync(process.argv[1] + "/package.json", "utf8"));
 const bundles = manifest.dsh?.profile?.bundles ?? [];
@@ -120,30 +125,23 @@ if (!bundles.includes("clawock-dsh")) {
 console.log("  profile bundles: " + bundles.join(", "));
 ' "$PROFILE_DIR"
 
-# The gate the content hash exists for: what the profile serves must be the
-# build in this checkout, byte for byte. Anything else means pnpm answered from
-# its store and the desk is running a previous version of the plugin.
-for f in lib/client.js lib/index.js lib/typert.host.js; do
-  cmp -s "$PKG/$f" "$installed/$f" || {
-    echo "  FAILED: installed $f differs from the checkout build — the profile is serving a stale plugin" >&2
-    exit 1
-  }
-done
-echo "  installed artifacts match the checkout build"
+  # The gate the content hash exists for: what the profile serves must be the
+  # build in this checkout, byte for byte. Anything else means pnpm answered from
+  # its store and the desk is running a previous version of the plugin.
+  for f in lib/client.js lib/index.js lib/typert.host.js; do
+    cmp -s "$PKG/$f" "$installed/$f" || {
+      echo "  FAILED: installed $f differs from the checkout build — the profile is serving a stale plugin" >&2
+      exit 1
+    }
+  done
+  echo "  installed artifacts match the checkout build"
 
-# rc.6 skill discovery does not scan node_modules; skills are picked up from
-# ~/.dsh/skills only (see the dsh-plugin-skill-discovery note).
-if [ -d "$PKG/skills" ]; then
-  mkdir -p "$SKILLS"
-  cp -r "$PKG/skills/." "$SKILLS/"
-fi
-
-# Prove the install can actually be loaded before handing it to dsh. Every
-# export entry gets imported from the *installed* copy, so a missing runtime
-# dependency fails here — loudly, in a script someone is watching — instead of
-# in a restart loop.
-echo "verifying export entries resolve"
-( cd "$installed" && node -e '
+  # Prove the install can actually be loaded before handing it to dsh. Every
+  # export entry gets imported from the *installed* copy, so a missing runtime
+  # dependency fails here — loudly, in a script someone is watching — instead of
+  # in a restart loop.
+  echo "verifying export entries resolve"
+  ( cd "$installed" && node -e '
 const { pathToFileURL } = require("node:url");
 const path = require("node:path");
 const pkg = require("./package.json");
@@ -161,10 +159,45 @@ Promise.all(targets.map(([, file]) => import(pathToFileURL(file).href)))
   .then(() => console.log("  ok: " + targets.map(([n]) => n).join(", ")))
   .catch((err) => { console.error("  FAILED: " + err.message); process.exit(1); });
 ' )
+}
 
-# Keep only the artifact the profile currently points at.
-find "$ARTIFACT_DIR" -maxdepth 1 -name 'clawock-dsh-*.tgz' ! -name "$(basename "$ARTIFACT")" -delete
-rm -f "$ARTIFACT_DIR/clawock-dsh.tgz"
+if [ -n "${DSH_PROFILE:-}" ]; then
+  install_profile "$DSH_PROFILE"
+else
+  install_profile web
+  if [ -f "$PROFILES_DIR/headless/package.json" ]; then
+    install_profile headless
+  fi
+fi
+
+# rc.6 skill discovery does not scan node_modules; skills are picked up from
+# ~/.dsh/skills only (see the dsh-plugin-skill-discovery note).
+if [ -d "$PKG/skills" ]; then
+  mkdir -p "$SKILLS"
+  cp -r "$PKG/skills/." "$SKILLS/"
+fi
+
+# Explicit per-profile installs and other profiles may still refer to old
+# tarballs. Read every manifest before deleting any unreferenced artifact.
+node - "$PROFILES_DIR" "$ARTIFACT_DIR" "$ARTIFACT" <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+const [profiles, artifacts, current] = process.argv.slice(2);
+const keep = new Set([current]);
+for (const profile of fs.readdirSync(profiles)) {
+  const dir = path.join(profiles, profile);
+  const manifestPath = path.join(dir, "package.json");
+  if (!fs.existsSync(manifestPath)) continue;
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const spec = manifest.dependencies?.["clawock-dsh"];
+  if (spec?.startsWith("file:")) keep.add(path.resolve(dir, spec.slice(5)));
+}
+for (const filename of fs.readdirSync(artifacts)) {
+  if (!/^clawock-dsh(?:-.*)?\.tgz$/.test(filename)) continue;
+  const artifact = path.join(artifacts, filename);
+  if (!keep.has(artifact)) fs.unlinkSync(artifact);
+}
+NODE
 
 if [ "$restart" = 1 ]; then
   systemctl restart dsh
