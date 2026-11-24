@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+from clawock.decision.setups import holding_metrics
 from clawock.harness._harness_common import quote_coverage
 from clawock.market_data import us_quotes as quotes
 from clawock.portfolio import aggregates, integrity
@@ -25,7 +26,7 @@ from clawock.portfolio.math import (
     quote_session_comparable,
     session_change_pct,
 )
-from clawock.publish.dashboard import trim_holding
+from clawock.publish.dashboard import compute_today_ranges, trim_holding
 
 ET = ZoneInfo("America/New_York")
 HKT = ZoneInfo("Asia/Hong_Kong")
@@ -116,7 +117,26 @@ def test_dashboard_keeps_the_return_unknown_when_the_prior_close_is_missing():
     assert row["today_change"] is None
     assert row["quote_status"] == {
         "prev_close_available": False, "source": _holding()["data_source"],
+        "intraday_range_available": False, "intraday_range_reason": "local_accumulator",
     }
+
+
+@pytest.mark.parametrize("flags,reason", [
+    ({"quote_incomplete_range": True}, "local_accumulator"),
+    ({"quote_incomplete_range": True, "quote_stale_asof": "2026-10-30"}, "stale_quote"),
+    ({"quote_incomplete": True}, "legacy_incomplete"),
+])
+def test_unverified_range_cannot_feed_public_ranges_or_setup_grades(flags, reason):
+    holding = _holding(day_high=9.6, day_low=9.0, **flags)
+    measured = _holding(ticker="SPY", day_high=10, day_low=9.5)
+    portfolio = {"portfolios": {"us_stocks": {"holdings": [holding, measured]}}}
+    row = trim_holding(holding, "USD")
+    assert row["quote_status"]["intraday_range_available"] is False
+    assert row["quote_status"]["intraday_range_reason"] == reason
+    assert row["day_high"] is row["day_low"] is None
+    assert [r["ticker"] for r in compute_today_ranges(portfolio)] == ["SPY"]
+    assert holding_metrics(holding)["range_pos"] is None
+    assert holding_metrics(measured)["range_pos"] is not None
 
 
 def _apply(q, holding=None, prev_closes=None):

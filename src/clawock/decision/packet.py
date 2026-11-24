@@ -1460,7 +1460,7 @@ def _ticker_authority_views(*, holding, leg, ticker, source_ticker, technical,
         if technical.get("usable") else None)
     experiment = preposition.setup(
         (context.get("preposition_inputs") or quant_rows).get(ticker) or {}, information_view,
-        context.get("preposition_policy", preposition.load_policy()),
+        context["preposition_policy"],
         ticker=ticker, leg=leg, usage=ticker_usage,
         cost_basis=holding.get("cost_basis"), leveraged=leveraged,
         thesis_state=thesis.get("state"),
@@ -1900,7 +1900,8 @@ def _packet_payload(context, generation_id, *, add_policy, alpha_activation, blo
         "authorization": receipts.authorization_set(
             caps=(context.get("risk_guardrail") or {}).get("caps"),
             respond_only=list(risk_ledger.RESPOND_ONLY_TYPES),
-            target_max_pct=add_policy_module.TARGET_MAX_PCT),
+            target_max_pct=add_policy_module.TARGET_MAX_PCT,
+            preposition_policy=context["preposition_policy"]),
         # Unheld names a plan may propose (`_proposal_universe`).
         "proposal_universe": _proposal_universe(context, set(tickers)),
     }
@@ -1910,6 +1911,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     generation_id = generation_id or context.get("generation_id")
     if not generation_id:
         raise ValueError("decision packet requires context generation_id")
+    if "preposition_policy" not in context:
+        context = {**context, "preposition_policy": preposition.load_policy()}
     quant_rows = (context.get("quant_signals") or {}).get("rows") or {}
     cross_payload = context.get("cross_sectional_factor") or {}
     peer_payload = context.get("peer_residual") or {}

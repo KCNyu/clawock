@@ -40,7 +40,7 @@ from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
 from clawock.portfolio import fx as fx_rates
 from clawock.portfolio.guardrail import hhi_verdict, _holding_pnl_pct
-from clawock.portfolio.math import day_pnl_basis
+from clawock.portfolio.math import day_pnl_basis, quote_range_gap
 from clawock.portfolio.math import number as portfolio_number, ledger_rows, session_change_pct
 
 def benchmark_staleness(benchmark):
@@ -900,18 +900,21 @@ def trim_holding(h, currency):
         value = session_change_pct(h) if field == 'today_change_pct' else _share_number(h.get(field))
         return None if value is None else round(value, 2)
 
+    active = (_share_number(h.get('shares')) or 0) > 0
+    range_gap = quote_range_gap(h) if active else None
     quote_status = {}
     position_change = today('today_change')
-    if (_share_number(h.get('shares')) or 0) > 0 and h.get('quote_incomplete_prev_close'):
+    if active and h.get('quote_incomplete_prev_close'):
         session = h.get('day_session_date')
         _, base, old_shares = day_pnl_basis(
             h, session, market='hk' if currency == 'HKD' else 'us')
         if old_shares > 0 or base <= 0:
             position_change = None
-        quote_status = {
-            'prev_close_available': False,
-            'source': without_host_paths(h['data_source']) if h.get('data_source') else None,
-        }
+        quote_status['prev_close_available'] = False
+    if range_gap:
+        quote_status.update(intraday_range_available=False, intraday_range_reason=range_gap)
+    if quote_status:
+        quote_status['source'] = without_host_paths(h['data_source']) if h.get('data_source') else None
 
     return {
         'ticker': h.get('ticker') or h.get('code'),
@@ -928,11 +931,11 @@ def trim_holding(h, currency):
         'today_change': position_change,
         'today_change_pct': today('today_change_pct'),
         **({'quote_status': quote_status} if quote_status else {}),
-        'day_high': rounded(h.get('day_high'), 4),
-        'day_low': rounded(h.get('day_low'), 4),
+        'day_high': None if range_gap else rounded(h.get('day_high'), 4),
+        'day_low': None if range_gap else rounded(h.get('day_low'), 4),
         'pnl_abs': round(number_or(h.get('pnl_abs')), 2),
         'pnl_percent': round(number_or(h.get('pnl_percent')), 2),
-        'is_active': (_share_number(h.get('shares')) or 0) > 0,
+        'is_active': active,
         'trades_count': len(h.get('trades') or []),
         # The row's own session, as the fetcher assigned it. The holdings table's
         # 场次 cell reads it first; without it every row showed its leg's first
@@ -3599,6 +3602,8 @@ def compute_today_ranges(portfolio, top_n=8):
             r_key = leg.key
             for h in portfolio['portfolios'][leg.bucket].get('holdings', []):
                 if (_share_number(h.get('shares', 0)) or 0) <= 0:
+                    continue
+                if quote_range_gap(h):
                     continue
                 hi = h.get('day_high'); lo = h.get('day_low'); cur = h.get('current_price')
                 if hi is None or lo is None or cur is None or cur <= 0:

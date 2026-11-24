@@ -117,6 +117,10 @@ def _narrate_degraded(record):
     if llm.get('status') == 'failed':
         return with_delivery(NEEDS_ACTION,
                              '模型链失败后按确定性兜底出货；这一档没有语义报告，兜底只含数据块')
+    missing = [label for label, stage in (('模型阶段', llm), ('postflight', postflight))
+               if stage.get('status') in {'pending', 'unknown'}]
+    if missing:
+        return with_delivery(NEEDS_ACTION, f'{" / ".join(missing)} 未记录结果')
     # `escalating_count` is the exact field `_advisory_only` reads — a nonzero
     # count is the same signal that made the ledger call this slot degraded,
     # not a re-judgment of it.

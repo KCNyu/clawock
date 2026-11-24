@@ -708,7 +708,7 @@ def test_a_receipt_reconciles_a_slot_whose_sender_was_killed_after_the_send(
     assert record["stages"]["primary_delivery"]["channel"] == "wechat+telegram"
     assert record["stages"]["primary_delivery"]["wechat_ok"] is True
     assert record["stages"]["primary_delivery"]["telegram_ok"] is True
-    assert record["final_product"]["status"] == "success"
+    assert record["final_product"] == {"status": "degraded", "reason": "postflight 未记录结果"}
 
 
 def test_reconciliation_records_a_failed_send_as_failed(tmp_path, monkeypatch):
@@ -980,6 +980,7 @@ def test_a_wechat_drop_covered_by_telegram_is_still_a_successful_product(
     outcomes.record_stage(
         job, "llm", "warning", slot=slot, escalating_count=0, advisory_count=1
     )
+    outcomes.record_stage(job, "postflight", "success", slot=slot)
     record = outcomes.record_stage(
         job, "primary_delivery", "success", slot=slot,
         channel=outcomes.delivery_channel(False, True),
@@ -1517,6 +1518,26 @@ def test_explicit_ledger_delivery_protects_product_when_receipt_is_lost(tmp_path
     assert record['stages']['preflight']['reason'] == 'original'
     record = outcomes.record_stage(job, 'postflight', 'failed', slot=slot)
     assert record['stages']['postflight']['status'] == 'success'
+
+
+@pytest.mark.parametrize(
+    'llm,postflight,reason',
+    [('unknown', 'unknown', 'llm / postflight'), ('pending', 'success', 'llm'),
+     ('success', 'pending', 'postflight')],
+)
+def test_receipt_alone_does_not_certify_unfinished_stages(
+        tmp_path, monkeypatch, llm, postflight, reason):
+    from clawock.publish.cron_schedule import _narrate_degraded
+
+    _isolate(tmp_path, monkeypatch)
+    slot, job = FROZEN_NOW.isoformat(), '盘中盯盘'
+    for stage, status in [('preflight', 'success'), ('llm', llm), ('postflight', postflight)]:
+        outcomes.record_stage(job, stage, status, slot=slot)
+    outcomes.record_primary_delivery(job, slot=slot, wechat_ok=True, telegram_ok=True,
+                                     source='delivery_receipt')
+    record = outcomes.load_ledger()['records'][0]
+    assert record['final_product'] == {'status': 'degraded', 'reason': f'{reason} 未记录结果'}
+    assert _narrate_degraded(record)['disposition'] == 'needs_action'
 
 
 @pytest.mark.parametrize('postflight_status, expected', [('fail', 'degraded'), ('pass', 'success')])

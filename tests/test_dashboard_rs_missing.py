@@ -26,14 +26,18 @@ def test_rs_keeps_both_legs_and_labels_the_index_source(us, hk, proxy):
                 {'indices_snapshot': {'SPX': {'change_pct': 0, 'is_etf_proxy': proxy}}},
                 {'indices_snapshot': {'HSI': {'change_pct': -0.37}}},
             )}
-    script = '''const DASH = '—'; const MARKET_INDICES = [];
+    script = '''const DASH = '—'; const MARKET_INDICES = ['SPX', 'HSI'];
 const safe = (obj, ...keys) => keys.reduce((o, k) => o?.[k], obj);
 const escapeHtml = s => String(s).replaceAll('<', '&lt;');
 const nodes = {}; const document = {getElementById: id => nodes[id] ||= {}};
 ''' + 'const DATA = ' + json.dumps(data) + ';\n' + helpers + '\n' + render + '''
-renderMarketSnapshot(); process.stdout.write(nodes['market-rs'].innerHTML);
+renderMarketSnapshot();
+process.stdout.write(JSON.stringify([nodes['market-rs'].innerHTML, nodes['market-grid'].innerHTML]));
 '''
-    text = subprocess.check_output(['node', '-e', script], text=True)
+    text, grid = json.loads(subprocess.check_output(['node', '-e', script], text=True))
+    assert f'<div class="lbl">{proxy or "SPX"}</div>' in grid
+    assert '<div class="lbl">HSI</div>' in grid
+    assert proxy is None or '<div class="lbl">SPX</div>' not in grid
     assert f'vs {proxy or "SPX"} +0.00%' in text
     assert 'US' in text and 'HK' in text and 'vs HSI' in text
     for leg, value in [('us', us), ('hk', hk)]:

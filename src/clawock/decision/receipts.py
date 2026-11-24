@@ -45,6 +45,9 @@ AUTHORIZATIONS = (
     ("AUTH_LEVERAGED_ADD",
      "a daily-reset leveraged add needs validated evidence or the bounded user-authorized preposition experiment",
      "add-alpha-policy"),
+    ("AUTH_PREPOSITION_TERMS",
+     "a preposition add keeps its bound entry, stop, campaign, tranche, validity and size; "
+     "at most one experimental tranche per ticker per plan", "preposition-policy"),
     ("AUTH_EXCEEDS_ROOM",
      "an add stays inside cash and the single-name target", "target_max_pct"),
     ("AUTH_SWAP_MANDATE",
@@ -57,7 +60,7 @@ AUTHORIZATIONS = (
 
 
 def authorization_set(*, caps: dict | None, respond_only: list[str],
-                      target_max_pct=None) -> dict:
+                      target_max_pct=None, preposition_policy: dict | None = None) -> dict:
     """The current authorisations with a version that changes when they do."""
     import hashlib  # noqa: PLC0415
     import json  # noqa: PLC0415
@@ -69,6 +72,12 @@ def authorization_set(*, caps: dict | None, respond_only: list[str],
         # Caps in this list are answered, never forced (`risk.RESPOND_ONLY_TYPES`).
         "respond_only_breach_types": sorted(respond_only),
         "target_max_pct": target_max_pct,
+        "preposition_terms": {
+            key: value for key, value in (preposition_policy or {}).items()
+            if key in {"enabled", "version", "authorization", "tranche_pct_of_position",
+                       "max_tranches", "min_depth_atr", "rung_spacing_atr",
+                       "invalidation_atr", "valid_for_sessions"}
+        },
     }
     digest = hashlib.sha256(json.dumps(
         body, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()

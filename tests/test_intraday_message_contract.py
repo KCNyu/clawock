@@ -401,12 +401,20 @@ def test_configured_no_reduce_advice_fails_closed():
     issues = post.validate(post.assemble_message(ctx, prose), ctx, prose)
     assert post.categorize(issues) == 'fail'
     assert any('AAA 策略冲突' in issue for issue in issues)
-    factual = '▎我的看法\nAAA 旧计划仍挂 cut，但与当前策略冲突，不重复减仓建议。' + '其他票照常检查。' * 5
-    assert not any('策略冲突' in issue for issue in post.validate(
-        post.assemble_message(ctx, factual), ctx, factual))
-    mixed = '▎我的看法\nAAA 旧计划仍挂 cut，但建议现在减仓。' + '其他票照常检查。' * 5
-    assert any('AAA 策略冲突' in issue for issue in post.validate(
-        post.assemble_message(ctx, mixed), ctx, mixed))
+    for sentence in (
+        'AAA 旧计划仍挂 cut，但与当前策略冲突，不重复减仓建议。',
+        'AAA 那条挂着待执行的减仓计划与登记的摊本策略冲突，本档没有新证据，我不重复提。',
+    ):
+        factual = '▎我的看法\n' + sentence + '其他票照常检查。' * 5
+        assert not any('策略冲突' in issue for issue in post.validate(
+            post.assemble_message(ctx, factual), ctx, factual))
+    for sentence in (
+        'AAA 旧计划仍挂 cut，但建议现在减仓。',
+        '建议执行 AAA 待执行的减仓计划。',
+    ):
+        mixed = '▎我的看法\n' + sentence + '其他票照常检查。' * 5
+        assert any('AAA 策略冲突' in issue for issue in post.validate(
+            post.assemble_message(ctx, mixed), ctx, mixed))
 
 
 def test_unavailable_strategy_source_cannot_be_called_clear():

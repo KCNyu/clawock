@@ -806,6 +806,10 @@ def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=No
 
 _REDUCE = r'砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z])'
 _DIRECTIVE = r'建议|应当|应该|必须|立即|现在|继续|执行|先砍|先减|砍\s*\d|减\s*\d'
+# Here 执行 describes a plan's status. Other directive words in the same
+# clause still count, including a separate instruction to execute that plan.
+_PLAN_PENDING = re.compile(
+    rf'(?:待|未)执行的?(?=\s*(?:{_REDUCE})\s*(?:计划|旧单))', re.IGNORECASE)
 _NEGATED_REDUCE = (rf'不(?:再|要|应|建议|重复)[^。；，,\n]{{0,35}}(?:{_REDUCE})')
 # A plan that holds a name usually names the line that would change that
 # (「收盘失守 2.156 后重评换仓」); prose restating the condition is the plan.
@@ -890,7 +894,7 @@ def is_reduce_directive(sentence):
     for clause in re.split(r'[，,]', sentence):
         if not re.search(_REDUCE, clause, re.IGNORECASE):
             continue
-        if re.search(_DIRECTIVE, clause) and not re.search(
+        if re.search(_DIRECTIVE, _PLAN_PENDING.sub(' ', clause)) and not re.search(
                 _NEGATED_REDUCE, clause, re.IGNORECASE):
             return True
     return False

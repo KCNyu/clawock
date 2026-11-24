@@ -450,6 +450,8 @@ def _derive_final(record):
     elif primary == "not_required" and postflight in {"success", "warning"}:
         status, reason = ProductStatus.NO_CHANGE, "healthy unchanged slot; silence recorded, no send owed"
     elif primary == "success":
+        missing = [stage for stage in ("llm", "postflight", "preflight")
+                   if stages[stage]["status"] not in TERMINAL_STAGE_STATUSES]
         degraded = (
             llm == "failed"
             or (llm == "warning" and not _advisory_only(stages["llm"]))
@@ -466,11 +468,8 @@ def _derive_final(record):
                 )
             )
             or preflight in {"warning", "failed"}
-            # A preflight still at its start marker (or never written) gave no
-            # outcome; that is not the same reading as `success` (#2981). The
-            # 2026-10-13 brief's supervisor died with the turn and left
-            # `pending` behind a delivered product.
-            or preflight in {"pending", "unknown"}
+            # A delivery receipt can arrive before the stage verdicts.
+            or bool(missing)
         )
         status = ProductStatus.DEGRADED if degraded else ProductStatus.SUCCESS
         reasons = []
@@ -486,8 +485,8 @@ def _derive_final(record):
             reasons.append('投递前校验意见')
         if preflight in {'warning', 'failed'}:
             reasons.append('preflight 告警')
-        elif preflight in {'pending', 'unknown'}:
-            reasons.append('preflight 未记录结果')
+        if missing:
+            reasons.append(f'{" / ".join(missing)} 未记录结果')
         reason = (reasons[0] + (f' +{len(reasons)-1}' if len(reasons) > 1 else '')) if reasons else 'primary delivery succeeded'
     elif primary == "failed" and watchdog == "failed":
         # Ahead of artifact_only (#1921): that state means delivery is not yet

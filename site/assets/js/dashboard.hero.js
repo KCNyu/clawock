@@ -684,7 +684,7 @@
             .filter(Boolean).join(" ") : "";
       return `
         <div class="market-cell ${stale ? "stale" : ""}" title="${escapeHtml(r.source || "")}">
-          <div class="lbl">${escapeHtml(k)}</div>
+          <div class="lbl">${escapeHtml(r.is_etf_proxy || k)}</div>
           <div class="val">${priceTxt}</div>
           <div class="pct ${cls}">${pctTxt}</div>
           <div class="src">${escapeHtml(srcShort)}</div>
