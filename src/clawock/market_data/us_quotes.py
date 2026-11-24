@@ -1348,11 +1348,12 @@ def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, ticker
         idx = fetch_us_indices()
         if idx:
             us['indices_snapshot'] = idx
-            summary = ' · '.join(
-                f"{k} {v['price']} ({v['change_pct']:+.2f}%)"
-                for k, v in idx.items()
-            )
-            print(f"  Indices:        {summary}")
+            parts = []
+            for symbol, quote in idx.items():
+                change_pct = quote['change_pct']
+                change = '涨跌未知' if change_pct is None else f'{change_pct:+.2f}%'
+                parts.append(f"{symbol} {quote['price']} ({change})")
+            print(f"  Indices:        {' · '.join(parts)}")
     except Exception as e:
         print(f"  ⚠ US indices fetch failed (non-fatal): {e}")
 

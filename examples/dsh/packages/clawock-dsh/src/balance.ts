@@ -410,7 +410,7 @@ export function parseMinimaxRemains(body: unknown, asOf: string, now: number = D
       fallbackLabel: '周',
     }, now),
   ], asOf)
-  if (!snapshot.isAvailable) throw new Error('MiniMax 响应里没有可用的额度窗口')
+  if (snapshot.windows.length === 0) throw new Error('MiniMax 响应里没有可用的额度窗口')
   return snapshot
 }
 

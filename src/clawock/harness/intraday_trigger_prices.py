@@ -13,7 +13,8 @@ SUBJECT_ALIASES = {
 # Watch-level keys are free text. Accept explicitly price-shaped names only.
 WATCH_PRICE = re.compile(
     r'_(?:breakdown|reclaim(?:_ma\d+)?|ma\d+|(?:(?:own|prior|\d+d)_)*(?:low|high)'
-    r'|stop|support|resistance|trigger|price|(?:[a-z]+_)+(?:trigger|price))$')
+    r'|stop|support|resistance|trigger|price|(?:[a-z]+_)+(?:trigger|price))$'
+    r'|^[^_]+_close$')
 TECHNICAL_LEVELS = ('close', 'prior_20d_high', 'prior_5d_low')
 
 

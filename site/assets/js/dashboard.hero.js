@@ -704,12 +704,14 @@
         : `(行情 ${sessions[0].slice(5)})`;
     }
 
-    // RS: our combined today_pct vs SPX/HSI (region-weighted)
+    // RS: each leg's today_pct vs its index quote or ETF proxy.
     if (rsRow) {
       const delta = safe(DATA, "delta") || {};
-      const parts = [["us", "SPX", "SPY"], ["hk", "HSI", "HSI"]].map(([leg, key, label]) => {
+      const parts = [["us", "SPX"], ["hk", "HSI"]].map(([leg, key]) => {
         const session = deltaSession(delta, leg);
-        const benchmark = idx[key]?.change_pct;
+        const quote = idx[key];
+        const benchmark = quote?.change_pct;
+        const label = escapeHtml(quote?.is_etf_proxy || key);
         const prefix = `${leg.toUpperCase()} 组合 ${session.text}（${session.date}） vs ${label} ${fmtPct(benchmark)}`;
         if (!Number.isFinite(session.value) || !Number.isFinite(benchmark)) return prefix;
         const rs = session.value - benchmark;
