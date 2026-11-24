@@ -1003,30 +1003,38 @@ def test_weekday_market_holiday_still_expects_scan(monkeypatch, tmp_path):
     assert "macro.json" in status["stale_files"]
 
 
-def test_brief_fire_is_skipped_when_both_covered_markets_are_closed(
-    monkeypatch, tmp_path,
+@pytest.mark.parametrize("day, prior_brief, expected_due, stale", [
+    # At the Monday fire ET is still Sunday, but the US session that night trades.
+    ("2026-04-06", "2026-04-02", "2026-04-06", True),
+    # At the Christmas fire ET is still the 24th; both exchanges close on the 25th.
+    ("2026-12-25", "2026-12-24", "2026-12-24", False),
+])
+def test_brief_artifact_due_date_matches_producer_calendar(
+    monkeypatch, tmp_path, day, prior_brief, expected_due, stale,
 ):
-    # Monday 2026-04-06 is an HK holiday; at 08:00 HKT the US date is Sunday.
-    # The producer skips, so Friday's successful brief remains the latest due.
-    at = datetime(2026, 4, 6, 7, 0, tzinfo=timezone.utc)
+    from clawock import sessions
+
+    at = datetime.fromisoformat(f"{day}T07:00:00+00:00")
+    fire_at = datetime.fromisoformat(f"{day}T00:03:00+00:00")
+    producer_runs = not all(sessions.brief_closed_reasons(sessions.hkt_today(fire_at)))
+    assert producer_runs == (expected_due == day)
     portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
-    friday_commit = datetime(2026, 4, 3, 1, 0, tzinfo=timezone.utc)
-    os.utime(data_dir / "risk.json", (friday_commit.timestamp(), friday_commit.timestamp()))
+    written = datetime.fromisoformat(f"{prior_brief}T01:00:00+00:00").timestamp()
+    os.utime(data_dir / "risk.json", (written, written))
 
     status = dashboard.compute_build_status(portfolio, data_dir, at=at)
     risk = next(row for row in status["files"] if row["name"] == "risk.json")
 
-    assert risk["latest_due_at"] == "2026-04-03T00:03:00+00:00"
-    assert risk["stale"] is False
+    assert risk["latest_due_at"] == f"{expected_due}T00:03:00+00:00"
+    assert risk["stale"] is stale
 
 
 def test_brief_artifact_turns_stale_after_next_required_fire(monkeypatch, tmp_path):
-    # Tuesday's HK leg is closed too, but Monday's US session is open, so the
-    # two-market brief runs and must supersede Friday after its grace window.
+    # Tuesday's HK leg is closed too, but Tuesday's US session is open.
     at = datetime(2026, 4, 7, 7, 0, tzinfo=timezone.utc)
     portfolio, data_dir = _fresh_build_status_fixture(monkeypatch, tmp_path, at)
-    friday_commit = datetime(2026, 4, 3, 1, 0, tzinfo=timezone.utc)
-    os.utime(data_dir / "risk.json", (friday_commit.timestamp(), friday_commit.timestamp()))
+    monday_commit = datetime(2026, 4, 6, 1, 0, tzinfo=timezone.utc).timestamp()
+    os.utime(data_dir / "risk.json", (monday_commit, monday_commit))
 
     status = dashboard.compute_build_status(portfolio, data_dir, at=at)
     risk = next(row for row in status["files"] if row["name"] == "risk.json")
@@ -2399,6 +2407,47 @@ def test_session_display_is_independent_of_new_lot_pnl():
     from clawock.harness.brief_render import holdings_section
     rendered = holdings_section({'portfolio': _portfolio(hk={'holdings': [holding]})})
     assert '+2.73%' in rendered and '-4.24%' in rendered
+
+
+@pytest.mark.parametrize("current, quote_flags, expected_pct, severity", [
+    (102.96, {}, 2.96, None),
+    (95.04, {"quote_incomplete": True, "quote_incomplete_range": True}, -4.96, "medium"),
+    (105.04, {}, 5.04, "high"),
+    (106.0, {"quote_incomplete": True, "quote_incomplete_prev_close": True}, None, None),
+    (106.0, {"quote_incomplete": True, "quote_stale_asof": True}, None, None),
+])
+def test_session_moves_match_hk_us_reports_and_dashboard(
+    monkeypatch, capsys, current, quote_flags, expected_pct, severity,
+):
+    from clawock.harness import _harness_common, intraday_preflight, report_preflight
+    from clawock.market_data import hk_analysis, us_analysis
+
+    us = {"ticker": "RKLB", "shares": 10, "current_price": current,
+          "prev_close": 100, "today_change_pct": -8, **quote_flags}
+    hk = {**us, "ticker": "00100"}
+    book = _portfolio(us={"holdings": [us]}, hk={"holdings": [hk]})
+    monkeypatch.setattr(hk_analysis, "fetch_indices", dict)
+    hk_analysis.print_wechat_report(book, md_table=True)
+    hk_report = capsys.readouterr().out
+    us_analysis.print_wechat_report(
+        book, [{"holding": us, "signal": "HOLD", "news": []}], md_table=True,
+    )
+    us_report = capsys.readouterr().out
+    us_row = dashboard.trim_holding(us, "USD")
+    hk_row = dashboard.trim_holding(hk, "HKD")
+    assert us_row["today_change_pct"] == hk_row["today_change_pct"] == expected_pct
+    movers = dashboard.compute_today_movers([us_row], [hk_row])
+    assert {r["ticker"]: r["today_change_pct"] for r in movers} == (
+        {us["ticker"]: expected_pct, hk["ticker"]: expected_pct} if severity else {}
+    )
+    for text, ticker in ((hk_report, hk["ticker"]), (us_report, us["ticker"])):
+        assert [(row["ticker"], row["move_pct"])
+                for row in _harness_common.parse_holdings_rows(text)] == [(ticker, expected_pct)]
+        anomalies = report_preflight.parse_anomalies(text)
+        assert anomalies == intraday_preflight.parse_anomalies(text)
+        assert [(row["ticker"], row["move_pct"], row["severity"]) for row in anomalies] == (
+            [(ticker, expected_pct, severity)] if severity else []
+        )
 
 
 @pytest.mark.parametrize('prev', [None, 0, -1, float('nan'), float('inf'), True])

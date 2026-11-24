@@ -3893,16 +3893,10 @@ _FRESHNESS_SLA_H = {
 
 
 def _fire_is_expected(fire, candidate, calendar):
-    """Mirror producer-side skip rules; unavailable calendars fail closed."""
+    """Ask the brief's calendar gate about the scheduled HKT date."""
     if fire.get('required_when') != 'any_market_open' or calendar is None:
         return True
-    return any(
-        calendar.closed_reason(
-            market,
-            candidate.astimezone(ZoneInfo(calendar.MARKET_TZ[market])).date(),
-        ) is None
-        for market in ('hk', 'us')
-    )
+    return not all(calendar.brief_closed_reasons(calendar.hkt_today(candidate)))
 
 
 def _latest_due_fire(schedule, at, calendar=None):

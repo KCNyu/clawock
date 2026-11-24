@@ -294,7 +294,7 @@ def test_analyzer_today_is_session_return_for_both_markets(monkeypatch, capsys):
         render()
         text = capsys.readouterr().out
         row = harness_common.parse_holdings_rows(text)[0]
-        assert row['move_pct'] == 2.7
+        assert row['move_pct'] == 2.73
         assert not harness_common.parse_holdings_anomalies(text)
         assert '-4.2%' in text  # position return is retained in the floating P&L column
     holding['ticker'] = '07709'
