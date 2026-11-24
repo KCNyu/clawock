@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T23:25:39.117380+00:00",
+  "generated_at": "2026-11-24T00:25:37.509761+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -15,7 +15,7 @@
     "trump": "success",
     "musk": "success",
     "ark": "success",
-    "serenity": "success_empty",
+    "serenity": "failed",
     "duan": "success_empty",
     "honghao": "success",
     "burry": "success",
@@ -24,10 +24,10 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 19,
+    "total": 22,
     "held_hits": 2,
     "new_ideas": 11,
-    "sector_hits": 3
+    "sector_hits": 4
   },
   "items": [
     {
@@ -46,20 +46,22 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "AI",
+        "软件",
+        "IPO"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 93,
-      "summary_cn": "ARK Invest在六只主题ETF中合计买入629,482股Anthropic，单只ETF最大调仓占比约0.34%，直接命中kcn持仓。"
+      "relevance": 90,
+      "summary_cn": "ARK Invest在六只主题ETF中合计买入629,982股Anthropic，最大单只ETF仓位占比0.34%，直接加仓kcn持仓ANT。"
     },
     {
       "author": "洪灏",
-      "text": "Anthropic IPO曳 令OpenAI上市陷兩難局面",
-      "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxNR1RzZlJmTTdvemhCQnJXc0diY2w2eDJmWWgyd2lRRFcydFNDTHJYS2JXV29ZMGhmb1B1eDJoSHV2WXZCVXV2QlNkTUN4VldZX0swRHNfQW9zdWtydzA4Q0hPLUMwX01fRllIU184c19SazEyVmhQRXROR0d2amlTY2cwOUw4SkwyVU9YQjZFNE9Ncy1OejU4NVJWZGY2ZXNHV2lkdmwxWlFDLXlieTA2TUpOQldFWWFSM1VRQk9IR0M4eTlHZlI3bmhOV0JGTkxTZjh5dnpmZnRNamZvSXNGWWdSNko?oc=5",
-      "published": "2026-11-23T06:31:00+00:00",
+      "text": "【市場信析】Anthropic IPO曳 令OpenAI上市陷兩難局面(下)",
+      "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1DV182MGhrZHk4VDVVdVh4U09SYXFneHA4MDZtYlgtV24yU1g4Qm9vMTVtMG9oaktYRm1LMTF0VjJRc1BZSndfUDYxX0o0OHQ4ajN3RUhPV3EwbG8zUmhYc1o1TGJHUFFGams1WFhJNVlVQXJTMzBtTm1n?oc=5",
+      "published": "2026-11-23T06:45:32+00:00",
       "origin": "gnews-rss",
-      "source": "信報網站",
+      "source": "Now 財經",
       "tickers": [
         "ANT"
       ],
@@ -69,17 +71,15 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "IPO"
+        "IPO",
+        "大模型"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "00100"
       ],
-      "stance": "attack",
+      "stance": "neutral",
       "relevance": 72,
-      "summary_cn": "据报道，洪灏将Anthropic IPO延期视为拖累，并认为这使OpenAI的上市处境更加尴尬。"
+      "summary_cn": "据报道，Anthropic IPO进程延后令OpenAI的上市安排陷入两难，凸显头部AI公司的资本市场竞争。"
     },
     {
       "author": "Trump",
@@ -95,8 +95,9 @@
         "NVDA"
       ],
       "sectors": [
+        "AI",
         "半导体",
-        "AI"
+        "美股"
       ],
       "sector_holdings": [
         "00100",
@@ -107,37 +108,38 @@
         "ANT"
       ],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "特朗普肯定英伟达董事会让黄仁勋回归CEO，称其领导力对公司及美国经济至关重要。"
+      "relevance": 80,
+      "summary_cn": "特朗普支持英伟达董事会让黄仁勋重返CEO，并称美国政府没有证据显示其存在不当行为。"
     },
     {
-      "author": "Burry",
-      "text": "How to Play Adobe Stock Before 2027 as Michael Burry Loads Up on More Shares",
-      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxONktXUXgwTkx0SjVlSlBfOXFuZkk1MmhHM0xHRldTaVJJbXl3M3VMMHRZRUxMRVFuamJwZDZSTjBNd1dJQ2xoQTJlSGZadnlxdjF2QXZBUjNvZWp0SFIxaWFuNWhkZ3VNaXlVZlpSMUJPZV9LUG9fQ0tLTThYbU9EanlmbWl4TmdBSHY0dUczME0tckJhc3BMazRvZVNyb0pNZTlHX0dPOGtfZW1lN2xjNkV5bW03aTdSbkVOSA?oc=5",
-      "published": "2026-11-23T21:41:31+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
+      "author": "Trump",
+      "text": "I hope the Board of Nvidia rehires Jensen Huang. It would be the best thing for the Company, and also, for the U.S.A. President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43709",
+      "published": "2026-11-23T02:54:45+00:00",
+      "origin": "truthsocial",
       "tickers": [
-        "ADBE"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "ADBE"
+        "NVDA"
       ],
       "sectors": [
-        "软件",
-        "AI"
+        "AI",
+        "半导体",
+        "美股"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
         "07226",
+        "07709",
         "ANT"
       ],
-      "stance": "buy",
-      "relevance": 80,
-      "summary_cn": "据报道，Michael Burry在2027年前进一步增持Adobe股票，表达对该持仓的看多立场。"
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "特朗普表示希望英伟达重新聘任黄仁勋为CEO，称这最有利于公司和美国。"
     },
     {
       "author": "Burry",
@@ -154,8 +156,9 @@
         "NVDA"
       ],
       "sectors": [
+        "AI",
         "半导体",
-        "AI"
+        "美股"
       ],
       "sector_holdings": [
         "00100",
@@ -166,16 +169,15 @@
         "ANT"
       ],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry批评英伟达在黄仁勋回归问题上的处理并称公司“软弱、怯懦”，与马斯克的正面态度相左。"
+      "relevance": 75,
+      "summary_cn": "据报道，Michael Burry在黄仁勋回归之际批评英伟达软弱、怯懦，与马斯克支持黄仁勋形成分歧。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk on his support for Jensen Huang: 'Fair-weather friends are worthless'",
-      "url": "",
-      "published": "Mon, 23 Nov 2026 21:26:13 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Trump",
+      "text": "Congratulations to NVIDIA on having made, what I consider to be, an absolutely GREAT decision! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43715",
+      "published": "2026-11-23T14:50:52+00:00",
+      "origin": "truthsocial",
       "tickers": [
         "NVDA"
       ],
@@ -184,8 +186,9 @@
         "NVDA"
       ],
       "sectors": [
+        "AI",
         "半导体",
-        "AI"
+        "美股"
       ],
       "sector_holdings": [
         "00100",
@@ -196,8 +199,8 @@
         "ANT"
       ],
       "stance": "endorse",
-      "relevance": 76,
-      "summary_cn": "据报道，马斯克明确支持黄仁勋回归英伟达，并称“见风使舵的朋友毫无价值”。"
+      "relevance": 72,
+      "summary_cn": "特朗普称英伟达作出伟大决定，公开肯定其公司决策及管理层安排。"
     },
     {
       "author": "Cathie Wood",
@@ -215,12 +218,78 @@
         "DE"
       ],
       "sectors": [
+        "工业机械",
         "农业机械"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "ARK Invest在ARKQ中卖出17,414股Deere，单只ETF最大调仓占比约0.47%。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKQ中卖出17,414股Deere，单只ETF仓位占比0.47%，属于较显著的机构减仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Dow Jones Futures: Tech Stocks, Nvidia Snap Back On Jensen Huang's Return; Elon Musk-Led SpaceX, Tesla Rally",
+      "url": "",
+      "published": "Mon, 23 Nov 2026 21:57:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "NVDA",
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA",
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "电动车",
+        "航天",
+        "美股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，黄仁勋回归推动科技股与英伟达反弹，SpaceX和特斯拉亦随之上涨。"
+    },
+    {
+      "author": "Burry",
+      "text": "How to Play Adobe Stock Before 2027 as Michael Burry Loads Up on More Shares",
+      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxONktXUXgwTkx0SjVlSlBfOXFuZkk1MmhHM0xHRldTaVJJbXl3M3VMMHRZRUxMRVFuamJwZDZSTjBNd1dJQ2xoQTJlSGZadnlxdjF2QXZBUjNvZWp0SFIxaWFuNWhkZ3VNaXlVZlpSMUJPZV9LUG9fQ0tLTThYbU9EanlmbWl4TmdBSHY0dUczME0tckJhc3BMazRvZVNyb0pNZTlHX0dPOGtfZW1lN2xjNkV5bW03aTdSbkVOSA?oc=5",
+      "published": "2026-11-23T21:41:31+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "ADBE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADBE"
+      ],
+      "sectors": [
+        "软件",
+        "AI",
+        "Adobe"
+      ],
+      "sector_holdings": [
+        "00100",
+        "ANT"
+      ],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道，Michael Burry继续增持Adobe股票，看多其进入2027年前的投资价值。"
     },
     {
       "author": "Cathie Wood",
@@ -238,8 +307,8 @@
         "HEI"
       ],
       "sectors": [
-        "航空航天",
-        "工业"
+        "航天",
+        "国防"
       ],
       "sector_holdings": [
         "RKLX",
@@ -247,8 +316,8 @@
         "SPCX"
       ],
       "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest在ARKX中卖出5,304股HEICO，单只ETF最大调仓占比约0.29%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest在ARKX中卖出5,304股HEICO，单只ETF仓位占比0.29%，构成可见的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -267,12 +336,12 @@
       ],
       "sectors": [
         "消费电子",
-        "导航设备"
+        "可穿戴设备"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest在ARKX中卖出5,985股Garmin，单只ETF最大调仓占比约0.27%。"
+      "relevance": 69,
+      "summary_cn": "ARK Invest在ARKX中卖出5,985股Garmin，单只ETF仓位占比0.27%，显示机构削减该股敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -291,12 +360,12 @@
       ],
       "sectors": [
         "游戏",
-        "元宇宙"
+        "互联网"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKW中卖出161,616股Roblox，单只ETF最大调仓占比约0.20%。"
+      "relevance": 68,
+      "summary_cn": "ARK Invest在ARKW中卖出161,616股Roblox，单只ETF仓位占比0.20%，属于有规模的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -314,72 +383,36 @@
         "GH"
       ],
       "sectors": [
-        "医疗",
+        "医疗健康",
         "基因检测"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKG中卖出21,408股Guardant Health，单只ETF最大调仓占比约0.17%。"
+      "relevance": 67,
+      "summary_cn": "ARK Invest在ARKG中卖出21,408股Guardant Health，单只ETF仓位占比0.17%，反映机构降低医疗检测股仓位。"
     },
     {
-      "author": "Musk",
-      "text": "Dow Jones Futures: Tech Stocks, Nvidia Snap Back On Jensen Huang Return; Elon Musk-Led SpaceX, Tesla Rally",
-      "url": "",
-      "published": "Mon, 23 Nov 2026 21:57:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
+      "author": "Trump",
+      "text": "The Market is down more than 6 Trillion Dollars since the Democrats’ rather strange “win” on November 3rd. NASDAQ, by itself, is down 20%. This is 100% due to the fact that the Democrats are “BAD” due to their Anti Growth, and Retribution Only, Policies, and worse. If they don't change, FAST, it will only get worse. But fear not, our Country will soon be STRONG AGAIN — Lots of good things happening! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43701",
+      "published": "2026-11-22T17:20:20+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车",
-        "AI",
-        "半导体"
+        "美股",
+        "宏观政策",
+        "科技股"
       ],
       "sector_holdings": [
-        "00100",
         "03032",
         "03033",
-        "07226",
-        "07709",
-        "ANT",
-        "RKLX",
-        "SPCH",
-        "SPCX"
+        "07226"
       ],
-      "stance": "neutral",
+      "stance": "attack",
       "relevance": 68,
-      "summary_cn": "据报道，黄仁勋回归后科技股及英伟达反弹，马斯克旗下的SpaceX和特斯拉也随之上扬。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "The ETF That Copies Republican Lawmakers' Stock Trades Used to Be Called KRUZ. Now the Ticker Is Simply GOP",
-      "url": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxPSDdkc19CLTBvYlFnUW4xaVhHUkpyZ3dka2djN3BOdXptSEFQcC1JaUgyWTRDYVA2VG9ackREMkM0RjY4NW5rbGxmVWVvQUc0cnFFV1NaZ1FoaTVwb0FvTUJHQnAwQ2VwR2diVU5GUWM2NjVqQUhlZmJXQ2VlOXVLRGNXRzRCLUhoU3lnZWhxMXNydnBKblRaMXBFSTN3SkdEamx6TG1aZ282bUtnZkxrMUFYc1FvSzFtYWw1cXhNd3QxLW05ZGtUTDhhUlQtaGZKSEhnUVY5S016V1ZtZFZjblFUdmtoTGdu?oc=5",
-      "published": "2026-11-23T14:43:00+00:00",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [
-        "GOP"
-      ],
-      "held": [],
-      "new_ideas": [
-        "GOP"
-      ],
-      "sectors": [
-        "国会交易",
-        "ETF",
-        "政策"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "市场关注跟踪共和党议员股票交易的ETF，其代码已由KRUZ改为GOP，但该条目未披露具体个股方向。"
+      "summary_cn": "特朗普称民主党胜选后美股市值蒸发超过6万亿美元、纳指下跌20%，并批评其反增长政策。"
     },
     {
       "author": "Musk",
@@ -392,20 +425,44 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
         "航天",
-        "监管"
+        "AI",
+        "监管",
+        "深伪内容"
       ],
       "sector_holdings": [
-        "00100",
-        "ANT",
         "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据报道，美国弗吉尼亚州和俄勒冈州起诉马斯克旗下SpaceX，指控Grok生成涉及未成年人的性虐待图像。"
+      "relevance": 61,
+      "summary_cn": "据报道，弗吉尼亚州和俄勒冈州起诉SpaceX及其Grok生成儿童性虐待图片，增加AI平台法律风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "Oregon AG Rayfield sues Elon Musk’s SpaceX over AI-generated explicit deepfakes",
+      "url": "",
+      "published": "Mon, 23 Nov 2026 20:59:54 GMT",
+      "origin": "gnews-rss",
+      "source": "Oregon Capital Chronicle",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "监管",
+        "深伪内容"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "据报道，俄勒冈州总检察长起诉SpaceX，指其使用AI生成露骨深伪内容，凸显平台与监管风险。"
     },
     {
       "author": "Musk",
@@ -419,7 +476,8 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "监管"
+        "监管",
+        "AI"
       ],
       "sector_holdings": [
         "RKLX",
@@ -428,50 +486,27 @@
       ],
       "stance": "attack",
       "relevance": 58,
-      "summary_cn": "据报道，SpaceX与华盛顿州就化学品、客服和烤箱相关处罚发生争议，面临监管压力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Faces an A.I. Dilemma at SpaceX",
-      "url": "",
-      "published": "Mon, 23 Nov 2026 16:13:32 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "00100",
-        "ANT",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "媒体称马斯克面临SpaceX的AI发展抉择，但标题未披露其具体表态或决策。"
+      "summary_cn": "据报道，马斯克旗下SpaceX因化学品、客服及烤箱相关问题与华盛顿州罚款发生争议，带来监管风险。"
     },
     {
       "author": "Trump",
-      "text": "The Market is down more than 6 Trillion Dollars since the Democrats’ rather strange “win” on November 3rd. NASDAQ, by itself, is down 20%. This is 100% due to the fact that the Democrats are “BAD” due to their Anti Growth, and Retribution Only, Policies, and worse. If they don't change, FAST, it will only get worse. But fear not, our Country will soon be STRONG AGAIN — Lots of good things happening! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/43701",
-      "published": "2026-11-22T17:20:20+00:00",
+      "text": "As everyone remembers, I predicted two things concerning the November 3rd Midterm Elections. One, that if the Democrats win, the Stock Markets would go down, substantially, which they have, and two, that the Islamic Republic of Iran, which has killed 81,000 protestors as of today, will grow more aggressive in their attacks, which has also occurred. Iran has launched more drones and missiles in the last week than at any time for over a year. Don’t worry, they’ve all been knocked down, and done no damage. Iranian leaders consider the Democrats weak, ineffective, and Country destroying, but I won",
+      "url": "https://www.trumpstruth.org/statuses/43706",
+      "published": "2026-11-22T21:47:46+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美股",
-        "宏观政策"
+        "地缘政治",
+        "伊朗",
+        "原油",
+        "美股"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特朗普将民主党胜选后美股下跌逾6万亿美元、纳指跌约20%归因于其反增长政策，并警告若政策不调整市场还会恶化。"
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "特朗普称民主党胜选后股市将下跌且伊朗攻击将加剧，提示其对美股与地缘风险的整体判断。"
     },
     {
       "author": "Trump",
@@ -484,31 +519,71 @@
       "new_ideas": [],
       "sectors": [
         "能源",
-        "原油"
+        "原油",
+        "宏观"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "特朗普称中期选举后油价已大幅下跌，并表示自己此前预判到了这一走势。"
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "特朗普将中期选举后油价大跌归因于其所谓骗局，释放看淡油价前景的信号。"
     },
     {
-      "author": "洪灏",
-      "text": "洪灝：完美風暴可能吹到明年",
-      "url": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxPZnFiMDZiaTJ1VTNla0NMaXhKZGJkQ3ZwbEo0amtCa2RVR09lZkxJZzdtOVU1Ui13ZW1LRXRYWF9XWUlPSGc2alFzMTgwcGNoZHVBS0N6UmFVMEpJVEJuSXdqUUtZU2h5NWVvZmJUa1ZsQzU3SllucjNmVU9wSVA0RWNFYWE3cjJtRmh6cmlkdWNBU1JDbWlydDdDaUYxN3MtRndfX01kakgtTGE4MFNhbGlUUzJQeTE1eW0zU0x2X25zZ0ZkdkV1RWxOaHFuRFE2MjdMSG9ON0drVGNtZWdXNUVTX0UtMlhROEV5Z3V1eFlxU2M?oc=5",
-      "published": "2026-11-23T09:22:21+00:00",
+      "author": "Pelosi",
+      "text": "Members of Congress Must Disclose Their Stock Trades. NANC Copies the Democrats' Buys Into One ETF",
+      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOb1NQY0prY3BIcEFranJ4enhKSFMzdnlYSnlrZkwweXJWY0Y2LXlEelhtdFFuMkJPSGQ4cE90MUhZYnRRSXVxUWxkR0Qwc2pCX3JTM2QwNEM4ZHE5dVFjYkI5Z2c4bDNYaV92WHQyV0w3bzNzVVV2SHo0d2FuYk1rcXVJS19mUlZVS244TlgyTzhzUkNvdHNXLVVhS2NVMDcwTHJhdEdVcmdEQ3F2Zzk0V2h1SkI2Y2hVN055UENIcnN6QmRlZDdVd2laZ1pLMDV6RFk3dk83TVZveTZD?oc=5",
+      "published": "2026-11-22T17:07:00+00:00",
       "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
+      "source": "24/7 Wall St.",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "美股"
+        "国会交易披露",
+        "ETF",
+        "政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 56,
+      "summary_cn": "据报道，一款复制民主党国会议员买入交易的ETF受到关注，市场开始交易国会交易披露策略。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "The ETF That Copies Republican Lawmakers' Stock Trades Used to Be Called KRUZ. Now the Ticker Is Simply GOP",
+      "url": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxPSDdkc19CLTBvYlFnUW4xaVhHUkpyZ3dka2djN3BOdXptSEFQcC1JaUgyWTRDYVA2VG9ackREMkM0RjY4NW5rbGxmVWVvQUc0cnFFV1NaZ1FoaTVwb0FvTUJHQnAwQ2VwR2diVU5GUWM2NjVqQUhlZmJXQ2VlOXVLRGNXRzRCLUhoU3lnZWhxMXNydnBKblRaMXBFSTN3SkdEamx6TG1aZ282bUtnZkxrMUFYc1FvSzFtYWw1cXhNd3QxLW05ZGtUTDhhUlQtaGZKSEhnUVY5S016V1ZtZFZjblFUdmtoTGdu?oc=5",
+      "published": "2026-11-23T14:43:00+00:00",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国会交易披露",
+        "ETF",
+        "政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 54,
+      "summary_cn": "据报道，一款复制共和党议员股票交易的ETF由KRUZ更名为GOP，反映政客交易策略化产品的发展。"
+    },
+    {
+      "author": "Trump",
+      "text": "EXTREME CLIMATE SCIENCE “BITES THE DUST!”Climate Change activists always described their Extreme Climate Science assumptions as “settled science,” and the scenarios of doom and destruction based on “Climate Change” have dominated their outlook. Well, their Climate Science has now been debunked, withdrawn, and taken down by the UN IPCC. That’s right, the same organization that published these projections as “settled science” has now determined they are not reliable and have withdrawn them. No more catastrophic predictions. GONE! GONE! GONE! Thank you for your attention to this matter. President",
+      "url": "https://www.trumpstruth.org/statuses/43718",
+      "published": "2026-11-23T18:55:49+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "气候政策",
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 53,
-      "summary_cn": "据报道，洪灏警告一场“完美风暴”可能延续至明年，但标题未说明具体风险来源。"
+      "relevance": 45,
+      "summary_cn": "特朗普抨击极端气候科学并称其预测已被撤回，可能影响气候监管与能源转型政策预期。"
     }
   ],
   "held_hits": [
@@ -528,20 +603,22 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "AI",
+        "软件",
+        "IPO"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 93,
-      "summary_cn": "ARK Invest在六只主题ETF中合计买入629,482股Anthropic，单只ETF最大调仓占比约0.34%，直接命中kcn持仓。"
+      "relevance": 90,
+      "summary_cn": "ARK Invest在六只主题ETF中合计买入629,982股Anthropic，最大单只ETF仓位占比0.34%，直接加仓kcn持仓ANT。"
     },
     {
       "author": "洪灏",
-      "text": "Anthropic IPO曳 令OpenAI上市陷兩難局面",
-      "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxNR1RzZlJmTTdvemhCQnJXc0diY2w2eDJmWWgyd2lRRFcydFNDTHJYS2JXV29ZMGhmb1B1eDJoSHV2WXZCVXV2QlNkTUN4VldZX0swRHNfQW9zdWtydzA4Q0hPLUMwX01fRllIU184c19SazEyVmhQRXROR0d2amlTY2cwOUw4SkwyVU9YQjZFNE9Ncy1OejU4NVJWZGY2ZXNHV2lkdmwxWlFDLXlieTA2TUpOQldFWWFSM1VRQk9IR0M4eTlHZlI3bmhOV0JGTkxTZjh5dnpmZnRNamZvSXNGWWdSNko?oc=5",
-      "published": "2026-11-23T06:31:00+00:00",
+      "text": "【市場信析】Anthropic IPO曳 令OpenAI上市陷兩難局面(下)",
+      "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1DV182MGhrZHk4VDVVdVh4U09SYXFneHA4MDZtYlgtV24yU1g4Qm9vMTVtMG9oaktYRm1LMTF0VjJRc1BZSndfUDYxX0o0OHQ4ajN3RUhPV3EwbG8zUmhYc1o1TGJHUFFGams1WFhJNVlVQXJTMzBtTm1n?oc=5",
+      "published": "2026-11-23T06:45:32+00:00",
       "origin": "gnews-rss",
-      "source": "信報網站",
+      "source": "Now 財經",
       "tickers": [
         "ANT"
       ],
@@ -551,17 +628,15 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "IPO"
+        "IPO",
+        "大模型"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "00100"
       ],
-      "stance": "attack",
+      "stance": "neutral",
       "relevance": 72,
-      "summary_cn": "据报道，洪灏将Anthropic IPO延期视为拖累，并认为这使OpenAI的上市处境更加尴尬。"
+      "summary_cn": "据报道，Anthropic IPO进程延后令OpenAI的上市安排陷入两难，凸显头部AI公司的资本市场竞争。"
     }
   ],
   "new_ideas": [
@@ -579,8 +654,9 @@
         "NVDA"
       ],
       "sectors": [
+        "AI",
         "半导体",
-        "AI"
+        "美股"
       ],
       "sector_holdings": [
         "00100",
@@ -591,37 +667,38 @@
         "ANT"
       ],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "特朗普肯定英伟达董事会让黄仁勋回归CEO，称其领导力对公司及美国经济至关重要。"
+      "relevance": 80,
+      "summary_cn": "特朗普支持英伟达董事会让黄仁勋重返CEO，并称美国政府没有证据显示其存在不当行为。"
     },
     {
-      "author": "Burry",
-      "text": "How to Play Adobe Stock Before 2027 as Michael Burry Loads Up on More Shares",
-      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxONktXUXgwTkx0SjVlSlBfOXFuZkk1MmhHM0xHRldTaVJJbXl3M3VMMHRZRUxMRVFuamJwZDZSTjBNd1dJQ2xoQTJlSGZadnlxdjF2QXZBUjNvZWp0SFIxaWFuNWhkZ3VNaXlVZlpSMUJPZV9LUG9fQ0tLTThYbU9EanlmbWl4TmdBSHY0dUczME0tckJhc3BMazRvZVNyb0pNZTlHX0dPOGtfZW1lN2xjNkV5bW03aTdSbkVOSA?oc=5",
-      "published": "2026-11-23T21:41:31+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
+      "author": "Trump",
+      "text": "I hope the Board of Nvidia rehires Jensen Huang. It would be the best thing for the Company, and also, for the U.S.A. President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43709",
+      "published": "2026-11-23T02:54:45+00:00",
+      "origin": "truthsocial",
       "tickers": [
-        "ADBE"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "ADBE"
+        "NVDA"
       ],
       "sectors": [
-        "软件",
-        "AI"
+        "AI",
+        "半导体",
+        "美股"
       ],
       "sector_holdings": [
         "00100",
         "03032",
         "03033",
         "07226",
+        "07709",
         "ANT"
       ],
-      "stance": "buy",
-      "relevance": 80,
-      "summary_cn": "据报道，Michael Burry在2027年前进一步增持Adobe股票，表达对该持仓的看多立场。"
+      "stance": "endorse",
+      "relevance": 76,
+      "summary_cn": "特朗普表示希望英伟达重新聘任黄仁勋为CEO，称这最有利于公司和美国。"
     },
     {
       "author": "Burry",
@@ -638,8 +715,9 @@
         "NVDA"
       ],
       "sectors": [
+        "AI",
         "半导体",
-        "AI"
+        "美股"
       ],
       "sector_holdings": [
         "00100",
@@ -650,16 +728,15 @@
         "ANT"
       ],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry批评英伟达在黄仁勋回归问题上的处理并称公司“软弱、怯懦”，与马斯克的正面态度相左。"
+      "relevance": 75,
+      "summary_cn": "据报道，Michael Burry在黄仁勋回归之际批评英伟达软弱、怯懦，与马斯克支持黄仁勋形成分歧。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk on his support for Jensen Huang: 'Fair-weather friends are worthless'",
-      "url": "",
-      "published": "Mon, 23 Nov 2026 21:26:13 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Trump",
+      "text": "Congratulations to NVIDIA on having made, what I consider to be, an absolutely GREAT decision! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43715",
+      "published": "2026-11-23T14:50:52+00:00",
+      "origin": "truthsocial",
       "tickers": [
         "NVDA"
       ],
@@ -668,8 +745,9 @@
         "NVDA"
       ],
       "sectors": [
+        "AI",
         "半导体",
-        "AI"
+        "美股"
       ],
       "sector_holdings": [
         "00100",
@@ -680,8 +758,8 @@
         "ANT"
       ],
       "stance": "endorse",
-      "relevance": 76,
-      "summary_cn": "据报道，马斯克明确支持黄仁勋回归英伟达，并称“见风使舵的朋友毫无价值”。"
+      "relevance": 72,
+      "summary_cn": "特朗普称英伟达作出伟大决定，公开肯定其公司决策及管理层安排。"
     },
     {
       "author": "Cathie Wood",
@@ -699,12 +777,78 @@
         "DE"
       ],
       "sectors": [
+        "工业机械",
         "农业机械"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "ARK Invest在ARKQ中卖出17,414股Deere，单只ETF最大调仓占比约0.47%。"
+      "relevance": 72,
+      "summary_cn": "ARK Invest在ARKQ中卖出17,414股Deere，单只ETF仓位占比0.47%，属于较显著的机构减仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Dow Jones Futures: Tech Stocks, Nvidia Snap Back On Jensen Huang's Return; Elon Musk-Led SpaceX, Tesla Rally",
+      "url": "",
+      "published": "Mon, 23 Nov 2026 21:57:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "NVDA",
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA",
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "电动车",
+        "航天",
+        "美股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，黄仁勋回归推动科技股与英伟达反弹，SpaceX和特斯拉亦随之上涨。"
+    },
+    {
+      "author": "Burry",
+      "text": "How to Play Adobe Stock Before 2027 as Michael Burry Loads Up on More Shares",
+      "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxONktXUXgwTkx0SjVlSlBfOXFuZkk1MmhHM0xHRldTaVJJbXl3M3VMMHRZRUxMRVFuamJwZDZSTjBNd1dJQ2xoQTJlSGZadnlxdjF2QXZBUjNvZWp0SFIxaWFuNWhkZ3VNaXlVZlpSMUJPZV9LUG9fQ0tLTThYbU9EanlmbWl4TmdBSHY0dUczME0tckJhc3BMazRvZVNyb0pNZTlHX0dPOGtfZW1lN2xjNkV5bW03aTdSbkVOSA?oc=5",
+      "published": "2026-11-23T21:41:31+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "ADBE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADBE"
+      ],
+      "sectors": [
+        "软件",
+        "AI",
+        "Adobe"
+      ],
+      "sector_holdings": [
+        "00100",
+        "ANT"
+      ],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道，Michael Burry继续增持Adobe股票，看多其进入2027年前的投资价值。"
     },
     {
       "author": "Cathie Wood",
@@ -722,8 +866,8 @@
         "HEI"
       ],
       "sectors": [
-        "航空航天",
-        "工业"
+        "航天",
+        "国防"
       ],
       "sector_holdings": [
         "RKLX",
@@ -731,8 +875,8 @@
         "SPCX"
       ],
       "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest在ARKX中卖出5,304股HEICO，单只ETF最大调仓占比约0.29%。"
+      "relevance": 70,
+      "summary_cn": "ARK Invest在ARKX中卖出5,304股HEICO，单只ETF仓位占比0.29%，构成可见的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -751,12 +895,12 @@
       ],
       "sectors": [
         "消费电子",
-        "导航设备"
+        "可穿戴设备"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest在ARKX中卖出5,985股Garmin，单只ETF最大调仓占比约0.27%。"
+      "relevance": 69,
+      "summary_cn": "ARK Invest在ARKX中卖出5,985股Garmin，单只ETF仓位占比0.27%，显示机构削减该股敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -775,74 +919,38 @@
       ],
       "sectors": [
         "游戏",
-        "元宇宙"
+        "互联网"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKW中卖出161,616股Roblox，单只ETF最大调仓占比约0.20%。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-11-20 调仓：Guardant Health, Inc.(GH) 卖出 ARKG 21,408 股（最大单只 ETF 占比 0.17%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-11-20T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.165,
-      "tickers": [
-        "GH"
-      ],
-      "held": [],
-      "new_ideas": [
-        "GH"
-      ],
-      "sectors": [
-        "医疗",
-        "基因检测"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKG中卖出21,408股Guardant Health，单只ETF最大调仓占比约0.17%。"
-    },
-    {
-      "author": "Musk",
-      "text": "Dow Jones Futures: Tech Stocks, Nvidia Snap Back On Jensen Huang Return; Elon Musk-Led SpaceX, Tesla Rally",
-      "url": "",
-      "published": "Mon, 23 Nov 2026 21:57:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车",
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "07709",
-        "ANT",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
       "relevance": 68,
-      "summary_cn": "据报道，黄仁勋回归后科技股及英伟达反弹，马斯克旗下的SpaceX和特斯拉也随之上扬。"
+      "summary_cn": "ARK Invest在ARKW中卖出161,616股Roblox，单只ETF仓位占比0.20%，属于有规模的机构减仓。"
     }
   ],
   "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "The Market is down more than 6 Trillion Dollars since the Democrats’ rather strange “win” on November 3rd. NASDAQ, by itself, is down 20%. This is 100% due to the fact that the Democrats are “BAD” due to their Anti Growth, and Retribution Only, Policies, and worse. If they don't change, FAST, it will only get worse. But fear not, our Country will soon be STRONG AGAIN — Lots of good things happening! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/43701",
+      "published": "2026-11-22T17:20:20+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "宏观政策",
+        "科技股"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "特朗普称民主党胜选后美股市值蒸发超过6万亿美元、纳指下跌20%，并批评其反增长政策。"
+    },
     {
       "author": "Musk",
       "text": "Virginia, Oregon sue Musk's SpaceX over Grok AI's creation of child sexual abuse images",
@@ -854,20 +962,44 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
         "航天",
-        "监管"
+        "AI",
+        "监管",
+        "深伪内容"
       ],
       "sector_holdings": [
-        "00100",
-        "ANT",
         "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据报道，美国弗吉尼亚州和俄勒冈州起诉马斯克旗下SpaceX，指控Grok生成涉及未成年人的性虐待图像。"
+      "relevance": 61,
+      "summary_cn": "据报道，弗吉尼亚州和俄勒冈州起诉SpaceX及其Grok生成儿童性虐待图片，增加AI平台法律风险。"
+    },
+    {
+      "author": "Musk",
+      "text": "Oregon AG Rayfield sues Elon Musk’s SpaceX over AI-generated explicit deepfakes",
+      "url": "",
+      "published": "Mon, 23 Nov 2026 20:59:54 GMT",
+      "origin": "gnews-rss",
+      "source": "Oregon Capital Chronicle",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "监管",
+        "深伪内容"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "据报道，俄勒冈州总检察长起诉SpaceX，指其使用AI生成露骨深伪内容，凸显平台与监管风险。"
     },
     {
       "author": "Musk",
@@ -881,7 +1013,8 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "监管"
+        "监管",
+        "AI"
       ],
       "sector_holdings": [
         "RKLX",
@@ -890,32 +1023,7 @@
       ],
       "stance": "attack",
       "relevance": 58,
-      "summary_cn": "据报道，SpaceX与华盛顿州就化学品、客服和烤箱相关处罚发生争议，面临监管压力。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Faces an A.I. Dilemma at SpaceX",
-      "url": "",
-      "published": "Mon, 23 Nov 2026 16:13:32 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [
-        "00100",
-        "ANT",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "媒体称马斯克面临SpaceX的AI发展抉择，但标题未披露其具体表态或决策。"
+      "summary_cn": "据报道，马斯克旗下SpaceX因化学品、客服及烤箱相关问题与华盛顿州罚款发生争议，带来监管风险。"
     }
   ]
 }
