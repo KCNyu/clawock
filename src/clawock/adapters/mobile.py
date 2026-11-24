@@ -41,13 +41,13 @@ def pad_left(s: str, width: int) -> str:
 # cost/price: 999.99 fits in 6 chars; numbers ≥ 1000 use compact ',' format.
 #   A quote keeps its source precision even past the width; a cost does not
 #   (see price_text / cost_text).
-# today/pnl_pct: "+12.3%" 6 vw; "-100.0%" rare 7
+# today: "+12.34%" 7 vw; pnl_pct: "+12.3%" 6 vw
 # pnl_abs: "-10,050" 7 vw
 W_CODE   = 5
 W_SHARES = 5
 W_COST   = 6
 W_PRICE  = 6
-W_TODAY  = 6
+W_TODAY  = 7
 W_PNL_P  = 6
 W_PNL_A  = 7
 
@@ -135,7 +135,9 @@ def render_holdings_table(rows: List[Dict], currency: str = '') -> List[str]:
 
         cost_s  = cost_text(cost)    if cost  else '—'
         price_s = price_text(price)
-        today_s = f'{today_pct:+.1f}%' if today_pct is not None else '—'
+        # Report and intraday parse this cell for alerts. Use the same
+        # precision as the dashboard so +2.96% stays below the 3% cutoff.
+        today_s = f'{today_pct:+.2f}%' if today_pct is not None else '—'
         pnlp_s  = f'{pnl_pct:+.1f}%'
         pnla_s  = f'{pnl_abs:+,.0f}'
 
