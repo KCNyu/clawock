@@ -128,6 +128,41 @@ def test_next_trigger_uses_its_own_price_and_accepts_near_future_levels():
     assert check_next_trigger('下一触发：SPCH 站上 12.0', ctx) == []
 
 
+def test_next_trigger_requires_separate_items_even_when_prices_overlap():
+    from clawock.harness.intraday_postflight import check_next_trigger
+
+    ctx = {'full_holdings': [
+        {'ticker': 'SPCH', 'price': 100},
+        {'ticker': 'SPCX', 'price': 102},
+        {'ticker': '00100', 'price': 100},
+    ]}
+    for separator in ('；', ';', ' / '):
+        assert check_next_trigger(f'下一触发：SPCH 站上 100{separator}SPCX 跌破 102', ctx) == []
+    for separator in ('，', '、', ' ', ', '):
+        assert check_next_trigger(f'下一触发：SPCH 站上 100{separator}SPCX 跌破 102', ctx)
+        assert check_next_trigger(f'下一触发：SPCH 站上 100{separator}00100 跌破 102', ctx)
+    assert check_next_trigger('下一触发：SPCH 站上 00100', ctx) == []
+
+
+def test_next_trigger_accepts_an_explicit_watch_close_for_its_subject():
+    from clawock.harness.intraday_postflight import check_next_trigger
+    from clawock.harness.intraday_trigger_prices import trigger_prices
+
+    ctx = {'watch_levels': {
+        'hstech_close': 3813.19,
+        'hstech_max_pct_above_prev_close': 2,
+        'spch_proxy_close': 150,
+        'spch_underlying_close': 151,
+    }, 'full_holdings': [{'ticker': 'HSTECH', 'price': 3600}]}
+    ctx['trigger_prices'] = trigger_prices(ctx)
+    assert {'price': '3813.19', 'source': 'watch_levels.hstech_close'} in ctx['trigger_prices']['HSTECH']
+    assert check_next_trigger('下一触发：恒科 站上 3,813.19', ctx) == []
+    assert check_next_trigger('下一触发：恒指 站上 3813.19', ctx)
+    assert check_next_trigger('下一触发：恒科 站上 2', ctx)
+    assert check_next_trigger('下一触发：SPCH 站上 150', ctx)
+    assert check_next_trigger('下一触发：SPCH 站上 151', ctx)
+
+
 def test_radar_subject_levels_are_available_without_borrowing_other_symbols():
     from clawock.harness.intraday_postflight import _subject_prices
     context = {'opportunity_radar': {'rows': [

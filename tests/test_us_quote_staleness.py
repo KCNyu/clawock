@@ -889,7 +889,7 @@ def test_a_provider_without_a_real_prior_close_is_not_complete():
                                  "h": 2.0, "l": 0.5})
 
 
-def test_index_snapshots_keep_unknown_and_flat_distinct(monkeypatch):
+def test_index_snapshots_keep_unknown_and_flat_distinct(monkeypatch, capsys):
     monkeypatch.setattr(F, 'get_tencent_us_index', lambda _: None)
     monkeypatch.setattr(F, 'get_yfinance_quote', lambda symbol: {
         '^NDX': {'c': 100.0, 'pc': 100.0, 'pc_ok': False, 'dp': 0},
@@ -901,3 +901,16 @@ def test_index_snapshots_keep_unknown_and_flat_distinct(monkeypatch):
         assert rows[symbol]['prev_close'] is None
         assert rows[symbol]['change_pct'] is None
     assert rows['DJI']['change_pct'] == 0
+
+    monkeypatch.setattr(F, 'fetch_us_indices', lambda: rows)
+    us = {'holdings': []}
+    F._us_finalize_region(
+        {}, us, now_et=F.datetime(2026, 11, 23, 10, tzinfo=ZoneInfo('America/New_York')),
+        et_str='Nov 23 10:00 ET', hkt_str='Nov 23 23:00 HKT',
+        all_active=[], tickers=[], updated=[], missing=[], source_counts={},
+    )
+    assert us['indices_snapshot'] == rows
+    output = capsys.readouterr().out
+    assert 'Indices:' in output and 'US indices fetch failed' not in output
+    assert 'SPX 10.0 (涨跌未知)' in output
+    assert 'DJI 100.0 (+0.00%)' in output

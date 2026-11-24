@@ -1959,7 +1959,7 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
   // The upstream percent field reports REMAINING and is complemented; raw
   // counts already are consumption and divide as-is; unreadable stays null.
   assert.equal(windowUsedPercent({ current_interval_remaining_percent: 88.4 }), 100 - 88.4);
-  assert.equal(windowUsedPercent({ current_interval_remaining_percent: 0 }), 100, "a fresh window reads as fully unused");
+  assert.equal(windowUsedPercent({ current_interval_remaining_percent: 0 }), 100, "zero remaining means the window is exhausted");
   assert.equal(windowUsedPercent({ current_interval_total_count: 5000000, current_interval_usage_count: 1250000 }), 25);
   assert.equal(windowUsedPercent({ current_interval_total_count: 0, current_interval_usage_count: 0 }), null);
   assert.equal(windowUsedPercent({}), null);
@@ -2037,10 +2037,21 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
       base_resp: { status_code: 0, status_msg: "success" },
       model_remains: [{ model: "general", current_interval_remaining_percent: 12 }],
     }), { status: 200, headers: { "content-type": "application/json" } });
-    const lowQuota = await createMinimaxService({ credentials: { resolve: async () => ({ value: "mm-test" }) } }).get(true);
+    const lowQuota = await mmService.get(true);
     assert.equal(lowQuota.status, "fresh");
     assert.equal(lowQuota.low, true, "remaining 12% → used 88% ≥ 100−20, the watermark in used direction");
     assert.equal(lowQuota.snapshot.unit, "pct");
+
+    globalThis.fetch = async () => new Response(JSON.stringify({
+      base_resp: { status_code: 0 },
+      model_remains: [{ model_name: "general",
+        current_interval_remaining_percent: 0, current_weekly_remaining_percent: 80 }],
+    }), { status: 200, headers: { "content-type": "application/json" } });
+    const exhausted = await mmService.get(true);
+    assert.equal(exhausted.status, "fresh");
+    assert.equal(exhausted.low, true);
+    assert.equal(exhausted.snapshot.isAvailable, false);
+    assert.deepEqual(exhausted.snapshot.windows.map(w => w.percent), [100, 20]);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -6,11 +6,14 @@ from pathlib import Path
 
 import pytest
 
+from clawock.publish.dashboard import _aggregate_indices
+
 JS = Path(__file__).resolve().parents[1] / 'site/assets/js'
 
 
 @pytest.mark.parametrize('us,hk', [(None, -2.44), (None, None), (0, 0)])
-def test_rs_keeps_both_legs_and_missing_session(us, hk):
+@pytest.mark.parametrize('proxy', [None, 'SPY'])
+def test_rs_keeps_both_legs_and_labels_the_index_source(us, hk, proxy):
     core = (JS / 'dashboard.core.js').read_text()
     hero = (JS / 'dashboard.hero.js').read_text()
     render = re.search(r'^  function renderMarketSnapshot\(\) \{.*?^  \}', hero, re.M | re.S)[0]
@@ -19,7 +22,10 @@ def test_rs_keeps_both_legs_and_missing_session(us, hk):
         r'|function deltaSession\(.*?^  \})', core, re.M | re.S))
     data = {'delta': {'us': {'today_pct': us, 'session_date': '2026-10-12'},
                       'hk': {'today_pct': hk, 'session_date': '2026-10-13'}},
-            'indices': {'SPX': {'change_pct': 0}, 'HSI': {'change_pct': -0.37}}}
+            'indices': _aggregate_indices(
+                {'indices_snapshot': {'SPX': {'change_pct': 0, 'is_etf_proxy': proxy}}},
+                {'indices_snapshot': {'HSI': {'change_pct': -0.37}}},
+            )}
     script = '''const DASH = '—'; const MARKET_INDICES = [];
 const safe = (obj, ...keys) => keys.reduce((o, k) => o?.[k], obj);
 const escapeHtml = s => String(s).replaceAll('<', '&lt;');
@@ -28,7 +34,8 @@ const nodes = {}; const document = {getElementById: id => nodes[id] ||= {}};
 renderMarketSnapshot(); process.stdout.write(nodes['market-rs'].innerHTML);
 '''
     text = subprocess.check_output(['node', '-e', script], text=True)
-    assert 'US' in text and 'HK' in text
+    assert f'vs {proxy or "SPX"} +0.00%' in text
+    assert 'US' in text and 'HK' in text and 'vs HSI' in text
     for leg, value in [('us', us), ('hk', hk)]:
         if value is None:
             assert data['delta'][leg]['session_date'] in text

@@ -299,9 +299,9 @@ def check_next_trigger(prose, ctx):
     """One escalating issue when the 下一触发 line is missing or unverifiable.
 
     Structured means each item (split on ；/ ` / `) names a subject — a ticker
-    in the context or an index — and quotes its own sourced level or a
-    prospective level within 5% of its own current quote. A line that reads authoritative must be checkable; one issue
-    for the whole line so a single bad line counts once.
+    in the context or an index — and quotes one level. It must be sourced
+    for that subject or within 5% of its current quote. A single issue
+    covers all unverifiable items on the line.
     """
     line, _ = split_next_trigger(prose)
     if line is None:
@@ -327,15 +327,15 @@ def check_next_trigger(prose, ctx):
         if not numbers:
             problems.append(f'无价位「{item[:16]}」')
             continue
+        if len(numbers) > 1:
+            problems.append(f'「{subject}」条目含多个数字，每项只写一个价位，多项请用分号分隔')
+            continue
         levels, current = _subject_prices(ctx, subject)
-        missing = []
-        for raw in numbers:
-            number = price_number(raw)
-            if number not in levels and not any(
-                    abs(number / quote - 1) <= Decimal('0.05') for quote in current):
-                missing.append(raw)
-        if missing:
-            problems.append(f"价位无本标的依据或超出当前价 ±5%：{'、'.join(missing[:3])}")
+        raw = numbers[0]
+        number = price_number(raw)
+        if number not in levels and not any(
+                abs(number / quote - 1) <= Decimal('0.05') for quote in current):
+            problems.append(f'价位无本标的依据或超出当前价 ±5%：{raw}')
     if not problems:
         return []
     return ['「下一触发」无法核对（' + '；'.join(problems[:3]) + '）']

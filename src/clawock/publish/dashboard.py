@@ -1099,6 +1099,8 @@ def _aggregate_indices(us_pf, hk_pf, at=None):
                 'stale':      (session < newest or (session == newest and intraday is True))
                               if session and newest else None,
             }
+            if v.get('is_etf_proxy'):
+                normalized['is_etf_proxy'] = v['is_etf_proxy']
             out[k] = normalized
     return out
 
