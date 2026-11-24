@@ -452,3 +452,119 @@ def test_recent_previous_run_is_not_the_new_turn(tmp_path):
 def test_a_long_running_turn_with_recent_writes_still_has_usage(tmp_path):
     paths = _live_turn(tmp_path, started_at=NOW - 25 * 60_000)
     assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB).turn_usd == 0.02
+
+
+def _jsonl(path, records):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(''.join(json.dumps(record) + '\n' for record in records))
+
+
+def _native_codex_turn(paths, session_id, *, started_at, rates=True):
+    config = json.loads(paths.config_file.read_text())
+    openai = {'id': 'gpt-6-luna', 'contextWindow': 1000}
+    if rates:
+        openai['cost'] = {'input': 1, 'cacheRead': 0.1, 'cacheWrite': 0, 'output': 2}
+    config['models']['providers']['openai'] = {'models': [openai]}
+    paths.config_file.write_text(json.dumps(config))
+    thread_id = 'd41d8cd9-8f00-4000-8000-000000000001'
+    turn_id = 'matched-turn'
+    started = datetime.fromtimestamp(started_at / 1000, tz=HKT)
+    event = {
+        'traceSchema': 'openclaw-trajectory', 'source': 'runtime',
+        'type': 'prompt.submitted', 'ts': started.isoformat(),
+        'sessionId': session_id, 'provider': 'openai', 'modelId': 'gpt-6-luna',
+        'data': {'threadId': thread_id, 'turnId': turn_id},
+    }
+    trajectory = paths.sessions_dir / f'{session_id}.trajectory.jsonl'
+    _jsonl(trajectory, [event, event])
+    os.utime(trajectory, ((NOW - 1_000) / 1000,) * 2)
+
+    def task(kind, identifier):
+        return {'type': 'event_msg', 'payload': {'type': kind, 'turn_id': identifier}}
+
+    def tokens(total, last):
+        def buckets(counts):
+            return dict(zip(('input_tokens', 'cached_input_tokens', 'output_tokens'),
+                            counts, strict=True))
+
+        return {'type': 'event_msg', 'payload': {'type': 'token_count', 'info': {
+            'total_token_usage': buckets(total), 'last_token_usage': buckets(last),
+        }}}
+
+    first = tokens((1200, 560, 120), (200, 60, 20))
+    _jsonl(paths.sessions_dir.parent / 'agent' / 'codex-home' / 'sessions'
+           / started.strftime('%Y/%m/%d') / f'rollout-test-{thread_id}.jsonl', [
+               {'type': 'session_meta', 'payload': {'id': thread_id}},
+               task('task_started', 'earlier-turn'),
+               tokens((1000, 500, 100), (1000, 500, 100)),
+               task('task_complete', 'earlier-turn'),
+               task('task_started', turn_id),
+               {'type': 'turn_context', 'payload': {'turn_id': turn_id, 'model': 'gpt-6-luna'}},
+               first, first,
+               tokens((1500, 760, 130), (300, 200, 10)),
+           ])
+
+
+def test_live_codex_fallback_prices_usage_before_the_transcript_mirror(tmp_path):
+    paths = _live_turn(tmp_path, started_at=NOW - 25 * 60_000)
+    _write_transcript(paths, 'sess-live', [
+        _assistant(input_tokens=100, cost=0.02),
+        {**_assistant(cost=0), 'stopReason': 'error'},
+    ], header=f'[cron:job-1 {JOB}] brief', mtime=(NOW - 20 * 60_000) / 1000)
+    _native_codex_turn(paths, 'sess-live', started_at=NOW - 19 * 60_000)
+
+    usage = provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB)
+
+    assert usage.model == 'gpt-6-luna'
+    assert usage.context_pct == 30
+    assert usage.cache_hit_pct == 43
+    # Two Codex calls spent $0.000326 at the configured rates. The Pi call
+    # keeps its own transcript cost, with no charge for the failed fallback.
+    assert usage.turn_usd == 0.020326
+    assert usage.day_usd == 0.020326
+
+
+def test_native_codex_cost_is_unknown_without_a_configured_price(tmp_path):
+    paths = _live_turn(tmp_path)
+    _write_transcript(paths, 'sess-live', [
+        {**_assistant(cost=0), 'stopReason': 'error'},
+    ], header=f'[cron:job-1 {JOB}] brief', mtime=(NOW - 5_000) / 1000)
+    _native_codex_turn(paths, 'sess-live', started_at=NOW - 30_000, rates=False)
+
+    usage = provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB)
+
+    assert usage.model == 'gpt-6-luna'
+    assert usage.turn_usd is None
+    assert usage.day_usd is None
+
+
+def test_day_total_prices_a_finished_codex_run_without_counting_the_mirror(tmp_path):
+    paths = _live_turn(tmp_path)
+    native_started = NOW - 3_600_000
+    _native_codex_turn(paths, 'sess-prev', started_at=native_started)
+    _write_transcript(paths, 'sess-prev', [
+        {**_assistant(model='gpt-6-luna', provider_id='openai', input_tokens=100, cost=0),
+         '__openclaw': {'mirrorOrigin': 'codex-app-server'}},
+    ])
+    with sqlite3.connect(paths.state_db) as conn:
+        conn.execute(
+            "INSERT INTO cron_run_logs VALUES (?, ?, ?, ?, ?)",
+            ('store', 'job-1', 1, native_started, json.dumps({
+                'action': 'finished', 'runAtMs': native_started, 'sessionId': 'sess-prev',
+            })),
+        )
+
+    usage = provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB)
+
+    assert usage.model == 'MiniMax-M3.1-Flash'
+    assert usage.turn_usd == 0.02
+    assert usage.day_usd == 0.020326
+
+
+def test_failed_attempt_does_not_supply_the_live_models_identity(tmp_path):
+    paths = _live_turn(tmp_path)
+    _write_transcript(paths, 'sess-live', [
+        {**_assistant(cost=0), 'stopReason': 'error'},
+    ], header=f'[cron:job-1 {JOB}] brief')
+
+    assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
