@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-11-21T05:16:54+08:00",
+  "generated_at": "2026-11-24T08:40:05+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -46,39 +46,11 @@
       "tone": "idle",
       "sample": "预注册于 2026-07-26",
       "source": "`assets/data/cross_sectional_factor.json`",
-      "reading": "这一层只用 `registered_at` 之后记录的快照做样本外验证，回溯结果永远不能激活它。目前仍未达标，因此不参与任何决策。「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。 当前阻断项：clustered_edge、membership_history。",
+      "reading": "证据源不可读：本次抓价全部失败，无法重算前瞻检验；不将缺失观测解释为尚未到期或零收益。",
       "rows": [
         {
-          "label": "`prospective_dates`",
-          "value": "63 / 需要 24 · ✅"
-        },
-        {
-          "label": "`prospective_tickers`",
-          "value": "39 / 需要 12 · ✅"
-        },
-        {
-          "label": "`prospective_sectors`",
-          "value": "8 / 需要 3 · ✅"
-        },
-        {
-          "label": "`price_coverage`",
-          "value": "1 / 需要 0.8 · ✅"
-        },
-        {
-          "label": "`quality_coverage`",
-          "value": "0.6154 / 需要 0.6 · ✅"
-        },
-        {
-          "label": "`clustered_edge`",
-          "value": "[-0.01898, 0.03179] / 需要 CI lower > 0.0 · ⚪ 未达标"
-        },
-        {
-          "label": "`membership_history`",
-          "value": "否 / 需要 是 · ⚪ 未达标"
-        },
-        {
-          "label": "`corporate_actions`",
-          "value": "Tencent qfq forward-adjusted daily bars / 需要 adjusted · ✅"
+          "label": "行情覆盖",
+          "value": "证据源不可读；本次未取到任何标的价格"
         }
       ]
     },
@@ -134,7 +106,7 @@
       "verdict": "🟢 通过",
       "verdict_key": "passed",
       "tone": "good",
-      "sample": "留痕 119 天",
+      "sample": "留痕 120 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 2/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -144,15 +116,15 @@
         },
         {
           "label": "`rsi_oversold_bounce`",
-          "value": "命中率 60.0% · CI95 [37.0%, 93.8%] · n=65（35 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 59.1% · CI95 [36.7%, 91.4%] · n=66（36 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 60.9% · CI95 [51.6%, 69.4%] · n=534（99 日 × 12 标的）· ✅ 可入决策"
+          "value": "命中率 61.3% · CI95 [52.0%, 69.4%] · n=542（100 日 × 12 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 62.1% · CI95 [53.5%, 69.8%] · n=662（111 日 × 11 标的）· ✅ 可入决策"
+          "value": "命中率 62.5% · CI95 [53.7%, 70.4%] · n=669（112 日 × 11 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_on_follow`",
@@ -160,10 +132,10 @@
         },
         {
           "label": "`zscore_extreme_revert`",
-          "value": "命中率 48.0% · CI95 [23.6%, 75.3%] · n=50（28 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 47.1% · CI95 [24.1%, 73.0%] · n=51（29 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
         }
       ]
     }
   ],
-  "built_at": "2026-11-23T00:04:56.294636+00:00"
+  "built_at": "2026-11-24T00:46:58.122787+00:00"
 }
