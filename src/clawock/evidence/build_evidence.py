@@ -349,6 +349,7 @@ def cross_sectional_section() -> dict | None:
         'reading': reading,
         'source': '`assets/data/cross_sectional_factor.json`',
         'sample': f"预注册于 {payload.get('registered_at')}",
+        **({'unavailable': True} if unavailable else {}),
     }
 
 

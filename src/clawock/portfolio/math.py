@@ -27,6 +27,17 @@ def _pre_split_incomplete(holding: Mapping[str, Any]) -> bool:
                 or holding.get("quote_stale_asof"))
 
 
+def quote_range_gap(holding: Mapping[str, Any]) -> str | None:
+    """Why the stored intraday envelope cannot serve as a session range."""
+    if holding.get("quote_stale_asof"):
+        return "stale_quote"
+    if holding.get("quote_incomplete_range"):
+        return "local_accumulator"
+    if _pre_split_incomplete(holding):
+        return "legacy_incomplete"
+    return None
+
+
 def quote_session_comparable(holding: Mapping[str, Any]) -> bool:
     """Whether ``current_price`` and ``prev_close`` describe adjacent sessions.
 

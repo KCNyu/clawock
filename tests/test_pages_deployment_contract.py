@@ -16,6 +16,7 @@ leave this module entirely green.
 """
 import fnmatch
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -641,6 +642,44 @@ def test_every_tracked_file_staging_publishes_triggers_a_pages_build(tmp_path, m
         filters = [_github_path_filter(p) for p in triggers[event]["paths"]]
         silent = [path for path in tracked if not any(f.match(path) for f in filters)]
         assert not silent, f"pages.yml {event} paths never fire for staged {silent}"
+
+
+def test_python_inputs_to_the_pages_build_trigger_both_events(tmp_path):
+    import yaml
+
+    # A fresh interpreter excludes imports made by pytest or unrelated tests.
+    # Exercise the normal weekly index and the guarded data-plane failure import.
+    # Keep the latter's degradation ledger inside the test workspace.
+    probe = """
+import json
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "ops/pages")
+import fetch_data_plane
+import stage_site
+
+stage_site.weekly_index()
+os.environ["CLAWOCK_WORKSPACE"] = sys.argv[1]
+fetch_data_plane.note_failure("test read failure")
+assert "clawock.automation.workflow_outcomes" in sys.modules
+root = Path.cwd()
+print(json.dumps(sorted(str(Path(module.__file__).relative_to(root))
+                        for name, module in sys.modules.items()
+                        if name == "clawock" or name.startswith("clawock."))))
+"""
+    env = os.environ.copy()
+    env.pop("CLAWOCK_WORKSPACE", None)
+    loaded = json.loads(subprocess.check_output(
+        [sys.executable, "-c", probe, str(tmp_path)], cwd=ROOT, text=True, env=env,
+    ))
+    triggers = yaml.safe_load(WORKFLOW)
+    triggers = triggers.get("on", triggers.get(True))
+    for event in ("push", "pull_request"):
+        filters = [_github_path_filter(p) for p in triggers[event]["paths"]]
+        silent = [path for path in loaded if not any(f.match(path) for f in filters)]
+        assert not silent, f"pages.yml {event} paths never fire for imports {silent}"
 
 
 def test_moved_markdown_url_survives_jekyll_and_links_to_the_published_owner(tmp_path):

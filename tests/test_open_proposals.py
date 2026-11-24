@@ -421,11 +421,21 @@ def test_a_decision_records_the_authorisation_version_it_was_reviewed_under():
     loosened = _context()
     loosened["risk_guardrail"]["caps"] = {"lev_etf_stop_pct": -25}
     assert _compile(loosened)["authorization"]["version"] != authorization["version"]
-    # Every code the review can refuse an authorisation under is in the set.
-    emitted = {"AUTH_OBLIGATION_IN_FORCE", "AUTH_ADD_FROZEN_BY_BREACH", "AUTH_LEVERAGED_ADD",
-               "AUTH_EXCEEDS_ROOM", "AUTH_SWAP_MANDATE", "AUTH_NO_SWAP_MANDATE",
-               "AUTH_OBLIGATION_SHORTFALL"}
+    # Every code the packet review emits is covered by the named authorisations.
+    import ast
+    from pathlib import Path
+
+    emitted = {node.value for node in ast.walk(ast.parse(Path(packet_mod.__file__).read_text()))
+               if isinstance(node, ast.Constant) and isinstance(node.value, str)
+               and node.value.startswith("AUTH_")}
     assert emitted == {code for code, _, _ in receipts.AUTHORIZATIONS}
+
+    hold_terms = {"valid_for_sessions": 1, "max_tranches": 2}
+    amended_terms = {**hold_terms, "valid_for_sessions": 2}
+    original = _compile({**_context(), "preposition_policy": hold_terms})["authorization"]
+    amended = _compile({**_context(), "preposition_policy": amended_terms})["authorization"]
+    assert original["preposition_terms"] == hold_terms
+    assert original["version"] != amended["version"]
 
 
 @pytest.mark.parametrize("field", ["price", "invalidation_price"])

@@ -1192,7 +1192,14 @@
     if (tech.length) cols.push(`<div class="bd-col"><div class="bd-k">技术</div>${tech.join("")}</div>`);
 
     const r = e.range;
-    if (r && r.high != null && r.low != null) {
+    if (h.quote_status?.intraday_range_available === false) {
+      const reason = {
+        local_accumulator: "仅有本地累计高低",
+        stale_quote: "行情来自较早场次",
+      }[h.quote_status.intraday_range_reason] || "区间来源未核实";
+      cols.push(`<div class="bd-col"><div class="bd-k">当日区间</div>`
+        + kv("未知", reason) + "</div>");
+    } else if (r && r.high != null && r.low != null) {
       const span = (r.high - r.low) || 1;
       const p = Math.max(0, Math.min(100, ((r.current - r.low) / span) * 100));
       cols.push(`<div class="bd-col"><div class="bd-k">当日区间</div>`

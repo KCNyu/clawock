@@ -6,7 +6,7 @@ Run as ``clawock validate-sidecar <name>``.
 from __future__ import annotations
 
 from clawock.safe_io import to_number as _share_number
-from clawock.portfolio.math import session_change_pct
+from clawock.portfolio.math import quote_range_gap, session_change_pct
 from clawock.safe_io import carried_value
 
 import csv
@@ -876,6 +876,8 @@ def _assert_dashboard_money_reconciles(
                                     else source.get(source_field))
                     if public_field == 'today_change_pct':
                         source_value = session_change_pct(source)
+                    elif public_field in {'day_high', 'day_low'} and quote_range_gap(source):
+                        source_value = None
                     label = f'holdings.{leg}.{ticker}.{public_field}'
                     tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
                     if public_field in nullable_holding_fields:

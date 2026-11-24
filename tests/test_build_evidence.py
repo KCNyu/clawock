@@ -451,8 +451,10 @@ def test_evidence_records_its_own_build_time(tmp_path, monkeypatch):
     assert datetime.fromisoformat(result['built_at']).year >= 2026
 
 
-def test_failed_factor_fetch_is_unreadable_not_waiting(tmp_path, monkeypatch):
+def test_failed_factor_fetch_is_unreadable_not_waiting(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(ev, 'DATA', tmp_path)
+    monkeypatch.setattr(ev, 'WS', tmp_path)
+    monkeypatch.setattr(ev, 'ARTIFACT', tmp_path / 'evidence.json')
     (tmp_path / 'cross_sectional_factor.json').write_text(json.dumps({
         'registered_at': '2026-07-26', 'as_of': '2026-10-20',
         'universe': {'priced_symbols': 0, 'failed': {'AAA': 'timeout'}},
@@ -462,6 +464,12 @@ def test_failed_factor_fetch_is_unreadable_not_waiting(tmp_path, monkeypatch):
     assert section['verdict'] == ev.VERDICT['undecided']
     assert '证据源不可读' in section['reading']
     assert not any('0 /' in value for _, value in section['rows'])
+
+    assert ev.main([]) == 1
+    assert f'evidence unavailable: {section["source"]}' in capsys.readouterr().err
+    result = json.loads(ev.ARTIFACT.read_text())
+    assert section['source'] in result['omitted']
+    assert any(s['source'] == section['source'] for s in result['sections'])
 
 
 def test_factor_zero_after_maturity_is_not_waiting(tmp_path, monkeypatch):
