@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T00:29:26.849338+00:00",
+  "generated_at": "2026-11-24T22:51:13.441487+00:00",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,9 +15,9 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n- **CRCL**: 阿布扎比全球市场法院在 Binance 资产回收令中，将 Circle 列为 18 个须继续冻结指定代币的实体之一。  \n  **Implication**: 对 kcn 的 CRCL 仓位偏负面；并非 Circle 自身资产被冻结，但法律、合规及声誉尾部风险上升。\n- **RKLB**: Rocket Lab 据报在 Neutron 尚未首飞前将发射价格上调 27%；相关发射协议逾 $515m，对应 16 项任务。  \n  **Implication**: 对 kcn 持有的 **RKLX（2x）** 偏正面；2x 日杠杆会放大约两倍的单日波动，但利好仍须 Neutron 按期首飞及 backlog 转化验证。\n- **ANT**: Anthropic 上市后跌至 $89，市值约 $1.2bn；Seeking Alpha 给出 Sell 评级。  \n  **Implication**: 对 kcn 的 ANT 仓位偏空，显示 IPO 后估值与动量快速重置；Sell 属分析师观点，并非公司指引。\n- **SPCX**: SpaceX 随科技股反弹；报道援引 Cathie Wood 称 SpaceX 承诺轨道数据中心仅采用 NVIDIA。  \n  **Implication**: 对 kcn 持有的 **SPCH（2x）** 短线偏多；2x 会放大跟涨和回撤，但该合作说法来自二手引述，且缺乏正式合同金额披露。\n\n### Per-ticker 简报 (有新闻才列)\n- **CRCL**: 法院要求维持与 Binance 资产回收相关的指定代币冻结 — 法律/合规 overhang 上升，偏空。\n- **RKLB**: Neutron 提价 27% 叠加 $515m+ 协议及 16 项任务 — 定价与需求叙事偏多，但尚无首飞验证，RKLX 2x 放大波动。\n- **ANT**: 股价跌至 $89、市值约 $1.2bn并遭 Sell 评级 — IPO 后估值重置，动量偏空。\n- **SPCX**: 主要受科技股反弹带动，NVIDIA 合作消息未获正式披露 — 情绪性偏多，SPCH 2x 放大回撤风险。\n\n### 风险 watch (若有)\n- **CRCL**: 司法冻结令可能引发进一步资产追踪、诉讼或监管审查；目前无证据显示 Circle 自身资产遭冻结。\n- **RKLB**: Neutron 尚未首飞便提价 27%，且媒体所称 backlog 需转化为实际收入；CFO 提价表态并非正式量化指引。\n- **ANT**: IPO 后快速下跌显示估值容错率低；当前 Sell 评级属于分析观点，基本面风险仍需以正式财报验证。\n- **SPCX**: NVIDIA 合作消息仅见二手引述，SPCH 2x 的上涨较依赖板块情绪和标题驱动。",
+  "digest_markdown": "### Top 3-5 移动信号 (跨 ticker 排序)\n\n- **SPCX**：RBC预计SpaceX与Tesla最早12月/2027年初宣布交易，TSLA股东可能无需大额溢价接受；目前仍属分析师预期。  \n  **对kcn持仓**：持有的是2x **SPCH**；潜在合并重估会被2x放大至ETF净值，但缺少大额溢价令上行确定性有限。\n- **RKLB**：Mizuho首次覆盖给予Underperform及$40目标价，较当时收盘低14%；即使$40仍约为2028年正常化盈利的167倍。  \n  **对kcn持仓**：持有的是2x **RKLX**；负面估值判断会放大约2倍下行敏感度，$40构成明确风险锚。\n- **CRCL**：DOJ拟就Binance黑客相关逾$1.1B冻结USDC采取没收行动；Circle将在法官签字后发行替代USDC。  \n  **对kcn持仓**：法律程序推进对CRCL偏利好，但$1.1B替代发行、储备管理及司法/监管执行仍属条件性风险。\n- **ANT**：看空分析称Anthropic九个月亏损$104B、承担$900.9B承诺，并于Q3重回经营亏损。  \n  **对kcn持仓**：对ANT持仓偏空，核心压力来自融资、潜在稀释及高估值；相关数字为分析口径，并非公司正式指引。\n\n### Per-ticker 简报 (有新闻才列)\n\n- **CRCL**：$1.1B冻结USDC没收及替代发行进入司法程序——程序进展偏正，但须等待法官批准。\n- **RKLB**：Mizuho给出Underperform/$40目标价，估值远高于2028年正常化盈利预期——短线偏空，2x RKLX放大风险。\n- **SPCX**：SpaceX-Tesla合并或于12月/2027年初公布——潜在估值重估催化，但交易、时点及对价均未确认。\n- **ANT**：巨额亏损、算力承诺与经营亏损引发融资担忧——融资及稀释风险上升。\n\n### 风险 watch (若有)\n\n- **CRCL**：$1.1B替代USDC须经法官签字；发行规模、储备安排和监管执行仍未落地。\n- **ANT**：看空文章称九个月亏损$104B、承诺约$895B–$900.9B且Q3转亏——重点风险为股权融资与稀释。\n- **SPCX**：合并仅为分析师预期，“无大额溢价”削弱利好确定性；2x SPCH将放大消息公布时的跳空风险。\n- **RKLB**：Underperform、$40目标价及167倍正常化盈利构成估值风险；2x RKLX会同步放大跌幅。",
   "raw_news_counts": {
-    "CRCL": 3,
+    "CRCL": 5,
     "RKLB": 5,
     "SPCX": 5,
     "ANT": 5
@@ -25,136 +25,150 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Tracking Cathie Wood's ARK Invest 13F Portfolio - Q3 2026 Update",
-        "datetime": 1795376636,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dab64c9b423438e8f1ead9360722ec081b1a3e98bcbf9874fb403d9971127eb0"
-      },
-      {
-        "headline": "Coinbase Global vs. Mastercard: Which Financial Stock Is a Better Buy for 2027?",
-        "datetime": 1795367005,
+        "headline": "DOJ Moves to Forfeit Over $1.1B in USDC From the Binance Hack",
+        "datetime": 1795467649,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=edd0225758c6da1139b166e88ac84c4977b927345053d505129a0cb538fcc0d2"
+        "url": "https://finnhub.io/api/news?id=0a1b549bab1027420b022f98348fb4dedee27763fe36af1c90c85e022a4b6c71"
       },
       {
-        "headline": "Circle Internet Group (CRCL) Is Named In Abu Dhabi Crypto Freeze Order",
-        "datetime": 1795334936,
+        "headline": "Why MoonPay wants a National Trust Bank",
+        "datetime": 1795456800,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=286ccc399737ca2dbcad4c60c2b11ee86b4db3999312a669d270492d3f12e52d"
+        "url": "https://finnhub.io/api/news?id=e6aba6a87b9607ae3ee968e8989a634f012d61238002b623bccba9c5f2751db5"
+      },
+      {
+        "headline": "Bitcoin bottoms on 4-year anniversary of FTX low: Nvidia rips 30%",
+        "datetime": 1795453200,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=14346adb8b13365ab69b6c2d0ad84080c8778eeb1bd3b35f87d675daf934a343"
+      },
+      {
+        "headline": "Coinbase Global vs. Visa: Which Financial Stock Is a Better Buy for 2027?",
+        "datetime": 1795449002,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=cf9c1e47cad1f5be24341322695306333bbecc295dacb809edc050c6531a512d"
+      },
+      {
+        "headline": "NYSE Parent's Tokenized Stock Venture Opens With 113 Assets Planned. Apple, Nvidia And Tesla Are Staying Out.",
+        "datetime": 1795447167,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=5b557d540dbab53cbe1aca012f5d3bddfa8107992cc821008e2d7fa075a7aca1"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab Rallies 11% After Its Worst Week Ever as CFO Eyes Higher Electron Prices; AST SpaceMobile Jumps 14%, SpaceX Surges 9%",
-        "datetime": 1795449503,
+        "headline": "Mizuho Sees 14% Downside in Rocket Lab Even After Its 69% Fall From May’s High",
+        "datetime": 1795554666,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2479642f2ad58670a55bef66a14df7350d3f28c69e0013e4b13841af603d7ada"
+        "url": "https://finnhub.io/api/news?id=fb570c679808836962440cf5ce0fe08e92951e6d0ec122d6a472f74fcff90fe4"
       },
       {
-        "headline": "Rocket Lab Soars 10% After Its Worst Week Ever as Space Stocks Rebound",
-        "datetime": 1795446132,
+        "headline": "Rocket Lab (RKLB) Has 117 Launches Booked. Barclays Has a View",
+        "datetime": 1795547613,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9ef4e605b173bcc28df80075f28f3d8efe997a3f01f8e21edcba5371b47e89bc"
+        "url": "https://finnhub.io/api/news?id=abd46a2c10c27560ecf34326bae3484ac2ed32f4d14fba036988ec62843a43f2"
       },
       {
-        "headline": "Space Stocks Soar. They Have a Long Way to Go.",
-        "datetime": 1795441320,
+        "headline": "Why Rocket Lab Demand News Could Make ETFs Worth A Look",
+        "datetime": 1795533254,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ce831e039257a4a1316d48c370405704e863047ad513c2414b257c1a7fafb653"
+        "url": "https://finnhub.io/api/news?id=13e5df50b036c5bbd0268fca5216829fe1f17b727bccbb8ab223ed14d2cfaae6"
       },
       {
-        "headline": "Can Rocket Lab's $515 Million Neutron Deals Lift Its Launch Backlog?",
-        "datetime": 1795440660,
+        "headline": "Three Reasons To Rethink AST SpaceMobile Stock Now",
+        "datetime": 1795518190,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f022df00a05b5920a400eaf592066033a0b1c2558dc88a778c2bcdd210ad7449"
+        "url": "https://finnhub.io/api/news?id=ae365beeec5f80976676555c000ed26d75cd37980046fd24e8bcbd12b2f71f1c"
       },
       {
-        "headline": "Rocket Lab Just Raised Prices on a Rocket It Hasn't Launched Yet. Here's What That Means for SpaceX.",
-        "datetime": 1795438202,
-        "source": "Yahoo",
+        "headline": "Mizuho Initiates Coverage On Rocket Lab with Underperform Rating, Announces Price Target of $40",
+        "datetime": 1795509847,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ccd78b79f337a18d37e71a7c174adc1b79632833b6344efb0230f48e3b9939f3"
+        "url": "https://finnhub.io/api/news?id=9a4fdfa8985281af30012e9764913581d5a6fee361abe02c920cc9c43cef7b2a"
       }
     ],
     "SPCX": [
       {
-        "headline": "BlackRock, Marsh are urging caution on redeploying ANT and SpaceX gains",
-        "datetime": 1795471089,
+        "headline": "RBC Expects SpaceX-Tesla Deal Announcement By Early 2027 — Notes TSLA Shareholders May Accept Combination Without Large Premium",
+        "datetime": 1795557333,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=68aa26c334e5ffe0c198c77900cb82a4e5b6a44573d2636f01ebac0deea58d2b"
+        "url": "https://finnhub.io/api/news?id=9ba4c2c8bc8e2489925f42ad91ee66c967dda6281a483601d516417f328bfc0f"
       },
       {
-        "headline": "Dow Jones Futures: Tech Stocks, Nvidia Snap Back On Jensen Huang Return; Elon Musk-Led SpaceX, Tesla Rally",
-        "datetime": 1795471041,
+        "headline": "Why Anthropic Stock Fell Again",
+        "datetime": 1795557302,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6093e5f4f6713eee1baa1765ad2aa64b03c3c173778d021cc38740496cb04ebc"
+        "url": "https://finnhub.io/api/news?id=4d27b705ad2cbb50e3eca86d9b34e0ee2a0550282da57bb9c22f56ce158abca0"
       },
       {
-        "headline": "Nvidia vs. SpaceX: The AI Revolution Is Big Enough for Both. Here's the Better Buy.",
-        "datetime": 1795470753,
+        "headline": "Anthropic IPO: Here's What a $5,000 Investment Could Look Like in 5 Years",
+        "datetime": 1795556222,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=16eb55e8570b3146cab79006525e9cf0d7909f4b60db5d8a24327a7e3c68b3f8"
+        "url": "https://finnhub.io/api/news?id=1202701b2ade35473f79973dd97a57176417f39e7f31a4c9055f39c5f3e77c47"
       },
       {
-        "headline": "Plot Twist: Cathie Wood Sold Nvidia Over “Losing Jensen.” Nvidia Just Rehired Him, but Her Other Worry Remains",
-        "datetime": 1795470284,
+        "headline": "A SpaceX-Tesla Deal Could Come in December. Here's Why 1 Group of Investors Should Be Worried.",
+        "datetime": 1795555622,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2d415468040bde72ff572d8e686b7ce97389157d61f5d83bdf29c0835a1782b3"
+        "url": "https://finnhub.io/api/news?id=8a2405d6987a9fa416ca853d72648b680afa266fa552046493e7fac8c64ae37a"
       },
       {
-        "headline": "Musk Posts “It Is Done” as Nvidia Rehires Huang. That’s Good News for Nvidia’s SpaceX Business",
-        "datetime": 1795469626,
+        "headline": "Billionaire Philippe Laffont’s 10 High-Conviction Stock Bets for 2027",
+        "datetime": 1795555120,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=664b3bbbab654de293b2fe9d6d45b1d9ab4ff22c9fdc9be360859de5bd7ff4b8"
+        "url": "https://finnhub.io/api/news?id=08d3ab0dac0b0d3b71962d813d0edcc2b3314d3bf48356ca62881cb405f66f23"
       }
     ],
     "ANT": [
       {
-        "headline": "Zscaler: I Did Not See Deal With CrowdStrike Coming (Rating Downgrade)",
-        "datetime": 1795447832,
+        "headline": "Don't Be A Hero: The Wrong Way To Buy The Tech Dip",
+        "datetime": 1795538249,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=900b84cc5e8a1215d5286d2d4cfb44ca16aff05505b254dddf6e8149ba7aff12"
+        "url": "https://finnhub.io/api/news?id=241df4d0abcc07478c124c3cf5cb5ce55810e50d75a5d55d588241685d7723ee"
       },
       {
-        "headline": "We Had The Boom; Now Comes The Bust?",
-        "datetime": 1795446933,
+        "headline": "No Exposure? Think Again: How Anthropic's Fall Threatens Every Investor",
+        "datetime": 1795536367,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=32830f16abcc26c7822bfd172d9c43dfb9485ad788d1153c6914a73ae8f6f5d9"
+        "url": "https://finnhub.io/api/news?id=3242bf55276018cb50fdb45e07eb3d5099c6beb78ca76f12b79ba126c30e4a4d"
       },
       {
-        "headline": "Whispers From Texas: AI Infrastructure Hits New Stride",
-        "datetime": 1795446059,
+        "headline": "Beware, The AI Trade May Not Have Bottomed Yet",
+        "datetime": 1795515649,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=873009640e9f6b7c9b396317ddf3287c8f7e7d25319e4d96e07501b9fc0e0a0c"
+        "url": "https://finnhub.io/api/news?id=9b54774e4ea64a6c20bb99348fa0a94b16042ecf0e038bfedbac60fcecf3211e"
       },
       {
-        "headline": "Anthropic Went Public Into An AI Selloff, And Its Numbers Argue Against It",
-        "datetime": 1795442720,
+        "headline": "How AMD Is Set To Exploit The Nvidia Rout",
+        "datetime": 1795513968,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=52a4d151a49f64a7e90802605333687cb915fbf72acca8992e6dedcb2ce8b051"
+        "url": "https://finnhub.io/api/news?id=d11c8f5c0a4efb8481ecf34f71b2d9b96272ce25ede3a0d3bffdd4b13bd15962"
       },
       {
-        "headline": "Anthropic: Priced For Perfection",
-        "datetime": 1795442500,
+        "headline": "AMD: Forget Jensen, China Is The Problem",
+        "datetime": 1795513214,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a8de154ce967bfbd1512b4dbd07a6cb6625d49a2bc29e9b7eb99e027c2c598e4"
+        "url": "https://finnhub.io/api/news?id=f24b354195cb37212fae9595f1618ca63f9894723c40ce0924d48f4da6b4a515"
       }
     ]
   },
