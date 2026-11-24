@@ -26,6 +26,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Mapping
 
+from ._codex_cron_usage import record_timestamp, read_codex_turns
+
 # Keep this compatibility name for callers that need an argv default, but make
 # its value belong to the current environment rather than to one operator's
 # pnpm installation. Cron services that deliberately run with a restricted PATH
@@ -748,11 +750,10 @@ LIVE_TRANSCRIPT_MAX_AGE_MS = 10 * 60 * 1000
 class RunUsage:
     """What one live cron turn used, read from the runtime's own records.
 
-    Every field is evidence, never a guess: `turn_usd` is the sum of the
-    per-call `usage.cost.total` values the runtime wrote into the session
-    transcript, and `day_usd` adds the same number for this job's earlier runs
-    today. None means the source could not answer — the card then omits that
-    piece instead of printing a zero.
+    `turn_usd` prices recorded usage up to card delivery. It combines the
+    runtime's transcript costs with Codex rollout usage priced at the configured
+    token rates. `day_usd` also includes earlier runs of this job today.
+    Missing usage or prices leave the affected amount unavailable.
     """
 
     model: str | None
@@ -781,9 +782,11 @@ def _token_count(value) -> int:
     return int(value) if _finite_number(value) and value > 0 else 0
 
 
-def _scan_transcript(path: Path) -> _TranscriptUsage | None:
-    """Sum one session transcript's assistant-message cost and token buckets."""
+def _scan_transcript(path: Path, config: dict) -> _TranscriptUsage | None:
+    """Sum transcript charges and the native turns mirrored into this session."""
     model = provider = None
+    model_at = 0.0
+    mirrored_codex = False
     spent = 0.0
     priced = False
     unpriced = False
@@ -804,10 +807,19 @@ def _scan_transcript(path: Path) -> _TranscriptUsage | None:
                 message = event.get('message')
                 if not isinstance(message, dict) or message.get('role') != 'assistant':
                     continue
-                if isinstance(message.get('model'), str) and message['model'].strip():
+                meta = message.get('__openclaw')
+                if isinstance(meta, dict) and meta.get('mirrorOrigin') == 'codex-app-server':
+                    # The mirror has synthetic zero costs and only the last call's
+                    # tokens. The native rollout accounts for the whole turn.
+                    mirrored_codex = True
+                    continue
+                produced_output = message.get('stopReason') not in ('error', 'aborted')
+                if (produced_output and isinstance(message.get('model'), str)
+                        and message['model'].strip()):
                     model = message['model'].strip()
-                if isinstance(message.get('provider'), str) and message['provider'].strip():
-                    provider = message['provider'].strip()
+                    identity = message.get('provider')
+                    provider = identity.strip() if isinstance(identity, str) else None
+                    model_at = record_timestamp(event.get('timestamp'))
                 usage = message.get('usage')
                 if not isinstance(usage, dict):
                     continue
@@ -831,12 +843,39 @@ def _scan_transcript(path: Path) -> _TranscriptUsage | None:
                 if _finite_number(amount) and amount >= 0:
                     spent += float(amount)
                     priced = True
-                elif call_total:
+                elif call_total or declared_total:
                     # Tokens ran, but the runtime wrote no price for them. A sum
                     # over only the priced calls would understate the bill.
                     unpriced = True
     except OSError:
         return None
+    codex_turns = read_codex_turns(path, config)
+    if mirrored_codex and not codex_turns:
+        unpriced = True
+    for turn in codex_turns:
+        latest = turn.started >= model_at
+        if latest:
+            model, provider, model_at = turn.model, turn.provider, turn.started
+            prompt_tokens = turn.prompt_tokens
+        if turn.buckets is None:
+            unpriced = True
+            continue
+        native_input, read, write, output = turn.buckets
+        input_tokens += native_input - read
+        cache_read += read
+        cache_write += write
+        native_model = _configured_model(config, turn.provider, turn.model)
+        rates = native_model.get('cost') if native_model else None
+        if not isinstance(rates, dict) or rates.get('tieredPricing'):
+            unpriced = True
+            continue
+        rates = [rates.get(key) for key in ('input', 'cacheRead', 'cacheWrite', 'output')]
+        if not all(_finite_number(rate) and rate >= 0 for rate in rates):
+            unpriced = True
+            continue
+        spent += sum(tokens * rate for tokens, rate in zip(
+            (native_input - read, read, write, output), rates, strict=True)) / 1_000_000
+        priced = True
     prompt_total = input_tokens + cache_read + cache_write
     return _TranscriptUsage(
         model=model,
@@ -848,28 +887,34 @@ def _scan_transcript(path: Path) -> _TranscriptUsage | None:
     )
 
 
-def _model_context_window(config_file: Path, provider, model) -> int | None:
-    """The model's advertised window, from the runtime's own model table."""
-    if not model:
-        return None
+def _read_usage_config(config_file: Path) -> dict:
     try:
         config = json.loads(config_file.read_text(encoding='utf-8'))
     except (OSError, ValueError):
+        return {}
+    return config if isinstance(config, dict) else {}
+
+
+def _configured_model(config: dict, provider, model) -> dict | None:
+    """Find the exact provider/model pair for native usage estimates."""
+    providers = ((config.get('models') or {}).get('providers') or {})
+    entry = providers.get(provider) if isinstance(providers, dict) else None
+    if not isinstance(entry, dict):
         return None
+    return next((row for row in entry.get('models') or []
+                 if isinstance(row, dict) and row.get('id') == model), None)
+
+
+def _model_context_window(config: dict, provider, model) -> int | None:
+    """The advertised window, from the runtime's model table."""
     providers = ((config.get('models') or {}).get('providers') or {})
     if not isinstance(providers, dict):
         return None
-    ordered = ([providers[provider]] if provider in providers else [])
-    ordered += [row for name, row in providers.items() if name != provider]
-    for entry in ordered:
-        if not isinstance(entry, dict):
-            continue
-        for row in entry.get('models') or []:
-            if not isinstance(row, dict) or row.get('id') != model:
-                continue
-            window = row.get('contextWindow')
-            if _finite_number(window) and window > 0:
-                return int(window)
+    for name in dict.fromkeys((provider, *providers)):
+        row = _configured_model(config, name, model)
+        window = row.get('contextWindow') if row else None
+        if _finite_number(window) and window > 0:
+            return int(window)
     return None
 
 
@@ -907,7 +952,7 @@ def _running_cron_tasks(paths: OpenClawPaths, now_ms: int) -> list[dict] | None:
 
 def _job_prior_day_cost(paths: OpenClawPaths, job_id, *, day_start_ms: int,
                         current_started_ms: int | None,
-                        current_session_id: str | None) -> float | None:
+                        current_session_id: str | None, config: dict) -> float | None:
     """This job's already-finished runs today, in the same costing unit."""
     runs = _sqlite_runs(job_id, paths, since_ms=day_start_ms)
     if runs is None:
@@ -926,7 +971,7 @@ def _job_prior_day_cost(paths: OpenClawPaths, job_id, *, day_start_ms: int,
         if session_id == current_session_id or session_id in seen:
             continue
         seen.add(session_id)
-        scan = _scan_transcript(paths.sessions_dir / f'{session_id}.jsonl')
+        scan = _scan_transcript(paths.sessions_dir / f'{session_id}.jsonl', config)
         if scan is None or scan.turn_usd is None:
             return None
         total += scan.turn_usd
@@ -993,7 +1038,15 @@ def _live_cron_transcript(paths: OpenClawPaths, job: str, now_ms: int, *,
             modified = path.stat().st_mtime * 1000
         except OSError:
             continue
-        if modified < max(started_at, now_ms - LIVE_TRANSCRIPT_MAX_AGE_MS):
+        if modified < started_at:
+            continue
+        # Native Codex mirrors tool calls only at turn end. Its trajectory
+        # remains active while the transcript itself can sit idle.
+        try:
+            modified = max(modified, path.with_suffix('.trajectory.jsonl').stat().st_mtime * 1000)
+        except OSError:
+            pass
+        if modified < now_ms - LIVE_TRANSCRIPT_MAX_AGE_MS:
             continue
         header = _cron_turn_header(path)
         if header != (job_id, job):
@@ -1048,18 +1101,22 @@ def _usage_for_session(paths: OpenClawPaths, *, session_id, job_id, started_at,
     """One session transcript's usage, with the store as metadata fallback."""
     if not isinstance(session_id, str) or not session_id:
         return None
-    scan = _scan_transcript(paths.sessions_dir / f'{session_id}.jsonl')
+    config = _read_usage_config(paths.config_file)
+    scan = _scan_transcript(paths.sessions_dir / f'{session_id}.jsonl', config)
     if scan is None:
         return None
-    entry = entry if isinstance(entry, dict) else {}
-    model = scan.model or (entry.get('model') if isinstance(entry.get('model'), str) else None)
-    provider = scan.provider or (
-        entry.get('modelProvider') if isinstance(entry.get('modelProvider'), str) else None)
+    entry = entry if isinstance(entry, dict) and entry.get('sessionId') == session_id else {}
+    entry_model = entry.get('model')
+    model = scan.model or (entry_model if isinstance(entry_model, str) else None)
+    entry_provider = entry.get('modelProvider')
+    provider = scan.provider
+    if provider is None and model == entry_model and isinstance(entry_provider, str):
+        provider = entry_provider
     if not model:
         return None
-    budget = entry.get('contextTokens')
+    budget = entry.get('contextTokens') if (model, provider) == (entry_model, entry_provider) else None
     if not (_finite_number(budget) and budget > 0):
-        budget = _model_context_window(paths.config_file, provider, model)
+        budget = _model_context_window(config, provider, model)
     context_pct = (round(scan.prompt_tokens / budget * 100)
                    if scan.prompt_tokens and _finite_number(budget) and budget > 0 else None)
     prior = None
@@ -1067,7 +1124,7 @@ def _usage_for_session(paths: OpenClawPaths, *, session_id, job_id, started_at,
         prior = _job_prior_day_cost(
             paths, job_id, day_start_ms=_local_midnight_ms(now_ms),
             current_started_ms=started_at if _finite_number(started_at) else None,
-            current_session_id=session_id)
+            current_session_id=session_id, config=config)
     day_usd = (round(prior + scan.turn_usd, 10)
                if prior is not None and scan.turn_usd is not None else None)
     return RunUsage(
@@ -1103,12 +1160,11 @@ def current_cron_run_usage(*, paths: OpenClawPaths | None = None,
     runtime's `task_runs` row is the fallback identity, and the only one for a
     caller that names no job.
 
-    The transcript carries the per-call usage the runtime already priced, so
-    nothing here estimates a token or invents a price. None is deliberate for a
-    dry run, a manual postflight, or an unreadable state DB — the card then has
-    no footer at all. If a stale `running` row is newer than the live one, the
-    youngest candidate that resolves wins; the scheduler runs one turn at a
-    time, so only one of them can be this process.
+    The live trajectory links native Codex turns to their recorded token
+    counters while OpenClaw's transcript mirror is still pending. None is
+    deliberate for a dry run, a manual postflight, or an unreadable state DB
+    when neither path can identify the run. The youngest resolvable task row
+    wins when there is no matching live transcript.
     """
     selected = paths or runtime_paths()
     now = int(now_ms if now_ms is not None else time.time() * 1000)
