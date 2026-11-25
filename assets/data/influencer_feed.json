@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-25T22:00:22.693418+00:00",
+  "generated_at": "2026-11-25T23:25:34.134358+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,10 +24,10 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 20,
-    "held_hits": 6,
-    "new_ideas": 10,
-    "sector_hits": 3
+    "total": 26,
+    "held_hits": 8,
+    "new_ideas": 11,
+    "sector_hits": 1
   },
   "items": [
     {
@@ -46,45 +46,35 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "大模型",
-        "机构持仓"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "00100"
-      ],
+      "sector_holdings": [],
       "stance": "buy",
-      "relevance": 94,
-      "summary_cn": "ARK Invest在六只ETF中合计买入423,504股、104,406股、78,762股、29,904股、40,053股和75,081股Anthropic，最大单只ETF占比0.41%，直接命中kcn持仓。"
+      "relevance": 92,
+      "summary_cn": "ARK Invest在多只ETF中合计买入423,504股Anthropic，最大单只ETF持仓占比0.41%，且直接命中kcn持仓ANT。"
     },
     {
       "author": "Musk",
-      "text": "FCC approves SpaceX’s plan to launch up to 1 million data centers into space",
+      "text": "US grants SpaceX approval for 1 million space data centres",
       "url": "",
-      "published": "Wed, 25 Nov 2026 20:21:00 GMT",
+      "published": "Wed, 25 Nov 2026 20:00:14 GMT",
       "origin": "gnews-rss",
-      "source": "The Hill",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "Al Jazeera",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "数据中心",
         "航天",
-        "AI数据中心",
-        "卫星互联网",
-        "监管"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "据报道，FCC批准SpaceX发射最多100万座太空数据中心的计划，为SpaceX大规模空间算力业务扫清监管障碍。"
+      "relevance": 78,
+      "summary_cn": "据报道，美国批准SpaceX建设多达100万个太空数据中心的计划，显著强化其太空算力业务预期。"
     },
     {
       "author": "Musk",
@@ -94,9 +84,7 @@
       "origin": "gnews-rss",
       "source": "Inc.com",
       "tickers": [
-        "TSLA",
-        "SPCX",
-        "SPCH"
+        "TSLA"
       ],
       "held": [
         "SPCH",
@@ -108,69 +96,59 @@
       "sectors": [
         "航天",
         "电动车",
-        "企业并购"
+        "人工智能",
+        "并购重组"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "媒体称Musk已朝Tesla与SpaceX合并估值3.5万亿美元的目标迈出重要一步。"
+      "relevance": 78,
+      "summary_cn": "据报道，马斯克推动的Tesla与SpaceX合并取得重大进展，市场关注潜在3.5万亿美元合并交易。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX, Musk pledge to donate a share each to active Trump Accounts",
+      "text": "Trump administration approves Elon Musk’s plan for datacenters in space",
       "url": "",
-      "published": "Wed, 25 Nov 2026 20:07:57 GMT",
+      "published": "Wed, 25 Nov 2026 19:23:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "The Guardian",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "数据中心",
         "航天",
-        "SpaceX"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "据报道，SpaceX与Musk承诺向活跃的Trump Accounts分别捐赠一股SpaceX股份。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "据报道，特朗普政府批准马斯克提出的太空数据中心计划，为SpaceX相关业务带来政策催化。"
     },
     {
       "author": "Musk",
-      "text": "Toxic chemicals, customer service and a toaster oven: Elon Musk’s SpaceX disputes WA state fine",
+      "text": "FCC authorizes Elon Musk’s plans for data centers in space",
       "url": "",
-      "published": "Mon, 23 Nov 2026 12:07:35 GMT",
+      "published": "Wed, 25 Nov 2026 17:39:00 GMT",
       "origin": "gnews-rss",
-      "source": "Washington State Standard",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "Politico",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "数据中心",
         "航天",
-        "监管",
-        "公司治理"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "据报道，SpaceX正就化学品处理、客服问题及烤箱产品等事项与华盛顿州监管处罚发生争议。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "据报道，FCC授权马斯克在太空建设数据中心的计划，利好SpaceX相关航天及AI基础设施叙事。"
     },
     {
       "author": "Musk",
@@ -179,28 +157,67 @@
       "published": "Mon, 23 Nov 2026 16:13:33 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "航天",
-        "数据中心"
+        "人工智能",
+        "航天"
       ],
       "sector_holdings": [
-        "00100",
-        "ANT",
-        "RKLX"
+        "ANT"
       ],
       "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，马斯克面临SpaceX在人工智能业务上的战略困境，涉及航天与AI业务取舍。"
+    },
+    {
+      "author": "Musk",
+      "text": "Toxic chemicals, customer service and a toaster oven: Elon Musk’s SpaceX disputes WA state fine",
+      "url": "",
+      "published": "Mon, 23 Nov 2026 12:07:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Washington State Standard",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "监管",
+        "环保"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
       "relevance": 58,
-      "summary_cn": "媒体称Musk在SpaceX面临的AI战略选择构成其当前的一项AI难题。"
+      "summary_cn": "据报道，SpaceX反驳华盛顿州对其处以的罚款，争议涉及 toxic chemicals、客户服务和产品安全问题。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX, Musk pledge to donate a share each to active Trump Accounts",
+      "url": "",
+      "published": "Wed, 25 Nov 2026 20:07:57 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，SpaceX及马斯克承诺向活跃的Trump Accounts捐赠部分股份，涉及SpaceX的资本与品牌安排。"
     },
     {
       "author": "Cathie Wood",
@@ -218,13 +235,14 @@
         "PLTR"
       ],
       "sectors": [
-        "AI软件",
-        "机构持仓"
+        "人工智能",
+        "软件",
+        "政府科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest在ARKW、ARKQ和ARKX合计卖出Palantir股票，最大单只ETF占比0.24%。"
+      "relevance": 80,
+      "summary_cn": "ARK Invest在多只ETF中合计卖出44,682股Palantir，最大单只ETF持仓占比0.24%，体现机构阶段性减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -243,15 +261,14 @@
       ],
       "sectors": [
         "加密货币",
-        "比特币",
-        "机构持仓"
+        "比特币"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "ARK Invest从ARKW卖出344,132股ARKB Bitcoin ETF，最大单只ETF占比0.27%，属于较高规模减仓。"
+      "relevance": 78,
+      "summary_cn": "ARK Invest在ARKW中卖出344,132股ARKB，最大单只ETF持仓占比0.27%，显示其阶段性降低比特币ETF敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -269,15 +286,15 @@
         "GOOG"
       ],
       "sectors": [
+        "人工智能",
         "互联网",
-        "AI",
-        "广告",
-        "机构持仓"
+        "云计算",
+        "广告"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 76,
-      "summary_cn": "ARK Invest在ARKK和ARKW合计买入Alphabet股票，最大单只ETF占比0.17%。"
+      "relevance": 78,
+      "summary_cn": "ARK Invest在多只ETF中合计买入62,681股Alphabet，最大单只ETF持仓占比0.17%，加仓AI、云计算及互联网平台敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -295,43 +312,14 @@
         "META"
       ],
       "sectors": [
+        "人工智能",
         "互联网",
-        "AI",
-        "社交媒体",
-        "机构持仓"
+        "社交媒体"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest从ARKK卖出23,390股Meta Platforms，占该ETF的0.16%。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Loads Up on 3 Chinese Stocks; Sticks to Nvidia Bearish Bet",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQWUNHTm9Qakozcnczd2hxR21qUFRnYjBORTFjY09lblpNQnVSQ29kTFBDSFMzM1RiVUFFWTVrd2d4V05UMW1TTTJxSVlVYmxOOWczSHlQNDU0X09JVGxzVGdSeU05NDBKSERpc21IejNneXdieXZwTDZSdVhYdkxDb2NSSVFYMGtWZ0hNWksybjdkVVl1TkdLaFN3?oc=5",
-      "published": "2026-11-25T19:13:45+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "中国股票",
-        "半导体",
-        "AI",
-        "做空"
-      ],
-      "sector_holdings": [
-        "00100",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry买入三只中国股票并维持对Nvidia的看空押注，但标题未披露三只中国股票的具体代码。"
+      "relevance": 76,
+      "summary_cn": "ARK Invest在ARKK中卖出23,390股Meta Platforms，最大单只ETF持仓占比0.16%，显示其阶段性降低相关仓位。"
     },
     {
       "author": "Cathie Wood",
@@ -351,14 +339,41 @@
       "sectors": [
         "半导体",
         "EDA",
-        "机构持仓"
+        "软件"
       ],
       "sector_holdings": [
         "07709"
       ],
       "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest从ARKQ卖出7,797股Synopsys，占该ETF的0.19%，构成可见的机构减仓。"
+      "relevance": 74,
+      "summary_cn": "ARK Invest在ARKQ中卖出7,797股Synopsys，最大单只ETF持仓占比0.19%，显示对EDA及半导体软件敞口的调整。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Loads Up on 3 Chinese Stocks; Sticks to Nvidia Bearish Bet",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQWUNHTm9Qakozcnczd2hxR21qUFRnYjBORTFjY09lblpNQnVSQ29kTFBDSFMzM1RiVUFFWTVrd2d4V05UMW1TTTJxSVlVYmxOOWczSHlQNDU0X09JVGxzVGdSeU05NDBKSERpc21IejNneXdieXZwTDZSdVhYdkxDb2NSSVFYMGtWZ0hNWksybjdkVVl1TkdLaFN3?oc=5",
+      "published": "2026-11-25T19:13:45+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "中国股票",
+        "半导体",
+        "人工智能",
+        "美股"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，Michael Burry买入三只中国股票并继续维持对英伟达的看空押注，显示其对中国资产与AI芯片估值出现分化判断。"
     },
     {
       "author": "Burry",
@@ -376,15 +391,15 @@
       ],
       "sectors": [
         "半导体",
-        "AI",
-        "做空"
+        "人工智能",
+        "美股"
       ],
       "sector_holdings": [
         "07709"
       ],
       "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据报道，Michael Burry指明其下一次针对Nvidia股票建立空头押注的时点。"
+      "relevance": 68,
+      "summary_cn": "据报道，Michael Burry指出下一次将押注英伟达股价下跌的时点，继续强化其AI芯片看空观点。"
     },
     {
       "author": "段永平",
@@ -394,26 +409,21 @@
       "origin": "gnews-rss",
       "source": "am730",
       "tickers": [
-        "00538"
+        "00305"
       ],
       "held": [],
       "new_ideas": [
-        "00538"
+        "00305"
       ],
       "sectors": [
         "港股",
-        "私有化",
-        "金融"
+        "金融",
+        "私有化"
       ],
-      "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，大众金融的私有化获通过，其股价一度飙升逾七成半。"
+      "relevance": 65,
+      "summary_cn": "据报道，大众金融私有化获通过，相关股价一度上涨超过75%，成为港股私有化主题的显著异动。"
     },
     {
       "author": "Pelosi",
@@ -430,22 +440,46 @@
         "NVDA"
       ],
       "sectors": [
+        "人工智能",
         "半导体",
-        "AI",
-        "政策游说",
-        "数据中心"
+        "美国政策"
       ],
       "sector_holdings": [
         "07709"
       ],
       "stance": "neutral",
-      "relevance": 57,
-      "summary_cn": "据报道，Nvidia正在寻求华盛顿政府支持，政策层面的支持力度将影响其AI与数据中心扩张。"
+      "relevance": 60,
+      "summary_cn": "据报道，英伟达寻求华盛顿方面协助，事件聚焦其政策关系及AI芯片业务外部环境。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk takes a victory lap with Jensen Huang at Nvidia HQ",
+      "url": "",
+      "published": "Wed, 25 Nov 2026 15:38:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "人工智能",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "据报道，马斯克在英伟达总部与黄仁勋同台并对合作成果进行庆祝，释放AI硬件生态合作信号。"
     },
     {
       "author": "洪灏",
       "text": "百融智能-W(06608.HK)：洪灝獲委任為薪酬委員會成員",
-      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE92WGt0QnBQeVlTNkhEZXdoME1kWDRUZDJyRjVPVUtLdGdnUXhpNGl5MVN2RF9yUmpJcWxtd2EwWWxrU0sxaE9oaE9rVUNDakVHOFlPOUFYTEtkZDVDRzh1X0kyWmI5Wk4xY3c?oc=5",
+      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE5YR3dBR1FJSXlPMG9XbkVqZmxOTGNiSWdKaVRHNDN5ZDRRQV9VSTRRdUpwRHl4dE05c0lkUWRmRjBBOUZkQ29oWnkycHVOOV9yclNHUG1LYTBvdVhyZHl3NXFsNDU4VU5YNlE?oc=5",
       "published": "2026-11-25T08:34:29+00:00",
       "origin": "gnews-rss",
       "source": "TradingView",
@@ -457,19 +491,14 @@
         "06608"
       ],
       "sectors": [
-        "港股",
-        "AI金融",
+        "人工智能",
+        "金融科技",
         "公司治理"
       ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 51,
-      "summary_cn": "据报道，百融智能-W任命洪灏为薪酬委员会成员，属于公司治理层面变动。"
+      "relevance": 58,
+      "summary_cn": "据报道，百融智能-W获委任洪灏为薪酬委员会成员，涉及公司治理及管理层安排。"
     },
     {
       "author": "洪灏",
@@ -483,21 +512,78 @@
       "new_ideas": [],
       "sectors": [
         "港股",
-        "市场底部",
-        "价值股",
-        "估值"
+        "宏观经济",
+        "价值股"
       ],
       "sector_holdings": [
         "00100",
-        "02208",
         "03032",
         "03033",
-        "07226",
-        "07709"
+        "07226"
       ],
       "stance": "neutral",
-      "relevance": 61,
-      "summary_cn": "据报道，洪灏认为港股应涨而未涨是问题所在，市场见底可能仍需等待价值股出现最后一跌。"
+      "relevance": 68,
+      "summary_cn": "据媒体称，洪灏认为港股应升不升存在根本问题，市场见底可能还需价值股经历一次终极下跌。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry sells remaining Nasdaq 100 puts, says portfolio is long",
+      "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPVjI3QWFPSFFva0N2dEUyWFVCaVR4c0FLaXF5YkxmZktVOUJINHBJa3BmTzdkX1NrcHh4THhMdVhtS2p2bjlhQW05aHpNNTBpLXNkQl9BNjEtY01EVmpGaEYwZm1kbWhwNzZVZzBNclc4OGtEbFdld1JJNzhhZnlQc1RnWGMwWmJPUDJMdEhpZXVncDd2TnJnOXN5NVRRY2EzZmRHV1pLU0gzVHJBUkY4MS11VXBQNllGR2xsU1hpZkJ6QkE?oc=5",
+      "published": "2026-11-25T16:37:26+00:00",
+      "origin": "gnews-rss",
+      "source": "Investing.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "纳斯达克100",
+        "期权",
+        "宏观市场"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道，Michael Burry卖出剩余纳斯达克100看跌期权并称组合目前偏多，显示其大幅降低市场下行对冲。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Is More Long Than Short After Dumping Nasdaq Puts",
+      "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPWFZOdm5CaGt0V2doMkFCdVpTRUtzS1pDNmlDdjRMa0I1SzRhMEstWnd3akZRZlMxOTRTdFJDMVU4NUNGMDJLNVlmdDlPZUp3WTZhUnNER0JuRF9xeUpsdVdBQW1NV3R0eXh5RmFHU1pzZlB6akNxcFlKdTFjb2tOVzR4YlgzLUxIWTQxV09ZYXMwR0R1eWlSM2ozUWtDcnNCeHA0MmxrSDduQ3BDNjhtNVJxYk0?oc=5",
+      "published": "2026-11-25T19:51:41+00:00",
+      "origin": "gnews-rss",
+      "source": "Bloomberg",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "期权",
+        "宏观市场"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 62,
+      "summary_cn": "据报道，Michael Burry清仓纳斯达克看跌期权后，其投资组合转为更偏多，释放对市场方向的看多信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Is ‘Temporarily' Bullish: What His Latest Bets Reveal About the Market",
+      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNOC1EVjZNZF9SZm5UVGdTWGtNalN1czZGYkIxZzlDZUExTXp1dmtmdmkxWml2Y2ZiZU1Ic0ZIaGpPeW1leVE0aXJqelcxa0xMTEFqbk0yTG50RU96T3A2T1plYnRubHhLck5tMWV0NEloc0ZocV90Z1ZrRkZVanRmS0JsUmNHY1Bh?oc=5",
+      "published": "2026-11-25T20:18:14+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股",
+        "宏观市场",
+        "期权"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 60,
+      "summary_cn": "据报道，Michael Burry最新投资组合呈现暂时看多，相关押注被视为市场方向判断的重要线索。"
     },
     {
       "author": "Trump",
@@ -509,53 +595,33 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美股",
-        "大选",
-        "401(k)"
+        "宏观经济",
+        "美股"
       ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226",
-        "07709",
-        "ANT",
-        "CRCL",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Trump将11月3日大选结果后的股市下跌归咎于选举结果，并称若自己参选市场本会上涨。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普称11月3日选举结果导致股市大跌，并表示若自己参选市场表现将明显更好。"
     },
     {
-      "author": "洪灏",
-      "text": "洪灝：港股什麼時候見底？",
-      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPSTBLOF83MkdEeVd1UlU5Q0RLUTlmeUdWMm5ISEY5Nk56S1RpbVJ6ejk4aHBkbXhIMGJ2RTZfR0kxSFIyeV9yUlRpbi1kVHNxV1V0b1ExU2hBeTJlZ244RERVWm9SZ0R2a2tNaFBJSlFGVWp5NmljVnpxTDFuWXd6emEwQWk0Zmg4UURYbzBDaEFQbnV4VUQwaHQxRzdiYTlaVlZaa2JjXzczTFJlQUxyQVQzRlAtWnVSYmt1aER0VU01VVpOUmIwZHdXc1RyWW1ZNTZwMS04SElVVTRiZmt1T1p3V0VaWTA?oc=5",
-      "published": "2026-11-25T17:00:00+00:00",
+      "author": "Pelosi",
+      "text": "Why Do We Allow Politicians to Trade Stocks?",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQNC1ydmNSMzhBNmpvU0tiTnNlbl96Sk1JSVRfMEhySW1UU2otOWxQNnJocHJmckE0NVV3TThxTm9hcVl3YThzWVVXVUpDRmZlVkZwVTZ5bUFmSmZoalFpckhxSHNiZmwxTTdqRUlrM3BJWFpWaGcwYm1QS3kweUtmQkRJSUlENV9LS3BmZnFaaUZxcXVuR0dIVDVB?oc=5",
+      "published": "2026-11-25T15:00:00+00:00",
       "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
+      "source": "Yahoo",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "港股",
-        "市场底部",
-        "估值"
+        "监管",
+        "国会",
+        "股票交易"
       ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "neutral",
-      "relevance": 57,
-      "summary_cn": "据报道，洪灏就港股何时能够见底发表评论，未给出具体标的方向。"
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Pelosi质疑美国为何允许政治人物交易股票，涉及国会议员交易监管与潜在资本市场改革。"
     },
     {
       "author": "Trump",
@@ -568,13 +634,12 @@
       "new_ideas": [],
       "sectors": [
         "体育产业",
-        "足球",
         "美国经济"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump宣布美国获得2031年女足世界杯主办权，并强调赛事将带来世代性经济影响。"
+      "relevance": 50,
+      "summary_cn": "特朗普宣布美国获得2031年女足世界杯主办权，并宣称赛事将带来显著经济影响。"
     }
   ],
   "held_hits": [
@@ -594,45 +659,35 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "大模型",
-        "机构持仓"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "00100"
-      ],
+      "sector_holdings": [],
       "stance": "buy",
-      "relevance": 94,
-      "summary_cn": "ARK Invest在六只ETF中合计买入423,504股、104,406股、78,762股、29,904股、40,053股和75,081股Anthropic，最大单只ETF占比0.41%，直接命中kcn持仓。"
+      "relevance": 92,
+      "summary_cn": "ARK Invest在多只ETF中合计买入423,504股Anthropic，最大单只ETF持仓占比0.41%，且直接命中kcn持仓ANT。"
     },
     {
       "author": "Musk",
-      "text": "FCC approves SpaceX’s plan to launch up to 1 million data centers into space",
+      "text": "US grants SpaceX approval for 1 million space data centres",
       "url": "",
-      "published": "Wed, 25 Nov 2026 20:21:00 GMT",
+      "published": "Wed, 25 Nov 2026 20:00:14 GMT",
       "origin": "gnews-rss",
-      "source": "The Hill",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "Al Jazeera",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "数据中心",
         "航天",
-        "AI数据中心",
-        "卫星互联网",
-        "监管"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "据报道，FCC批准SpaceX发射最多100万座太空数据中心的计划，为SpaceX大规模空间算力业务扫清监管障碍。"
+      "relevance": 78,
+      "summary_cn": "据报道，美国批准SpaceX建设多达100万个太空数据中心的计划，显著强化其太空算力业务预期。"
     },
     {
       "author": "Musk",
@@ -642,9 +697,7 @@
       "origin": "gnews-rss",
       "source": "Inc.com",
       "tickers": [
-        "TSLA",
-        "SPCX",
-        "SPCH"
+        "TSLA"
       ],
       "held": [
         "SPCH",
@@ -656,69 +709,59 @@
       "sectors": [
         "航天",
         "电动车",
-        "企业并购"
+        "人工智能",
+        "并购重组"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 80,
-      "summary_cn": "媒体称Musk已朝Tesla与SpaceX合并估值3.5万亿美元的目标迈出重要一步。"
+      "relevance": 78,
+      "summary_cn": "据报道，马斯克推动的Tesla与SpaceX合并取得重大进展，市场关注潜在3.5万亿美元合并交易。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX, Musk pledge to donate a share each to active Trump Accounts",
+      "text": "Trump administration approves Elon Musk’s plan for datacenters in space",
       "url": "",
-      "published": "Wed, 25 Nov 2026 20:07:57 GMT",
+      "published": "Wed, 25 Nov 2026 19:23:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "The Guardian",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "数据中心",
         "航天",
-        "SpaceX"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "据报道，SpaceX与Musk承诺向活跃的Trump Accounts分别捐赠一股SpaceX股份。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "据报道，特朗普政府批准马斯克提出的太空数据中心计划，为SpaceX相关业务带来政策催化。"
     },
     {
       "author": "Musk",
-      "text": "Toxic chemicals, customer service and a toaster oven: Elon Musk’s SpaceX disputes WA state fine",
+      "text": "FCC authorizes Elon Musk’s plans for data centers in space",
       "url": "",
-      "published": "Mon, 23 Nov 2026 12:07:35 GMT",
+      "published": "Wed, 25 Nov 2026 17:39:00 GMT",
       "origin": "gnews-rss",
-      "source": "Washington State Standard",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "source": "Politico",
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
+        "数据中心",
         "航天",
-        "监管",
-        "公司治理"
+        "人工智能"
       ],
-      "sector_holdings": [
-        "RKLX"
-      ],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "据报道，SpaceX正就化学品处理、客服问题及烤箱产品等事项与华盛顿州监管处罚发生争议。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "据报道，FCC授权马斯克在太空建设数据中心的计划，利好SpaceX相关航天及AI基础设施叙事。"
     },
     {
       "author": "Musk",
@@ -727,28 +770,67 @@
       "published": "Mon, 23 Nov 2026 16:13:33 GMT",
       "origin": "gnews-rss",
       "source": "The New York Times",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
+      "tickers": [],
       "held": [
         "SPCH",
         "SPCX"
       ],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "航天",
-        "数据中心"
+        "人工智能",
+        "航天"
       ],
       "sector_holdings": [
-        "00100",
-        "ANT",
-        "RKLX"
+        "ANT"
       ],
       "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，马斯克面临SpaceX在人工智能业务上的战略困境，涉及航天与AI业务取舍。"
+    },
+    {
+      "author": "Musk",
+      "text": "Toxic chemicals, customer service and a toaster oven: Elon Musk’s SpaceX disputes WA state fine",
+      "url": "",
+      "published": "Mon, 23 Nov 2026 12:07:35 GMT",
+      "origin": "gnews-rss",
+      "source": "Washington State Standard",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "监管",
+        "环保"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
       "relevance": 58,
-      "summary_cn": "媒体称Musk在SpaceX面临的AI战略选择构成其当前的一项AI难题。"
+      "summary_cn": "据报道，SpaceX反驳华盛顿州对其处以的罚款，争议涉及 toxic chemicals、客户服务和产品安全问题。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX, Musk pledge to donate a share each to active Trump Accounts",
+      "url": "",
+      "published": "Wed, 25 Nov 2026 20:07:57 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，SpaceX及马斯克承诺向活跃的Trump Accounts捐赠部分股份，涉及SpaceX的资本与品牌安排。"
     }
   ],
   "new_ideas": [
@@ -768,13 +850,14 @@
         "PLTR"
       ],
       "sectors": [
-        "AI软件",
-        "机构持仓"
+        "人工智能",
+        "软件",
+        "政府科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 78,
-      "summary_cn": "ARK Invest在ARKW、ARKQ和ARKX合计卖出Palantir股票，最大单只ETF占比0.24%。"
+      "relevance": 80,
+      "summary_cn": "ARK Invest在多只ETF中合计卖出44,682股Palantir，最大单只ETF持仓占比0.24%，体现机构阶段性减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -793,15 +876,14 @@
       ],
       "sectors": [
         "加密货币",
-        "比特币",
-        "机构持仓"
+        "比特币"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "sell",
-      "relevance": 76,
-      "summary_cn": "ARK Invest从ARKW卖出344,132股ARKB Bitcoin ETF，最大单只ETF占比0.27%，属于较高规模减仓。"
+      "relevance": 78,
+      "summary_cn": "ARK Invest在ARKW中卖出344,132股ARKB，最大单只ETF持仓占比0.27%，显示其阶段性降低比特币ETF敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -819,15 +901,15 @@
         "GOOG"
       ],
       "sectors": [
+        "人工智能",
         "互联网",
-        "AI",
-        "广告",
-        "机构持仓"
+        "云计算",
+        "广告"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 76,
-      "summary_cn": "ARK Invest在ARKK和ARKW合计买入Alphabet股票，最大单只ETF占比0.17%。"
+      "relevance": 78,
+      "summary_cn": "ARK Invest在多只ETF中合计买入62,681股Alphabet，最大单只ETF持仓占比0.17%，加仓AI、云计算及互联网平台敞口。"
     },
     {
       "author": "Cathie Wood",
@@ -845,43 +927,14 @@
         "META"
       ],
       "sectors": [
+        "人工智能",
         "互联网",
-        "AI",
-        "社交媒体",
-        "机构持仓"
+        "社交媒体"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 74,
-      "summary_cn": "ARK Invest从ARKK卖出23,390股Meta Platforms，占该ETF的0.16%。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Loads Up on 3 Chinese Stocks; Sticks to Nvidia Bearish Bet",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQWUNHTm9Qakozcnczd2hxR21qUFRnYjBORTFjY09lblpNQnVSQ29kTFBDSFMzM1RiVUFFWTVrd2d4V05UMW1TTTJxSVlVYmxOOWczSHlQNDU0X09JVGxzVGdSeU05NDBKSERpc21IejNneXdieXZwTDZSdVhYdkxDb2NSSVFYMGtWZ0hNWksybjdkVVl1TkdLaFN3?oc=5",
-      "published": "2026-11-25T19:13:45+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "中国股票",
-        "半导体",
-        "AI",
-        "做空"
-      ],
-      "sector_holdings": [
-        "00100",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry买入三只中国股票并维持对Nvidia的看空押注，但标题未披露三只中国股票的具体代码。"
+      "relevance": 76,
+      "summary_cn": "ARK Invest在ARKK中卖出23,390股Meta Platforms，最大单只ETF持仓占比0.16%，显示其阶段性降低相关仓位。"
     },
     {
       "author": "Cathie Wood",
@@ -901,14 +954,41 @@
       "sectors": [
         "半导体",
         "EDA",
-        "机构持仓"
+        "软件"
       ],
       "sector_holdings": [
         "07709"
       ],
       "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest从ARKQ卖出7,797股Synopsys，占该ETF的0.19%，构成可见的机构减仓。"
+      "relevance": 74,
+      "summary_cn": "ARK Invest在ARKQ中卖出7,797股Synopsys，最大单只ETF持仓占比0.19%，显示对EDA及半导体软件敞口的调整。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Loads Up on 3 Chinese Stocks; Sticks to Nvidia Bearish Bet",
+      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQWUNHTm9Qakozcnczd2hxR21qUFRnYjBORTFjY09lblpNQnVSQ29kTFBDSFMzM1RiVUFFWTVrd2d4V05UMW1TTTJxSVlVYmxOOWczSHlQNDU0X09JVGxzVGdSeU05NDBKSERpc21IejNneXdieXZwTDZSdVhYdkxDb2NSSVFYMGtWZ0hNWksybjdkVVl1TkdLaFN3?oc=5",
+      "published": "2026-11-25T19:13:45+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "中国股票",
+        "半导体",
+        "人工智能",
+        "美股"
+      ],
+      "sector_holdings": [
+        "07709"
+      ],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，Michael Burry买入三只中国股票并继续维持对英伟达的看空押注，显示其对中国资产与AI芯片估值出现分化判断。"
     },
     {
       "author": "Burry",
@@ -926,15 +1006,15 @@
       ],
       "sectors": [
         "半导体",
-        "AI",
-        "做空"
+        "人工智能",
+        "美股"
       ],
       "sector_holdings": [
         "07709"
       ],
       "stance": "attack",
-      "relevance": 70,
-      "summary_cn": "据报道，Michael Burry指明其下一次针对Nvidia股票建立空头押注的时点。"
+      "relevance": 68,
+      "summary_cn": "据报道，Michael Burry指出下一次将押注英伟达股价下跌的时点，继续强化其AI芯片看空观点。"
     },
     {
       "author": "段永平",
@@ -944,26 +1024,21 @@
       "origin": "gnews-rss",
       "source": "am730",
       "tickers": [
-        "00538"
+        "00305"
       ],
       "held": [],
       "new_ideas": [
-        "00538"
+        "00305"
       ],
       "sectors": [
         "港股",
-        "私有化",
-        "金融"
+        "金融",
+        "私有化"
       ],
-      "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，大众金融的私有化获通过，其股价一度飙升逾七成半。"
+      "relevance": 65,
+      "summary_cn": "据报道，大众金融私有化获通过，相关股价一度上涨超过75%，成为港股私有化主题的显著异动。"
     },
     {
       "author": "Pelosi",
@@ -980,46 +1055,41 @@
         "NVDA"
       ],
       "sectors": [
+        "人工智能",
         "半导体",
-        "AI",
-        "政策游说",
-        "数据中心"
+        "美国政策"
       ],
       "sector_holdings": [
         "07709"
       ],
       "stance": "neutral",
-      "relevance": 57,
-      "summary_cn": "据报道，Nvidia正在寻求华盛顿政府支持，政策层面的支持力度将影响其AI与数据中心扩张。"
+      "relevance": 60,
+      "summary_cn": "据报道，英伟达寻求华盛顿方面协助，事件聚焦其政策关系及AI芯片业务外部环境。"
     },
     {
-      "author": "洪灏",
-      "text": "百融智能-W(06608.HK)：洪灝獲委任為薪酬委員會成員",
-      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE92WGt0QnBQeVlTNkhEZXdoME1kWDRUZDJyRjVPVUtLdGdnUXhpNGl5MVN2RF9yUmpJcWxtd2EwWWxrU0sxaE9oaE9rVUNDakVHOFlPOUFYTEtkZDVDRzh1X0kyWmI5Wk4xY3c?oc=5",
-      "published": "2026-11-25T08:34:29+00:00",
+      "author": "Musk",
+      "text": "Elon Musk takes a victory lap with Jensen Huang at Nvidia HQ",
+      "url": "",
+      "published": "Wed, 25 Nov 2026 15:38:00 GMT",
       "origin": "gnews-rss",
-      "source": "TradingView",
+      "source": "Business Insider",
       "tickers": [
-        "06608"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "06608"
+        "NVDA"
       ],
       "sectors": [
-        "港股",
-        "AI金融",
-        "公司治理"
+        "人工智能",
+        "半导体"
       ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "07709"
       ],
-      "stance": "neutral",
-      "relevance": 51,
-      "summary_cn": "据报道，百融智能-W任命洪灏为薪酬委员会成员，属于公司治理层面变动。"
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "据报道，马斯克在英伟达总部与黄仁勋同台并对合作成果进行庆祝，释放AI硬件生态合作信号。"
     }
   ],
   "sector_hits": [
@@ -1035,79 +1105,18 @@
       "new_ideas": [],
       "sectors": [
         "港股",
-        "市场底部",
-        "价值股",
-        "估值"
+        "宏观经济",
+        "价值股"
       ],
       "sector_holdings": [
         "00100",
-        "02208",
         "03032",
         "03033",
-        "07226",
-        "07709"
+        "07226"
       ],
       "stance": "neutral",
-      "relevance": 61,
-      "summary_cn": "据报道，洪灏认为港股应涨而未涨是问题所在，市场见底可能仍需等待价值股出现最后一跌。"
-    },
-    {
-      "author": "Trump",
-      "text": "Stocks are down sharply because of the November Third Election results. I wasn’t on the Ballot, but if I was, the results, just like all three times before, would have been much different, and the Stock Market, and your 401-k’s, would be BOOMING. I told you so!!! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/43729",
-      "published": "2026-11-25T17:14:26+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美股",
-        "大选",
-        "401(k)"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226",
-        "07709",
-        "ANT",
-        "CRCL",
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Trump将11月3日大选结果后的股市下跌归咎于选举结果，并称若自己参选市场本会上涨。"
-    },
-    {
-      "author": "洪灏",
-      "text": "洪灝：港股什麼時候見底？",
-      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPSTBLOF83MkdEeVd1UlU5Q0RLUTlmeUdWMm5ISEY5Nk56S1RpbVJ6ejk4aHBkbXhIMGJ2RTZfR0kxSFIyeV9yUlRpbi1kVHNxV1V0b1ExU2hBeTJlZ244RERVWm9SZ0R2a2tNaFBJSlFGVWp5NmljVnpxTDFuWXd6emEwQWk0Zmg4UURYbzBDaEFQbnV4VUQwaHQxRzdiYTlaVlZaa2JjXzczTFJlQUxyQVQzRlAtWnVSYmt1aER0VU01VVpOUmIwZHdXc1RyWW1ZNTZwMS04SElVVTRiZmt1T1p3V0VaWTA?oc=5",
-      "published": "2026-11-25T17:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "市场底部",
-        "估值"
-      ],
-      "sector_holdings": [
-        "00100",
-        "02208",
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "neutral",
-      "relevance": 57,
-      "summary_cn": "据报道，洪灏就港股何时能够见底发表评论，未给出具体标的方向。"
+      "relevance": 68,
+      "summary_cn": "据媒体称，洪灏认为港股应升不升存在根本问题，市场见底可能还需价值股经历一次终极下跌。"
     }
   ]
 }
