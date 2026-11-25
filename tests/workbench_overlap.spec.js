@@ -1391,7 +1391,10 @@ async function main() {
             const badge = document.querySelector("[data-wb-badge]");
             const alert = document.querySelector("[data-wb-rail-alert]");
             if (!alert) return { badge: badge !== null, alert: false };
-            const { color, backgroundColor } = getComputedStyle(alert);
+            const { color, backgroundColor, display } = getComputedStyle(alert);
+            if (display !== "inline-flex" || ![color, backgroundColor].every(value => value.startsWith("rgb("))) {
+              return { badge: badge !== null, alert: false, color, backgroundColor, display };
+            }
             const luminance = (rgb) => {
               const [r, g, b] = rgb.match(/\d+/g).slice(0, 3).map((channel) => {
                 const value = Number(channel) / 255;
@@ -1406,7 +1409,8 @@ async function main() {
             return { badge: badge !== null, alert: true, contrast };
           });
           assert.equal(rail.badge, false, state.name + ": rail has no numeric badge");
-          assert.equal(rail.alert, true, state.name + ": rail keeps the alert !");
+          assert.equal(rail.alert, true, state.name + ": rail keeps a visible, opaque alert ! "
+            + JSON.stringify(rail));
           assert.ok(rail.contrast >= 4.5, state.name + ": rail alert contrast " + rail.contrast);
         }
         const gauge = state.gauge ? await page.evaluate(gaugeInPage, state.gauge) : null;
