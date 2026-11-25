@@ -420,7 +420,9 @@ function roundRecords(patrolDir) {
 	}
 	const rows = [];
 	let rejected = 0;
-	for (const line of text.split("\n").filter((l) => l.trim() !== "")) {
+	for (const line of text.split("\n")) {
+		const content = line.trimStart();
+		if (content === "" || content.startsWith("#")) continue;
 		const fields = line.split("	");
 		const [endedAt = "", round = "", axis = "", task = "", result = "", took = ""] = fields;
 		if (fields.length !== 6 || !/^R\d+$/.test(round) || !axis || !task || !result || localStampMs(endedAt) === null) {

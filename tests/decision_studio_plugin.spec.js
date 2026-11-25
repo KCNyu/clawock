@@ -3586,7 +3586,7 @@ test('patrol coverage: full recorded lens history stays separate from eight rows
     fs.writeFileSync(axes, 'logic\tLogic\tScope\nsecurity\tSecurity\tScope\n');
     fs.writeFileSync(path.join(root, 'labels-known.json'), JSON.stringify(['area:data', 'area:ops']));
     fs.writeFileSync(path.join(root, 'rounds.tsv'), Array.from({ length: 12 }, (_, i) =>
-      `2026-09-23 03:${String(i).padStart(2, '0')}:00\tR${i + 1}\tlogic\tpatrol-${i}\t${i === 11 ? 'preempted:cancelled' : 'ok/DONE/P2#10'}\t20s`).join('\n') + '\nbad\n');
+      `2026-09-23 03:${String(i).padStart(2, '0')}:00\tR${i + 1}\tlogic\tpatrol-${i}\t${i === 11 ? 'preempted:cancelled' : 'ok/DONE/P2#10'}\t20s`).join('\n') + '\n# operator note\n  # indented note\nbad\n');
     const result = tq.readPatrolProgress(root, axes, { labels: [['area:data', 'lens:security']], asOf: '2026-09-23T04:00:00Z' });
     assert.equal(result.rounds.length, 8);
     assert.equal(result.progress.records, 12);

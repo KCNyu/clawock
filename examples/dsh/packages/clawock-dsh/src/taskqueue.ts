@@ -390,7 +390,9 @@ function roundRecords(patrolDir: string): { rows: PatrolRound[] | null; rejected
   } catch { return { rows: null, rejected: 0 } }
   const rows: PatrolRound[] = []
   let rejected = 0
-  for (const line of text.split('\n').filter((l) => l.trim() !== '')) {
+  for (const line of text.split('\n')) {
+    const content = line.trimStart()
+    if (content === '' || content.startsWith('#')) continue
     const fields = line.split('\t')
     const [endedAt = '', round = '', axis = '', task = '', result = '', took = ''] = fields
     if (fields.length !== 6 || !/^R\d+$/.test(round) || !axis || !task || !result || localStampMs(endedAt) === null) { rejected++; continue }
