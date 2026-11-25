@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-24T08:44:07.372414+08:00",
+  "generated_at": "2026-11-25T08:03:37.921675+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-24",
-  "window_end": "2026-12-08",
+  "window_start": "2026-11-25",
+  "window_end": "2026-12-09",
   "earnings_queried": [
     "ANT",
     "CRCL",
@@ -11,7 +11,13 @@
   ],
   "earnings": [],
   "recent_earnings": [],
-  "fomc": [],
+  "fomc": [
+    {
+      "date": "2026-12-09",
+      "type": "rate_decision",
+      "detail": "FOMC 2026-12-08 to 2026-12-09 meeting; rate decision + Powell presser on 2026-12-09"
+    }
+  ],
   "macro_events": [
     {
       "date": "2026-11-25",
@@ -32,7 +38,7 @@
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
-    "fomc_in_window": 0,
+    "fomc_in_window": 1,
     "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
