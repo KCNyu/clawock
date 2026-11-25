@@ -93,6 +93,9 @@ So there are two knobs, and they are set in different places:
 `tests/test_model_registry.py` fails when an M3.1 level is anything but `adaptive`.
 
 Without `--apply`, `sync_models.py` only reports which owned sections differ.
+The host system check warns when the registry-owned fields in live
+`openclaw.json` drift, including the per-model overrides and global thinking
+defaults.
 `tests/test_model_registry.py` keeps model ids out of the cron contract and keeps
 the client on the registry.
 

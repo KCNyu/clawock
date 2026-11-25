@@ -307,3 +307,34 @@ def test_cron_payload_paths_are_judged_not_counted_as_zero(system_check, tmp_pat
 
     assert checked == sorted([str(skill), str(gone)])
     assert missing == [str(gone)]
+
+
+def test_model_config_audit_detects_and_clears_live_drift(
+        system_check, tmp_path, monkeypatch):
+    from clawock.model_registry import load
+    from ops.host.sync_models import render_openclaw
+
+    path = tmp_path / "openclaw.json"
+    monkeypatch.setattr(system_check, "OPENCLAW_CONFIG", path)
+    _no_cli(monkeypatch)
+    config = render_openclaw({}, load(ROOT / "config" / "models.toml"))
+    path.write_text(json.dumps(config))
+    result = system_check.Result()
+    system_check.check_openclaw_model_config(result)
+    assert result.ok_count() == 1
+
+    for provider in ("minimax", "minimax-2"):
+        del config["models"]["providers"][provider]["models"][0]["compat"]["supportedReasoningEfforts"]
+    del config["agents"]["defaults"]["models"]["minimax-2/MiniMax-M3.1-Flash"]["params"]
+    del config["agents"]["defaults"]["thinkingDefault"]
+    del config["talk"]["consultThinkingLevel"]
+    path.write_text(json.dumps(config))
+    result = system_check.Result()
+    system_check.check_openclaw_model_config(result)
+    assert result.warn_count() == 1
+    sections = result.checks[0][2].removeprefix("drift in ").split(" · ", 1)[0]
+    assert set(sections.split(", ")) == {
+        "models.providers.minimax", "models.providers.minimax-2",
+        "agents.defaults.models", "agents.defaults.thinkingDefault",
+        "talk.consultThinkingLevel",
+    }

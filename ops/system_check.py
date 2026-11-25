@@ -1353,6 +1353,27 @@ def _cron_history(cron_runs):
     return {}, []
 
 
+def check_openclaw_model_config(r):
+    """Check the registry's live OpenClaw fields during the normal host audit."""
+    if not OPENCLAW_CONFIG.is_file():
+        return  # The production config is absent on CI.
+    from clawock.model_registry import load
+    from ops.host.sync_models import openclaw_drift, render_openclaw
+
+    try:
+        registry = load(_REPO_ROOT / 'config' / 'models.toml')
+        config = json.loads(OPENCLAW_CONFIG.read_text())
+        changed = openclaw_drift(config, render_openclaw(config, registry), registry)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        r.add('OpenClaw model config', WARNING, 'live config or model registry unreadable')
+        return
+    if changed:
+        r.add('OpenClaw model config', WARNING,
+              f"drift in {', '.join(changed)} · see ops/host/sync_models.py")
+    else:
+        r.add('OpenClaw model config', OK, 'registry-owned fields match')
+
+
 def check_model_chain_health(r):
     """A hop that will never recover, told apart from one that just timed out.
 
@@ -2403,6 +2424,7 @@ def main():
         check_weekly_reviews,
         check_fallback_chain_shape,
         check_codex_runtime,
+        check_openclaw_model_config,
         check_model_chain_health,
         check_free_pool_audit,
         check_delivery_channel_health,
