@@ -1392,7 +1392,8 @@ async function main() {
             const alert = document.querySelector("[data-wb-rail-alert]");
             if (!alert) return { badge: badge !== null, alert: false };
             const { color, backgroundColor, display } = getComputedStyle(alert);
-            if (display !== "inline-flex" || ![color, backgroundColor].every(value => value.startsWith("rgb("))) {
+            const visible = alert.getBoundingClientRect().width > 0;
+            if (!visible || ![color, backgroundColor].every(value => value.startsWith("rgb("))) {
               return { badge: badge !== null, alert: false, color, backgroundColor, display };
             }
             const luminance = (rgb) => {
