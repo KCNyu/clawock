@@ -1358,7 +1358,8 @@ def check_openclaw_model_config(r):
     if not OPENCLAW_CONFIG.is_file():
         return  # The production config is absent on CI.
     from clawock.model_registry import load
-    from ops.host.sync_models import openclaw_drift, render_openclaw
+    sys.path.insert(0, str(_REPO_ROOT / 'ops' / 'host'))
+    from sync_models import openclaw_drift, render_openclaw
 
     try:
         registry = load(_REPO_ROOT / 'config' / 'models.toml')
