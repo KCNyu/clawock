@@ -192,6 +192,7 @@ def test_real_phrasing_families_reach_both_gates(tmp_path, prose):
     '00100 当前仓位占比为 46.84%，收益率降到 35%。',
     '00100 不能声称占比落到 35%。',
     '00100 卖完回到 39.53%。',
+    '00100 卖完这一格在港股腿回到 40%，收益率降到 35%。',
     '00100 卖完回报约 35%。',
     '00100 不会卖完回到 35%。',
     '00100 40 股不够回到复核线，60 股才够。',
@@ -250,3 +251,51 @@ def test_october_27_sufficiency_claim_is_checked_in_both_gates(tmp_path):
     assert any('60 股足够' in w for w in plan_trim_warnings(row, projection))
     assert brief_postflight.categorize(brief_postflight._brief_numeric_issues(
         tmp_path / 'missing.json', plan, ctx)) == 'fail'
+
+
+@pytest.mark.parametrize('ticker,leg,currency,lot,shares,mark,other,weight,trigger_weight', [
+    ('SPCH', 'US', 'USD', 1, 320, 6.305, 487.05, 34.67, 36.74),
+    ('00100', 'HK', 'HKD', 20, 160, 101.40, 23900.4, 33.74, 35.10),
+])
+def test_november_25_trigger_claim_uses_trigger_while_rationale_uses_book(
+        tmp_path, monkeypatch, ticker, leg, currency, lot, shares, mark, other, weight, trigger_weight):
+    from clawock.harness.validation import _concentration_claim_issues
+    from clawock.publish import dashboard
+
+    root = Path(__file__).resolve().parents[1]
+    plan = json.loads((root / 'memory/2026-11-25-plan.json').read_text())
+    row = next(d for d in plan['decisions'] if d['ticker'] == ticker and d['action'].startswith('trim'))
+    value = shares * mark
+    total = value + other
+    _, reviews = _single_name_policy(
+        leg, [{'ticker': ticker, 'value': value, 'weight_pct': round(value / total * 100, 2)}],
+        [{'ticker': ticker, 'shares': shares, 'lot_size': lot}], total, currency)
+    context = {'risk_guardrail': {'concentration_reviews': reviews}}
+    plan = {'decisions': [row]}
+    context['plan_trim_projections'] = plan_trim_projections(context, plan)
+    context['plan_book_trim_projections'] = plan_trim_projections(context, plan, at_book_mark=True)
+    monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda: [row])
+
+    assert context['plan_book_trim_projections'][0]['post_trim_weight_pct'] == weight
+    assert not _concentration_claim_issues(f'- **{ticker}** ·\n' + row['rationale'], context)
+    timeline = dashboard.compute_plan_timeline([], context=context)[0]
+    assert timeline['trim_projection']['post_trim_weight_pct'] == trigger_weight
+    assert len(timeline['plan_warnings']) == 1
+    assert all(f'{number}%' in timeline['plan_warnings'][0] for number in (weight, trigger_weight))
+    issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, context)
+    assert any('仓位支配度不符' in issue and str(trigger_weight) in issue for issue in issues)
+    assert brief_postflight.categorize(issues) == 'fail'
+    row['rationale'] = row['rationale'].replace(f'{weight}%', '21.19%')
+    assert any('21.19%' in warning for warning in
+               dashboard.compute_plan_timeline([], context=context)[0]['plan_warnings'])
+
+
+def test_a_review_line_can_be_a_threshold_instead_of_a_weight_destination():
+    from clawock.portfolio.guardrail import plan_trim_warnings
+
+    ctx, plan = scenario()
+    row = plan['decisions'][0]
+    row['condition']['description'] = '这次卖完这一格回到 35% 的复核线以下。'
+    assert plan_trim_warnings(row, plan_trim_projections(ctx, plan)[0])
+    row['size']['shares'] = 60
+    assert not plan_trim_warnings(row, plan_trim_projections(ctx, plan)[0])

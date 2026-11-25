@@ -1666,7 +1666,8 @@ def _brief_numeric_issues(judgment_path, plan, context):
     """Check all published model prose, with each ticker row's identity intact."""
     from clawock.portfolio.guardrail import plan_trim_projections
     context = {**(context or {}),
-               'plan_trim_projections': plan_trim_projections(context or {}, plan)}
+               'plan_trim_projections': plan_trim_projections(context or {}, plan),
+               'plan_book_trim_projections': plan_trim_projections(context or {}, plan, at_book_mark=True)}
     try:
         overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
     except (OSError, ValueError):

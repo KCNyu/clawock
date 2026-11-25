@@ -3142,6 +3142,8 @@ def compute_plan_timeline(plans, limit=15, context=None):
         for d in rows[:limit]:
             projections = plan_trim_projections(context or {}, {'decisions': [d]})
             projection = projections[0] if projections else None
+            book_projections = plan_trim_projections(context or {}, {'decisions': [d]}, at_book_mark=True)
+            book_projection = book_projections[0] if book_projections else None
             ev, ex, cond, size = (d.get('evaluation') or {}, d.get('execution') or {},
                                   d.get('condition') or {}, d.get('size') or {})
             out.append({
@@ -3153,7 +3155,7 @@ def compute_plan_timeline(plans, limit=15, context=None):
                 'outcome': ev.get('outcome'), 'benefit_t1_pct': ev.get('benefit_t1_pct'),
                 'execution': ex.get('status', 'unknown'), 'override': d.get('override'),
                 'driven_by': d.get('driven_by'), 'trim_projection': projection,
-                'plan_warnings': plan_trim_warnings(d, projection) if projection else [],
+                'plan_warnings': plan_trim_warnings(d, projection, book_projection) if projection else [],
             })
         return out
     except Exception as e:

@@ -949,6 +949,7 @@ const STATES = [
   { name: "dark-tasks", width: 390, height: 844, scenario: "normal", theme: "dark", drive: null },
   { name: "dark-providers", width: 390, height: 844, scenario: "normal", theme: "dark", drive: "providers" },
   { name: "rail", width: 390, height: 844, scenario: "sidebar-rail", drive: null, gauge: "sidebar" },
+  { name: "rail-dark", width: 390, height: 844, scenario: "sidebar-rail", theme: "dark", drive: null, gauge: "sidebar" },
   { name: "desktop-tasks", width: 1440, height: 900, scenario: "normal", desktop: true, drive: null },
   { name: "desktop-providers", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "providers" },
   { name: "desktop-overview", width: 1440, height: 900, scenario: "normal", desktop: true, drive: "overview", gauge: "overview" },
@@ -1385,14 +1386,33 @@ async function main() {
             + JSON.stringify(safeArea.reserves) + ")");
         }
         let rail = null;
-        if (state.name === "rail") {
+        if (state.scenario === "sidebar-rail") {
           rail = await page.evaluate(() => {
             const badge = document.querySelector("[data-wb-badge]");
             const alert = document.querySelector("[data-wb-rail-alert]");
-            return { badge: badge !== null, alert: alert !== null };
+            if (!alert) return { badge: badge !== null, alert: false };
+            const { color, backgroundColor, display } = getComputedStyle(alert);
+            const visible = alert.getBoundingClientRect().width > 0;
+            if (!visible || ![color, backgroundColor].every(value => value.startsWith("rgb("))) {
+              return { badge: badge !== null, alert: false, color, backgroundColor, display };
+            }
+            const luminance = (rgb) => {
+              const [r, g, b] = rgb.match(/\d+/g).slice(0, 3).map((channel) => {
+                const value = Number(channel) / 255;
+                return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+              });
+              return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            };
+            const foreground = luminance(color);
+            const background = luminance(backgroundColor);
+            const contrast = (Math.max(foreground, background) + 0.05)
+              / (Math.min(foreground, background) + 0.05);
+            return { badge: badge !== null, alert: true, contrast };
           });
-          assert.equal(rail.badge, false, "rail state has no numeric badge");
-          assert.equal(rail.alert, true, "rail state keeps the alert !");
+          assert.equal(rail.badge, false, state.name + ": rail has no numeric badge");
+          assert.equal(rail.alert, true, state.name + ": rail keeps a visible, opaque alert ! "
+            + JSON.stringify(rail));
+          assert.ok(rail.contrast >= 4.5, state.name + ": rail alert contrast " + rail.contrast);
         }
         const gauge = state.gauge ? await page.evaluate(gaugeInPage, state.gauge) : null;
         if (state.gauge === "wrapping") {

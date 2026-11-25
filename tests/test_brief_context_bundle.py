@@ -335,6 +335,17 @@ def test_bundle_read_and_postflight_reject_cross_generation(tmp_path):
     assert any("跨代引用" in issue for issue in issues)
 
 
+def test_missing_core_field_fails_publication_even_with_consistent_hashes(tmp_path):
+    context = _fixture()
+    del context["risk_guardrail"]
+    audit_path = tmp_path / "brief.json"
+    _, manifest = brief_context.write_run_bundle(context, audit_path)
+
+    issues = brief_context.validate_run_bundle(audit_path, Path(manifest["manifest_path"]))
+    assert any("缺失" in issue and "risk_guardrail" in issue for issue in issues)
+    assert brief_postflight.categorize(issues) == "fail"
+
+
 def test_tampered_bundle_is_detected(tmp_path):
     _, manifest = brief_context.write_run_bundle(
         _fixture(), tmp_path / "brief.json"

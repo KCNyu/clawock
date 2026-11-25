@@ -45,8 +45,8 @@
  * and a wide row is one line — dot · date · ticker · action · size · verdict
  * · P&L. Under 520px `.main` becomes a two-row grid and `.sub` carries the
  * verdict below, preserving ticker and fill price at narrow widths.
- *//* The type ladder (rule 5). Both roots need it: the sidebar chips render
-   outside `.dmt`. Adjacent roles are a full pixel apart. */.dmt, .pbc, .wb{
+ *//* The type ladder (rule 5). The Workbench sidebar icon has its own host mount.
+   Adjacent roles are a full pixel apart. */.wb-icon, .dmt, .pbc, .wb{
   --fs-micro:10px; /* decorative glyphs and compact timestamps */
   --fs-xs:11px;    /* supporting labels and compact status chips */
   --fs-sm:12px;    /* filters, tags and sidebar rows */
@@ -2009,7 +2009,7 @@
    plugin's own specs address them.
    --------------------------------------------------------------------------- */
 /* wb-tokens:start */
-.wb {
+.wb, .wb-icon {
   /* spacing — 4 / 8 / 12 / 16 / 20 / 24 / 32 */
   --wb-space-1: 4px;
   --wb-space-2: 8px;
@@ -2072,7 +2072,6 @@
   --wb-ok: var(--dsw-alias-state-success-primary, #18763e);
   --wb-alert: #bf3039;
   --wb-alert-dark: #fa716a;
-  --wb-alert-fill: #bf3039;
   /* geometry — measured host rhythm */
   --wb-page-pad: 20px;
   --wb-page-top: 28px;
@@ -2128,6 +2127,10 @@ body[data-ds-dark-theme] .wb {
   --wb-bad-soft: #3b1516;
   --wb-scrim-bg: color-mix(in srgb, #000 52%, transparent);
 }
+body[data-ds-dark-theme] .wb,
+body[data-ds-dark-theme] .wb-icon {
+  --wb-alert: var(--wb-alert-dark);
+}
 /* wb-tokens:end */
 
 .wb {
@@ -2145,16 +2148,13 @@ body[data-ds-dark-theme] .wb {
   font-size: var(--wb-font-ui);
   line-height: var(--wb-line-ui);
 }
-body[data-ds-dark-theme] .wb {
-  --wb-alert: var(--wb-alert-dark);
-}
 .wb-icon { position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; color: var(--wb-text-1); }
 .wb-icon-on { color: var(--wb-text-1); }
 [data-wb-rail=true] .wb-icon { position: relative; }
 .wb-rail-alert {
   display: none; position: absolute; bottom: calc(var(--wb-space-1) * -1); left: calc(var(--wb-space-2) * -1); z-index: 1;
   width: var(--wb-glyph); height: var(--wb-glyph); align-items: center; justify-content: center;
-  border-radius: var(--wb-radius-sm); background: var(--wb-alert-fill); color: var(--wb-text-inverted);
+  border-radius: var(--wb-radius-sm); background: var(--wb-alert); color: var(--wb-text-inverted);
   font-size: var(--fs-micro); line-height: var(--lh-micro); font-weight: var(--fw-bold);
   pointer-events: none;
 }
