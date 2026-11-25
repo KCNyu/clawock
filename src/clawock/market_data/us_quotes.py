@@ -1205,9 +1205,14 @@ def _accumulate_day_range(holding, q, c, *, now_et, today_et_date):
             cands_h.append(holding['day_high'])
         if holding.get('day_low'):
             cands_l.append(holding['day_low'])
-        day_o = holding.get('day_open') or api_o or c
+    cached_open = holding.get('day_open') if same_session else None
+    if api_o:
+        # A later regular-session capture can replace a last-price fallback.
+        day_o = (None if holding.get('quote_incomplete_open') else cached_open) or api_o
+        holding.pop('quote_incomplete_open', None)
     else:
-        day_o = api_o or c
+        day_o = cached_open or c
+        holding['quote_incomplete_open'] = True
     holding['day_high'] = round(max(cands_h) if cands_h else c, 4)
     holding['day_low']  = round(min(cands_l) if cands_l else c, 4)
     holding['day_open'] = round(day_o, 4)

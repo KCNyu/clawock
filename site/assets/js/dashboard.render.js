@@ -1805,7 +1805,7 @@
       else if (id === 'risk-beta-hk') cls += v > 3 ? ' neg' : (v > 2 ? ' warn-text' : '');
       else if (id === 'risk-vol') cls += v > 0.5 ? ' neg' : (v > 0.35 ? ' warn-text' : '');
       else if (id === 'risk-sharpe') cls += v < 0 ? ' neg' : (v > 1 ? ' pos' : '');
-      else if (id === 'risk-margin') cls += v < -10 ? ' neg' : '';
+      else if (id === 'risk-margin') cls += v > 10 ? ' neg' : '';
       el.className = cls;
     };
     setNum('risk-beta-us', us.beta_spx);
@@ -2111,11 +2111,16 @@
       trigEl.innerHTML = `<span class="warn-text">HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${fixed(hkRe)}%）→ 杠杆上限放回 50%</span>`;
     }
     // US per-name rows
-    const STATE = { cut: ['red', '砍杠杆'], watch: ['warn-text', '观察'], ok: ['neutral', '趋势ON'], unknown: ['neutral', '—'] };
+    const STATE = { cut: ['red', '砍杠杆'], watch: ['warn-text', '观察'], ok: ['neutral', '趋势ON'] };
     const us = r.us || {};
     const usEl = document.getElementById('lev-regime-us');
     const rows = (us.names || []).map(n => {
-      const [cls, tag] = STATE[n.state] || STATE.unknown;
+      if (!Object.hasOwn(STATE, n.state)) {
+        return `<div class="risk-alert medium"><span class="icon"></span>
+          <strong>${escapeHtml(n.etf)}=2x ${escapeHtml(n.underlying)}
+          <span class="warn-text" title="${escapeHtml(n.note || '')}">数据不足，趋势未判</span></strong></div>`;
+      }
+      const [cls, tag] = STATE[n.state];
       const sev = n.state === 'cut' ? 'high' : (n.state === 'watch' ? 'medium' : 'low');
       const vol = n.vol_annualized != null ? fixed(n.vol_annualized*100)+'%' : '—';
       const re = reclaim(n.close, n.ma);

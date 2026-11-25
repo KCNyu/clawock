@@ -747,6 +747,8 @@ test("client: renders the single decision-trace view from the mounted remote", a
           condition: "反弹至 50 减仓",
           // Host-computed: trim_on_rebound and sell are both reduces.
           alignment: "same" } },
+      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-06", action: "buy",
+        shares: 5, price: 5.88, side: "add", reconstructed: true, t1: null },
     ], rate: 7.8473 } }),
     ledger: async () => ({ ok: true, value: { entries: [] } }),
     portfolio: async () => ({ ok: true, value: { books: [] } }),
@@ -791,6 +793,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   const joined = collectText();
   assert.match(joined, /决策轨迹/);
   assert.match(joined, /已实现 \(USD 等值\)/);
+  assert.match(joined, /3 笔成交 · 1 笔建仓占位（无成交）/);
   assert.match(joined, /T\+1 卖飞\/卖对/);
   // The denominator must be rendered, not implied (#710), and it must be the
   // denominator the ratio is actually a fraction of (#741): the label used to

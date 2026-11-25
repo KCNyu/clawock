@@ -7366,6 +7366,7 @@ const dictionaries = {
 		"trace.less": "收起,只显示最近 {groups} 组",
 		"trace.empty": "没有符合条件的成交",
 		"trace.fillCount": "{count} 笔成交",
+		"trace.placeholderCount": "{count} 笔建仓占位（无成交）",
 		"balance.loading": "余额加载中",
 		"balance.unconfigured": "未配置",
 		"balance.unconfiguredKey": "未配置 API Key",
@@ -8030,6 +8031,7 @@ const dictionaries = {
 		"trace.less": "Collapse to the latest {groups} groups",
 		"trace.empty": "No fill matches this filter",
 		"trace.fillCount": "{count} fills",
+		"trace.placeholderCount": "Opening placeholders ({count})",
 		"balance.loading": "Loading balance",
 		"balance.unconfigured": "Not set",
 		"balance.unconfiguredKey": "No API key configured",
@@ -14833,6 +14835,8 @@ function DecisionMind(props) {
 		ref: rootRef
 	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, t("trace.title"), h("span", { className: cx("ts") }, t("trace.subtitle"))))), h("div", { className: cx("list") }, h(SkeletonRow, { key: "sk1" }), h(SkeletonRow, { key: "sk2" }), h(SkeletonRow, { key: "sk3" })));
 	const traces = data.trades.map(_displayEntry);
+	const placeholders = traces.filter((trace) => trace.reconstructed).length;
+	const fillCount = traces.length - placeholders;
 	let filtered = traces;
 	if (filter === "miss") filtered = traces.filter((trace) => trace.decision === null);
 	if (filter === "sold") filtered = traces.filter((trace) => trace.side === "reduce");
@@ -14940,7 +14944,7 @@ function DecisionMind(props) {
 	return h("div", {
 		className: cx("dmt"),
 		ref: rootRef
-	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, t("trace.title"), h("span", { className: cx("ts") }, t("trace.subtitle") + (data.stale ? t("trace.staleSuffix") : "")), h("span", { className: cx("rate") }, t("trace.fillCount", { count: traces.length }) + (rate === null ? "" : " · @" + rate + (data.rateSource ? " · " + data.rateSource : "")))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, t("trace.title"), h("span", { className: cx("ts") }, t("trace.subtitle") + (data.stale ? t("trace.staleSuffix") : "")), h("span", { className: cx("rate") }, t("trace.fillCount", { count: fillCount }) + (placeholders === 0 ? "" : " · " + t("trace.placeholderCount", { count: placeholders })) + (rate === null ? "" : " · @" + rate + (data.rateSource ? " · " + data.rateSource : "")))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
 }
 /**
 * `layout` is listed even though the plugin only *probes* it, and that is not

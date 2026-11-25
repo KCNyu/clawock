@@ -3834,6 +3834,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   }
 
   const traces = data.trades.map(_displayEntry)
+  const placeholders = traces.filter((trace) => trace.reconstructed).length
+  const fillCount = traces.length - placeholders
   let filtered = traces
   if (filter === 'miss') filtered = traces.filter((trace) => trace.decision === null)
   // The sell filter follows the host-computed `side`, not a client-side copy of
@@ -3985,7 +3987,9 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
         h('div', { className: cx('tt') }, t('trace.title'),
           h('span', { className: cx('ts') }, t('trace.subtitle') + (data.stale ? t('trace.staleSuffix') : '')),
           h('span', { className: cx('rate') },
-            t('trace.fillCount', { count: traces.length }) + (rate === null ? '' : ' · @' + rate
+            t('trace.fillCount', { count: fillCount })
+              + (placeholders === 0 ? '' : ' · ' + t('trace.placeholderCount', { count: placeholders }))
+              + (rate === null ? '' : ' · @' + rate
               + (data.rateSource ? ' · ' + data.rateSource : '')))),
         stats)),
     h('div', { className: cx('bar') },

@@ -1352,7 +1352,12 @@ def cross_factor_node(portfolio):
             f'   🧪 cross-sectional: active={activation.get("active", False)}, '
             f'blockers={",".join(activation.get("blockers") or [])}'
         )
-        record_checkpoint(WS, 'cross-factor')
+        universe = cross_sectional_factor.get('universe') or {}
+        failed = universe.get('failed')
+        error = None
+        if failed and not universe.get('priced_symbols'):
+            error = RuntimeError(f'no prices available; {len(failed)} symbol fetches failed')
+        record_checkpoint(WS, 'cross-factor', error=error)
     except Exception as e:
         record_checkpoint(WS, 'cross-factor', error=e)
         cross_sectional_factor_ctx = {}
