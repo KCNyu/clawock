@@ -162,13 +162,14 @@ def trim_projection(*, shares, value, total, price, lot_size=1, target_pct=35,
             if other + remaining else None}
 
 
-def plan_trim_projections(context, plan):
+def plan_trim_projections(context, plan, *, at_book_mark=False):
     """Deterministic review arithmetic for the authored plan's sell scenarios.
 
     The book is whatever `context` carries (the brief's own generation, or the
     current book on the dashboard timeline), so the same plan can print two
     weights on two books. `price_basis` says which price this name was sold at:
     the plan's trigger (`plan_trigger`) or the book's own mark (`book_mark`).
+    Explicit book-price prose uses the latter scenario even on a trigger plan.
     """
     reviews = {r['ticker']: r for r in
                (context.get('risk_guardrail') or {}).get('concentration_reviews') or []}
@@ -184,7 +185,7 @@ def plan_trim_projections(context, plan):
         inputs = dict(inputs)
         condition = decision.get('condition') or {}
         basis = 'book_mark'
-        if condition.get('type') in ('price_above', 'price_below'):
+        if not at_book_mark and condition.get('type') in ('price_above', 'price_below'):
             price = _share_number(condition.get('price'))
             if price is None:
                 continue
@@ -204,32 +205,55 @@ def plan_trim_projections(context, plan):
 # 降低/… and every hand-enumerated list eventually misses the one the model
 # used (#3417: 落回 was outside the list while the gate stayed silent). Match a
 # small set of movement prefixes and let the number supply the rest.
+_SAME_POSITION = r'这一格(?:在(?:美国|美股|香港|港股)腿)?'
+_WEIGHT_DESTINATION = r'(?:回到|回落到|降到|降至|压回|剩下|剩)'
 _POST_WEIGHT = re.compile(
     r'(?:(?:占比|支配度|集中度)\s*[落降压回变剩][^，,。；;%％\d]{0,6}?'
     r'|(?:卖|减)[^。；;！？!?\n]{0,18}股后[^，,。；;%％]{0,8}'
     r'[落降压回变剩占][^，,。；;%％\d]{0,4}?'
-    r'|(?:卖|减)(?:完|掉|了)\s*(?:回到|回落到|降到|降至|压回|剩下|剩))'
+    rf'|(?:卖|减)(?:完|掉|了)\s*(?:{_SAME_POSITION}\s*)?{_WEIGHT_DESTINATION}'
+    rf'|(?:卖|减)\s*\d+(?:\.\d+)?\s*股\s*(?:能把|把|之后)\s*{_SAME_POSITION}'
+    rf'\s*(?:{_WEIGHT_DESTINATION}|占))'
     r'(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]')
+_BOOK_MARK_SCENARIO = re.compile(
+    r'按\s*(?:(?:当前价|现价)\s*(?=算)|(?:当前价|现价)?\s*(\d+(?:\.\d+)?)'
+    r'\s*(?:港元|美元|HKD|USD))\s*算', re.I)
 
 
-def trim_claim_warnings(text, projection):
+def trim_claim_projection(text, projection, book_projection=None):
+    """Resolve a separately labelled book-price scenario against its own mark."""
+    mark = _BOOK_MARK_SCENARIO.search(text)
+    if not mark:
+        return projection
+    book = book_projection or (projection if projection.get('price_basis') == 'book_mark' else {})
+    price = mark[1]
+    if price and book.get('price') != float(price):
+        return {}
+    return book
+
+
+def trim_claim_warnings(text, projection, book_projection=None):
     """Check explicit weight destinations and review-line sufficiency claims.
 
     Callers own ticker attribution. Do not infer an intended sale from a return,
     or treat a negated claim as an affirmative promise.
     """
-    expected = projection.get('post_trim_weight_pct')
     warnings = []
-    for sentence in re.split(r'[。！？!?\n]', text):
+    for sentence in re.split(r'[。；;！？!?\n]', text):
+        scenario = trim_claim_projection(sentence, projection, book_projection)
+        expected = scenario.get('post_trim_weight_pct')
         for match in _POST_WEIGHT.finditer(sentence):
             prefix = re.split(r'[，,；;]', sentence[:match.start()])[-1]
             if re.search(r'不能|无法|未能|不再声称|不会|并非', prefix):
                 continue
             raw = match[1]
             precision = len(raw.split('.')[1]) if '.' in raw else 0
+            if (expected is not None and float(raw) == scenario.get('target_pct') and expected <= float(raw)
+                    and re.match(r'\s*(?:的\s*)?(?:单名)?复核线(?:下方|以下)', sentence[match.end():])):
+                continue
             if expected is not None and abs(float(raw) - expected) > 0.5 * 10 ** -precision + 1e-9:
                 warnings.append(f'作者减仓后占比 {raw}% 与当前账本联立解 {expected}% 不一致；请复核')
-        need = projection.get('shares_to_review_line')
+        need = scenario.get('shares_to_review_line')
         if need is None or not re.search(r'复核线|支配度|集中度|占比', sentence):
             continue
         for match in re.finditer(r'(\d+(?:\.\d+)?)\s*股\s*(?:才够|就够|足够)', sentence):
@@ -241,11 +265,11 @@ def trim_claim_warnings(text, projection):
     return list(dict.fromkeys(warnings))
 
 
-def plan_trim_warnings(decision, projection):
+def plan_trim_warnings(decision, projection, book_projection=None):
     """Advisory check of both authored fields; never rewrites frozen prose."""
     text = '\n'.join((decision.get('rationale') or '',
                       (decision.get('condition') or {}).get('description') or ''))
-    return trim_claim_warnings(text, projection)
+    return trim_claim_warnings(text, projection, book_projection)
 
 
 def _single_name_policy(leg, ws, hold, total, ccy):

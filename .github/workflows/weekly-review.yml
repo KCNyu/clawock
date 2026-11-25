@@ -18,8 +18,6 @@ concurrency:
 jobs:
   review:
     runs-on: ubuntu-latest
-    # 15, not 12: the chain deadline below is 700s and the contract test wants a
-    # minute of slack after it for setup, validation and the commit.
     timeout-minutes: 20
     permissions:
       contents: write
@@ -64,7 +62,7 @@ jobs:
           # 32000 max_tokens at the slowest throughput measured on the eight
           # scheduled runs 2026-07-12..08-30 (87 tok/s) is 368s. At 600 the
           # share was 360s, i.e. under a run this job is expected to produce.
-          # 700 of 900 still leaves the validate + commit steps their share.
+          # The job timeout leaves time for setup, validation and the commit.
           CLAWOCK_LLM_DEADLINE_SECONDS: '700'
         run: clawock-weekly-review ${AS_OF:+--as-of "$AS_OF"}
 

@@ -2072,7 +2072,6 @@
   --wb-ok: var(--dsw-alias-state-success-primary, #18763e);
   --wb-alert: #bf3039;
   --wb-alert-dark: #fa716a;
-  --wb-alert-fill: #bf3039;
   /* geometry — measured host rhythm */
   --wb-page-pad: 20px;
   --wb-page-top: 28px;
@@ -2154,7 +2153,7 @@ body[data-ds-dark-theme] .wb {
 .wb-rail-alert {
   display: none; position: absolute; bottom: calc(var(--wb-space-1) * -1); left: calc(var(--wb-space-2) * -1); z-index: 1;
   width: var(--wb-glyph); height: var(--wb-glyph); align-items: center; justify-content: center;
-  border-radius: var(--wb-radius-sm); background: var(--wb-alert-fill); color: var(--wb-text-inverted);
+  border-radius: var(--wb-radius-sm); background: var(--wb-alert); color: var(--wb-text-inverted);
   font-size: var(--fs-micro); line-height: var(--lh-micro); font-weight: var(--fw-bold);
   pointer-events: none;
 }

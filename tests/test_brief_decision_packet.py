@@ -421,7 +421,18 @@ def test_a_cold_start_slice_is_budgeted_like_exploration_not_sized_like_validate
 
 
 def test_packet_is_deterministic_and_manifest_hash_bound(tmp_path):
-    context = _context()
+    context = {
+        "fx": {"rate": 7.84},
+        "portfolio_path": "portfolio.json",
+        "snapshot_path": "memory/snapshots/2026-07-28.json",
+        "lookthrough_exposure": {},
+        "risk_discipline": {},
+        "integrity": {"ok": True},
+        "thesis_registry": {},
+        "research_surface": {},
+        "issues": [],
+        **_context(),
+    }
     generation = brief_context.compute_generation_id(context)
     packet = packet_mod.compile_packet(context, generation)
     audit_path = tmp_path / "brief-context-2026-07-28.json"

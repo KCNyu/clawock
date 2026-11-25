@@ -93,7 +93,7 @@ def test_a_preflight_that_never_reported_degrades_a_delivered_product(
 
     assert record["stages"]["preflight"]["status"] == preflight
     assert record["final_product"] == {"status": "degraded", "reason": "preflight 未记录结果"}
-    summary = summarize_records([record], hours=36, now=FROZEN_NOW)
+    summary = summarize_records([record], hours=36, now=FROZEN_NOW + timedelta(minutes=30))
     assert [row["slot"] for row in summary["degraded_slots"]] == [slot]
 
 

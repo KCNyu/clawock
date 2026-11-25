@@ -1,7 +1,7 @@
 """The timetable panel reports the ledger's verdict — it never forms its own."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from clawock.publish.cron_schedule import timetable
@@ -116,6 +116,42 @@ def test_a_slot_is_upcoming_before_it_fires_and_running_inside_its_grace():
 
     # 10:03 fired 7 minutes ago (grace 20) — still running, not a miss yet.
     assert _states(result) == ['running', 'upcoming', 'upcoming', 'upcoming']
+
+
+def test_recent_delivery_waits_for_stage_record_without_hiding_a_real_fault():
+    from clawock.publish.outcomes import summarize_records
+
+    now = datetime.fromisoformat('2026-11-25T13:37:47.844967+08:00')
+    delivered = '2026-11-25T05:37:42.220467+00:00'
+    missing = 'postflight 未记录结果'
+    contract = _contract('33 13 * * 1-5', name='港股午后快报')
+    record = _record('2026-11-25T13:33:00+08:00', 'degraded', job='港股午后快报')
+    record['stages'] = {
+        'postflight': {'status': 'unknown'},
+        'primary_delivery': {'status': 'success', 'at': delivered},
+    }
+    for age, reason, timetable_state in [
+        (timedelta(0), missing, 'running'),
+        (timedelta(minutes=20), missing, 'degraded'),
+        (timedelta(0), '数据面 push 丢了 +1', 'degraded'),
+    ]:
+        record['final_product']['reason'] = reason
+        at = now + age
+        schedule = timetable(contract, [record], now=at)
+        cell = schedule['jobs'][0]['slots'][0]
+        summary = summarize_records([record], now=at)
+        assert cell['state'] == timetable_state
+        assert schedule['jobs'][0]['last_success_at'] == delivered
+        if timetable_state == 'running':
+            assert 'note' not in cell
+            assert summary['counts'] == {'pending': 1}
+            assert summary['recent'][0]['final_product']['status'] == 'pending'
+            assert not summary['degraded_slots']
+        else:
+            assert cell['note']['disposition'] == 'needs_action'
+            assert summary['counts'] == {'degraded': 1}
+            assert summary['degraded_slots'][0]['reason'] == reason
+        assert record['final_product'] == {'status': 'degraded', 'reason': reason}
 
 
 def test_a_slot_past_its_grace_with_nothing_on_it_is_missed():

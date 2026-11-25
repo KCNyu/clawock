@@ -200,6 +200,10 @@ def test_writer_flags_the_pc_equals_c_fallback_as_no_prior_close():
     assert holding["quote_incomplete"] is True
     assert session_change_pct(holding) is None
     assert holding["today_change"] is holding["today_change_pct"] is None
+    metrics = holding_metrics(holding, {"atr14_pct": 2.5})
+    assert metrics["day_range_pct"] is None
+    assert metrics["range_used_atr"] is None
+    assert metrics["range_pos"] == 0.0
 
 
 @pytest.mark.parametrize("shares_bought, expected", [(4, None), (10, 15.5)])
@@ -238,6 +242,9 @@ def test_writer_clears_both_flags_on_a_complete_quote():
     assert "quote_stale_asof" not in holding
     assert "quote_incomplete" not in holding
     assert session_change_pct(holding) == pytest.approx(-2.551, abs=1e-3)
+    metrics = holding_metrics(holding, {"atr14_pct": 2.5})
+    assert metrics["day_range_pct"] == 4.08
+    assert metrics["range_used_atr"] == 1.63
 
 
 def test_writer_keeps_an_old_print_in_its_own_bucket():

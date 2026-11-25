@@ -113,11 +113,12 @@ def holding_metrics(h, q=None):
     atr = _num(q.get('atr14_pct'))
     range_available = not quote_range_gap(h)
     open_available = range_available and not h.get('quote_incomplete_open')
+    prior_close_available = bool(pc) and quote_session_comparable(h)
     gap = (round((op - pc) / pc * 100, 2)
-           if op and pc and open_available and quote_session_comparable(h) else None)
+           if op and open_available and prior_close_available else None)
     rng = (hi - lo) if hi and lo and range_available else None
     range_pos = round((cur - lo) / rng * 100, 1) if (rng and rng > 0 and cur is not None) else None
-    day_range_pct = round(rng / pc * 100, 2) if (rng and pc) else None
+    day_range_pct = round(rng / pc * 100, 2) if rng and prior_close_available else None
     range_used_atr = round(day_range_pct / atr, 2) if (day_range_pct and atr) else None
     session_pct = session_change_pct(h)
     return {

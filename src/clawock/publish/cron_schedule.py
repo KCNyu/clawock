@@ -7,7 +7,8 @@ light starts disagreeing with the ledger it claims to summarise. This module
 only joins two things that already exist:
 
   expected  = the tracked cron contract, expanded for the day
-  actual    = the published outcome records' `final_product.status`
+  actual    = the published outcome, with a grace window for stage writes
+              after a successful delivery
 
 A slot with no record yet is not a failure until its grace window has passed;
 before that it is simply upcoming, which is why this needs `now` and not just
@@ -27,14 +28,11 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from clawock.publish.outcomes import ProductStatus, delivered_data_only_fallback
+from clawock.publish.outcomes import (
+    GRACE_MINUTES, ProductStatus, delivered_data_only_fallback, displayed_product,
+)
 from clawock.scheduling import effective_schedule, parse_cron_slots
 from clawock.sessions import HKT
-
-#: How long after a slot fires before "no record" stops meaning "still running".
-#: The runs take 4-6 minutes and the watchdog re-dispatch lands by +10, so a slot
-#: with nothing on it 20 minutes later genuinely did not report.
-GRACE_MINUTES = 20
 
 #: How far a record may sit from an expected slot and still be that slot's run.
 #: Capped further by half the gap between adjacent slots, so two 30-minute slots
@@ -117,7 +115,9 @@ def _narrate_degraded(record):
     if llm.get('status') == 'failed':
         return with_delivery(NEEDS_ACTION,
                              '模型链失败后按确定性兜底出货；这一档没有语义报告，兜底只含数据块')
-    missing = [label for label, stage in (('模型阶段', llm), ('postflight', postflight))
+    preflight = (record.get('stages') or {}).get('preflight') or {}
+    missing = [label for label, stage in (('模型阶段', llm), ('postflight', postflight),
+                                         ('preflight', preflight))
                if stage.get('status') in {'pending', 'unknown'}]
     if missing:
         return with_delivery(NEEDS_ACTION, f'{" / ".join(missing)} 未记录结果')
@@ -338,7 +338,7 @@ def timetable(contract, records, *, now=None):
                 hour=hour, minute=minute)
             record = found.get(slot)
             if record:
-                verdict = (record.get('final_product') or {}).get('status')
+                verdict = displayed_product(record, now).get('status')
                 state = STATE_OF_VERDICT.get(verdict, 'unknown')
             elif now.astimezone(tz) < fires_at:
                 state = 'upcoming'

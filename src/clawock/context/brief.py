@@ -568,11 +568,14 @@ def validate_run_bundle(audit_path: Path, manifest_path: Path) -> list[str]:
             "context generation manifest 字段覆盖不完整: "
             f"missing={sorted(expected - covered)}, extra={sorted(covered - expected)}"
         )
+    missing_core = [field for field in CORE_FIELDS if field not in audit]
+    if missing_core:
+        issues.append(f"context generation 必需 core 行动字段缺失: {missing_core}")
     if core_payload is not None:
         for field in CORE_FIELDS:
-            if field in audit and core_payload.get(field) != audit[field]:
+            if field in audit and (field not in core_payload or core_payload[field] != audit[field]):
                 issues.append(
-                    f"context generation core 行动字段与 audit 不一致: {field}"
+                    f"context generation core 行动字段缺失或与 audit 不一致: {field}"
                 )
     measured = core_entry.get("bytes", 0) + len(manifest_text.encode("utf-8"))
     budget = manifest.get("budget") or {}

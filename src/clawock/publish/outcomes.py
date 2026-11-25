@@ -10,8 +10,10 @@ it (the direction the wheel may never depend in).
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta, timezone
 from enum import StrEnum
+
 from clawock.sessions import HKT
 
 # Slots are recorded in the desk's local wall clock and some are written without
@@ -47,6 +49,30 @@ MAX_NAMED = 8
 
 
 DEGRADATIONS_KEY = "degradations"
+
+# The timetable gives records and missing slots a bounded time to settle.
+GRACE_MINUTES = 20
+_MISSING_STAGE = re.compile(r"(?:llm|postflight|preflight)(?: / (?:llm|postflight|preflight))* 未记录结果")
+
+
+def displayed_product(record, now):
+    """Give a fresh successful receipt time for the remaining stage writes."""
+    final = record.get("final_product") or {}
+    if (final.get("status") != ProductStatus.DEGRADED or final.get("fallback_only")
+            or not _MISSING_STAGE.fullmatch(str(final.get("reason") or ""))):
+        return final
+    primary = (record.get("stages") or {}).get("primary_delivery") or {}
+    if primary.get("status") != "success":
+        return final
+    try:
+        delivered_at = datetime.fromisoformat(primary.get("at"))
+    except (TypeError, ValueError):
+        return final
+    if delivered_at.tzinfo is not None:
+        age = now.astimezone(timezone.utc) - delivered_at.astimezone(timezone.utc)
+        if timedelta(0) <= age < timedelta(minutes=GRACE_MINUTES):
+            return {"status": ProductStatus.PENDING.value, "reason": "主投已送达，等待阶段结果"}
+    return final
 
 
 def delivered_data_only_fallback(record) -> bool:
@@ -139,6 +165,9 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
         if slot.tzinfo is None:
             slot = slot.replace(tzinfo=LEDGER_TZ)
         if slot.astimezone(timezone.utc) >= cutoff.astimezone(timezone.utc):
+            product = displayed_product(record, now)
+            if product and product is not record.get("final_product"):
+                record = {**record, "final_product": product}
             recent.append(record)
     recent.sort(key=lambda record: record.get("slot", ""), reverse=True)
 

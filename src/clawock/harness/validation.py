@@ -556,10 +556,11 @@ def with_compute_receipts(ctx, workspace):
 
 def _concentration_claim_issues(text, ctx):
     """Check named review percentages separately from the advisory number pool."""
-    from clawock.portfolio.guardrail import trim_claim_warnings
+    from clawock.portfolio.guardrail import trim_claim_projection, trim_claim_warnings
 
     reviews = (ctx.get('risk_guardrail') or {}).get('concentration_reviews') or []
     projections = {r['ticker']: r for r in ctx.get('plan_trim_projections') or []}
+    book_projections = {r['ticker']: r for r in ctx.get('plan_book_trim_projections') or []}
     # Match only names supplied by this generation's holdings. HK share-class
     # suffixes are not normally used in prose (MINIMAX-W -> MiniMax).
     aliases = {}
@@ -576,10 +577,7 @@ def _concentration_claim_issues(text, ctx):
         if not ticker or review.get('weight_pct') is None or review.get('review_pct') is None:
             continue
         projection = projections.get(ticker) or {}
-        expected = projection.get('post_trim_weight_pct')
-        allowed = [review['weight_pct'], review['review_pct']]
-        if expected is not None:
-            allowed.append(expected)
+        book_projection = book_projections.get(ticker)
         active = None
         for paragraph in text.splitlines():
             if paragraph.startswith('- **'):
@@ -599,7 +597,12 @@ def _concentration_claim_issues(text, ctx):
                         end = mentions[i + 1].start() if i + 1 < len(mentions) else len(sentence)
                         fragments.append(sentence[mention.start():end])
             for sentence in fragments:
-                for warning in trim_claim_warnings(sentence, projection):
+                scenario = trim_claim_projection(sentence, projection, book_projection)
+                expected = scenario.get('post_trim_weight_pct')
+                allowed = [review['weight_pct'], review['review_pct']]
+                if expected is not None:
+                    allowed.append(expected)
+                for warning in trim_claim_warnings(sentence, projection, book_projection):
                     issues.append(f'仓位支配度不符: {ticker} {warning}')
                 concentration = re.search(r'支配度|集中度|占.{0,8}腿|仓位占比', sentence)
                 if not concentration:
