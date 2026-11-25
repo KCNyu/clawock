@@ -102,6 +102,13 @@ def openclaw_sections(config: dict, registry) -> dict:
     return out
 
 
+def openclaw_drift(config: dict, rendered: dict, registry) -> list[str]:
+    """Names of registry-owned sections that differ, without config values."""
+    before = openclaw_sections(config, registry)
+    after = openclaw_sections(rendered, registry)
+    return [name for name in after if before.get(name) != after[name]]
+
+
 # ── dsh ──────────────────────────────────────────────────────────────────────
 
 def _indent(line: str) -> int:
@@ -156,8 +163,7 @@ def plan(registry, openclaw_config: Path | None = None, dsh_profiles: Path = DSH
         current = config_path.read_text()
         config = json.loads(current)
         rendered = render_openclaw(config, registry)
-        before, after = openclaw_sections(config, registry), openclaw_sections(rendered, registry)
-        changed = [name for name in after if before.get(name) != after[name]]
+        changed = openclaw_drift(config, rendered, registry)
         out.append((config_path, current,
                     json.dumps(rendered, indent=2, ensure_ascii=False) + '\n' if changed else current,
                     changed))

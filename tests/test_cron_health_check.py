@@ -797,3 +797,36 @@ def test_quarterly_slot_is_judged_and_other_days_stay_idle(monkeypatch, capsys, 
     assert rows['SQLite 维护']['status'] == 'missing'
     rows = _run_health_at(monkeypatch, capsys, datetime(2026, 10, 2, 9, 17, tzinfo=timezone.utc))
     assert rows['SQLite 维护']['status'] == 'idle'
+
+
+def test_brief_cron_error_with_published_receipt_is_reported_as_delivered(monkeypatch):
+    now = datetime(2026, 11, 25, 10, tzinfo=HKT)
+    job = {'name': '盘前深度简报', 'id': 'brief',
+           'schedule': {'expr': '3 8 * * 1-5', 'tz': 'Asia/Hong_Kong'}}
+    record = {
+        'job': job['name'],
+        'slot': now.replace(hour=8, minute=3).isoformat(),
+        'raw_execution': {'status': 'error'},
+        'stages': {
+            'primary_delivery': {'status': 'success', 'telegram_ok': True},
+            'postflight': {'status': 'warning', 'commit_ok': True,
+                           'data_plane_status': 'published'},
+        },
+    }
+    monkeypatch.setattr(cron_health_check, 'commit_count_on', lambda *_args: 1)
+    monkeypatch.setattr(cron_health_check, 'runs_finished_today', lambda *_args, **_kw: 0)
+    monkeypatch.setattr(cron_health_check, '_market_closed_on', lambda *_args: False)
+
+    def judge():
+        return cron_health_check._judge_job(job, now, now, None, {'records': [record]})
+
+    row, missing, warn = judge()
+    assert row['status'] == 'ok' and not missing and not warn
+    assert row['runs_today'] == 0 and row['commits_today'] == 1
+    assert 'cron 执行 error，简报已送达并发布' in row['detail']
+
+    record['slot'] = (now - timedelta(days=1)).replace(hour=8, minute=3).isoformat()
+    assert '简报已送达' not in judge()[0]['detail']
+    record['slot'] = now.replace(hour=8, minute=3).isoformat()
+    record['stages']['postflight']['data_plane_status'] = 'failed'
+    assert '简报已送达' not in judge()[0]['detail']

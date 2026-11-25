@@ -138,6 +138,16 @@ tier 为 `none`）而你认为值得的票也可以给 `candidate`，页面会�
   --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
 ```
 
+如果 summary 已存为 `"$SUMMARY"`，可按下列命令查看各段大小。`to_entries[]` 的每一项有
+`key` 和 `value`，进入 `.value` 后直接用当前值 `.`：
+
+```bash
+jq -r 'to_entries[] | .key as $key | .value |
+  "\($key) \(if type == "object" then "\(length) keys"
+    elif type == "array" then "\(length) items"
+    else tostring | .[0:60] end)"' "$SUMMARY"
+```
+
 summary 的 `stock_discovery` 是独立于持仓/peer-map 的持仓外研究队列。它只有
 `needs_entry_gate`、`allowed=false` 的候选，不提供建仓授权。所有候选取值相同的字段
 （来源 `evidence`、`missing_evidence`、`next_action` 等）只在 `candidate_shared` 写一次，
@@ -192,6 +202,15 @@ bundle 是审计深钻，不是默认模型输入。只有 packet 没有提供�
 /root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=market
 # Retrospective / Decision v2 校准段使用前
 /root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=calibration
+```
+
+如果确需检查保存在 `"$RESEARCH"` 的 quant 原始记录，`.quant_signals.rows` 是
+按 ticker 键控的对象。用 `to_entries[]` 取 ticker 和行，单票用字符串键：
+
+```bash
+jq -r '.quant_signals.rows // {} | to_entries[] |
+  "\(.key) | \(.value.status) | \(.value.tag // "") | RSI=\(.value.rsi14) | \(.value.row_as_of)"' "$RESEARCH"
+jq --arg ticker 00100 '.quant_signals.rows[$ticker]' "$RESEARCH"
 ```
 
 bundle 路由：

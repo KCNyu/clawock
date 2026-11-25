@@ -804,6 +804,23 @@ def _judge_commit_evidence(name, tz, verify_date, expected_past, commit_n, revis
     return 'ok', detail
 
 
+def _brief_execution_error_with_receipt(tz, day, slots, outcomes):
+    """Find a scheduled brief whose execution errored after product delivery."""
+    records = (outcomes or {}).get('records', [])
+    matched = _panel_schedule._records_by_slot(
+        records, '盘前深度简报', day, ZoneInfo(tz), slots)
+    for record in matched.values():
+        stages = record.get('stages') or {}
+        delivery = stages.get('primary_delivery') or {}
+        postflight = stages.get('postflight') or {}
+        if ((record.get('raw_execution') or {}).get('status') == 'error'
+                and delivery.get('status') == 'success'
+                and postflight.get('commit_ok') is True
+                and postflight.get('data_plane_status') == 'published'):
+            return True
+    return False
+
+
 def _judge_heartbeat(coverage, expected):
     if not coverage['monitored']:
         return 'monitoring-grace', f'{expected} slot(s) before heartbeat monitoring start'
@@ -913,6 +930,9 @@ def _judge_job(job, now, scheduled_day, heartbeat_ledger, outcomes_ledger):
             status = 'untracked'
             detail = f'{len(expected_past)} slots expected; no health evidence handler registered'
 
+    if (name == '盘前深度简报' and status == 'ok'
+            and _brief_execution_error_with_receipt(tz, verify_date, expected_past, outcomes_ledger)):
+        detail += ' · cron 执行 error，简报已送达并发布'
     has_missing = status in {'missing', 'failed'}
     has_warn = status in {'evidence-unavailable', 'backstop', 'over', 'execution-unknown', 'untracked'}
     return {
