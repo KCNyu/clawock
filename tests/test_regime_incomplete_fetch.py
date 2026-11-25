@@ -139,3 +139,24 @@ def test_dial_is_stamped_with_the_latest_completed_hk_session(offline_dial, monk
     monkeypatch.setattr(brief_preflight, "refresh_json", lambda *a, **k: payload)
     monkeypatch.setattr(brief_preflight, "record_checkpoint", lambda *a, **k: None)
     assert brief_preflight.regime_node() == (payload, [])
+
+
+@pytest.mark.parametrize('first,second,tier,counts', [
+    ([], [], 'amber', (0, 0)),
+    ([1, 2, 3, 4, 5], [], 'amber', (0, 0)),
+    ([5, 4, 3, 2, 1], [], 'red', (1, 0)),
+    ([1, 2, 3, 4, 5], [1, 2, 3, 4, 5], 'green', (0, 0)),
+])
+def test_us_dial_distinguishes_missing_history_from_measured_trend(monkeypatch, first, second, tier, counts):
+    monkeypatch.setattr(regime, '_held_us_lev_etfs', lambda: ['FIRST', 'SECOND'])
+    monkeypatch.setattr(regime, 'US_2X_MAP', {'FIRST': ('ONE', 'usONE'), 'SECOND': ('TWO', 'usTWO')})
+    monkeypatch.setattr(regime, 'fetch_us', {'usONE': first, 'usTWO': second}.__getitem__)
+
+    payload = regime.compute_us()
+    assert payload['tier'] == tier
+    assert (payload['cut_count'], payload['watch_count']) == counts
+    if not second:
+        assert payload['names'][1]['state'] == 'unknown'
+        assert '数据不足，趋势未判' in payload['label']
+    else:
+        assert '趋势ON' in payload['label']

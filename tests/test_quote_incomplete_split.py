@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+from clawock.decision.packet import _ticker_facts
 from clawock.decision.setups import holding_metrics
 from clawock.harness._harness_common import quote_coverage
 from clawock.market_data import us_quotes as quotes
@@ -136,7 +137,13 @@ def test_unverified_range_cannot_feed_public_ranges_or_setup_grades(flags, reaso
     assert row["day_high"] is row["day_low"] is None
     assert [r["ticker"] for r in compute_today_ranges(portfolio)] == ["SPY"]
     assert holding_metrics(holding)["range_pos"] is None
+    assert holding_metrics(holding)["gap_pct"] is None
     assert holding_metrics(measured)["range_pos"] is not None
+    assert holding_metrics(measured)["gap_pct"] == -2.55
+    facts = _ticker_facts(holding, {}, holding["ticker"], holding["shares"])
+    assert facts["day_high"] is facts["day_low"] is None
+    measured_facts = _ticker_facts(measured, {}, measured["ticker"], measured["shares"])
+    assert (measured_facts["day_high"], measured_facts["day_low"]) == (10, 9.5)
 
 
 def _apply(q, holding=None, prev_closes=None):
@@ -146,6 +153,17 @@ def _apply(q, holding=None, prev_closes=None):
         now_et=datetime(2026, 11, 2, 10, 4, tzinfo=ET),
         today_et_date="2026-11-02", expected_prev_session="2026-10-30")
     return holding
+
+
+def test_gap_requires_both_an_open_and_a_comparable_prior_close():
+    quote = {"source": "test", "c": 10.1, "h": 10.2, "l": 9.8, "pc": 9.8}
+    holding = _apply(quote, _holding(day_session_date="2026-10-30"))
+    assert not holding.get("quote_incomplete_range")
+    assert holding_metrics(holding)["gap_pct"] is None
+
+    _apply({**quote, "o": 10.0}, holding)
+    assert holding_metrics(holding)["gap_pct"] == 2.04
+    assert holding_metrics({**holding, "quote_incomplete_prev_close": True})["gap_pct"] is None
 
 
 def test_writer_separates_a_missing_range_from_a_missing_prior_close():

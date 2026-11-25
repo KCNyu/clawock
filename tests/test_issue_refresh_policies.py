@@ -121,6 +121,28 @@ def test_artifact_nodes_do_not_consume_recovery_files(tmp_path, monkeypatch, nod
     assert next(row for row in published if row['group'] == record['command'])['count'] == 2
 
 
+@pytest.mark.parametrize('priced, status', [(0, 'failed'), (1, 'success')])
+def test_cross_factor_checkpoint_reports_only_total_price_failure(tmp_path, monkeypatch, priced, status):
+    from clawock.automation import workflow_outcomes
+    from clawock.publish.outcomes import degradations_of
+
+    monkeypatch.setattr(brief_preflight, 'WS', tmp_path)
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
+    payload = {'as_of': '2026-11-24', 'universe': {
+        'failed': {'SPY': 'no bars'}, 'priced_symbols': priced,
+    }}
+    monkeypatch.setattr(brief_preflight, 'refresh_json', lambda *a, **kw: payload)
+
+    context, issues = brief_preflight.cross_factor_node({'portfolios': {}})
+    assert context['as_of'] == payload['as_of']
+    assert not issues
+    record = json.loads(next((tmp_path / 'memory/.tmp').glob('brief-checkpoint-*.json')).read_text())
+    assert record['status'] == status
+    groups = [row['group'] for row in degradations_of(workflow_outcomes.load_ledger())
+              if row['kind'] == 'brief_check_failed']
+    assert groups == (['cross-factor'] if status == 'failed' else [])
+
+
 @pytest.mark.parametrize('as_of,accepted', [('2026-10-08', True), ('2026-10-07', False), (None, False)])
 def test_regime_rewrite_also_requires_latest_completed_session(tmp_path, monkeypatch, as_of, accepted):
     monkeypatch.setattr(brief_preflight, 'WS', tmp_path)

@@ -205,10 +205,11 @@ def plan_trim_projections(context, plan):
 # used (#3417: 落回 was outside the list while the gate stayed silent). Match a
 # small set of movement prefixes and let the number supply the rest.
 _POST_WEIGHT = re.compile(
-    r'(?:占比|支配度|集中度)\s*[落降压回变剩][^，,。；;%％\d]{0,6}?'
-    r'(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]'
+    r'(?:(?:占比|支配度|集中度)\s*[落降压回变剩][^，,。；;%％\d]{0,6}?'
     r'|(?:卖|减)[^。；;！？!?\n]{0,18}股后[^，,。；;%％]{0,8}'
-    r'[落降压回变剩占][^，,。；;%％\d]{0,4}?(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]')
+    r'[落降压回变剩占][^，,。；;%％\d]{0,4}?'
+    r'|(?:卖|减)(?:完|掉|了)\s*(?:回到|回落到|降到|降至|压回|剩下|剩))'
+    r'(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]')
 
 
 def trim_claim_warnings(text, projection):
@@ -224,7 +225,7 @@ def trim_claim_warnings(text, projection):
             prefix = re.split(r'[，,；;]', sentence[:match.start()])[-1]
             if re.search(r'不能|无法|未能|不再声称|不会|并非', prefix):
                 continue
-            raw = match[1] or match[2]
+            raw = match[1]
             precision = len(raw.split('.')[1]) if '.' in raw else 0
             if expected is not None and abs(float(raw) - expected) > 0.5 * 10 ** -precision + 1e-9:
                 warnings.append(f'作者减仓后占比 {raw}% 与当前账本联立解 {expected}% 不一致；请复核')

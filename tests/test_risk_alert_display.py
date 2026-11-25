@@ -58,4 +58,8 @@ for (const guardrail of [undefined, {}, caps(null), caps(0)])
   assert.equal(paint({us: {beta_spx: 9}}, guardrail)('risk-beta-us'), 'val');
 // HK β has no cap and keeps its own bands.
 assert.equal(paint({hk: {beta_hsi: 3.5}}, caps(6.0))('risk-beta-hk'), 'val neg');
+const paintMargin = margin_at_risk_pct =>
+  paint({leveraged_exposure: {margin_at_risk_pct}}, undefined)('risk-margin');
+assert.equal(paintMargin(10), 'val');
+assert.equal(paintMargin(15.8599), 'val neg');
 '''], cwd=Path(__file__).resolve().parents[1], check=True)

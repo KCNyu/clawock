@@ -171,6 +171,7 @@ def test_each_projection_says_which_price_it_sold_at():
     '反弹站上 178.1 时减 40 股；按成交价算，00100 在港股腿的占比落到 35%。',
     '00100 减 40 股，占比降至 35%。',
     '00100 减 40 股后占比回到 35%。',
+    '00100 涨到 178.1 卖 40 股，卖完回到 35%。',
     '00100 按触发价算仍高于 35% 的单名复核线，40 股才够，具体支配度以成交价重算。',
 ])
 def test_real_phrasing_families_reach_both_gates(tmp_path, prose):
@@ -181,12 +182,18 @@ def test_real_phrasing_families_reach_both_gates(tmp_path, prose):
     assert plan_trim_warnings(decision, plan_trim_projections(ctx, plan)[0])
     issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
     assert brief_postflight.categorize(issues) == 'fail'
+    from clawock.harness.validation import _concentration_claim_issues
+    ctx['plan_trim_projections'] = plan_trim_projections(ctx, plan)
+    assert _concentration_claim_issues(prose, ctx)
 
 
 @pytest.mark.parametrize('prose', [
     '00100 减 40 股；占比落到 39.53%，收入增长 35%。',
     '00100 当前仓位占比为 46.84%，收益率降到 35%。',
     '00100 不能声称占比落到 35%。',
+    '00100 卖完回到 39.53%。',
+    '00100 卖完回报约 35%。',
+    '00100 不会卖完回到 35%。',
     '00100 40 股不够回到复核线，60 股才够。',
     '00100 并非 40 股才够回到复核线。',
 ])

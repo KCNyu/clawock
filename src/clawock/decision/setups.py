@@ -29,7 +29,7 @@ import sys
 from datetime import datetime
 
 from clawock import sessions as tc
-from clawock.portfolio.math import quote_range_gap, session_change_pct
+from clawock.portfolio.math import quote_range_gap, quote_session_comparable, session_change_pct
 from clawock.decision.freshness import quant_row_for_session
 from clawock.instruments import INSTRUMENTS
 from clawock.safe_io import temp_dir_lock, safe_write_json, safe_write_text, jsonl_line
@@ -111,8 +111,11 @@ def holding_metrics(h, q=None):
     op = _num(h.get('day_open'))
     pc = _num(h.get('prev_close'))
     atr = _num(q.get('atr14_pct'))
-    gap = round((op - pc) / pc * 100, 2) if op and pc else None
-    rng = (hi - lo) if (hi and lo and not quote_range_gap(h)) else None
+    range_available = not quote_range_gap(h)
+    open_available = range_available and not h.get('quote_incomplete_open')
+    gap = (round((op - pc) / pc * 100, 2)
+           if op and pc and open_available and quote_session_comparable(h) else None)
+    rng = (hi - lo) if hi and lo and range_available else None
     range_pos = round((cur - lo) / rng * 100, 1) if (rng and rng > 0 and cur is not None) else None
     day_range_pct = round(rng / pc * 100, 2) if (rng and pc) else None
     range_used_atr = round(day_range_pct / atr, 2) if (day_range_pct and atr) else None

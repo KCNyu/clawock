@@ -222,12 +222,17 @@ def compute_us():
         })
     cuts = [n for n in names if n.get('state') == 'cut']
     watches = [n for n in names if n.get('state') == 'watch']
+    unknown_count = sum(n.get('state') == 'unknown' for n in names)
     if cuts:
         tier, label = 'red', f"{len(cuts)} 只触发降杠杆（趋势off+波动过热，或新名左侧逆市）"
     elif watches:
         tier, label = 'amber', f"{len(watches)} 只趋势off(波动未过热) → 观察，暂不强砍"
+    elif unknown_count:
+        tier, label = 'amber', f'{unknown_count} 只美股 2x 行情数据不足，趋势未判'
     else:
         tier, label = 'green', '美股各2x标的趋势ON' if names else '无持仓2x ETF'
+    if unknown_count and (cuts or watches):
+        label += f' · {unknown_count} 只数据不足，趋势未判'
     dated = [n['as_of'] for n in names if n.get('as_of')]
     return {'names': names, 'as_of': min(dated) if dated else None, 'tier': tier, 'label': label,
             'vol_hot_cap': US_VOL_HOT, 'cut_count': len(cuts), 'watch_count': len(watches)}

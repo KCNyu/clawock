@@ -33,7 +33,7 @@ from clawock.decision.actions import is_risk_swap_buy, positive_whole_shares
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.safe_io import safe_write_json, to_strict_finite_number
 from clawock.safe_io import carried_value
-from clawock.portfolio.math import day_pnl_basis, holding_session, session_change_pct
+from clawock.portfolio.math import day_pnl_basis, holding_session, quote_range_gap, session_change_pct
 from clawock.workspace import workspace_root
 
 
@@ -1367,6 +1367,7 @@ def _matching_events(events, ticker, source_ticker) -> list:
 
 def _ticker_facts(holding, context, ticker, shares, market=None) -> dict:
     """The money fields of one row, and nothing about authority (#3420)."""
+    range_available = not quote_range_gap(holding)
     today_change = _number(holding.get("today_change_pct"), 2)
     if holding.get("quote_incomplete_prev_close"):
         session = holding_session(holding, context.get("date"), market=market)
@@ -1387,8 +1388,8 @@ def _ticker_facts(holding, context, ticker, shares, market=None) -> dict:
         "concentration_review": next((review for review in
             (context.get("risk_guardrail") or {}).get("concentration_reviews") or []
             if review.get("ticker") == ticker), None),
-        "day_high": _number(holding.get("day_high"), 4),
-        "day_low": _number(holding.get("day_low"), 4),
+        "day_high": _number(holding.get("day_high"), 4) if range_available else None,
+        "day_low": _number(holding.get("day_low"), 4) if range_available else None,
         "data_source": holding.get("data_source"),
     }
 
