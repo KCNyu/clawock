@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/11/26 05:03 HKT",
+  "last_updated": "2026/11/26 08:03 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -100,7 +100,7 @@
           "current_price": 48.27,
           "today_change_pct": 1.1526,
           "pnl_percent": -44.5172,
-          "data_source": "Finnhub Nov 25, 2026 16:03 ET",
+          "data_source": "Finnhub Nov 25, 2026 19:03 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -478,7 +478,7 @@
           "current_price": 6.42,
           "today_change_pct": 4.7308,
           "pnl_percent": -70.8403,
-          "data_source": "Finnhub Nov 25, 2026 16:03 ET",
+          "data_source": "Finnhub Nov 25, 2026 19:03 ET",
           "day_high": 6.71,
           "day_low": 5.1033,
           "day_open": 5.57,
@@ -624,7 +624,7 @@
           "pnl_percent": -13.6,
           "today_change": 1.63,
           "today_change_pct": 1.2956,
-          "data_source": "Finnhub Nov 25, 2026 16:03 ET",
+          "data_source": "Finnhub Nov 25, 2026 19:03 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -666,7 +666,7 @@
           "current_value": 2057.6,
           "pnl_abs": -1701.98,
           "pnl_percent": -45.2705,
-          "data_source": "Finnhub Nov 25, 2026 16:03 ET",
+          "data_source": "Finnhub Nov 25, 2026 19:03 ET",
           "today_change": 40.0,
           "today_change_pct": 1.9826,
           "trades": [
@@ -979,7 +979,7 @@
           "pnl_percent": -6.9775,
           "today_change": 0.89,
           "today_change_pct": 1.0805,
-          "data_source": "Finnhub Nov 25, 2026 16:03 ET",
+          "data_source": "Finnhub Nov 25, 2026 19:03 ET",
           "trades": [
             {
               "date": "2026-11-20",
@@ -1011,28 +1011,28 @@
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7182.82,
+          "price": 7182.78,
           "prev_close": 7201.09,
           "change_pct": -0.254,
-          "source": "Tencent usINX index @ 2026-11-25 16:03 ET"
+          "source": "Tencent usINX index @ 2026-11-25 19:03 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
           "price": 26046.9,
           "prev_close": 26214.17,
           "change_pct": -0.638,
-          "source": "Tencent usNDX index @ 2026-11-25 16:03 ET"
+          "source": "Tencent usNDX index @ 2026-11-25 19:03 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 50182.89,
+          "price": 50182.95,
           "prev_close": 50018.7,
           "change_pct": 0.328,
-          "source": "Tencent usDJI index @ 2026-11-25 16:03 ET"
+          "source": "Tencent usDJI index @ 2026-11-25 19:03 ET"
         }
       },
       "last_trade_update": "2026-11-20",
-      "last_afterhours_attempted": "2026-11-25 16:03 EST",
+      "last_afterhours_attempted": "2026-11-25 19:03 EST",
       "last_closed_attempted": "2026-11-24 00:33 EST",
       "last_premarket_attempted": "2026-08-25 05:54 EDT",
       "premarket_fetch_status": {
@@ -1119,7 +1119,7 @@
         "source_counts": {
           "Finnhub": 5
         },
-        "updated_at": "2026-11-25 16:03 EST",
+        "updated_at": "2026-11-25 19:03 EST",
         "note": "Multi-provider fetch. Sources: 5x Finnhub"
       },
       "closed_fetch_status": {
@@ -1176,7 +1176,7 @@
           "current_price": 87.4,
           "current_value": 13984.0,
           "pnl_percent": -80.98,
-          "data_source": "Tencent Nov 25 16:11 HKT",
+          "data_source": "Tencent Nov 26 08:03 HKT",
           "today_change": -2240.0,
           "today_change_pct": -13.81,
           "pnl_abs": -59538.0,
@@ -1260,7 +1260,7 @@
           "current_price": 6.04,
           "current_value": 2416.0,
           "pnl_percent": -57.11,
-          "data_source": "Tencent Nov 25 16:11 HKT",
+          "data_source": "Tencent Nov 26 08:03 HKT",
           "today_change": -176.0,
           "today_change_pct": -6.79,
           "pnl_abs": -3217.6,
@@ -1307,7 +1307,7 @@
           "current_price": 3.38,
           "current_value": 676.0,
           "pnl_percent": -37.47,
-          "data_source": "Tencent Nov 25 16:11 HKT",
+          "data_source": "Tencent Nov 26 08:03 HKT",
           "today_change": -14.8,
           "today_change_pct": -2.14,
           "pnl_abs": -405.0,
@@ -1331,7 +1331,7 @@
           "current_price": 1.678,
           "current_value": 13759.6,
           "pnl_percent": -56.75,
-          "data_source": "Tencent Nov 25 16:11 HKT",
+          "data_source": "Tencent Nov 26 08:03 HKT",
           "trades": [
             {
               "date": "2025-12-23",
@@ -1390,7 +1390,7 @@
           "current_price": 3.314,
           "current_value": 3314.0,
           "pnl_percent": -35.53,
-          "data_source": "Tencent Nov 25 16:11 HKT",
+          "data_source": "Tencent Nov 26 08:03 HKT",
           "today_change": -76.0,
           "today_change_pct": -2.24,
           "pnl_abs": -1826.0,
@@ -1564,7 +1564,7 @@
           "today_change": -570.0,
           "stock_name": "南方每日最多2倍做多海力士",
           "day_session_date": "2026-11-25",
-          "data_source": "Tencent Nov 25 16:11 HKT",
+          "data_source": "Tencent Nov 26 08:03 HKT",
           "lot_size": 100,
           "volume": 301227894,
           "day_open": 11.75,
@@ -1637,14 +1637,14 @@
           "price": 21966.01,
           "prev_close": 22219.65,
           "chg_pct": -1.14,
-          "source": "Tencent qt.gtimg.cn 2026/11/25 16:11 HKT"
+          "source": "Tencent qt.gtimg.cn 2026/11/26 08:03 HKT"
         },
         "HSTECH": {
           "name": "恒生科技",
           "price": 3378.26,
           "prev_close": 3466.87,
           "chg_pct": -2.56,
-          "source": "Tencent qt.gtimg.cn 2026/11/25 16:11 HKT"
+          "source": "Tencent qt.gtimg.cn 2026/11/26 08:03 HKT"
         }
       },
       "last_midday_attempted": "2026-05-07 12:00:00 HKT",

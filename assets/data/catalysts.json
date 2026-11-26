@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-25T08:03:37.921675+08:00",
+  "generated_at": "2026-11-26T08:03:35.351859+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-11-25",
-  "window_end": "2026-12-09",
+  "window_start": "2026-11-26",
+  "window_end": "2026-12-10",
   "earnings_queried": [
     "ANT",
     "CRCL",
@@ -20,28 +20,23 @@
   ],
   "macro_events": [
     {
-      "date": "2026-11-25",
-      "type": "PCE",
-      "detail": "Oct PCE price index (BEA, Fed preferred inflation gauge)"
-    },
-    {
-      "date": "2026-11-25",
-      "type": "GDP",
-      "detail": "Q3 2026 GDP 2nd estimate"
-    },
-    {
       "date": "2026-12-04",
       "type": "NFP",
       "detail": "Nov jobs report (Non-Farm Payrolls); BLS 8:30 ET"
+    },
+    {
+      "date": "2026-12-10",
+      "type": "CPI",
+      "detail": "Nov CPI release (BLS 8:30 ET)"
     }
   ],
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 1,
-    "macro_count": 3,
+    "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "PCE 2026-11-25"
+    "highest_impact_within_7d": null
   }
 }

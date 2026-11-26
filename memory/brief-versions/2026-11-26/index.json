@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-26",
+  "current": "v1-80df819f",
+  "current_sha256": "80df819fc22f9ffb3ae897948b59f46d91f36148fca067a6514f8f03ecf819aa",
+  "updated_at": "2026-11-26T08:18:07+08:00",
+  "versions": [
+    {
+      "id": "v1-80df819f",
+      "seq": 1,
+      "sha256": "80df819fc22f9ffb3ae897948b59f46d91f36148fca067a6514f8f03ecf819aa",
+      "bytes": 78444,
+      "file": "v1-80df819f.md",
+      "path": "memory/brief-versions/2026-11-26/v1-80df819f.md",
+      "created_at": "2026-11-26T08:17:27+08:00",
+      "generation_id": "215d27a49df29afd",
+      "parent": null,
+      "delivery": {
+        "at": "2026-11-26T08:18:07+08:00",
+        "channels": {
+          "wechat": false,
+          "telegram": true
+        },
+        "receipt": "brief-sent-2026-11-26.json"
+      }
+    }
+  ]
+}

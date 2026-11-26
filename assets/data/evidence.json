@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "omitted": [],
-  "generated_at": "2026-11-25T05:07:34+08:00",
+  "generated_at": "2026-11-26T05:04:55+08:00",
   "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
   "sections": [
     {
@@ -50,7 +50,7 @@
       "rows": [
         {
           "label": "`prospective_dates`",
-          "value": "65 / 需要 24 · ✅"
+          "value": "66 / 需要 24 · ✅"
         },
         {
           "label": "`prospective_tickers`",
@@ -70,7 +70,7 @@
         },
         {
           "label": "`clustered_edge`",
-          "value": "[-0.01647, 0.03256] / 需要 CI lower > 0.0 · ⚪ 未达标"
+          "value": "[-0.01707, 0.03284] / 需要 CI lower > 0.0 · ⚪ 未达标"
         },
         {
           "label": "`membership_history`",
@@ -134,7 +134,7 @@
       "verdict": "🟢 通过",
       "verdict_key": "passed",
       "tone": "good",
-      "sample": "留痕 121 天",
+      "sample": "留痕 122 天",
       "source": "`assets/data/quant_signal_review.json`",
       "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 2/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
       "rows": [
@@ -144,15 +144,15 @@
         },
         {
           "label": "`rsi_oversold_bounce`",
-          "value": "命中率 58.2% · CI95 [36.0%, 89.7%] · n=67（37 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 57.4% · CI95 [35.2%, 89.6%] · n=68（38 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
         },
         {
           "label": "`stop_breach_continue`",
-          "value": "命中率 61.8% · CI95 [52.2%, 69.8%] · n=550（101 日 × 12 标的）· ✅ 可入决策"
+          "value": "命中率 62.4% · CI95 [53.0%, 70.5%] · n=559（102 日 × 12 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_off_avoid`",
-          "value": "命中率 62.9% · CI95 [54.1%, 70.5%] · n=676（113 日 × 11 标的）· ✅ 可入决策"
+          "value": "命中率 63.3% · CI95 [54.0%, 71.0%] · n=683（114 日 × 11 标的）· ✅ 可入决策"
         },
         {
           "label": "`trend_on_follow`",
@@ -160,10 +160,10 @@
         },
         {
           "label": "`zscore_extreme_revert`",
-          "value": "命中率 46.2% · CI95 [23.2%, 71.9%] · n=52（30 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
+          "value": "命中率 45.3% · CI95 [22.1%, 71.4%] · n=53（31 日 × 9 标的）· ⚪ CI 跨 50%，锁定"
         }
       ]
     }
   ],
-  "built_at": "2026-11-25T00:04:48.728322+00:00"
+  "built_at": "2026-11-26T00:04:42.072945+00:00"
 }
