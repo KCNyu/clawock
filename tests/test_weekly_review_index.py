@@ -145,7 +145,7 @@ def test_operational_health_reports_the_same_due_gaps(tmp_path, monkeypatch, cap
     assert missing_weeks(root, now=now) == ['2026-W33']
     workflows = root / '.github' / 'workflows'
     workflows.mkdir(parents=True)
-    (workflows / 'weekly-review.yml').write_text("cron: '0 14 * * 0'\n")
+    (workflows / 'weekly-review.yml').write_text("on:\n  schedule:\n    - cron: '0 14 * * 0'\n")
     monkeypatch.setattr(health, 'fetch_runs', lambda *a, **kw: [dict(
         event='schedule', status='completed', conclusion='success',
         createdAt='2026-08-23T14:00:00Z')])
