@@ -1,0 +1,187 @@
+{
+  "vix": {
+    "symbol": "^VIX",
+    "price": 26.8,
+    "prev": 28.29,
+    "change_pct": -5.27,
+    "source": "yahoo",
+    "as_of": 1795710600
+  },
+  "treasury_10y": {
+    "symbol": "^TNX",
+    "price": 4.848,
+    "prev": 4.904,
+    "change_pct": -1.14,
+    "source": "yahoo",
+    "as_of": 1795636793,
+    "yield_pct": 4.848
+  },
+  "dxy": {
+    "symbol": "DX-Y.NYB",
+    "price": 103.777,
+    "prev": 103.665,
+    "change_pct": 0.11,
+    "source": "yahoo",
+    "as_of": 1795734299
+  },
+  "hsi": {
+    "symbol": "^HSI",
+    "price": 22226.88,
+    "prev": 21966.01,
+    "change_pct": 1.19,
+    "source": "tencent",
+    "as_of": "2026-11-26"
+  },
+  "hstech": {
+    "symbol": "^HSTECH",
+    "price": 3417.38,
+    "prev": 3378.26,
+    "change_pct": 1.16,
+    "source": "tencent",
+    "as_of": "2026-11-26"
+  },
+  "spx": {
+    "symbol": "^GSPC",
+    "price": 7182.78,
+    "prev": 7201.09,
+    "change_pct": -0.25,
+    "source": "tencent",
+    "as_of": "2026-11-25"
+  },
+  "nasdaq": {
+    "symbol": "^IXIC",
+    "price": 23585.8,
+    "prev": 23733.54,
+    "change_pct": -0.62,
+    "source": "tencent",
+    "as_of": "2026-11-25"
+  },
+  "fear_greed": {
+    "score": 15.0,
+    "rating": "extreme fear",
+    "prev_close": 15.2,
+    "prev_1_week": 15.9,
+    "as_of": "2026-11-26T01:59:59+00:00"
+  },
+  "fed_press": [
+    {
+      "date": "2026-11-25",
+      "title": "Agencies announce dollar thresholds for applicability of truth in lending and consumer leasing rules for consumer credit and lease transactions",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20261125b.htm"
+    },
+    {
+      "date": "2026-11-25",
+      "title": "Agencies announce dollar thresholds for smaller loan exemption from appraisal requirements for higher-priced mortgage loans",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20261125a.htm"
+    },
+    {
+      "date": "2026-11-24",
+      "title": "Minutes of the Board's discount rate meetings on October 19 and October 28, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261124a.htm"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "Federal Reserve announces College Fed Challenge winners",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261120b.htm"
+    },
+    {
+      "date": "2026-11-20",
+      "title": "Federal Reserve Board releases results from survey of senior financial officers at banks about their strategies and practices for managing reserve balances",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261120a.htm"
+    }
+  ],
+  "treasury_curve": {
+    "source": "us_treasury",
+    "as_of": "2026-11-25",
+    "status": "ok",
+    "age_days": 1,
+    "unit": "percent",
+    "frequency": "daily_par_yield",
+    "yields": {
+      "1m": 4.27,
+      "1.5m": 4.27,
+      "2m": 4.3,
+      "3m": 4.34,
+      "4m": 4.37,
+      "6m": 4.44,
+      "1y": 4.56,
+      "2y": 4.61,
+      "3y": 4.64,
+      "5y": 4.65,
+      "7y": 4.74,
+      "10y": 4.85,
+      "20y": 5.28,
+      "30y": 5.24
+    },
+    "missing_maturities": [],
+    "spread_10y_2y_bps": 24.0,
+    "spread_10y_3m_bps": 51.0,
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
+  },
+  "volatility": {
+    "vix": {
+      "symbol": "VIX",
+      "price": 28.29,
+      "prev": 26.36,
+      "change_pct": 7.32,
+      "source": "cboe",
+      "as_of": "2026-11-25",
+      "previous_as_of": "2026-11-24",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
+    },
+    "vix9d": {
+      "symbol": "VIX9D",
+      "price": 29.61,
+      "prev": 26.68,
+      "change_pct": 10.98,
+      "source": "cboe",
+      "as_of": "2026-11-25",
+      "previous_as_of": "2026-11-24",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv"
+    },
+    "vix3m": {
+      "symbol": "VIX3M",
+      "price": 26.29,
+      "prev": 25.47,
+      "change_pct": 3.22,
+      "source": "cboe",
+      "as_of": "2026-11-25",
+      "previous_as_of": "2026-11-24",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "skew": {
+      "symbol": "SKEW",
+      "price": 142.06,
+      "prev": 139.16,
+      "change_pct": 2.08,
+      "source": "cboe",
+      "as_of": "2026-11-25",
+      "previous_as_of": "2026-11-24",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv"
+    }
+  },
+  "volatility_term_structure": {
+    "vix_to_vix3m": 1.0761,
+    "as_of": "2026-11-25",
+    "source": "cboe",
+    "frequency": "daily_close"
+  },
+  "coverage": {
+    "vix": "ok",
+    "treasury_10y": "ok",
+    "dxy": "ok",
+    "hsi": "ok",
+    "hstech": "ok",
+    "spx": "ok",
+    "nasdaq": "ok",
+    "vix9d": "ok",
+    "vix3m": "ok",
+    "skew": "ok",
+    "treasury_curve": "ok"
+  },
+  "generated_at": "2026-11-26T23:20:24.530492+00:00"
+}

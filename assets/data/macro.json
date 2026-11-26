@@ -1,11 +1,11 @@
 {
   "vix": {
     "symbol": "^VIX",
-    "price": 28.29,
-    "prev": 26.36,
-    "change_pct": 7.32,
+    "price": 26.8,
+    "prev": 28.29,
+    "change_pct": -5.27,
     "source": "yahoo",
-    "as_of": 1795641301
+    "as_of": 1795710600
   },
   "treasury_10y": {
     "symbol": "^TNX",
@@ -18,27 +18,27 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 103.696,
-    "prev": 103.814,
-    "change_pct": -0.11,
+    "price": 103.777,
+    "prev": 103.665,
+    "change_pct": 0.11,
     "source": "yahoo",
-    "as_of": 1795647899
+    "as_of": 1795734299
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 21966.01,
-    "prev": 22219.65,
-    "change_pct": -1.14,
+    "price": 22226.88,
+    "prev": 21966.01,
+    "change_pct": 1.19,
     "source": "tencent",
-    "as_of": "2026-11-25"
+    "as_of": "2026-11-26"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 3378.26,
-    "prev": 3466.87,
-    "change_pct": -2.56,
+    "price": 3417.38,
+    "prev": 3378.26,
+    "change_pct": 1.16,
     "source": "tencent",
-    "as_of": "2026-11-25"
+    "as_of": "2026-11-26"
   },
   "spx": {
     "symbol": "^GSPC",
@@ -57,11 +57,11 @@
     "as_of": "2026-11-25"
   },
   "fear_greed": {
-    "score": 15.2,
+    "score": 15.0,
     "rating": "extreme fear",
-    "prev_close": 17.4,
-    "prev_1_week": 29.9,
-    "as_of": "2026-11-25T23:04:36+00:00"
+    "prev_close": 15.2,
+    "prev_1_week": 15.9,
+    "as_of": "2026-11-26T01:59:59+00:00"
   },
   "fed_press": [
     {
@@ -88,18 +88,13 @@
       "date": "2026-11-20",
       "title": "Federal Reserve Board releases results from survey of senior financial officers at banks about their strategies and practices for managing reserve balances",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/other20261120a.htm"
-    },
-    {
-      "date": "2026-11-19",
-      "title": "Federal Reserve Board issues enforcement action with former employee of First Security Bancorp",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261119a.htm"
     }
   ],
   "treasury_curve": {
     "source": "us_treasury",
     "as_of": "2026-11-25",
     "status": "ok",
-    "age_days": 0,
+    "age_days": 1,
     "unit": "percent",
     "frequency": "daily_par_yield",
     "yields": {
@@ -124,7 +119,17 @@
     "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026"
   },
   "volatility": {
-    "vix": null,
+    "vix": {
+      "symbol": "VIX",
+      "price": 28.29,
+      "prev": 26.36,
+      "change_pct": 7.32,
+      "source": "cboe",
+      "as_of": "2026-11-25",
+      "previous_as_of": "2026-11-24",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
+    },
     "vix9d": {
       "symbol": "VIX9D",
       "price": 29.61,
@@ -147,9 +152,24 @@
       "frequency": "daily_close",
       "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
     },
-    "skew": null
+    "skew": {
+      "symbol": "SKEW",
+      "price": 142.06,
+      "prev": 139.16,
+      "change_pct": 2.08,
+      "source": "cboe",
+      "as_of": "2026-11-25",
+      "previous_as_of": "2026-11-24",
+      "frequency": "daily_close",
+      "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv"
+    }
   },
-  "volatility_term_structure": null,
+  "volatility_term_structure": {
+    "vix_to_vix3m": 1.0761,
+    "as_of": "2026-11-25",
+    "source": "cboe",
+    "frequency": "daily_close"
+  },
   "coverage": {
     "vix": "ok",
     "treasury_10y": "ok",
@@ -160,8 +180,8 @@
     "nasdaq": "ok",
     "vix9d": "ok",
     "vix3m": "ok",
-    "skew": "unavailable",
+    "skew": "ok",
     "treasury_curve": "ok"
   },
-  "generated_at": "2026-11-25T23:20:25.209628+00:00"
+  "generated_at": "2026-11-26T23:20:24.530492+00:00"
 }
