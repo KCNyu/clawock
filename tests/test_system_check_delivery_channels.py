@@ -84,6 +84,18 @@ def test_two_healthy_legs_do_not_warn(system_check, monkeypatch, tmp_path):
     assert "30/30" in rows[0][2], "the healthy row still has to carry the numbers"
 
 
+@pytest.mark.parametrize("misses", [7, 8])
+def test_degraded_failure_rate_includes_the_twenty_percent_boundary(
+        system_check, monkeypatch, tmp_path, misses):
+    slots = [{"wechat_ok": not (i % 5 == 0 and i // 5 < misses), "telegram_ok": True}
+             for i in range(40)]
+    [(_, level, detail)] = _run(system_check, monkeypatch, tmp_path, slots)
+    if misses == 8:
+        assert level == system_check.WARNING and "wechat 80%" in detail
+    else:
+        assert level == system_check.OK
+
+
 def test_a_slot_nobody_received_outranks_a_degrading_leg(
         system_check, monkeypatch, tmp_path):
     """Every channel false = the report reached no human that slot."""

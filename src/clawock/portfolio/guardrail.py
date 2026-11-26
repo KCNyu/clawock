@@ -215,6 +215,12 @@ _POST_WEIGHT = re.compile(
     rf'|(?:卖|减)\s*\d+(?:\.\d+)?\s*股\s*(?:能把|把|之后)\s*{_SAME_POSITION}'
     rf'\s*(?:{_WEIGHT_DESTINATION}|占))'
     r'(?:约)?\s*(\d+(?:\.\d+)?)\s*[%％]')
+_POST_TRIM_SCOPE = re.compile(
+    r'[卖减](?:完|掉|了)|'
+    r'(?:卖出|减仓|减持|[卖减]\s*\d+(?:\.\d+)?\s*股)\s*(?:之)?后')
+_ABOVE_REVIEW_LINE = re.compile(
+    r'仍(?:然)?\s*(?:略微|略|稍|明显)?\s*(?:高于|超过)\s*'
+    r'(?:(\d+(?:\.\d+)?)\s*[%％]\s*(?:的\s*)?)?(?:单名)?复核线')
 _BOOK_MARK_SCENARIO = re.compile(
     r'按\s*(?:(?:当前价|现价)\s*(?=算)|(?:当前价|现价)?\s*(\d+(?:\.\d+)?)'
     r'\s*(?:港元|美元|HKD|USD))\s*算', re.I)
@@ -233,7 +239,7 @@ def trim_claim_projection(text, projection, book_projection=None):
 
 
 def trim_claim_warnings(text, projection, book_projection=None):
-    """Check explicit weight destinations and review-line sufficiency claims.
+    """Check explicit weight destinations, review-line status and share claims.
 
     Callers own ticker attribution. Do not infer an intended sale from a return,
     or treat a negated claim as an affirmative promise.
@@ -253,6 +259,23 @@ def trim_claim_warnings(text, projection, book_projection=None):
                 continue
             if expected is not None and abs(float(raw) - expected) > 0.5 * 10 ** -precision + 1e-9:
                 warnings.append(f'作者减仓后占比 {raw}% 与当前账本联立解 {expected}% 不一致；请复核')
+        target = scenario.get('target_pct')
+        if expected is not None and target is not None and expected <= target:
+            for match in _ABOVE_REVIEW_LINE.finditer(sentence):
+                if match[1] and float(match[1]) != target:
+                    continue
+                # Current-weight prose can sit next to an explicit post-sale
+                # projection. Attribute the claim only to the post-sale scope.
+                prefix = sentence[:match.start()]
+                scopes = list(_POST_TRIM_SCOPE.finditer(prefix))
+                if not scopes or re.search(r'当前|目前|现在|减仓(?:之)?前|卖出(?:之)?前',
+                                           prefix[scopes[-1].end():]):
+                    continue
+                clause = re.split(r'[，,]', prefix)[-1]
+                if re.search(r'不能|无法|未能|不再声称|不会|并非|不是|不应|不该|是否', clause):
+                    continue
+                warnings.append(
+                    f'作者称减仓后仍高于复核线，当前账本联立解 {expected}% 不高于 {target:g}% 复核线；请复核')
         need = scenario.get('shares_to_review_line')
         if need is None or not re.search(r'复核线|支配度|集中度|占比', sentence):
             continue

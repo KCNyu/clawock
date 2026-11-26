@@ -835,7 +835,7 @@ def reconcile_raw_execution():
         if jobs_result.source != "sqlite":
             raise OSError("cron jobs SQLite unavailable")
         if not jobs:
-            return False
+            raise OSError("cron jobs SQLite returned no jobs")
         job_ids = {job.get("name"): job.get("id") for job in jobs}
         ledger = load_ledger()
         run_cache = {}

@@ -236,9 +236,11 @@ behind each command; this page does not maintain a second copy of its parser.
   ledger; acknowledgment is distinct from evidence of resolution. Thesis,
   earnings and entry-gate artifacts feed the [research work queue](../operations/research-cadence.md).
   `research --check` fails invalid artifacts, not ordinary due work.
-- **Dashboard builds:** default builds use the workspace. `--previous` is an
-  explicit published-generation input for a checkout missing context sidecars;
-  `--out-dir` stages outputs away from public paths. `--skip-if-unchanged`
+- **Dashboard builds** restore missing cards from a published payload only
+  when it is passed via `--previous`. `--no-previous` is the default. On
+  a shadow simulation failure, the failure marker can carry `stale_as_of`
+  from the existing shadow file at the output destination. `--out-dir`
+  stages outputs away from public paths. `--skip-if-unchanged`
   skips unchanged projections, not required slot heartbeats. Publishing and
   ownership are in [the harness](../architecture/harness.md) and
   [data plane](../architecture/data-plane.md).

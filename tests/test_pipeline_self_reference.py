@@ -128,7 +128,7 @@ def test_brief_card_leak_stays_in_diagnostics(
                         lambda *_a, **_k: ([], plan))
     monkeypatch.setattr(pf, '_judgment_gap_issues', lambda *_a, **_k: [])
     monkeypatch.setattr(pf.brief_render, 'render_from_workspace',
-                        lambda *_a, **_k: ([], None))
+                        lambda *_a, **_k: ([], '# Fixture brief'))
     monkeypatch.setattr(pf, '_ensure_jekyll_front_matter', lambda *_a, **_k: None)
     monkeypatch.setattr(pf, 'assess_brief_readability', lambda *_a, **_k: {})
     monkeypatch.setattr(pf, 'readability_issues', lambda *_a, **_k: [])

@@ -37,9 +37,13 @@ Treat that as an operational trade, not product architecture:
 - The static Pages artifact remains the cold-start fallback, so a raw-content
   outage degrades to an older but internally complete screen instead of blanking
   the application.
-- The browser bounds every raw-content read at eight seconds. A refused,
-  failed or unanswered read drops that origin for the rest of the visit and the
-  page re-reads Overview and the full document from Pages as one generation.
+- The browser bounds raw-content reads at eight seconds. A live read failure
+  on the Overview or full-document path disables that origin for the rest of
+  the visit. Subsequent Overview and full-document reads use Pages and check
+  that the two belong to one generation.
+- On a failed live sidecar read the browser tries the Pages copy once, also
+  with an eight-second deadline. The live origin stays available for the next
+  sidecar refresh.
 - The first paint is the Pages copy, so the first detail tab can meet a full
   document on the branch that is a generation newer. That is the normal state
   during a session, not an error: the page keeps the document, reads the

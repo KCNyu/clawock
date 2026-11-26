@@ -1488,6 +1488,10 @@ def check_delivery_channel_health(r):
         ok, seen = totals[name]
         return ok / seen if seen else 1.0
 
+    def failure_rate(name):
+        ok, seen = totals[name]
+        return (seen - ok) / seen if seen else 0.0
+
     def current_run(name):
         """Consecutive most-recent slots this channel failed, and why.
 
@@ -1523,7 +1527,7 @@ def check_delivery_channel_health(r):
         return
     healthy = [n for n in names if rate(n) >= DELIVERY_HEALTHY_SUCCESS_RATE]
     rotting = [n for n in names
-               if (1 - rate(n)) >= DELIVERY_DEGRADED_FAILURE_RATE and n not in healthy]
+               if failure_rate(n) >= DELIVERY_DEGRADED_FAILURE_RATE and n not in healthy]
     if rotting and healthy:
         named = '; '.join(f'{n} {rate(n) * 100:.0f}%' for n in rotting)
         runs = [phrase for phrase in (run_phrase(n) for n in rotting) if phrase]
