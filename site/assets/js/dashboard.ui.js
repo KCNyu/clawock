@@ -733,7 +733,7 @@
   function _sidecarState(k) {
     if (!SIDECAR_STATE.has(k)) {
       SIDECAR_STATE.set(k, {
-        value: null, serialized: null, ready: false, stale: true, inFlight: null,
+        value: null, serialized: null, ready: false, stale: true, failed: false, inFlight: null,
       });
     }
     return SIDECAR_STATE.get(k);
@@ -788,7 +788,10 @@
       .then(value => {
         // A transient 404/network failure must not replace a sidecar that was
         // already rendered. Keep it stale so the next activation can retry.
-        if (value === null) return false;
+        if (value === null) {
+          state.failed = true;
+          return false;
+        }
         // Sidecars publish independently from dashboard.json. Revalidate them,
         // but do not replay a tab's DOM when its serialized value is identical
         // to the value it already rendered.
@@ -798,9 +801,13 @@
         state.serialized = serialized;
         state.ready = true;
         state.stale = false;
+        state.failed = false;
         return changed;
       })
-      .catch(() => false)
+      .catch(() => {
+        state.failed = true;
+        return false;
+      })
       .finally(() => { state.inFlight = null; });
     return state.inFlight;
   }
@@ -824,19 +831,21 @@
     return panel.querySelector(":scope > .panel-load-error");
   }
 
-  function _showPanelLoadError(panel, t) {
+  function _showPanelLoadError(panel, t, sidecar = false) {
     if (!panel || _panelErrorBox(panel)) return;
     const box = document.createElement("div");
     box.className = "panel-load-error";
     box.setAttribute("role", "status");
     const text = document.createElement("span");
-    text.textContent = "这一页的数据没能载入 —— 下面显示的是上一次载入的内容。";
+    text.textContent = sidecar
+      ? "部分数据刷新失败，仍显示上一次载入的内容。"
+      : "这一页的数据没能载入 —— 下面显示的是上一次载入的内容。";
     const retry = document.createElement("button");
     retry.type = "button";
     retry.className = "panel-load-retry";
     retry.textContent = "重试";
     retry.addEventListener("click", () => {
-      _clearPanelLoadError(panel);
+      if (!sidecar) _clearPanelLoadError(panel);
       activateTabData(t, true);
     });
     box.append(text, retry);
@@ -851,6 +860,15 @@
     if (box) box.remove();
   }
 
+  function _syncPanelSidecarError(t, panel) {
+    const retained = _sidecarsForTab(t).some(k => {
+      const state = _sidecarState(k);
+      return state.ready && state.failed;
+    });
+    if (retained) _showPanelLoadError(panel, t, true);
+    else _clearPanelLoadError(panel);
+  }
+
   // `force` is for the case where this tab already painted once at the current
   // RENDER_VERSION with a sidecar that had not landed yet: renderTab() would
   // treat that as "already drawn" and keep the empty card.
@@ -861,7 +879,7 @@
     ensureTabCharts(t);
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
     if (panel) panel.removeAttribute("aria-busy");
-    _clearPanelLoadError(panel);
+    _syncPanelSidecarError(t, panel);
     // Desktop shows one panel at a time. Let its layout settle before resizing
     // an existing chart; mobile's scroll-settle listener owns the same nudge.
     if (!pagerLive()) requestAnimationFrame(() =>
@@ -905,9 +923,11 @@
       _paintActivatedTab(t);
       if (!needsFetch) return;
       _loadTabSidecars(t, triggeredByUser).then(sidecarsChanged => {
-        if (!sidecarsChanged || version !== TAB_ACTIVATION_VERSION || !DATA) return;
-        _applySidecars(DATA);
-        if (currentTab() === t) _paintActivatedTab(t, true);
+        if (version !== TAB_ACTIVATION_VERSION || !DATA) return;
+        if (sidecarsChanged) _applySidecars(DATA);
+        if (currentTab() !== t) return;
+        if (sidecarsChanged) _paintActivatedTab(t, true);
+        else _syncPanelSidecarError(t, panel);
       });
       return;
     }
@@ -1120,24 +1140,27 @@
             setTimeout(() => command.classList.remove("is-first-paint"), 2000);
           }
         }
-        // render() just painted this tab from a complete pair. A message left
-        // by an earlier failed activation would now sit above the very content
-        // it says did not load.
+        // An older activation error can clear after paint. Keep a warning
+        // for any sidecar that still shows its previous value.
         const painted = document.querySelector(`.panel[data-panel="${landing}"]`);
         if (painted) {
           painted.removeAttribute("aria-busy");
-          _clearPanelLoadError(painted);
+          _syncPanelSidecarError(landing, painted);
         }
       }
       // An unchanged generation still updates relative-time copy and refresh
       // feedback, but must not replace DATA or replay the same DOM every minute.
       _updateAgeLabel();
-      if (!firstLoad && _sidecarsForTab(landing).length) {
+      if (!firstLoad && !hasNew && _sidecarsForTab(landing).length) {
         const expectedData = DATA;
         _loadTabSidecars(landing, triggeredByUser).then(sidecarsChanged => {
-          if (!sidecarsChanged || DATA !== expectedData || currentTab() !== landing) return;
-          _applySidecars(DATA);
-          refreshTab(landing);
+          if (DATA !== expectedData || currentTab() !== landing) return;
+          if (sidecarsChanged) {
+            _applySidecars(DATA);
+            refreshTab(landing);
+          }
+          const panel = document.querySelector(`.panel[data-panel="${landing}"]`);
+          _syncPanelSidecarError(landing, panel);
         });
       }
       if (btn) {

@@ -1,5 +1,6 @@
 """Semantic section-label coverage for the daily brief postflight."""
 
+import json
 from pathlib import Path
 
 
@@ -180,3 +181,25 @@ def test_a_plausible_watch_level_is_not_flagged():
     }}
     packet = {'tickers': {'SPCH': {'facts': {'current_price': 7.97}}}}
     assert brief_postflight._watch_level_scale_issues(plan, packet) == []
+
+
+def test_plan_checks_explicit_own_stop_but_allows_underlying_and_money(tmp_path):
+    path = tmp_path / "plan.json"
+    packet = {'tickers': {
+        'SPCH': {'facts': {'current_price': 6.43}},
+        'SPCX': {'facts': {'current_price': 127.44}},
+    }}
+    path.write_text(json.dumps({'decisions': [
+        {'ticker': 'SPCH', 'rationale': '收 6.43 美元。它自己的止损线 124.08 美元还在上方 2.7%。',
+         'condition': {'description': '盯 SPCX 的止损线 124.08 美元。现金 800 美元。'}},
+        {'ticker': 'SPCX', 'rationale': '它自己的止损线 124.08 美元没有触发。'},
+        {'ticker': 'SPCH', 'rationale': '标的自己的止损线 124.08 美元未触发。',
+         'condition': {'description': 'SPCX 自己的止损线 124.08 美元。'}},
+        {'ticker': 'SPCH', 'condition': {'description': '本票的止损价为 $0.40。'}},
+    ]}))
+    issues = [item for item in brief_postflight.validate_plan_json(path, decision_packet=packet)
+              if '[RATIONALE_PRICE_SCALE]' in item]
+    assert len(issues) == 2
+    assert 'decision[0]' in issues[0] and '19.3 倍' in issues[0]
+    assert 'decision[3]' in issues[1] and 'condition.description' in issues[1]
+    assert brief_postflight.categorize(issues) == 'fail'

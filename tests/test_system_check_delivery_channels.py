@@ -177,3 +177,13 @@ def test_the_same_rate_scattered_is_not_a_run(system_check, monkeypatch, tmp_pat
 
     assert len(rows) == 1
     assert "consecutive" not in rows[0][2]
+
+
+def test_channels_with_staggered_failures_still_flag_lost_redundancy(
+        system_check, monkeypatch, tmp_path):
+    slots = [{"wechat_ok": i % 5 != 0, "telegram_ok": i % 5 != 2}
+             for i in range(40)]
+    [(_, level, detail)] = _run(system_check, monkeypatch, tmp_path, slots)
+    assert level == system_check.WARNING
+    assert "wechat 80%" in detail and "telegram 80%" in detail
+    assert "no channel reaches" in detail

@@ -1610,3 +1610,22 @@ def test_product_evidence_keeps_delivery_judgment_and_action_independent():
         neither=1, unknown=1, not_required=1, wechat=1, telegram=1, any_channel=1)
     assert evidence["judgment"] == dict(valid=1, flagged=1, unavailable=1, unknown=0, not_required=1)
     assert evidence["actionable"] == dict(changed=1, unchanged=1, unknown=2)
+
+
+def test_public_heartbeat_scrubs_existing_nested_host_paths(tmp_path, monkeypatch):
+    from clawock.automation import cron_heartbeat
+
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
+    local = tmp_path / "local.json"
+    public = tmp_path / "public.json"
+    monkeypatch.setattr(cron_heartbeat, "LOCAL_PATH", local)
+    monkeypatch.setattr(cron_heartbeat, "PUBLIC_PATH", public)
+    path = tmp_path / "memory" / "packet.json"
+    cron_heartbeat.record("hk", "preflight_failed", reason=f"failed: {path}",
+                          wechat_detail={"messages": [f"read: {path}"]})
+    assert cron_heartbeat.publish()
+    assert str(tmp_path) in local.read_text()
+    published = public.read_text()
+    assert str(tmp_path) not in published
+    assert "memory/packet.json" in published
+    assert not cron_heartbeat.publish()

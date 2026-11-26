@@ -29,7 +29,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from clawock.automation import delivery_receipts
-from clawock.scheduling import HKT, parse_cron_slots
+from clawock.scheduling import HKT, effective_schedule, host_trigger, load_contract, parse_cron_slots
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -464,6 +464,45 @@ def live_cron_job(job_name):
     if runtime.source == 'sqlite':
         return next((job for job in runtime.entries if job.get('name') == job_name), None)
     return None
+
+
+def note_unobserved_slot(job, slot, *, now, tag, log_event, dry_run, slot_minutes=1):
+    """Record a due trading slot with neither a finished run nor a context."""
+    if not job or not timedelta(minutes=20) <= now - slot < timedelta(minutes=30):
+        return False
+    state = job.get('state') or {}
+    last_start = state.get('lastRunAtMs')
+    if (job.get('status') == 'running' or state.get('runningAtMs') is not None
+            or (isinstance(last_start, (int, float)) and last_start >= slot.timestamp() * 1000)):
+        return False
+    schedule = job.get('schedule') or {}
+    try:
+        # A host-crontab job is deliberately disabled in OpenClaw.
+        if job.get('enabled') is not True:
+            spec = next((item for item in load_contract()['jobs']
+                         if item['name'] == job.get('name')), {})
+            if not spec.get('enabled', True) or not host_trigger(spec):
+                return False
+            schedule = effective_schedule(spec, slot)
+        if schedule.get('kind') != 'cron':
+            return False
+        tz = ZoneInfo(schedule['tz'])
+        start = slot.astimezone(tz)
+        clocks = parse_cron_slots(schedule['expr'], tz.key, start)
+        due = any(tick <= now and tick.strftime('%H:%M') in clocks
+                  for tick in (start + timedelta(minutes=i) for i in range(slot_minutes)))
+    except (OSError, KeyError, TypeError, ValueError, AttributeError, ZoneInfoNotFoundError):
+        return False
+    if not due:
+        return False
+    detail = f'{tag} at {slot.isoformat()}: no completed run or preflight context; scheduler idle'
+    log_event({'tag': tag, 'action': 'scheduled-slot-unobserved', 'reason': detail,
+               'expected_slot': slot.isoformat(), 'dry_run': dry_run})
+    if not dry_run:
+        from clawock.automation import workflow_outcomes
+        workflow_outcomes.note_degradation(
+            None, 'scheduled_slot_unobserved', detail, at=now, group=tag)
+    return True
 
 
 def _before_next_cron_slot(job, finished_ms, candidate_ms):

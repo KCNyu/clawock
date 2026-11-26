@@ -20,10 +20,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import yaml
 
 _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
@@ -36,11 +37,16 @@ WORKFLOW_DIR = WS / ".github" / "workflows"
 LOOKBACK_DAYS = 7
 # Maximum scheduled gap plus an independent allowance for runner delay.
 DELAY_ALLOWANCE_H = 12.0
-CRON_RE = re.compile(r"cron:\s*'([^']+)'")
 
 
 def schedules(path: Path) -> list[str]:
-    return CRON_RE.findall(path.read_text(encoding="utf-8"))
+    # BaseLoader keeps YAML 1.1's boolean coercion from turning 'on' into True.
+    workflow = yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+    triggers = workflow.get("on") if isinstance(workflow, dict) else None
+    if not isinstance(triggers, dict):
+        return []
+    return [entry["cron"] for entry in triggers.get("schedule", [])
+            if isinstance(entry, dict) and isinstance(entry.get("cron"), str)]
 
 
 def expected_interval_hours(exprs: list[str]) -> float | None:
@@ -163,7 +169,7 @@ def assess(workflow: str, exprs: list[str], runs: list[Run | dict], now: datetim
 def report(now: datetime | None = None, runner=None, workflow_dir: Path = WORKFLOW_DIR, source_root: Path = WS) -> dict:
     now = now or datetime.now(timezone.utc)
     rows = []
-    for path in sorted(workflow_dir.glob("*.yml")):
+    for path in sorted([*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")]):
         exprs = schedules(path)
         if not exprs:
             continue                            # push/PR workflows report through PRs

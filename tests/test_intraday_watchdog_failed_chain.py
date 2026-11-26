@@ -132,3 +132,20 @@ def test_a_rebuilt_holiday_sentinel_reads_as_closed(tmp_path, monkeypatch):
 def test_report_watchdog_still_shares_the_rule():
     from clawock.harness import _watchdog_common, report_watchdog
     assert report_watchdog.chain_exhausted is _watchdog_common.chain_exhausted
+
+
+def test_only_an_idle_scheduled_intraday_slot_without_evidence_is_reported(tmp_path, monkeypatch):
+    from clawock.automation import workflow_outcomes
+
+    wd, events, sent, built, _ = _wire(monkeypatch, tmp_path, [PRIOR_OK])
+    notes = []
+    monkeypatch.setattr(wd, "live_cron_job", lambda name: {
+        "enabled": True, "schedule": {"kind": "cron", "expr": "3,33 22-23 * * 1-5", "tz": "Asia/Hong_Kong"},
+        "state": {"lastRunAtMs": _ms(22, 33)},
+    })
+    monkeypatch.setattr(workflow_outcomes, "note_degradation",
+                        lambda ledger, kind, detail, **kw: notes.append((kind, detail)))
+    assert wd.main() == 0
+    assert sent == built == []
+    assert events[-1]["action"] == "scheduled-slot-unobserved"
+    assert len(notes) == 1 and SLOT in notes[0][1]

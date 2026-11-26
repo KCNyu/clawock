@@ -24,6 +24,8 @@ jobs:
 
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
+        with:
+          install: ".[workflow-health]"
 
       - name: Compile all scripts
         run: |

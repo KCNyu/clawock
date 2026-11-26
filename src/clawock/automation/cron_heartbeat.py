@@ -15,7 +15,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from clawock.workspace import workspace_root
+from clawock.workspace import without_host_paths_in_json, workspace_root
 from clawock.automation import workflow_outcomes
 # Both ledgers are published. Their writes go through the one atomic JSON
 # writer (fsync, orphan-tmp cleanup, non-finite guard) under the local name the
@@ -299,7 +299,7 @@ def record(market: str, state: str, *, at: datetime | None = None,
 
 
 def publish() -> bool:
-    ledger = load_ledger()
+    ledger = without_host_paths_in_json(load_ledger())
     before = PUBLIC_PATH.read_text() if PUBLIC_PATH.exists() else None
     payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
     if before == payload:

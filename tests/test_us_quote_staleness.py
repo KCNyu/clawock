@@ -241,6 +241,21 @@ class TestProviderRace:
         assert out["SPCH"]["stale_asof"] == "2026-07-22"
         assert out["SPCH"]["incomplete"] is True
 
+    @pytest.mark.parametrize("later_date,expected", [
+        ("2026-07-23", 8.0), ("2026-07-22", 7.0), ("2026-07-21", 7.0),
+    ])
+    def test_last_resort_prefers_the_latest_dated_print(self, monkeypatch, later_date, expected):
+        self._silence(monkeypatch)
+        monkeypatch.setattr(F, "_us_quote_session_date", lambda: "2026-07-24")
+        monkeypatch.setattr(F, "get_nasdaq_quote", lambda t: {
+            "c": 7.0, "dp": 0.0, "asof_date": "2026-07-22", "source": "Nasdaq"})
+        monkeypatch.setattr(F, "get_finnhub_quote", lambda t, k: {
+            "c": 8.0, "dp": 0.0, "asof_date": later_date, "source": "Finnhub"})
+
+        quote = F.fetch_us_quotes(["SPCH"], {"FINNHUB_API_KEY": "x"})["SPCH"]
+        assert quote["c"] == expected
+        assert quote["stale_asof"] == max("2026-07-22", later_date)
+
     def test_complete_nasdaq_quote_short_circuits(self, monkeypatch):
         self._silence(monkeypatch)
         called = []

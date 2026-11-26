@@ -25,7 +25,7 @@ watchdogs. The overnight monitor's last slot is 02:33 HKT in both seasons, ahead
 
 ## Whole-turn budget / 回合预算
 
-Report and intraday turns allow 28 minutes; the brief allows 40. The shared
+The turn limits are report 29 minutes (1740s), intraday 29 minutes (1740s), brief 40 minutes (2400s). The shared
 post-delivery network/build retry chain reserves 1373 seconds plus 300 seconds
 for judgment, delivery and local work. Brief preflight has an additional
 600-second process-group deadline; a timeout replaces the context with a failure

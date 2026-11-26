@@ -3380,9 +3380,10 @@ async function testFailedSidecarRefreshKeepsTheLastGoodValue(browser, base) {
   const page = await context.newPage();
   await stubLiveOrigin(page);
   let requests = 0;
+  let failRefresh = false;
   await page.route("**/decision_audit.json*", route => {
     requests += 1;
-    if (requests === 1) {
+    if (!failRefresh) {
       return route.fulfill({
         status: 200,
         headers: { "content-type": "application/json; charset=utf-8",
@@ -3401,13 +3402,24 @@ async function testFailedSidecarRefreshKeepsTheLastGoodValue(browser, base) {
 
   // Refresh marks loaded sidecars stale. The live request and its same-origin
   // fallback both fail, reproducing the deployment-window/network-error path.
+  failRefresh = true;
+  const beforeRefresh = requests;
   await page.click("#refresh-btn");
-  for (let i = 0; i < 50 && requests < 3; i += 1) await page.waitForTimeout(50);
-  assert(requests >= 3, "the failed sidecar revalidation did not exercise both origins");
-  await page.waitForTimeout(100);
+  for (let i = 0; i < 50 && requests < beforeRefresh + 2; i += 1) await page.waitForTimeout(50);
+  assert(requests >= beforeRefresh + 2, "the failed sidecar revalidation did not exercise both origins");
+  const panel = page.locator('.panel[data-panel="reflect"]');
+  const error = panel.locator(".panel-load-error");
+  await error.waitFor({ state: "visible" });
+  assert.match(await error.textContent(), /上一次载入/);
   const retained = await page.evaluate(() => DATA?.decision_audit?.sentinel || null);
   assert.equal(retained, "last-good-sidecar",
     "a failed sidecar refresh replaced the last good value with null");
+  // Identical recovered bytes still clear the warning.
+  failRefresh = false;
+  await error.getByRole("button", { name: "重试" }).click();
+  await error.waitFor({ state: "detached" });
+  await page.waitForFunction(() => DATA?.decision_audit?.sentinel === "last-good-sidecar");
+  assert.equal(await panel.getAttribute("data-load-error"), null);
   await context.close();
 }
 

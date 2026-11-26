@@ -55,8 +55,10 @@ import json
 import subprocess
 import sys
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-from clawock.automation import delivery_receipts
+from clawock import sessions as trading_calendar
+from clawock.automation import delivery_receipts, workflow_outcomes
 from clawock.sessions import hkt_today
 from clawock.harness import risk_notices
 from clawock.harness.report import fallback_block
@@ -67,7 +69,8 @@ from ._watchdog_common import (
     same_generation_window, wait_out_inflight, log_after_wait, UNFINISHED_RUN,
     attempt_still_running,  # noqa: F401  re-export; tests learned the rule here
     send_wechat, resolve_wechat_target, wechat_backstop,
-    wechat_gap_reason, chain_exhausted, marker_is_fresh,
+    wechat_gap_reason, chain_exhausted, marker_is_fresh, slot_shipped, note_unobserved_slot,
+    live_cron_job,
 )
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -195,6 +198,22 @@ def _backstop_body(marker, session_id, raw_block_first, ctx, tag):
     return body, source
 
 
+def _note_unobserved_report(args, tag, today, tmp):
+    now = datetime.now(HKT)
+    try:
+        slot = datetime.fromisoformat(workflow_outcomes.slot_for_job(args.job_name, now))
+    except (OSError, ValueError):
+        return False
+    exchange_day = slot.astimezone(ZoneInfo(
+        trading_calendar.MARKET_TZ[args.market])).date()
+    session = trading_calendar.phase_session(args.market, args.phase)
+    if (trading_calendar.closed_reason(args.market, exchange_day, session=session)
+            or slot_shipped(tmp, 'report', market=args.market, phase=args.phase, date=today)):
+        return False
+    return note_unobserved_slot(live_cron_job(args.job_name), slot, now=now,
+                                tag=tag, log_event=log, dry_run=args.dry_run)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -235,6 +254,8 @@ def main():
         # block, hold the slot at the in-flight gate below instead of returning
         # above it (#2646). Without a block there is nothing to back up.
         if not (ctx.get('raw_wechat_block') or '').strip():
+            if not ctx and _note_unobserved_report(args, tag, today, ctx_path.parent):
+                return 0
             log({'tag': tag, 'action': 'skip', 'reason': 'no completed run recorded today'})
             return 0
         last = UNFINISHED_RUN

@@ -234,3 +234,25 @@ def test_weekly_build_checks_all_outputs_with_canonical_clock_normalization():
     assert 'config/dashboard-outputs.json' in step
     assert 'ops/ci/strip_dashboard_clocks.py' in step
     assert 'for name in $names' in step
+
+
+def test_report_discovers_actual_schedules_across_yaml_styles(tmp_path):
+    workflow = tmp_path / "mixed.yaml"
+    workflow.write_text("""
+on:
+  schedule:
+    - cron: '0 1 * * 0'
+    - cron: "0 2 * * 0"
+    - cron: 0 3 * * 0
+    # - cron: '0 4 * * 0'
+jobs:
+  sample:
+    steps:
+      - run: |
+          echo "cron: '0 5 * * 0'"
+""")
+    rows = wh.report(NOW, runner=lambda cmd: "[]", workflow_dir=tmp_path,
+                     source_root=tmp_path)["workflows"]
+    assert len(rows) == 1
+    assert rows[0]["schedules"] == ["0 1 * * 0", "0 2 * * 0", "0 3 * * 0"]
+    assert rows[0]["status"] == "attention"

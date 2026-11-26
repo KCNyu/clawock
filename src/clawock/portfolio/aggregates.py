@@ -164,7 +164,8 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
             and (number(t.get('shares')) or 0) > 0
             and number(t.get('price')) is not None
             for t in ledger_rows(h.get('trades')))
-        measurable = not unplaced_fill and (pc is not None or (old_shares == 0 and base > 0))
+        measurable = (not h.get('quote_stale_asof') and not unplaced_fill
+                      and (pc is not None or (old_shares == 0 and base > 0)))
         if not measurable:
             for field in ('today_change', 'today_change_pct'):
                 if h.get(field) is not None:
