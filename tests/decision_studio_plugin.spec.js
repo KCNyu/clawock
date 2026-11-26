@@ -4491,6 +4491,20 @@ test("workbench client: English copy, a zero balance and a failed read", async (
   assert.match(textOf(rows[4]), /Free|free/);
   assert.equal(tabs(page.tree)[0].props["aria-label"], "Tasks, 0 pending");
 
+  const refusedPositiveBalance = {
+    ...zero,
+    providers: zero.providers.map((row) => row.provider !== "deepseek" ? row : {
+      ...row, result: { ...row.result, low: false,
+        snapshot: { ...row.result.snapshot, totalBalance: "119.25" } },
+    }),
+  };
+  const refused = make(refusedPositiveBalance);
+  assert.equal(tabs(refused.tree)[1].props["aria-label"], "Providers, 1 alert");
+  tabs(refused.tree)[1].props.onClick();
+  const refusedRow = find(refused.render(), (p) => p["data-wb-provider"] === "deepseek")[0];
+  assert.equal(refusedRow.props["data-wb-provider-signal"], "alert");
+  assert.match(textOf(refusedRow), /119\.25/);
+
   const unknownBalance = {
     ...zero,
     providers: zero.providers.map((row) => row.provider !== "deepseek" ? row : {

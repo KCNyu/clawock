@@ -9802,7 +9802,7 @@ function providerSignal(row) {
 		if (snapshot.totalBalance.trim() === "" || !Number.isFinite(total)) return "none";
 		const credit = Number(snapshot.grantedBalance);
 		if (!Number.isFinite(credit)) return "none";
-		if (total + credit <= 0) return "alert";
+		if (snapshot.isAvailable === false || total + credit <= 0) return "alert";
 		return result.low || total < 10 ? "warn" : "ok";
 	}
 	const windows = (snapshot.windows ?? []).filter((window) => window.percent !== null);

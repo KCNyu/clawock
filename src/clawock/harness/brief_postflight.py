@@ -38,7 +38,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from clawock.workspace import workspace_root
-from clawock.safe_io import safe_write_json, safe_write_text
+from clawock.safe_io import safe_write_json, safe_write_text, to_finite_number, to_strict_finite_number
 from clawock import instruments as instrument_registry
 from clawock import sessions as trading_calendar
 from clawock.context import brief as brief_context
@@ -661,6 +661,48 @@ WATCH_LEVEL_MAX_RATIO = 10.0
 _WATCH_LEVEL_NON_PRICE_TOKENS = {'pct', 'percent', 'usd', 'hkd', 'zscore', 'yield', 'book'}
 
 
+def _price_scale_ratio(tickers, ticker, value):
+    facts = (tickers.get(ticker) or {}).get('facts') or {}
+    price = to_strict_finite_number(facts.get('current_price'))
+    if price is None or price <= 0 or value is None or value <= 0:
+        return None
+    return max(value / price, price / value), price
+
+
+_STOP_NUMBER = r'(?:[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)(?:\.[0-9]+)?'
+_OWN_STOP_PRICE = re.compile(
+    r'(?:它自己的|本(?:票|股|产品)的?|自身的?)止损(?:线|价|位)\s*(?:为|在|[:：=])?\s*'
+    rf'(?:(?:HK\$|US\$|\$|USD|HKD)\s*({_STOP_NUMBER})'
+    rf'|({_STOP_NUMBER})\s*(?:美元|港元|港币|USD|HKD))',
+    re.IGNORECASE,
+)
+
+
+def _rationale_stop_scale_issues(decisions, decision_packet):
+    """Compare explicitly self-attributed, currency-denominated stops to the row quote."""
+    tickers = decision_packet.get('tickers') or {}
+    issues = []
+    for index, row in enumerate(decisions):
+        if not isinstance(row, dict):
+            continue
+        ticker = str(row.get('ticker') or '').upper()
+        condition = row.get('condition')
+        description = condition.get('description') if isinstance(condition, dict) else None
+        for field, text in (('rationale', row.get('rationale')), ('condition.description', description)):
+            if not isinstance(text, str):
+                continue
+            for match in _OWN_STOP_PRICE.finditer(text):
+                value = to_finite_number((match.group(1) or match.group(2)).replace(',', ''))
+                comparison = _price_scale_ratio(tickers, ticker, value)
+                if comparison and comparison[0] >= WATCH_LEVEL_MAX_RATIO:
+                    ratio, price = comparison
+                    issues.append(
+                        f'plan.json decision[{index}] {ticker} {field}: 本票止损 {value:g} 与'
+                        f'现价 {price:g} 相差 {ratio:.1f} 倍 [RATIONALE_PRICE_SCALE]（critical）。'
+                        '若引用标的止损，请明确标注标的。')
+    return issues
+
+
 def _watch_level_scale_issues(plan, decision_packet):
     levels = plan.get('watch_levels') if isinstance(plan, dict) else None
     if not isinstance(levels, dict) or not decision_packet:
@@ -682,13 +724,9 @@ def _watch_level_scale_issues(plan, decision_packet):
             owner = instrument_registry.watch_level_owner(key)
             if owner in tickers:
                 ticker = owner
-        facts = (tickers.get(ticker) or {}).get('facts') or {}
-        price = facts.get('current_price')
-        if (not isinstance(price, (int, float)) or isinstance(price, bool)
-                or price <= 0):
-            continue
-        ratio = max(value / price, price / value)
-        if ratio >= WATCH_LEVEL_MAX_RATIO:
+        comparison = _price_scale_ratio(tickers, ticker, value)
+        if comparison and comparison[0] >= WATCH_LEVEL_MAX_RATIO:
+            ratio, price = comparison
             issues.append(
                 f'plan.json watch_levels: {key}={value:g} 与 {ticker} 现价 '
                 f'{price:g} 相差 {ratio:.1f} 倍 [WATCH_LEVEL_SCALE]（critical）')
@@ -729,6 +767,8 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
         ]
         issues += _watch_level_scale_issues(plan, decision_packet)
     decisions = plan.get('decisions', []) if isinstance(plan.get('decisions'), list) else []
+    if decision_packet:
+        issues += _rationale_stop_scale_issues(decisions, decision_packet)
     issues += [f'plan.json harness: {x}'
                for x in tool_receipt_issues(decisions, plan.get('date'))]
     # Unpriceable calls score for direction but never reach the money chart.
@@ -959,7 +999,7 @@ CRITICAL_KEYWORDS = [
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
     'book inputs invalid', 'book totals mismatch:',
     '仓位支配度不符', '判断与计划股数冲突',
-    'plan.json watch_levels',
+    'plan.json watch_levels', '[RATIONALE_PRICE_SCALE]',
     '引用了 private topic',
 ]  # table mismatch, cross-generation output and placeholder prose are critical
 

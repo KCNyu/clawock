@@ -903,7 +903,7 @@ def trim_holding(h, currency):
     active = (_share_number(h.get('shares')) or 0) > 0
     range_gap = quote_range_gap(h) if active else None
     quote_status = {}
-    position_change = today('today_change')
+    position_change = None if active and h.get('quote_stale_asof') else today('today_change')
     if active and h.get('quote_incomplete_prev_close'):
         session = h.get('day_session_date')
         _, base, old_shares = day_pnl_basis(

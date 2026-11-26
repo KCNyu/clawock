@@ -174,6 +174,12 @@ def render(contract: dict) -> str:
     intraday = _intraday_passes(contract)
     brief_backstop, brief_miss = _brief_watchdog_clocks(contract)
     overnight_last = _overnight_last_slot(contract)
+    profiles = contract["payload_profiles"]
+    limits = ", ".join(
+        f"{name} {seconds / 60:g} minutes ({seconds}s)"
+        for name in ("report", "intraday", "brief")
+        for seconds in [profiles[name]["timeout_seconds"]]
+    )
     return "\n".join([
         "# Cron schedule contract / 调度契约",
         "",
@@ -202,7 +208,7 @@ def render(contract: dict) -> str:
         "",
         "## Whole-turn budget / 回合预算",
         "",
-        "Report and intraday turns allow 28 minutes; the brief allows 40. The shared",
+        f"The turn limits are {limits}. The shared",
         f"post-delivery network/build retry chain reserves {POST_DELIVERY_BUDGET_SECONDS} seconds plus {PRE_DELIVERY_RESERVE_SECONDS} seconds",
         "for judgment, delivery and local work. Brief preflight has an additional",
         f"{BRIEF_PREFLIGHT_TIMEOUT_SECONDS}-second process-group deadline; a timeout replaces the context with a failure",

@@ -352,3 +352,38 @@ def test_verified_stored_close_can_measure_a_real_zero_return():
                      _holding(quote_incomplete=True, quote_incomplete_range=True))
     assert not holding.get('quote_incomplete_prev_close')
     assert session_change_pct(holding) == 0
+
+
+@pytest.mark.parametrize("new_lot", [False, True])
+def test_stale_print_cannot_price_session_profit_even_with_a_valid_basis(tmp_path, new_lot):
+    holding = _holding()
+    if new_lot:
+        holding['trades'][0].update(date='2026-11-02', price=8.0)
+    stale = {"c": 9.55, "pc": 9.8, "dp": -2.551, "source": "Nasdaq",
+             "stale_asof": "2026-10-28"}
+    _apply(stale, holding=holding)
+    assert holding["today_change"] is holding["today_change_pct"] is None
+    assert holding["current_value"] == 95.5
+
+    # A ledger written by an older quote writer must be safe to read or repair.
+    holding.update(today_change=-2.5, today_change_pct=-2.551)
+    assert trim_holding(holding, "USD")["today_change"] is None
+    assert _ticker_facts(holding, {}, "RKLX", 10, "us")["today_change_pct"] is None
+    book = _portfolio(holding)
+    path = tmp_path / "portfolio.json"
+    path.write_text(json.dumps(book))
+    assert any(r["code"] == "TODAY_LEG" for r in integrity.check(path)["findings"])
+    aggregates.recompute(book)
+    assert holding["today_change"] is holding["today_change_pct"] is None
+    assert book["portfolios"]["us_stocks"]["today_total_change"] == 0
+
+
+def test_same_session_missing_open_keeps_verified_open_and_gap():
+    holding = _holding(day_session_date="2026-10-30")
+    quote = {"c": 10., "pc": 9.8, "dp": 2.04, "h": 10.1, "l": 9.6,
+             "o": 9.9, "source": "Nasdaq"}
+    _apply(quote, holding=holding)
+    _apply({**quote, "o": None, "c": 10.05}, holding=holding)
+    assert holding["day_open"] == 9.9
+    assert not holding.get("quote_incomplete_open")
+    assert holding_metrics(holding, {"atr14_pct": 2.5})["gap_pct"] == pytest.approx(1.02)

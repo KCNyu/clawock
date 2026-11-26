@@ -855,7 +855,9 @@ def fetch_us_quotes(tickers: List[str], keys: Dict[str, str]) -> Dict[str, Dict]
             # The provider dated this print before today. Park it far behind an
             # incomplete-but-current quote: a rangeless price from this session
             # beats an exact price from four sessions ago.
-            stale.setdefault(ticker, quote)
+            previous = stale.get(ticker)
+            if previous is None or quote['asof_date'] > previous['asof_date']:
+                stale[ticker] = quote
             print(f"      ✗ {ticker}: ${quote['c']:.4f} [{quote['source']}] "
                   f"last trade dated {quote['asof_date']} (< {today_et_date}) "
                   f"— stale print, rejected", file=sys.stderr)
@@ -1206,9 +1208,11 @@ def _accumulate_day_range(holding, q, c, *, now_et, today_et_date):
         if holding.get('day_low'):
             cands_l.append(holding['day_low'])
     cached_open = holding.get('day_open') if same_session else None
-    if api_o:
-        # A later regular-session capture can replace a last-price fallback.
-        day_o = (None if holding.get('quote_incomplete_open') else cached_open) or api_o
+    if cached_open and not holding.get('quote_incomplete_open'):
+        day_o = cached_open
+    elif api_o:
+        # A later capture can replace a last-price fallback.
+        day_o = api_o
         holding.pop('quote_incomplete_open', None)
     else:
         day_o = cached_open or c
@@ -1273,7 +1277,7 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
     else:
         holding.pop('quote_incomplete', None)
     amount, base, old_shares = day_pnl_basis(holding, today_et_date, current=c, market='us')
-    measurable = prev_close_ok or (old_shares == 0 and base > 0)
+    measurable = not stale_asof and (prev_close_ok or (old_shares == 0 and base > 0))
     holding['today_change'] = round(amount, 2) if measurable else None
     holding['today_change_pct'] = (round(amount / base * 100, 4) if base else 0) if measurable else None
     holding.pop('today_change_abs', None)
@@ -1307,7 +1311,8 @@ def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, ticker
                       for h in all_active_h)
     total_value = sum(carried_value(h) for h in all_active_h)
     total_pnl   = total_value - total_cost
-    today_chg   = sum((h.get('today_change') or 0) for h in all_active_h)
+    today_chg   = sum((h.get('today_change') or 0) for h in all_active_h
+                      if not h.get('quote_stale_asof'))
 
     us['total_cost']          = round(total_cost, 2)
     us['total_current_value'] = round(total_value, 2)

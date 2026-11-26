@@ -83,6 +83,7 @@ import time
 from datetime import datetime, timedelta
 
 from clawock.harness import risk_notices
+from clawock import sessions as trading_calendar
 from clawock.automation import delivery_receipts
 from ._watchdog_common import (
     marker_is_fresh,
@@ -95,6 +96,7 @@ from ._watchdog_common import (
     # for the tests and callers that learned the rule here first.
     attempt_still_running,  # noqa: F401  re-export
     wait_out_inflight, log_after_wait, UNFINISHED_RUN, live_cron_job, intraday_run_slots,
+    slot_shipped, note_unobserved_slot,
     send_wechat, resolve_wechat_target, wechat_backstop,
     wechat_gap_reason, chain_exhausted,
 )
@@ -350,6 +352,13 @@ def main():
         # slot's context, hold the slot at the in-flight gate below instead of
         # returning above it (#2646). No context for this slot stays a skip.
         if context_for_slot(ctx_path, expected_job, expected_slot) is None:
+            slot = datetime.fromisoformat(expected_slot)
+            if (not trading_calendar.intraday_closed_reason(args.market, slot)
+                    and not slot_shipped(ctx_path.parent, 'intraday', market=args.market,
+                                         slot=expected_slot)
+                    and note_unobserved_slot(scheduler_job, slot, now=watchdog_now, tag=tag,
+                                             log_event=log, dry_run=args.dry_run, slot_minutes=30)):
+                return 0
             log({'tag': tag, 'action': 'skip',
                  'reason': ('expected slot has no completed run' if runs_today
                             else 'no completed run recorded today'),

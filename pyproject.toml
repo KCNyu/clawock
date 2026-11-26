@@ -88,6 +88,8 @@ imaging = ["Pillow>=13.0.0"]
 # for the same reason as everything else in this table: a version pinned in a
 # workflow line is a second source of truth that drifts unseen.
 seo = ["google-auth>=2.30"]
+# Read GitHub Actions schedule declarations in the weekly health rollup.
+workflow-health = ["PyYAML>=6"]
 # Building and checking a distribution. Here rather than in the release workflow
 # for the same reason as everything else in this table: a version pinned in a
 # workflow line is a second source of truth that drifts unseen.

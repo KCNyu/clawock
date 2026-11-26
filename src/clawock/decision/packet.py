@@ -1369,7 +1369,9 @@ def _ticker_facts(holding, context, ticker, shares, market=None) -> dict:
     """The money fields of one row, and nothing about authority (#3420)."""
     range_available = not quote_range_gap(holding)
     today_change = _number(holding.get("today_change_pct"), 2)
-    if holding.get("quote_incomplete_prev_close"):
+    if holding.get("quote_stale_asof"):
+        today_change = None
+    elif holding.get("quote_incomplete_prev_close"):
         session = holding_session(holding, context.get("date"), market=market)
         _, base, old_shares = day_pnl_basis(holding, session, market=market)
         if old_shares > 0 or base <= 0:

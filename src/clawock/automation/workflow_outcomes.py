@@ -32,7 +32,7 @@ from zoneinfo import ZoneInfo
 from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
 from clawock.publish.outcomes import ProductStatus, summarize_records
-from clawock.workspace import without_host_paths, workspace_root
+from clawock.workspace import without_host_paths, without_host_paths_in_json, workspace_root
 # Ledger writes use the shared atomic JSON writer (fsync, orphan-tmp cleanup,
 # non-finite guard) after checking that local evidence can be read (#2620).
 from clawock.safe_io import safe_write_json
@@ -220,17 +220,6 @@ def _fold_degradations(rows):
             merged["first_at"] = min(firsts)
         folded[key] = merged
     return list(folded.values())
-
-
-def _public(value):
-    """`value` as it may be published: host paths out of every string in it."""
-    if isinstance(value, str):
-        return without_host_paths(value)
-    if isinstance(value, dict):
-        return {key: _public(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_public(item) for item in value]
-    return value
 
 
 def note_degradation(ledger, kind, detail, *, at=None, group=None):
@@ -614,7 +603,7 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
             # The ledger is published: a caller's reason or exception text
             # carries this host's absolute paths (#2334).
             current["stages"][stage] = _stage(
-                status, at=now.isoformat(), **_public(details)
+                status, at=now.isoformat(), **without_host_paths_in_json(details)
             )
             if (stage == "primary_delivery" and details.get("wechat_ok") is False
                     and previous.get("wechat_ok") is False):
@@ -1073,7 +1062,7 @@ def publish():
     reconcile_delivery_receipts()
     with _locked():
         _read_path(local_path(), strict=True)
-        ledger = _public(load_ledger())
+        ledger = without_host_paths_in_json(load_ledger())
         for record in ledger.get('records', []):
             stages = record.get('stages') or {}
             required = ('preflight', 'llm', 'postflight', 'primary_delivery', 'watchdog_delivery')

@@ -1528,13 +1528,14 @@ def check_delivery_channel_health(r):
     healthy = [n for n in names if rate(n) >= DELIVERY_HEALTHY_SUCCESS_RATE]
     rotting = [n for n in names
                if failure_rate(n) >= DELIVERY_DEGRADED_FAILURE_RATE and n not in healthy]
-    if rotting and healthy:
+    if rotting:
         named = '; '.join(f'{n} {rate(n) * 100:.0f}%' for n in rotting)
-        runs = [phrase for phrase in (run_phrase(n) for n in rotting) if phrase]
+        runs = [phrase for phrase in (run_phrase(n) for n in names) if phrase]
+        coverage = (f'healthy channels: {"/".join(healthy)}' if healthy
+                    else f'no channel reaches {DELIVERY_HEALTHY_SUCCESS_RATE:.0%} success')
         r.add('delivery channels', WARNING,
               (('; '.join(runs) + ' — ') if runs else '')
-              + f'{named} while {"/".join(healthy)} carries every slot — nothing is '
-              f'lost today, which is why this leg can rot unnoticed '
+              + f'degraded channels: {named}; {coverage} '
               f'({tally} over the last {len(slots)} slots)')
     else:
         runs = [phrase for phrase in (run_phrase(n) for n in names) if phrase]

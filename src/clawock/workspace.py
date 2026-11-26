@@ -77,6 +77,17 @@ def without_host_paths(text, root: Path | str | None = None) -> str:
     return text
 
 
+def without_host_paths_in_json(value):
+    """Copy a JSON payload, removing this host’s absolute prefixes from string values."""
+    if isinstance(value, str):
+        return without_host_paths(value)
+    if isinstance(value, dict):
+        return {key: without_host_paths_in_json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [without_host_paths_in_json(item) for item in value]
+    return value
+
+
 def missing_pieces(root: Path | str) -> list[str]:
     """Which required files a candidate workspace lacks."""
     root = Path(root)

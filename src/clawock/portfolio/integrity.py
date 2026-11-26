@@ -952,7 +952,12 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
             if sess_date and cur is not None and sh:
                 want_tc, basis, old_shares = day_pnl_basis(h, sess_date, market=market)
                 prior_unavailable = h.get('quote_incomplete_prev_close')
-                if prior_unavailable and (old_shares > 0 or basis <= 0):
+                if h.get('quote_stale_asof'):
+                    if tchg is not None or h.get('today_change_pct') is not None:
+                        add('TODAY_LEG', 'ERROR',
+                            f'{t} 报价不属本场，无法计量当日盈亏；运行 clawock reconcile',
+                            region, t)
+                elif prior_unavailable and (old_shares > 0 or basis <= 0):
                     if tchg is not None or h.get('today_change_pct') is not None:
                         add('TODAY_LEG', 'ERROR',
                             f'{t} 缺可信前收，无法计量旧仓当日盈亏；运行 clawock reconcile',

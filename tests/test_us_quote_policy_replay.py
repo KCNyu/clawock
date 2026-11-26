@@ -8,7 +8,9 @@ portfolio, credentials or network are involved. The three stored-close reuse
 cases explicitly mark their old aggregate gap as range-only after the quality
 split; their numeric oracles are unchanged. Legacy unknown quality is covered
 by test_quote_incomplete_split. The two no-prior-close cases intentionally
-expect null position day P&L and an unknown diagnostic after #3650.
+expect null position day P&L and an unknown diagnostic after #3650. The stale
+print also expects unknown day P&L (#3728), and the same-session premarket case
+keeps its stored opening price without an incomplete-open flag (#3735).
 """
 import copy
 import json
