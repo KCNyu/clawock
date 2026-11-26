@@ -112,12 +112,14 @@ def assess_brief_readability(path):
     the warning quotes. `file_bytes` is the raw size, kept for anyone tracking
     the artifact itself.
     """
-    try:
-        text = Path(path).read_text(encoding='utf-8')
-        file_bytes = len(text.encode('utf-8'))
-        nbytes = reader_bytes(text)
-    except (OSError, UnicodeDecodeError):
-        nbytes = file_bytes = None
+    nbytes = file_bytes = None
+    if path is not None:
+        try:
+            text = Path(path).read_text(encoding='utf-8')
+            file_bytes = len(text.encode('utf-8'))
+            nbytes = reader_bytes(text)
+        except (OSError, UnicodeDecodeError):
+            pass
 
     if nbytes is None:
         status = 'unavailable'
@@ -1808,22 +1810,26 @@ def main(argv=None):
     issues += _brief_numeric_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', normalized_plan, context)
 
+    # Both the rendered report and the Pages projection must be current before
+    # the off-host committer can publish (#520). Clear any previous verdict first.
+    write_publish_gate('fail', today, reason='pending_render_and_pages_projection')
+
     # The report is rendered here, from the judgment and the normalized plan —
     # the model no longer writes markdown at all (see clawock.harness.
     # brief_render for why). Rendering after normalization is deliberate: the
     # published tables then show the same decisions the ledger records.
-    # A renderer that cannot run must not take the brief down with it, so the
-    # failure is an issue and whatever markdown exists still ships.
     rendered_markdown = None
     try:
         render_issues, rendered_markdown = brief_render.render_from_workspace(
             WS, today, plan=normalized_plan,
             page_url=brief_url(today),
             write=not args.dry_run)
-        # Unreadable inputs are reported, not escalated here: the consequence —
-        # no report, or yesterday's — is what `validate_markdown` below is for,
-        # and counting it twice can push a warn to a fail on the strength of one
-        # underlying fact.
+    except Exception as exc:
+        render_issues = [f'{type(exc).__name__}: {exc}']
+    render_failed = rendered_markdown is None
+    if render_failed:
+        issues.append(f"简报渲染失败: {'；'.join(render_issues) or '未生成正文'}")
+    else:
         for issue in render_issues:
             print(f'warn: {issue}', file=sys.stderr)
         # One of them is counted rather than only printed. The sector sweep is
@@ -1835,27 +1841,23 @@ def main(argv=None):
         if brief_render.SECTOR_SCAN_MISSING in render_issues:
             workflow_outcomes.note_degradation(
                 None, 'sector_scan_missing', brief_render.SECTOR_SCAN_MISSING)
-    except Exception as exc:
-        issues.append(f'简报渲染失败（保留现有 pre-open.md）: {exc}')
-        print(f'warn: brief render failed: {exc}', file=sys.stderr)
 
     with ExitStack() as preview:
-        markdown_to_check = md_path
-        if args.dry_run:
-            if rendered_markdown is not None:
-                # The provenance guard also reads a file. Give every check
-                # the same preview without touching the canonical report.
-                directory = preview.enter_context(TemporaryDirectory(prefix='clawock-brief-'))
-                markdown_to_check = Path(directory) / md_path.name
-                markdown_to_check.write_text(rendered_markdown, encoding='utf-8')
-        else:
-            # The renderer supplies front matter. A retained report may need it.
+        markdown_to_check = None if render_failed else md_path
+        if not render_failed and args.dry_run:
+            # The provenance guard also reads a file. Give every check
+            # the same preview without touching the canonical report.
+            directory = preview.enter_context(TemporaryDirectory(prefix='clawock-brief-'))
+            markdown_to_check = Path(directory) / md_path.name
+            markdown_to_check.write_text(rendered_markdown, encoding='utf-8')
+        elif not render_failed:
             _ensure_jekyll_front_matter(md_path, today)
 
         readability = assess_brief_readability(markdown_to_check)
-        issues += validate_markdown(markdown_to_check, context=context)
-        issues += validate_shared_memory_sources(markdown_to_check, today)
-        issues += readability_issues(readability)
+        if markdown_to_check is not None:
+            issues += validate_markdown(markdown_to_check, context=context)
+            issues += validate_shared_memory_sources(markdown_to_check, today)
+            issues += readability_issues(readability)
     validation_path = (
         _InMemoryPlanPath(plan_path, normalized_plan)
         if args.dry_run and normalized_plan is not None
@@ -1866,7 +1868,7 @@ def main(argv=None):
         normalized=not normalization_issues,
     )
 
-    status = categorize(issues)
+    status = 'fail' if render_failed else categorize(issues)
     # Keep what is about to be delivered as an immutable version. This runs
     # before the card is composed (it needs the id) and before the revision
     # notice (which compares the delivered version with this one). It fails
@@ -1923,13 +1925,6 @@ def main(argv=None):
             advisory_count=len(advisories),
             readability=readability,
         )
-    # Emit a CLOSED cross-process gate before anything else can raise.  A valid
-    # brief is not yet a publishable generation: the deterministic Pages
-    # projection below is part of that generation too.  Releasing pass/warn here
-    # let a projection exception preserve yesterday's sidecar while the fallback
-    # workflow committed everything else and reported green (#520).
-    write_publish_gate('fail', today, reason='pending_pages_projection')
-
     # Pages consumes a versioned projection, not the model's raw files.  Missing
     # or invalid prose is isolated: deterministic technical/risk rows still
     # publish with judgment_status=missing/invalid, and a projection exception
@@ -1961,10 +1956,13 @@ def main(argv=None):
     # deliberately not required: missing/invalid prose still writes a complete
     # deterministic projection.  A writer exception or absent decision packet is
     # different — no current generation was produced.
+    publication_reason = None if projection_ready else 'pages_projection_failed'
+    if render_failed:
+        publication_reason = 'brief_render_failed'
     write_publish_gate(
         publication_status,
         today,
-        reason=None if projection_ready else 'pages_projection_failed',
+        reason=publication_reason,
     )
 
     wechat_prefix = ''
@@ -2165,7 +2163,7 @@ def main(argv=None):
         'data_plane_status': data_plane_status,
         'projection_status': projection_status,
         'projection_issues': projection_issues,
-        'publication_ready': projection_ready,
+        'publication_ready': publication_status != 'fail',
         'readability': readability,
         'files_checked': {
             'pre_open_md':  str(md_path),

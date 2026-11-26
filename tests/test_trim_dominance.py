@@ -299,3 +299,43 @@ def test_a_review_line_can_be_a_threshold_instead_of_a_weight_destination():
     assert plan_trim_warnings(row, plan_trim_projections(ctx, plan)[0])
     row['size']['shares'] = 60
     assert not plan_trim_warnings(row, plan_trim_projections(ctx, plan)[0])
+
+
+def test_november_26_trim_already_reaches_review_line(tmp_path, monkeypatch):
+    from clawock.harness.validation import _concentration_claim_issues
+    from clawock.portfolio.guardrail import plan_trim_warnings
+    from clawock.publish import dashboard
+
+    root = Path(__file__).resolve().parents[1]
+    frozen = json.loads((root / 'memory/2026-11-26-plan.json').read_text())
+    row = next(d for d in frozen['decisions']
+               if d['ticker'] == '00100' and d['action'] == 'trim_on_rebound')
+    # Marks from the book packaged with the November 26 brief.
+    _, reviews = _single_name_policy(
+        'HK', [{'ticker': '00100', 'value': 13984, 'weight_pct': 38.51}],
+        [{'ticker': '00100', 'shares': 160, 'lot_size': 20}], 36309.6, 'HKD')
+    ctx = {'risk_guardrail': {'concentration_reviews': reviews}}
+    plan = {'decisions': [row]}
+    [projection] = ctx['plan_trim_projections'] = plan_trim_projections(ctx, plan)
+    assert projection['post_trim_weight_pct'] == 34.42
+
+    monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda: [row])
+    [timeline] = dashboard.compute_plan_timeline([], context=ctx)
+    assert any('34.42%' in warning and '35%' in warning
+               for warning in timeline['plan_warnings'])
+    issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    assert brief_postflight.categorize(issues) == 'fail'
+    assert _concentration_claim_issues(f"- **00100**\n{row['method']}", ctx)
+
+    for prose in (
+        '00100 目前仍高于 35% 复核线，减完这一格不高于 35% 复核线。',
+        '00100 减完这一格不应声称仍略高于 35% 复核线。',
+        '00100 减仓后约 34.42%，当前仍高于 35% 复核线。',
+    ):
+        assert not plan_trim_warnings({'rationale': prose}, projection)
+        assert not _concentration_claim_issues(prose, ctx)
+
+    assert plan_trim_warnings({'rationale': row['rationale']},
+                              {**projection, 'post_trim_weight_pct': 35.0})
+    assert not plan_trim_warnings({'rationale': row['rationale']},
+                                  {**projection, 'post_trim_weight_pct': 35.01})

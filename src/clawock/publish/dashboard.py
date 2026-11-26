@@ -4274,9 +4274,9 @@ def parse_args(argv=None):
              f'sidecars passes the published {OUT_FILE.name} here')
     source.add_argument(
         '--no-previous', action='store_true',
-        help='build from the workspace alone; no output may come from a '
-             'previously published file. This is the default — pass it to state '
-             'the guarantee explicitly')
+        help='disable restoration of dashboard cards from a previous payload '
+             '(the default). A failed shadow simulation can still report the '
+             'last successful timestamp from the shadow output at the destination')
     parser.add_argument(
         '--out-dir', metavar='DIR', default=None,
         help='write the five outputs of this generation into DIR instead of the '

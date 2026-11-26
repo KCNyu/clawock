@@ -39,7 +39,7 @@ def _filled_judgment(generation_id="generation-fixture", tickers=()):
 
 
 def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, price_refresh_failed=False,
-                    shipped=False, rejected=False, deliver=False):
+                    shipped=False, rejected=False, deliver=False, malformed_narrative=False):
     today = '2026-09-14'
     monkeypatch.setattr(postflight.trading_calendar, 'hkt_today',
                         lambda: date.fromisoformat(today))
@@ -49,8 +49,11 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None, pri
     if price_refresh_failed:
         context.update(status=price_refresh_failed, issues=['US refresh failed'])
     context_path.write_text(json.dumps(context))
+    judgment = _filled_judgment()
+    if malformed_narrative:
+        judgment['narrative'] = ['a list where the renderer expects an object']
     (context_path.parent / f'brief-judgment-{today}.json').write_text(
-        json.dumps(_filled_judgment(), ensure_ascii=False))
+        json.dumps(judgment, ensure_ascii=False))
     if shipped:
         # An earlier attempt of today's brief delivered the card.
         (context_path.parent / f'brief-sent-{today}.json').write_text(
@@ -176,6 +179,29 @@ def test_written_deterministic_projection_releases_existing_publish_route(
     # The preflight filed its own stage with its diagnostics; a present context
     # must not be rewritten to {success, context_present} here (#1875).
     assert [stage for _, stage, _, _ in stages].count('preflight') == 0
+
+
+def test_render_exception_cannot_publish_or_deliver_a_retained_brief(tmp_path, monkeypatch, capsys):
+    report = tmp_path / 'memory' / '2026-09-14-pre-open.md'
+    report.parent.mkdir()
+    old_body = '---\nlayout: post\n---\n# Prior render\n'
+    report.write_text(old_body, encoding='utf-8')
+    sent = []
+    monkeypatch.setattr(postflight, 'send_per_policy',
+                        lambda *a, **kw: sent.append(a) or (True, 'sent', True))
+    monkeypatch.setattr(postflight, 'run_usage_footer', lambda **_: '')
+    code, result, gate, commits, stages = _run_postflight(
+        tmp_path, monkeypatch, capsys, deliver=True, malformed_narrative=True)
+
+    assert code == 2 and result['status'] == 'fail'
+    assert any('简报渲染失败' in issue and "'list' object has no attribute 'get'" in issue
+               for issue in result['issues'])
+    assert gate['publish_ok'] is False and gate['reason'] == 'brief_render_failed'
+    assert result['publication_ready'] is False and result['readability']['status'] == 'unavailable'
+    assert result['projection_status'] == 'skipped'
+    assert commits == [('fail', False)] and sent == []
+    assert report.read_text(encoding='utf-8') == old_body
+    assert next(state for _, stage, state, _ in stages if stage == 'postflight') == 'failed'
 
 
 def test_postflight_delivers_the_rendered_brief_card(tmp_path, monkeypatch, capsys):

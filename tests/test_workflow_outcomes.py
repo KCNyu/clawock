@@ -1128,12 +1128,16 @@ def test_a_failed_reconcile_says_which_detector_it_disabled(tmp_path, monkeypatc
     assert "false-red" in detail, detail
 
 
-def test_unreadable_cron_store_marks_raw_reconcile_degraded(tmp_path, monkeypatch):
+@pytest.mark.parametrize(("source", "reason"), [
+    ("empty", "cron jobs SQLite unavailable"),
+    ("sqlite", "cron jobs SQLite returned no jobs"),
+])
+def test_missing_cron_jobs_mark_raw_reconcile_degraded(tmp_path, monkeypatch, source, reason):
     workspace = _isolate(tmp_path, monkeypatch)
     monkeypatch.setattr(outcomes.openclaw, "read_jobs",
-                        lambda _src: outcomes.openclaw.CronRead([], "empty"))
+                        lambda _src: outcomes.openclaw.CronRead([], source))
     assert outcomes.reconcile_raw_execution() is False
-    assert any(row["kind"] == "raw_execution_reconcile_skipped"
+    assert any(row["kind"] == "raw_execution_reconcile_skipped" and reason in row["detail"]
                for row in _degradations(workspace))
 
 
