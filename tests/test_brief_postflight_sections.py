@@ -183,6 +183,29 @@ def test_a_plausible_watch_level_is_not_flagged():
     assert brief_postflight._watch_level_scale_issues(plan, packet) == []
 
 
+def test_currency_qualified_watch_levels_distinguish_prices_from_amounts():
+    plan = {'watch_levels': {
+        'spch_concentration_trim_usd': 64.3,
+        'minimax_review_trim_hkd': 960,
+        'spch_day_low_usd': 6.8,
+        'spch_pre_market_cap_usd': 7.5,
+        'spch_cumulative_add_usd': 3000,
+        'spch_swap_max_remaining_usd': 2813,
+        'minimax_swap_cap_hkd': 2576,
+        'spch_cash_floor_usd': 200,
+        'spch_breakdown_pct_usd': 90,
+        'hk_leg_force_derisk_hkd': -90000,
+    }}
+    packet = {'tickers': {
+        'SPCH': {'facts': {'current_price': 6.43}},
+        '00100': {'facts': {'current_price': 93.95}},
+    }}
+    issues = brief_postflight._watch_level_scale_issues(plan, packet)
+    assert len(issues) == 2
+    assert 'spch_concentration_trim_usd=64.3 与 SPCH' in issues[0]
+    assert 'minimax_review_trim_hkd=960 与 00100' in issues[1]
+
+
 def test_plan_checks_explicit_own_stop_but_allows_underlying_and_money(tmp_path):
     path = tmp_path / "plan.json"
     packet = {'tickers': {
