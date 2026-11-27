@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-27T03:45:00.207922+00:00",
+  "generated_at": "2026-11-27T21:41:00.109506+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -17,17 +17,17 @@
     "ark": "success",
     "serenity": "failed",
     "duan": "success",
-    "honghao": "success",
+    "honghao": "failed",
     "burry": "success",
     "pelosi": "success"
   },
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 25,
+    "total": 24,
     "held_hits": 2,
     "new_ideas": 7,
-    "sector_hits": 8
+    "sector_hits": 9
   },
   "items": [
     {
@@ -46,13 +46,19 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
-        "生成式AI"
+        "生成式AI",
+        "大模型",
+        "AI"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "buy",
       "relevance": 92,
-      "summary_cn": "ARK Invest在六只ARK ETF中合计买入约317,053股Anthropic，其中单只ETF占比约0.25%，直接命中kcn持仓ANT。"
+      "summary_cn": "ARK Invest同日买入214,603股Anthropic，并在六只主题ETF同步加仓，最大单只ETF占比0.25%，直接命中kcn持仓ANT。"
     },
     {
       "author": "Cathie Wood",
@@ -71,15 +77,48 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "私人航天",
-        "SpaceX"
+        "SpaceX",
+        "卫星互联网"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH"
       ],
       "stance": "buy",
-      "relevance": 86,
-      "summary_cn": "ARK Invest在ARKK中买入37,788股SpaceX，占该ETF约0.07%，直接命中kcn持仓SPCX，但规模仍属常规调仓。"
+      "relevance": 88,
+      "summary_cn": "ARK Invest在ARKK中买入37,788股SpaceX，占该ETF的0.07%，虽属常规再平衡但直接命中kcn持仓。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry closes his Nasdaq bets and shifts to value, but still plans an Nvidia short",
+      "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQVFJKYjF3WlJpbmc2OVk2QWJpMzgyVll4UGphbmxwY19LT01XenBDWmFPcUxwNEpLREdsT0pUQzEzYkhibTM4a09nTDJTM0NSVnRvZC1lZGNhZ2MxN2FHUTkwVElkd2E0M2JlOWZmR2JGVDVSbHI3dHdfMG44emkxZ0JQTlMwcmh1bGlSMWwyQVo5RE5zVmQzcTRaTGdGdjk4LWp1ei1pZUlUbTJfdTRyRE5kLWt3YlB0cG5rZEloX3BkLVY4WlFiRkJDdUNJclU4?oc=5",
+      "published": "2026-11-25T22:59:31+00:00",
+      "origin": "gnews-rss",
+      "source": "investingLive",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "英伟达",
+        "AI芯片",
+        "半导体",
+        "美股市场"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry平仓纳指相关头寸并转向价值策略，但仍计划做空英伟达。"
     },
     {
       "author": "Pelosi",
@@ -96,44 +135,53 @@
         "NVDA"
       ],
       "sectors": [
+        "英伟达",
+        "AI芯片",
         "半导体",
-        "AI算力",
-        "人工智能",
         "机构持仓"
       ],
       "sector_holdings": [
-        "07709"
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT"
       ],
       "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "据报道，Two Sigma将英伟达持仓增加67%，增持后价值约23.9亿美元，显示大型机构提升AI芯片敞口。"
+      "relevance": 82,
+      "summary_cn": "据报道，Two Sigma将英伟达持仓提高67%，增持后价值达到23.9亿美元，显示大型机构继续集中押注AI芯片。"
     },
     {
-      "author": "Pelosi",
-      "text": "Pelosi Condemns Nvidia For Hiring CEO Back Before She Could Buy The Dip",
-      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOSzQ1b3NxLV9GMGJxTVBQZ2kzdl8xVnMtQkpkMGJsanNzZF9aVHNFakZ4YWdRdVVkUFUxdmRGTWo2S0dFcHV5TXM1enJPbUdQblVmRTQ2Y0M1ay0tazhVSmc4Z2daSkdSNlhwTzRDeDVpTG0teVpQT1VWRkVGRW1YSDJtZk9vME5HNlZURzR4YjU1M1JPUEJDaUd4WjhWUUxm?oc=5",
-      "published": "2026-11-25T21:03:33+00:00",
+      "author": "Burry",
+      "text": "Michael Burry Says He ‘Tried to Warn You’ About Nebius. Why I Think He Was Right... for the Wrong Reasons.",
+      "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxNZ3hZN3dJWHc0elJCaFByWTRuRkMxc1p0NHNhNzdzZ18xeWp5a0dHVkxVZkpjbHhHRkc2Q1NaYk9oWjg1YzNjVEl5N2hVSi1sRzNpX3BYTTQ1eGpyR1JVdWp1QWI1NDR0aG1HQXJGRjNWbG13elhkM243VlYxeUdMSjV2dXZORlNxN1hONi1nVHhZZzlZcU1kZHNlajdwZkl1ejFYcGNHZHhLVWRpd2U5UFI3NUpGTFVFTlV0Z0RwdFdPU2szZUhWZ0tlZ1BNY0tpQkNOTURXVm1Ebk0?oc=5",
+      "published": "2026-11-27T15:08:30+00:00",
       "origin": "gnews-rss",
-      "source": "The Babylon Bee",
+      "source": "Barchart.com",
       "tickers": [
-        "NVDA"
+        "NBIS"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "NBIS"
       ],
       "sectors": [
-        "半导体",
         "AI算力",
-        "公司治理",
-        "高管交易"
+        "云服务",
+        "AI数据中心"
       ],
       "sector_holdings": [
-        "07709"
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT"
       ],
       "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Pelosi公开谴责英伟达在CEO趁低买入前已先行招聘CEO，并质疑相关高管交易安排。"
+      "relevance": 78,
+      "summary_cn": "据报道，Michael Burry此前警告Nebius存在被低估的风险，并认为相关看空理由最终得到了验证。"
     },
     {
       "author": "Cathie Wood",
@@ -151,13 +199,14 @@
         "ILMN"
       ],
       "sectors": [
-        "生物科技",
-        "基因测序"
+        "基因测序",
+        "生命科学",
+        "医疗科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest在ARKK中卖出151,391股Illumina，占该ETF约0.44%，属于规模较大的机构减仓。"
+      "relevance": 75,
+      "summary_cn": "ARK Invest在ARKK中卖出151,391股Illumina，单只ETF交易占比0.44%，属于规模较明显的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -177,12 +226,12 @@
       "sectors": [
         "游戏",
         "元宇宙",
-        "娱乐科技"
+        "数字娱乐"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKW中卖出41,785股Roblox，占该ETF约0.13%，显示机构降低该游戏平台敞口。"
+      "relevance": 68,
+      "summary_cn": "ARK Invest在ARKW中卖出41,785股Roblox，单只ETF交易占比0.13%，构成可见的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -205,8 +254,8 @@
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 52,
-      "summary_cn": "ARK Invest在ARKW中卖出25,874股Netflix，占该ETF约0.09%，属于规模较小的常规减仓。"
+      "relevance": 55,
+      "summary_cn": "ARK Invest在ARKW中卖出25,874股Netflix，单只ETF交易占比0.09%，属于规模较小的常规减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -224,88 +273,14 @@
         "BEAM"
       ],
       "sectors": [
-        "生物科技",
         "基因编辑",
-        "精准医疗"
+        "生物科技",
+        "医疗科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 50,
-      "summary_cn": "ARK Invest在ARKK中买入149,338股Beam Therapeutics，占该ETF约0.05%，属于规模较小的常规增持。"
-    },
-    {
-      "author": "洪灏",
-      "text": "百融智能-W(06608.HK)：洪灝獲委任為薪酬委員會成員",
-      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE92WGt0QnBQeVlTNkhEZXdoME1kWDRUZDJyRjVPVUtLdGdnUXhpNGl5MVN2RF9yUmpJcWxtd2EwWWxrU0sxaE9oaE9rVUNDakVHOFlPOUFYTEtkZDVDRzh1X0kyWmI5Wk4xY3c?oc=5",
-      "published": "2026-11-25T08:34:29+00:00",
-      "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [
-        "06608"
-      ],
-      "held": [],
-      "new_ideas": [
-        "06608"
-      ],
-      "sectors": [
-        "人工智能",
-        "港股公司治理"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "据报道，百融智能-W任命洪灏为薪酬委员会成员，属于公司治理安排而非明确投资信号。"
-    },
-    {
-      "author": "洪灏",
-      "text": "洪灝專訪 | 零倉位警告：美元強與避險自我循環資產輪番暴跌，半導體泡沫未爆完（有片） | 專題透視 - 新聞",
-      "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQYmlSYnRHTF9HYjRQbUJiYVItXzU5RU50ZC1iTFVwUUtyRzZQcTBzUkdyaEwtMkN4UHhzSWZpbTB5TWhncFZlN1pvTTRmbjExdDFjUDhvdkFFSkZqaGxsY0o5ZXhrWjhwUG9qaEtpV0dqbG1ocDh3TzJKa3Z3ZURHZWMtdDJQcEhNNEQ0SmhIZWVsakl4Y0tCREotUmJrZ0xLeUJBLQ?oc=5",
-      "published": "2026-11-26T10:26:00+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "半导体",
-        "美元",
-        "宏观避险",
-        "资产轮动"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，洪灏以零仓位发出警告，认为美元走强与避险自我循环导致资产轮番暴跌，半导体泡沫尚未出清。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Firms tied to Alice Huang listed $270 million in AI servers in China as the US probed chip diversion - report",
-      "url": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxQN0VZMW1fZHI2eGtNVVBzNlFtYzVuS1BXQk9QTHNpYnFPV0lzM0x0aGZCVmktMlJraWhBY3VxbGI3T25uU3dRSlQ1c1lhS1ZyMW1rU25UQ3FzNUVVWmhCb0R5NVlpbHMyR0FZNVZnOHlxMzc1S2JjeFd5ck13UlhfMXRWM2QxT1hlbWgtbmNVQ2hjcDdrZEFGWUpUb25oZ3A0ZXMybmNmVWpVcXNjNmNBRGt4T0RTcmRpcHdQUU9fQl91WjQxZWtoWU5PTk1xQVY2VFpLUl9SUUxuUlVSZlBnZ056b3VaejBjRVRwbg?oc=5",
-      "published": "2026-11-25T06:49:00+00:00",
-      "origin": "gnews-rss",
-      "source": "i24NEWS",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能服务器",
-        "半导体",
-        "中国",
-        "芯片走私",
-        "出口管制"
-      ],
-      "sector_holdings": [
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，与Alice Huang有关联的公司被列出向中国出售价值2.7亿美元的AI服务器，正值美国调查芯片转运之际。"
+      "summary_cn": "ARK Invest在ARKK中买入149,338股Beam Therapeutics，占该ETF的0.05%，属于低权重常规加仓。"
     },
     {
       "author": "Musk",
@@ -320,192 +295,170 @@
       "sectors": [
         "航天",
         "卫星互联网",
-        "数据中心",
-        "监管"
+        "AI数据中心",
+        "FCC监管"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，FCC允许SpaceX部署多达100万颗用于太空数据中心的卫星，但科学家对其影响持怀疑态度。"
+      "stance": "endorse",
+      "relevance": 86,
+      "summary_cn": "据报道，FCC允许SpaceX部署一百万颗卫星数据中心卫星，但科学家对太空环境的潜在风险表示怀疑。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk says SpaceX could be worth $128 quintillion if it does 2 things",
+      "text": "Why does Elon Musk want to put a million satellite data centres in space?",
       "url": "",
-      "published": "Thu, 26 Nov 2026 14:38:00 GMT",
+      "published": "Fri, 27 Nov 2026 10:24:40 GMT",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "Al Jazeera",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "私人航天",
-        "SpaceX"
+        "卫星互联网",
+        "AI基础设施",
+        "数据中心"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "马斯克表示若SpaceX实现特定两项业务，其价值可能达到128万亿美元，释放强烈看多预期。"
+      "relevance": 78,
+      "summary_cn": "据报道，Musk计划在太空部署一百万座卫星数据中心，可能显著扩大SpaceX的AI基础设施业务想象空间。"
     },
     {
-      "author": "Musk",
-      "text": "Musk makes $18 billion SpaceX stock pledge for every kid in America",
-      "url": "",
-      "published": "Thu, 26 Nov 2026 19:17:28 GMT",
+      "author": "Burry",
+      "text": "Michael Burry flagged report warning AI data center debt is mispriced",
+      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1ibHVfM2VKb1FNUzNJd0NhaXhCa2RXTTJzakVXNGtqUFdlNUl4emhqRzMtMEtJNTV1M1lzZTV2SUtRSHA5QmFDRTU1UmNzTVJDWkR4S2VGTS15YklZcnRBNFdvdEhJUnRPN1U1M2lWdUZESzEzclVzRnp3MFk?oc=5",
+      "published": "2026-11-27T12:14:06+00:00",
       "origin": "gnews-rss",
-      "source": "Axios",
+      "source": "Quartz",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "私人航天",
-        "SpaceX",
-        "特朗普账户"
+        "AI数据中心",
+        "债务市场",
+        "信用风险"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "据报道，马斯克承诺为美国每名儿童提供两股SpaceX股份，其中一股来自SpaceX，估值约180亿美元。"
-    },
-    {
-      "author": "Musk",
-      "text": "How Elon Musk paved the way for Jensen Huang’s return",
-      "url": "",
-      "published": "Thu, 26 Nov 2026 18:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "AI算力",
-        "半导体"
-      ],
-      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
         "07709",
         "ANT"
       ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道讨论马斯克如何为英伟达CEO黄仁勋重返市场铺路，关联AI算力与芯片产业。"
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道，Michael Burry警告AI数据中心相关债务的定价可能存在严重问题，对AI基础设施信用风险持看空态度。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Faces an A.I. Dilemma at SpaceX",
+      "text": "SpaceX shares jump over 4% amid tech rally and after Musk says he will expand on Trump Account share donations",
       "url": "",
-      "published": "Mon, 23 Nov 2026 16:13:33 GMT",
+      "published": "Fri, 27 Nov 2026 04:20:00 GMT",
       "origin": "gnews-rss",
-      "source": "The New York Times",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
         "航天",
-        "SpaceX"
+        "SpaceX",
+        "美股市场"
       ],
       "sector_holdings": [
-        "ANT",
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道聚焦马斯克在SpaceX人工智能布局方面面临的两难选择，涉及航天与AI战略取舍。"
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "据报道，Musk扩大面向儿童的SpaceX股票赠送计划后，SpaceX股价在科技股上涨带动下升逾4%。"
     },
     {
-      "author": "洪灏",
-      "text": "洪灝：港股什麼時候見底？",
-      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPSTBLOF83MkdEeVd1UlU5Q0RLUTlmeUdWMm5ISEY5Nk56S1RpbVJ6ejk4aHBkbXhIMGJ2RTZfR0kxSFIyeV9yUlRpbi1kVHNxV1V0b1ExU2hBeTJlZ244RERVWm9SZ0R2a2tNaFBJSlFGVWp5NmljVnpxTDFuWXd6emEwQWk0Zmg4UURYbzBDaEFQbnV4VUQwaHQxRzdiYTlaVlZaa2JjXzczTFJlQUxyQVQzRlAtWnVSYmt1aER0VU01VVpOUmIwZHdXc1RyWW1ZNTZwMS04SElVVTRiZmt1T1p3V0VaWTA?oc=5",
-      "published": "2026-11-26T01:04:06+00:00",
+      "author": "段永平",
+      "text": "李強主持國務院常務會議 要求加力發揮「國家隊」穩市作用",
+      "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE5hdGt0al96MDFYZnRiMW5aSjFrakR2eUY5d05rc0hoY2ppNFpJVHVQeUo4TFJYcUZQdFlfVWc5RXdSVHpXcmpfcWpjUl9qZEk3cmc?oc=5",
+      "published": "2026-11-27T10:11:42+00:00",
       "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
+      "source": "am730",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "港股",
-        "市场底部"
+        "A股",
+        "政策救市",
+        "中国科技股"
       ],
       "sector_holdings": [
+        "00100",
+        "02208",
         "03032",
         "03033",
         "07226"
       ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，洪灏讨论港股何时能够见底，但未给出明确的市场方向判断。"
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "据报道，段永平转发的国务院常务会议消息要求加力发挥“国家队”稳定A股市场的作用。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry Just Flipped Bullish and Went on a Shopping Spree for Stocks",
-      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQb0FWaGFfX1U4bWxweFZqNEtaUjBPeUx1d0dhYzhIdC1KV1JBaTYzUVBhRXlwUHI3cTZoWC0xcXFZZUJPbTZkd1pkaXdYZkd5N2dVZTVwX09iUmg0a1dlUDVoQ0JfTlFWQkZBQ2VKZmVqbkRxckRFdmVpdE9JRWlZY0IwMEg3aWVRVHA5Wm1PRVNCRjlqd1o0ZHo3cWc5bWVvLWdIOEJSLXBLNjZFTUVpcC1KdVBnaVllcFE?oc=5",
-      "published": "2026-11-26T14:52:00+00:00",
+      "text": "Michael Burry Bets on Stock Market Recovery After Thanksgiving",
+      "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxPT3FQbW5LQmJxUXFOcU4yeDk5Q2JPTFFTWmt2aXYxdDhwRTFvQ1FPd1VxM253LUZ5aktMWUNDR01VV3BBYXJITjNhX1FZSXlOVjhrRUtVaW92SjlGVDBmM2JGOExrQ1FhQWc3VVZodjZiQnRtSnd2UUpSd2Y1SDVqOEViaW8?oc=5",
+      "published": "2026-11-27T16:42:55+00:00",
       "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
+      "source": "BeInCrypto",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美股",
-        "纳斯达克",
-        "宏观市场"
+        "美股市场",
+        "市场复苏",
+        "宏观交易"
       ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry结束对纳斯达克的看空押注并转为净多，开始逢低买入股票，释放转向看多美股信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "It was just revealed that the REAL Numbers on the Economy, published before the Election, were FAKE, and a correction was issued yesterday by the people in the Government Agency that does these numbers. The American Economy under The Trump Administration is doing FAR BETTER than the good numbers already released. Third Quarter GDP Growth has now been corrected to be 4.3%, instead of 3.4%, a major difference! Why wasn’t the correct number issued before the Election? I am asking for an immediate investigation of this situation. This is not a small error, this is a massive, and purposeful, error.",
-      "url": "https://www.trumpstruth.org/statuses/43743",
-      "published": "2026-11-26T14:24:01+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "美国经济",
-        "GDP"
+      "sector_holdings": [
+        "ANT",
+        "CRCL",
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
-      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "特朗普称美国三季度GDP增速被上修至4.3%，明显高于此前数据，并要求调查选前公布错误数据一事。"
+      "relevance": 62,
+      "summary_cn": "据报道，Michael Burry在感恩节后押注美股市场复苏。"
     },
     {
-      "author": "Trump",
-      "text": "A JOINT STATEMENT MADE BY PRESIDENT DONALD J. TRUMP AND SECRETARY GENERAL OF NATO, MARK RUTTE:   President Trump and Secretary General Rutte had an outstanding meeting on Wednesday evening, at what is often referred to as the Southern White House — Mar-a-Lago.The meeting was very impactful, with the War between Russia and Ukraine, and the Conflict in Iran, being the primary subjects of discussion. Additionally, all of the record setting achievements that the U.S. and NATO have made together at the Summits in the Hague, and Ankara, were discussed.We also talked about, at length, the importance ",
-      "url": "https://www.trumpstruth.org/statuses/43742",
-      "published": "2026-11-26T14:19:11+00:00",
-      "origin": "truthsocial",
+      "author": "Burry",
+      "text": "'Big Short' Investor Michael Burry Thinks This Chinese Stock Is Worth About 60% More Than Its Price. Should You Buy?",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQdmVKR1QtQjFhZE5fVlEteE41VXNjZ21HRGkxaXlVRVhBSnllNTFMazFjcUo1eFQ2MTRaaF9MaS1ZYWFLN3Z3VE43TVE1eThLRjVFVmFtaU5pMkNuQzNJM1VPRnFQSzYwZGFkaGZrWDVXMXYxU1lzc3NEdUV3R2JQY19CWnlmdHBSaV82LVR4d1R0dUI1bUl2eVlTSGRrdw?oc=5",
+      "published": "2026-11-27T18:53:03+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "俄乌战争",
-        "伊朗冲突",
-        "北约"
+        "中国股票",
+        "价值投资"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "特朗普与北约秘书长吕特讨论俄乌战争、伊朗冲突及北约合作进展。"
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 56,
+      "summary_cn": "据报道，Michael Burry认为某只未披露名称的中国股票合理价值比当前价格高约60%，属于看多信号但缺乏具体标的。"
     },
     {
       "author": "段永平",
@@ -518,51 +471,20 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中国A股",
-        "宏观经济",
-        "投资者情绪"
+        "A股",
+        "市场情绪",
+        "中国科技股"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "据报道，胡锡进称近期内地A股波动令其亏损严重，并认为散户值得获得更好回报。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117683175541431490During my conversations in China with President Vladimir Putin, of Russia, I spent a lot of time talking about the fact that I would like to see President Putin pull back all Military aggression against territories throughout Europe, in the hopes that a Deal can be made between Russia and Ukraine, and made quickly. I really believe this is a strong possibility — Thousands of people are being killed each and every month, A COMPLETE BLOODBATH — and will be a Great Tribute to everyone! It was an Honor meeting with Secret",
-      "url": "https://www.trumpstruth.org/statuses/43745",
-      "published": "2026-11-26T14:53:57+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "俄乌战争",
-        "欧洲安全"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普表示曾与普京讨论俄乌停火及欧洲领土问题，释放希望推动俄乌达成协议的信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "Stocks are down sharply because of the November Third Election results. I wasn’t on the Ballot, but if I was, the results, just like all three times before, would have been much different, and the Stock Market, and your 401-k’s, would be BOOMING. I told you so!!! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/43729",
-      "published": "2026-11-25T17:14:26+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国股市",
-        "选举政治"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普将11月大选结果后股市大跌归因于选举，并称若自己参选市场将走强。"
+      "relevance": 53,
+      "summary_cn": "据报道，段永平转发的市场评论称胡锡进在A股波动中亏损严重并认为散户应保持乐观，反映投资者信心仍弱。"
     },
     {
       "author": "Trump",
@@ -575,35 +497,136 @@
       "new_ideas": [],
       "sectors": [
         "美国经济",
-        "税收",
+        "减税",
         "监管",
-        "地缘政治",
-        "能源"
+        "地缘政治"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "ANT",
+        "CRCL",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "endorse",
       "relevance": 52,
-      "summary_cn": "特朗普宣传其政府取得边境治安、税收与监管削减、伊朗军事行动等政绩，释放支持美国经济的立场。"
+      "summary_cn": "Trump攻击《纽约时报》的同时宣传其政府实施大幅减税和放松监管，并提及对伊朗及委内瑞拉的军事行动。"
     },
     {
-      "author": "Pelosi",
-      "text": "Why Do We Allow Politicians to Trade Stocks?",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPWGNXNWxqOGUySG8xRF9jRlZGYWFyNWUwRHhiR2hTcFVoQkxCVi1UTkI2SXM4LUcyTnAxZFFlSXo3dVRMQjRWd1hJdG1XTGRzR21iOGdTMTI5RXBxWENsNGpfeVhWSEtYUEFRQWdEYkMzZktXY2tmR3dxUmpCQlBUMzZGLTFNc1BsbVpHOTFCdHBtUlpRMHJWTHctOG53X2VuY1BvZ2VQYklFSlJZV1pYMA?oc=5",
-      "published": "2026-11-25T15:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Rolling Stone",
+      "author": "Trump",
+      "text": "It was just revealed that the REAL Numbers on the Economy, published before the Election, were FAKE, and a correction was issued yesterday by the people in the Government Agency that does these numbers. The American Economy under The Trump Administration is doing FAR BETTER than the good numbers already released. Third Quarter GDP Growth has now been corrected to be 4.3%, instead of 3.4%, a major difference! Why wasn’t the correct number issued before the Election? I am asking for an immediate investigation of this situation. This is not a small error, this is a massive, and purposeful, error.",
+      "url": "https://www.trumpstruth.org/statuses/43743",
+      "published": "2026-11-26T14:24:01+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "美国政治",
-        "金融监管",
-        "内幕交易"
+        "美国经济",
+        "GDP",
+        "宏观经济"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump称美国第三季度GDP增速被上修至4.3%，并要求调查政府机构选前公布错误数据一事。"
+    },
+    {
+      "author": "Trump",
+      "text": "“U.S. Q3 GDP just got revised UP to a massive +4.3% — shattering expert predictions and nearly DOUBLING Q2’s 2.2% growth! The Trump Economy is ROARING, and the mainstream media can’t hide it anymore!”View image",
+      "url": "https://www.trumpstruth.org/statuses/43741",
+      "published": "2026-11-26T12:38:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国经济",
+        "GDP",
+        "宏观经济"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump宣称美国第三季度GDP上修至4.3%，并据此高调唱多“特朗普经济”。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117683175541431490During my conversations in China with President Vladimir Putin, of Russia, I spent a lot of time talking about the fact that I would like to see President Putin pull back all Military aggression against territories throughout Europe, in the hopes that a Deal can be made between Russia and Ukraine, and made quickly. I really believe this is a strong possibility — Thousands of people are being killed each and every month, A COMPLETE BLOODBATH — and will be a Great Tribute to everyone! It was an Honor meeting with Secret",
+      "url": "https://www.trumpstruth.org/statuses/43745",
+      "published": "2026-11-26T14:53:57+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "俄乌冲突",
+        "能源市场",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 67,
+      "summary_cn": "Trump称正推动俄罗斯从欧洲领土撤军并尽快达成俄乌协议，若落实将影响能源与风险资产定价。"
+    },
+    {
+      "author": "Trump",
+      "text": "A JOINT STATEMENT MADE BY PRESIDENT DONALD J. TRUMP AND SECRETARY GENERAL OF NATO, MARK RUTTE:   President Trump and Secretary General Rutte had an outstanding meeting on Wednesday evening, at what is often referred to as the Southern White House — Mar-a-Lago.The meeting was very impactful, with the War between Russia and Ukraine, and the Conflict in Iran, being the primary subjects of discussion. Additionally, all of the record setting achievements that the U.S. and NATO have made together at the Summits in the Hague, and Ankara, were discussed.We also talked about, at length, the importance ",
+      "url": "https://www.trumpstruth.org/statuses/43742",
+      "published": "2026-11-26T14:19:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "伊朗冲突",
+        "俄乌冲突",
+        "能源市场",
+        "北约"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "报道以国会议员交易股票是否应被允许为切入点，涉及国会议员利益冲突与交易监管问题。"
+      "relevance": 65,
+      "summary_cn": "Trump与北约秘书长讨论俄乌战争及伊朗冲突，地缘局势仍是油价和避险资产的重要变量。"
+    },
+    {
+      "author": "Trump",
+      "text": "We support Iraqi Prime Minister Ali al-Zaidi’s efforts to assert state authority throughout Iraq, stop the smuggling of Iraqi oil, end corruption, and bring all weapons under the exclusive control of the state.We support Prime Minister al-Zaidi’s efforts to build a united, prosperous, and strong Iraq that makes its own political decisions.",
+      "url": "https://www.trumpstruth.org/statuses/43750",
+      "published": "2026-11-27T10:23:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "伊拉克原油",
+        "反腐"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "Trump表示支持伊拉克总理打击原油走私、加强国家对石油资源控制的努力。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Unlike Pelosi, successor Wiener supports Medicare for All",
+      "url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPdUNlbWNoYzR1XzNuRkpQUTd0RVROTjZPTE01bkUyU002VUY5UC1OOXpGTnN4bHhPVTNnWXExTWFSZG9tazJfRE9pcXFOYl90Q0NfNXFuWlV3ak9yTVB1X0JKVlR3QUNFNHFUQzVkM2ZEbXItdldzZTZXWkpQZlVRbDc4bERHQjZXdHZsN1F2MHdxQmVnaEpR0gGcAUFVX3lxTFBuaE1SeVJ4TDJkY09VdnZVbGFGSGM5bUpjUGVkWFptbEVybDE2ZjhQVmxHeWh5WTVPMkJ2Y3FjaG1Yc1FtUEowZkR2SVpHOEpxQm9wZjdycTR2eUFueUROb1RlRVR4NjNrdGFvRkg0OUNqbV9SZlE0TU1Zb2JCTVVrWWVoMjk2dlVjYm9SZUNNdEVMY1JBWGhxR0Z0dQ?oc=5",
+      "published": "2026-11-27T13:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Center Square",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医疗保险",
+        "医疗监管",
+        "美国政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 56,
+      "summary_cn": "报道对比Pelosi与其继任者对全民医保的支持差异，涉及美国医疗体系及医疗行业监管政策。"
     }
   ],
   "held_hits": [
@@ -623,13 +646,19 @@
       ],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
-        "生成式AI"
+        "生成式AI",
+        "大模型",
+        "AI"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "buy",
       "relevance": 92,
-      "summary_cn": "ARK Invest在六只ARK ETF中合计买入约317,053股Anthropic，其中单只ETF占比约0.25%，直接命中kcn持仓ANT。"
+      "summary_cn": "ARK Invest同日买入214,603股Anthropic，并在六只主题ETF同步加仓，最大单只ETF占比0.25%，直接命中kcn持仓ANT。"
     },
     {
       "author": "Cathie Wood",
@@ -648,18 +677,51 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "私人航天",
-        "SpaceX"
+        "SpaceX",
+        "卫星互联网"
       ],
       "sector_holdings": [
+        "RKLX",
         "SPCH"
       ],
       "stance": "buy",
-      "relevance": 86,
-      "summary_cn": "ARK Invest在ARKK中买入37,788股SpaceX，占该ETF约0.07%，直接命中kcn持仓SPCX，但规模仍属常规调仓。"
+      "relevance": 88,
+      "summary_cn": "ARK Invest在ARKK中买入37,788股SpaceX，占该ETF的0.07%，虽属常规再平衡但直接命中kcn持仓。"
     }
   ],
   "new_ideas": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry closes his Nasdaq bets and shifts to value, but still plans an Nvidia short",
+      "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQVFJKYjF3WlJpbmc2OVk2QWJpMzgyVll4UGphbmxwY19LT01XenBDWmFPcUxwNEpLREdsT0pUQzEzYkhibTM4a09nTDJTM0NSVnRvZC1lZGNhZ2MxN2FHUTkwVElkd2E0M2JlOWZmR2JGVDVSbHI3dHdfMG44emkxZ0JQTlMwcmh1bGlSMWwyQVo5RE5zVmQzcTRaTGdGdjk4LWp1ei1pZUlUbTJfdTRyRE5kLWt3YlB0cG5rZEloX3BkLVY4WlFiRkJDdUNJclU4?oc=5",
+      "published": "2026-11-25T22:59:31+00:00",
+      "origin": "gnews-rss",
+      "source": "investingLive",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "英伟达",
+        "AI芯片",
+        "半导体",
+        "美股市场"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Michael Burry平仓纳指相关头寸并转向价值策略，但仍计划做空英伟达。"
+    },
     {
       "author": "Pelosi",
       "text": "Billionaire John Overdeck's former fund, Two Sigma Raised Its Nvidia Stake 67% to $2.39 Billion",
@@ -675,44 +737,53 @@
         "NVDA"
       ],
       "sectors": [
+        "英伟达",
+        "AI芯片",
         "半导体",
-        "AI算力",
-        "人工智能",
         "机构持仓"
       ],
       "sector_holdings": [
-        "07709"
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT"
       ],
       "stance": "buy",
-      "relevance": 78,
-      "summary_cn": "据报道，Two Sigma将英伟达持仓增加67%，增持后价值约23.9亿美元，显示大型机构提升AI芯片敞口。"
+      "relevance": 82,
+      "summary_cn": "据报道，Two Sigma将英伟达持仓提高67%，增持后价值达到23.9亿美元，显示大型机构继续集中押注AI芯片。"
     },
     {
-      "author": "Pelosi",
-      "text": "Pelosi Condemns Nvidia For Hiring CEO Back Before She Could Buy The Dip",
-      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOSzQ1b3NxLV9GMGJxTVBQZ2kzdl8xVnMtQkpkMGJsanNzZF9aVHNFakZ4YWdRdVVkUFUxdmRGTWo2S0dFcHV5TXM1enJPbUdQblVmRTQ2Y0M1ay0tazhVSmc4Z2daSkdSNlhwTzRDeDVpTG0teVpQT1VWRkVGRW1YSDJtZk9vME5HNlZURzR4YjU1M1JPUEJDaUd4WjhWUUxm?oc=5",
-      "published": "2026-11-25T21:03:33+00:00",
+      "author": "Burry",
+      "text": "Michael Burry Says He ‘Tried to Warn You’ About Nebius. Why I Think He Was Right... for the Wrong Reasons.",
+      "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxNZ3hZN3dJWHc0elJCaFByWTRuRkMxc1p0NHNhNzdzZ18xeWp5a0dHVkxVZkpjbHhHRkc2Q1NaYk9oWjg1YzNjVEl5N2hVSi1sRzNpX3BYTTQ1eGpyR1JVdWp1QWI1NDR0aG1HQXJGRjNWbG13elhkM243VlYxeUdMSjV2dXZORlNxN1hONi1nVHhZZzlZcU1kZHNlajdwZkl1ejFYcGNHZHhLVWRpd2U5UFI3NUpGTFVFTlV0Z0RwdFdPU2szZUhWZ0tlZ1BNY0tpQkNOTURXVm1Ebk0?oc=5",
+      "published": "2026-11-27T15:08:30+00:00",
       "origin": "gnews-rss",
-      "source": "The Babylon Bee",
+      "source": "Barchart.com",
       "tickers": [
-        "NVDA"
+        "NBIS"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA"
+        "NBIS"
       ],
       "sectors": [
-        "半导体",
         "AI算力",
-        "公司治理",
-        "高管交易"
+        "云服务",
+        "AI数据中心"
       ],
       "sector_holdings": [
-        "07709"
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT"
       ],
       "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Pelosi公开谴责英伟达在CEO趁低买入前已先行招聘CEO，并质疑相关高管交易安排。"
+      "relevance": 78,
+      "summary_cn": "据报道，Michael Burry此前警告Nebius存在被低估的风险，并认为相关看空理由最终得到了验证。"
     },
     {
       "author": "Cathie Wood",
@@ -730,13 +801,14 @@
         "ILMN"
       ],
       "sectors": [
-        "生物科技",
-        "基因测序"
+        "基因测序",
+        "生命科学",
+        "医疗科技"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "ARK Invest在ARKK中卖出151,391股Illumina，占该ETF约0.44%，属于规模较大的机构减仓。"
+      "relevance": 75,
+      "summary_cn": "ARK Invest在ARKK中卖出151,391股Illumina，单只ETF交易占比0.44%，属于规模较明显的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -756,12 +828,12 @@
       "sectors": [
         "游戏",
         "元宇宙",
-        "娱乐科技"
+        "数字娱乐"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 70,
-      "summary_cn": "ARK Invest在ARKW中卖出41,785股Roblox，占该ETF约0.13%，显示机构降低该游戏平台敞口。"
+      "relevance": 68,
+      "summary_cn": "ARK Invest在ARKW中卖出41,785股Roblox，单只ETF交易占比0.13%，构成可见的机构减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -784,8 +856,8 @@
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 52,
-      "summary_cn": "ARK Invest在ARKW中卖出25,874股Netflix，占该ETF约0.09%，属于规模较小的常规减仓。"
+      "relevance": 55,
+      "summary_cn": "ARK Invest在ARKW中卖出25,874股Netflix，单只ETF交易占比0.09%，属于规模较小的常规减仓。"
     },
     {
       "author": "Cathie Wood",
@@ -803,91 +875,17 @@
         "BEAM"
       ],
       "sectors": [
-        "生物科技",
         "基因编辑",
-        "精准医疗"
+        "生物科技",
+        "医疗科技"
       ],
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 50,
-      "summary_cn": "ARK Invest在ARKK中买入149,338股Beam Therapeutics，占该ETF约0.05%，属于规模较小的常规增持。"
-    },
-    {
-      "author": "洪灏",
-      "text": "百融智能-W(06608.HK)：洪灝獲委任為薪酬委員會成員",
-      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE92WGt0QnBQeVlTNkhEZXdoME1kWDRUZDJyRjVPVUtLdGdnUXhpNGl5MVN2RF9yUmpJcWxtd2EwWWxrU0sxaE9oaE9rVUNDakVHOFlPOUFYTEtkZDVDRzh1X0kyWmI5Wk4xY3c?oc=5",
-      "published": "2026-11-25T08:34:29+00:00",
-      "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [
-        "06608"
-      ],
-      "held": [],
-      "new_ideas": [
-        "06608"
-      ],
-      "sectors": [
-        "人工智能",
-        "港股公司治理"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "据报道，百融智能-W任命洪灏为薪酬委员会成员，属于公司治理安排而非明确投资信号。"
+      "summary_cn": "ARK Invest在ARKK中买入149,338股Beam Therapeutics，占该ETF的0.05%，属于低权重常规加仓。"
     }
   ],
   "sector_hits": [
-    {
-      "author": "洪灏",
-      "text": "洪灝專訪 | 零倉位警告：美元強與避險自我循環資產輪番暴跌，半導體泡沫未爆完（有片） | 專題透視 - 新聞",
-      "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQYmlSYnRHTF9HYjRQbUJiYVItXzU5RU50ZC1iTFVwUUtyRzZQcTBzUkdyaEwtMkN4UHhzSWZpbTB5TWhncFZlN1pvTTRmbjExdDFjUDhvdkFFSkZqaGxsY0o5ZXhrWjhwUG9qaEtpV0dqbG1ocDh3TzJKa3Z3ZURHZWMtdDJQcEhNNEQ0SmhIZWVsakl4Y0tCREotUmJrZ0xLeUJBLQ?oc=5",
-      "published": "2026-11-26T10:26:00+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "半导体",
-        "美元",
-        "宏观避险",
-        "资产轮动"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，洪灏以零仓位发出警告，认为美元走强与避险自我循环导致资产轮番暴跌，半导体泡沫尚未出清。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Firms tied to Alice Huang listed $270 million in AI servers in China as the US probed chip diversion - report",
-      "url": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxQN0VZMW1fZHI2eGtNVVBzNlFtYzVuS1BXQk9QTHNpYnFPV0lzM0x0aGZCVmktMlJraWhBY3VxbGI3T25uU3dRSlQ1c1lhS1ZyMW1rU25UQ3FzNUVVWmhCb0R5NVlpbHMyR0FZNVZnOHlxMzc1S2JjeFd5ck13UlhfMXRWM2QxT1hlbWgtbmNVQ2hjcDdrZEFGWUpUb25oZ3A0ZXMybmNmVWpVcXNjNmNBRGt4T0RTcmRpcHdQUU9fQl91WjQxZWtoWU5PTk1xQVY2VFpLUl9SUUxuUlVSZlBnZ056b3VaejBjRVRwbg?oc=5",
-      "published": "2026-11-25T06:49:00+00:00",
-      "origin": "gnews-rss",
-      "source": "i24NEWS",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能服务器",
-        "半导体",
-        "中国",
-        "芯片走私",
-        "出口管制"
-      ],
-      "sector_holdings": [
-        "07709"
-      ],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "据报道，与Alice Huang有关联的公司被列出向中国出售价值2.7亿美元的AI服务器，正值美国调查芯片转运之际。"
-    },
     {
       "author": "Musk",
       "text": "FCC says SpaceX can deploy 1 million satellites for data centers in space. Scientists are skeptical",
@@ -901,133 +899,222 @@
       "sectors": [
         "航天",
         "卫星互联网",
-        "数据中心",
-        "监管"
+        "AI数据中心",
+        "FCC监管"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，FCC允许SpaceX部署多达100万颗用于太空数据中心的卫星，但科学家对其影响持怀疑态度。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk says SpaceX could be worth $128 quintillion if it does 2 things",
-      "url": "",
-      "published": "Thu, 26 Nov 2026 14:38:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "私人航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "马斯克表示若SpaceX实现特定两项业务，其价值可能达到128万亿美元，释放强烈看多预期。"
+      "relevance": 86,
+      "summary_cn": "据报道，FCC允许SpaceX部署一百万颗卫星数据中心卫星，但科学家对太空环境的潜在风险表示怀疑。"
     },
     {
       "author": "Musk",
-      "text": "Musk makes $18 billion SpaceX stock pledge for every kid in America",
+      "text": "Why does Elon Musk want to put a million satellite data centres in space?",
       "url": "",
-      "published": "Thu, 26 Nov 2026 19:17:28 GMT",
+      "published": "Fri, 27 Nov 2026 10:24:40 GMT",
       "origin": "gnews-rss",
-      "source": "Axios",
+      "source": "Al Jazeera",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "私人航天",
-        "SpaceX",
-        "特朗普账户"
+        "卫星互联网",
+        "AI基础设施",
+        "数据中心"
       ],
       "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "据报道，Musk计划在太空部署一百万座卫星数据中心，可能显著扩大SpaceX的AI基础设施业务想象空间。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry flagged report warning AI data center debt is mispriced",
+      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1ibHVfM2VKb1FNUzNJd0NhaXhCa2RXTTJzakVXNGtqUFdlNUl4emhqRzMtMEtJNTV1M1lzZTV2SUtRSHA5QmFDRTU1UmNzTVJDWkR4S2VGTS15YklZcnRBNFdvdEhJUnRPN1U1M2lWdUZESzEzclVzRnp3MFk?oc=5",
+      "published": "2026-11-27T12:14:06+00:00",
+      "origin": "gnews-rss",
+      "source": "Quartz",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI数据中心",
+        "债务市场",
+        "信用风险"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "07709",
+        "ANT"
+      ],
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "据报道，Michael Burry警告AI数据中心相关债务的定价可能存在严重问题，对AI基础设施信用风险持看空态度。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX shares jump over 4% amid tech rally and after Musk says he will expand on Trump Account share donations",
+      "url": "",
+      "published": "Fri, 27 Nov 2026 04:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "SpaceX",
+        "美股市场"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 74,
+      "summary_cn": "据报道，Musk扩大面向儿童的SpaceX股票赠送计划后，SpaceX股价在科技股上涨带动下升逾4%。"
+    },
+    {
+      "author": "段永平",
+      "text": "李強主持國務院常務會議 要求加力發揮「國家隊」穩市作用",
+      "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE5hdGt0al96MDFYZnRiMW5aSjFrakR2eUY5d05rc0hoY2ppNFpJVHVQeUo4TFJYcUZQdFlfVWc5RXdSVHpXcmpfcWpjUl9qZEk3cmc?oc=5",
+      "published": "2026-11-27T10:11:42+00:00",
+      "origin": "gnews-rss",
+      "source": "am730",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "A股",
+        "政策救市",
+        "中国科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "据报道，段永平转发的国务院常务会议消息要求加力发挥“国家队”稳定A股市场的作用。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Bets on Stock Market Recovery After Thanksgiving",
+      "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxPT3FQbW5LQmJxUXFOcU4yeDk5Q2JPTFFTWmt2aXYxdDhwRTFvQ1FPd1VxM253LUZ5aktMWUNDR01VV3BBYXJITjNhX1FZSXlOVjhrRUtVaW92SjlGVDBmM2JGOExrQ1FhQWc3VVZodjZiQnRtSnd2UUpSd2Y1SDVqOEViaW8?oc=5",
+      "published": "2026-11-27T16:42:55+00:00",
+      "origin": "gnews-rss",
+      "source": "BeInCrypto",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股市场",
+        "市场复苏",
+        "宏观交易"
+      ],
+      "sector_holdings": [
+        "ANT",
+        "CRCL",
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
       "relevance": 62,
-      "summary_cn": "据报道，马斯克承诺为美国每名儿童提供两股SpaceX股份，其中一股来自SpaceX，估值约180亿美元。"
+      "summary_cn": "据报道，Michael Burry在感恩节后押注美股市场复苏。"
     },
     {
-      "author": "Musk",
-      "text": "How Elon Musk paved the way for Jensen Huang’s return",
-      "url": "",
-      "published": "Thu, 26 Nov 2026 18:00:00 GMT",
+      "author": "Burry",
+      "text": "'Big Short' Investor Michael Burry Thinks This Chinese Stock Is Worth About 60% More Than Its Price. Should You Buy?",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQdmVKR1QtQjFhZE5fVlEteE41VXNjZ21HRGkxaXlVRVhBSnllNTFMazFjcUo1eFQ2MTRaaF9MaS1ZYWFLN3Z3VE43TVE1eThLRjVFVmFtaU5pMkNuQzNJM1VPRnFQSzYwZGFkaGZrWDVXMXYxU1lzc3NEdUV3R2JQY19CWnlmdHBSaV82LVR4d1R0dUI1bUl2eVlTSGRrdw?oc=5",
+      "published": "2026-11-27T18:53:03+00:00",
       "origin": "gnews-rss",
-      "source": "The Washington Post",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "人工智能",
-        "AI算力",
-        "半导体"
+        "中国股票",
+        "价值投资"
       ],
       "sector_holdings": [
-        "07709",
-        "ANT"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道讨论马斯克如何为英伟达CEO黄仁勋重返市场铺路，关联AI算力与芯片产业。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Faces an A.I. Dilemma at SpaceX",
-      "url": "",
-      "published": "Mon, 23 Nov 2026 16:13:33 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "人工智能",
-        "航天",
-        "SpaceX"
-      ],
-      "sector_holdings": [
-        "ANT",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "报道聚焦马斯克在SpaceX人工智能布局方面面临的两难选择，涉及航天与AI战略取舍。"
-    },
-    {
-      "author": "洪灏",
-      "text": "洪灝：港股什麼時候見底？",
-      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPSTBLOF83MkdEeVd1UlU5Q0RLUTlmeUdWMm5ISEY5Nk56S1RpbVJ6ejk4aHBkbXhIMGJ2RTZfR0kxSFIyeV9yUlRpbi1kVHNxV1V0b1ExU2hBeTJlZ244RERVWm9SZ0R2a2tNaFBJSlFGVWp5NmljVnpxTDFuWXd6emEwQWk0Zmg4UURYbzBDaEFQbnV4VUQwaHQxRzdiYTlaVlZaa2JjXzczTFJlQUxyQVQzRlAtWnVSYmt1aER0VU01VVpOUmIwZHdXc1RyWW1ZNTZwMS04SElVVTRiZmt1T1p3V0VaWTA?oc=5",
-      "published": "2026-11-26T01:04:06+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股",
-        "市场底部"
-      ],
-      "sector_holdings": [
+        "00100",
+        "02208",
         "03032",
         "03033",
         "07226"
       ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，洪灏讨论港股何时能够见底，但未给出明确的市场方向判断。"
+      "stance": "endorse",
+      "relevance": 56,
+      "summary_cn": "据报道，Michael Burry认为某只未披露名称的中国股票合理价值比当前价格高约60%，属于看多信号但缺乏具体标的。"
+    },
+    {
+      "author": "段永平",
+      "text": "內地A股波動 胡錫進稱「虧得很痛」 認為散戶值得好報",
+      "url": "https://news.google.com/rss/articles/CBMi4wJBVV95cUxON1lUMC1idGVUeUM3bzlKdkFMN1NubDNtX0NDWlZsNzNobDJnTDRrVWtJcVVaR0RBZ0hKRXJlMDVlN2tDcmFTeFkwS0tqUFhiblVWYXFEakdBTjlOZEVvclUzLVMwZUo1dlVWZDY5dmRBSGdBRTVoeTlpVTI0eFQ4WjAyYU95eG8xOXI2YWN6SmQtY0ZVQWRuMVhoSUFvOXVVRWxMSUxnak83Y0hDNVJib2Y1Mi11aTVmSnptRk1WMnpZYzVMSHdtbXo4UmRhc3Y5VndRbHo4UXJYLV83cVBZb1FLa3lVYzk0dEExbnYweUVTalRCYTl2YW9YV0VRTWtmLVRGdU5ndmdJQ3RYVFFSNko2MXhLR256REg0SlZ0WWtkM0NRaHV6bkEwVlFkUDRpdjNJR2xhbnEzdFBULTlKeU5RQXRLeWZYMmJJLU16TGNsODdDc3hRNm9HQWZhLVoyVEQw?oc=5",
+      "published": "2026-11-26T09:51:11+00:00",
+      "origin": "gnews-rss",
+      "source": "am730",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "A股",
+        "市场情绪",
+        "中国科技股"
+      ],
+      "sector_holdings": [
+        "00100",
+        "02208",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 53,
+      "summary_cn": "据报道，段永平转发的市场评论称胡锡进在A股波动中亏损严重并认为散户应保持乐观，反映投资者信心仍弱。"
+    },
+    {
+      "author": "Trump",
+      "text": "David E. Sanger, the mediocre reporter for the Failing New York Times, didn’t mention in his recent story on me the successful closing of the Border, best crime stats in years (lowest murder rate since 1900 - 126 years!), biggest Tax and Regulation Cuts, EVER, the most successful naval blockade in history, the destruction of Iran’s Navy and Air Force (and more!), the ONE DAY WIN against Venezuela, and today’s big success in straightening out the Obama caused mess in Iowa. David Sanger is a lowlife that only writes what he is told to write by his bosses. Also, until the Election, best Market, E",
+      "url": "https://www.trumpstruth.org/statuses/43740",
+      "published": "2026-11-26T05:47:03+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国经济",
+        "减税",
+        "监管",
+        "地缘政治"
+      ],
+      "sector_holdings": [
+        "ANT",
+        "CRCL",
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump攻击《纽约时报》的同时宣传其政府实施大幅减税和放松监管，并提及对伊朗及委内瑞拉的军事行动。"
     }
   ]
 }
