@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-26T00:18:09+00:00",
+  "updated_at": "2026-11-27T01:06:27+00:00",
   "records": [
     {
       "breach_id": "risk-0a0af7ae3b3a",
@@ -11,9 +11,9 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-11-26T00:04:51+00:00",
+      "last_seen_at": "2026-11-27T00:48:00+00:00",
       "last_changed_at": "2026-11-26T00:04:51+00:00",
-      "age_days": 134,
+      "age_days": 135,
       "recurrence_count": 1,
       "detail": "RKLX 浮亏 -70.8% ≤ 硬止损线 -18%",
       "required_action": "RKLX 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 RKLB（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
@@ -46,7 +46,7 @@
       "fingerprint": "f04fc9bfbbf8c694",
       "resolution": null,
       "standing": {
-        "days_open": 134,
+        "days_open": 135,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -83,15 +83,10 @@
         },
         "anchor_severity": "critical",
         "last_reissued_on": "2026-11-25",
-        "days_since_reissue": 1,
+        "days_since_reissue": 2,
         "forced_on": "2026-12-23",
         "rearm_at": "浮亏 ≤ -82.2%",
         "stances": [
-          {
-            "date": "2026-11-13",
-            "choice": "stand",
-            "why": "维持不是赞成，是这条腿的绝对规模小到不值得再写一遍砍单：它只占美股腿的 11.75%，横盘租金每月 9.74% 折合不到 40 美元，而昨天 12.43 到 13.60 的盘中高点挂了一整天没执行——kcn 已经用 30 股的实际持仓回答过这件事，今天再写一遍同样的砍单不构成新信息。真正变了的是标的的处境：RKLB 五天涨 39.31%、20 日 z 值 1.78、年化波动 108.1%，而昨晚黄仁勋离职把马斯克合作传闻和 SpaceX 与特斯拉合并谈判这两条推到了整个太空叙"
-          },
           {
             "date": "2026-11-16",
             "choice": "stand",
@@ -136,6 +131,11 @@
             "date": "2026-11-26",
             "choice": "stand",
             "why": "杠杆制度降仓那条在账本上站了 29 个日历天、硬止损那条站了 134 天，执行、留痕、豁免三个出口一个都没走过，昨天的砍单还挂着没成交。今天不重复加码，是因为和 11 月 25 日那次重提比没有实质变化：两倍腿昨天反而涨了 4.73%，RKLB 收 47.02 美元比前一天的 45.98 高，换仓要付的价更差而不是更好，浮亏从 -72.2% 回到 -70.8%，离 -82.2% 的重提线还有距离。但维持不等于不用管：这一格要么执行昨天那笔，要么在风险账本上留痕认下它继续开着，"
+          },
+          {
+            "date": "2026-11-27",
+            "choice": "stand",
+            "why": "今天和 11 月 25 日那次重提、11 月 26 日那次维持比，没有实质变化：美股 11 月 26 日休市，RKLB 最近一场还是 47.02 美元，浮亏从 -72.2% 回到 -70.8%，离 -82.2% 的重提线还远，换仓要付的价和昨天一样，不是更好也不是更差。加仓全程冻结。这一格最该盯的位是标的 43.89 美元的 20 日低，两倍腿每月白付 11.69% 的衰减，跌破说明这套打法本身不成立。"
           }
         ]
       }
@@ -149,16 +149,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-08-13T00:02:17+00:00",
-      "last_seen_at": "2026-11-26T00:04:51+00:00",
-      "last_changed_at": "2026-11-26T00:04:51+00:00",
-      "age_days": 105,
+      "last_seen_at": "2026-11-27T00:48:00+00:00",
+      "last_changed_at": "2026-11-27T00:04:48+00:00",
+      "age_days": 106,
       "recurrence_count": 3,
-      "detail": "07226 浮亏 -56.7% ≤ 硬止损线 -18%",
+      "detail": "07226 浮亏 -55.5% ≤ 硬止损线 -18%",
       "required_action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 8200,
-        "minimum_value": 13759.6,
+        "minimum_value": 14153.2,
         "currency": "HKD",
         "target_tickers": [
           "07226"
@@ -181,10 +181,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "2b041cd61edb2bb5",
+      "fingerprint": "93a9030b51b7317e",
       "resolution": null,
       "standing": {
-        "days_open": 105,
+        "days_open": 106,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -196,7 +196,7 @@
       },
       "pressure": {
         "kind": "pnl_pct",
-        "value": -56.7
+        "value": -55.5
       },
       "adaptive": {
         "eligible": true,
@@ -221,15 +221,10 @@
         },
         "anchor_severity": "critical",
         "last_reissued_on": "2026-11-26",
-        "days_since_reissue": 0,
+        "days_since_reissue": 1,
         "forced_on": "2026-12-24",
         "rearm_at": "浮亏 ≤ -66.7%",
         "stances": [
-          {
-            "date": "2026-11-13",
-            "choice": "reissue",
-            "why": "这是义务不是判断，今天只把它变成有价的条件单。账上这一条已经挂 92 天、执行 0 次、确认 0 次、例外 0 次，三个出口只剩砍腿这一条；标的处境没变差也没变好：恒科收在 3931.93，比 200 日线 4734.32 低 16.9%，20 日 z 值 -0.08 贴在中轴，说明没有趋势只有震荡，而震荡正是杠杆产品收费的环境——横盘每月白付 1.17% 的衰减，半年窗里这条腿要恒科涨 38.9% 才回本、换成现货要 79.8%，换 1x 买的不是回本速度，是横盘和再跌那两"
-          },
           {
             "date": "2026-11-16",
             "choice": "reissue",
@@ -274,6 +269,11 @@
             "date": "2026-11-26",
             "choice": "reissue",
             "why": "硬止损已触发，浮亏 -56.7% 在 -18% 线上，这条义务在账本上已经站了 105 个日历天，执行、留痕、豁免三个出口一个都没走过。今天和 11 月 25 日那次重提比确实变了：恒科收 3,378.26，跌破 20 日低 3,395.38 创出新低，离 200 日线 4,638.56 的缺口从 -25.4% 扩到 -27.2%，昨天挂出的砍单没有成交。这一格在账户上清过六次全胜、减过三次全胜，而两倍腿每月还要白付 1.01% 的横盘衰减，恒科已经七连跌，赔率在再跌那一档。"
+          },
+          {
+            "date": "2026-11-27",
+            "choice": "stand",
+            "why": "今天和 11 月 26 日那次重提比，变了的是恒科本身：昨天收 3,378.26 跌破 20 日低创出新低，今天收 3,417.38 涨 1.16% 站回 20 日低 3,367.15 之上，昨天那条破位创新低的重提依据已经反转，所以维持而不是重提。这一格两倍腿的横盘衰减只有每月 0.98%（恒科 20 日波动 34.3%，在 50% 上限之内），是三只两倍腿里最便宜的一份，浮亏 -55.5% 离 -66.7% 的重提线还远。加仓全程冻结。"
           }
         ]
       }
@@ -287,16 +287,16 @@
       "severity": "critical",
       "first_seen_at": "2026-11-09T00:00:00+00:00",
       "current_opened_at": "2026-11-09T00:00:00+00:00",
-      "last_seen_at": "2026-11-26T00:04:51+00:00",
-      "last_changed_at": "2026-11-26T00:04:51+00:00",
-      "age_days": 17,
+      "last_seen_at": "2026-11-27T00:48:00+00:00",
+      "last_changed_at": "2026-11-27T00:04:48+00:00",
+      "age_days": 18,
       "recurrence_count": 4,
-      "detail": "07709 浮亏 -34.4% ≤ 硬止损线 -18%",
+      "detail": "07709 浮亏 -30.9% ≤ 硬止损线 -18%",
       "required_action": "07709 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 SKHY（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 200,
-        "minimum_value": 2160.0,
+        "minimum_value": 2278.0,
         "currency": "HKD",
         "target_tickers": [
           "07709"
@@ -319,14 +319,14 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "218cfa318e2b4430",
+      "fingerprint": "9786974142cf5a6f",
       "resolution": null,
       "pressure": {
         "kind": "pnl_pct",
-        "value": -34.4
+        "value": -30.9
       },
       "standing": {
-        "days_open": 17,
+        "days_open": 18,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -338,9 +338,9 @@
       },
       "adaptive": {
         "eligible": true,
-        "may_stand": false,
-        "must_reissue": true,
-        "must_reason": "浮亏 -21.8% → -34.4%（比上次重提时再深 ≥10pp）",
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
         "stance": {
           "stance": "contrary",
           "since": "2026-11-09",
@@ -355,13 +355,13 @@
         },
         "anchor": {
           "kind": "pnl_pct",
-          "value": -34.4
+          "value": -30.9
         },
         "anchor_severity": "critical",
-        "last_reissued_on": "2026-11-26",
+        "last_reissued_on": "2026-11-27",
         "days_since_reissue": 0,
-        "forced_on": "2026-12-24",
-        "rearm_at": "浮亏 ≤ -44.4%",
+        "forced_on": "2026-12-25",
+        "rearm_at": "浮亏 ≤ -40.9%",
         "stances": [
           {
             "date": "2026-11-23",
@@ -377,6 +377,11 @@
             "date": "2026-11-26",
             "choice": "reissue",
             "why": "浮亏从 11 月 23 日重提时的 -21.8% 扩到 -34.4%，比上次再深 12.6 个点，超过必须重提的 10 个点门槛，这一格没有可等的余地。标的 SK 海力士昨天跌超 8%，1x 代理 SKHY 收 111.14 美元已经跌破 20 日线 130.87；美股存储那一层是全线崩的，美光跌超 11%、闪迪跌超 10%，高盛在砍存储目标价并认为 2028 年存储价格转入下行。两倍腿昨天单日 -20.88%，减仓空间已经被打没，年化波动 119% 之下两倍每月还要白付 4"
+          },
+          {
+            "date": "2026-11-27",
+            "choice": "reissue",
+            "why": "今天和 11 月 26 日那次重提比，变了的是一条这一格还没定价的下跌：英伟达下调芯片出货指引、HBM 订单预期腰斩，韩国 11 月 26 日熔断，海力士 -11.05%、三星 -9.87%、外资单日净卖出接近 1.9 万亿韩元；而港股这一格昨天反而涨了 5.46%，因为它跟的是韩股 11 月 25 日那场反弹，这一跌它一分钱都没吃到。今天韩股早盘海力士只跌 2.28%，所以今天的补跌幅度取决于韩国怎么走，不是固定的一个数。两倍腿每月白付 4.4% 的横盘衰减，浮亏 -30."
           }
         ]
       }
@@ -390,9 +395,9 @@
       "severity": "high",
       "first_seen_at": "2026-07-27T00:00:00+00:00",
       "current_opened_at": "2026-10-28T00:04:39+00:00",
-      "last_seen_at": "2026-11-26T00:04:51+00:00",
+      "last_seen_at": "2026-11-27T00:48:00+00:00",
       "last_changed_at": "2026-11-26T00:04:51+00:00",
-      "age_days": 29,
+      "age_days": 30,
       "recurrence_count": 6,
       "detail": "🧭 RKLX=2xRKLB 标的破200线 (-39.2%)+波动 118% 过热 → 杠杆制度 red",
       "required_action": "RKLX 2x→RKLB 现货换仓(driven_by=risk_rule,规则非择时)：标的趋势off 且波动>70%，2x 日内重置在下杀里放大衰减；RKLB 收复200线(green)再换回 2x",
@@ -425,7 +430,7 @@
       "fingerprint": "3fa125cee7696447",
       "resolution": null,
       "standing": {
-        "days_open": 29,
+        "days_open": 30,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -464,15 +469,10 @@
         },
         "anchor_severity": "high",
         "last_reissued_on": "2026-11-25",
-        "days_since_reissue": 1,
+        "days_since_reissue": 2,
         "forced_on": "2026-12-23",
         "rearm_at": "需减额 ≥ 276 USD",
         "stances": [
-          {
-            "date": "2026-11-12",
-            "choice": "reissue",
-            "why": "这是义务不是判断。标的 RKLB 收在 200 日线下方 15.8%，20 日年化波动 110.6% 过热，美股杠杆制度这一档已经是 red、触发了降杠杆；这条腿浮亏 39.1% 压��� -18% 的硬止损线，账上执行 0 次、确认 0 次、例外 0 次，三个出口只剩砍腿这一条。钱的账更直白：2x 横盘每月白付 10.18% 的衰减，半年窗要标的涨 74.0% 才回本，换 1x 现货只要 64.3%，买的是横盘和再跌那两种情景的保护。今天它昨天涨了 11.11%，卖在反弹里"
-          },
           {
             "date": "2026-11-13",
             "choice": "stand",
@@ -517,6 +517,11 @@
             "date": "2026-11-26",
             "choice": "stand",
             "why": "杠杆制度降仓那条在账本上站了 29 个日历天、硬止损那条站了 134 天，执行、留痕、豁免三个出口一个都没走过，昨天的砍单还挂着没成交。今天不重复加码，是因为和 11 月 25 日那次重提比没有实质变化：两倍腿昨天反而涨了 4.73%，RKLB 收 47.02 美元比前一天的 45.98 高，换仓要付的价更差而不是更好，浮亏从 -72.2% 回到 -70.8%，离 -82.2% 的重提线还有距离。但维持不等于不用管：这一格要么执行昨天那笔，要么在风险账本上留痕认下它继续开着，"
+          },
+          {
+            "date": "2026-11-27",
+            "choice": "stand",
+            "why": "今天和 11 月 25 日那次重提、11 月 26 日那次维持比，没有实质变化：美股 11 月 26 日休市，RKLB 最近一场还是 47.02 美元，浮亏从 -72.2% 回到 -70.8%，离 -82.2% 的重提线还远，换仓要付的价和昨天一样，不是更好也不是更差。加仓全程冻结。这一格最该盯的位是标的 43.89 美元的 20 日低，两倍腿每月白付 11.69% 的衰减，跌破说明这套打法本身不成立。"
           }
         ]
       }

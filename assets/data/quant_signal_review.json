@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-11-26",
-  "days_logged": 122,
+  "as_of": "2026-11-27",
+  "days_logged": 123,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "frozen_feed_excluded": 50,
   "closed_market_rows_excluded": 7,
@@ -19,19 +19,19 @@
       "reverse_edge_significant": false,
       "sample_sufficient": false,
       "min_n": 20,
-      "non_overlap_cap": 230,
+      "non_overlap_cap": 232,
       "decision_direction": null,
       "usable": false,
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "trend_off_avoid": {
-      "n_events": 683,
-      "n_dates": 114,
+      "n_events": 688,
+      "n_dates": 115,
       "n_tickers": 11,
-      "hit_rate": 0.633,
+      "hit_rate": 0.635,
       "ci95": [
-        0.54,
-        0.71
+        0.549,
+        0.715
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": true,
@@ -82,13 +82,13 @@
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "zscore_extreme_revert": {
-      "n_events": 53,
-      "n_dates": 31,
+      "n_events": 54,
+      "n_dates": 32,
       "n_tickers": 9,
-      "hit_rate": 0.453,
+      "hit_rate": 0.444,
       "ci95": [
-        0.221,
-        0.714
+        0.208,
+        0.69
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -101,13 +101,13 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "stop_breach_continue": {
-      "n_events": 559,
-      "n_dates": 102,
+      "n_events": 564,
+      "n_dates": 103,
       "n_tickers": 12,
-      "hit_rate": 0.624,
+      "hit_rate": 0.628,
       "ci95": [
-        0.53,
-        0.705
+        0.534,
+        0.71
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": true,
@@ -120,6 +120,6 @@
       "note": ""
     }
   },
-  "summary": "trend_off_avoid 原向 63%[54–71](events=683, dates=114, tickers=11)、stop_breach_continue 原向 62%[53–70](events=559, dates=102, tickers=12)",
+  "summary": "trend_off_avoid 原向 64%[55–72](events=688, dates=115, tickers=11)、stop_breach_continue 原向 63%[53–71](events=564, dates=103, tickers=12)",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

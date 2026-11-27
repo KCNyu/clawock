@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-26T00:03:33.565220+00:00",
-  "as_of": "2026-11-26",
+  "generated_at": "2026-11-27T00:46:44.625386+00:00",
+  "as_of": "2026-11-27",
   "us": {
     "beta_spx": 3.201,
     "n_returns": 30,
@@ -173,12 +173,12 @@
     "current_value_usd": 2556.97
   },
   "hk": {
-    "beta_hsi": 2.3364,
+    "beta_hsi": 2.4203,
     "n_returns": 30,
     "n_returns_observed": 30,
     "actual_window": {
-      "first": "2026-10-14",
-      "last": "2026-11-25",
+      "first": "2026-10-15",
+      "last": "2026-11-26",
       "target_returns": 30,
       "observed_returns": 30,
       "used_returns": 30
@@ -190,7 +190,6 @@
       "excluded_low_coverage_dates": [],
       "excluded_non_finite_dates": [],
       "per_date_value_coverage_pct": {
-        "2026-10-14": 100.0,
         "2026-10-15": 100.0,
         "2026-10-16": 100.0,
         "2026-10-20": 100.0,
@@ -219,20 +218,21 @@
         "2026-11-20": 100.0,
         "2026-11-23": 100.0,
         "2026-11-24": 100.0,
-        "2026-11-25": 100.0
+        "2026-11-25": 100.0,
+        "2026-11-26": 100.0
       }
     },
-    "vol_30d_annualized": 0.8048,
-    "ewma_vol_annualized": 0.776,
-    "max_dd_30d": -0.4559,
-    "sharpe_30d": -5.9517,
+    "vol_30d_annualized": 0.8259,
+    "ewma_vol_annualized": 0.8055,
+    "max_dd_30d": -0.4466,
+    "sharpe_30d": -5.1696,
     "expected_shortfall_95": -0.0941,
     "threshold_eligible": true,
     "threshold_min_returns": 20,
     "regime_basis": "dynamic_historical_weights",
     "benchmark_n_returns": 30,
     "beta_threshold_eligible": true,
-    "ewma_benchmark_correlation": 0.5743,
+    "ewma_benchmark_correlation": 0.6268,
     "sleeves": {
       "established": {
         "tickers": [
@@ -246,8 +246,8 @@
         "n_returns": 30,
         "n_returns_observed": 30,
         "actual_window": {
-          "first": "2026-10-14",
-          "last": "2026-11-25",
+          "first": "2026-10-15",
+          "last": "2026-11-26",
           "target_returns": 30,
           "observed_returns": 30,
           "used_returns": 30
@@ -259,7 +259,6 @@
           "excluded_low_coverage_dates": [],
           "excluded_non_finite_dates": [],
           "per_date_value_coverage_pct": {
-            "2026-10-14": 100.0,
             "2026-10-15": 100.0,
             "2026-10-16": 100.0,
             "2026-10-20": 100.0,
@@ -288,13 +287,14 @@
             "2026-11-20": 100.0,
             "2026-11-23": 100.0,
             "2026-11-24": 100.0,
-            "2026-11-25": 100.0
+            "2026-11-25": 100.0,
+            "2026-11-26": 100.0
           }
         },
-        "vol_30d_annualized": 0.8048,
-        "ewma_vol_annualized": 0.776,
-        "max_dd_30d": -0.4559,
-        "sharpe_30d": -5.9517,
+        "vol_30d_annualized": 0.8259,
+        "ewma_vol_annualized": 0.8055,
+        "max_dd_30d": -0.4466,
+        "sharpe_30d": -5.1696,
         "expected_shortfall_95": -0.0941,
         "threshold_eligible": true,
         "threshold_min_returns": 20,
@@ -310,14 +310,14 @@
     },
     "weight_method": "date_varying_shares_x_previous_close",
     "weight_reconstruction": "current shares reversed through dated trade ledger",
-    "current_value_hkd": 36309.6
+    "current_value_hkd": 37949.2
   },
   "combined": {
     "n_returns": 30,
     "n_returns_observed": 30,
     "actual_window": {
-      "first": "2026-10-15",
-      "last": "2026-11-25",
+      "first": "2026-10-16",
+      "last": "2026-11-26",
       "target_returns": 30,
       "observed_returns": 30,
       "used_returns": 30
@@ -329,7 +329,6 @@
       "excluded_low_coverage_dates": [],
       "excluded_non_finite_dates": [],
       "per_date_value_coverage_pct": {
-        "2026-10-15": 100.0,
         "2026-10-16": 100.0,
         "2026-10-19": 100.0,
         "2026-10-20": 100.0,
@@ -358,13 +357,14 @@
         "2026-11-20": 100.0,
         "2026-11-23": 100.0,
         "2026-11-24": 100.0,
-        "2026-11-25": 100.0
+        "2026-11-25": 100.0,
+        "2026-11-26": 100.0
       }
     },
-    "vol_30d_annualized": 0.7259,
-    "ewma_vol_annualized": 0.7045,
-    "max_dd_30d": -0.4152,
-    "sharpe_30d": -5.856,
+    "vol_30d_annualized": 0.7188,
+    "ewma_vol_annualized": 0.709,
+    "max_dd_30d": -0.3827,
+    "sharpe_30d": -4.7414,
     "expected_shortfall_95": -0.1103,
     "threshold_eligible": true,
     "threshold_min_returns": 20,
@@ -373,8 +373,8 @@
     "closed_market_return_treatment": "zero"
   },
   "correlation": {
-    "effective_names": 4.63,
-    "effective_bets": 2.19,
+    "effective_names": 4.61,
+    "effective_bets": 2.18,
     "deep_risk": {
       "status": "measured",
       "conditioning": {
@@ -392,98 +392,98 @@
         "intensity": 0.380327,
         "target_average_correlation": 0.309678,
         "method": "Ledoit & Wolf (2004), constant-correlation target",
-        "effective_bets": 2.1885,
-        "diversification_ratio": 1.4569
+        "effective_bets": 2.1779,
+        "diversification_ratio": 1.4558
       },
       "risk_contributions": [
         {
           "name": "SPCH",
-          "weight_share": 0.28953,
-          "risk_contribution": 0.01678905,
-          "risk_share": 0.415076,
-          "risk_share_minus_weight_share": 0.125546,
-          "marginal_risk": 0.05798725
+          "weight_share": 0.281237,
+          "risk_contribution": 0.01600171,
+          "risk_share": 0.394788,
+          "risk_share_minus_weight_share": 0.113551,
+          "marginal_risk": 0.05689755
         },
         {
           "name": "00100",
-          "weight_share": 0.251049,
-          "risk_contribution": 0.01346562,
-          "risk_share": 0.332911,
-          "risk_share_minus_weight_share": 0.081862,
-          "marginal_risk": 0.05363735
+          "weight_share": 0.262154,
+          "risk_contribution": 0.01432574,
+          "risk_share": 0.353439,
+          "risk_share_minus_weight_share": 0.091285,
+          "marginal_risk": 0.05464627
         },
         {
           "name": "07226",
-          "weight_share": 0.247021,
-          "risk_contribution": 0.00491949,
-          "risk_share": 0.121625,
-          "risk_share_minus_weight_share": -0.125396,
-          "marginal_risk": 0.0199153
+          "weight_share": 0.246828,
+          "risk_contribution": 0.00496402,
+          "risk_share": 0.12247,
+          "risk_share_minus_weight_share": -0.124358,
+          "marginal_risk": 0.02011126
         },
         {
           "name": "07709",
-          "weight_share": 0.038778,
-          "risk_contribution": 0.00187047,
-          "risk_share": 0.046244,
-          "risk_share_minus_weight_share": 0.007466,
-          "marginal_risk": 0.04823573
+          "weight_share": 0.039728,
+          "risk_contribution": 0.0019367,
+          "risk_share": 0.047781,
+          "risk_share_minus_weight_share": 0.008054,
+          "marginal_risk": 0.04874924
         },
         {
           "name": "RKLX",
-          "weight_share": 0.027101,
-          "risk_contribution": 0.00149644,
-          "risk_share": 0.036997,
-          "risk_share_minus_weight_share": 0.009895,
-          "marginal_risk": 0.05521663
+          "weight_share": 0.026325,
+          "risk_contribution": 0.00143339,
+          "risk_share": 0.035364,
+          "risk_share_minus_weight_share": 0.009039,
+          "marginal_risk": 0.05444967
         },
         {
           "name": "03033",
-          "weight_share": 0.059495,
-          "risk_contribution": 0.00054609,
-          "risk_share": 0.013501,
-          "risk_share_minus_weight_share": -0.045994,
-          "marginal_risk": 0.00917873
+          "weight_share": 0.058493,
+          "risk_contribution": 0.00054251,
+          "risk_share": 0.013385,
+          "risk_share_minus_weight_share": -0.045108,
+          "marginal_risk": 0.00927485
         },
         {
           "name": "02208",
-          "weight_share": 0.043373,
-          "risk_contribution": 0.00051036,
-          "risk_share": 0.012618,
-          "risk_share_minus_weight_share": -0.030756,
-          "marginal_risk": 0.01176666
+          "weight_share": 0.042727,
+          "risk_contribution": 0.00050768,
+          "risk_share": 0.012525,
+          "risk_share_minus_weight_share": -0.030202,
+          "marginal_risk": 0.01188176
         },
         {
           "name": "SPCX",
-          "weight_share": 0.017932,
-          "risk_contribution": 0.00042674,
-          "risk_share": 0.01055,
-          "risk_share_minus_weight_share": -0.007382,
-          "marginal_risk": 0.02379716
+          "weight_share": 0.017419,
+          "risk_contribution": 0.00040778,
+          "risk_share": 0.010061,
+          "risk_share_minus_weight_share": -0.007358,
+          "marginal_risk": 0.02341045
         },
         {
           "name": "CRCL",
-          "weight_share": 0.013584,
-          "risk_contribution": 0.00031495,
-          "risk_share": 0.007787,
-          "risk_share_minus_weight_share": -0.005798,
-          "marginal_risk": 0.02318484
+          "weight_share": 0.013195,
+          "risk_contribution": 0.00030506,
+          "risk_share": 0.007526,
+          "risk_share_minus_weight_share": -0.005669,
+          "marginal_risk": 0.02311867
         },
         {
           "name": "03032",
-          "weight_share": 0.012136,
-          "risk_contribution": 0.00010889,
-          "risk_share": 0.002692,
-          "risk_share_minus_weight_share": -0.009444,
-          "marginal_risk": 0.00897282
+          "weight_share": 0.011894,
+          "risk_contribution": 0.00010785,
+          "risk_share": 0.002661,
+          "risk_share_minus_weight_share": -0.009233,
+          "marginal_risk": 0.0090678
         }
       ],
       "largest_risk_overweight": {
         "name": "SPCH",
-        "weight_share": 0.28953,
-        "risk_contribution": 0.01678905,
-        "risk_share": 0.415076,
-        "risk_share_minus_weight_share": 0.125546,
-        "marginal_risk": 0.05798725
+        "weight_share": 0.281237,
+        "risk_contribution": 0.01600171,
+        "risk_share": 0.394788,
+        "risk_share_minus_weight_share": 0.113551,
+        "marginal_risk": 0.05689755
       },
       "reference_allocation": {
         "status": "measured",
@@ -517,7 +517,7 @@
       },
       "stress": {
         "top_position": "SPCH",
-        "top_position_weight": 0.28953,
+        "top_position_weight": 0.281237,
         "correlated_shock": {
           "status": "measured",
           "shocked": {
@@ -534,9 +534,9 @@
             "RKLX": -0.148345,
             "SPCX": -0.074384
           },
-          "portfolio_return": -0.080182,
-          "portfolio_return_if_others_held_still": -0.057906,
-          "contagion_share": 0.2778,
+          "portfolio_return": -0.07884,
+          "portfolio_return_if_others_held_still": -0.056247,
+          "contagion_share": 0.2866,
           "method": "conditional expectation under the supplied covariance"
         },
         "reverse_stress": {
@@ -544,38 +544,38 @@
             "status": "measured",
             "target_loss": -0.1,
             "moves": {
-              "00100": -0.132608,
-              "02208": -0.029091,
-              "03032": -0.022184,
-              "03033": -0.022693,
-              "07226": -0.049237,
-              "07709": -0.119253,
-              "CRCL": -0.05732,
-              "RKLX": -0.136512,
-              "SPCH": -0.143362,
-              "SPCX": -0.058834
+              "00100": -0.134821,
+              "02208": -0.029314,
+              "03032": -0.022372,
+              "03033": -0.022883,
+              "07226": -0.049618,
+              "07709": -0.120272,
+              "CRCL": -0.057037,
+              "RKLX": -0.134336,
+              "SPCH": -0.140375,
+              "SPCX": -0.057757
             },
             "largest_mover": "SPCH",
-            "sigmas_away": 2.472,
+            "sigmas_away": 2.467,
             "method": "minimum-Mahalanobis scenario reaching the loss; the least improbable shape, not the worst one"
           },
           "loss_20pct": {
             "status": "measured",
             "target_loss": -0.2,
             "moves": {
-              "00100": -0.265216,
-              "02208": -0.058182,
-              "03032": -0.044367,
-              "03033": -0.045385,
-              "07226": -0.098473,
-              "07709": -0.238507,
-              "CRCL": -0.11464,
-              "RKLX": -0.273025,
-              "SPCH": -0.286724,
-              "SPCX": -0.117668
+              "00100": -0.269642,
+              "02208": -0.058628,
+              "03032": -0.044743,
+              "03033": -0.045765,
+              "07226": -0.099235,
+              "07709": -0.240544,
+              "CRCL": -0.114075,
+              "RKLX": -0.268672,
+              "SPCH": -0.280751,
+              "SPCX": -0.115515
             },
             "largest_mover": "SPCH",
-            "sigmas_away": 4.945,
+            "sigmas_away": 4.934,
             "method": "minimum-Mahalanobis scenario reaching the loss; the least improbable shape, not the worst one"
           }
         },
@@ -585,51 +585,51 @@
           "basis": "current weights held fixed through past returns; not a rebalancing replay",
           "worst_1_session": [
             {
-              "return": -0.110141,
+              "return": -0.109205,
               "from": "2026-10-22",
               "to": "2026-10-22"
             },
             {
-              "return": -0.108233,
+              "return": -0.107944,
               "from": "2026-11-20",
               "to": "2026-11-20"
             },
             {
-              "return": -0.083101,
+              "return": -0.08381,
               "from": "2026-10-08",
               "to": "2026-10-08"
             }
           ],
           "worst_5_session": [
             {
-              "return": -0.209778,
+              "return": -0.210703,
               "from": "2026-11-19",
               "to": "2026-11-25"
             },
             {
-              "return": -0.204005,
+              "return": -0.205768,
               "from": "2026-11-16",
               "to": "2026-11-20"
             },
             {
-              "return": -0.164317,
+              "return": -0.164748,
               "from": "2026-10-13",
               "to": "2026-10-20"
             }
           ],
           "worst_20_session": [
             {
-              "return": -0.316174,
+              "return": -0.319762,
               "from": "2026-10-29",
               "to": "2026-11-25"
             },
             {
-              "return": -0.286792,
+              "return": -0.29025,
               "from": "2026-09-23",
               "to": "2026-10-22"
             },
             {
-              "return": -0.286364,
+              "return": -0.285999,
               "from": "2026-10-07",
               "to": "2026-11-04"
             }
@@ -637,9 +637,9 @@
         }
       }
     },
-    "diversification_ratio": 1.475,
-    "var_95": -0.0732,
-    "expected_shortfall_95": -0.1005,
+    "diversification_ratio": 1.473,
+    "var_95": -0.0742,
+    "expected_shortfall_95": -0.1003,
     "clusters": [
       {
         "tickers": [
@@ -647,44 +647,44 @@
           "03033",
           "07226"
         ],
-        "weight_pct": 31.5
+        "weight_pct": 31.37
       },
       {
         "tickers": [
           "SPCH",
           "SPCX"
         ],
-        "weight_pct": 30.39
+        "weight_pct": 29.53
       },
       {
         "tickers": [
           "00100"
         ],
-        "weight_pct": 24.82
+        "weight_pct": 25.92
       },
       {
         "tickers": [
           "02208"
         ],
-        "weight_pct": 4.29
+        "weight_pct": 4.22
       },
       {
         "tickers": [
           "07709"
         ],
-        "weight_pct": 3.83
+        "weight_pct": 3.93
       },
       {
         "tickers": [
           "RKLX"
         ],
-        "weight_pct": 2.68
+        "weight_pct": 2.6
       },
       {
         "tickers": [
           "CRCL"
         ],
-        "weight_pct": 1.34
+        "weight_pct": 1.3
       }
     ],
     "top_pairs": [
@@ -694,7 +694,7 @@
           "SPCX"
         ],
         "rho": 1.0,
-        "combined_weight_pct": 30.39
+        "combined_weight_pct": 29.53
       },
       {
         "pair": [
@@ -702,7 +702,7 @@
           "07226"
         ],
         "rho": 0.994,
-        "combined_weight_pct": 30.3
+        "combined_weight_pct": 30.19
       },
       {
         "pair": [
@@ -710,7 +710,7 @@
           "07226"
         ],
         "rho": 0.993,
-        "combined_weight_pct": 25.62
+        "combined_weight_pct": 25.58
       },
       {
         "pair": [
@@ -718,7 +718,7 @@
           "03033"
         ],
         "rho": 0.989,
-        "combined_weight_pct": 7.08
+        "combined_weight_pct": 6.96
       },
       {
         "pair": [
@@ -726,7 +726,7 @@
           "SPCH"
         ],
         "rho": 0.671,
-        "combined_weight_pct": 31.3
+        "combined_weight_pct": 30.41
       }
     ],
     "n_common_sessions": 60,
@@ -748,48 +748,48 @@
     "excluded_short_history": [
       "ANT"
     ],
-    "covered_weight_pct": 98.85,
+    "covered_weight_pct": 98.88,
     "cluster_rho": 0.8,
     "basis": "USD-converted current weights over sessions both legs traded"
   },
   "leveraged_exposure": {
     "us_leverage_factor_avg": 1.88,
-    "hk_leverage_factor_avg": 1.4384,
-    "combined_avg": 1.5955,
-    "margin_at_risk_pct": 15.9549
+    "hk_leverage_factor_avg": 1.433,
+    "combined_avg": 1.5875,
+    "margin_at_risk_pct": 15.8747
   },
   "alerts": [
     {
       "type": "high_vol",
       "severity": "high",
-      "detail": "Combined 30d annualised vol = 72.6% (> 50%)"
+      "detail": "Combined 30d annualised vol = 71.9% (> 50%)"
     },
     {
       "type": "deep_dd",
       "severity": "medium",
-      "detail": "Combined 30d max DD = -41.5% (< -10%)"
+      "detail": "Combined 30d max DD = -38.3% (< -10%)"
     },
     {
       "type": "negative_sharpe",
       "severity": "medium",
-      "detail": "Combined 30d Sharpe = -5.856 (< 0)"
+      "detail": "Combined 30d Sharpe = -4.7414 (< 0)"
     },
     {
       "type": "diversification_illusion",
       "severity": "medium",
-      "detail": "4.63 effective names but only 2.19 effective bets — weight-based concentration understates the real exposure"
+      "detail": "4.61 effective names but only 2.18 effective bets — weight-based concentration understates the real exposure"
     }
   ],
   "meta": {
-    "fx_hkd_to_usd_used": 0.127584,
+    "fx_hkd_to_usd_used": 0.127593,
     "fx": {
       "pair": "USDHKD",
-      "rate": 7.838,
+      "rate": 7.8374,
       "source": "Frankfurter",
-      "fetched_at": "2026-11-26T00:03:21.228553+00:00",
+      "fetched_at": "2026-11-27T00:03:22.736840+00:00",
       "fallback_used": false,
       "warning": null,
-      "hkd_to_usd": 0.12758357
+      "hkd_to_usd": 0.12759333
     },
     "risk_free_annual": 0.045,
     "window_days": 30,
@@ -823,8 +823,8 @@
       ],
       "failed": [],
       "n_returns": 30,
-      "dates_first": "2026-10-14",
-      "dates_last": "2026-11-25",
+      "dates_first": "2026-10-15",
+      "dates_last": "2026-11-26",
       "stale": false
     }
   }
