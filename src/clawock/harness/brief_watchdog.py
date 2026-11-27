@@ -67,6 +67,7 @@ import subprocess
 import sys
 from datetime import datetime
 
+from clawock import prose_claims
 from clawock.automation import delivery_receipts
 from clawock import sessions as trading_calendar
 from clawock.safe_io import safe_write_text
@@ -116,6 +117,11 @@ def inspect_brief_artifacts(today):
         issues.append('brief_missing')
     if not plan_path.exists():
         issues.append('plan_missing')
+        return issues
+    context_path = WS / 'memory' / '.tmp' / f'brief-context-{today}.json'
+    if prose_claims.enabled(delivery_receipts.read_receipt(context_path)):
+        if not brief_versions.artifacts_verified(WS, today):
+            issues.append('brief_artifacts_unverified')
         return issues
     try:
         plan = json.loads(plan_path.read_text())
@@ -831,6 +837,10 @@ def _recover_channels(today, marker_path, dry_run):
 
     def card_for_backstop(day):
         kwargs = {'risk_view': risk_view}
+        context_path = WS / 'memory' / '.tmp' / f'brief-context-{day}.json'
+        if (prose_claims.enabled(delivery_receipts.read_receipt(context_path))
+                and not brief_versions.artifacts_verified(WS, day)):
+            kwargs['data_only'] = True
         if card_footer:
             kwargs['footer'] = card_footer
         if card_version:

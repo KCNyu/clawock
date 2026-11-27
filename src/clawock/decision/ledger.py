@@ -507,6 +507,7 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         # Written by postflight from the generation-pinned decision packet.
         # A model-authored value is replaced before validation and ledger upsert.
         "signal_provenance": action.get("signal_provenance"),
+        **({"prose_claims": action["prose_claims"]} if "prose_claims" in action else {}),
         "simulated_entry_price": _float(action.get("simulated_entry_price")),
         "horizon_sessions": _int(action.get("horizon_sessions")) or 1,
         "override": action.get("override") or {

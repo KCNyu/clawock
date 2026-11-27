@@ -204,14 +204,15 @@ def _report(args) -> int:
                   f"{_flag_phases('report', flag)} only", file=sys.stderr)
             return 2
 
-    from clawock.harness.report import assemble_message, categorize, validate
+    from clawock.harness.report import assemble_message, categorize, prepare_report
 
     context = json.loads(Path(args.context).read_text())
     prose = Path(args.prose).read_text() if args.prose else sys.stdin.read()
 
-    body = assemble_message(context, prose)
-    issues = validate(body, context, prose)
+    body, issues = prepare_report(context, prose, workspace_root())
     verdict = categorize(issues)
+    if any(issue.startswith('事实引用 ') for issue in issues):
+        body = assemble_message(context, '')
 
     result = {
         "market": context.get("market"),

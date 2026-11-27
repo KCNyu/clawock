@@ -2515,7 +2515,7 @@ def load_sector_scan():
         if not isinstance(data, dict):
             return {}
         data.setdefault('_source', os.path.basename(latest))
-        data['_sessions'] = _scan_sessions(data, latest)
+        data.setdefault('_sessions', _scan_sessions(data, latest))
         return data
     except Exception as e:
         print(f'  warn: load_sector_scan failed: {e}', file=sys.stderr)
@@ -2758,7 +2758,8 @@ def validate_insights(data, known_tickers, *, weights=None, basis_values=None):
         # per-component holdings check in _resolve_insight_ticker.
         tk = _clean_str(c.get('ticker'), 40)
         thesis = _clean_str(c.get('thesis'), 220)
-        if not tk or not thesis or not grounded(thesis):
+        bound = isinstance(c.get('context_generation_id'), str) and bool(c['context_generation_id'])
+        if not tk or not thesis or (not bound and not grounded(thesis)):
             continue
         resolved = _resolve_insight_ticker(tk, known_tickers)
         if not resolved:
@@ -2769,6 +2770,7 @@ def validate_insights(data, known_tickers, *, weights=None, basis_values=None):
             'thesis': thesis,
             'falsifier': _clean_str(c.get('falsifier'), 160) or '',
             'watch': _clean_str(c.get('watch'), 120) or '',
+            **({'context_generation_id': c['context_generation_id']} if bound else {}),
         })
     # hidden_concentration — needs headline + a plausible 0-100 exposure_pct
     hc = data.get('hidden_concentration')
@@ -2785,14 +2787,19 @@ def validate_insights(data, known_tickers, *, weights=None, basis_values=None):
         vocabulary = weights if basis_values is None else (basis_values.get(basis) if basis else None)
         checkable = basis_values is None or vocabulary is not None
         pct_ok = vocabulary is None or (pct is not None and _matches(hc.get('exposure_pct'), vocabulary))
-        if (headline and pct is not None and 0 <= pct <= 100 and checkable and pct_ok
-                and grounded(headline + '；' + detail, exposure=True, weights=vocabulary)):
+        evidence = hc.get('exposure_source')
+        bound = (isinstance(evidence, dict) and evidence.get('basis') == basis
+                 and evidence.get('pct') == pct and evidence.get('leg') in ('hk', 'us'))
+        if (headline and pct is not None and 0 <= pct <= 100
+                and (bound or (checkable and pct_ok
+                               and grounded(headline + '；' + detail, exposure=True, weights=vocabulary)))):
             out['hidden_concentration'] = {
                 'headline': headline,
                 'factor': _clean_str(hc.get('factor'), 40) or '',
                 'exposure_pct': round(pct, 2),
                 'detail': detail,
                 **({'basis': basis} if basis else {}),
+                **({'exposure_source': evidence} if bound else {}),
             }
     return out
 
@@ -3156,6 +3163,35 @@ def compute_weight_confidence(portfolio, window_days=30):
         return []
 
 
+_TRIM_FACT_LABELS = {
+    'shares_to_review_line': ('到复核线需卖', ' 股'),
+    'remaining_shares_at_review_line': ('到复核线后剩余', ' 股'),
+    'post_trim_weight_pct': ('卖出后腿占比', '%'),
+}
+
+
+def _structured_trim_warnings(claims, projection, book_projection):
+    """Compare the facts the dated decision cited with the same scenario today."""
+    trim = claims.get('trim')
+    if not isinstance(trim, dict):
+        return []
+    warnings = []
+    for path, before in trim.items():
+        if not isinstance(path, str):
+            continue
+        basis, _, field = path.removeprefix('/decision/').partition('/')
+        if field not in _TRIM_FACT_LABELS:
+            continue
+        scenario = {'trim_at_trigger': projection, 'trim_at_mark': book_projection}.get(basis) or {}
+        after = scenario.get(field)
+        if after is None or after == before:
+            continue
+        label, unit = _TRIM_FACT_LABELS[field]
+        price_basis = '触发价' if scenario.get('price_basis') == 'plan_trigger' else '现价'
+        warnings.append(f'{price_basis}{label}：原计划 {before}{unit}，当前账本 {after}{unit}')
+    return warnings
+
+
 def compute_plan_timeline(plans, limit=15, context=None):
     """V2 timeline with current-book scenarios beside immutable authored prose."""
     from clawock.portfolio.guardrail import plan_trim_projections
@@ -3174,6 +3210,11 @@ def compute_plan_timeline(plans, limit=15, context=None):
             book_projection = book_projections[0] if book_projections else None
             ev, ex, cond, size = (d.get('evaluation') or {}, d.get('execution') or {},
                                   d.get('condition') or {}, d.get('size') or {})
+            claims = d.get('prose_claims')
+            if isinstance(claims, dict) and claims.get('version') == 1:
+                warnings = _structured_trim_warnings(claims, projection, book_projection)
+            else:
+                warnings = plan_trim_warnings(d, projection, book_projection, subjects=subjects) if projection else []
             out.append({
                 'date': d.get('plan_date'), 'decision_id': d.get('decision_id'),
                 'episode_id': d.get('episode_id'), 'ticker': d.get('ticker'),
@@ -3183,8 +3224,7 @@ def compute_plan_timeline(plans, limit=15, context=None):
                 'outcome': ev.get('outcome'), 'benefit_t1_pct': ev.get('benefit_t1_pct'),
                 'execution': ex.get('status', 'unknown'), 'override': d.get('override'),
                 'driven_by': d.get('driven_by'), 'trim_projection': projection,
-                'plan_warnings': plan_trim_warnings(
-                    d, projection, book_projection, subjects=subjects) if projection else [],
+                'plan_warnings': warnings,
             })
         return out
     except Exception as e:

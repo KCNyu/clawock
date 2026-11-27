@@ -100,6 +100,7 @@ from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.evidence import intraday_information  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
 from clawock.harness import chat_card
+from clawock import prose_claims
 from clawock.decision.plans import plan_holds  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
 from clawock.harness.intraday_preflight import can_silence  # noqa: E402
@@ -115,7 +116,7 @@ REQUIRED_SECTION = '▎我的看法'
 # its own copy, which never gained '数据缺失（占位）' and let that placeholder
 # ship intraday (#1776).
 CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词',
-                     '表格行未 verbatim', '策略冲突', '策略证据不足']
+                     '表格行未 verbatim', '策略冲突', '策略证据不足', prose_claims.ISSUE]
 JUDGMENT_SOFT_LIMIT = 600
 JUDGMENT_REVIEW_LIMIT = 900
 
@@ -202,7 +203,8 @@ def input_error(market, err):
     return 2
 
 
-def normalize_intraday_insights(path, generated_at=None, *, written_after=None, output_path=None):
+def normalize_intraday_insights(path, generated_at=None, *, written_after=None, output_path=None,
+                                context=None, receipts=()):
     """Replace model metadata with the current harness generation timestamp.
 
     The model owns narrative only. Malformed/missing sidecars are dashboard
@@ -221,6 +223,14 @@ def normalize_intraday_insights(path, generated_at=None, *, written_after=None, 
         if not isinstance(payload, dict):
             raise ValueError('top-level JSON must be an object')
         from clawock.intraday_status import normalize_status
+        if prose_claims.enabled(context):
+            renderer = prose_claims.ClaimRenderer(context, receipts=receipts)
+            payload['status_banner'] = renderer.render(payload.get('status_banner'), '横幅')
+            if isinstance(payload.get('movers'), dict):
+                payload['movers'] = {ticker: renderer.render(prose, f'异动 {ticker}')
+                                     for ticker, prose in payload['movers'].items()}
+            if renderer.issues:
+                raise ValueError('；'.join(renderer.issues))
         canonical = {
             **normalize_status(payload),
             'generated_at': generated_at or datetime.now(timezone.utc).isoformat(
@@ -376,7 +386,7 @@ def check_stale_citation(prose, ctx):
 # Issue classes the model can fix in one rewrite (contract §7). Kept to the
 # unambiguous ones: an identifier, the missing/unverifiable 下一触发 line, a
 # stale headline without its time, a ▎我的看法 marker that does not open a line.
-REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻', '缺段标记', PLAN_CONSISTENCY)
+REVISABLE = ('字段名/内部标识', '下一触发', '开盘前旧闻', '缺段标记', PLAN_CONSISTENCY, prose_claims.ISSUE)
 
 
 def claim_revise(market, context_id, issues):
@@ -621,14 +631,11 @@ def validate(text, ctx, model_text):
 
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
-    # 数字必须来自 context —— 一条聚合 warn，见 check_numeric_claims
-    issues.extend(check_numeric_claims(checked, with_compute_receipts(ctx, WS)))
-
-    # 下一触发 —— escalating，见 check_next_trigger
-    issues.extend(check_next_trigger(checked, ctx))
-
-    # 开盘前旧闻冒充实时 —— escalating，见 check_stale_citation
-    issues.extend(check_stale_citation(checked, ctx))
+    # Older contexts still carry authored amounts, trigger lines and citations.
+    if not prose_claims.enabled(ctx):
+        issues.extend(check_numeric_claims(checked, with_compute_receipts(ctx, WS)))
+        issues.extend(check_next_trigger(checked, ctx))
+        issues.extend(check_stale_citation(checked, ctx))
 
     # 管线术语 —— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))
@@ -678,7 +685,7 @@ def categorize(issues):
 
 
 def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
-                            delivery_state='delivered', wechat_message=None):
+                            delivery_state='delivered', wechat_message=None, telegram_message=None):
     """Build the watchdog marker with the preflight slot as its identity.
 
     `delivery_state` distinguishes a full report from the fail-closed data block
@@ -705,6 +712,7 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
         context_generated_at=ctx.get('generated_at'),
         delivery_state=delivery_state,
         **delivery_receipts.failed_wechat_body(sent_ok, wechat_message),
+        **delivery_receipts.failed_telegram_body(tg_ok, telegram_message),
     )
 
 
@@ -913,15 +921,24 @@ def main(argv=None):
     # body separately, so the prepended block never satisfies a rule on the
     # model's behalf.
     model_text = text
-    if receipt_only and not stale_generation:
+    issues = []
+    receipts = ()
+    if stale_generation:
+        issues = [f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
+                  f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
+    elif receipt_only:
         text = (ctx.get('raw_wechat_block') or '').strip()
-    elif not stale_generation:
-        text = assemble_message(ctx, text)
-
-    issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
-               f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
-              if stale_generation
-              else ([] if receipt_only else validate(text, ctx, model_text)))
+    else:
+        if prose_claims.enabled(ctx):
+            receipts = with_compute_receipts(ctx, WS).get('compute_receipts', ())
+            renderer = prose_claims.ClaimRenderer(ctx, receipts=receipts)
+            trigger, judgment = split_next_trigger(model_text)
+            trigger = renderer.triggers(trigger, NEXT_TRIGGER)
+            judgment = renderer.render(judgment, '盘中判断')
+            model_text = '\n'.join(part for part in (judgment, trigger) if part)
+            issues.extend(renderer.issues)
+        text = assemble_message(ctx, model_text)
+        issues.extend(validate(text, ctx, model_text))
     status = 'fail' if stale_generation else categorize(issues)
     length_warnings = ({} if stale_generation or receipt_only
                        else _length_warnings(text, model_text))
@@ -966,8 +983,9 @@ def main(argv=None):
     # A receipt has no new model judgement.  Re-normalizing yesterday's file
     # would stamp old prose with the current UTC time and make it look fresh.
     author_sidecar = text_path.with_name(insights_path.name) if scoped else insights_path
-    insights_written = (False if receipt_only else normalize_intraday_insights(
-        author_sidecar, written_after=ctx.get('generated_at'), output_path=insights_path))
+    insights_written = (False if receipt_only or stale_generation else normalize_intraday_insights(
+        author_sidecar, written_after=ctx.get('generated_at'), output_path=insights_path,
+        context=ctx, receipts=receipts))
     if not insights_written and not receipt_only:
         print(f'warn: {insights_path.name} 缺失或不可用 — dashboard status_banner 将过期隐藏 '
               f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)
@@ -1082,6 +1100,7 @@ def main(argv=None):
                 # a recorded failure, once), so
                 # it needs to know if TG already got this.
                 wechat_message = render_for_channel(message, ctx, 'wechat')
+                telegram_message = render_for_channel(message, ctx, 'telegram')
 
                 def send():
                     return send_per_policy(
@@ -1089,7 +1108,9 @@ def main(argv=None):
                         tag=f'intraday-{args.market}', market=args.market,
                         wechat=send_wechat, telegram=cosend_telegram,
                         resolve=resolve_wechat_target, telegram_done=telegram_done,
-                        telegram_message=render_for_channel(message, ctx, 'telegram'))
+                        telegram_message=telegram_message,
+                        telegram_receipt=delivery_receipts.telegram_path(
+                            TMP, 'intraday', market=args.market, slot=this_slot))
 
                 # Only the process that actually sent may write the marker. A
                 # declined claim writing one would tell intraday_watchdog this
@@ -1105,7 +1126,7 @@ def main(argv=None):
                         market=args.market,
                         out=out,
                         delivery_state='failed' if status == 'fail' else 'delivered',
-                        wechat_message=wechat_message,
+                        wechat_message=wechat_message, telegram_message=telegram_message,
                     ), ensure_ascii=False))
                     return True
 

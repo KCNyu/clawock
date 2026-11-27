@@ -57,13 +57,14 @@ import sys
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from clawock import prose_claims
 from clawock import sessions as trading_calendar
 from clawock.automation import delivery_receipts, workflow_outcomes
 from clawock.sessions import hkt_today
 from clawock.harness import risk_notices
 from clawock.harness.report import fallback_block
 from ._watchdog_common import (
-    deterministic_fallback,
+    deterministic_fallback, telegram_with_receipt,
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, telegram_target,
     same_generation_window, wait_out_inflight, log_after_wait, UNFINISHED_RUN,
@@ -134,7 +135,7 @@ def slot_delivered(marker, ctx_id, raw_block_first, now_ms, ctx_generated_at=Non
     can show why no backstop fired instead of leaving that to a second,
     drift-prone recomputation at the call site.
     """
-    if not marker or not marker.get('tg_ok'):
+    if not delivery_receipts.channels(marker)[1]:
         return False, 'no-marker'
     return marker_matches_slot(marker, ctx_id, raw_block_first, now_ms, ctx_generated_at)
 
@@ -189,7 +190,8 @@ def _backstop_body(marker, session_id, raw_block_first, ctx, tag):
     """
     receipt_body = delivery_receipts.recorded_wechat_body(marker)
     transcript_body = None
-    if not receipt_body and transcript_loop_score(session_id)[0] < LOOP_THRESHOLD:
+    if (not receipt_body and not prose_claims.enabled(ctx)
+            and transcript_loop_score(session_id)[0] < LOOP_THRESHOLD):
         transcript_body = last_report_text(session_id, raw_block_first)
     body = (receipt_body or transcript_body or
             deterministic_fallback(fallback_block(ctx), tag, '报告文本不在回执与会话里'))
@@ -268,6 +270,14 @@ def main():
     # Dedupe per slot (one re-send per run, keyed by runAtMs). A slot judged
     # with no finished run keys on its date: `None` would be one file for every day.
     flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{_flag_key(run_at, today)}.done'
+    telegram_receipt = delivery_receipts.telegram_path(
+        flag.parent, 'report', market=args.market, phase=args.phase, date=today)
+
+    def send_recovery(target, body):
+        return telegram_with_receipt(
+            telegram_receipt, lambda: send_telegram(target, body, args.dry_run),
+            sender='watchdog', dry_run=args.dry_run)
+
     if flag.exists():
         log({'tag': tag, 'action': 'skip', 'reason': 'already handled this slot (dedupe flag)'})
         return 0
@@ -325,7 +335,7 @@ def main():
         if built and raw_block:
             body = deterministic_fallback(fallback_block(ctx), tag, '报告尝试全部失败，未生成上下文')
             target = telegram_target()
-            tg_ok, tg_out = send_telegram(target, body, args.dry_run)
+            tg_ok, tg_out = send_recovery(target, body)
             log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
                  'reason': 'all recorded attempts failed without context; watchdog built the context',
                  'attempts': len(runs_today), 'run_at': run_at, 'target': target, 'out': tg_out})
@@ -389,7 +399,7 @@ def main():
     # report, so the transcript no longer contains the data block. A confirmed
     # delivery for this slot IS the proof of generation — check it first, or the
     # deterministic fallback fires on every healthy prose run.
-    if delivered_this_slot:
+    if delivered_this_slot or delivery_receipts.telegram_confirmed(telegram_receipt):
         log({'tag': tag, 'action': 'ok',
              'reason': 'Telegram already delivered this slot; WeChat retry evidence is recorded separately',
              # Which rule accepted it. `regenerated-context` recurring here means
@@ -403,7 +413,8 @@ def main():
     # assistant turn (long runs truncate the summary). Treating "not in summary" as
     # "never generated" would fire the deterministic fallback and drop a report kcn
     # could have received in full (2026-07-24 review). Either source counts.
-    report = last_report_text(session_id, raw_block_first)
+    structured = prose_claims.enabled(ctx)
+    report = None if structured else last_report_text(session_id, raw_block_first)
     # A marker for THIS slot with a failed Telegram cosend is proof of generation
     # too — `delivered_this_slot` above only accepts tg_ok=true, and a transient
     # Telegram error was otherwise filed as 「LLM 未完成」 on every prose run (#1868).
@@ -411,14 +422,16 @@ def main():
     generated_this_slot = marker_matches_slot(
         marker, ctx_id, raw_block_first, now_ms,
         ctx_generated_at=ctx.get('generated_at'))[0]
-    block_present = (raw_block_first in summary) or bool(report) or generated_this_slot
+    if generated_this_slot:
+        report = delivery_receipts.recorded_telegram_body(marker) or report
+    block_present = generated_this_slot or (not structured and (raw_block_first in summary or bool(report)))
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
     if not block_present or looped:
         reason = '循环' if looped else '未完成'
         body = deterministic_fallback(fallback_block(ctx), tag, reason)
         target = telegram_target()
-        tg_ok, tg_out = send_telegram(target, body, args.dry_run)
+        tg_ok, tg_out = send_recovery(target, body)
         log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
              'block_present': block_present, 'loop_score': loop_score, 'run_at': run_at,
              'target': target, 'out': tg_out})
@@ -441,7 +454,7 @@ def main():
     # Not delivered this slot (checked above) ⇒ postflight's cosend never ran,
     # failed, or the marker belongs to a different generation → mirror it now.
     # `report` was already extracted from the transcript above.
-    if not report and raw_block_first in summary:
+    if not structured and not report and raw_block_first in summary:
         # Legacy mode: the run summary holds the full report after the "---" checklist.
         report = summary.split('\n---\n', 1)[1].strip() if '\n---\n' in summary else summary.strip()
     if not report:
@@ -470,7 +483,7 @@ def main():
     else:
         tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
     target = telegram_target()
-    tg_ok, tg_out = send_telegram(target, tg_banner + report.strip(), args.dry_run)
+    tg_ok, tg_out = send_recovery(target, tg_banner + report.strip())
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
          'run_at': run_at, 'target': target, 'out': tg_out})

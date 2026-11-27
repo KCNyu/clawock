@@ -183,7 +183,7 @@ summary 包含 book/concentration、每票 deterministic status、技术/因子�
 
 可选 section：`facts|technical|thesis|execution|quant|sentiment|history|information|evidence|risk|status|constraints`。
 
-**实时消息面**：summary 每票的 `live` 是 preflight 刚抓的实时公告/新闻（HKEXnews、SEC 全文检索、Google 新闻、Yahoo，上次收盘以来）前两条 cite，全部条目在 `--section information` 的 `information.live`；引用照抄 cite（含发布时间与「上次收盘后」/「上次收盘前旧闻」，SEC 全文检索只有提交日、「时刻未知」）。summary 顶层 `live_information.<hk|us>.degraded` 非空＝该源没取到，简报里写「X 未取到」，不许写成没有消息。实时条目是消息面证据，不是加仓授权。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
+**实时消息面**：summary 每票的 `live` 是 preflight 刚抓的实时公告/新闻（HKEXnews、SEC 全文检索、Google 新闻、Yahoo，上次收盘以来）前两条 cite，全部条目在 `--section information` 的 `information.live`；引用用同一资讯行的 `[[/packet/…|cite]]`（含发布时间与「上次收盘后」/「上次收盘前旧闻」，SEC 全文检索只有提交日、「时刻未知」）。summary 顶层 `live_information.<hk|us>.degraded` 非空＝该源没取到，简报里写「X 未取到」，不许写成没有消息。实时条目是消息面证据，不是加仓授权。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
 
 > **为什么走 `clawock tool`**：工具注册表是这套上下文协议唯一机器可读的定义（`clawock tool --list` 直接吐 JSON schema），而 24 KiB 预算是在注册表里强制的。协议实现随 `clawock` wheel 安装；workspace 只提供本次生成的数据，不再提供可执行 Python 源码。输出含 `_meta.generation_id` 代次钉扎。
 
@@ -290,42 +290,11 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 **铁律**：①透镜是**信息覆盖**（LLM 强项，喂给 Tier 2/3），**不是额外的投票** —— 它们不改变检查方式：事实和可行性照查，登记策略的异议照记。②透镜**分歧本身是信号**：6 个里若价值说买、动量说卖，写明这个张力，别假装统一。③别为每个持仓都跑全套（token 与噪音权衡），抓关键票。
 
-#### ⚡ 板块全景（必跑 — context.json 不覆盖）
+#### ⚡ 板块全景
 
-每日 Tier 1 后必做一段板块横向扫描，目标回答："你持仓在板块里**领涨/落后/中位**？归因是什么？"
+以本次 `peer_scan` 的 `listed_peers`、`auto_peers` 与 `self_pct_1d` 判断持仓相对强弱。表格的板块、标的、涨跌与相对位置都由程序从这份快照生成；外部搜索用于补归因。未入本代结构化输入的搜索信息可作为核查线索。
 
-- 板块来源是动态的：读 `memory/peer-map.json`，**每个 active ticker 的 `theme` 字段就是它的板块名**（如 "HK AI 大模型" / "HK 科技指数 2x leveraged (HSTECH 标的)" / "商业航天"）。持仓变了，板块自动跟变 — 不要在 SKILL.md / 报告里写死任何特定 ticker
-- 对每个去重后的 theme 跑一次 `clawock web-search` —— 它**同时**问 DeepSeek 搜索和 Tavily，两个源并列、各自一节输出、各自标状态（不是主备，一个源失败不影响另一个源的结果）。两边限额各算各的：**Tavily** 免费档 1000 credits/月全局共享，本 skill 每天只 1 次、按去重后的 theme 数搜（通常 ≤10 次/天），别对同一 theme 重复搜，**必须带 `--bucket brief`**（走本 skill 的月度配额 300；不带会落 `research` 桶）；**DeepSeek** 没有 credits 预算，只有账号级 5 QPS（本机统一限速），同行/催化/叙事想多查可以再跑 `--providers deepseek`：
-  - HK 板块 → `clawock web-search "今日 HK {theme} 涨幅榜 板块异动" --days 2 --bucket brief`
-  - US 板块 → `clawock web-search "{sector ETF 如 SOXX/QQQ/ARK} 今日成分涨跌" --days 2 --bucket brief`
-  - 某个源返回 `unavailable`（Tavily 额度用尽/DeepSeek 限速或余额）时 exit 0，**别当报错**；用另一个源和当前会话内置搜索，并写明哪个源没取到。两源都没取到才是"未检索"，不是"无消息"
-- 每个板块输出：Top 3-5 涨幅 + 你持仓票在榜单中的位置（领涨/落后/中位）
-- **归因句必带**：落后是因为(a) 利好时点（盘后才公布）/ (b) 早盘异常抛压 / (c) β 错配 / (d) 个股逻辑滞后？
-- 结论写进 `judgment.narrative.sector_read`（纯文本，引 ≥3 个具体涨跌幅 + 1 个明确归因）；报告里的板块表由 harness 从 `context.peer_scan` 渲染，逐票那句判断写在该票的 `peer_read`
-- ⚠️ **持仓自己的数字** (RSI/MA/PnL) 仍然从 core 取，板块这段只 search 板块/同行公开行情
-- **同时落盘到** `memory/.tmp/sector-scan-{date}.json`（build_dashboard 会读，让 GH Pages dashboard 同步显示）。schema：
-  ```json
-  {
-    "generated_at": "{ISO8601}",
-    "date": "{YYYY-MM-DD}",
-    "sectors": [
-      {
-        "theme": "HK AI 大模型",
-        "tickers_in_book": ["00100"],
-        "top_movers": [
-          {"ticker": "06651", "name": "五一视界", "pct": 27.6, "catalyst": "具身智能数据平台"},
-          {"ticker": "00992", "name": "联想集团", "pct": 15.0, "catalyst": "AI 营收翻倍"}
-        ],
-        "self": [
-          {"ticker": "00100", "pct": 0.07, "rank_text": "落后", "attribution": "Token Pay 盘后才公布"}
-        ]
-      }
-    ],
-    "narrative": "今天港股 AI 板块全面爆发，主角不是 MINIMAX 而是..."
-  }
-  ```
-  - `self[].pct` 是持仓上一场的场次涨跌（packet `facts.session_change_pct`），不是 `today_change_pct`（那是含新成交的仓位当日盈亏）；postflight 渲染前会用同代账本的场次涨跌覆盖持仓行；`attribution` 只写原因，不复述这一格的涨跌（被覆盖的那个数若出现在归因里，含它的分句会被删掉）
-  - 缺失/解析失败 dashboard 容错（market_context 退回 portfolio.json 的 {}），不影响 brief 投递
+归因写到 `judgment.narrative.sector_read` 和逐票 `peer_read`。如需同步逐票归因到面板，另写 `memory/.tmp/brief-sector-draft-{date}.json`，包含本代 `context_generation_id` 和 `attribution` 对象（标的代码到文字）。价位、涨跌、来源和时间用 Step 4 的事实引用。
 
 #### Tier 2 — Bull vs Bear（必须有真分歧）
 
@@ -669,7 +638,7 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 因此：
 
 - 你写的每一段判断都通过 **B（plan）** 和 **C（judgment）** 进入报告，别处不进。
-- judgment 的文字字段**必须是纯文本**：不许出现 `|`、`#`、`**`、` ``` `、`▎`、
+- judgment 的文字字段使用纯文本和下述事实引用。引用之外不写 `|`、`#`、`**`、` ``` `、`▎`、
   行首 `-`/`*`/`1.`/`>`。这不是文风要求——渲染器正在画那张表，你的竖线会落进单元格里
   把那一行撑成多一列。postflight 会直接判非法并指出是哪个字段。
 - 事实、指标、风控闸、集中度、回本数学、同行涨跌、宏观读数、校准表全部由 harness
@@ -683,7 +652,15 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 clawock brief render --dry-run
 ```
 
-#### B. 结构化 plan → `memory/{YYYY-MM-DD}-plan.json`
+#### 在散文中引用事实
+
+计划的理由、条件描述、尺寸说明、辩论、判断和面板侧卡使用 `[[/ctx/字段/...]]`（同代 context 或 bundle）或 `[[/packet/字段/...]]`（decision packet）引用原字段。数组从零编号。写 **`[[/packet/tickers/00100/facts/session_change_pct]]`** 即可，程序填值与百分号。代码含数字时引用对应行的 `ticker` 字段。来源和时间引用明确字段，新闻用资讯行的 `[[/ctx/.../0|cite]]` 生成标题、来源和时间；状态用 `|status`，列表计数用 `|count`。调用 compute 后用 `[[/compute/回执ID/value_pct]]` 等引用返回字段。
+
+计划每条理由还可用 `[[/decision/size/shares]]`、`[[/decision/condition/price]]`、`[[/decision/trim_at_trigger/post_trim_weight_pct]]`、`[[/decision/trim_at_mark/shares_to_review_line]]` 引用本条已登记的尺寸、条件和对应卖出情景。股数、百分比及带币种字段的单位随值渲染。散文中不手写数字、股数、金额、占比、来源或时间；缺字段时说明缺口。机器字段仍按 schema 写 JSON 数字，例如 `size.shares`、`condition.price`、`confidence`。
+
+#### B. 结构化 plan → `memory/.tmp/{YYYY-MM-DD}-plan-draft.json`
+
+草稿沿用计划 schema；postflight 对账后写 `memory/{YYYY-MM-DD}-plan.json`。
 
 postflight 严格 schema 校验：
 
@@ -900,15 +877,15 @@ postflight 严格校验后才把这些文字并入 `assets/data/brief_projection
 overlay 缺失/非法时 Pages 仍发布 deterministic rows，只把 `judgment_status` 标为
 missing/invalid——但报告的辩论段会因此空着，所以这不是"可选项"。
 
-#### D. LLM 复盘 sidecar → `memory/.tmp/insights-{YYYY-MM-DD}.json`
+#### D. LLM 复盘草稿 → `memory/.tmp/brief-insights-draft-{YYYY-MM-DD}.json`
 
 build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mortem / 隐藏集中度** 三张卡同步刷新（缺失/解析失败容错，卡自动隐藏，不影响 brief 投递）。这是 dashboard 上唯一由你（LLM）写的"对决策本身的反思"层 —— 数字算不出来、只有你能写。
 
-**铁律（accuracy）**：所有数字只能引本次 manifest 所属的 `core.json` / 已加载 bundle 里**真实出现过的** win_rate / Brier / 仓位权重 / HHI / pnl%。完整 audit 只用于 postflight 交叉校验，不能靠整份 cat 绕过预算。**绝不编造 context 里没有的具体美元金额或未发生的交易**。宁可不写一条，也不要编数字。
+文字使用 Step 4 的事实引用。程序核定同代后生成供 dashboard 读取的侧卡，并从指定投资腿和分组计算集中度。
 
 ```json
 {
-  "generated_at": "{ISO8601}",
+  "context_generation_id": "{本代 ID}",
   "behavioral_review": {
     "verdict": "一句话总评 ≤40字，点出最核心的行为问题",
     "points": [
@@ -920,9 +897,10 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
   ],
   "hidden_concentration": {
     "headline": "一句话点穿名义分散下的真实集中 ≤40字",
-    "factor": "主导因子名（如 AI/半导体高 beta）",
     "basis": "market_value | lookthrough",
-    "exposure_pct": 88,
+    "leg": "hk | us",
+    "family": "sectors | factors",
+    "buckets": ["投影中的分组原名"],
     "detail": "哪些持仓同因子联动 + 风险 ≤70字"
   }
 }
@@ -931,7 +909,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 内容要求：
 - **behavioral_review.points 4-5 条**，覆盖：① `decision_metrics.by_driver`；② `by_strategy`；③ `by_condition`；④ active episode 的 cluster CI；⑤ execution 与 advice 是否出现偏差。`tag`：edge=正面发现 / bias=认知偏差 / warning=要警惕。
 - **bear_cases 2-3 个**，选**最重仓或最高杠杆**的持仓（看 context 仓位权重 + leveraged_etf）。
-- **hidden_concentration**：识别表面分散实际同因子。先选一个口径写进 `basis`，全卡只用这一个口径的数字：`market_value` = `sector_exposure` 的市值占比；`lookthrough` = `lookthrough_exposure` 的 `factors`/`sectors` 的 `gross_pct`（杠杆产品按名义倍数计）。`exposure_pct` 不是估算：取**同一条腿**里你点名的那几个桶的占比之和（可四舍五入到整数），`detail` 里每个百分数都必须是该口径的某个桶、几个桶之和、单只持仓权重或 `leveraged_etf` 的占比。发布端按 `basis` 逐个核对，对不上或缺 `basis` 整张卡不发布；风险贡献、有效下注数这类不在这两份投影里的数不要带百分号写进这张卡。
+- **hidden_concentration**：`market_value` 选 `sectors`，`lookthrough` 可选 `factors` 或 `sectors`。在一条投资腿内以原名选择同一组分区中的分组，程序求和并渲染占比。
 - 全部中文，口吻直接、像私人交易教练，指出问题不安慰。
 
 #### E. 微信卡：harness 渲染，不用你写
@@ -1019,10 +997,10 @@ clawock brief postflight
 
 ## Style rules
 
-- judgment 是纯文本：3+ 个数据点写成一句里的并列数字，表格由 harness 画
+- judgment 用文字解释数据含义，必要的具体事实用引用表示，表格由 harness 画
 - ⚠️ stale 任何数据必前置标注
 - 没有"小心地"、"建议关注"这种废话 — 拍 strategy/action，拍条件与价位
-- 每个 claim 钉到具体 ticker + 数字，没有泛论
+- 每个事实引用指向具体标的、指标或来源行
 - Bull/Bear/Aggressive/Conservative 必须真的不同观点
 - Judge 不重复 Bull/Bear，是合成不是复述
 - **FX 换算永远显式标注 source + timestamp**（core 里已有）

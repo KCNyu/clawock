@@ -306,3 +306,57 @@ def archive_url(workspace, row):
         return ''
     branch = str(contract.get('repo_branch') or 'master').strip()
     return f"{repo}/blob/{branch}/{row['path']}"
+
+
+REVISION_NOTICE_PREFIX = '> 📝 **投递后修订**'
+
+
+def without_revision_notice(text):
+    lines = text.split('\n')
+    out = []
+    for i, line in enumerate(lines):
+        if line.startswith(REVISION_NOTICE_PREFIX):
+            continue
+        if line == '' and i and lines[i - 1].startswith(REVISION_NOTICE_PREFIX):
+            continue
+        out.append(line)
+    return '\n'.join(out)
+
+
+def report_sha256(md_path):
+    """The rendered report's digest, without any revision notice this module added."""
+    try:
+        text = Path(md_path).read_text(encoding='utf-8')
+    except OSError:
+        return None
+    return hashlib.sha256(without_revision_notice(text).encode('utf-8')).hexdigest()
+
+
+def _artifact_path(workspace, day):
+    return Path(workspace) / 'memory' / '.tmp' / f'brief-artifacts-{day}.json'
+
+
+def _artifact_digests(workspace, day):
+    memory = Path(workspace) / 'memory'
+    return {
+        'report': report_sha256(memory / f'{day}-pre-open.md'),
+        'plan': hashlib.sha256((memory / f'{day}-plan.json').read_bytes()).hexdigest(),
+        'card': hashlib.sha256((memory / '.tmp' / f'brief-card-{day}.txt').read_bytes()).hexdigest(),
+    }
+
+
+def record_artifacts(workspace, day, generation_id):
+    """File evidence only after postflight has approved the rendered product."""
+    safe_write_json(_artifact_path(workspace, day), {
+        'date': day, 'generation_id': generation_id, 'digests': _artifact_digests(workspace, day),
+    })
+
+
+def artifacts_verified(workspace, day):
+    try:
+        receipt = json.loads(_artifact_path(workspace, day).read_text(encoding='utf-8'))
+        return (isinstance(receipt, dict) and receipt.get('date') == day
+                and bool(receipt.get('generation_id'))
+                and receipt.get('digests') == _artifact_digests(workspace, day))
+    except (OSError, ValueError):
+        return False

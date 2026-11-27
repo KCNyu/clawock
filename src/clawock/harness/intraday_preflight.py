@@ -41,6 +41,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
+from clawock import prose_claims
 from clawock.workspace import workspace_root
 from clawock.safe_io import safe_write_text
 from clawock import sessions as trading_calendar
@@ -2022,6 +2023,7 @@ def _collect(argv=None):
         if recommendation_block:
             raw_block += '\n\n' + recommendation_block
     result = {
+        prose_claims.FIELD: prose_claims.VERSION,
         'status':           'ok',
         'market':           args.market,
         'date':             now.strftime('%Y-%m-%d'),

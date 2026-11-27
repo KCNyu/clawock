@@ -195,7 +195,7 @@ def _with_version(card, version):
     return f'{card.rstrip()}\n\n本卡版本 {version_id}' if version_id else card
 
 
-def build_brief_card(today, decision_packet=None, *, footer='', version=None, risk_view=None):
+def build_brief_card(today, decision_packet=None, *, footer='', version=None, risk_view=None, data_only=False):
     """The WeChat card for the 盘前深度简报 — single source of truth shared by
     brief_postflight (primary send) and brief_watchdog (backstop).
 
@@ -218,6 +218,10 @@ def build_brief_card(today, decision_packet=None, *, footer='', version=None, ri
             card = '\n'.join([card, *risk_review_section(risk_view)])
         return _with_usage_footer(_with_version(card, version), footer)
 
+    title = f'**📊 盘前简报 · {today} {BRIEF_SLOT_HKT} HKT**'
+    if data_only:
+        return finish(f'{title}\n完整简报校验尚未通过。')
+
     card_file = WS / 'memory' / '.tmp' / f'brief-card-{today}.txt'
     try:
         if card_file.exists():
@@ -227,7 +231,7 @@ def build_brief_card(today, decision_packet=None, *, footer='', version=None, ri
     except Exception:
         pass  # fall through to deterministic build
     from clawock.decision.plans import ORDER_ACTION_WORDS, ORDER_CONDITION_WORDS, PRICE_CONDITIONS
-    lines = [f'**📊 盘前简报 · {today} {BRIEF_SLOT_HKT} HKT**']
+    lines = [title]
     try:
         plan = json.loads((WS / 'memory' / f'{today}-plan.json').read_text())
         bk = plan.get('book') or {}

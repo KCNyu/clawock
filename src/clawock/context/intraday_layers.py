@@ -26,6 +26,7 @@ REFERENCE_ENTRIES = {
 # `index.slot`.
 CONTROL_ENTRIES = {
     'card_marks': '渠道高亮用的行标记（微信逐格加粗 / ⛔ 点名）',
+    'prose_claims_version': '散文事实引用协议版本',
     'heartbeat': '本档 job 与 slot，心跳与回执的身份',
 }
 

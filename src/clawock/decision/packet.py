@@ -3252,14 +3252,15 @@ def write_pages_projection(
     packet: dict,
     overlay_path: Path,
     output_path: Path,
-    *, plan=None,
+    *, plan=None, resolved_overlay=None,
 ) -> tuple[dict, list[str]]:
     """Publish deterministic Pages data even when the model overlay is unusable."""
     overlay = None
     issues = []
-    if overlay_path.exists():
+    if resolved_overlay is not None or overlay_path.exists():
         try:
-            overlay = json.loads(overlay_path.read_text(encoding="utf-8"))
+            overlay = (resolved_overlay if resolved_overlay is not None
+                       else json.loads(overlay_path.read_text(encoding="utf-8")))
             issues = validate_judgment_overlay(packet, overlay, plan=plan)
         except Exception as exc:
             issues = [f"judgment overlay parse failed: {exc}"]

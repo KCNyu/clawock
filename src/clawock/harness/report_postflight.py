@@ -65,6 +65,7 @@ from clawock.harness.report import (  # noqa: E402
     _unusable_context,
     assemble_message,
     categorize,
+    prepare_report,
     validate,
 )
 
@@ -90,7 +91,6 @@ from clawock.harness.validation import (
     postflight_exit_code,
     product_status,
     split_advisory,
-    with_compute_receipts,
 )
 from ._harness_common import (  # noqa: E402
     dashboard_publication_state,
@@ -219,7 +219,10 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
         return send_per_policy(
             'report', message, tag=f'{market}-{phase}', market=market,
             wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target,
-            telegram_done=telegram_done)
+            telegram_done=telegram_done,
+            telegram_receipt=delivery_receipts.telegram_path(
+                TMP, 'report', market=market, phase=phase, date=date),
+            upgrade=claim_path is None)
 
     marker = delivery_receipts.receipt_path(TMP, 'report', market=market, phase=phase,
                                             date=date)
@@ -250,6 +253,7 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
             market=market,
             phase=phase,
             **delivery_receipts.failed_wechat_body(sent_ok, message),
+            **delivery_receipts.failed_telegram_body(tg_ok, message),
         ), ensure_ascii=False))
         return True
 
@@ -452,14 +456,11 @@ def main(argv=None):
     # Keep the model's own text for the content rules; assemble the delivered body
     # separately. Validating the assembled body would let the prepended data block
     # satisfy the anomaly/section rules on the model's behalf. (2026-07-24 review.)
-    model_text = text
-    if not stale_generation:
-        text = assemble_message(ctx, text)
-
-    issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
-               f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
-              if stale_generation
-              else validate(text, with_compute_receipts(ctx, WS), model_text))
+    if stale_generation:
+        issues = [f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
+                  f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
+    else:
+        text, issues = prepare_report(ctx, text, WS, validator=validate)
     status = categorize(issues) if not stale_generation else 'fail'
 
     # Validation diagnostics stay in the run result and stage counters.
