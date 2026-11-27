@@ -821,9 +821,9 @@ def test_dispatched_task_with_only_the_task_id_still_verifies_clean(kit):
     env["AGENT_DISPATCH_TASK_ID"] = "task-only"
     kit.ok("add", "feedback-dispatch-only-id", "--summary", "dispatched", "--body-file",
            kit.body("dispatched body"), "--scope", "engineering", script=MEMORY_PY, env=env)
-    # The agent field may be dsh (dsh is in the test runner's process ancestry) or
-    # unattributed; either way the receipt must keep verify clean.
-    assert re.search(r"  agent: (?:dsh|unattributed)\n",
+    # A local run can infer its agent from the test runner's process ancestry.
+    # The receipt must keep verify clean even when there is no detectable agent.
+    assert re.search(r"  agent: (?:claude|codex|dsh|opencode|unattributed)\n",
                      (kit.store / "feedback-dispatch-only-id.md").read_text())
     assert kit.ok("verify").returncode == 0
 

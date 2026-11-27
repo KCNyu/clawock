@@ -3,8 +3,8 @@
     "purpose": "Per-holding peer/neighborhood map for rotation detection. Maintained semi-manually; revisit every ~3 months or when adding new positions.",
     "private_peers_handled_by": "Tavily news search in preflight (no price feed)",
     "listed_peers_handled_by": "clawock fetch-peers (Tencent quote + Tencent qfq daily bars; Nasdaq is the US price fallback)",
-    "last_updated": "2026-07-22",
-    "ticker_verification": "Tickers verified against the Tencent gtimg feed on 2026-07-22; brief_preflight warns on any configured-name vs fetched-name mismatch."
+    "last_updated": "2026-11-27",
+    "ticker_verification": "Existing entries were checked against Tencent gtimg on 2026-07-22. New 07709 and ANT peer quotes were verified through clawock fetch-peers on 2026-11-27; brief_preflight warns on configured-name mismatches."
   },
   "holdings": {
     "00100": {
@@ -485,6 +485,38 @@
         "Stablecoin",
         "agent 支付"
       ]
+    },
+    "07709": {
+      "name": "XL二南方海力士",
+      "theme": "韩国存储芯片 / HBM（港股 2x 产品）",
+      "listed_peers": [
+        {
+          "ticker": "07747",
+          "region": "hk",
+          "name": "南方2倍做多三星",
+          "rel": "同市场同杠杆的三星产品，用于观察韩国存储芯片板块分化"
+        }
+      ],
+      "key_news_keywords": ["SK Hynix", "HBM", "DRAM", "三星电子"]
+    },
+    "ANT": {
+      "name": "Anthropic",
+      "theme": "美国通用大模型与模型服务",
+      "listed_peers": [
+        {
+          "ticker": "GOOGL",
+          "region": "us",
+          "name": "谷歌-A",
+          "rel": "Gemini 与云模型服务竞争，集团股价含广告和其他业务"
+        },
+        {
+          "ticker": "META",
+          "region": "us",
+          "name": "Meta Platforms",
+          "rel": "Llama 模型生态参照，集团股价以广告业务为主"
+        }
+      ],
+      "key_news_keywords": ["Anthropic", "Claude", "企业模型服务", "Gemini", "Llama"]
     },
     "SKHY": {
       "name": "SK海力士 ADR",

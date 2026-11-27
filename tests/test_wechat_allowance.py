@@ -6,6 +6,7 @@ last ones that can still reach him.
 """
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 from clawock.harness import _watchdog_common as common
 from clawock.providers import wechat_allowance as allowance
@@ -53,6 +54,20 @@ def test_failed_sends_spend_nothing_and_long_messages_spend_per_chunk(tmp_path):
     allowance.record(KCN, "x", False, ledger=tmp_path / "sends.json", now=INBOUND + 10)
     allowance.record(KCN, "长" * 8001, True, ledger=tmp_path / "sends.json", now=INBOUND + 20)
     assert allowance.used_since(KCN, INBOUND, ledger=tmp_path / "sends.json") == 3
+
+
+def test_concurrent_sends_are_all_recorded(tmp_path):
+    ledger = tmp_path / "sends.json"
+
+    def write_send(index):
+        allowance.record(KCN, "报告", True, ledger=ledger, now=INBOUND + index)
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(write_send, range(40)))
+
+    assert sorted(row["ts"] for row in json.loads(ledger.read_text())) == [
+        INBOUND + index for index in range(40)
+    ]
 
 
 def test_an_unknown_count_is_not_guessed(tmp_path):
