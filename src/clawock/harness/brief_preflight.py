@@ -58,6 +58,7 @@ from datetime import datetime, date, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from clawock import prose_claims
 from clawock.workspace import workspace_root
 from clawock.plugin_host import live as live_plugins
 from clawock import sessions as trading_calendar
@@ -2206,6 +2207,7 @@ def _collect(argv=None):
           + (f" — {opportunity['why_no_candidate']}" if opportunity['why_no_candidate'] else ''))
 
     context = {
+        'prose_claims_version': prose_claims.VERSION,
         'generated_at':  datetime.now(trading_calendar.HKT).isoformat(),
         'date':          today,
         'fx':            fx,

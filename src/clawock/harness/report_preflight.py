@@ -66,6 +66,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
+from clawock import prose_claims
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 from clawock.decision import intraday_policy
@@ -143,7 +144,7 @@ PEER_TOP_N = 5
 AUTO_PEER_TOP_N = 3
 
 
-def trim_peer_scan(peers):
+def trim_peer_scan(peers, *, structured=False):
     """Keep the peer fields a report actually cites; drop the rest at the source.
 
     peer_scan was 298 of the context's ~330 lines, and that bulk is what made the
@@ -159,16 +160,20 @@ def trim_peer_scan(peers):
     key_news_keywords are dropped: they are the長 tail nobody cites in a 4-6
     line briefing.
     """
+    def compact(row):
+        return {key: row[key] for key in ('ticker', 'name', 'pct_1d', 'pct_5d', 'quote_source')
+                if key in row}
+
     out = {}
     for ticker, scan in (peers or {}).items():
         out[ticker] = {
             'theme': scan.get('theme'),
             'self_pct_1d': scan.get('self_pct_1d'),
             'divergence_signal': scan.get('divergence_signal'),
-            'listed_peers': [_peer_line(p)
+            'listed_peers': [compact(p) if structured else _peer_line(p)
                              for p in (scan.get('listed_peers') or [])[:PEER_TOP_N]],
             'auto_peers': [
-                f'{p.get("label") or "同行业·自动"}｜{_peer_line(p)}'
+                compact(p) if structured else f'{p.get("label") or "同行业·自动"}｜{_peer_line(p)}'
                 for p in (scan.get('auto_peers') or [])[:AUTO_PEER_TOP_N]
             ],
         }
@@ -477,7 +482,21 @@ def _collect(argv=None):
     from clawock.harness import risk_notices
     followups = risk_notices.review(WS, leg=args.market.upper(), now=started_at)
 
+    try:
+        ledger = json.loads((WS / 'portfolio.json').read_text(encoding='utf-8'))
+        bucket = (ledger.get('portfolios') or {}).get(f'{args.market}_stocks') or {}
+        holdings = {
+            row['ticker']: {key: row.get(key) for key in (
+                'ticker', 'shares', 'current_price', 'market_value', 'total_pnl',
+                'today_change_pct', 'today_pnl', 'data_source')}
+            for row in bucket.get('holdings') or []
+            if isinstance(row, dict) and row.get('ticker') and row.get('shares')
+        }
+    except (OSError, ValueError, TypeError, AttributeError):
+        holdings = {}
+
     result = {
+        'prose_claims_version': prose_claims.VERSION,
         'status':             'ok',
         'market':             args.market,
         'phase':              args.phase,
@@ -494,7 +513,8 @@ def _collect(argv=None):
         # last success); the block names them and so must the prose.
         'quote_coverage':     coverage,
         'index_direction':    indices,
-        'peer_scan':          trim_peer_scan(peers),
+        'peer_scan':          trim_peer_scan(peers, structured=True),
+        'holdings':           holdings,
         'plan_context':       plan_ctx,
         'plan_triggers':      plan_triggers,
         'holding_policies':   policies,

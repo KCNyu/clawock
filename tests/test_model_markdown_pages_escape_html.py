@@ -23,7 +23,7 @@ def test_the_weekly_review_writes_model_tags_as_text(tmp_path, monkeypatch):
     monkeypatch.setattr(weekly_review, 'build_prompt_payload', lambda bundle: {})
     monkeypatch.setattr(weekly_review, 'build_user_prompt', lambda payload: '')
     monkeypatch.setattr(weekly_review, 'generate_review',
-                        lambda system, user: f'## 本周\n回撤 < 5%，{TAG}')
+                        lambda system, user, *, evidence: f'## 本周\n回撤 < 5%，{TAG}')
 
     weekly_review.main([])
 

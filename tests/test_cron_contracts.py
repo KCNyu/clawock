@@ -517,11 +517,8 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert '才用 `process` 的 `action: poll` 等同一 session，`timeout: 30000`' in (
         profile['required_substrings'])
     assert '同一条回复内并行发出两个 `write` 工具调用' in profile['required_substrings']
-    exact_number_rule = (
-        '数字必须原样照抄 context 或本次 compute 回执的完整字面值；'
-        '禁止四舍五入、取整或改写成“约/近”等近似数，找不到原值就省略'
-    )
-    assert exact_number_rule in profile['required_substrings']
+    exact_reference_rule = '散文事实用同代字段引用，由后处理渲染数值、来源和时间。'
+    assert exact_reference_rule in profile['required_substrings']
     assert any('最终回复只写 postflight 的 status' in line
                for line in profile['required_substrings'])
     assert profile['tools_allow'] is None
@@ -534,7 +531,7 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
     message = cron_contract.render_payload_message(data, expected)
-    assert exact_number_rule in message
+    assert exact_reference_rule in message
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],

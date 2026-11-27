@@ -942,9 +942,26 @@ def _gh_run_failure_detail(run, max_len=300):
     return ' / '.join(lines[-3:])[:max_len]
 
 
+def telegram_with_receipt(path, send, *, sender, dry_run=False, upgrade=False):
+    """Deduplicate the Telegram leg across both senders for a single slot."""
+    if path is None or dry_run:
+        return send()
+    from clawock.safe_io import file_lock, safe_write_json
+
+    with file_lock(path):
+        if not upgrade and delivery_receipts.telegram_confirmed(path):
+            return True, 'Telegram already confirmed for this slot'
+        ok, out = send()
+        if ok:
+            safe_write_json(str(path), delivery_receipts.build_receipt(
+                ts=int(datetime.now().timestamp() * 1000), sent_ok=False, tg_ok=True,
+                sender=sender))
+        return ok, out
+
+
 def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
                     wechat=None, telegram=None, resolve=None, telegram_done=False,
-                    telegram_message=None):
+                    telegram_message=None, telegram_receipt=None, upgrade=False):
     """Send one report to the channels the delivery policy names for its kind.
 
     Returns `(wechat_ok, wechat_out, telegram_ok)`. The three postflights each
@@ -984,8 +1001,12 @@ def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
     elif 'telegram' in policy:
         # Same call shape the postflights always used: `dry_run` only when set.
         plain = message if telegram_message is None else telegram_message
-        telegram_ok, _ = (telegram(plain, tag, dry_run=True) if dry_run
-                          else telegram(plain, tag))
+        def send_telegram_leg():
+            return telegram(plain, tag, dry_run=True) if dry_run else telegram(plain, tag)
+
+        telegram_ok, _ = telegram_with_receipt(
+            telegram_receipt, send_telegram_leg, sender='postflight',
+            dry_run=dry_run, upgrade=upgrade)
     return wechat_ok, wechat_out, telegram_ok
 
 
@@ -1049,14 +1070,14 @@ def delivered_channels(marker_path, within_ms=None, slot=None):
     An unreadable, torn, out-of-window or other-slot marker proves nothing:
     (False, False).
     """
-    try:
-        m = json.loads(Path(marker_path).read_text())
-    except Exception:
-        return False, False
-    if not isinstance(m, dict):
+    m = delivery_receipts.read_receipt(marker_path)
+    if m is None:
         return False, False
     if within_ms is not None:
-        age = int(datetime.now().timestamp() * 1000) - (m.get('ts') or 0)
+        ts = m.get('ts')
+        if type(ts) not in (int, float):
+            return False, False
+        age = int(datetime.now().timestamp() * 1000) - ts
         if age >= within_ms:
             return False, False
     if slot and m.get('slot') and m.get('slot') != slot:

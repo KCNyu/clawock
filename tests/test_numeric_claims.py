@@ -171,13 +171,11 @@ def test_both_postflights_run_the_gate(module_name):
 
 
 @pytest.mark.parametrize("skill", ["hk-stock-analysis", "us-stock-analysis"])
-def test_skill_states_the_rule_the_gate_enforces(skill):
-    # The gate is warn-only, so the prompt is the layer that actually prevents the
-    # error. A skill that never states the rule leaves the gate as decoration.
+def test_skill_states_the_reference_rule_the_gate_enforces(skill):
     text = (WS / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
-    assert "数字铁律" in text
-    assert "check_numeric_claims" in text, "prompt does not name the check it faces"
-    assert "不心算" in text or "不换算" in text
+    assert "散文事实引用" in text
+    assert "[[/ctx/" in text and "[[/compute/" in text
+    assert "|cite" in text
 
 
 def test_price_levels_are_not_treated_as_book_amounts(hc):

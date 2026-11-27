@@ -238,7 +238,8 @@ def test_auto_peers_share_pricing_batch_and_stay_labeled(wired, monkeypatch):
         returncode = 0
         stdout = json.dumps({"peers": {
             **FETCHED,
-            "AUTO": {"price": 12.0, "pct_1d": 4.0, "pct_5d": 5.0, "name": "真实自动同行"},
+            "AUTO": {"price": 12.0, "pct_1d": 4.0, "pct_5d": 5.0, "name": "真实自动同行",
+                     "source": "tencent"},
         }})
         stderr = ""
 
@@ -256,6 +257,7 @@ def test_auto_peers_share_pricing_batch_and_stay_labeled(wired, monkeypatch):
         "name": "真实自动同行",
         "label": "同行业·自动",
         "source": "eastmoney",
+        "quote_source": "tencent",
         "pct_1d": 4.0,
         "pct_5d": 5.0,
     }]

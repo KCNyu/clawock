@@ -83,11 +83,12 @@ import time
 from datetime import datetime, timedelta
 
 from clawock.harness import risk_notices
+from clawock import prose_claims
 from clawock import sessions as trading_calendar
 from clawock.automation import delivery_receipts
 from ._watchdog_common import (
     marker_is_fresh,
-    deterministic_fallback,
+    deterministic_fallback, telegram_with_receipt,
     WS, HKT, log, find_job_id, today_runs, telegram_target,
     transcript_loop_score, last_report_text, send_telegram,
     same_generation_window,
@@ -146,7 +147,11 @@ def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
     """
     body = deterministic_fallback(raw_block, tag, reason)
     target = telegram_target()
-    tg_ok, tg_out = send_telegram(target, body, args.dry_run)
+    receipt_path = delivery_receipts.telegram_path(
+        flag.parent, 'intraday', market=args.market, slot=expected_slot)
+    tg_ok, tg_out = telegram_with_receipt(
+        receipt_path, lambda: send_telegram(target, body, args.dry_run),
+        sender='watchdog', dry_run=args.dry_run)
     log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
          'fail_kind': reason, 'run_at': run_at, 'target': target,
          'out': tg_out, **(extra or {})})
@@ -264,7 +269,7 @@ def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms,
     delivered. On 2026-08-10 that mirrored the HK 10:30 and 11:30 reports back to
     kcn as "undelivered".
     """
-    if not isinstance(marker, dict) or not marker.get('tg_ok'):
+    if not delivery_receipts.channels(marker)[1]:
         return False
     return marker_matches_slot(marker, job_name, slot, raw_block_first, now_ms,
                                ctx_id=ctx_id, ctx_generated_at=ctx_generated_at)
@@ -548,7 +553,7 @@ def main():
         # The payload postflight tried to send comes first (#2050): in prose
         # mode the transcript never holds the report.
         receipt_body = delivery_receipts.recorded_wechat_body(marker)
-        transcript_body = (None if receipt_body else
+        transcript_body = (None if receipt_body or prose_claims.enabled(context) else
                            last_report_text(session_id, raw_block_first))
         wechat_body = (receipt_body or transcript_body or
                        deterministic_fallback(raw_block, tag, '报告文本不在回执与会话里'))
@@ -574,7 +579,9 @@ def main():
     # proof of delivery outranks any inference drawn from the run record.
     # TG is covered iff postflight's cosend confirmably delivered this report to
     # Telegram this exact slot (slot identity, context generation, tg_ok=true).
-    if marker_covers_slot(
+    telegram_receipt = delivery_receipts.telegram_path(
+        flag.parent, 'intraday', market=args.market, slot=expected_slot)
+    if delivery_receipts.telegram_confirmed(telegram_receipt) or marker_covers_slot(
             marker, expected_job, expected_slot, raw_block_first, now_ms,
             ctx_id=context.get('context_id'),
             ctx_generated_at=context.get('generated_at')):
@@ -627,7 +634,8 @@ def main():
         marker, expected_job, expected_slot, raw_block_first, now_ms,
         ctx_id=context.get('context_id'),
         ctx_generated_at=context.get('generated_at'))
-    block_present = bool(raw_block_first and raw_block_first in summary)
+    structured = prose_claims.enabled(context)
+    block_present = bool(not structured and raw_block_first and raw_block_first in summary)
     delivered_clean = block_present or generated_this_slot
     if not delivered_clean:
         deliver_fallback(
@@ -650,7 +658,9 @@ def main():
     #
     # postflight cosend never ran / failed / stale-or-mismatched marker ⇒ Telegram
     # is not confirmed for this report → mirror it now.
-    report = last_report_text(session_id, raw_block_first) if raw_block_first else None
+    report = delivery_receipts.recorded_telegram_body(marker) if generated_this_slot else None
+    if not structured and not report and raw_block_first:
+        report = last_report_text(session_id, raw_block_first)
     if not report and block_present:
         report = summary  # fallback: run-record summary (usually holds the full block)
     if not report:
@@ -672,7 +682,9 @@ def main():
     else:
         tg_banner = f'📲 补投（{reason}，Telegram 兜底一份）\n\n'
     target = telegram_target()
-    tg_ok, tg_out = send_telegram(target, tg_banner + report.strip(), args.dry_run)
+    tg_ok, tg_out = telegram_with_receipt(
+        telegram_receipt, lambda: send_telegram(target, tg_banner + report.strip(), args.dry_run),
+        sender='watchdog', dry_run=args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
          'run_at': run_at, 'target': target, 'out': tg_out})

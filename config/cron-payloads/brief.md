@@ -17,7 +17,7 @@ clawock brief preflight; echo "EXIT=$?"
 **Step 2 - 输入：只按 SKILL.md「Step 2 / Step 2.5」读**
 输入协议只有 SKILL.md 那一份，这里不另写：常驻输入是 decision packet summary，分析某票时按票 / section 查询，bundle 按需取。**不要整份读 `memory/.tmp/brief-context-{date}.json`**（审计全量，供 postflight 校验）。
 **持仓相关数字**（FX、book USD/HKD、concentration HHI、retrospective、单股 RSI/MA/PnL）只取自本次 generation 的 packet / bundle，不要凭空造。
-**板块全景/同行涨幅榜/当日催化** packet 没覆盖 — Step 3 用 `clawock web-search`（DeepSeek 与 Tavily 并发，各自标注来源）拉实时。
+**板块全景/同行涨幅榜**用本代 peer_scan。需要额外核查催化时按 SKILL Step 3 检索。
 
 **跑命令的硬约束（同属「工具报错=整轮记 error」那一族）**
 - 脚本路径**照抄 SKILL.md，不要猜**。猜错了不许全盘扫描：`find /` 会被转入后台会话，而**主动 `process kill` 掉它的 toolResult 带 isError**，整个 cron 会被记成 error —— 2026-08-21 的简报就是这样在两个渠道都投递成功之后仍然判红的。
@@ -43,6 +43,6 @@ postflight 会校验、渲染报告与微信卡、pass/warn 时自动 commit，�
 
 **铁律**：
 - ⚠️ **投递已解耦**：cron 不 announce，你**绝不要**调 message 工具、也**不要**在回复里贴卡片当投递——`brief_postflight` 是**唯一微信路径**，并同步 Telegram。你只负责产出 Step 4 的产物 + 跑 postflight。
-- ⚠️ **持仓数字**（FX/HHI/RSI/MA/PnL）只取自本次 generation 的 packet / bundle；不要重新跑 preflight/数据脚本。**板块/同行/催化/叙事**鼓励用 `clawock web-search` 抓当日实时（packet 不覆盖；Tavily 侧只按 SKILL 的 theme 次数，DeepSeek 侧可多查 `--providers deepseek`）
+- ⚠️ **持仓数字**（FX/HHI/RSI/MA/PnL）只取自本次 generation 的 packet / bundle；不要重新跑 preflight/数据脚本。**板块/同行**用本代 peer_scan；催化按 SKILL 的证据规则引用。
 - ⚠️ HKD + USD 不能直接相加；book、集中度、Retrospective 的数字由 harness 从 context 渲染，你在 judgment 里的解读必须与它们一致
 - Bull/Bear/Aggressive/Conservative 必须真不同观点

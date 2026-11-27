@@ -16,6 +16,8 @@ import json
 
 import pytest
 
+from clawock import prose_claims
+
 from clawock.automation import brief_fallback as bf
 from clawock.context import brief as brief_context
 from clawock.decision import packet as packet_mod
@@ -26,7 +28,7 @@ from test_brief_decision_packet import _context
 TODAY = '2026-07-28'
 
 
-def write_generation(root, today=TODAY, *, ticker_rows=None):
+def write_generation(root, today=TODAY, *, ticker_rows=None, structured=False):
     """A workspace holding one real preflight generation; returns its packet."""
     (root / 'memory' / '.tmp').mkdir(parents=True, exist_ok=True)
     (root / 'skills' / 'daily-deep-brief').mkdir(parents=True, exist_ok=True)
@@ -34,6 +36,8 @@ def write_generation(root, today=TODAY, *, ticker_rows=None):
         (root / name).write_text('fixture', encoding='utf-8')
     context = _context()
     context['date'] = today
+    if structured:
+        context[prose_claims.FIELD] = prose_claims.VERSION
     packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
     if ticker_rows is not None:
         packet['tickers'] = ticker_rows
@@ -111,6 +115,25 @@ def test_a_good_reply_yields_the_artifacts_postflight_consumes(workspace, monkey
     assert receipt["author_model"] == "fixture-model"
     assert receipt["author_provider"] == "fixture-provider"
     assert bf.main(['--verify-receipt']) == 0
+
+
+def test_structured_fallback_receipt_pins_draft_and_render_materializes_values(workspace, monkeypatch):
+    packet = write_generation(workspace, structured=True)
+    plan, judgment = bf.split_plan_and_judgment(model_reply(packet))
+    ticker = plan['decisions'][0]['ticker']
+    shares = packet['tickers'][ticker]['facts']['shares']
+    token = f'[[/packet/tickers/{ticker}/facts/shares]]'
+    judgment['portfolio_assessment'] = f'观察持仓，账面为{token}。'
+    monkeypatch.setattr(bf, 'chat', lambda **_kwargs: json.dumps({'plan': plan, 'judgment': judgment}))
+    bf.main([])
+    assert bf.verify_receipt(workspace, TODAY)[0]
+    assert not bf.artifact_paths(workspace, TODAY)['plan'].exists()
+    draft = bf.artifact_paths(workspace, TODAY, structured=True)
+    assert token in draft['judgment'].read_text(encoding='utf-8')
+    from clawock.harness import brief_render
+    issues, body = brief_render.render_from_workspace(workspace, TODAY, write=False)
+    assert body is not None, issues
+    assert f'账面为{shares} 股' in body and token not in body
 
 
 def test_a_failed_model_call_leaves_the_existing_brief_and_no_receipt(workspace, monkeypatch, capsys):

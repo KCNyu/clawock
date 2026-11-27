@@ -160,10 +160,34 @@ def read_receipt(path) -> dict | None:
 
 def channels(receipt) -> tuple[bool, bool]:
     """(wechat_ok, telegram_ok) as the receipt proves them — True only when recorded True."""
-    receipt = receipt or {}
+    receipt = receipt if isinstance(receipt, dict) else {}
     return receipt.get("sent_ok") is True, receipt.get("tg_ok") is True
 
 
 def delivered(receipt) -> bool:
     """A receipt proves delivery when either channel reports a real send."""
     return any(channels(receipt))
+
+
+def telegram_path(tmp, kind, *, market=None, phase=None, date=None, slot=None):
+    """Independent Telegram evidence, shared by postflight and watchdog."""
+    slug = _slug(kind, market, phase, date)
+    if kind == 'intraday':
+        key = slot_key(slot)
+        if key is None:
+            return None
+        slug += f'-{key}'
+    return Path(tmp) / f'{kind}-telegram-{slug}.json'
+
+
+def telegram_confirmed(path):
+    return path is not None and channels(read_receipt(path))[1]
+
+
+def failed_telegram_body(tg_ok, message):
+    return {} if tg_ok or not (message or '').strip() else {'telegram_body': message}
+
+
+def recorded_telegram_body(receipt):
+    body = receipt.get('telegram_body') if isinstance(receipt, dict) else None
+    return body if isinstance(body, str) and body.strip() else None

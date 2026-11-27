@@ -12,12 +12,14 @@ twenty-odd regression tests keep exercising exactly this code.
 from __future__ import annotations
 
 
+from clawock import prose_claims
 from clawock.harness.validation import (
     FORBIDDEN_PHRASES,
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,
     check_identifier_leak,
     check_numeric_claims,
+    with_compute_receipts,
     check_pipeline_self_reference,
     check_plan_consistency,
     has_section_marker,
@@ -126,7 +128,8 @@ def validate(body, ctx, model_text):
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
     # 6. 数字必须来自 context（模型文本）—— 一条聚合 warn，见 check_numeric_claims
-    issues.extend(check_numeric_claims(checked, ctx))
+    if not prose_claims.enabled(ctx):
+        issues.extend(check_numeric_claims(checked, ctx))
 
     # 7. 管线术语（模型文本）—— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))
@@ -143,7 +146,19 @@ def validate(body, ctx, model_text):
     return issues
 
 
-CRITICAL_KEYWORDS = ['缺段标记', '敷衍词', 'needs_risk_section=true']
+def prepare_report(ctx, draft, workspace, *, validator=validate):
+    """Resolve authored references before assembling and checking the reader text."""
+    ctx = with_compute_receipts(ctx, workspace)
+    issues = []
+    if prose_claims.enabled(ctx):
+        renderer = prose_claims.ClaimRenderer(ctx, receipts=ctx.get('compute_receipts', ()))
+        draft = renderer.render(draft, '报告')
+        issues = renderer.issues
+    body = assemble_message(ctx, draft)
+    return body, [*issues, *validator(body, ctx, draft)]
+
+
+CRITICAL_KEYWORDS = ['缺段标记', '敷衍词', 'needs_risk_section=true', prose_claims.ISSUE]
 
 
 def categorize(issues):

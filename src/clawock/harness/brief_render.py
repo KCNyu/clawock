@@ -31,7 +31,9 @@ import re
 from datetime import date as _date
 from pathlib import Path
 
-from clawock.decision import receipts
+from clawock.decision import brief_prose, receipts
+from clawock.harness import brief_sidecars
+from clawock import prose_claims
 from clawock import sessions as _cal, instruments as instrument_registry
 from clawock.portfolio.math import ledger_rows, session_change_pct
 from clawock.automation.output_validate import escape_raw_html
@@ -1453,7 +1455,7 @@ SECTOR_SCAN_MISSING = (
     "板块全景 没有落盘 sector-scan：本篇只有 sector_read 文字，没有表")
 
 
-def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=True):
+def render_from_workspace(workspace, date, *, context=None, plan=None, judgment=None, page_url=None, write=True, claims=None):
     """Render both artifacts for one date. Returns (issues, brief_markdown).
 
     `plan` lets the caller hand in the normalized plan it already holds, so the
@@ -1463,10 +1465,31 @@ def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=Tr
     paths = artifact_paths(workspace, date)
     issues = []
     try:
-        context = _load(paths["context"])
-        judgment = _load(paths["judgment"])
-        if plan is None:
-            plan = _load(paths["plan"])
+        if context is None:
+            context = _load(paths["context"])
+        if prose_claims.enabled(context) and (judgment is None or plan is None):
+            from clawock.decision import packet
+            from clawock.harness.validation import with_compute_receipts
+
+            source = packet.read_packet(paths["context"].with_suffix('') / 'manifest.json')
+            ctx = with_compute_receipts(context, workspace)
+            renderer = prose_claims.ClaimRenderer(ctx, packet=source, receipts=ctx.get('compute_receipts', ()))
+            if plan is None:
+                draft = _load(brief_prose.plan_draft_path(workspace, date))
+                if draft.get('context_generation_id') != context.get('generation_id'):
+                    return (['plan context_generation_id 缺失或跨代'], None)
+                plan = brief_prose.render_plan(packet.bind_full_position_cuts(draft, source), renderer)
+            if judgment is None:
+                judgment = brief_prose.render_judgment(_load(paths["judgment"]), renderer)
+            claims = renderer
+            if (judgment.get('context_generation_id') != context.get('generation_id')
+                    or renderer.issues):
+                return (renderer.issues or ['judgment context_generation_id 缺失或跨代'], None)
+        else:
+            if judgment is None:
+                judgment = _load(paths["judgment"])
+            if plan is None:
+                plan = _load(paths["plan"])
     except (OSError, ValueError) as exc:
         return ([f"简报渲染跳过（输入不可读: {exc}）；保留现有 pre-open.md"], None)
 
@@ -1482,12 +1505,19 @@ def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=Tr
     # Optional is not the same as unremarkable, though — the file is written by
     # the model, and it stopped after 2026-08-27 without anything noticing for
     # eight sessions. Say so; the caller counts it.
-    try:
-        sector_scan = _load(paths["sector_scan"])
-    except (OSError, ValueError):
-        sector_scan = None
+    if prose_claims.enabled(context):
+        sector_scan = brief_sidecars.sector_scan(
+            context, paths["sector_scan"].with_name(f'brief-sector-draft-{date}.json'), claims)
+    else:
+        try:
+            sector_scan = _load(paths["sector_scan"])
+        except (OSError, ValueError):
+            sector_scan = None
     if not (sector_scan or {}).get("sectors"):
         issues.append(SECTOR_SCAN_MISSING)
+    elif prose_claims.enabled(context):
+        if write:
+            safe_write_json(str(paths["sector_scan"]), sector_scan)
     else:
         rebound = bind_sector_self(sector_scan, context)
         if rebound:

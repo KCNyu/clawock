@@ -18,7 +18,8 @@ import sys
 import time
 from copy import deepcopy
 
-from clawock import sessions
+from clawock import prose_claims, sessions
+from clawock.decision import brief_prose
 from clawock.automation.llm import chat
 from clawock.automation.llm import DEADLINE_ENV
 from clawock.decision import ledger as decision_v2
@@ -313,10 +314,11 @@ def receipt_path(root, today):
     return root / 'memory' / '.tmp' / f'brief-fallback-receipt-{today}.json'
 
 
-def artifact_paths(root, today):
+def artifact_paths(root, today, *, structured=False):
     """What one successful fallback run writes, keyed as the receipt names them."""
     return {
-        'plan': root / 'memory' / f'{today}-plan.json',
+        'plan': (brief_prose.plan_draft_path(root, today) if structured
+                 else root / 'memory' / f'{today}-plan.json'),
         'judgment': root / 'memory' / '.tmp' / f'brief-judgment-{today}.json',
     }
 
@@ -347,7 +349,7 @@ def verify_receipt(root, today):
         return False, (f"receipt is for generation {receipt.get('context_generation_id')}, "
                        f'the context is now {generation_id}')
     sizes = {}
-    for name, target in artifact_paths(root, today).items():
+    for name, target in artifact_paths(root, today, structured=prose_claims.enabled(receipt)).items():
         expected = (receipt.get('artifacts') or {}).get(name)
         if not target.is_file() or expected != _sha256(target):
             return False, f'{name} is not the file this run wrote'
@@ -369,7 +371,7 @@ class ReplyRejected(Exception):
     """The reply cannot be written as it stands; the message says why."""
 
 
-def checked_reply(out, today, packet):
+def checked_reply(out, today, packet, *, context=None):
     """(plan, judgment, advisories) ready to write, or `ReplyRejected`.
 
     Everything postflight would fail the brief for and that this side can see
@@ -387,8 +389,22 @@ def checked_reply(out, today, packet):
         raise ReplyRejected('plan uses the forbidden v1 `actions` field; use `decisions`')
     plan['date'] = plan.get('date') or today
     plan['context_generation_id'] = generation_id
+    draft_plan = plan
+    draft_judgment = judgment
+    structured = prose_claims.enabled(context)
+    judgment['schema_version'] = decision_packet.JUDGMENT_SCHEMA_VERSION
+    judgment['context_generation_id'] = generation_id
     try:
+        if structured:
+            renderer = prose_claims.ClaimRenderer(context, packet=packet)
+            plan = brief_prose.render_plan(
+                decision_packet.bind_full_position_cuts(plan, packet), renderer)
+            judgment = brief_prose.render_judgment(judgment, renderer)
+            if renderer.issues:
+                raise ReplyRejected('；'.join(renderer.issues[:10]))
         plan = decision_v2.normalize_authored_plan(plan)
+    except ReplyRejected:
+        raise
     except Exception as exc:  # noqa: BLE001
         raise ReplyRejected(f'plan cannot be normalized: {exc}')
     # The filename is what binds the plan to its date (#1915): `or today` only
@@ -429,15 +445,11 @@ def checked_reply(out, today, packet):
                 f"technical.setups={_compact(setups)}, "
                 f"swap_mandate={_compact(constraints.get('swap_mandate'))}")
         raise ReplyRejected('; '.join(errors + rows))
-    # The two pins are the harness's to write, like the plan's above: the model
-    # copying a hash wrong must not cost the day its brief.
-    judgment['schema_version'] = decision_packet.JUDGMENT_SCHEMA_VERSION
-    judgment['context_generation_id'] = generation_id
     findings = decision_packet.validate_judgment_overlay(packet, judgment, plan=plan)
     conflicts = [issue for issue in findings if '判断与计划股数冲突' in issue]
     if conflicts:
         raise ReplyRejected('; '.join(conflicts))
-    return plan, judgment, findings
+    return (draft_plan, draft_judgment, findings) if structured else (plan, judgment, findings)
 
 
 def repair_prompt(user, out, reason):
@@ -503,6 +515,8 @@ def main(argv=None):
         print('  fail-closed: required context incomplete; wrote zero-action artifacts')
         return
     context = prepared['serialized']
+    audit = json.loads(raw_ctx)
+    structured = prose_claims.enabled(audit)
 
     # The same generation's packet postflight will validate against. Without it
     # there is no judgment template to fill and nothing to bind the plan to, and
@@ -580,7 +594,7 @@ def main(argv=None):
     budget = float(os.environ.get(DEADLINE_ENV) or BRIEF_LLM_TIMEOUT_SECONDS)
     for turn in range(MAX_REPAIR_TURNS + 1):
         try:
-            plan, judgment, advisories = checked_reply(out, today, packet)
+            plan, judgment, advisories = checked_reply(out, today, packet, context=audit)
             break
         except ReplyRejected as rejected:
             left = budget - (time.monotonic() - started)
@@ -603,7 +617,7 @@ def main(argv=None):
     # Atomic (#1493): the publish sweep would commit a half-written plan.json.
     # No pre-open.md here: the report is the harness's to render, from these
     # two files, in the postflight step that follows.
-    paths = artifact_paths(root, today)
+    paths = artifact_paths(root, today, structured=structured)
     receipt_path(root, today).unlink(missing_ok=True)
     safe_write_json(paths['plan'], plan)
     safe_write_json(paths['judgment'], judgment)
@@ -611,6 +625,7 @@ def main(argv=None):
     safe_write_json(receipt_path(root, today), {
         'date': today,
         'context_generation_id': generation_id,
+        **({prose_claims.FIELD: prose_claims.VERSION} if structured else {}),
         'artifacts': {name: _sha256(path) for name, path in paths.items()},
         # Which provider's reply became the plan: postflight records it as the
         # proposals' author (`decision.proposals.authorship`).

@@ -20,6 +20,7 @@ stdout 就是 context 本身（与落盘同一份 JSON），含 `context_id`、s
 - **不要写标题、不要写数据块、不要写表格** —— postflight 自己从 context 拼进消息开头，你写了会重复
 - `anomalies` 非空时，散文必须提到至少一个异动票
 - 正文是给 kcn 看的交易语言：context 的字段名与枚举值（任何带下划线的英文标识，如 hold_and_watch、sec_filing，以及 verdict=wait 这类“键=值”）一律不写进正文，翻译成中文说法；postflight 在校验结果里记录
+- 事实用 `[[/ctx/holdings/00100/current_price]]` 或 `[[/ctx/peer_scan/00100/listed_peers/0/pct_1d]]` 这类字段引用，索引从零开始；带数字的代码引用 `ticker`。新闻引用整条记录（`[[/ctx/live_information/…/0|cite]]`）；来源、时间用原字段，状态用 `|status`，列表计数用 `|count`。事实与单位由程序生成，找不到字段就说明缺口。若用了 compute，以 `[[/compute/回执ID/value_pct]]` 等返回字段引用。
 - 长度自己判断，不设字数目标；postflight 按拼装后的全文只判防复读天花板（>5000 warn、>6000 fail）
 - 用文件写入工具存到 `/root/.openclaw/workspace/memory/.tmp/report-prose-{{market}}-{{phase}}.md`
 

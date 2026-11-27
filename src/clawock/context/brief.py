@@ -61,6 +61,7 @@ CORE_FIELDS = (
 #: and nothing logged: the mechanism #1337 was, one level up. The contract test
 #: in `tests/test_context_contract.py` is what keeps this list honest.
 CODE_ONLY_FIELDS = (
+    "prose_claims_version",
     # Compiled into the decision packet by `decision/packet.py`.
     "open_decisions",
     "technical_setup_usage",

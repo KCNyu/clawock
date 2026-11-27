@@ -135,27 +135,36 @@ have to establish whether a valid field contains the right fact.
 [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs#handling-mistakes)
 and [LangChain structured output](https://docs.langchain.com/oss/python/langchain/structured-output).
 
-The brief renderer prints plan sale size, projected concentration, the minimum
-review-line sale and the resulting balance from the portfolio calculation.
-When prose repeats a review-line fact, the validator extracts the claim and
-compares it with the corresponding field for that ticker and price basis.
-Each decision uses its own sale size. A claim outside a decision row uses a
-plan projection only when the ticker identifies it unambiguously. An explicit
-book mark can also be checked against the review's minimum for a name with no
-planned sale. The brief blocks verified contradictions. The decision timeline
-shows warnings against the current book beside the dated decision. This uses
-the claim-to-evidence pattern from factuality evaluation with deterministic
-arithmetic as the evidence. [FActScore](https://aclanthology.org/2023.emnlp-main.741/).
+### Structured publication claims
 
-The shared numeric scan treats units without a bound fact as advisory. It
-indexes the existing context in one pass and keeps the existing precision and
-publication rules for brief, report and intraday. These checks run locally
-with the artifacts the workflow already has. An LLM judge is useful for
-offline evaluation of ambiguous prose, where scoring bias and variable
-latency can be measured. The scheduled publication gate uses deterministic
-checks for its financial facts.
-[LangChain guardrails](https://docs.langchain.com/oss/python/langchain/guardrails)
-and [MT-Bench judge study](https://arxiv.org/abs/2306.05685).
+A preflight with `prose_claims_version: 1` pins the authoring format. The
+model writes reasoning and typed references in its text fields. Postflight
+resolves each reference against the same generation, renders the value and
+unit, and rejects missing or ill-typed references and handwritten numeric
+assertions. The renderer uses JSON Pointer with zero-based list indices.
+`/ctx` addresses the audit context, `/packet` the brief decision packet,
+`/decision` the current plan row's normalized facts, and `/compute/<id>`
+a calculation receipt available since preflight. The brief's draft plan stays
+in `memory/.tmp`. The public plan and Pages overlay contain materialized prose.
+
+| Assertion | Authority | Consumer |
+|---|---|---|
+| Price, shares, amount, weight, P&L, factor and performance measurements | The exact ticker/metric field in the generation, or the result field of a compute receipt | Brief, report, intraday, weekly review, and their narrative sidecars |
+| Sell size, condition price, review-line threshold, remaining shares and projected weight | Normalized decision and the position/leg projection at the trigger or book mark | Brief plan, page and card. The DSH timeline compares the frozen, cited fields with the same scenario on the current book |
+| Sector leaderboard and portfolio exposure | Peer scan for named rows. Hidden concentration selects one leg, one basis and named buckets in one partition | Brief and dashboard |
+| Source, publication/observation time and capture time | Source/clock fields or a single event row using `|cite`. A source's existing citation is preserved with its freshness label | Brief, report and intraday |
+| Count and state | Registered structured state or `|count` on the exact collection, including alerts, decisions and delivery stages | Draft prose and deterministic cards |
+| Next trigger | The selected `trigger_prices` row, direction, and an optional proposed value within ±5% of that ticker's fresh mark | Intraday watch rows |
+| Delivered channels and produced artifacts | Transport results written to channel receipts, and postflight digests for the brief report, plan and card | Postflight, watchdog and delivery health |
+| Readability, quality and investment interpretation | Deterministic rules for size, layout and policy wording. Semantic interpretation stays with the author or offline evaluation | Publication styles and review |
+
+Modern report and intraday recovery uses a validated payload recorded after
+a failed send when one is available, and otherwise renders the deterministic
+preflight block. Telegram recovery and normal sends share slot-keyed delivery
+evidence. The historical first-line and numeric-prose checks still read
+older artifacts. The factual contract covers values and identity on the
+reference. It does not evaluate whether every interpretation in the
+surrounding sentence follows from that evidence.
 
 ## Add-side strategy: one owner, three entries
 
@@ -422,8 +431,9 @@ parameters and what reaches their model.
 | strategy plugins and parameter proposals | `plugin_host/kernel` (mount, services, reversible effects); `strategy_lab/plugins/walkforward` (search and gate) | `clawock strategy-lab`; the brief runs `strategy-lab record` after delivery and commits its ledger, and reads nothing back from it | rows in `config/strategy-plugins.json`; a proposal is `candidate` or `refused` and always `live_permission: false`; see [strategy plugins](strategy-plugins.md) |
 | decisions ledger | `decision/ledger` (`load_decisions`, `write_decisions`) | brief postflight, dashboard, settlement, plans | path |
 | trading-prose vocabulary | `prose_validation` (pure identifier/pipeline checks); `automation/output_validate.validate_sections(trading_prose=True)` | weekly generation/repair and harness postflights | text, label; harness preserves its advisory policy |
-| placeholder / length / numeric checks | `harness/validation` (`FORBIDDEN_PHRASES`, `REPORT_CHAR_LIMITS`, `is_hard_char_limit`, `check_numeric_claims`, `categorize_issues`) | every postflight | critical keywords, `warn_max` |
-| concentration claims | `portfolio/trim_claims` (ticker attribution and claims), `portfolio/guardrail.plan_trim_projections` (sizing) | brief validation and render, dashboard decision timeline | authored prose, same-generation book inputs, decision and price basis |
+| Publication facts | `prose_claims.ClaimRenderer` and the authority table above | every market postflight, brief sidecars | same-generation references, deterministic values and units |
+| Placeholder / length checks | `harness/validation` | every postflight | critical keywords, `warn_max` |
+| Concentration claims | `portfolio/guardrail.plan_trim_projections`, `decision/brief_prose`, `portfolio/trim_claims` for historical prose | brief validation and render, dashboard decision timeline | same-generation book, decision, price basis and cited field |
 | remaining-position day P&L and quote session | `portfolio/math.day_pnl` / `holding_session` | HK/US quote writers, aggregates, integrity, dashboard session labels | held shares, raw current quote, previous close, same-session fills; oldest shares consumed first on sales; realized sells stay in the realized ledger |
 | quoted session return | `portfolio/math.session_change_pct` | HK/US analyzer tables, brief, dashboard movers, evidence and T+0 setups | current quote and trusted prior close; the analyzer table and dashboard publish two decimal places for mover classification |
 | brief trading-day gate | `sessions.brief_closed_reasons` | brief preflight, postflight and watchdog, dashboard artifact freshness | the brief's HKT date for both exchange calendars |

@@ -18,6 +18,7 @@ import sys
 import time
 from datetime import date, timedelta
 
+from clawock import prose_claims
 from clawock.automation import llm
 from clawock.automation.llm import chat
 from clawock.automation.output_validate import (
@@ -92,7 +93,7 @@ WEEKLY_LLM_THINKING_EFFORT = 'high'
 # consumes; the harness already distills them into decision_episodes /
 # decision_metrics. signal_provenance alone was ~76% of the decisions bytes in
 # committed plans and also rides on every episode representative.
-DECISION_PROMPT_DROP_FIELDS = ('signal_provenance',)
+DECISION_PROMPT_DROP_FIELDS = ('signal_provenance', 'prose_claims')
 
 # Publication bookkeeping on `decision_metrics`, not review material:
 # `provenance` names the ledger slice, window and code commit a published
@@ -496,18 +497,21 @@ def build_user_prompt(payload):
         "\n\n"
         "1. **本周净值**: 周初/周末/涨跌三个数 harness 已算好在 "
         "`bundle_evidence.nav_change`（口径=期末减期初 NAV, 含期内任何出入金）——"
-        "直接引用, 不要自己再从 snapshots 相减; 你要写的是主要贡献者与主要拖累的归因\n"
+        "用事实引用，主要贡献者与拖累由你归因。\n"
         "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
         "点名可核验的代表决策及结果，用日期、标的和决策编号定位。"
         "对仍未解决或连续多次出现的判断错误，写明待验证的反证和下一复查条件；只引用包内有记录的研究。\n"
         "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
         "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
-        "四个小节的二级标题必须逐字使用下面四行（行尾可以加括号说明，不要改写标题本身）：\n"
+        "四个小节的二级标题必须逐字使用下面四行：\n"
         + '\n'.join(WEEKLY_SECTION_HEADINGS) + "\n\n"
         f"数据 bundle (JSON):\n```json\n{_compact(payload)}\n```\n\n"
         "若上面 JSON 含 `_omitted`，对应 section 因 prompt 预算被整体省略——"
         "相关小节必须如实写数据缺口，禁止编造。\n\n"
-        "不要印内部字段名或管线词（如 git_shares_diff、hold_and_watch、packet、harness）；改写成交易语言。"
+        "标题之外用 [[/ctx/字段/...]] 引用包内事实，数组从零编号。数字、股数、金额、占比、"
+        "日期、时间、标的与决策编号都由程序从字段生成；状态用 |status，列表计数用 |count。"
+        "用短横线列条目。正文其他部分写交易语言，避免内部字段名。"
+
         "直接出 markdown, 不要客套."
     )
 
@@ -528,7 +532,18 @@ def _chain_deadline():
 
 
 
-def generate_review(system, user, *, clock=time.monotonic):
+def _render_review(draft, evidence):
+    if evidence is not None:
+        renderer = prose_claims.ClaimRenderer(evidence)
+        draft = '\n'.join(
+            line if line in WEEKLY_SECTION_HEADINGS else renderer.render(line, '周复盘')
+            for line in (draft or '').splitlines())
+        if renderer.issues:
+            raise LLMOutputError('；'.join(renderer.issues[:5]))
+    return draft
+
+
+def generate_review(system, user, *, clock=time.monotonic, evidence=None):
     """The review text, after at most one repair turn. Raises LLMOutputError.
 
     A rejected reply used to end the job, and nothing re-runs a scheduled
@@ -550,7 +565,7 @@ def generate_review(system, user, *, clock=time.monotonic):
     # Anchors are the four questions build_user_prompt asks for; the floor is
     # ~1/10th of a real review (2026-W34 is 11KB).
     try:
-        return validate_sections(out, label='weekly review',
+        return validate_sections(_render_review(out, evidence), label='weekly review',
                                  required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
                                  trading_prose=True)
     except LLMOutputError as rejection:
@@ -574,7 +589,7 @@ def generate_review(system, user, *, clock=time.monotonic):
             print(f'  ⚠️ repair turn failed: {exc}', file=sys.stderr)
             raise rejection from exc
         try:
-            return validate_sections(repaired, label='weekly review',
+            return validate_sections(_render_review(repaired, evidence), label='weekly review',
                                      required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
                                      trading_prose=True)
         except LLMOutputError as exc:
@@ -613,7 +628,7 @@ def main(argv=None):
     payload = build_prompt_payload(bundle)
     user = build_user_prompt(payload)
 
-    out = generate_review(system, user)
+    out = generate_review(system, user, evidence=payload)
 
     path = workspace_root() / 'memory' / 'weekly' / f'{week_id}.md'
     os.makedirs(path.parent, exist_ok=True)

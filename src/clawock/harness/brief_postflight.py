@@ -26,7 +26,6 @@ Side effects:
     messages, or write the delivery marker
 """
 
-import hashlib
 import json
 import os
 import re
@@ -42,6 +41,8 @@ from clawock.safe_io import safe_write_json, safe_write_text, to_finite_number, 
 from clawock import instruments as instrument_registry
 from clawock import sessions as trading_calendar
 from clawock.context import brief as brief_context
+from clawock import prose_claims
+from clawock.decision import brief_prose
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
 from clawock.decision import risk as risk_discipline
@@ -328,7 +329,7 @@ class _InMemoryPlanPath:
         self._body = json.dumps(plan, ensure_ascii=False, indent=2) + '\n'
 
     def exists(self):
-        return self._path.exists()
+        return True
 
     def read_text(self, *args, **kwargs):
         return self._body
@@ -1009,7 +1010,7 @@ CRITICAL_KEYWORDS = [
     'book inputs invalid', 'book totals mismatch:',
     '仓位支配度不符', '判断与计划股数冲突',
     'plan.json watch_levels', '[RATIONALE_PRICE_SCALE]',
-    '引用了 private topic',
+    '引用了 private topic', prose_claims.ISSUE,
 ]  # table mismatch, cross-generation output and placeholder prose are critical
 
 
@@ -1040,6 +1041,9 @@ from ._harness_common import (  # noqa: E402
     rebuild_dashboard,
 )
 from . import brief_versions  # noqa: E402
+from clawock.harness.brief_versions import (
+    REVISION_NOTICE_PREFIX, report_sha256, without_revision_notice as _without_revision_notice,
+)
 from .brief_card import brief_url, build_brief_card  # noqa: E402
 from . import risk_notices  # noqa: E402
 from .run_usage import footer as run_usage_footer  # noqa: E402
@@ -1049,7 +1053,7 @@ from ._watchdog_common import (  # noqa: E402
     claim_send, log, send_per_policy, send_under_claim,
     brief_delivered_channels, brief_delivery_lock,
 )
-from clawock.harness import brief_render  # noqa: E402
+from clawock.harness import brief_render, brief_sidecars  # noqa: E402
 
 
 def log_decisions(today):
@@ -1395,30 +1399,6 @@ def _ensure_jekyll_front_matter(md_path, date):
 # judgment layer was dropped while the page behind its link had it restored
 # five minutes later, unsourced figures removed (#3105). The re-send stays
 # skipped (2026-07-11 dup fix); the revision is said on the page and counted.
-REVISION_NOTICE_PREFIX = '> 📝 **投递后修订**'
-
-
-def _without_revision_notice(text):
-    lines = text.split('\n')
-    out = []
-    for i, line in enumerate(lines):
-        if line.startswith(REVISION_NOTICE_PREFIX):
-            continue
-        if line == '' and i and lines[i - 1].startswith(REVISION_NOTICE_PREFIX):
-            continue
-        out.append(line)
-    return '\n'.join(out)
-
-
-def report_sha256(md_path):
-    """The rendered report's digest, without any revision notice this module added."""
-    try:
-        text = Path(md_path).read_text(encoding='utf-8')
-    except OSError:
-        return None
-    return hashlib.sha256(_without_revision_notice(text).encode('utf-8')).hexdigest()
-
-
 def _hkt_clock(at):
     return at.astimezone(workflow_outcomes.HKT).strftime('%H:%M')
 
@@ -1651,13 +1631,14 @@ def _judgment_text(overlay):
     return '\n'.join(value for value in texts if isinstance(value, str))
 
 
-def _peer_divergence_issues(judgment_path, context):
+def _peer_divergence_issues(judgment_path, context, *, overlay=None):
     tickers = [t for t, row in (context.get('peer_scan') or {}).items()
                if row.get('divergence_signal')]
     if not tickers:
         return []
     try:
-        overlay = json.loads(judgment_path.read_text(encoding='utf-8'))
+        if overlay is None:
+            overlay = json.loads(judgment_path.read_text(encoding='utf-8'))
     except (OSError, ValueError):
         overlay = {}
     if not isinstance(overlay, dict):
@@ -1839,31 +1820,55 @@ def main(argv=None):
             decision_packet = brief_decision_packet.read_packet(manifest_path)
         except Exception as exc:
             issues.append(f'decision packet 不可用: {exc}')
+    structured = prose_claims.enabled(context)
+    judgment_path = WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json'
+    resolved_judgment = None
+    authored_plan_path = plan_path
+    if structured:
+        try:
+            draft = json.loads(brief_prose.plan_draft_path(WS, today).read_text(encoding='utf-8'))
+            overlay = json.loads(judgment_path.read_text(encoding='utf-8'))
+            ctx = with_compute_receipts(context, WS)
+            renderer = prose_claims.ClaimRenderer(
+                ctx, packet=decision_packet, receipts=ctx.get('compute_receipts', ()))
+            if decision_packet:
+                draft = brief_decision_packet.bind_full_position_cuts(draft, decision_packet)
+            authored_plan_path = _InMemoryPlanPath(plan_path, brief_prose.render_plan(draft, renderer))
+            resolved_judgment = brief_prose.render_judgment(overlay, renderer)
+            issues.extend(renderer.issues)
+            if overlay.get('context_generation_id') != context['generation_id']:
+                issues.append(f'{prose_claims.ISSUE} judgment context_generation_id 缺失或跨代')
+            if decision_packet:
+                findings = brief_decision_packet.validate_judgment_overlay(
+                    decision_packet, resolved_judgment)
+                if findings:
+                    issues.append(f'judgment 未通过校验：{"；".join(findings[:2])}')
+        except (OSError, ValueError, TypeError, AttributeError, KeyError) as exc:
+            issues.append(f'{prose_claims.ISSUE} 简报草稿不可用：{exc}')
+
     normalization_issues, normalized_plan = normalize_plan_json(
-        plan_path,
+        authored_plan_path,
         decision_packet=decision_packet,
-        write=not args.dry_run,
+        write=not args.dry_run and not structured,
         return_plan=True,
         context=context,
     )
     issues += normalization_issues
-
-    # A judgment that is absent or does not validate now costs published
-    # content, not just a Pages sidecar field: since #1232 the report's debate
-    # sections are rendered from it. `projection_issues` records the same fact
-    # further down, but only in the result JSON — nothing reads that in time to
-    # notice the brief went out with empty sections.
-    issues += _judgment_gap_issues(
-        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', decision_packet)
-    issues += _card_self_reference_issues(
-        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
-    issues += _judgment_identifier_issues(
-        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
-    issues += _peer_divergence_issues(
-        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', context or {})
-    issues += _plan_self_reference_issues(normalized_plan)
-    issues += _brief_numeric_issues(
-        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', normalized_plan, context)
+    if structured and resolved_judgment is not None:
+        from clawock.decision.plan_prose import judgment_plan_share_conflicts
+        issues.extend(judgment_plan_share_conflicts(normalized_plan, resolved_judgment))
+        issues.extend(check_pipeline_self_reference(
+            resolved_judgment.get('portfolio_assessment') or '', label='微信卡核心结论'))
+        issues.extend(f'{issue} {ADVISORY_MARK}' for issue in
+                      check_identifier_leak(_judgment_text(resolved_judgment), label='简报判断正文'))
+        issues.extend(_peer_divergence_issues(judgment_path, context, overlay=resolved_judgment))
+    elif not structured:
+        issues.extend(_judgment_gap_issues(judgment_path, decision_packet))
+        issues.extend(_card_self_reference_issues(judgment_path))
+        issues.extend(_judgment_identifier_issues(judgment_path))
+        issues.extend(_peer_divergence_issues(judgment_path, context or {}))
+        issues.extend(_brief_numeric_issues(judgment_path, normalized_plan, context))
+    issues.extend(_plan_self_reference_issues(normalized_plan))
 
     # Both the rendered report and the Pages projection must be current before
     # the off-host committer can publish (#520). Clear any previous verdict first.
@@ -1875,10 +1880,16 @@ def main(argv=None):
     # published tables then show the same decisions the ledger records.
     rendered_markdown = None
     try:
-        render_issues, rendered_markdown = brief_render.render_from_workspace(
-            WS, today, plan=normalized_plan,
-            page_url=brief_url(today),
-            write=not args.dry_run)
+        if structured and (not resolved_judgment or authored_plan_path is plan_path
+                           or any(issue.startswith(prose_claims.ISSUE) for issue in issues)):
+            render_issues = [issue for issue in issues if issue.startswith(prose_claims.ISSUE)]
+        else:
+            render_input = ({'context': context, 'judgment': resolved_judgment, 'claims': renderer}
+                            if structured else {})
+            render_issues, rendered_markdown = brief_render.render_from_workspace(
+                WS, today, plan=normalized_plan,
+                page_url=brief_url(today),
+                write=not args.dry_run, **render_input)
     except Exception as exc:
         render_issues = [f'{type(exc).__name__}: {exc}']
     render_failed = rendered_markdown is None
@@ -1915,7 +1926,7 @@ def main(argv=None):
             issues += readability_issues(readability)
     validation_path = (
         _InMemoryPlanPath(plan_path, normalized_plan)
-        if args.dry_run and normalized_plan is not None
+        if (args.dry_run or structured) and normalized_plan is not None
         else plan_path
     )
     issues += validate_plan_json(
@@ -1924,6 +1935,16 @@ def main(argv=None):
     )
 
     status = 'fail' if render_failed else categorize(issues)
+    if structured and status in ('pass', 'warn') and not args.dry_run:
+        safe_write_json(str(plan_path), normalized_plan)
+        sidecars = judgment_path.parent
+        try:
+            insights = brief_sidecars.insights(sidecars / f'brief-insights-draft-{today}.json',
+                                               context, renderer)
+            if insights is not None:
+                safe_write_json(str(sidecars / f'insights-{today}.json'), insights)
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            print(f'warn: 简报复盘不可用：{exc}', file=sys.stderr)
     # Keep what is about to be delivered as an immutable version. This runs
     # before the card is composed (it needs the id) and before the revision
     # notice (which compares the delivered version with this one). It fails
@@ -1985,14 +2006,14 @@ def main(argv=None):
     # publish with judgment_status=missing/invalid, and a projection exception
     # never blocks the report/plan commit.
     projection_path = WS / 'assets' / 'data' / 'brief_projection.json'
-    judgment_path = WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json'
     projection_status = 'skipped'
     projection_issues = []
     if status in ('pass', 'warn') and decision_packet and not args.dry_run:
         try:
             projection, projection_issues = (
                 brief_decision_packet.write_pages_projection(
-                    decision_packet, judgment_path, projection_path, plan=normalized_plan
+                    decision_packet, judgment_path, projection_path, plan=normalized_plan,
+                    **({'resolved_overlay': resolved_judgment} if structured else {}),
                 )
             )
             projection_status = projection.get('judgment_status') or 'written'
@@ -2007,6 +2028,11 @@ def main(argv=None):
         or projection_status in {'valid', 'missing', 'invalid'}
     )
     publication_status = product if projection_ready else 'fail'
+    if structured and publication_status != 'fail' and not args.dry_run:
+        try:
+            brief_versions.record_artifacts(WS, today, context['generation_id'])
+        except OSError as exc:
+            print(f'warn: 简报产物回执未落盘：{exc}', file=sys.stderr)
     # This is the only release of the off-host committer.  Judgment validity is
     # deliberately not required: missing/invalid prose still writes a complete
     # deterministic projection.  A writer exception or absent decision packet is

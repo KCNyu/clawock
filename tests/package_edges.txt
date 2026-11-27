@@ -10,6 +10,7 @@ automation -> decision
 automation -> instruments
 automation -> market_data
 automation -> model_registry
+automation -> prose_claims
 automation -> prose_validation
 automation -> providers
 automation -> publish
@@ -78,6 +79,7 @@ harness -> intraday_status
 harness -> market_data
 harness -> plugin_host
 harness -> portfolio
+harness -> prose_claims
 harness -> prose_validation
 harness -> providers
 harness -> publish

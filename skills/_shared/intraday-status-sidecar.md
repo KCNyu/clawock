@@ -19,6 +19,6 @@
   盘中微信仍正常投递。
 - `movers` 覆盖 context 里 `anomalies` / today_movers 的**每个**票；**杠杆 ETF 要点明"杠杆放大"、区分标的真涨还是纯 beta**。
 - **催化优先引 `context.mover_news`**：该票有 `signal=interrupt` 的条目就用它的标题要点 + `age_minutes` 写归因；`halts` 命中先写停牌；`no_recent_filing` / `index_fund_no_issuer` / `degraded` 各自照实说（分别是「无一手公告」「指数基金无发行人」「催化源未取到」）。
-- **只用 context.json 的真实数字**；不确定催化就写"无明确个股催化，纯 beta"，**不编造财报/新闻**。
+- **数字、价位和来源使用 Mode 7 第 2 步的字段引用**；不确定催化就写"无明确个股催化，纯 beta"，**不编造财报/新闻**。
 - SPCH 按无限子弹流处理；不在横幅或归因里重复一般止损/减仓提示。
 - postflight 校验后把本代草稿归一化到供 dashboard 读取的 per-date 文件。当前在盘市场的下一份有效 sidecar 更新横幅。
