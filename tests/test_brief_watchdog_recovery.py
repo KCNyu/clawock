@@ -203,3 +203,20 @@ def test_pending_0905_offhost_fallback_is_rechecked_at_0950(recovery, monkeypatc
     # One follow-up, not one per pass.
     watchdog.check_local_recovery(TODAY)
     assert len(calls) == 1 and len(messages) == 1
+
+
+def test_produced_brief_recognizes_both_kinds_of_backstop_receipt(recovery):
+    from clawock.harness._watchdog_common import brief_telegram_flag
+
+    root, _, messages, dispatches, _ = recovery
+    (root / 'memory' / f'{TODAY}-pre-open.md').write_text('# brief')
+    (root / 'memory' / f'{TODAY}-plan.json').write_text(json.dumps(
+        {'decisions': [{'action': 'hold_and_watch'}]}))
+    path = watchdog.delivery_receipts.receipt_path(root / 'memory/.tmp', 'brief', date=TODAY)
+    path.write_text(json.dumps({'sent_ok': False, 'tg_ok': False, 'wechat_backstop': {'ok': True}}))
+    brief_telegram_flag(path, TODAY).write_text('confirmed mirror')
+
+    watchdog.check_local_recovery(TODAY)
+
+    assert not dispatches
+    assert '微信送达：已确认；Telegram：已确认' in messages[0]

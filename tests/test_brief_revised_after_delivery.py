@@ -313,3 +313,31 @@ def test_failed_validation_banner_matches_the_unsent_result(desk, capsys, monkey
     assert code == 2 and desk.sends == []
     assert 'brief 未发布、未 commit' in result['wechat_prefix']
     assert '仍发布' not in result['wechat_prefix']
+
+
+@pytest.mark.parametrize('wechat_ok', [True, False])
+def test_watchdog_mirror_during_validation_skips_only_telegram(desk, capsys, monkeypatch, wechat_ok):
+    claim_send = postflight.claim_send
+
+    def claim_after_mirror(path):
+        # The watchdog delivered after postflight took its initial receipt
+        # snapshot but before it took the send lock.
+        (desk.tmp / f'watchdog-brief-{TODAY}.done').write_text('confirmed mirror')
+        return claim_send(path)
+
+    monkeypatch.setattr(postflight, 'claim_send', claim_after_mirror)
+    monkeypatch.setattr(postflight, 'send_per_policy',
+                        lambda *a, **kw: desk.sends.append(kw) or (wechat_ok, 'fixture', True))
+    code, result = desk.run(capsys)
+
+    assert code == 0
+    assert result['wechat_sent'] is wechat_ok
+    assert len(desk.sends) == 1 and desk.sends[0]['telegram_done'] is True
+    receipt = json.loads((desk.tmp / f'brief-sent-{TODAY}.json').read_text())
+    assert receipt['tg_ok'] is True and receipt['sent_ok'] is wechat_ok
+    index = json.loads((desk.versions / 'index.json').read_text())
+    if wechat_ok:
+        assert index['versions'][0]['delivery']['channels'] == {'wechat': True, 'telegram': False}
+    else:
+        assert 'delivery' not in index['versions'][0]
+        assert receipt['report_sha256'] is None

@@ -4,7 +4,7 @@ import re
 from decimal import Decimal, InvalidOperation
 
 from clawock.harness._harness_common import parse_holdings_rows
-from clawock.instruments import INSTRUMENTS, watch_level_owner
+from clawock.instruments import INSTRUMENTS, watch_level_amount_key, watch_level_owner
 
 SUBJECT_ALIASES = {
     '恒科': 'HSTECH', '恒生科技': 'HSTECH', '恒指': 'HSI', '恒生指数': 'HSI',
@@ -12,7 +12,7 @@ SUBJECT_ALIASES = {
 }
 # Watch-level keys are free text. Accept explicitly price-shaped names only.
 WATCH_PRICE = re.compile(
-    r'_(?:breakdown|reclaim(?:_ma\d+)?|ma\d+|(?:(?:own|prior|\d+d)_)*(?:low|high)'
+    r'_(?:breakdown|reclaim(?:_ma\d+)?|ma\d+|(?:(?:own|prior|day|\d+d)_)*(?:low|high)'
     r'|stop|support|resistance|trigger|price|(?:[a-z]+_)+(?:trigger|price))$'
     r'|^[^_]+_close$')
 TECHNICAL_LEVELS = ('close', 'prior_20d_high', 'prior_5d_low')
@@ -71,8 +71,9 @@ def trigger_prices(ctx):
         add(row.get('ticker'), row.get('condition_price'), 'plan_triggers.condition_price')
 
     for key, value in (ctx.get('watch_levels') or {}).items():
-        lowered = key.lower()
-        if not WATCH_PRICE.search(lowered) or '_proxy_' in lowered or '_underlying_' in lowered:
+        lowered = re.sub(r'_(?:hkd|usd)$', '', key.lower())
+        if (not WATCH_PRICE.search(lowered) or watch_level_amount_key(lowered)
+                or '_proxy_' in lowered or '_underlying_' in lowered):
             continue
         prefix = key.split('_', 1)[0]
         subject = watch_level_owner(key)

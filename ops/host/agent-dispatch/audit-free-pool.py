@@ -13,9 +13,14 @@ import math
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
+
+# Also loaded by file path by the selector and the audit tests.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from dispatch_json import read_json_object as read_report  # noqa: E402
 
 ZEN = "https://opencode.ai/zen/v1/models"
 PRICES = "https://models.dev/api.json"
@@ -176,14 +181,6 @@ def assess(pool, sources, retired, previous=(), previous_free=()):
         "added": sorted(set(names) - set(previous)) if names is not None else [],
         "removed": sorted(set(previous) - set(names)) if names is not None else [],
     }
-
-
-def read_report(path):
-    try:
-        value = json.loads(path.read_text())
-        return value if isinstance(value, dict) else {}
-    except (OSError, ValueError):
-        return {}
 
 
 def identity(paths):

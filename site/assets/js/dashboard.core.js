@@ -11,6 +11,15 @@
   const MINUS = "−";
   const fixed = (v, digits = 0) => v == null || !Number.isFinite(v) ? DASH : v.toFixed(digits).replace("-", MINUS);
 
+  // A trailing currency can qualify an amount as well as a share price.
+  function watchLevelAmountCurrency(key) {
+    const match = key.match(/^(.*)_(usd|hkd)$/);
+    if (!match || !(match[1].split("_").some(t => ["amount", "budget", "cash", "notional"].includes(t))
+        || /_(cumulative_add|rearm_reduction|swap_cap|swap_buy_cap|swap_max_remaining)$/.test(match[1])))
+      return null;
+    return match[2].toUpperCase();
+  }
+
   const fmtMoney = (v, ccy) => {
     if (v == null || !isFinite(v)) return DASH;
     const sym = ccy === "USD" ? "$" : ccy === "HKD" ? "HK$" : "";

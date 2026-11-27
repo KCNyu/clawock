@@ -233,6 +233,18 @@ def display_name_keys(symbol: str, *, registry: dict[str, dict] | None = None) -
     } - {""}
 
 
+_WATCH_LEVEL_AMOUNT_TOKENS = {'amount', 'budget', 'cash', 'notional'}
+_WATCH_LEVEL_AMOUNT_SUFFIXES = (
+    '_cumulative_add', '_rearm_reduction', '_swap_cap', '_swap_buy_cap', '_swap_max_remaining',
+)
+
+
+def watch_level_amount_key(key: str) -> bool:
+    """Identify explicit notional keys after stripping any currency suffix."""
+    return (bool(_WATCH_LEVEL_AMOUNT_TOKENS.intersection(key.split('_')))
+            or key.endswith(_WATCH_LEVEL_AMOUNT_SUFFIXES))
+
+
 def watch_level_owner(key: str) -> str | None:
     """The one registered ticker whose display name prefixes a watch-level key.
 

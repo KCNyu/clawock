@@ -337,6 +337,10 @@ def compute(closes):
 def classify(close, ma, vol):
     trend_on = ma is not None and close > ma
     vol_ok = vol is not None and vol < VOL_CAP
+    return _classify_hk(trend_on, vol_ok, ma=ma, vol=vol)
+
+
+def _classify_hk(trend_on, vol_ok, *, ma, vol):
     if trend_on and vol_ok:
         tier, mult, label = 'green', 1.0, '趋势ON·波动正常：杠杆敞口可维持上限'
     elif (not trend_on) and (not vol_ok):
@@ -427,6 +431,9 @@ def main(argv=None):
     out['hk'] = {'as_of': dates[-1], 'tier': tier, 'lev_cap_mult': mult, 'label': label,
                  'close': out['close'], 'ma': out['ma'], 'dist_ma_pct': dist,
                  'vol_annualized': out['vol_annualized'], 'trend_on': trend_on, 'vol_ok': vol_ok}
+    if ma is not None and vol is not None:
+        _, _, _, reclaim_cap_mult, _ = _classify_hk(True, vol_ok, ma=ma, vol=vol)
+        out['hk']['trend_reclaim_cap_mult'] = reclaim_cap_mult
     out['us'] = compute_us()
     # regime_history: per-market per-date regime for the alpha-by-regime dashboard bucket.
     # hk ← HSTECH (full history: 200DMA + momentum); us ← the longest US proxy

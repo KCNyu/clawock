@@ -29,10 +29,14 @@
       derisk:"减仓", trim:"减仓", trigger:"触发", resist:"压力", resistance:"压力",
       reclaim:"收复", reentry:"重回", floor:"底线", ma:"均线", low:"低点", high:"高点",
       prior:"前", close:"收盘", yield:"收益率", alert:"预警", date:"日期", next:"下次",
-      breakeven:"回本", chandelier:"吊灯" };
+      breakeven:"回本", chandelier:"吊灯", swap:"换仓", cap:"额度",
+      budget:"预算", cash:"现金", amount:"金额", notional:"名义金额" };
 
     function resolve(key, val) {
       const k = key.toLowerCase();
+      const amountCurrency = watchLevelAmountCurrency(k);
+      if (amountCurrency)
+        return { cur: null, ccy: amountCurrency, who: null, strip: [k.split("_")[0]] };
       // The unit belongs to the key even when its subject is an index.
       let index = null;
       if (k.includes("hstech")) index = { cur: safe(idx,"HSTECH","price"), who:"恒科", strip:["hstech"] };

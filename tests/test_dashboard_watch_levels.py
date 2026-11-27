@@ -44,13 +44,16 @@ def _watch_rows(bundle, levels, holdings=()):
     source = (ROOT / "site" / "assets" / "js" / bundle).read_text(encoding="utf-8")
     fn = re.search(r"^  function computeWatchRows\(\) \{.*?^  \}$", source,
                    re.MULTILINE | re.DOTALL).group(0)
+    core = (ROOT / "site/assets/js/dashboard.core.js").read_text(encoding="utf-8")
+    amount_fn = re.search(r"^  function watchLevelAmountCurrency\(key\) \{.*?^  \}$", core,
+                          re.MULTILINE | re.DOTALL).group(0)
     data = {"recent_plans": [{"date": "2026-09-17", "plan": {"watch_levels": levels}}],
             "totals": TOTALS, "indices": {key: {"price": 3758} for key in ("HSTECH", "HSI", "SPX", "NDX")}, "watch_holdings": list(holdings)}
     script = (
         "const DATA = " + json.dumps(data) + ";\n"
         "const safe = (o, ...ks) => ks.reduce((v, k) => v == null ? undefined : v[k], o);\n"
         "const flatHoldings = () => DATA.watch_holdings;\n"
-        + fn + "\nprocess.stdout.write(JSON.stringify(computeWatchRows().rows));\n"
+        + amount_fn + "\n" + fn + "\nprocess.stdout.write(JSON.stringify(computeWatchRows().rows));\n"
     )
     out = subprocess.run([shutil.which("node"), "-e", script], check=True,
                          capture_output=True, text=True).stdout
@@ -207,3 +210,12 @@ def test_index_percent_threshold_never_uses_index_price(bundle, index):
     assert (derisk['isPct'], derisk['cur'], derisk['dist']) == (True, None, None)
     price = next(r for r in rows if r['val'] == 3758)
     assert (price['isPct'], price['cur'], price['dist']) == (False, 3758, 0)
+
+
+@pytest.mark.parametrize('bundle', BUNDLES)
+def test_swap_cap_uses_currency_without_a_quote_comparison(bundle):
+    rklb = {'ticker': 'RKLB', 'region': 'us', 'current_price': 43.89}
+    rows = _watch_rows(bundle, {'rklb_swap_cap_usd': 182.7, 'rklb_20d_low_usd': 43}, [rklb])
+    amount, price = rows['RKLB/182.7'], rows['RKLB/43']
+    assert (amount['label'], amount['ccy'], amount['cur'], amount['dist']) == ('换仓 额度', 'USD', None, None)
+    assert price['cur'] == 43.89 and price['dist'] is not None

@@ -244,3 +244,26 @@ def test_a_thesis_only_ever_subtracts(monkeypatch):
     assert (unknown_gate, intact_gate, broken_gate) == (
         "exploration_only", "intact", "blocked")
     assert broken == 0, "a broken story is the one case that must cut the tranche"
+
+
+@pytest.mark.parametrize(('source_currency', 'target_leg', 'rate', 'shares', 'blocked'), [
+    ('HKD', 'US', 7.8374, 2, False),
+    ('HKD', 'US', 7.8374, 3, True),
+    ('HKD', 'US', 7.8374, 20, True),
+    ('HKD', 'US', None, 2, True),
+    ('HKD', 'US', 0, 2, True),
+    ('USD', 'HK', 7.8374, 160, False),
+    ('USD', 'HK', 7.8374, 161, True),
+])
+def test_swap_amount_uses_packet_fx_not_authored_fx(source_currency, target_leg, rate, shares, blocked):
+    inputs = _swap_packet(max_value=2278, lot=1, price=111.14)
+    target = inputs['tickers']['03033']
+    target['leg'] = target_leg
+    mandate = target['constraints']['swap_mandate']
+    mandate['currency'] = mandate['all_mandates'][0]['currency'] = source_currency
+    inputs['portfolio'] = {'book_totals': {'fx_used': rate}}
+    plan = _legs(shares=shares, price=111.14)
+    plan['fx_rate_usdhkd'] = 1
+    issues = packet.validate_plan_constraints(plan, inputs)
+    assert bool(issues) is blocked
+    assert all('max_value' in issue for issue in issues)

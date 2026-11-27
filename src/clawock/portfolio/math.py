@@ -225,6 +225,19 @@ def holding_session(h, snapshot_date, market=None):
 
 
 
+def session_day_total(changes):
+    """Sum (session, measured amount) pairs for the newest represented session.
+
+    Even an unmeasurable row can identify the new session. Legacy undated
+    rows can still be totaled when the whole book has no dated observation.
+    Return the total, selected session and number of measured rows.
+    """
+    rows = list(changes)
+    session = max((day for day, _ in rows if day), default=None)
+    amounts = [amount for day, amount in rows if day == session and amount is not None]
+    return sum(amounts), session, len(amounts)
+
+
 def session_date(market, day):
     """The trading session a fill belongs to, given the date it was recorded.
 

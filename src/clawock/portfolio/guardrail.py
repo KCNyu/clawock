@@ -158,6 +158,7 @@ def trim_projection(*, shares, value, total, price, lot_size=1, target_pct=35,
     remaining = (shares - sold) * price
     return {'shares': sold, 'value': round(sold * price, 2), 'price': price,
             'target_pct': target_pct, 'shares_to_review_line': trim,
+            'remaining_shares_at_review_line': shares - trim,
             'post_trim_weight_pct': round(remaining / (other + remaining) * 100, 2)
             if other + remaining else None}
 
@@ -222,8 +223,8 @@ _ABOVE_REVIEW_LINE = re.compile(
     r'仍(?:然)?\s*(?:略微|略|稍|明显)?\s*(?:高于|超过)\s*'
     r'(?:(\d+(?:\.\d+)?)\s*[%％]\s*(?:的\s*)?)?(?:单名)?复核线')
 _BOOK_MARK_SCENARIO = re.compile(
-    r'按\s*(?:(?:当前价|现价)\s*(?=算)|(?:当前价|现价)?\s*(\d+(?:\.\d+)?)'
-    r'\s*(?:港元|美元|HKD|USD))\s*算', re.I)
+    r'按\s*(?:(?:当前价|现价|账面价)\s*(?=(?:计)?算)|(?:当前价|现价|账面价)?\s*(\d+(?:\.\d+)?)'
+    r'\s*(?:港元|美元|HKD|USD))\s*(?:计)?算', re.I)
 
 
 def trim_claim_projection(text, projection, book_projection=None):
@@ -236,6 +237,12 @@ def trim_claim_projection(text, projection, book_projection=None):
     if price and book.get('price') != float(price):
         return {}
     return book
+
+
+_REVIEW_LINE_SIZE = re.compile(
+    r'复核线(?:数量|股数)\s*(?:是|为|[:：])?\s*(\d+(?:\.\d+)?)\s*股'
+    r'(?:\s*[，,、]\s*(?:也就是|即|也即)?\s*'
+    r'(减到|减至|剩下?|减(?:仓|持|掉)?|卖(?:出|掉)?)\s*(\d+(?:\.\d+)?)\s*股)?')
 
 
 def trim_claim_warnings(text, projection, book_projection=None):
@@ -279,6 +286,24 @@ def trim_claim_warnings(text, projection, book_projection=None):
         need = scenario.get('shares_to_review_line')
         if need is None or not re.search(r'复核线|支配度|集中度|占比', sentence):
             continue
+        for claim in _REVIEW_LINE_SIZE.finditer(sentence):
+            prefix = re.split(r'[，,]', sentence[:claim.start()])[-1]
+            if re.search(r'不能|无法|并非|不是|是否', prefix):
+                continue
+            size, verb, amount = claim.groups()
+            if float(size) != need:
+                warnings.append(
+                    f'作者称复核线数量为 {size} 股，当前账本联立解需卖 {need:g} 股；请复核')
+            if verb is None:
+                continue
+            if verb in ('减到', '减至', '剩', '剩下'):
+                remaining = scenario.get('remaining_shares_at_review_line')
+                if remaining is not None and float(amount) != remaining:
+                    warnings.append(
+                        f'作者称到复核线应剩 {amount} 股，当前账本联立解应剩 {remaining:g} 股；请复核')
+            elif float(amount) != need:
+                warnings.append(
+                    f'作者称到复核线需卖 {amount} 股，当前账本联立解需卖 {need:g} 股；请复核')
         for match in re.finditer(r'(\d+(?:\.\d+)?)\s*股\s*(?:才够|就够|足够)', sentence):
             prefix = re.split(r'[，,；;]', sentence[:match.start()])[-1]
             if re.search(r'不能|无法|未能|不再声称|并非|不是', prefix):

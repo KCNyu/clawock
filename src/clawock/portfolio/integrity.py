@@ -35,7 +35,7 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
                  JSON 数字（面板成交轨迹与 clawock realized 按原值算术）  ERROR
   PNL_LEG        每只 pnl_abs == shares×(current − cost)                 WARN
   TODAY_LEG      每只 today_change == 按批当日盈亏（旧股按前收、本 session 买入按成交价） ERROR
-  TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
+  TODAY_TOTAL    today_total_change == Σ(最近场次活跃持仓 today_change)          WARN
   CASH_RECON     cash == cash_reconciled基线 + Σ(此后trades现金流) + 存取款 ERROR
                  → 加仓记进仓位漏扣现金 → 双计（修复命令：clawock cash）
   PRICE_RANGE    current_price ∈ [day_low, day_high]                     WARN
@@ -123,6 +123,7 @@ from clawock.portfolio.math import (
     derive_cash,
     day_pnl_basis,
     holding_session,
+    session_day_total,
     session_change_pct,
     ledger_date as _ledger_date,
     ledger_rows as _ledger_rows,
@@ -789,12 +790,16 @@ def check(portfolio_path=PORTFOLIO, *, config_path=None, document=None):
                 add('PNL_PCT', 'WARN',
                     f'total_pnl_percent={tpct:.2f} ≠ total_pnl/total_cost={want_pct:.2f}', region)
 
-        # TODAY_TOTAL：today_total_change == Σ(活跃持仓 today_change)
+        # TODAY_TOTAL uses the same session scope as refresh and reconcile.
         ttc = _num(port.get('today_total_change'))
-        sum_tc = sum(_num(h.get('today_change')) or 0 for h in active)
+        sum_tc, _, _ = session_day_total(
+            (holding_session(h, data.get('last_updated'), region),
+             None if h.get('quote_stale_asof') else _num(h.get('today_change')))
+            for h in active
+        )
         if ttc is not None and abs(ttc - sum_tc) > TCV_TOL:
             add('TODAY_TOTAL', 'WARN',
-                f'today_total_change={ttc:.2f} ≠ Σ活跃持仓 today_change={sum_tc:.2f} '
+                f'today_total_change={ttc:.2f} ≠ Σ活跃持仓 today_change（最近场次）={sum_tc:.2f} '
                 f'(差 {ttc - sum_tc:+.2f})', region)
 
         # REALIZED_SUM ---------------------------------------------------

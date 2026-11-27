@@ -680,6 +680,7 @@ def test_us_asof_accepts_one_session_and_rejects_mixed_sessions(run_check):
 
     mixed = copy.deepcopy(same)
     _port(mixed)["holdings"][1]["day_session_date"] = "2026-07-16"
+    _port(mixed)["today_total_change"] = _port(mixed)["holdings"][0]["today_change"]
     # Isolate US_ASOF from per-name STALENESS: this test is about mixed vintages.
     report = run_check(mixed, last_session=None)
     _assert_only(report, "US_ASOF", "ERROR", "横跨多个 session 日期")
