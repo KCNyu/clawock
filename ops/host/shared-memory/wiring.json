@@ -8,7 +8,7 @@
     "claude": {"instructions": "~/.claude/CLAUDE.md", "skill": "~/.claude/skills/shared-memory"},
     "codex": {"instructions": "~/.codex/AGENTS.md", "skill": "~/.codex/skills/shared-memory"},
     "dsh": {"instructions": "~/.dsh/AGENTS.md", "skill": "~/.dsh/skills/shared-memory", "profiles": ["headless", "web"]},
-    "opencode": {"instructions": "~/.config/opencode/AGENTS.md", "skill": "~/.agents/skills/shared-memory"}
+    "opencode": {"instructions": "~/.config/opencode/AGENTS.md", "skill": "~/.config/opencode/skills/shared-memory"}
   },
   "contexts": {
     "coding": {"cwd": "~", "shared": true},

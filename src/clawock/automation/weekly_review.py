@@ -286,12 +286,13 @@ def aggregate_week(today=None):
                 if d >= start:
                     plans.append({'date': d_str, 'data': plan})
 
-    decisions = decision_v2.load_decisions()
+    week_start, week_end = start.isoformat(), today.isoformat()
+    decisions = [row for row in decision_v2.load_decisions()
+                 if (day := row.get('plan_date')) and day <= week_end]
     # Both edges, like plans and snapshots above: the ledger is not windowed,
     # so a lower bound alone lets every later episode into a past week's bundle
     # (#1276 — reviewing 2026-W30 carried 54 episodes from after it, 167K of
     # the 200K prompt budget, which pushed decision_metrics out of the payload).
-    week_start, week_end = start.isoformat(), today.isoformat()
     decision_episodes = [r for r in decision_v2.episode_representatives(decisions, 't1')
                          if week_start <= r.get('plan_date', '') <= week_end]
 
@@ -357,7 +358,8 @@ def aggregate_week(today=None):
         'bundle_evidence': bundle_evidence,
         'plans': plans,
         'decision_episodes': decision_episodes,
-        'decision_metrics': decision_v2.compute_metrics(decisions),
+        'decision_metrics': decision_v2.compute_metrics(
+            decisions, cutoff=(today - timedelta(days=30)).isoformat()),
         'snapshots': snapshots[-7:],
         'current_risk': risk,
         'input_warnings': input_errors,
@@ -591,8 +593,8 @@ def backfill_note(as_of, week_id, today=None):
     if as_of is None or as_of >= today:
         return ''
     return (f'> 补跑于 {today.isoformat()}：{week_id} 的排程运行没有产出。'
-            f'计划、决策和快照取的是截至 {as_of.isoformat()} 的那一周，'
-            '风险数字是补跑当天的 risk.json。\n\n')
+            f'计划、决策和快照按截至 {as_of.isoformat()} 的日期取样，'
+            '决策兑现使用补跑时已结算的记录，风险数字来自补跑当天的 risk.json。\n\n')
 
 
 def main(argv=None):

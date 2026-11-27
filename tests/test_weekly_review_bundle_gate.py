@@ -44,7 +44,7 @@ def _stub_decisions(monkeypatch):
         lambda _decisions, _horizon: [])
     monkeypatch.setattr(
         weekly.decision_v2, 'compute_metrics',
-        lambda _decisions: {'total': 0})
+        lambda _decisions, **_kwargs: {'total': 0})
 
 
 def test_real_committed_weekly_bundle_passes():
@@ -218,12 +218,15 @@ def test_the_episode_window_is_closed_on_both_edges(tmp_path, monkeypatch):
         {'plan_date': '2026-07-25', 'ticker': 'AFTER'},
         {'plan_date': '2026-09-03', 'ticker': 'MUCH_LATER'},
     ]
-    monkeypatch.setattr(weekly.decision_v2, 'load_decisions', lambda: [])
+    monkeypatch.setattr(weekly.decision_v2, 'load_decisions', lambda: episodes)
     monkeypatch.setattr(
         weekly.decision_v2, 'episode_representatives',
         lambda _decisions, _horizon: episodes)
-    monkeypatch.setattr(
-        weekly.decision_v2, 'compute_metrics', lambda _decisions: {'total': 0})
+    monkeypatch.setattr(weekly.decision_v2, 'compute_metrics',
+                        lambda decisions, *, cutoff: {
+                            'tickers': [row['ticker'] for row in decisions],
+                            'cutoff': cutoff,
+                        })
     _write_json(tmp_path / 'memory/2026-07-24-plan.json', _plan('2026-07-24'))
     _write_json(tmp_path / 'assets/data/risk.json', {'combined': {'beta': 1.2}})
 
@@ -232,6 +235,10 @@ def test_the_episode_window_is_closed_on_both_edges(tmp_path, monkeypatch):
     assert [e['ticker'] for e in bundle['decision_episodes']] == [
         'START', 'INSIDE', 'END']
     assert bundle['bundle_evidence']['decision_episodes'] == 3
+    assert bundle['decision_metrics'] == {
+        'tickers': ['BEFORE', 'START', 'INSIDE', 'END'],
+        'cutoff': '2026-06-24',
+    }
 
 
 def test_the_review_reads_and_writes_the_workspace_not_the_cwd(tmp_path, monkeypatch):

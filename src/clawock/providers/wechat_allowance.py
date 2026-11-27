@@ -28,6 +28,8 @@ import math
 import time
 from pathlib import Path
 
+from clawock.safe_io import file_lock, safe_write_json
+
 #: Server-side, per user inbound (Tencent/openclaw-weixin#81).
 ALLOWANCE = 10
 #: The bot's chat reply to that inbound spends one.
@@ -109,14 +111,14 @@ def record(target, message, ok, *, ledger: Path, now=None) -> None:
     harness's business, not the delivery provider's (providers import no
     workspace layout).
     """
-    rows = _sends(ledger)
-    rows.append({"ts": now if now is not None else time.time(), "target": str(target),
-                 "ok": bool(ok), "chunks": chunks(message)})
+    entry = {"ts": now if now is not None else time.time(), "target": str(target),
+             "ok": bool(ok), "chunks": chunks(message)}
     path = Path(ledger)
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(rows[-_KEEP:], ensure_ascii=False), encoding="utf-8")
-        tmp.replace(path)
+        with file_lock(path):
+            rows = _sends(path)
+            rows.append(entry)
+            safe_write_json(path, rows[-_KEEP:])
     except OSError:
         pass

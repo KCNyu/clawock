@@ -112,6 +112,7 @@ portfolio -> instruments
 portfolio -> safe_io
 portfolio -> sessions
 portfolio -> workspace
+providers -> safe_io
 publish -> decision
 publish -> evaluation
 publish -> history_store

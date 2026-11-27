@@ -65,7 +65,15 @@ ops/host/install_shared_memory.sh --units    # + systemd timers (root)
 ```
 
 Then link each agent's user-level entry points to one guidance file and the skill
-(`wiring.json` lists the paths `doctor` expects), and register the hook in
+(`wiring.json` lists the paths `doctor` expects). For OpenCode, link its native
+skill directory to the canonical toolkit so `opencode api skill.list` can find it:
+
+```bash
+mkdir -p ~/.config/opencode/skills
+ln -s ~/.agents/skills/shared-memory ~/.config/opencode/skills/shared-memory
+```
+
+Register the hook in
 `~/.claude/settings.json`:
 
 ```json
