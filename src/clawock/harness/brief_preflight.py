@@ -2207,7 +2207,7 @@ def _collect(argv=None):
           + (f" — {opportunity['why_no_candidate']}" if opportunity['why_no_candidate'] else ''))
 
     context = {
-        prose_claims.FIELD: prose_claims.VERSION,
+        'prose_claims_version': prose_claims.VERSION,
         'generated_at':  datetime.now(trading_calendar.HKT).isoformat(),
         'date':          today,
         'fx':            fx,

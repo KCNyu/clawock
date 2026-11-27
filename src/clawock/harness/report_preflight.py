@@ -496,7 +496,7 @@ def _collect(argv=None):
         holdings = {}
 
     result = {
-        prose_claims.FIELD: prose_claims.VERSION,
+        'prose_claims_version': prose_claims.VERSION,
         'status':             'ok',
         'market':             args.market,
         'phase':              args.phase,

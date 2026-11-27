@@ -183,7 +183,7 @@ def collect(portfolio, log=print, legs=None):
                     'name': fetched_name or p['name'],
                     'rel': p['rel'],
                     'pct_1d': pdata.get('pct_1d'),
-                    'quote_source': pdata.get('source'),
+                    **({'quote_source': pdata['source']} if pdata.get('source') else {}),
                     'pct_5d': pdata.get('pct_5d'),
                 }
                 if fetched_name and not _names_agree(fetched_name, p['name']):
@@ -221,7 +221,7 @@ def collect(portfolio, log=print, legs=None):
                 'label': '同行业·自动',
                 'source': p.get('source'),
                 'pct_1d': pdata.get('pct_1d'),
-                'quote_source': pdata.get('source'),
+                **({'quote_source': pdata['source']} if pdata.get('source') else {}),
                 'pct_5d': pdata.get('pct_5d'),
             })
         auto_results.sort(
