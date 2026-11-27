@@ -429,6 +429,16 @@ def test_named_position_keeps_a_price_basis_stated_before_its_name():
     assert not _concentration_claim_issues('按账面价算，00100 卖 40 股后占比降至 38.63%。', ctx)
 
 
+def test_named_numeric_price_in_a_review_scenario_uses_that_price(tmp_path):
+    ctx, plan = scenario()
+    row = plan['decisions'][0]
+    row['rationale'] = '股数按今天 171.5 港元的复核线情景重算为 40 股，卖完这一格回到港股腿 38.63%。'
+    assert not brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    row['rationale'] = row['rationale'].replace('38.63', '39.53')
+    assert brief_postflight.categorize(
+        brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)) == 'fail'
+
+
 def test_two_decisions_for_one_ticker_each_use_their_own_sale_size(tmp_path):
     ctx, plan = scenario()
     first = plan['decisions'][0]

@@ -46,10 +46,12 @@ _GOAL = re.compile(
     rf'[^，,。；;%％股]{{0,8}}(?:{_NUMBER}\s*[%％]\s*(?:的\s*)?)?(?:单名)?复核线'
     r'|复核线(?:之内|内|以下|下方)')
 _MARKER = r'(?:当前价|现价|账面价|简报时现价|(?:计划)?触发价)'
+_CURRENCY = r'(?:港元|美元|HKD|USD)'
 _PRICE_BASIS = re.compile(
     rf'按\s*(?:(?P<label>{_MARKER})\s*(?:(?P<label_price>{_NUMBER})\s*'
-    rf'(?:港元|美元|HKD|USD)?)?\s*(?:计)?算'
-    rf'|(?P<price>{_NUMBER})\s*(?:港元|美元|HKD|USD)\s*(?:计)?算)', re.I)
+    rf'{_CURRENCY}?)?\s*(?:计)?算'
+    rf'|(?:今天|今日)?\s*(?P<price>{_NUMBER})\s*{_CURRENCY}'
+    r'\s*(?:的\s*(?:复核线)?情景\s*)?(?:重|计)?算)', re.I)
 _REVIEW_LABEL = re.compile(r'复核线(?:数量|股数|尺寸)\s*(?:是|为|[:：])?\s*$')
 _REMAINDER = re.compile(r'(?:[减砍降压](?:仓)?[到至]|(?:只)?剩(?:下|余)?|余(?:下|量)?|留(?:下|存)?)'
                         r'\s*(?:为|是|[:：]|约)?\s*$')
@@ -174,7 +176,7 @@ def _scenarios(text, projection, book_projection):
         for mark in _PRICE_BASIS.finditer(sentence):
             if scenario is not None and sentence[start:mark.start()].strip(' ，,、'):
                 yield sentence[start:mark.start()], scenario
-            start = mark.end()
+            start = mark.start()
             scenario = _price_scenario(mark, projection, book_projection) or None
         if scenario is not None and start < len(sentence):
             yield sentence[start:], scenario
