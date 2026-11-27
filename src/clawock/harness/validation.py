@@ -11,6 +11,7 @@ untouched.
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 
 from clawock.prose_validation import (
     ADVISORY_MARK,
@@ -196,6 +197,7 @@ _SHARE_CLAIM = re.compile(rf'({_NUM})\s*({_MAG})?\s*(?:股|shares?(?![A-Za-z0-9_
 _CURRENCY_CLAIM = re.compile(
     rf'{_CURRENCY}\s*({_NUM})\s*({_MAG})?|({_NUM})\s*({_MAG})?\s*{_CURRENCY}'
 )
+_HAS_DIGIT = re.compile(r'\d')
 _SHARE_KEY = re.compile(r'(?:^|_)(?:shares?|quantity|qty|size_shares)(?:_|$)')
 _MONEY_KEY = re.compile(
     r'(?:^|_)(?:amount|value|cash|cost|pnl|profit|loss|principal|exposure|market_value)(?:_|$)'
@@ -307,52 +309,24 @@ def _as_number(raw, magnitude=None):
     return value * _MAGNITUDE.get(magnitude, 1)
 
 
-def _context_unit_numbers(ctx):
-    """Numbers with the market unit the context actually attaches to them.
+@lru_cache(maxsize=512)
+def _number_key_units(key):
+    return tuple(unit for unit, hint in _UNIT_KEY_HINTS.items() if hint.search(key))
 
-    A flat number set lets an unrelated ``2.3%`` authorize an invented
-    ``2.3x``. Strings carry their units explicitly; numeric JSON fields carry a
-    unit only when their key names it (``move_pct``, ``gap_pp``, ``zscore20``).
+
+@lru_cache(maxsize=512)
+def _quantity_key_units(key):
+    return tuple(unit for unit, hint in (('shares', _SHARE_KEY), ('currency', _MONEY_KEY))
+                 if hint.search(key))
+
+
+def _context_numbers(ctx):
+    """Index the explicitly attached units in one traversal of the context.
+
+    Quantity keys can also carry a numeric string. Percentages, multiples and
+    other units on string leaves require an explicit unit in the string.
     """
-    seen = {unit: set() for unit in _UNIT_CLAIMS}
-
-    def add(unit, value):
-        number = _as_number(value)
-        if number is not None:
-            seen[unit].add(round(abs(number), 4))
-
-    def walk(node, key=''):
-        if isinstance(node, dict):
-            for child_key, value in node.items():
-                walk(value, str(child_key).lower())
-        elif isinstance(node, (list, tuple)):
-            for value in node:
-                walk(value, key)
-        elif isinstance(node, bool):
-            return
-        elif isinstance(node, (int, float)):
-            if key in _RATIO_AS_PERCENT and 0 <= node <= 1:
-                add('percent', node * 100)
-            for unit, hint in _UNIT_KEY_HINTS.items():
-                if hint.search(key):
-                    add(unit, node)
-        elif isinstance(node, str):
-            for unit, pattern in _UNIT_CLAIMS.items():
-                for raw in pattern.findall(node):
-                    add(unit, raw)
-
-    walk(ctx)
-    return seen
-
-
-def _context_quantity_numbers(ctx):
-    """Provenance for share and book-money claims, with their units preserved.
-
-    Identifier/date strings and percent fields must not authorize a quantity.
-    New structured fields can opt in by a quantity-bearing key; rendered text
-    can opt in by an explicit unit or the analyzer's holdings-table column.
-    """
-    seen = {'shares': set(), 'currency': set()}
+    seen = {unit: set() for unit in (*_UNIT_CLAIMS, 'shares', 'currency')}
 
     def add(unit, raw, magnitude=None):
         value = _as_number(raw, magnitude)
@@ -369,15 +343,20 @@ def _context_quantity_numbers(ctx):
         elif isinstance(node, bool):
             return
         elif isinstance(node, (int, float)):
-            if _SHARE_KEY.search(key):
-                add('shares', node)
-            if _MONEY_KEY.search(key):
-                add('currency', node)
+            if key in _RATIO_AS_PERCENT and 0 <= node <= 1:
+                add('percent', node * 100)
+            for unit in _number_key_units(key):
+                add(unit, node)
+            for unit in _quantity_key_units(key):
+                add(unit, node)
         elif isinstance(node, str):
-            if _SHARE_KEY.search(key):
-                add('shares', node)
-            if _MONEY_KEY.search(key):
-                add('currency', node)
+            for unit in _quantity_key_units(key):
+                add(unit, node)
+            if not _HAS_DIGIT.search(node):
+                return
+            for unit, pattern in _UNIT_CLAIMS.items():
+                for raw in pattern.findall(node):
+                    add(unit, raw)
             for raw, magnitude in _SHARE_CLAIM.findall(node):
                 add('shares', raw, magnitude)
             for match in _CURRENCY_CLAIM.finditer(node):
@@ -554,102 +533,77 @@ def with_compute_receipts(ctx, workspace):
         for receipt in receipts]}
 
 
-def _concentration_claim_issues(text, ctx):
-    """Check named review percentages separately from the advisory number pool."""
-    from clawock.portfolio.guardrail import trim_claim_projection, trim_claim_warnings
-
-    reviews = (ctx.get('risk_guardrail') or {}).get('concentration_reviews') or []
-    projections = {r['ticker']: r for r in ctx.get('plan_trim_projections') or []}
-    book_projections = {r['ticker']: r for r in ctx.get('plan_book_trim_projections') or []}
-    # Match only names supplied by this generation's holdings. HK share-class
-    # suffixes are not normally used in prose (MINIMAX-W -> MiniMax).
-    aliases = {}
-    for row in reviews:
-        for name in (row.get('ticker'), row.get('name')):
-            if name:
-                aliases[name.casefold()] = row['ticker']
-                aliases[re.sub(r'-(?:SW|W|S|B)$', '', name, flags=re.I).casefold()] = row['ticker']
-    names = re.compile(r'(?<![0-9A-Za-z])(?:' + '|'.join(
-        re.escape(a) for a in sorted(aliases, key=len, reverse=True)) + r')(?![0-9A-Za-z])', re.I) if aliases else None
-    issues = []
-    for review in reviews:
-        ticker = review.get('ticker')
-        if not ticker or review.get('weight_pct') is None or review.get('review_pct') is None:
-            continue
-        projection = projections.get(ticker) or {}
-        book_projection = book_projections.get(ticker)
-        active = None
-        for paragraph in text.splitlines():
-            if paragraph.startswith('- **'):
-                heading = re.match(r'- \*\*([^*]+)\*\*', paragraph)
-                active = aliases.get(heading[1].casefold()) if heading else None
-            elif paragraph.startswith('#') or not paragraph.strip():
-                active = None
-            fragments = []
-            for sentence in re.split(r'[。；;！？!?]', paragraph):
-                mentions = list(names.finditer(sentence)) if names else []
-                if not mentions:
-                    if active == ticker:
-                        fragments.append(sentence)
-                    continue
-                for i, mention in enumerate(mentions):
-                    if aliases[mention[0].casefold()] == ticker:
-                        end = mentions[i + 1].start() if i + 1 < len(mentions) else len(sentence)
-                        fragments.append(sentence[mention.start():end])
-            for sentence in fragments:
-                scenario = trim_claim_projection(sentence, projection, book_projection)
-                expected = scenario.get('post_trim_weight_pct')
-                allowed = [review['weight_pct'], review['review_pct']]
-                if expected is not None:
-                    allowed.append(expected)
-                for warning in trim_claim_warnings(sentence, projection, book_projection):
-                    issues.append(f'仓位支配度不符: {ticker} {warning}')
-                concentration = re.search(r'支配度|集中度|占.{0,8}腿|仓位占比', sentence)
-                if not concentration:
-                    continue
-                for match in _UNIT_CLAIMS['percent'].finditer(sentence):
-                    prefix = sentence[:match.start()]
-                    direct = re.search(
-                        r'(?:支配度|集中度|仓位占比|占[^，,。；;%％]{0,8}腿)'
-                        r'[^，,。；;%％]{0,12}$', prefix)
-                    destination = concentration and re.search(
-                        r'[落降压回变剩][^，,。；;%％\d]{0,5}\s*(?:约)?\s*$',
-                        prefix)
-                    # A quote return, revenue growth, etc. in the same sentence
-                    # is not a concentration claim merely because it has a %.
-                    if not (direct or destination):
-                        continue
-                    raw = match.group(1)
-                    value = _as_number(raw)
-                    if not _states(allowed, value, _rounding_tolerance(raw)):
-                        issues.append(f'仓位支配度不符: {ticker} {raw}%，请引用减仓联立计算')
-                if (expected is not None and expected > review['review_pct']
-                        and re.search(r'[落降压回变剩][^。；;！？!?]{0,10}复核线(?:下方|以下)', sentence)
-                        and not re.search(r'不能|无法|未能|不再声称', sentence)):
-                    issues.append(f'仓位支配度不符: {ticker} 减仓后 {expected}% 仍高于复核线')
-    return list(dict.fromkeys(issues))
+def _unique_ticker_projections(rows):
+    """A portfolio-level claim has no decision identity to resolve different sells."""
+    by_ticker = {}
+    for row in rows:
+        ticker = row['ticker']
+        if by_ticker.setdefault(ticker, row) != row:
+            by_ticker[ticker] = None
+    return by_ticker
 
 
-def check_numeric_claims(text, ctx):
-    """Flag unit-bearing magnitudes the context never states, and impossible
-    percentage ranges.
+def _concentration_claim_issues(text, ctx, scoped_prose=()):
+    from clawock.portfolio.trim_claims import (
+        position_fragments, position_subjects, trim_claim_warnings,
+    )
 
-    Returns at most ONE issue on purpose. Every postflight turns a small number of
-    non-critical issues into `warn` (still delivered) and a larger number into
-    `fail` (not delivered): a chatty new heuristic that pushed a good report over
-    that line would convert a cosmetic problem into a missed report, which is the
-    strictly worse failure. One aggregated line keeps the gate advisory.
+    reviews = {row['ticker']: row for row in
+               (ctx.get('risk_guardrail') or {}).get('concentration_reviews') or []
+               if row.get('ticker')}
+    if not reviews:
+        return []
+    projections = _unique_ticker_projections(ctx.get('plan_trim_projections') or [])
+    book_projections = _unique_ticker_projections(ctx.get('plan_book_trim_projections') or [])
+    subjects = position_subjects(ctx, (ticker for ticker, _, _, _ in scoped_prose))
+    review_books = {
+        ticker: {**{key: value for key, value in row['trim_to_review_line'].items()
+                    if key != 'post_trim_weight_pct'}, 'price_basis': 'book_mark'}
+        for ticker, row in reviews.items() if row.get('trim_to_review_line')
+    }
+    issues = {}
+
+    def check(fragment, ticker, own_ticker, own_projection, own_book):
+        review = reviews.get(ticker)
+        if not review or not any(unit in fragment for unit in ('%', '％', '复核线')):
+            return
+        if own_ticker == ticker:
+            projection, book = own_projection, own_book
+        else:
+            projection, book = projections.get(ticker), book_projections.get(ticker)
+        # A review without a sell still supplies the minimum and remainder.
+        book = book or review_books.get(ticker)
+        if projection is None and (own_ticker == ticker or ticker not in projections):
+            projection = book
+        for warning in trim_claim_warnings(fragment, projection or {}, book, review=review):
+            issues[f'仓位支配度不符: {ticker} {warning}'] = None
+
+    for ticker, fragment in position_fragments(text, subjects):
+        check(fragment, ticker, None, None, None)
+    for own_ticker, prose, projection, book in scoped_prose:
+        for ticker, fragment in position_fragments(prose, subjects, own_ticker):
+            check(fragment, ticker, own_ticker, projection, book)
+    return list(issues)
+
+
+def check_numeric_claims(text, ctx, *, scoped_prose=()):
+    """Reconcile bound concentration claims and aggregate weak provenance clues.
+
+    Unknown unit-bearing values or reversed ranges generate at most one
+    advisory. Explicit concentration contradictions retain their own verdict.
     """
-    concentration_issues = _concentration_claim_issues(text, ctx or {})
-    known_by_unit = _context_unit_numbers(ctx)
-    known_quantities = _context_quantity_numbers(ctx)
-    shown_products = _shown_product_results(text, known_quantities)
+    concentration_issues = _concentration_claim_issues(text, ctx or {}, scoped_prose)
+    if scoped_prose:
+        text = '\n'.join([text, *(f"- **{ticker or ''}** ·\n{prose}"
+                                  for ticker, prose, _, _ in scoped_prose)])
+    known = _context_numbers(ctx)
+    shown_products = _shown_product_results(text, known)
     unverified = []
 
     def check(value, label, tolerance, unit, at=None):
         if at in shown_products['currency']:
             return
-        if _states(known_quantities[unit], value, tolerance):
+        if _states(known[unit], value, tolerance):
             return
         if label not in unverified:
             unverified.append(label)
@@ -675,7 +629,7 @@ def check_numeric_claims(text, ctx):
         # The unit set stays exact-per-unit on purpose: a rounding is a rounding
         # of the SAME quantity, so widening tolerance must not also let a percent
         # authorize a multiple. Only the width changes here.
-        if _states(known_by_unit[unit], _as_number(raw), _rounding_tolerance(raw)):
+        if _states(known[unit], _as_number(raw), _rounding_tolerance(raw)):
             return
         # An operand of a written-out product ("0.38% × 6200 × 现价") is not a
         # claimed multiple; the formula is what the SKILL asks prose to show.

@@ -40,7 +40,7 @@ def test_next_brief_renders_the_true_scenario_without_rewriting_history():
     ctx, plan = scenario()
     rendered = brief_render.risk_section(ctx, plan)
     assert '39.53%' in rendered and '仍高于 35% 复核线' in rendered
-    assert '达到该线需卖 60 股' in rendered
+    assert '达到该线需卖 60 股，卖后剩 80 股' in rendered
     assert '33%' not in rendered
 
 
@@ -366,3 +366,112 @@ def test_review_line_sale_and_remainder_are_checked_against_the_stated_basis(tmp
     assert not plan_trim_warnings(decision, trigger, mark)
     decision['rationale'] = '按账面价计算，复核线股数为 279 股，即卖 279 股。'
     assert not plan_trim_warnings(decision, trigger, mark)
+
+
+@pytest.mark.parametrize('text', [
+    '减 40 股便可回到复核线。',
+    '为回到 35% 的复核线，得削掉 40 股。',
+    '40 股即可压回复核线。',
+    '复核线要求卖 40 股。',
+    '复核线需卖 40 股（不是剩 80 股）。',
+    '复核线数量为 60 股（也就意味着卖 40 股）。',
+    '要达到复核线须卖 60 股（余 40 股）。',
+])
+def test_review_claims_bind_share_roles_to_the_line(tmp_path, monkeypatch, text):
+    from clawock.publish import dashboard
+
+    ctx, plan = scenario()
+    row = plan['decisions'][0]
+    row['rationale'] = text
+    issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    assert brief_postflight.categorize(issues) == 'fail'
+    monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda: [row])
+    [timeline] = dashboard.compute_plan_timeline([], context=ctx)
+    assert timeline['plan_warnings']
+
+
+@pytest.mark.parametrize('text', [
+    '现在仍高于复核线，本档先卖 40 股。',
+    '先卖 40 股也无法达到复核线。',
+    '先卖 40 股，这样仍不能达到复核线。',
+    '减 40 股到不了复核线。',
+    '卖 80 股便可压回复核线，届时剩 60 股。',
+    '卖 40 股后仍高于复核线，还需要卖 20 股才能达标。',
+])
+def test_review_line_context_does_not_turn_every_trade_into_the_minimum(text):
+    from clawock.portfolio.trim_claims import trim_claim_warnings
+
+    ctx, plan = scenario()
+    [projection] = plan_trim_projections(ctx, plan)
+    assert not trim_claim_warnings(text, projection)
+
+
+def test_price_basis_can_change_inside_one_sentence():
+    from clawock.portfolio.trim_claims import trim_claim_warnings
+
+    book = {'price_basis': 'book_mark', 'price': 6.43, 'shares_to_review_line': 279,
+            'remaining_shares_at_review_line': 41}
+    trigger = {'price_basis': 'plan_trigger', 'price': 6.8, 'shares_to_review_line': 281,
+               'remaining_shares_at_review_line': 39}
+    text = ('按账面价 6.43 美元算，需卖 279 股达到复核线（余 41 股），'
+            '按触发价 6.80 美元算，需卖 281 股达到复核线（余 39 股）。')
+    assert not trim_claim_warnings(text, trigger, book)
+    [warning] = trim_claim_warnings(text.replace('余 39 股', '余 41 股'), trigger, book)
+    assert '应剩 41 股' in warning and '应剩 39 股' in warning
+
+
+def test_named_position_keeps_a_price_basis_stated_before_its_name():
+    from clawock.harness.validation import _concentration_claim_issues
+
+    ctx, plan = scenario()
+    ctx['plan_trim_projections'] = plan_trim_projections(ctx, plan)
+    ctx['plan_book_trim_projections'] = plan_trim_projections(ctx, plan, at_book_mark=True)
+    assert not _concentration_claim_issues('按账面价算，00100 卖 40 股后占比降至 38.63%。', ctx)
+
+
+def test_named_numeric_price_in_a_review_scenario_uses_that_price(tmp_path):
+    ctx, plan = scenario()
+    row = plan['decisions'][0]
+    row['rationale'] = '股数按今天 171.5 港元的复核线情景重算为 40 股，卖完这一格回到港股腿 38.63%。'
+    assert not brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    row['rationale'] = row['rationale'].replace('38.63', '39.53')
+    assert brief_postflight.categorize(
+        brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)) == 'fail'
+
+
+def test_two_decisions_for_one_ticker_each_use_their_own_sale_size(tmp_path):
+    ctx, plan = scenario()
+    first = plan['decisions'][0]
+    second = {**first, 'size': {'shares': 60}}
+    first['rationale'] = '卖 40 股后占比落到 39.53%。'
+    second['rationale'] = '卖 60 股后占比落到 34.34%。'
+    plan['decisions'].append(second)
+    assert not brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    first['rationale'] = '卖 40 股后占比落到 34.34%。'
+    assert brief_postflight.categorize(
+        brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)) == 'fail'
+
+
+def test_review_size_has_book_authority_even_without_a_planned_sale(tmp_path):
+    ctx, _ = scenario()
+    plan = {'decisions': [{'ticker': '00100', 'action': 'hold',
+                          'rationale': '按账面价算，减 40 股即可回到复核线。'}]}
+    assert brief_postflight.categorize(
+        brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)) == 'fail'
+    plan['decisions'][0]['rationale'] = '按账面价算，减 60 股即可回到复核线。'
+    assert not brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+
+
+def test_named_unreviewed_position_does_not_inherit_another_positions_numbers(
+        tmp_path, monkeypatch):
+    from clawock.publish import dashboard
+
+    ctx, plan = scenario()
+    ctx['portfolio'] = {'portfolios': {'hk': {'holdings': [
+        {'ticker': '03033', 'name': '恒科 ETF'}]}}}
+    row = plan['decisions'][0]
+    row['rationale'] = '00100 仍高于复核线，恒科 ETF 卖 40 股便可回到复核线。'
+    assert not brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda: [row])
+    [timeline] = dashboard.compute_plan_timeline([], context=ctx)
+    assert not timeline['plan_warnings']

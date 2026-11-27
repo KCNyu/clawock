@@ -3158,12 +3158,16 @@ def compute_weight_confidence(portfolio, window_days=30):
 
 def compute_plan_timeline(plans, limit=15, context=None):
     """V2 timeline with current-book scenarios beside immutable authored prose."""
-    from clawock.portfolio.guardrail import plan_trim_projections, plan_trim_warnings
+    from clawock.portfolio.guardrail import plan_trim_projections
+    from clawock.portfolio.trim_claims import plan_trim_warnings, position_subjects
+
     try:
         out = []
         rows = sorted(decision_v2.load_decisions(),
                       key=lambda d: (d.get('created_at', ''), d.get('decision_id', '')), reverse=True)
-        for d in rows[:limit]:
+        rows = rows[:limit]
+        subjects = position_subjects(context or {}, (row.get('ticker') for row in rows))
+        for d in rows:
             projections = plan_trim_projections(context or {}, {'decisions': [d]})
             projection = projections[0] if projections else None
             book_projections = plan_trim_projections(context or {}, {'decisions': [d]}, at_book_mark=True)
@@ -3179,7 +3183,8 @@ def compute_plan_timeline(plans, limit=15, context=None):
                 'outcome': ev.get('outcome'), 'benefit_t1_pct': ev.get('benefit_t1_pct'),
                 'execution': ex.get('status', 'unknown'), 'override': d.get('override'),
                 'driven_by': d.get('driven_by'), 'trim_projection': projection,
-                'plan_warnings': plan_trim_warnings(d, projection, book_projection) if projection else [],
+                'plan_warnings': plan_trim_warnings(
+                    d, projection, book_projection, subjects=subjects) if projection else [],
             })
         return out
     except Exception as e:
