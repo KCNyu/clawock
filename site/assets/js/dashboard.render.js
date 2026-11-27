@@ -30,10 +30,14 @@
       derisk:"减仓", trim:"减仓", trigger:"触发", resist:"压力", resistance:"压力",
       reclaim:"收复", reentry:"重回", floor:"底线", ma:"均线", low:"低点", high:"高点",
       prior:"前", close:"收盘", yield:"收益率", alert:"预警", date:"日期", next:"下次",
-      breakeven:"回本", chandelier:"吊灯" };
+      breakeven:"回本", chandelier:"吊灯", swap:"换仓", cap:"额度",
+      budget:"预算", cash:"现金", amount:"金额", notional:"名义金额" };
 
     function resolve(key, val) {
       const k = key.toLowerCase();
+      const amountCurrency = watchLevelAmountCurrency(k);
+      if (amountCurrency)
+        return { cur: null, ccy: amountCurrency, who: null, strip: [k.split("_")[0]] };
       // The unit belongs to the key even when its subject is an index.
       let index = null;
       if (k.includes("hstech")) index = { cur: safe(idx,"HSTECH","price"), who:"恒科", strip:["hstech"] };
@@ -2104,11 +2108,15 @@
     const reclaim = (close, ma) => (close && ma) ? (ma / close - 1) * 100 : null;
     const trigEl = document.getElementById('lev-regime-trigger');
     const hkRe = reclaim(hk.close, hk.ma);
-    if (hk.ma == null) { trigEl.innerHTML = ''; }
+    if (hkRe == null) { trigEl.innerHTML = ''; }
     else if (hk.trend_on) {
-      trigEl.innerHTML = `<span class="neutral">HK 触发线 200线 ${Math.round(hk.ma)} · 已在线上 +${fixed(-hkRe)}% 缓冲（杠杆解锁中）</span>`;
+      trigEl.innerHTML = `<span class="neutral">HK 触发线 200线 ${Math.round(hk.ma)} · 已在线上 +${fixed(-hkRe)}% 缓冲</span>`;
     } else {
-      trigEl.innerHTML = `<span class="warn-text">HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${fixed(hkRe)}%）→ 杠杆上限放回 50%</span>`;
+      const baseCap = safe(DATA, "risk_guardrail", "caps", "lev_etf_leg_pct");
+      const reclaimMult = hk.trend_reclaim_cap_mult;
+      const capText = Number.isFinite(baseCap) && Number.isFinite(reclaimMult)
+        ? ` · 按当前波动，杠杆上限 ${fixed(baseCap * reclaimMult)}%` : "";
+      trigEl.innerHTML = `<span class="warn-text">HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${fixed(hkRe)}%）${capText}</span>`;
     }
     // US per-name rows
     const STATE = { cut: ['red', '砍杠杆'], watch: ['warn-text', '观察'], ok: ['neutral', '趋势ON'] };

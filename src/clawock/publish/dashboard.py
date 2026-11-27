@@ -1306,6 +1306,122 @@ def _bar_close_index(workspace=None, tickers=None):
     return index
 
 
+def _trace_decision_index(ws):
+    # Decision ledger by ticker+date (last row wins on same-key collisions).
+    decisions = decision_v2.load_decisions(ws / 'memory' / 'decisions.jsonl')
+    dec_by_key = {}
+    for e in decisions:
+        tk = e.get('ticker') or (e.get('subject') or {}).get('ticker')
+        dt = e.get('plan_date') or (e.get('decided_at') or '')[:10]
+        if isinstance(tk, str) and isinstance(dt, str) and dt:
+            dec_by_key[tk + ':' + dt] = e
+    return dec_by_key
+
+
+def _trace_held_pnl(pf_doc):
+    # Current-position P&L lookup for still-held tickers.
+    held_pnl = {}
+    for book in (pf_doc.get('portfolios') or {}).values():
+        if not isinstance(book, dict):
+            continue
+        for h in (book.get('holdings') or []):
+            if not isinstance(h, dict):
+                continue
+            if (_share_number(h.get('shares') or h.get('quantity')) or 0) > 0 and h.get('pnl_percent') is not None:
+                held_pnl[h.get('ticker')] = h.get('pnl_percent')
+    return held_pnl
+
+
+def _trace_t1(prices, t):
+    # T+1 verdict. `tone` ships with the verdict so the rendered
+    # chip cannot colour a move the words call 持平 (#739).
+    fc = None if t.get('reconstructed') else _future_close(prices, t['ticker'], t['date'], 1)
+    if fc and t.get('price'):
+        delta = round((fc[1] - t['price']) / t['price'] * 100, 2)
+        kind = _t1_verdict_kind(t['action'], delta)
+        return {
+            'date': fc[0],
+            'price': round(fc[1], 2),
+            'delta': delta,
+            # The code first: the plugin localises off `verdictKind`
+            # and falls back to `verdict` only for a host too old to
+            # send one (#1736).
+            'verdictKind': kind,
+            'verdict': T1_VERDICTS[kind][0],
+            'tone': T1_VERDICTS[kind][1],
+        }
+    return None
+
+
+def _nearest_trace_decision(dec_by_key, ticker, fill_date):
+    # Soft-pair the decision ledger (±3 calendar days).
+    base = _day_num(fill_date)
+    best = None
+    best_diff = 99
+    prefix = (ticker or '') + ':'
+    for key, e in dec_by_key.items():
+        if not key.startswith(prefix):
+            continue
+        plan_day = _day_num(key[len(prefix):])
+        if plan_day is None or base is None:
+            continue
+        diff = abs(plan_day - base)
+        if diff <= 3 and diff < best_diff:
+            best = e
+            best_diff = diff
+    return best
+
+
+def _trace_decision_payload(best, fill_action):
+    mind = best.get('mind') or {}
+    emotion = best.get('emotion') or {}
+    # Two writers, one card. `mind` is the hand-recorded
+    # decision-mind record (`clawock record`) and carries prose;
+    # `debate` is what the 08:00 brief writes on its own
+    # decisions (#1117). This block read only the first, so the
+    # card's own fallback — `why = rationale || bull` — and its
+    # 「当时情绪」 line could not fire on a model-authored row:
+    # measured 2026-09-08, 1 of the ledger's 809 rows has
+    # `mind`, 68 have `debate`, and all 40 published traces
+    # carried neither bull nor bear. The hand-written record
+    # still wins where it exists — a person said it — and the
+    # debate is the fallback rather than nothing.
+    debate = best.get('debate') or {}
+    size = best.get('size') or {}
+    evaluation = best.get('evaluation') or {}
+    return {
+        'planDate': best.get('plan_date') or (best.get('decided_at') or '')[:10],
+        'action': best.get('action'),
+        'confidence': best.get('confidence'),
+        'drivenBy': best.get('driven_by'),
+        'rationale': _readable_rationale(best.get('rationale')),
+        'thesis': mind.get('thesis'),
+        'invalidation': mind.get('invalidation') if isinstance(mind.get('invalidation'), list) else [],
+        'bull': (mind.get('bull') or {}).get('summary') or debate.get('bull'),
+        'bear': (mind.get('bear') or {}).get('summary') or debate.get('bear'),
+        'emotion': emotion.get('pressure'),
+        'emotionNote': emotion.get('note'),
+        'execution': (best.get('execution') or {}).get('status'),
+        'condition': (best.get('condition') or {}).get('description'),
+        # Coerced, because the renderer interpolates these into
+        # HTML without escaping (they are numbers by contract).
+        # A hand-written ledger row carrying a string here would
+        # otherwise reach the page verbatim. The plugin's reader
+        # runs them through Number() for the same reason.
+        'sizeShares': _as_number(size.get('shares')),
+        'sizePct': _as_number(size.get('pct')),
+        'plannedPrice': _as_number(
+            evaluation.get('execution_price') or best.get('simulated_entry_price')),
+        'source': best.get('source') or 'brief',
+        # How the plan's direction relates to the fill that
+        # actually happened. The ledger's own execution.status
+        # is a plan self-report and answers a different
+        # question, so it must not be rendered as if it graded
+        # this fill (#738).
+        'alignment': _plan_fill_alignment(best.get('action'), fill_action),
+    }
+
+
 def build_decision_traces(limit=40, workspace=None, *, portfolio=None):
     """The decision-trace view data: every real fill as a trace node with its
     soft-paired decision (±3 calendar days, same ticker) and T+1 close verdict.
@@ -1323,27 +1439,11 @@ def build_decision_traces(limit=40, workspace=None, *, portfolio=None):
     ws = workspace or WS_ROOT
     # Prices first (needed for T+1 verdicts). Canonical bars, never snapshots.
     prices = _bar_close_index(ws)
-    # Decision ledger by ticker+date (last row wins on same-key collisions).
-    decisions = decision_v2.load_decisions(ws / 'memory' / 'decisions.jsonl')
-    dec_by_key = {}
-    for e in decisions:
-        tk = e.get('ticker') or (e.get('subject') or {}).get('ticker')
-        dt = e.get('plan_date') or (e.get('decided_at') or '')[:10]
-        if isinstance(tk, str) and isinstance(dt, str) and dt:
-            dec_by_key[tk + ':' + dt] = e
+    dec_by_key = _trace_decision_index(ws)
     # Portfolio doc (single read, used for holdings/trades/positions).
     pf_doc = (portfolio if portfolio is not None
               else load_json(str(ws / 'portfolio.json')) or {})
-    # Current-position P&L lookup for still-held tickers.
-    held_pnl = {}
-    for book in (pf_doc.get('portfolios') or {}).values():
-        if not isinstance(book, dict):
-            continue
-        for h in (book.get('holdings') or []):
-            if not isinstance(h, dict):
-                continue
-            if (_share_number(h.get('shares') or h.get('quantity')) or 0) > 0 and h.get('pnl_percent') is not None:
-                held_pnl[h.get('ticker')] = h.get('pnl_percent')
+    held_pnl = _trace_held_pnl(pf_doc)
     # Flatten all trades with market/currency context.
     traces = []
     for leg in resolve_legs(pf_doc):
@@ -1382,86 +1482,10 @@ def build_decision_traces(limit=40, workspace=None, *, portfolio=None):
                 reconstructed = tr.get('reconstructed') is True
                 if reconstructed:
                     t['reconstructed'] = True
-                # T+1 verdict. `tone` ships with the verdict so the rendered
-                # chip cannot colour a move the words call 持平 (#739).
-                fc = None if reconstructed else _future_close(prices, ticker, t['date'], 1)
-                if fc and t.get('price'):
-                    delta = round((fc[1] - t['price']) / t['price'] * 100, 2)
-                    kind = _t1_verdict_kind(t['action'], delta)
-                    t['t1'] = {
-                        'date': fc[0],
-                        'price': round(fc[1], 2),
-                        'delta': delta,
-                        # The code first: the plugin localises off `verdictKind`
-                        # and falls back to `verdict` only for a host too old to
-                        # send one (#1736).
-                        'verdictKind': kind,
-                        'verdict': T1_VERDICTS[kind][0],
-                        'tone': T1_VERDICTS[kind][1],
-                    }
-                # Soft-pair the decision ledger (±3 calendar days).
-                base = _day_num(t['date'])
-                best = None
-                best_diff = 99
-                prefix = (ticker or '') + ':'
-                for key, e in dec_by_key.items():
-                    if not key.startswith(prefix):
-                        continue
-                    plan_day = _day_num(key[len(prefix):])
-                    if plan_day is None or base is None:
-                        continue
-                    diff = abs(plan_day - base)
-                    if diff <= 3 and diff < best_diff:
-                        best = e
-                        best_diff = diff
+                t['t1'] = _trace_t1(prices, t)
+                best = _nearest_trace_decision(dec_by_key, ticker, t['date'])
                 if best:
-                    mind = best.get('mind') or {}
-                    emotion = best.get('emotion') or {}
-                    # Two writers, one card. `mind` is the hand-recorded
-                    # decision-mind record (`clawock record`) and carries prose;
-                    # `debate` is what the 08:00 brief writes on its own
-                    # decisions (#1117). This block read only the first, so the
-                    # card's own fallback — `why = rationale || bull` — and its
-                    # 「当时情绪」 line could not fire on a model-authored row:
-                    # measured 2026-09-08, 1 of the ledger's 809 rows has
-                    # `mind`, 68 have `debate`, and all 40 published traces
-                    # carried neither bull nor bear. The hand-written record
-                    # still wins where it exists — a person said it — and the
-                    # debate is the fallback rather than nothing.
-                    debate = best.get('debate') or {}
-                    size = best.get('size') or {}
-                    evaluation = best.get('evaluation') or {}
-                    t['decision'] = {
-                        'planDate': best.get('plan_date') or (best.get('decided_at') or '')[:10],
-                        'action': best.get('action'),
-                        'confidence': best.get('confidence'),
-                        'drivenBy': best.get('driven_by'),
-                        'rationale': _readable_rationale(best.get('rationale')),
-                        'thesis': mind.get('thesis'),
-                        'invalidation': mind.get('invalidation') if isinstance(mind.get('invalidation'), list) else [],
-                        'bull': (mind.get('bull') or {}).get('summary') or debate.get('bull'),
-                        'bear': (mind.get('bear') or {}).get('summary') or debate.get('bear'),
-                        'emotion': emotion.get('pressure'),
-                        'emotionNote': emotion.get('note'),
-                        'execution': (best.get('execution') or {}).get('status'),
-                        'condition': (best.get('condition') or {}).get('description'),
-                        # Coerced, because the renderer interpolates these into
-                        # HTML without escaping (they are numbers by contract).
-                        # A hand-written ledger row carrying a string here would
-                        # otherwise reach the page verbatim. The plugin's reader
-                        # runs them through Number() for the same reason.
-                        'sizeShares': _as_number(size.get('shares')),
-                        'sizePct': _as_number(size.get('pct')),
-                        'plannedPrice': _as_number(
-                            evaluation.get('execution_price') or best.get('simulated_entry_price')),
-                        'source': best.get('source') or 'brief',
-                        # How the plan's direction relates to the fill that
-                        # actually happened. The ledger's own execution.status
-                        # is a plan self-report and answers a different
-                        # question, so it must not be rendered as if it graded
-                        # this fill (#738).
-                        'alignment': _plan_fill_alignment(best.get('action'), t['action']),
-                    }
+                    t['decision'] = _trace_decision_payload(best, action)
                 if ticker in held_pnl:
                     t['holdPnl'] = held_pnl[ticker]
                 traces.append(t)

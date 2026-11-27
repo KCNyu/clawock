@@ -7,8 +7,6 @@ Exits 1 on any critical failure; exits 2 on warning-only.
 
 Used by:
   • .githooks/pre-push        (blocks bad pushes from this clone)
-  • harness postflight        (calls before git commit/push)
-  • CI weekly-health.yml      (full check)
   • Manual: `python3 ops/system_check.py`
 """
 import functools

@@ -329,3 +329,16 @@ def test_own_and_proxy_prices_cannot_be_swapped_in_next_trigger():
     assert check_next_trigger('下一触发：SPCH 站上 180', ctx)
     assert check_next_trigger('下一触发：SPCX 站上 140', ctx)
     assert check_next_trigger('下一触发：SPCX 站上 151.36', ctx)
+
+
+def test_currency_suffix_can_qualify_a_price_but_not_a_cash_trigger():
+    from clawock.harness.intraday_postflight import check_next_trigger
+    from clawock.harness.intraday_trigger_prices import trigger_prices
+
+    ctx = {
+        'full_holdings': [{'ticker': '07709', 'price': 12.66}],
+        'watch_levels': {'07709_day_low_hkd': 11.26, '07709_cash_trigger_hkd': 10.5},
+    }
+    ctx['trigger_prices'] = trigger_prices(ctx)
+    assert check_next_trigger('下一触发：07709 跌破 11.26', ctx) == []
+    assert check_next_trigger('下一触发：07709 跌破 10.5', ctx)

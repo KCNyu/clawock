@@ -35,7 +35,7 @@ from clawock import sessions as trading_calendar
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
-from clawock.portfolio.math import active_holdings, number, day_pnl_basis, ledger_rows, quote_session_comparable
+from clawock.portfolio.math import active_holdings, number, day_pnl_basis, ledger_rows, quote_session_comparable, session_day_total, holding_session
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.safe_io import carried_value, to_finite_number
 from clawock.workspace import workspace_root
@@ -1310,8 +1310,11 @@ def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, ticker
                       for h in all_active_h)
     total_value = sum(carried_value(h) for h in all_active_h)
     total_pnl   = total_value - total_cost
-    today_chg   = sum((h.get('today_change') or 0) for h in all_active_h
-                      if not h.get('quote_stale_asof'))
+    today_chg, day, covered = session_day_total(
+        (holding_session(h, data.get('last_updated'), 'us'),
+         None if h.get('quote_stale_asof') else number(h.get('today_change')))
+        for h in all_active_h
+    )
 
     us['total_cost']          = round(total_cost, 2)
     us['total_current_value'] = round(total_value, 2)
@@ -1347,7 +1350,9 @@ def _us_finalize_region(data, us, *, now_et, et_str, hkt_str, all_active, ticker
     pnl_sign = '+' if total_pnl >= 0 else ''
     print(f"  Total value:    ${total_value:>10,.2f}  (cost: ${total_cost:,.2f})")
     print(f"  Total P&L:      {pnl_sign}${total_pnl:>9,.2f}  ({pnl_sign}{total_pnl/total_cost*100:.2f}%)" if total_cost else "")
-    print(f"  Today change:   ${today_chg:>+10,.2f}")
+    coverage = (f' ({day}, {covered}/{len(all_active_h)} holdings)'
+                if day and covered < len(all_active_h) else '')
+    print(f"  Today change:   ${today_chg:>+10,.2f}{coverage}")
     print(f"  Updated:        {', '.join(updated)}")
     if missing:
         print(f"  ⚠️  Failed:    {', '.join(missing)}")

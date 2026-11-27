@@ -186,3 +186,20 @@ def test_subset_refresh_preserves_unrequested_carried_value(value, expected, mon
         assert untouched['current_value'] == value
         assert region['total_current_value'] == expected + refreshed['current_value']
         assert region['total_pnl'] == region['total_current_value'] - 800
+
+
+def test_subset_refresh_excludes_prior_day_amount_even_after_reconcile(monkeypatch, tmp_path, capsys):
+    from clawock.portfolio.aggregates import recompute
+
+    case = copy.deepcopy(next(c for c in CASES if c['name'] == 'tickers_override-subset'))
+    holdings = case['portfolio']['portfolios']['us_stocks']['holdings']
+    holdings[0].update(day_session_date='2026-08-04', prev_close=35, today_change=50)
+    result = run_case(case, monkeypatch, tmp_path / 'portfolio.json', capsys)
+    assert '(2026-08-05, 1/2 holdings)' in result['stdout']
+    for key in ('returned', 'written'):
+        region = result[key]['portfolios']['us_stocks']
+        prior, refreshed, _ = region['holdings']
+        assert prior['today_change'] == 50
+        assert region['today_total_change'] == refreshed['today_change']
+        recompute(result[key])
+        assert region['today_total_change'] == refreshed['today_change']

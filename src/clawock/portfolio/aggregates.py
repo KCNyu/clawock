@@ -18,7 +18,7 @@ pure function of those and must never be edited by hand:
     total_cost          = Σ shares × cost_basis
     total_pnl           = total_current_value − total_cost
     total_pnl_percent   = total_pnl / total_cost × 100
-    today_total_change  = Σ today_change
+    today_total_change  = Σ today_change (latest represented session)
 
 This lets a caller reconcile a position edit without fetching prices again.
 Arithmetic primitives are shared with the integrity gate so derivation and
@@ -32,7 +32,7 @@ import json
 import sys
 from pathlib import Path
 
-from clawock.portfolio.math import active_holdings, carried_value, number, ledger_rows, day_pnl_basis, holding_session, trade_session_date
+from clawock.portfolio.math import active_holdings, carried_value, number, ledger_rows, day_pnl_basis, holding_session, session_day_total, trade_session_date
 from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
@@ -104,6 +104,7 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
         sh = number(h.get('shares'))
         cp = number(h.get('current_price'))
         cb = number(h.get('cost_basis'))
+        session = holding_session(h, last_updated, region)
         if sh is None:
             continue  # missing a required leaf → can't derive; leave untouched
         if cp is None:
@@ -115,6 +116,7 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
             if cb is not None:
                 costs.append(sh * cb)
             current_values.append(carried_value(h))
+            day_changes.append((session, None))
             # Without a quote neither daily leaf is measurable. The region
             # excludes this row too; retaining yesterday's pair breaks TODAY_TOTAL.
             for field in ('today_change', 'today_change_pct'):
@@ -149,7 +151,6 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
         # Retained HK closes and US placeholders cannot price old shares.
         pc = (None if h.get('quote_incomplete_prev_close')
               else number(h.get('prev_close')))
-        session = holding_session(h, last_updated, region)
         amount, base, old_shares = day_pnl_basis(h, session, market=region)
         # A quote without a prior close cannot value shares that predate
         # this session. It can still measure a row whose remaining shares
@@ -167,6 +168,7 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
         measurable = (not h.get('quote_stale_asof') and not unplaced_fill
                       and (pc is not None or (old_shares == 0 and base > 0)))
         if not measurable:
+            day_changes.append((session, None))
             for field in ('today_change', 'today_change_pct'):
                 if h.get(field) is not None:
                     diffs.setdefault(f'holdings.{field}', []).append(
@@ -178,7 +180,7 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
             fresh_lot = bool(session and any(t.get('action') == 'buy' and trade_session_date(region, t) == session
                                             for t in ledger_rows(h.get('trades'))))
             tc = _r(amount)
-            day_changes.append(tc)
+            day_changes.append((session, tc))
             if number(h.get('today_change')) != tc:
                 diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))
             if not dry_run:
@@ -204,7 +206,8 @@ def _recompute_active_holding_leaves(holdings, *, region, last_updated,
                     (h.get('ticker'), h.get('today_change_pct'), tc_pct))
                 if not dry_run:
                     h['today_change_pct'] = tc_pct
-    return sum(current_values), sum(costs), sum(day_changes)
+    today_total, _, _ = session_day_total(day_changes)
+    return sum(current_values), sum(costs), today_total
 
 
 def _recompute_region_totals(pf, sums, *, pct_nd, dry_run, diffs):

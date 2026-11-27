@@ -30,7 +30,7 @@ from clawock.decision import add_policy as add_policy_module
 from clawock.decision import receipts
 from clawock.decision import risk as risk_ledger
 from clawock.decision.actions import is_risk_swap_buy, positive_whole_shares
-from clawock.instruments import get as instrument_metadata, is_leveraged_holding
+from clawock.instruments import get as instrument_metadata, is_leveraged_holding, market_for_symbol
 from clawock.safe_io import safe_write_json, to_strict_finite_number
 from clawock.safe_io import carried_value
 from clawock.portfolio.math import day_pnl_basis, holding_session, quote_range_gap, session_change_pct
@@ -2501,7 +2501,7 @@ def _catalyst_evidence_findings(tag: str, decision: dict,
 
 
 def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
-                     decisions: list[dict]) -> list[str] | None:
+                     decisions: list[dict], fx_rate) -> list[str] | None:
     """Judge an add on a swap target against its mandate, or None if it is not one.
 
     `_constraints` opens `add_only_on_trigger` on a swap target without a
@@ -2515,7 +2515,7 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
         str(item.get("from_ticker"))
         for item in mandate.get("all_mandates") or [mandate]
     }
-    paired = bool(paired_swap_sells(decision, decisions, sources=sources))
+    paired = paired_swap_sells(decision, decisions, sources=sources)
     if not paired:
         if decision.get("technical_setup_id"):
             return None  # an ordinary setup add on this name; judged as one
@@ -2537,16 +2537,36 @@ def _swap_leg_issues(tag: str, decision: dict, row: dict, mandate: dict,
         # only when preflight fetched it. One share is not assumed to be a lot.
         issues.append(f"{tag}: board lot of unheld swap target is unknown; "
                       "the buy leg cannot be sized")
-    max_value = _number(mandate.get("max_value"), 2)
+    # A target can carry more than one source's mandate. Use the one whose
+    # sale is in this group, in the packet's existing risk-priority order.
+    paired_tickers = {str(sell.get("ticker")) for sell in paired}
+    bound = next(item for item in mandate.get("all_mandates") or [mandate]
+                 if str(item.get("from_ticker")) in paired_tickers)
+    max_value = _number(bound.get("max_value"), 2)
     price = (to_strict_finite_number((decision.get("condition") or {}).get("price"))
              or _number((row.get("facts") or {}).get("current_price"), 4))
-    if max_value is not None:
-        if not price:
-            issues.append(f"{tag}: swap buy leg has no price to hold to max_value")
-        elif shares * price > max_value:
-            issues.append(
-                f"{tag}: swap buy leg {shares:g} x {price:g} exceeds mandate "
-                f"max_value {max_value:g} {mandate.get('currency') or ''}".rstrip())
+    if max_value is None:
+        return issues
+    if price is None or price <= 0:
+        issues.append(f"{tag}: swap buy leg has no price to hold to max_value")
+        return issues
+    amount = shares * price
+    currency = bound.get("currency")
+    target_leg = row.get("leg") or market_for_symbol(decision["ticker"]).upper()
+    target_currency = {"HK": "HKD", "US": "USD"}.get(target_leg)
+    if currency and currency != target_currency:
+        rate = to_strict_finite_number(fx_rate)
+        pair = (target_currency, currency)
+        if pair not in {("USD", "HKD"), ("HKD", "USD")} or rate is None or rate <= 0:
+            issues.append(f"{tag}: swap buy leg cannot verify max_value across currencies "
+                          "without a matching currency and packet USDHKD rate")
+            return issues
+        amount = amount * rate if currency == "HKD" else amount / rate
+    if amount > max_value + 1e-9:
+        issues.append(
+            f"{tag}: swap buy leg {shares:g} x {price:g} ({amount:,.2f} "
+            f"{currency or target_currency or ''}) exceeds mandate "
+            f"max_value {max_value:g} {currency or ''}".rstrip())
     return issues
 
 
@@ -2773,7 +2793,7 @@ def _review_row(packet: dict, decision: dict) -> dict | None:
 
 
 def _review_authority(tag: str, decision: dict, row: dict,
-                      decisions: list[dict]) -> tuple[list[tuple], list[str] | None, list]:
+                      decisions: list[dict], fx_rate) -> tuple[list[tuple], list[str] | None, list]:
     """Whether the decision's action is open on its name.
 
     Returns the findings, the swap leg's issues (None unless the decision is
@@ -2783,7 +2803,7 @@ def _review_authority(tag: str, decision: dict, row: dict,
     action = decision.get("action")
     mandate = constraints.get("swap_mandate")
     swap_issues = (
-        _swap_leg_issues(tag, decision, row, mandate, decisions)
+        _swap_leg_issues(tag, decision, row, mandate, decisions, fx_rate)
         if action == "add_only_on_trigger" and mandate
         and (is_risk_swap_buy(decision) or row.get("held") is False
              or "add_only_on_trigger" in (constraints.get("closed_actions") or {}))
@@ -2862,7 +2882,8 @@ def _review_one_decision(index: int, decision: dict, packet: dict,
             index=index, ticker=ticker)], None
     constraints = row.get("constraints") or {}
     action = decision.get("action")
-    out, swap_issues, open_actions = _review_authority(tag, decision, row, decisions)
+    fx_rate = ((packet.get("portfolio") or {}).get("book_totals") or {}).get("fx_used")
+    out, swap_issues, open_actions = _review_authority(tag, decision, row, decisions, fx_rate)
     out += _review_evidence(tag, decision, row, swap_issues)
     shares = _number((decision.get("size") or {}).get("shares"), 0)
     max_sell = _number(constraints.get("max_sell_shares"), 0)

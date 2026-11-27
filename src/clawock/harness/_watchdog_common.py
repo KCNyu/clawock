@@ -1067,6 +1067,27 @@ def delivered_channels(marker_path, within_ms=None, slot=None):
     return wechat_ok, m.get('tg_ok') is True
 
 
+def brief_telegram_flag(marker_path, date):
+    """The brief watchdog's evidence of a successful Telegram mirror."""
+    return marker_path.with_name(f'watchdog-brief-{date}.done')
+
+
+def brief_delivered_channels(marker_path, date):
+    wechat, telegram = delivered_channels(marker_path)
+    return wechat, telegram or brief_telegram_flag(marker_path, date).exists()
+
+
+def brief_delivery_lock(marker_path, dry_run):
+    """Serialize brief sends and their receipts across postflight and watchdog."""
+    from contextlib import nullcontext
+    from clawock.safe_io import file_lock
+
+    if dry_run:
+        return nullcontext()
+    marker_path.parent.mkdir(parents=True, exist_ok=True)
+    return file_lock(marker_path)
+
+
 def already_delivered(marker_path, within_ms=None, slot=None):
     """Idempotency guard for a postflight's PRIMARY (WeChat) send — returns True if
     a prior run of this same slot already delivered it to WeChat, so the WeChat

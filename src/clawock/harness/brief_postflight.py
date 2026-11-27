@@ -661,10 +661,6 @@ WATCH_LEVEL_MAX_RATIO = 10.0
 _WATCH_LEVEL_NON_PRICE_TOKENS = {
     'pct', 'percent', 'usd', 'hkd', 'zscore', 'yield', 'book',
 }
-_WATCH_LEVEL_AMOUNT_TOKENS = {'amount', 'budget', 'cash', 'notional'}
-_WATCH_LEVEL_AMOUNT_SUFFIXES = (
-    '_cumulative_add', '_rearm_reduction', '_swap_cap', '_swap_buy_cap', '_swap_max_remaining',
-)
 
 
 def _price_scale_ratio(tickers, ticker, value):
@@ -726,10 +722,8 @@ def _watch_level_scale_issues(plan, decision_packet):
             # use swap caps and cumulative additions for position-level amounts.
             tokens.pop()
             level_key = '_'.join(tokens)
-            if (_WATCH_LEVEL_AMOUNT_TOKENS.intersection(tokens)
-                    or level_key.endswith(_WATCH_LEVEL_AMOUNT_SUFFIXES)):
-                continue
-        if _WATCH_LEVEL_NON_PRICE_TOKENS.intersection(tokens):
+        if (instrument_registry.watch_level_amount_key(level_key)
+                or _WATCH_LEVEL_NON_PRICE_TOKENS.intersection(tokens)):
             continue
         ticker = tokens[0].upper()
         if ticker not in tickers:
@@ -1053,6 +1047,7 @@ from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
     delivered_channels, slot_shipped,
     claim_send, log, send_per_policy, send_under_claim,
+    brief_delivered_channels, brief_delivery_lock,
 )
 from clawock.harness import brief_render  # noqa: E402
 
@@ -2049,29 +2044,27 @@ def main(argv=None):
     # in post-turn summary-gen — the card already went out. Skip re-send. See
     # already_delivered (2026-07-11 retry-storm dup fix). A prior run that landed
     # only Telegram still needs WeChat (2026-09-17), but counts for revision notices.
-    wechat_done, telegram_done = delivered_channels(brief_marker)
     revision = None
-    prior_receipt = delivery_receipts.read_receipt(brief_marker) or {}
-    after_delivery = wechat_done or telegram_done
-    # Not re-sent is not the same as unchanged: this commit may publish a
-    # different report behind the delivered card's link (#3105).
-    if status in ('pass', 'warn') and after_delivery and not args.dry_run:
-        try:
-            revision = note_revision_after_delivery(
-                md_path, brief_marker, today, job_name=job_name,
-                version=brief_version)
-        except Exception as exc:
-            workflow_outcomes.note_degradation(
-                None, 'content_revised_after_delivery',
-                f'{today} 修订核对失败: {type(exc).__name__}: {exc}',
-                group=f'{job_name}/check_failed')
+    after_delivery = False
+    if status in ('pass', 'warn'):
+        with brief_delivery_lock(brief_marker, args.dry_run):
+            after_delivery = any(brief_delivered_channels(brief_marker, today))
+            # A rerender can change the page behind an already delivered card
+            # even when neither channel sends this run (#3105).
+            if after_delivery and not args.dry_run and any(delivered_channels(brief_marker)):
+                try:
+                    revision = note_revision_after_delivery(
+                        md_path, brief_marker, today, job_name=job_name,
+                        version=brief_version)
+                except Exception as exc:
+                    workflow_outcomes.note_degradation(
+                        None, 'content_revised_after_delivery',
+                        f'{today} 修订核对失败: {type(exc).__name__}: {exc}',
+                        group=f'{job_name}/check_failed')
     if status in ('pass', 'warn') and already_delivered(brief_marker):
         print('idempotency: brief already delivered today — skip re-send', file=sys.stderr)
         wechat_sent = True
-        try:
-            tg_ok = json.loads(brief_marker.read_text()).get('tg_ok')
-        except Exception:
-            pass
+        _, tg_ok = brief_delivered_channels(brief_marker, today)
     elif status in ('pass', 'warn'):
         # Same two-line footer as direct chat. The watchdog reads it back from
         # the receipt and reuses it on a backstop send.
@@ -2085,103 +2078,101 @@ def main(argv=None):
         # racing on the same day would both read "not delivered yet" and both
         # send the card. A dry run sends nothing, so it takes no claim.
         claim_path = delivery_receipts.claim_path(brief_marker.parent, 'brief', date=today)
-        if args.dry_run:
-            claim_won, claim_reason = True, 'dry-run'
-        else:
-            claim_won, claim_reason = claim_send(claim_path)
-        if not claim_won:
-            print(f'concurrency: brief send is already claimed ({claim_reason}) — not '
-                  f'sending a second card; the watchdog owns today if the first one '
-                  f'did not land', file=sys.stderr)
-            log({'tag': 'brief', 'action': 'send-claim-declined', 'reason': claim_reason})
-            wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
-            claim_declined = True
-        else:
-            # WeChat, then Telegram (cold-proof — WeChat can't confirm real delivery), per
-            # the delivery policy. The Telegram result is recorded: it's the backstop
-            # brief_watchdog mirrors to (WeChat is re-sent only on a recorded failure,
-            # once), so it needs to know if TG got this card.
-            def send():
-                return send_per_policy(
-                    'brief', message, tag='brief', dry_run=args.dry_run,
-                    wechat=send_wechat, telegram=cosend_telegram,
-                    resolve=resolve_wechat_target, telegram_done=telegram_done)
+        # WeChat, then Telegram (cold-proof — WeChat can't confirm real delivery), per
+        # the delivery policy. The Telegram result is recorded: it's the backstop
+        # brief_watchdog mirrors to (WeChat is re-sent only on a recorded failure,
+        # once), so it needs to know if TG got this card.
+        def send():
+            return send_per_policy(
+                'brief', message, tag='brief', dry_run=args.dry_run,
+                wechat=send_wechat, telegram=cosend_telegram,
+                resolve=resolve_wechat_target, telegram_done=telegram_done)
 
-            # NEVER write the marker on a dry run (2026-07-16). send_wechat/cosend_telegram
-            # return ok=True for a dry run (the CLI exits 0 without sending), so this used to
-            # record sent_ok/tg_ok=true for a delivery that never happened. brief_watchdog
-            # treats a fresh marker with tg_ok as its SOLE proof the card landed, so one
-            # dry run silently disabled that day's backstop — exactly the "card never
-            # arrived and nothing noticed" hole the watchdog exists to close. Hit for real:
-            # a --dry-run postflight at 10:14 today wrote a marker claiming delivery while
-            # kcn got nothing. A declined claim is the same shape: it sent nothing, so it
-            # must not leave a marker either.
-            def write_receipt(sent):
+        # Dry-run transport returns success without sending. Keep its result
+        # out of the receipt so it cannot suppress a real backstop (#1742).
+        def write_receipt(sent):
+            if args.dry_run:
+                print('dry-run: skipping brief-sent marker write', file=sys.stderr)
+                return False
+            wechat_ok, out, telegram_ok = sent
+            telegram_sent = telegram_ok and not telegram_done
+            delivered = bool(wechat_ok or telegram_sent)
+            # Preserve the prior card's identity on a channel retry. The
+            # watchdog flag proves Telegram delivered but identifies no
+            # archived version; only a new send can bind this version.
+            previous_sha = prior_receipt.get('report_sha256') if receipt_delivered else None
+            version_fields = {}
+            if previous_sha:
+                version_fields = {
+                    key: prior_receipt[key]
+                    for key in ('brief_version', 'brief_version_path',
+                                'brief_version_sha256')
+                    if prior_receipt.get(key)
+                }
+            elif delivered and brief_version:
+                version_fields = {
+                    'brief_version': brief_version.get('id'),
+                    'brief_version_path': brief_version.get('path'),
+                    'brief_version_sha256': brief_version.get('sha256'),
+                }
+            brief_marker.parent.mkdir(parents=True, exist_ok=True)
+            safe_write_text(str(brief_marker), json.dumps(
+                delivery_receipts.build_receipt(
+                    ts=(prior_receipt.get('ts') if previous_sha
+                        else int(datetime.now().timestamp() * 1000)),
+                    sent_ok=wechat_ok, tg_ok=telegram_ok, out=out,
+                    first_line=first_line,
+                    # Reused verbatim by brief_watchdog's backstop card.
+                    **({'usage_footer': card_footer} if card_footer else {}),
+                    # What the card's link showed when it went out (#3105).
+                    report_sha256=previous_sha or (report_sha256(md_path) if delivered else None),
+                    **version_fields,
+                    # The exact bytes a failed WeChat send tried to deliver
+                    # (#3443), same field the report/intraday receipts keep.
+                    **delivery_receipts.failed_wechat_body(wechat_ok, message)),
+                ensure_ascii=False))
+            if delivered and brief_version and not previous_sha:
+                try:
+                    brief_versions.record_delivery(
+                        WS, today, brief_version['id'],
+                        channels={'wechat': wechat_ok, 'telegram': telegram_sent},
+                        receipt_name=brief_marker.name)
+                except Exception as exc:  # noqa: BLE001 — the send already landed
+                    print(f'warn: delivered brief version not bound: '
+                          f'{type(exc).__name__}: {exc}', file=sys.stderr)
+            return True
+
+        with brief_delivery_lock(brief_marker, args.dry_run):
+            # Re-read delivery evidence inside the lock, before taking the
+            # postflight claim. A watchdog may have sent while we validated.
+            wechat_done, telegram_done = brief_delivered_channels(brief_marker, today)
+            after_delivery = wechat_done or telegram_done
+            prior_receipt = delivery_receipts.read_receipt(brief_marker) or {}
+            receipt_delivered = any(delivered_channels(brief_marker))
+            if wechat_done and not args.dry_run:
+                wechat_sent, send_out, tg_ok = True, 'already delivered', telegram_done
+            else:
                 if args.dry_run:
-                    print('dry-run: skipping brief-sent marker write', file=sys.stderr)
-                    return False
-                wechat_ok, out, telegram_ok = sent
-                delivered = bool(wechat_ok or telegram_ok)
-                # The version whose card this is: the same id the card prints
-                # and the archived page the revision notice links. Recorded
-                # only when a channel really took it; a both-channel failure
-                # leaves the receipt describing an attempt, not a delivery.
-                # `after_delivery` is the per-channel recovery path: the first
-                # delivered card keeps the binding (and `report_sha256` above),
-                # even though this retry may carry a newer page.
-                version_fields = {}
-                if after_delivery:
-                    version_fields = {
-                        key: prior_receipt[key]
-                        for key in ('brief_version', 'brief_version_path',
-                                    'brief_version_sha256')
-                        if prior_receipt.get(key)
-                    }
-                elif delivered and brief_version:
-                    version_fields = {
-                        'brief_version': brief_version.get('id'),
-                        'brief_version_path': brief_version.get('path'),
-                        'brief_version_sha256': brief_version.get('sha256'),
-                    }
-                brief_marker.parent.mkdir(parents=True, exist_ok=True)
-                safe_write_text(str(brief_marker), json.dumps(
-                    delivery_receipts.build_receipt(
-                        ts=(prior_receipt.get('ts') if after_delivery
-                            else int(datetime.now().timestamp() * 1000)),
-                        sent_ok=wechat_ok, tg_ok=telegram_ok, out=out,
-                        first_line=first_line,
-                        # Reused verbatim by brief_watchdog's backstop card.
-                        **({'usage_footer': card_footer} if card_footer else {}),
-                        # What the card's link showed when it went out (#3105).
-                        report_sha256=(prior_receipt.get('report_sha256') if after_delivery
-                                       else report_sha256(md_path)),
-                        **version_fields,
-                        # The exact bytes a failed WeChat send tried to deliver
-                        # (#3443), same field the report/intraday receipts keep.
-                        **delivery_receipts.failed_wechat_body(wechat_ok, message)),
-                    ensure_ascii=False))
-                if delivered and brief_version and not after_delivery:
-                    try:
-                        brief_versions.record_delivery(
-                            WS, today, brief_version['id'],
-                            channels={'wechat': wechat_ok, 'telegram': telegram_ok},
-                            receipt_name=brief_marker.name)
-                    except Exception as exc:  # noqa: BLE001 — the send already landed
-                        print(f'warn: delivered brief version not bound: '
-                              f'{type(exc).__name__}: {exc}', file=sys.stderr)
-                return True
-
-            # The marker owns idempotency from here — but only if it exists
-            # (#1743, `send_under_claim`). A dry run took no claim, so it
-            # passes none and nothing is flipped or released.
-            (wechat_sent, send_out, tg_ok), _ = send_under_claim(
-                None if args.dry_run else claim_path, send, write_receipt,
-                receipt_label='brief-sent marker')
-            if not args.dry_run and (wechat_sent or tg_ok):
-                risk_notices.record(WS, risk_view, message)
-            if not wechat_sent:
-                print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
-                      file=sys.stderr)
+                    claim_won, claim_reason = True, 'dry-run'
+                else:
+                    claim_won, claim_reason = claim_send(claim_path)
+                if not claim_won:
+                    print(f'concurrency: brief send is already claimed ({claim_reason}) — not '
+                          f'sending a second card; the watchdog owns today if the first one '
+                          f'did not land', file=sys.stderr)
+                    log({'tag': 'brief', 'action': 'send-claim-declined', 'reason': claim_reason})
+                    wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
+                    claim_declined = True
+                else:
+                    (wechat_sent, send_out, tg_ok), _ = send_under_claim(
+                        None if args.dry_run else claim_path, send, write_receipt,
+                        receipt_label='brief-sent marker')
+        if (not args.dry_run and not wechat_done
+                and (wechat_sent or (tg_ok and not telegram_done))):
+            risk_notices.record(WS, risk_view, message)
+        if not claim_declined and not wechat_sent:
+            print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
+                  file=sys.stderr)
 
     # ── Commit AFTER delivery (report/intraday order, #765) ───────────────────
     # maybe_commit runs log_decisions + rebuild_dashboard + git push — seconds of

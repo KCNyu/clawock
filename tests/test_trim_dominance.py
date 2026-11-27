@@ -339,3 +339,30 @@ def test_november_26_trim_already_reaches_review_line(tmp_path, monkeypatch):
                               {**projection, 'post_trim_weight_pct': 35.0})
     assert not plan_trim_warnings({'rationale': row['rationale']},
                                   {**projection, 'post_trim_weight_pct': 35.01})
+
+
+def test_review_line_sale_and_remainder_are_checked_against_the_stated_basis(tmp_path):
+    from clawock.portfolio.guardrail import plan_trim_warnings
+
+    ctx = {'risk_guardrail': {'concentration_reviews': [{
+        'ticker': 'SPCH', 'leg': 'US', 'currency': 'USD', 'weight_pct': 80.47, 'review_pct': 35,
+        'trim_inputs': {'shares': 320, 'value': 2057.6, 'total': 2556.97, 'price': 6.43,
+                        'lot_size': 1, 'target_pct': 35},
+    }]}}
+    decision = {
+        'ticker': 'SPCH', 'action': 'trim_on_rebound', 'size': {'shares': 100},
+        'condition': {'type': 'price_above', 'price': 6.8},
+        'rationale': '组合政策依据是美股腿这一格的单名占比远在复核线上方，风控算好的复核线数量是 279 股，也就是减 41 股',
+    }
+    plan = {'decisions': [decision]}
+    trigger, = plan_trim_projections(ctx, plan)
+    mark, = plan_trim_projections(ctx, plan, at_book_mark=True)
+    assert (trigger['shares_to_review_line'], mark['shares_to_review_line']) == (281, 279)
+    assert any('需卖 41 股' in warning for warning in plan_trim_warnings(decision, trigger, mark))
+    issues = brief_postflight._brief_numeric_issues(tmp_path / 'missing.json', plan, ctx)
+    assert brief_postflight.categorize(issues) == 'fail'
+
+    decision['rationale'] = '按现价算，复核线数量是 279 股，减到 41 股；按触发价算，复核线数量是 281 股，减到 39 股。'
+    assert not plan_trim_warnings(decision, trigger, mark)
+    decision['rationale'] = '按账面价计算，复核线股数为 279 股，即卖 279 股。'
+    assert not plan_trim_warnings(decision, trigger, mark)

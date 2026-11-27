@@ -82,7 +82,7 @@ from ._watchdog_common import (
     brief_cron_job_state, cron_run_ended_in_failure,
     rerun_cron_job, cron_retry_budget,
     CRON_MAX_ALLOWED_ATTEMPTS,
-    wechat_gap_reason,
+    wechat_gap_reason, brief_delivered_channels, brief_delivery_lock, brief_telegram_flag,
 )
 
 MISSING_STATE_VERSION = 1
@@ -669,11 +669,11 @@ def check_local_recovery(today, dry_run=False):
     outcome = 'unconfirmed'
     if not issues:
         outcome = 'produced'
-        marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
-            WS / 'memory' / '.tmp', 'brief', date=today)) or {}
+        marker_path = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
+        wechat_ok, telegram_ok = brief_delivered_channels(marker_path, today)
         message = (f'本地简报重跑已生成产物 — {today}\n'
-                   f'微信送达：{"已确认" if marker.get("sent_ok") else "未确认"}；'
-                   f'Telegram：{"已确认" if marker.get("tg_ok") else "未确认"}。')
+                   f'微信送达：{"已确认" if wechat_ok else "未确认"}；'
+                   f'Telegram：{"已确认" if telegram_ok else "未确认"}。')
     elif corrupt_state:
         outcome = 'corrupt-state'
         message = (f'⚠️ 简报恢复状态无法读取，结果未确认 — {today}\n\n'
@@ -804,8 +804,13 @@ def main():
     if not (WS / 'memory' / f'{today}-pre-open.md').exists():
         return retrigger_or_wait(today, args.dry_run)
 
-    # Trust the postflight send-marker, not the poisoned run-record `delivered`.
     marker_path = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
+    with brief_delivery_lock(marker_path, args.dry_run):
+        return _recover_channels(today, marker_path, args.dry_run)
+
+
+def _recover_channels(today, marker_path, dry_run):
+    tag = 'brief'
     marker = delivery_receipts.read_receipt(marker_path)
     # The primary send recorded the footer it used; a backstop copy carries the
     # same evidence instead of looking for a live run that already ended.
@@ -846,9 +851,9 @@ def main():
             wechat_body, body_source = card_for_backstop(today), 'rebuilt-card'
         wechat_ok = wechat_backstop('brief', tag, wechat_body, marker, marker_path,
                         WS / 'memory' / '.tmp' / f'watchdog-brief-wechat-{today}.done',
-                        args.dry_run, wechat=send_wechat, telegram=send_telegram,
+                        dry_run, wechat=send_wechat, telegram=send_telegram,
                         resolve=resolve_wechat_target, body_source=body_source)
-        if wechat_ok and not args.dry_run:
+        if wechat_ok and not dry_run:
             risk_notices.record(WS, risk_view, wechat_body)
     # TG is covered iff postflight's cosend confirmed today's card to Telegram.
     if marker and marker.get('tg_ok'):
@@ -857,7 +862,7 @@ def main():
         return 0
 
     # Postflight cosend failed or never ran ⇒ mirror the card to Telegram.
-    flag = WS / 'memory' / '.tmp' / f'watchdog-brief-{today}.done'
+    flag = brief_telegram_flag(marker_path, today)
     if flag.exists():
         log({'tag': tag, 'action': 'skip', 'reason': 'already mirrored (dedupe flag present)'})
         return 0
@@ -875,15 +880,15 @@ def main():
         tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
     target = telegram_target()
     tg_ok, out = send_telegram(
-        target, tg_banner + postflight_validation_banner(today) + message, args.dry_run)
-    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
+        target, tg_banner + postflight_validation_banner(today) + message, dry_run)
+    log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': dry_run, 'sent_ok': tg_ok,
          'fail_reason': reason, 'marker': marker, 'target': target, 'out': out})
-    if tg_ok and not args.dry_run:
-        risk_notices.record(WS, risk_view, message)
+    if tg_ok and not dry_run:
         safe_write_text(str(flag), datetime.now(HKT).isoformat())
+        risk_notices.record(WS, risk_view, message)
 
     print(json.dumps({'tag': tag, 'reason': reason, 'mirrored_telegram': tg_ok,
-                      'dry_run': args.dry_run}, ensure_ascii=False))
+                      'dry_run': dry_run}, ensure_ascii=False))
     return 0
 
 

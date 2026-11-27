@@ -37,7 +37,7 @@ from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS, is_leveraged_holding
 from clawock.portfolio.books import region_book
 from clawock.portfolio.math import session_change_pct
-from clawock.portfolio.math import day_pnl_basis, ledger_rows, trade_session_date
+from clawock.portfolio.math import day_pnl_basis, ledger_rows, number, trade_session_date, holding_session, session_day_total
 from clawock.portfolio.refresh import active_and_zero_closed
 from clawock.workspace import workspace_root
 
@@ -539,7 +539,11 @@ def _hk_finalize_region(data, hk_key, region_before_fetch, active, hkt_str,
                       for h in active)
     total_value = sum(carried_value(h) for h in active)
     total_pnl   = total_value - total_cost
-    today_chg   = sum(h.get('today_change') or 0 for h in active)
+    today_chg, _, _ = session_day_total(
+        (holding_session(h, data.get('last_updated'), 'hk'),
+         None if h.get('quote_stale_asof') else number(h.get('today_change')))
+        for h in active
+    )
 
     us['total_cost']          = round(total_cost, 2)
     us['total_current_value'] = round(total_value, 2)

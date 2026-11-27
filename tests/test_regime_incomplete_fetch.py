@@ -160,3 +160,11 @@ def test_us_dial_distinguishes_missing_history_from_measured_trend(monkeypatch, 
         assert '数据不足，趋势未判' in payload['label']
     else:
         assert '趋势ON' in payload['label']
+
+
+@pytest.mark.parametrize(('vol', 'current', 'reclaimed'), [(0.34, 0.5, 1.0), (0.55, 0.0, 0.5)])
+def test_hk_reclaim_cap_preserves_the_volatility_gate(offline_dial, monkeypatch, vol, current, reclaimed):
+    monkeypatch.setattr(regime, 'compute', lambda _: (4628.31, vol))
+    payload = _run(monkeypatch, [3417.38])
+    assert payload['hk']['lev_cap_mult'] == current
+    assert payload['hk']['trend_reclaim_cap_mult'] == reclaimed
