@@ -317,15 +317,17 @@ def test_failed_validation_banner_matches_the_unsent_result(desk, capsys, monkey
 
 @pytest.mark.parametrize('wechat_ok', [True, False])
 def test_watchdog_mirror_during_validation_skips_only_telegram(desk, capsys, monkeypatch, wechat_ok):
-    claim_send = postflight.claim_send
+    marker = desk.tmp / f'brief-sent-{TODAY}.json'
+    marker.write_text(json.dumps({'sent_ok': False, 'tg_ok': False, 'report_sha256': 'failed-attempt'}))
+    build_card = postflight.build_brief_card
 
-    def claim_after_mirror(path):
+    def build_after_mirror(*args, **kwargs):
         # The watchdog delivered after postflight took its initial receipt
         # snapshot but before it took the send lock.
         (desk.tmp / f'watchdog-brief-{TODAY}.done').write_text('confirmed mirror')
-        return claim_send(path)
+        return build_card(*args, **kwargs)
 
-    monkeypatch.setattr(postflight, 'claim_send', claim_after_mirror)
+    monkeypatch.setattr(postflight, 'build_brief_card', build_after_mirror)
     monkeypatch.setattr(postflight, 'send_per_policy',
                         lambda *a, **kw: desk.sends.append(kw) or (wechat_ok, 'fixture', True))
     code, result = desk.run(capsys)
