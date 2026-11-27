@@ -532,7 +532,7 @@ def _chain_deadline():
 
 
 
-def _validate_review(draft, evidence):
+def _render_review(draft, evidence):
     if evidence is not None:
         renderer = prose_claims.ClaimRenderer(evidence)
         draft = '\n'.join(
@@ -540,9 +540,7 @@ def _validate_review(draft, evidence):
             for line in (draft or '').splitlines())
         if renderer.issues:
             raise LLMOutputError('；'.join(renderer.issues[:5]))
-    return validate_sections(draft, label='weekly review',
-                             required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
-                             trading_prose=True)
+    return draft
 
 
 def generate_review(system, user, *, clock=time.monotonic, evidence=None):
@@ -567,7 +565,9 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
     # Anchors are the four questions build_user_prompt asks for; the floor is
     # ~1/10th of a real review (2026-W34 is 11KB).
     try:
-        return _validate_review(out, evidence)
+        return validate_sections(_render_review(out, evidence), label='weekly review',
+                                 required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
+                                 trading_prose=True)
     except LLMOutputError as rejection:
         _log_rejection(out, rejection)
         budget = _chain_deadline()
@@ -589,7 +589,9 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
             print(f'  ⚠️ repair turn failed: {exc}', file=sys.stderr)
             raise rejection from exc
         try:
-            return _validate_review(repaired, evidence)
+            return validate_sections(_render_review(repaired, evidence), label='weekly review',
+                                     required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
+                                     trading_prose=True)
         except LLMOutputError as exc:
             _log_rejection(repaired, exc)
             raise
