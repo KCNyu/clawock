@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "c98daab4219d9be2bf19e738166f9841ffc1c044776784f8daa2685089627668",
-  "bytes": 17502,
+  "content_sha256": "3ea0e8c99b8a072c176461b9735208f9da67132cc5ff9e5fd185975f61e2654a",
+  "bytes": 17794,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -221,6 +221,15 @@
       "heading": "# 工程任务应根治根因，避免只做表面修补",
       "lines": 5,
       "sha256": "8c76af90230fd0eb9c433703c1c734aebb9eaf3fe603360284f8178a040db6e6"
+    },
+    {
+      "slug": "feedback-engineering-standards-structure",
+      "order": 25,
+      "publish": "public",
+      "separator": true,
+      "heading": "# 工程标准应统一结构化数据对账、确定性渲染与来源追溯",
+      "lines": 5,
+      "sha256": "c391e71e2cff81b184784c743cd8bd02a749d4d2f4a05002528a943df1dffc4e"
     }
   ]
 }
