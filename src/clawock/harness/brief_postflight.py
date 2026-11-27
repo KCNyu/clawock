@@ -1717,9 +1717,7 @@ def _plan_self_reference_issues(plan):
 def _brief_numeric_issues(judgment_path, plan, context):
     """Check all published model prose, with each ticker row's identity intact."""
     from clawock.portfolio.guardrail import plan_trim_projections
-    context = {**(context or {}),
-               'plan_trim_projections': plan_trim_projections(context or {}, plan),
-               'plan_book_trim_projections': plan_trim_projections(context or {}, plan, at_book_mark=True)}
+    context = {**(context or {}), 'plan_trim_projections': [], 'plan_book_trim_projections': []}
     try:
         overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
     except (OSError, ValueError):
@@ -1741,13 +1739,20 @@ def _brief_numeric_issues(judgment_path, plan, context):
     # rationale restating `size.shares` was reported as a number the context
     # never states (#2636). Numbers only — `size.note` is model prose.
     own_fields = []
+    scoped_prose = []
     for row in (plan or {}).get('decisions') or []:
         if isinstance(row, dict):
             prose = '\n'.join(value for value in (row.get('rationale'),
                              (row.get('condition') or {}).get('description'),
                              row.get('hypothesis'), row.get('method'))
                              if isinstance(value, str))
-            texts.append(f"- **{row.get('ticker', '')}** ·\n{prose}")
+            one_decision = {'decisions': [row]}
+            projections = plan_trim_projections(context, one_decision)
+            book_projections = plan_trim_projections(context, one_decision, at_book_mark=True)
+            context['plan_trim_projections'].extend(projections)
+            context['plan_book_trim_projections'].extend(book_projections)
+            scoped_prose.append((row.get('ticker'), prose, next(iter(projections), None),
+                                 next(iter(book_projections), None)))
             size = row.get('size')
             if isinstance(size, dict):
                 own_fields.append({key: value for key, value in size.items()
@@ -1757,7 +1762,7 @@ def _brief_numeric_issues(judgment_path, plan, context):
     from clawock.decision.plan_prose import judgment_plan_share_conflicts
     return (judgment_plan_share_conflicts(plan, overlay)
             + check_numeric_claims('\n'.join(value for value in texts if isinstance(value, str)),
-                                   with_compute_receipts(context, WS)))
+                                   with_compute_receipts(context, WS), scoped_prose=scoped_prose))
 
 
 def main(argv=None):

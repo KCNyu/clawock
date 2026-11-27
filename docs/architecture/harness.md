@@ -125,6 +125,38 @@ The live workflow phase commands dispatch directly to package-owned lifecycle
 modules selected by a declarative profile. The wheel contains the complete
 implementation but no user's portfolio or generated state.
 
+## Output validation
+
+The brief validates the plan and judgment artifacts before rendering. The
+decision packet binds structured actions to the generation's evidence,
+positions, triggers and sizing limits. Provider-native structured output and
+LangChain's tool-backed equivalent enforce shape. Application checks still
+have to establish whether a valid field contains the right fact.
+[OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs#handling-mistakes)
+and [LangChain structured output](https://docs.langchain.com/oss/python/langchain/structured-output).
+
+The brief renderer prints plan sale size, projected concentration, the minimum
+review-line sale and the resulting balance from the portfolio calculation.
+When prose repeats a review-line fact, the validator extracts the claim and
+compares it with the corresponding field for that ticker and price basis.
+Each decision uses its own sale size. A claim outside a decision row uses a
+plan projection only when the ticker identifies it unambiguously. An explicit
+book mark can also be checked against the review's minimum for a name with no
+planned sale. The brief blocks verified contradictions. The decision timeline
+shows warnings against the current book beside the dated decision. This uses
+the claim-to-evidence pattern from factuality evaluation with deterministic
+arithmetic as the evidence. [FActScore](https://aclanthology.org/2023.emnlp-main.741/).
+
+The shared numeric scan treats units without a bound fact as advisory. It
+indexes the existing context in one pass and keeps the existing precision and
+publication rules for brief, report and intraday. These checks run locally
+with the artifacts the workflow already has. An LLM judge is useful for
+offline evaluation of ambiguous prose, where scoring bias and variable
+latency can be measured. The scheduled publication gate uses deterministic
+checks for its financial facts.
+[LangChain guardrails](https://docs.langchain.com/oss/python/langchain/guardrails)
+and [MT-Bench judge study](https://arxiv.org/abs/2306.05685).
+
 ## Add-side strategy: one owner, three entries
 
 The add side (evidence tiers, triggers, tranche sizing) has one implementation.
@@ -391,6 +423,7 @@ parameters and what reaches their model.
 | decisions ledger | `decision/ledger` (`load_decisions`, `write_decisions`) | brief postflight, dashboard, settlement, plans | path |
 | trading-prose vocabulary | `prose_validation` (pure identifier/pipeline checks); `automation/output_validate.validate_sections(trading_prose=True)` | weekly generation/repair and harness postflights | text, label; harness preserves its advisory policy |
 | placeholder / length / numeric checks | `harness/validation` (`FORBIDDEN_PHRASES`, `REPORT_CHAR_LIMITS`, `is_hard_char_limit`, `check_numeric_claims`, `categorize_issues`) | every postflight | critical keywords, `warn_max` |
+| concentration claims | `portfolio/trim_claims` (ticker attribution and claims), `portfolio/guardrail.plan_trim_projections` (sizing) | brief validation and render, dashboard decision timeline | authored prose, same-generation book inputs, decision and price basis |
 | remaining-position day P&L and quote session | `portfolio/math.day_pnl` / `holding_session` | HK/US quote writers, aggregates, integrity, dashboard session labels | held shares, raw current quote, previous close, same-session fills; oldest shares consumed first on sales; realized sells stay in the realized ledger |
 | quoted session return | `portfolio/math.session_change_pct` | HK/US analyzer tables, brief, dashboard movers, evidence and T+0 setups | current quote and trusted prior close; the analyzer table and dashboard publish two decimal places for mover classification |
 | brief trading-day gate | `sessions.brief_closed_reasons` | brief preflight, postflight and watchdog, dashboard artifact freshness | the brief's HKT date for both exchange calendars |
