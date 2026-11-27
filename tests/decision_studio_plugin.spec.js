@@ -4505,6 +4505,28 @@ test("workbench client: English copy, a zero balance and a failed read", async (
   assert.equal(refusedRow.props["data-wb-provider-signal"], "alert");
   assert.match(textOf(refusedRow), /119\.25/);
 
+  const { parseCodexRateLimits } = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const limitedSnapshot = parseCodexRateLimits({
+    ordinaryUsageAllowed: false,
+    rateLimits: {
+      primary: { usedPercent: 5, windowDurationMins: 300 },
+      secondary: { usedPercent: 44, windowDurationMins: 10080 },
+      rateLimitReachedType: "credit",
+    },
+  }, AS_OF);
+  const limitedCodex = make({
+    ...BALANCES_OK,
+    providers: BALANCES_OK.providers.map((row) => row.provider !== "codex" ? row : {
+      ...row, result: { ...row.result, snapshot: limitedSnapshot },
+    }),
+  });
+  assert.equal(tabs(limitedCodex.tree)[1].props["aria-label"], "Providers, 1 alert");
+  tabs(limitedCodex.tree)[1].props.onClick();
+  const limitedRow = find(limitedCodex.render(), (p) => p["data-wb-provider"] === "codex")[0];
+  assert.equal(limitedRow.props["data-wb-provider-signal"], "alert");
+  assert.match(textOf(limitedRow), /5%/);
+  assert.match(textOf(limitedRow), /44%/);
+
   const unknownBalance = {
     ...zero,
     providers: zero.providers.map((row) => row.provider !== "deepseek" ? row : {

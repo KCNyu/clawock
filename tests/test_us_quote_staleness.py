@@ -662,7 +662,7 @@ class TestDailyBarProviderIsNotComposed:
             {"PLTU": (27.35, _fresh_prev_bar_date())})
         assert h["current_price"] == 27.35        # not rebuilt to 28.82
         assert "stale_price_repair" not in h
-        assert h["day_low"] != 26.1 and h["day_high"] != 29.9
+        assert h["day_low"] is h["day_high"] is h["day_open"] is None
 
 
 # ── 2026-08-06 (#336): the same disease, one provider further down ──────────

@@ -658,7 +658,13 @@ def tool_receipt_issues(decisions, plan_date, workspace=None):
 # registered display-name prefixes (`minimax` for 00100) both resolve; unknown
 # names and percentage/money keys stay outside this gate.
 WATCH_LEVEL_MAX_RATIO = 10.0
-_WATCH_LEVEL_NON_PRICE_TOKENS = {'pct', 'percent', 'usd', 'hkd', 'zscore', 'yield', 'book'}
+_WATCH_LEVEL_NON_PRICE_TOKENS = {
+    'pct', 'percent', 'usd', 'hkd', 'zscore', 'yield', 'book',
+}
+_WATCH_LEVEL_AMOUNT_TOKENS = {'amount', 'budget', 'cash', 'notional'}
+_WATCH_LEVEL_AMOUNT_SUFFIXES = (
+    '_cumulative_add', '_rearm_reduction', '_swap_cap', '_swap_buy_cap', '_swap_max_remaining',
+)
 
 
 def _price_scale_ratio(tickers, ticker, value):
@@ -713,7 +719,16 @@ def _watch_level_scale_issues(plan, decision_packet):
         if (not isinstance(value, (int, float)) or isinstance(value, bool)
                 or value <= 0):
             continue
-        tokens = str(key).lower().split('_')
+        level_key = str(key).lower()
+        tokens = level_key.split('_')
+        if len(tokens) > 1 and tokens[-1] in {'usd', 'hkd'}:
+            # A terminal currency qualifies both prices and amounts. Past plans
+            # use swap caps and cumulative additions for position-level amounts.
+            tokens.pop()
+            level_key = '_'.join(tokens)
+            if (_WATCH_LEVEL_AMOUNT_TOKENS.intersection(tokens)
+                    or level_key.endswith(_WATCH_LEVEL_AMOUNT_SUFFIXES)):
+                continue
         if _WATCH_LEVEL_NON_PRICE_TOKENS.intersection(tokens):
             continue
         ticker = tokens[0].upper()
@@ -721,7 +736,7 @@ def _watch_level_scale_issues(plan, decision_packet):
             # The plan also writes display-name prefixes (`minimax_trim_trigger`
             # for 00100). Resolve only registered, unambiguous names; an unknown
             # name keeps the old skip so the ratio is never applied to a guess.
-            owner = instrument_registry.watch_level_owner(key)
+            owner = instrument_registry.watch_level_owner(level_key)
             if owner in tickers:
                 ticker = owner
         comparison = _price_scale_ratio(tickers, ticker, value)

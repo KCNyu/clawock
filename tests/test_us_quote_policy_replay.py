@@ -9,8 +9,8 @@ cases explicitly mark their old aggregate gap as range-only after the quality
 split; their numeric oracles are unchanged. Legacy unknown quality is covered
 by test_quote_incomplete_split. The two no-prior-close cases intentionally
 expect null position day P&L and an unknown diagnostic after #3650. The stale
-print also expects unknown day P&L (#3728), and the same-session premarket case
-keeps its stored opening price without an incomplete-open flag (#3735).
+print expects unknown day P&L (#3728) and no intraday range (#3740). The
+same-session premarket case keeps its verified open (#3735).
 """
 import copy
 import json
@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 
 from clawock.market_data import us_quotes as quotes
+from clawock.portfolio.math import quote_range_gap
 
 FIXTURES = Path(__file__).parent / 'fixtures' / 'us_quote_policies'
 CASES = json.loads((FIXTURES / 'replay.json').read_text())
@@ -86,6 +87,36 @@ def run_case(case, monkeypatch, path, capsys):
 @pytest.mark.parametrize('case', CASES, ids=lambda case: case['name'])
 def test_writer_replays_pre_extraction_documents(case, monkeypatch, tmp_path, capsys):
     assert run_case(case, monkeypatch, tmp_path / 'portfolio.json', capsys) == case['expected']
+
+
+@pytest.mark.parametrize('legacy_stale_row', [False, True])
+def test_old_print_cannot_seed_the_range_after_recovery(legacy_stale_row):
+    session, previous = '2026-11-03', '2026-11-02'
+    holding = {'ticker': 'SPCX', 'shares': 1, 'cost_basis': 130}
+    prev_closes = {'SPCX': (136.37, previous)}
+
+    def apply(quote, instant):
+        quotes._us_apply_quote(
+            holding, {**quote, 'source': 'test provider'}, prev_closes,
+            now_et=datetime.fromisoformat(f'{session}T{instant}-05:00'),
+            today_et_date=session, expected_prev_session=previous)
+
+    apply({'c': 140, 'o': 138, 'h': 142, 'l': 137.5}, '10:33')
+    if legacy_stale_row:
+        holding.update(quote_stale_asof=previous, quote_incomplete_range=True,
+                       quote_incomplete=True, day_low=136.37)
+    else:
+        apply({'c': 136.37, 'o': 131, 'h': 143, 'l': 130, 'stale_asof': previous},
+              '11:03')
+        assert holding['current_price'] == 136.37
+        assert holding['today_change'] is None
+        assert holding['day_open'] is holding['day_high'] is holding['day_low'] is None
+        assert quote_range_gap(holding)
+
+    apply({'c': 140.34, 'o': 138, 'h': 142.74, 'l': 137.5}, '11:33')
+    assert holding['day_session_date'] == session
+    assert (holding['day_open'], holding['day_high'], holding['day_low']) == (138, 142.74, 137.5)
+    assert quote_range_gap(holding) is None
 
 
 @pytest.mark.parametrize('provider_pc,expected_price,repaired', [(27.35, 28.82, True), (20, 27.35, False)])

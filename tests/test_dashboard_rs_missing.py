@@ -23,8 +23,10 @@ def test_rs_keeps_both_legs_and_labels_the_index_source(us, hk, proxy):
     data = {'delta': {'us': {'today_pct': us, 'session_date': '2026-10-12'},
                       'hk': {'today_pct': hk, 'session_date': '2026-10-13'}},
             'indices': _aggregate_indices(
-                {'indices_snapshot': {'SPX': {'change_pct': 0, 'is_etf_proxy': proxy}}},
-                {'indices_snapshot': {'HSI': {'change_pct': -0.37}}},
+                {'indices_snapshot': {'SPX': {'change_pct': 0, 'is_etf_proxy': proxy,
+                                              'source': 'Tencent usINX index @ 10:51 ET'}}},
+                {'indices_snapshot': {'HSI': {'change_pct': -0.37,
+                                              'source': 'Tencent qt.gtimg.cn 2026/11/27 11:03 HKT'}}},
             )}
     script = '''const DASH = '—'; const MARKET_INDICES = ['SPX', 'HSI'];
 const safe = (obj, ...keys) => keys.reduce((o, k) => o?.[k], obj);
@@ -37,6 +39,9 @@ process.stdout.write(JSON.stringify([nodes['market-rs'].innerHTML, nodes['market
     text, grid = json.loads(subprocess.check_output(['node', '-e', script], text=True))
     assert f'<div class="lbl">{proxy or "SPX"}</div>' in grid
     assert '<div class="lbl">HSI</div>' in grid
+    assert '<div class="src">Tencent usINX index</div>' in grid
+    assert '<div class="src">Tencent qt.gtimg.cn</div>' in grid
+    assert 'title="Tencent qt.gtimg.cn 2026/11/27 11:03 HKT"' in grid
     assert proxy is None or '<div class="lbl">SPX</div>' not in grid
     assert f'vs {proxy or "SPX"} +0.00%' in text
     assert 'US' in text and 'HK' in text and 'vs HSI' in text

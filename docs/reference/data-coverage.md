@@ -108,7 +108,7 @@ previous-close and range availability.
 - 报价质量拆成三个互不替代的字段，而不是一个「不完整」布尔：
   - `quote_incomplete_prev_close`：回退链没能给出日期匹配的前收（包括最后一步 `pc = c` 的占位），**场次涨跌不可算**；有前收时即使日内区间缺失也不置这一位。
   - `quote_incomplete_range`：provider 这次没给日内 high/low（或给的是更早场次的 print），持仓里的 `day_high/day_low` 只由本地累积器和采样价推得，**不能当官方区间读**；它不影响现价相对前收的涨跌。
-  - `quote_stale_asof`：价格本身是更早场次的 print（所有 provider 都失败时的最后回退），当日涨跌和区间都不可信。
+  - `quote_stale_asof`：价格本身是更早场次的 print（所有 provider 都失败时的最后回退），只用于估值。当日涨跌和开盘／高低点留空，恢复时从本场报价重新积累区间。
   - `quote_incomplete` 仍保留为三者的聚合位，供旧数据/旧读者使用。`session_change_pct()` 只被 `quote_incomplete_prev_close` / `quote_stale_asof` 否决；`STALE_PRICE` 仍对三种缺口逐条报警，措辞分开。
 - Nasdaq `/info` 的 `keyStats.dayrange`（低 - 高）作为日内区间来源；缺失或无效仍标区间缺口，不用现价制造 OHLC。无需另拼无场次时间戳的 `/summary`；开盘价缺失时仍保留原采样口径。US 保留已有前收时同时验证质量标志与场次日期，旧聚合缺口、占位前收、旧 print 不会因再次刷新变成可信基准。前收仍由既有回退链解析，并由 `PREV_CLOSE_SESSION` 对 canonical bar 复核。
 - 面板「场次涨跌」走 `session_change_pct()` 的报价口径；持仓当日盈亏走 `portfolio/math.day_pnl` 的成交/前收口径。刷新成功本身不能消除报价质量标志，缺前收或旧场次不能当成可靠的零涨跌。

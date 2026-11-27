@@ -1187,19 +1187,17 @@ def _accumulate_day_range(holding, q, c, *, now_et, today_et_date):
     # high/low with both the API values and the live price. The live price
     # only grows the range during regular session hours so a stray
     # pre/post-market print doesn't fake an intraday extreme.
-    # A quote the fetch layer already identified as an earlier session's
-    # print describes THAT session's envelope, not today's. Feeding its
-    # o/h/l in here writes a price that never traded today into the running
-    # range, and the accumulator then keeps it for the rest of the session —
-    # 2026-08-06 PLTU carried day_low 36.265 (the 08-04 bar's low) on a day
-    # whose real low was 42.61. Its last price is still the best number we
-    # have, so keep that and drop only the range fields.
+    # Keep an old print for valuation only. Clear the range so its last
+    # price can never seed today's envelope.
     if q.get('stale_asof'):
-        api_h = api_l = api_o = None
-    else:
-        api_h, api_l, api_o = q.get('h'), q.get('l'), q.get('o')
+        holding.update(day_high=None, day_low=None, day_open=None,
+                       day_session_date=today_et_date, quote_incomplete_open=True)
+        return
+    api_h, api_l, api_o = q.get('h'), q.get('l'), q.get('o')
     in_session   = 9 <= now_et.hour < 16
-    same_session = holding.get('day_session_date') == today_et_date
+    # An older writer may have merged a stale last price into this cache.
+    same_session = (holding.get('day_session_date') == today_et_date
+                    and not holding.get('quote_stale_asof'))
     cands_h = [v for v in (api_h, c if in_session else None) if v]
     cands_l = [v for v in (api_l, c if in_session else None) if v]
     if same_session:
@@ -1260,6 +1258,8 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
     # this split (and for rows refreshed by an older writer).
     stale_asof = q.get('stale_asof')
     range_incomplete = bool(stale_asof) or q.get('h') is None or q.get('l') is None
+    # The accumulator needs to see the previous row's stale marker.
+    _accumulate_day_range(holding, q, c, now_et=now_et, today_et_date=today_et_date)
     if prev_close_ok:
         holding.pop('quote_incomplete_prev_close', None)
     else:
@@ -1282,7 +1282,6 @@ def _us_apply_quote(holding, q, prev_closes, *, now_et, today_et_date, expected_
     holding['today_change_pct'] = (round(amount / base * 100, 4) if base else 0) if measurable else None
     holding.pop('today_change_abs', None)
 
-    _accumulate_day_range(holding, q, c, now_et=now_et, today_et_date=today_et_date)
     holding['current_value']    = round(c * shrs, 2)
     holding['pnl_abs']          = round((c - cost) * shrs, 2)
     # Zero cost falls back to 0 like hk_analysis and the reconciler (#1570):

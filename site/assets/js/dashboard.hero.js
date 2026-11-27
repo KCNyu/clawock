@@ -676,18 +676,19 @@
         ? r.price.toLocaleString("en-US", { maximumFractionDigits: r.price < 100 ? 2 : 0 })
         : DASH;
       const pctTxt = (pct == null) ? DASH : `${pct > 0 ? "+" : ""}${fixed(pct, 2)}%`;
-      const srcShort = (r.source || "").split(/[@(]/, 1)[0].trim().slice(0, 22);
+      const source = r.source || "";
+      const sourceLabel = source.split(/[@(]|\s+\d{4}[/-]\d{2}[/-]\d{2}\b/, 1)[0].trim();
       // Each cell names its own session: the five indices routinely span two
       // closes, and one max-date as-of makes 11-11 closes look like 11-12 (#3422).
       const sess = (typeof r.session === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.session))
         ? [r.session.slice(5), r.intraday === true ? "盘中" : r.intraday === false ? "收盘" : ""]
             .filter(Boolean).join(" ") : "";
       return `
-        <div class="market-cell ${stale ? "stale" : ""}" title="${escapeHtml(r.source || "")}">
+        <div class="market-cell ${stale ? "stale" : ""}" title="${escapeHtml(source)}">
           <div class="lbl">${escapeHtml(r.is_etf_proxy || k)}</div>
           <div class="val">${priceTxt}</div>
           <div class="pct ${cls}">${pctTxt}</div>
-          <div class="src">${escapeHtml(srcShort)}</div>
+          <div class="src">${escapeHtml(sourceLabel)}</div>
           ${sess ? `<div class="sess">${escapeHtml(sess)}</div>` : ""}
         </div>`;
     });

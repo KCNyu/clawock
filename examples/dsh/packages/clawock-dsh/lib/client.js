@@ -9785,10 +9785,10 @@ function sourceView(source, row, result, t) {
 	};
 }
 /**
-* The Providers-tab alarm rule (the 2026-11-07 design): a window at or above
-* 90% used, or money balance plus credit at or below zero, is an alert. 70–90
-* is a warning. Stale is the normal overnight state and must never turn the
-* dot red. The sidebar chip and task-detail hairlines use `_usedLevel`'s
+* A readable Providers-tab snapshot alerts when usage is unavailable, a
+* window is at least 90% used, or money balance plus credit is at or below
+* zero. Usage from 70% up to 90% warns. Stale is the normal overnight state
+* and must never turn the dot red. The sidebar chip and task-detail hairlines use `_usedLevel`'s
 * lowPct-derived tiers; this predicate only owns the quota bar/row (#3450).
 */
 function providerSignal(row) {
@@ -9807,7 +9807,7 @@ function providerSignal(row) {
 	}
 	const windows = (snapshot.windows ?? []).filter((window) => window.percent !== null);
 	if (windows.length === 0) return "none";
-	if (windows.some((window) => window.percent >= 90)) return "alert";
+	if (snapshot.isAvailable === false || windows.some((window) => window.percent >= 90)) return "alert";
 	return windows.some((window) => window.percent >= 70) ? "warn" : "ok";
 }
 /** The provider rows the panellist dot / tab dot watches: only real providers, never the free pool. */
