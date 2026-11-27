@@ -50,6 +50,7 @@ _STATUS_WORDS = {
 _TIME_VALUE = re.compile(
     r'\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?'
     r'(?:Z|[+-]\d{2}:?\d{2}| HKT| ET)?)?|\d{2}:\d{2}')
+_DECISION_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}')
 _ID_VALUE = re.compile(r'[A-Za-z0-9^][A-Za-z0-9.^-]{0,15}')
 
 
@@ -192,7 +193,8 @@ class ClaimRenderer:
         if field in _SOURCE_FIELDS:
             return _inline(value)
         if isinstance(value, str) and (
-                (field in _ID_FIELDS and _ID_VALUE.fullmatch(value))
+                (field == 'decision_id' and _DECISION_ID.fullmatch(value))
+                or (field in _ID_FIELDS and _ID_VALUE.fullmatch(value))
                 or (field in _TIME_FIELDS and _TIME_VALUE.fullmatch(value))):
             return value
         return _numeric_display(value, path, roots)

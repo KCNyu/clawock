@@ -159,3 +159,14 @@ def test_repair_cannot_publish_an_identifier_leak(monkeypatch):
     monkeypatch.setenv('CLAWOCK_LLM_DEADLINE_SECONDS', '700')
     with pytest.raises(LLMOutputError, match='hold_and_watch'):
         weekly.generate_review('sys', 'user')
+
+
+def test_weekly_repairs_a_copied_nav_with_the_exact_bundle_field(monkeypatch):
+    past = GOOD + '\n回顾周末净值 55 USD。'
+    draft = GOOD + '\n周末净值 [[/ctx/bundle_evidence/nav_change/end_usd]]。'
+    fake = FakeChat(past, draft)
+    monkeypatch.setattr(weekly, 'chat', fake)
+    body = weekly.generate_review(
+        'sys', 'user', evidence={'bundle_evidence': {'nav_change': {'end_usd': 67}}})
+    assert '周末净值 67 USD' in body
+    assert '手写数值' in fake.calls[1]['messages'][-1]['content']

@@ -149,7 +149,7 @@ in `memory/.tmp`. The public plan and Pages overlay contain materialized prose.
 
 | Assertion | Authority | Consumer |
 |---|---|---|
-| Price, shares, amount, weight, P&L, factor and performance measurements | The exact ticker/metric field in the generation, or the result field of a compute receipt | Brief, report, intraday, and their narrative sidecars |
+| Price, shares, amount, weight, P&L, factor and performance measurements | The exact ticker/metric field in the generation, or the result field of a compute receipt | Brief, report, intraday, weekly review, and their narrative sidecars |
 | Sell size, condition price, review-line threshold, remaining shares and projected weight | Normalized decision and the position/leg projection at the trigger or book mark | Brief plan, page and card. The DSH timeline compares the frozen, cited fields with the same scenario on the current book |
 | Sector leaderboard and portfolio exposure | Peer scan for named rows. Hidden concentration selects one leg, one basis and named buckets in one partition | Brief and dashboard |
 | Source, publication/observation time and capture time | Source/clock fields or a single event row using `|cite`. A source's existing citation is preserved with its freshness label | Brief, report and intraday |
