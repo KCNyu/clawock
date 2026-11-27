@@ -862,6 +862,11 @@ portfolio_counterargument/narrative/ticker_judgments`。
 40KB 极端线。这里写 plan 没说的——`bucket_history` 战绩、为什么反方不成立、信心为什么是这个数——
 没有就一句话。
 
+写逐票判断前先给每个字段分一件事：`assessment` 写本次变化，`counterargument` 写真正的反证，
+`next_evidence` 写下一条可核对的观察。已有账本、风控或四格会印出的数据，只在改变动作、尺寸或触发条件时
+引用到「今日动作」里。延续原判断的 `hold_and_watch` 用一句话交代维持依据（含未解除的风险），把具体触发与
+证伪留在各自字段。主动动作保留解释和证伪所需的证据。
+
 `narrative`（整篇报告的辩论层，全部必填）：
 
 ```json
