@@ -21,7 +21,7 @@ def test_exact_paths_keep_subject_measure_and_capture_time_together():
         '[[/ctx/live_information/items/0|cite]]。'
         '本档资讯[[/ctx/session_review/status|status]]，'
         '共[[/ctx/live_information/items|count]]条。', '报告')
-    assert body == '00100现持10 股。《公告》（HKEXnews，2026-11-27T10:32:00+08:00）。本档资讯部分可用，共1条。'
+    assert body == '00100现持10 股。《公告》（HKEXnews，采集 2026-11-27T10:32:00+08:00）。本档资讯部分可用，共1条。'
     assert not renderer.issues
     renderer.render('现持30股，较另一期多十股。', '报告')
     renderer.render('现持[[/ctx/holdings/00100/size]]。', '报告')

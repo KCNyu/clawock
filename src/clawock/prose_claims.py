@@ -79,7 +79,7 @@ def _resolve(roots, segments):
 def _inline(value):
     if not isinstance(value, str) or not value.strip():
         raise ValueError('缺可显示的文字')
-    return ' '.join(value.split())
+    return ' '.join(value.split()).replace('|', '｜')
 
 
 def _number(value):
@@ -119,11 +119,15 @@ def _citation(row):
     title = _inline(row.get('title') or row.get('headline'))
     source = _inline(next((row[key] for key in sorted(_SOURCE_FIELDS)
                            if isinstance(row.get(key), str) and row[key].strip()), None))
-    stamp = next((row[key] for key in (
-        'published_at', 'publishedAt', 'published_date', 'capturedAt', 'captured_at',
-        'observed_at', 'date', 'as_of', 'asOf') if isinstance(row.get(key), str)
-        and _TIME_VALUE.fullmatch(row[key])), None)
-    return f'《{title}》（{source}，{stamp or "时间未知"}）'
+    clocks = (
+        ('published_at', '发布'), ('publishedAt', '发布'), ('published_date', '发布'),
+        ('capturedAt', '采集'), ('captured_at', '采集'), ('observed_at', '观测'),
+        ('date', '来源日期'), ('as_of', '截至'), ('asOf', '截至'),
+    )
+    when = next((f'{kind} {row[key]}' for key, kind in clocks
+                 if isinstance(row.get(key), str) and _TIME_VALUE.fullmatch(row[key])), '时间未知')
+    return f'《{title[:60]}》（{source}，{when}）'
+
 
 
 def _trigger(roots, path, spec):

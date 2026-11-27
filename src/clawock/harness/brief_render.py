@@ -1455,7 +1455,7 @@ SECTOR_SCAN_MISSING = (
     "板块全景 没有落盘 sector-scan：本篇只有 sector_read 文字，没有表")
 
 
-def render_from_workspace(workspace, date, *, plan=None, judgment=None, page_url=None, write=True, claims=None):
+def render_from_workspace(workspace, date, *, context=None, plan=None, judgment=None, page_url=None, write=True, claims=None):
     """Render both artifacts for one date. Returns (issues, brief_markdown).
 
     `plan` lets the caller hand in the normalized plan it already holds, so the
@@ -1465,7 +1465,8 @@ def render_from_workspace(workspace, date, *, plan=None, judgment=None, page_url
     paths = artifact_paths(workspace, date)
     issues = []
     try:
-        context = _load(paths["context"])
+        if context is None:
+            context = _load(paths["context"])
         if prose_claims.enabled(context) and (judgment is None or plan is None):
             from clawock.decision import packet
             from clawock.harness.validation import with_compute_receipts

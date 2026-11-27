@@ -29,7 +29,7 @@ def sector_scan(context, attribution_path, renderer):
         peers = {}
         for peer in [*(source.get('listed_peers') or []), *(source.get('auto_peers') or [])]:
             pct = to_strict_finite_number(peer.get('pct_1d'))
-            if pct is not None:
+            if pct is not None and peer.get('ticker') and peer['ticker'] != ticker:
                 peers.setdefault(peer['ticker'], {
                     'ticker': peer['ticker'], 'name': peer.get('name'), 'pct': pct,
                     'source': peer.get('quote_source'),

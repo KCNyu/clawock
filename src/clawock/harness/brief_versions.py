@@ -347,16 +347,20 @@ def _artifact_digests(workspace, day):
 
 def record_artifacts(workspace, day, generation_id):
     """File evidence only after postflight has approved the rendered product."""
+    digests = _artifact_digests(workspace, day)
+    if not all(digests.values()):
+        raise OSError('brief render missing while recording artifacts')
     safe_write_json(_artifact_path(workspace, day), {
-        'date': day, 'generation_id': generation_id, 'digests': _artifact_digests(workspace, day),
+        'date': day, 'generation_id': generation_id, 'digests': digests,
     })
 
 
 def artifacts_verified(workspace, day):
     try:
         receipt = json.loads(_artifact_path(workspace, day).read_text(encoding='utf-8'))
-        return (isinstance(receipt, dict) and receipt.get('date') == day
-                and bool(receipt.get('generation_id'))
-                and receipt.get('digests') == _artifact_digests(workspace, day))
+        if not isinstance(receipt, dict) or receipt.get('date') != day or not receipt.get('generation_id'):
+            return False
+        digests = _artifact_digests(workspace, day)
+        return all(digests.values()) and receipt.get('digests') == digests
     except (OSError, ValueError):
         return False

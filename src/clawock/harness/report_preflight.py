@@ -489,7 +489,8 @@ def _collect(argv=None):
             row['ticker']: {key: row.get(key) for key in (
                 'ticker', 'shares', 'current_price', 'market_value', 'total_pnl',
                 'today_change_pct', 'today_pnl', 'data_source')}
-            for row in bucket.get('holdings') or [] if row.get('ticker') and row.get('shares')
+            for row in bucket.get('holdings') or []
+            if isinstance(row, dict) and row.get('ticker') and row.get('shares')
         }
     except (OSError, ValueError, TypeError, AttributeError):
         holdings = {}

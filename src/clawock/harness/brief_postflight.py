@@ -1884,7 +1884,8 @@ def main(argv=None):
                            or any(issue.startswith(prose_claims.ISSUE) for issue in issues)):
             render_issues = [issue for issue in issues if issue.startswith(prose_claims.ISSUE)]
         else:
-            render_input = {'judgment': resolved_judgment, 'claims': renderer} if structured else {}
+            render_input = ({'context': context, 'judgment': resolved_judgment, 'claims': renderer}
+                            if structured else {})
             render_issues, rendered_markdown = brief_render.render_from_workspace(
                 WS, today, plan=normalized_plan,
                 page_url=brief_url(today),
