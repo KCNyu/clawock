@@ -39,6 +39,14 @@ RULES = {
     'dated_fact': r'\d{4}-\d{2}-\d{2}|\b\d{1,2}:\d{2}\b|今天|昨天|昨夜|当天|今晚|当日|目标价|收在|收盘价',
     'price_or_position': r'\d+\.\d+|\d+\s*(?:股|港元|美元)|买入|卖出|加仓|减仓|仓位动作',
     'internal_metadata': r'/root/|/tmp/|/home/|[A-Z]:\\|\b(?:DONE|BLOCKED|session[_ -]?id|task[_ -]?id|run\s*`?\d+)\b|任务\s*id|模型自报|release-\d|[0-9a-f]{8}-[0-9a-f-]{27,}',
+    'credentials': (
+        r"(?:api[_ -]?key|access[_ -]?token|authorization|credential|password|secret)\s*[:=]"
+        r"|\b(?:sk-|ghp_|gho_|xoxb-)[\w-]{12,}"
+    ),
+    'private_location': (
+        r"im\.wechat|telegram:|openclaw-weixin:|agent:main:"
+        r"|(?:file://|~/|/etc/|/var/|/opt/|/srv/)"
+    ),
     'command_like': r'`clawock[ -]',
 }
 

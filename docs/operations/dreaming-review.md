@@ -227,3 +227,19 @@ is refused. No-candidate runs still validate the public projection against its
 manifest and store; they cannot authorize a hand-edited MEMORY.md. The generation
 transaction restores both output files on a post-generation verify/doctor failure
 as well as a generator failure. Reviewed store topics remain for an audited retry.
+
+## Audit before retiring legacy recall
+
+Use the read-only audit before removing legacy Markdown or dreaming/light from recall:
+
+```bash
+python3 ops/host/memory_migration_report.py --workspace "$WORKSPACE" --store "$STORE"
+```
+
+The report counts candidate paragraphs from legacy and light files, ranked
+promotion candidates and diary entries. It excludes existing scheduled briefs
+from the legacy scan. Duplicate means an exact normalized body match against
+the shared store or another eligible candidate. Discard includes transient
+narrative, protected content and numbers without a ledger binding. Extractable
+entries still need semantic review. Paths and hashes are diagnostic output for
+the local operator. Keep the report in the instance's private scratch storage.
