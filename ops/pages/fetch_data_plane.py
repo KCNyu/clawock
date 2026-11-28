@@ -123,11 +123,11 @@ def main() -> int:
     store = GitBranchStore(args.repo, args.branch, remote=args.remote)
     def names(commit, listed):
         names = list(DATA_PLANE_FILES)
-        if brief_archive.INDEX in listed:
+        if args.expect_brief_archive:
+            if brief_archive.INDEX not in listed:
+                raise FileNotFoundError("published brief archive index is missing")
             names.append(brief_archive.INDEX)
             names.extend(brief_archive.index_entries(store._git_blob(commit, brief_archive.INDEX)))
-        elif args.expect_brief_archive:
-            raise FileNotFoundError("published brief archive index is missing")
         return names
 
     try:

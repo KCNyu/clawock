@@ -1,15 +1,7 @@
-"""The off-host brief fallback must fail closed.
-
-brief-fallback.yml runs on a fresh GH-Action checkout and commits with its own
-broad `git add … && commit && push`, which cannot see brief_postflight.maybe_commit's
-`status == 'fail'` refusal. A failing/unvalidated brief was therefore published
-anyway, right after postflight reported it FAILED. The fix is a cross-process
-publish gate the workflow consults; these tests pin both halves.
-
-Run: python3 -m pytest tests/test_brief_fallback_gate.py -q
-"""
+"""The off-host fallback accepts warnings only with a verified publication receipt."""
 import json
-import re
+import shlex
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -58,59 +50,41 @@ def test_postflight_writes_the_gate_before_it_can_raise():
     assert 0 <= gate_at < commit_at, 'publish gate is written after maybe_commit (or not at all)'
 
 
-def test_fallback_workflow_consults_the_gate_and_does_not_swallow_failure():
-    commit_run = _workflow_step_run('Commit + push')
-    # The committer must gate on the publish decision, fail-closed.
-    assert 'brief_postflight_status.json' in commit_run, 'commit step no longer reads the publish gate'
-    assert 'publish_ok' in commit_run, 'commit step no longer checks publish_ok'
-    # Exit 1 is deliberate: exit 0 would publish nothing but leave a crash-before-gate
-    # indistinguishable from a legitimate warning in the Actions result.
-    missing_gate_guard = re.search(
-        r'if\s+\[\s*!\s+-f\s+["\']?logs/brief_postflight_status\.json["\']?\s*\]\s*;\s*then'
-        r'(?P<body>.*?)\bfi\b', commit_run, re.DOTALL)
-    assert missing_gate_guard, 'commit step does not guard a missing postflight gate file'
-    assert re.search(r'\bexit\s+1\b', missing_gate_guard.group('body')), (
-        'missing postflight gate file does not fail the job')
-    # The postflight step must not swallow its own failure into a silent publish...
-    postflight_run = _workflow_step_run('Postflight validation')
-    invocations = [l for l in postflight_run.splitlines()
-                   if 'clawock brief postflight' in l and not l.strip().startswith('#')]
-    assert invocations, 'postflight invocation not found'
-    assert all('|| true' not in l for l in invocations), 'postflight failure is being swallowed again'
-    # ...but a publishable warn (exit 1) must NOT fail the job; only fail (>=2)/crash does.
-    assert '-lt 2' in postflight_run, 'postflight step no longer tolerates a publishable warn (exit 1)'
+def test_fallback_checks_the_verified_archive_before_regenerating():
+    check_run = _workflow_step_run("Check if openclaw already ran today's brief")
+    fetch_at = check_run.index('fetch_data_plane.py --expect-brief-archive')
+    skip_at = check_run.index('brief-archive/memory/${TODAY}-pre-open.md')
+    assert fetch_at < skip_at
+    assert 'git log' not in check_run
 
 
-def test_fallback_pushes_any_commit_ahead_of_origin_not_only_a_dirty_index():
-    """2026-07 audit finding #4: postflight's maybe_commit already commits on the
-    ephemeral runner and its push can fail while reporting success; gating the
-    workflow push on a dirty index then discards that commit (green, unpublished).
-    The commit step must push whenever HEAD is ahead of origin/master."""
-    commit_run = _workflow_step_run('Commit + push')
-    assert 'rev-list FETCH_HEAD..HEAD' in commit_run, (
-        'commit step does not push a commit that is ahead of the remote (maybe_commit '
-        'push-failure would be discarded)')
-    assert 'safe_push.sh' in commit_run, 'commit step no longer pushes via safe_push'
-
-
-def test_fallback_push_branch_propagates_fetch_and_revision_failures(tmp_path):
-    import subprocess
-
-    body = _workflow_step_run('Commit + push')
-    # Exercise the actual final publish block, without real git/network/credentials.
-    block = body[body.index('if ! git fetch origin master -q; then'):]
-    helper = tmp_path / 'ops' / 'publish' / 'safe_push.sh'
-    helper.parent.mkdir(parents=True)
-    helper.write_text('echo PUSHED\n')
-    cases = [(1, 0, '', False), (0, 1, '', False),
-             (0, 0, '', False), (0, 0, 'local-commit', True)]
-    for fetch_rc, revision_rc, ahead, pushed in cases:
-        fake_git = (f'git() {{ if [ "$1" = fetch ]; then return {fetch_rc}; '
-                    f'else echo "{ahead}"; return {revision_rc}; fi; }}\n')
-        result = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', fake_git + block],
-                                cwd=tmp_path, capture_output=True, text=True)
-        assert (result.returncode == 0) == (fetch_rc == revision_rc == 0)
-        assert ('PUSHED' in result.stdout) == pushed
-        if fetch_rc:
-            assert '::error::' in result.stdout
-            assert 'nothing to push' not in result.stdout
+def test_fallback_requires_both_publication_receipts(tmp_path):
+    (tmp_path / 'logs').mkdir()
+    day = '2026-11-28'
+    gate = tmp_path / 'logs' / 'brief_postflight_status.json'
+    body = _workflow_step_run('Validate and publish brief')
+    result = {'date': day, 'commit_ok': True, 'data_plane_status': 'published'}
+    approved = {'today': day, 'publish_ok': True}
+    cases = [
+        (1, result, approved, True),
+        (2, result, approved, False),
+        (1, {}, None, False),
+        (0, result, {**approved, 'publish_ok': False}, False),
+        (0, {**result, 'commit_ok': False}, approved, False),
+        (0, {**result, 'data_plane_status': 'failed'}, approved, False),
+        (0, {**result, 'date': '2026-11-27'}, approved, False),
+    ]
+    for code, emitted, status, ok in cases:
+        if status is None:
+            gate.unlink(missing_ok=True)
+        else:
+            gate.write_text(json.dumps(status))
+        command = (
+            'clawock() { printf "%s\\n" ' + shlex.quote(json.dumps(emitted))
+            + f'; return {code}; }}\n'
+            + body
+        )
+        completed = subprocess.run(
+            ['bash', '-e', '-o', 'pipefail', '-c', command], cwd=tmp_path,
+            env={'TODAY': day, 'RUNNER_TEMP': str(tmp_path)}, capture_output=True)
+        assert (completed.returncode == 0) == ok, completed.stderr

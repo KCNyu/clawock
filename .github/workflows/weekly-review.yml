@@ -79,7 +79,7 @@ jobs:
       - name: Commit + push
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
-        uses: ./.github/actions/clawock-commit
-        with:
-          paths: ${{ env.COMMIT_PATHS }}
-          message: ${{ env.COMMIT_MESSAGE }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash ops/publish/publish_generation.sh --archive-only --brief "$COMMIT_PATHS"
+          bash ops/publish/gha_commit_push.sh "$COMMIT_MESSAGE" "$COMMIT_PATHS"

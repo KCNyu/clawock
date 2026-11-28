@@ -3,7 +3,7 @@ name: Brief Fallback (off-host LLM)
 # 08:25 HKT = 00:25 UTC 工作日, 晚 openclaw 25 分钟兜底
 # 窗口从 5min 拉宽到 25min (2026-05-30): 主 cron 08:00 启动但 LLM 生成常要几分钟,
 # 5min 太窄会在主 brief 落地前误判"没出"→重复生成→push 撞主 cron commit 的 rebase 冲突
-# 如果今天的 pre-open.md 已存在（git log 只作兜底）→ skip
+# 如果已发布今天的 pre-open.md → skip
 # 否则用远端 MiniMax（唯一 provider，2026-09-13 起不再有 opencode 回退）直跑 brief
 #
 # #780: this backstop had never once produced a brief. Every one of the 34
@@ -128,10 +128,6 @@ jobs:
           TODAY=$(TZ=Asia/Hong_Kong date +%Y-%m-%d)
           HOUR=$(TZ=Asia/Hong_Kong date +%-H)
           echo "TODAY=$TODAY" >> "$GITHUB_ENV"
-          # File truth first: the brief commits memory/{date}-pre-open.md, so its
-          # presence in the checkout is depth-proof. The old git-log grep broke on
-          # 2026-06-10: fetch-depth 10 + a busy morning (brief at depth 19) + 4.5h
-          # GHA delay → "no brief found" → near-duplicate brief at 12:53 HKT.
           if [ "$REHEARSE" = "true" ]; then
             # A rehearsal deliberately ignores every skip: its purpose is to
             # reach the generation chain. It cannot commit or publish — the
@@ -139,8 +135,11 @@ jobs:
             echo "rehearsal — running the generation chain and discarding the result"
             echo "skip=false" >> "$GITHUB_OUTPUT"
             echo "branch=rehearsal" >> "$GITHUB_OUTPUT"
-          elif [ -f "memory/${TODAY}-pre-open.md" ] || \
-             git log --since "$TODAY 00:00" --grep "daily deep brief $TODAY" --oneline | grep -q "."; then
+            exit 0
+          fi
+          python3 ops/pages/fetch_data_plane.py --expect-brief-archive \
+            --into "$RUNNER_TEMP/brief-archive"
+          if [ -f "$RUNNER_TEMP/brief-archive/memory/${TODAY}-pre-open.md" ]; then
             echo "today's brief already exists — skip fallback"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "branch=already-exists" >> "$GITHUB_OUTPUT"
@@ -258,19 +257,30 @@ jobs:
           git checkout -- . 2>/dev/null || true
           git clean -fd memory assets/data 2>/dev/null || true
 
-      - name: Postflight validation
+      - name: Validate and publish brief
         if: steps.check.outputs.skip != 'true' && steps.check.outputs.branch != 'rehearsal'
-        # postflight exits 0=pass, 1=warn (both publishable), 2=fail. pass/warn keep the
-        # job green; a real fail (2) blocks the commit. Exit 1 can also mean an uncaught
-        # Python exception, so the next step requires the gate file that a legitimate
-        # warn wrote. NOT `|| true`, which swallowed every failure into a silent publish,
-        # and NOT a bare pipe, which would turn a publishable warn red under pipefail.
+        # Postflight owns the exact git paths and the safe_push.sh retry. The
+        # workflow authenticates only this deterministic publication step.
+        env:
+          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set +e
-          clawock brief postflight > "${RUNNER_TEMP:-/tmp}/postflight.log" 2>&1
+          clawock brief postflight > "$RUNNER_TEMP/postflight.json" 2> "$RUNNER_TEMP/postflight.log"
           code=$?
-          tail -20 "${RUNNER_TEMP:-/tmp}/postflight.log"
+          set -e
+          tail -20 "$RUNNER_TEMP/postflight.log"
           [ "$code" -lt 2 ] || exit "$code"
+          python3 - "$RUNNER_TEMP/postflight.json" "$TODAY" <<'PY'
+          import json, sys
+          result, gate = (json.load(open(path)) for path in (
+              sys.argv[1], "logs/brief_postflight_status.json"))
+          if (gate.get("today") != sys.argv[2] or gate.get("publish_ok") is not True
+                  or result.get("date") != sys.argv[2]
+                  or result.get("commit_ok") is not True
+                  or result.get("data_plane_status") != "published"):
+              raise SystemExit("postflight did not confirm publication of today's brief")
+          PY
 
       - name: Report which cards the recovery restored
         # #302's detector was "scan master's history for a build whose payload
@@ -308,50 +318,6 @@ jobs:
           else:
               print('Nothing restored — every source was present in this checkout.')
           PY
-
-      - name: Commit + push
-        # Reached when postflight exits <2: pass/warn, or an uncaught exception (exit 1).
-        # The publish gate distinguishes a legitimate warn from a crash-before-gate;
-        # missing gate fails the job, while explicit publish_ok=false publishes nothing.
-        # A rehearsal proves the chain runs; it must not put its output anywhere
-        # a reader could mistake for a real brief.
-        if: steps.check.outputs.skip != 'true' && steps.check.outputs.branch != 'rehearsal'
-        env:
-          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
-        run: |
-          if [ ! -f "logs/brief_postflight_status.json" ]; then
-            echo "postflight crashed before writing the publish gate (logs/brief_postflight_status.json) — refusing to publish"
-            exit 1
-          fi
-          ok=$(python3 -c "import json;print(json.load(open('logs/brief_postflight_status.json'))['publish_ok'])" 2>/dev/null || echo "None")
-          if [ "$ok" != "True" ]; then
-            echo "publish gate: publish_ok=$ok — refusing to commit a non-passing (or crashed) brief"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add memory/ portfolio.json assets/data/ 2>/dev/null || true
-          if ! git diff --cached --quiet; then
-            git commit -m "memory: brief-fallback (off-host-llm) $TODAY"
-          fi
-          # Push whenever HEAD is ahead of the remote, NOT only on a dirty index.
-          # postflight's maybe_commit already commits here, and its push can FAIL on
-          # this ephemeral runner while still returning commit_ok=true; gating the
-          # push on a dirty index then leaves that commit unpushed and the runner
-          # discards it — green but nothing published (2026-07 audit finding #4).
-          # Compare against FETCH_HEAD (always set by the fetch) rather than the
-          # remote-tracking ref origin/master, which `git fetch origin master` only
-          # updates opportunistically.
-          if ! git fetch origin master -q; then
-            echo "::error::Unable to fetch origin/master; committed brief may remain unpublished"
-            exit 1
-          fi
-          ahead="$(git rev-list FETCH_HEAD..HEAD)"
-          if [ -n "$ahead" ]; then
-            bash ops/publish/safe_push.sh
-          else
-            echo "nothing to push — HEAD not ahead of origin/master"
-          fi
 
       - name: Record which branch this run took
         # The defect this exists for is not a crash — it is six weeks of green

@@ -145,7 +145,7 @@ jobs:
       # checkout happened to carry is how a site serves a stale generation with
       # every gate still green.
       - name: Fetch the published generation
-        run: python3 ops/pages/fetch_data_plane.py
+        run: python3 ops/pages/fetch_data_plane.py --expect-brief-archive
 
       - name: Stage the owned website source
         run: python3 ops/pages/stage_site.py --output-dir _site-source

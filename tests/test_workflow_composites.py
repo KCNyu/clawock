@@ -25,11 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 ACTIONS = ROOT / ".github" / "actions"
 
-# brief-fallback publishes through its own step on purpose: it gates on
-# logs/brief_postflight_status.json before committing, and pushes only when HEAD
-# is genuinely ahead of FETCH_HEAD — postflight's internal commit can succeed
-# while its push fails, and gating on a dirty index would strand that commit on
-# a runner about to be destroyed. That is a documented difference, not a copy.
+# Brief fallback calls the harness postflight, which owns booking and publishing
+# the brief generation. Only its runner-local bot identity is configured inline.
 PUBLISHES_ITS_OWN = {"brief-fallback.yml"}
 
 
@@ -77,13 +74,12 @@ def test_no_workflow_hand_rolls_the_commit_and_push(workflow):
     )
 
 
-def test_the_documented_exception_still_earns_it():
-    """If brief-fallback ever loses the two things that make it different, it is
-    a copy again and belongs in the composite."""
+def test_the_brief_fallback_delegates_publication_to_postflight():
     text = (ROOT / ".github" / "workflows" / "brief-fallback.yml").read_text(encoding="utf-8")
-    assert "brief_postflight_status.json" in text, "the publish gate is gone"
-    assert "FETCH_HEAD" in text, "the ahead-of-remote check is gone"
-    assert "safe_push.sh" in text
+    assert "brief_postflight_status.json" in text
+    assert "clawock brief postflight" in text
+    assert "git add" not in text
+
 
 
 def test_the_commit_composite_can_only_publish_through_safe_push():

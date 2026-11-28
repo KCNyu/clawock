@@ -34,7 +34,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 
 ROOT = workspace_root(_CHECKOUT)
 
-from clawock.publish import GitBranchStore, GitHubDispatchDeployer  # noqa: E402
+from clawock.publish import GitBranchStore, GitHubDispatchDeployer, brief_archive  # noqa: E402
 from clawock.publish.outputs import (  # noqa: E402
     first_paint_value,
     load_contract,
@@ -208,6 +208,8 @@ def main() -> int:
     parser.add_argument("--deploy", action="store_true",
                         help="ask GitHub to rebuild the site when this publish "
                              "changed the branch")
+    parser.add_argument("--brief", metavar="PATH",
+                        help="include the validated public brief in the dashboard generation")
     args = parser.parse_args()
 
     root = Path(args.root)
@@ -238,8 +240,17 @@ def main() -> int:
             note_failure(PUBLISH_FAILED, "an output file could not be read")
             return 1
 
+    briefs = {}
+    if args.brief:
+        try:
+            briefs = brief_archive.read_brief(root, args.brief)
+        except (OSError, ValueError) as exc:
+            print(f"✗ data-plane: cannot read validated brief: {exc}", file=sys.stderr)
+            note_failure(PUBLISH_FAILED, "the validated brief could not be read")
+            return 1
+
     try:
-        findings = credential_findings(files)
+        findings = credential_findings({**files, **briefs})
     except Exception as exc:  # no verdict is not a pass
         print(f"✗ data-plane: credential scan did not run: {exc}", file=sys.stderr)
         note_failure(PUBLISH_FAILED, "the credential scan did not run")
@@ -254,9 +265,15 @@ def main() -> int:
         args.repo or root, args.branch, remote=args.remote,
         author_name=BOT_NAME, author_email=BOT_EMAIL,
     )
+    expand = None
+    if briefs:
+        def expand(previous):
+            return brief_archive.generation_index(store, previous, briefs)
+
     try:
         result = store.publish(
-            files, label=generation_label(root), overlay=True, remove=DATA_PLANE_OPTIONAL)
+            {**files, **briefs}, label=generation_label(root), overlay=True,
+            remove=DATA_PLANE_OPTIONAL, expand=expand)
     except subprocess.TimeoutExpired as exc:
         # A timeout is a diagnosis, not a crash. It is a SIBLING of
         # CalledProcessError, so before 2026-09-07 it fell through every handler
@@ -283,7 +300,7 @@ def main() -> int:
         print(f"✗ data-plane: {exc}", file=sys.stderr)
         note_failure(PUBLISH_FAILED, "the generation was rejected before publishing")
         return 1
-    if not result.changed:
+    if not result.changed and not briefs:
         # No deploy request either: the site already serves this generation, and
         # asking on every quiet tick would rebuild it 72 times a day for nothing.
         print(f"· data-plane: {args.remote}/{args.branch} already holds this "
@@ -294,7 +311,7 @@ def main() -> int:
 
     if not args.deploy:
         return 0
-    if not deploy_relevant(store, result.previous, files, root):
+    if not briefs and not deploy_relevant(store, result.previous, files, root):
         print(f"· data-plane: {result.receipt[:12]} differs from "
               f"{(result.previous or '')[:12]} only in automation status — "
               f"pages polls read it from the branch; no site deploy requested")

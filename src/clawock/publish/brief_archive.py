@@ -1,6 +1,7 @@
 """The public brief archive carried within a pinned data-plane generation."""
 import hashlib
 import json
+from pathlib import Path
 import re
 
 INDEX = "assets/data/brief-archive.json"
@@ -38,3 +39,19 @@ def verify(files: dict[str, str]) -> None:
     for path, digest in index_entries(files[INDEX]).items():
         if path not in files or fingerprint(files[path]) != digest:
             raise ValueError(f"brief archive entry missing or corrupt: {path}")
+
+
+def read_brief(root: Path, path: str) -> dict[str, str]:
+    if not BRIEF_PATH.fullmatch(path):
+        raise ValueError("expected a public daily or weekly Markdown path")
+    source = root / path
+    if source.is_symlink() or not source.resolve().is_relative_to(root.resolve()):
+        raise ValueError("brief must resolve inside the workspace")
+    return {path: source.read_bytes().decode("utf-8")}
+
+
+def generation_index(store, previous: str | None, briefs: dict[str, str]) -> dict[str, str]:
+    prior = None
+    if previous and store._git("ls-tree", "--name-only", previous, INDEX):
+        prior = store._git_blob(previous, INDEX)
+    return {INDEX: update_index(prior, briefs)}

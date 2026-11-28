@@ -489,3 +489,40 @@ def test_overlay_retries_on_the_current_parent_without_losing_another_writer(rep
         'assets/data/overview.json': GENERATION['assets/data/overview.json'],
         'memory/weekly/2026-W48.md': 'published',
     }
+
+
+def test_daily_publish_updates_dashboard_and_archive_together(repo, tmp_path):
+    from ops.publish import publish_data_branch
+    from clawock.publish import brief_archive
+
+    publisher = ROOT / "ops/publish/publish_data_branch.py"
+    fetcher = ROOT / "ops/pages/fetch_data_plane.py"
+    current = "memory/2026-11-28-pre-open.md"
+    previous = {"memory/weekly/2026-W47.md": "# Last week's review\n"}
+    (repo / current).parent.mkdir()
+    (repo / current).write_text("# Validated brief\n")
+    for name in publish_data_branch.DATA_PLANE_FILES:
+        target = repo / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("{}\n")
+
+    store = GitBranchStore(repo, "data-plane")
+    seeded = store.publish({**previous, brief_archive.INDEX: brief_archive.update_index(None, previous)})
+    subprocess.run([sys.executable, str(publisher), "--root", str(repo),
+                    "--brief", current], check=True, capture_output=True)
+    _git(repo, "fetch", "origin", "data-plane")
+    assert _git(repo, "rev-parse", "origin/data-plane^") == seeded.receipt
+
+    dashboard_cache = tmp_path / "dashboard"
+    subprocess.run([sys.executable, str(fetcher), "--repo", str(repo), "--into",
+                    str(dashboard_cache)], check=True, capture_output=True)
+    assert not (dashboard_cache / "memory").exists()
+
+    pages_source = tmp_path / "pages"
+    subprocess.run([sys.executable, str(fetcher), "--repo", str(repo), "--into",
+                    str(pages_source), "--expect-brief-archive"], check=True, capture_output=True)
+    assert (pages_source / current).read_bytes() == (repo / current).read_bytes()
+    for name, body in previous.items():
+        assert (pages_source / name).read_text() == body
+    for name in publish_data_branch.DATA_PLANE_FILES:
+        assert (pages_source / name).read_bytes() == (repo / name).read_bytes()
