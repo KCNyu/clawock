@@ -345,7 +345,7 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None,
         print(f'(could not record dashboard build status: {e})', file=sys.stderr)
 
 
-def rebuild_dashboard(ws=None):
+def rebuild_dashboard(ws=None, *, brief_path=None):
     """Run the installed dashboard builder to refresh its manifest-listed public outputs.
 
     Refreshes today's snapshot AND syncs GH Action-managed data files first, so
@@ -452,7 +452,10 @@ def rebuild_dashboard(ws=None):
                 full += f'\ndecision-map: {error}'
         if build_ok:
             _t0 = time.monotonic()
-            publish_ok, publish_detail = _publish_generation(ws)
+            publish_ok, publish_detail = (
+                _publish_generation(ws, '--brief', brief_path) if brief_path
+                else _publish_generation(ws)
+            )
             timings['publish_generation'] = round(time.monotonic() - _t0, 3)
             full += publish_detail
         ok = bool(build_ok and publish_ok)
@@ -466,7 +469,7 @@ def rebuild_dashboard(ws=None):
         return False, str(e)
 
 
-def _publish_generation(ws):
+def _publish_generation(ws, *options):
     """Put the generation this rebuild just produced on the data branch.
 
     Here rather than in each postflight on purpose. Before #326 a postflight
@@ -490,7 +493,7 @@ def _publish_generation(ws):
     """
     try:
         r = subprocess.run(
-            ['bash', str(ws / 'ops' / 'publish' / 'publish_generation.sh')],
+            ['bash', str(ws / 'ops' / 'publish' / 'publish_generation.sh'), *options],
             capture_output=True, text=True,
             # DERIVED, never a round number — same rule as PUSH_TIMEOUT_SECONDS
             # below. This was a hardcoded 120s until 2026-09-07: the identical

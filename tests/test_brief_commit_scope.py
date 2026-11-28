@@ -22,7 +22,9 @@ def test_brief_commit_is_limited_to_this_generations_paths(tmp_path, monkeypatch
     monkeypatch.setattr(brief_postflight, 'WS', tmp_path)
     for name in ('log_decisions', 'record_risk_stances', 'record_strategy_lab'):
         monkeypatch.setattr(brief_postflight, name, lambda *_a, **_k: True)
-    monkeypatch.setattr(brief_postflight, 'rebuild_dashboard', lambda: (True, ''))
+    published = []
+    monkeypatch.setattr(brief_postflight, 'rebuild_dashboard',
+                        lambda *, brief_path: published.append(brief_path))
     monkeypatch.setattr(brief_postflight, 'push_with_rebase_retry', lambda: (True, ''))
 
     calls = []
@@ -34,6 +36,8 @@ def test_brief_commit_is_limited_to_this_generations_paths(tmp_path, monkeypatch
     monkeypatch.setattr(brief_postflight, '_git', git)
 
     assert brief_postflight.maybe_commit('pass', day) == (True, 'committed + pushed')
+
+    assert published == [f'memory/{day}-pre-open.md']
 
     add = next(args for args in calls if args[0] == 'add')
     assert 'memory/' not in add, 'the whole memory/ directory is still staged'

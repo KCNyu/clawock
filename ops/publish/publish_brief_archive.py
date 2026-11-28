@@ -11,8 +11,8 @@ _CHECKOUT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_CHECKOUT))
 sys.path.insert(0, str(_CHECKOUT / "src"))
 
-from publish_data_branch import BOT_EMAIL, BOT_NAME, DATA_BRANCH, ROOT, credential_findings  # noqa: E402
-from clawock.publish import GitBranchStore, brief_archive  # noqa: E402
+from publish_data_branch import BOT_EMAIL, BOT_NAME, DATA_BRANCH, REPOSITORY, ROOT, credential_findings  # noqa: E402
+from clawock.publish import GitBranchStore, GitHubDispatchDeployer, brief_archive  # noqa: E402
 
 
 def pub_briefs(store: GitBranchStore, files: dict[str, str]):
@@ -20,13 +20,10 @@ def pub_briefs(store: GitBranchStore, files: dict[str, str]):
     if findings:
         raise ValueError("credential scan refused the public brief archive update")
 
-    def expand(previous):
-        index = None
-        if previous and store._git("ls-tree", "--name-only", previous, brief_archive.INDEX):
-            index = store._git_blob(previous, brief_archive.INDEX)
-        return {brief_archive.INDEX: brief_archive.update_index(index, files)}
-
-    return store.publish(files, label="data: brief archive", overlay=True, expand=expand)
+    return store.publish(
+        files, label="data: brief archive", overlay=True,
+        expand=lambda previous: brief_archive.generation_index(store, previous, files),
+    )
 
 
 def tracked_briefs(store: GitBranchStore, ref: str) -> dict[str, str]:
@@ -44,20 +41,22 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--remote", default="origin")
     parser.add_argument("--branch", default=DATA_BRANCH)
+    parser.add_argument("--deploy", action="store_true",
+                        help="request a Pages rebuild from the published archive")
     args = parser.parse_args()
     store = GitBranchStore(args.root, args.branch, remote=args.remote,
                            author_name=BOT_NAME, author_email=BOT_EMAIL)
     if args.seed_ref:
         briefs = tracked_briefs(store, args.seed_ref)
     else:
-        if not brief_archive.BRIEF_PATH.fullmatch(args.brief):
-            parser.error("--brief must name a public daily or weekly Markdown file")
-        path = args.root / args.brief
-        if path.is_symlink() or not path.resolve().is_relative_to(args.root.resolve()):
-            parser.error("--brief must resolve inside the workspace")
-        briefs = {args.brief: path.read_bytes().decode("utf-8")}
+        briefs = brief_archive.read_brief(args.root, args.brief)
     result = pub_briefs(store, briefs)
     print(f"brief archive: {len(briefs)} inputs, receipt {result.receipt}, changed={result.changed}")
+    if args.deploy:
+        # Retry the deploy request even when the previous attempt already pushed.
+        request = GitHubDispatchDeployer(REPOSITORY).request(
+            reason=f"brief archive {result.receipt[:12]}")
+        print(f"brief archive: requested {request}")
     return 0
 
 

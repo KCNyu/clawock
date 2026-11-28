@@ -102,7 +102,14 @@ daily or weekly publication can update its own entry with `--brief <path>`.
 Each update preserves the other publisher's paths and fast-forwards from
 the current branch tip. A competing update retries against the new tip.
 
-Use `fetch_data_plane.py --expect-brief-archive` in the Pages build at cutover.
-Before enabling it, verify the complete seeded index and route both scheduled
-writers to the archive publisher. Retain existing URLs and remove the old
-source-branch write path in the same cutover.
+Pages and the off-host brief deduplication check require the verified archive.
+Dashboard-only recovery fetches only Dashboard members. An accepted daily brief
+writes the archive and Dashboard generation in one fast-forward publication.
+The weekly workflow overlays its single validated review. Both use
+`publish_generation.sh` for publishing identity and Pages dispatch.
+
+During rollout, the daily and weekly writers also keep their existing
+source-branch commit so the live delivery and weekly health checks can still
+observe new files. The source-branch paths can exit tracking once those
+checks read archive evidence and the next real daily and weekly publications
+have been verified. The master history and all brief URLs remain available.
