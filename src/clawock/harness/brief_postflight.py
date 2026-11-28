@@ -1008,7 +1008,7 @@ CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id', '敷衍词',
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
     'book inputs invalid', 'book totals mismatch:',
-    '仓位支配度不符', '判断与计划股数冲突',
+    '仓位支配度不符', '判断与计划股数冲突', '执行计数口径不符',
     'plan.json watch_levels', '[RATIONALE_PRICE_SCALE]',
     '引用了 private topic', prose_claims.ISSUE,
 ]  # table mismatch, cross-generation output and placeholder prose are critical
@@ -1022,6 +1022,7 @@ from clawock.harness.validation import (
     ADVISORY_MARK,
     FORBIDDEN_PHRASES,  # one table for all three entries
     categorize_issues,
+    execution_count_issues,
     check_identifier_leak,
     check_numeric_claims,
     with_compute_receipts,
@@ -1862,6 +1863,7 @@ def main(argv=None):
         issues.extend(f'{issue} {ADVISORY_MARK}' for issue in
                       check_identifier_leak(_judgment_text(resolved_judgment), label='简报判断正文'))
         issues.extend(_peer_divergence_issues(judgment_path, context, overlay=resolved_judgment))
+        issues.extend(execution_count_issues(_judgment_text(resolved_judgment), context))
     elif not structured:
         issues.extend(_judgment_gap_issues(judgment_path, decision_packet))
         issues.extend(_card_self_reference_issues(judgment_path))

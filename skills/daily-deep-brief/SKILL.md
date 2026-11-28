@@ -292,9 +292,9 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 #### ⚡ 板块全景
 
-以本次 `peer_scan` 的 `listed_peers`、`auto_peers` 与 `self_pct_1d` 判断持仓相对强弱。表格的板块、标的、涨跌与相对位置都由程序从这份快照生成；外部搜索用于补归因。未入本代结构化输入的搜索信息可作为核查线索。
+以本次 `peer_scan` 的 `listed_peers`、`auto_peers` 与 `self_pct_1d` 判断持仓相对强弱。表格的标的、涨跌与同业相对名次由程序从这份快照生成，默认按快照主题分组；外部搜索用于补归因。未入本代结构化输入的搜索信息可作为核查线索。
 
-归因写到 `judgment.narrative.sector_read` 和逐票 `peer_read`。如需同步逐票归因到面板，另写 `memory/.tmp/brief-sector-draft-{date}.json`，包含本代 `context_generation_id` 和 `attribution` 对象（标的代码到文字）。价位、涨跌、来源和时间用 Step 4 的事实引用。
+板块叙事写到 `judgment.narrative.sector_read`，简报和面板共用。逐票归因写到 `peer_read`。如需为面板补充逐票归因与同业催化，另写 `memory/.tmp/brief-sector-draft-{date}.json`，包含本代 `context_generation_id`、`attribution`（持仓代码到归因文字）和 `catalysts`（同业代码到催化文字）。`themes` 可选，按持仓代码填写专题名。同市场同场次的同名主题会合并展示。价位、涨跌、来源和时间用 Step 4 的事实引用。
 
 #### Tier 2 — Bull vs Bear（必须有真分歧）
 

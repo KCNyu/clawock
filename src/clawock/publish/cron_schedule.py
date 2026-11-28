@@ -29,7 +29,8 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from clawock.publish.outcomes import (
-    GRACE_MINUTES, ProductStatus, delivered_data_only_fallback, displayed_product,
+    GRACE_MINUTES, REPORT_UPGRADE_CONFLICT, ProductStatus, delivered_data_only_fallback,
+    displayed_product, report_upgrade_stage_conflict,
 )
 from clawock.scheduling import effective_schedule, parse_cron_slots
 from clawock.sessions import HKT
@@ -112,6 +113,8 @@ def _narrate_degraded(record):
     issues = postflight.get('issue_count') or 0
     data_plane = postflight.get('data_plane_status')
     llm = (record.get('stages') or {}).get('llm') or {}
+    if report_upgrade_stage_conflict(record):
+        return with_delivery(WATCH, REPORT_UPGRADE_CONFLICT)
     if llm.get('status') == 'failed':
         return with_delivery(NEEDS_ACTION,
                              '模型链失败后按确定性兜底出货；这一档没有语义报告，兜底只含数据块')

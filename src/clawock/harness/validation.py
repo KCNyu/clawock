@@ -557,8 +557,7 @@ def _concentration_claim_issues(text, ctx, scoped_prose=()):
     book_projections = _unique_ticker_projections(ctx.get('plan_book_trim_projections') or [])
     subjects = position_subjects(ctx, (ticker for ticker, _, _, _ in scoped_prose))
     review_books = {
-        ticker: {**{key: value for key, value in row['trim_to_review_line'].items()
-                    if key != 'post_trim_weight_pct'}, 'price_basis': 'book_mark'}
+        ticker: {**row['trim_to_review_line'], 'price_basis': 'book_mark', 'review_only': True}
         for ticker, row in reviews.items() if row.get('trim_to_review_line')
     }
     issues = {}
@@ -571,7 +570,7 @@ def _concentration_claim_issues(text, ctx, scoped_prose=()):
             projection, book = own_projection, own_book
         else:
             projection, book = projections.get(ticker), book_projections.get(ticker)
-        # A review without a sell still supplies the minimum and remainder.
+        # A review without a planned sale still supplies a minimum-sale scenario.
         book = book or review_books.get(ticker)
         if projection is None and (own_ticker == ticker or ticker not in projections):
             projection = book
@@ -586,6 +585,31 @@ def _concentration_claim_issues(text, ctx, scoped_prose=()):
     return list(issues)
 
 
+_EXECUTION_LABELS = {
+    '执行': 'followed', '已执行': 'followed', '未执行': 'not_followed',
+    '判不了': 'unknown', '无法判定': 'unknown',
+}
+_EXECUTION_LABEL = '|'.join(_EXECUTION_LABELS)
+_EXECUTION_NUMBER = r'\d+(?:,\d{3})*'
+_EXECUTION_COUNT = rf'(?:{_EXECUTION_LABEL})\s*{_EXECUTION_NUMBER}\s*[次条笔]'
+_EXECUTION_SCOPE = re.compile(
+    rf'(主动|被动)\s*(?:建议|决策)\s*({_EXECUTION_COUNT}(?:\s*[、，,]\s*{_EXECUTION_COUNT})*)')
+_EXECUTION_ITEM = re.compile(rf'({_EXECUTION_LABEL})\s*({_EXECUTION_NUMBER})')
+
+
+def execution_count_issues(text, context):
+    """Compare explicit execution counts with their stated population."""
+    populations = ((context.get('decision_metrics') or {}).get('execution_by_kind') or {})
+    issues = {}
+    for scope, counts in _EXECUTION_SCOPE.findall(text):
+        row = populations.get('active' if scope == '主动' else 'passive') or {}
+        for label, raw in _EXECUTION_ITEM.findall(counts):
+            expected = row.get(_EXECUTION_LABELS[label])
+            if type(expected) is int and int(raw.replace(',', '')) != expected:
+                issues[f'执行计数口径不符: {scope}建议{label} {raw} 次，同代台账为 {expected} 次'] = None
+    return list(issues)
+
+
 def check_numeric_claims(text, ctx, *, scoped_prose=()):
     """Reconcile bound concentration claims and aggregate weak provenance clues.
 
@@ -596,6 +620,7 @@ def check_numeric_claims(text, ctx, *, scoped_prose=()):
     if scoped_prose:
         text = '\n'.join([text, *(f"- **{ticker or ''}** ·\n{prose}"
                                   for ticker, prose, _, _ in scoped_prose)])
+    concentration_issues.extend(execution_count_issues(text, ctx or {}))
     known = _context_numbers(ctx)
     shown_products = _shown_product_results(text, known)
     unverified = []

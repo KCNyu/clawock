@@ -75,6 +75,22 @@ def displayed_product(record, now):
     return final
 
 
+def report_upgrade_stage_conflict(record) -> bool:
+    """Read old mixed-attempt rows using the confirmed delivery as evidence."""
+    stages = record.get('stages') or {}
+    primary = stages.get('primary_delivery') or {}
+    postflight = stages.get('postflight') or {}
+    llm = stages.get('llm') or {}
+    return (primary.get('status') == 'success'
+            and (primary.get('wechat_ok') is True or primary.get('telegram_ok') is True)
+            and primary.get('deterministic_fallback') is False
+            and llm.get('status') == 'failed'
+            and postflight.get('delivered') == 'data-block only (prose rejected)')
+
+
+REPORT_UPGRADE_CONFLICT = '完整报告已重投送达，存档校验结果来自早期兜底稿'
+
+
 def delivered_data_only_fallback(record) -> bool:
     """The watchdog delivered a data block and the product still needs attention."""
     final = record.get('final_product') or {}
@@ -132,6 +148,8 @@ def _product_evidence(records):
         status = llm.get("status")
         if status == "not_required":
             quality = "not_required"
+        elif report_upgrade_stage_conflict(record):
+            quality = "unknown"
         elif status == "failed" or (record.get("final_product") or {}).get("fallback_only"):
             quality = "unavailable"
         elif status == "success" or (status == "warning" and llm.get("escalating_count") == 0):

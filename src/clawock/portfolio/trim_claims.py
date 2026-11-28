@@ -14,6 +14,7 @@ class _Field(Enum):
     REVIEW_REMAINDER = auto()
     ENOUGH_TO_REACH_LINE = auto()
     POST_SALE_WEIGHT = auto()
+    REVIEW_LINE_WEIGHT = auto()
     CONCENTRATION = auto()
     ABOVE_LINE = auto()
     AT_OR_BELOW_LINE = auto()
@@ -49,7 +50,7 @@ _MARKER = r'(?:当前价|现价|账面价|简报时现价|(?:计划)?触发价)'
 _CURRENCY = r'(?:港元|美元|HKD|USD)'
 _PRICE_BASIS = re.compile(
     rf'按\s*(?:(?P<label>{_MARKER})\s*(?:(?P<label_price>{_NUMBER})\s*'
-    rf'{_CURRENCY}?)?\s*(?:计)?算'
+    rf'{_CURRENCY}?)?\s*(?:重|计)?算'
     rf'|(?:今天|今日)?\s*(?P<price>{_NUMBER})\s*{_CURRENCY}'
     r'\s*(?:的\s*(?:复核线)?情景\s*)?(?:重|计)?算)', re.I)
 _REVIEW_LABEL = re.compile(r'复核线(?:数量|股数|尺寸)\s*(?:是|为|[:：])?\s*$')
@@ -73,6 +74,10 @@ _POST_WEIGHT = re.compile(
     rf'|(?:卖|减)\s*{_NUMBER}\s*股\s*(?:能把|把|之后)\s*{_SAME_POSITION}'
     rf'\s*{_WEIGHT_DESTINATION})'
     rf'(?:约)?\s*({_NUMBER})\s*[%％]')
+_REVIEW_POST = re.compile(
+    rf'(?:卖|减)(?:仓)?(?:到|至|回到)\s*(?:单名)?复核线(?:之)?后'
+    rf'[^，,。；;%％]{{0,8}}(?:占比|支配度|集中度)\s*(?:是|为|[:：]|约)?\s*'
+    rf'({_NUMBER})\s*[%％]')
 _POST_TRIM_SCOPE = re.compile(
     rf'[卖减](?:完|掉|了)|(?:卖出|减仓|减持|[卖减]\s*{_NUMBER}\s*股)\s*(?:之)?后')
 _CURRENT_SCOPE = re.compile(r'当前|目前|现在|减仓(?:之)?前|卖出(?:之)?前')
@@ -172,14 +177,14 @@ def trim_claim_projection(text, projection, book_projection=None):
 def _scenarios(text, projection, book_projection):
     for sentence in _SENTENCE.split(text):
         start = 0
-        scenario = projection
+        scenario, basis = projection, None
         for mark in _PRICE_BASIS.finditer(sentence):
-            if scenario is not None and sentence[start:mark.start()].strip(' ，,、'):
-                yield sentence[start:mark.start()], scenario
+            if sentence[start:mark.start()].strip(' ，,、'):
+                yield sentence[start:mark.start()], scenario, basis
             start = mark.start()
-            scenario = _price_scenario(mark, projection, book_projection) or None
-        if scenario is not None and start < len(sentence):
-            yield sentence[start:], scenario
+            scenario, basis = _price_scenario(mark, projection, book_projection), mark[0]
+        if start < len(sentence):
+            yield sentence[start:], scenario, basis
 
 
 def _share_claims(sentence):
@@ -230,7 +235,13 @@ def _share_claims(sentence):
 
 def _weight_claims(sentence, review):
     destinations = set()
+    for match in _REVIEW_POST.finditer(sentence):
+        destinations.add(match.start(1))
+        if not _NEGATED.search(_CLAUSE.split(sentence[:match.start()])[-1]):
+            yield _Claim(_Field.REVIEW_LINE_WEIGHT, match[1])
     for match in _POST_WEIGHT.finditer(sentence):
+        if match.start(1) in destinations:
+            continue
         destinations.add(match.start(1))
         prefix = _CLAUSE.split(sentence[:match.start()])[-1]
         if _NEGATED.search(prefix):
@@ -301,16 +312,31 @@ def _share_warning(claim, scenario):
 def trim_claim_warnings(text, projection, book_projection=None, *, review=None):
     """Reconcile claims for one ticker. Callers bind the ticker to its facts."""
     warnings = {}
-    for sentence, scenario in _scenarios(text, projection, book_projection):
-        if scenario or review:
-            if '%' in sentence or '％' in sentence or '复核线' in sentence:
-                for claim in _weight_claims(sentence, review):
-                    if warning := _weight_warning(claim, scenario, review):
-                        warnings[warning] = None
-            if scenario.get('shares_to_review_line') is not None:
-                for claim in _share_claims(sentence):
-                    if warning := _share_warning(claim, scenario):
-                        warnings[warning] = None
+    for sentence, scenario, basis in _scenarios(text, projection, book_projection):
+        if not (scenario or review or (basis and (projection or book_projection))):
+            continue
+        weight_claims = list(_weight_claims(sentence, review))
+        share_claims = list(_share_claims(sentence))
+        if basis and not scenario and (weight_claims or share_claims):
+            warnings[f'「{basis}」没有对应的计划或账本价格情景，无法核对；请复核'] = None
+            continue
+        # The review-only projection describes the minimum sale. Its weight
+        # cannot be used to check a different, hypothetical sale.
+        minimum = (review or {}).get('trim_to_review_line') or {}
+        for claim in weight_claims:
+            weight_scenario = scenario
+            if claim.field == _Field.REVIEW_LINE_WEIGHT:
+                if minimum and minimum.get('price') == scenario.get('price'):
+                    weight_scenario = minimum
+                elif scenario.get('shares') != scenario.get('shares_to_review_line'):
+                    continue
+            elif scenario.get('review_only'):
+                weight_scenario = {**scenario, 'post_trim_weight_pct': None}
+            if warning := _weight_warning(claim, weight_scenario, review):
+                warnings[warning] = None
+        for claim in share_claims:
+            if warning := _share_warning(claim, scenario):
+                warnings[warning] = None
     return list(warnings)
 
 

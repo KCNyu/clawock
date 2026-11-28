@@ -1168,6 +1168,10 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   assert.match(css, hashed("t1"), "T+1 chip block required (#685)");
   assert.match(css, /_t1\.[A-Za-z0-9_-]+_up\{/, "T+1 up tone class required (#685)");
   assert.match(css, /_t1\.[A-Za-z0-9_-]+_down\{/, "T+1 down tone class required (#685)");
+  assert.match(css, /_sv>\.[A-Za-z0-9_-]+_down\{color:var\(--bad\)\}/,
+    "the sold-too-early tally child uses the bad tone");
+  assert.match(css, /_sv>\.[A-Za-z0-9_-]+_up\{color:var\(--ok\)\}/,
+    "the sold-right tally child uses the good tone");
   assert.match(css, /_detail\{[^}]*grid-template-rows:0fr/, "folded detail must default to 0fr");
   assert.match(css, hashed("stats"), "header stats block required");
   assert.match(css, hashed("filters"), "filter row block required");

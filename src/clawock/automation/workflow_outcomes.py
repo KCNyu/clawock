@@ -31,7 +31,9 @@ from zoneinfo import ZoneInfo
 
 from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
-from clawock.publish.outcomes import ProductStatus, summarize_records
+from clawock.publish.outcomes import (
+    REPORT_UPGRADE_CONFLICT, ProductStatus, report_upgrade_stage_conflict, summarize_records,
+)
 from clawock.workspace import without_host_paths, without_host_paths_in_json, workspace_root
 # Ledger writes use the shared atomic JSON writer (fsync, orphan-tmp cleanup,
 # non-finite guard) after checking that local evidence can be read (#2620).
@@ -438,6 +440,8 @@ def _derive_final(record):
         status, reason = ProductStatus.RECOVERED, "watchdog delivered a usable product"
     elif primary == "not_required" and postflight in {"success", "warning"}:
         status, reason = ProductStatus.NO_CHANGE, "healthy unchanged slot; silence recorded, no send owed"
+    elif report_upgrade_stage_conflict(record):
+        status, reason = ProductStatus.DEGRADED, REPORT_UPGRADE_CONFLICT
     elif primary == "success":
         missing = [stage for stage in ("llm", "postflight", "preflight")
                    if stages[stage]["status"] not in TERMINAL_STAGE_STATUSES]
@@ -533,7 +537,8 @@ def _terminal_since(stage, since):
 
 
 def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
-                 unless_terminal_since=None, **details):
+                 unless_terminal_since=None, report_upgrade_llm=None,
+                 finish_report_upgrade=False, **details):
     """Atomically update one product stage; never lets observability break a job.
 
     A `pending` write is a start marker and carries no outcome, so it never
@@ -578,6 +583,15 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
             current.setdefault("stages", {name: _stage() for name in STAGES})
             for name in STAGES:
                 current["stages"].setdefault(name, _stage())
+            stages = current["stages"]
+            report_upgraded = stages["primary_delivery"].get("report_upgraded")
+            if report_upgraded and stage in {"llm", "postflight", "primary_delivery"}:
+                if not (stage == "postflight" and finish_report_upgrade
+                        and stages["postflight"]["status"] == "pending"
+                        and stages["llm"].get("context_id") == details.get("context_id")):
+                    return current
+            elif finish_report_upgrade:
+                return current
             # The product stages belong to the attempt that reached WeChat.
             # Its receipt can later be missing/corrupt; the ledger's own
             # explicit delivery proof still protects existing terminal verdicts
@@ -616,13 +630,22 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False,
                     if key in previous and key not in details:
                         current["stages"][stage][key] = previous[key]
             if (stage == "primary_delivery" and at is None and previous.get("at")
-                    and previous.get("status") == status
+                    and previous.get("status") == status and not report_upgrade_llm
                     and all(previous.get(key) == details.get(key)
                             for key in ("wechat_ok", "telegram_ok"))):
                 # The same delivery reported again is not a later delivery: the
                 # intraday watchdog re-records `completed` 23 minutes after the
                 # send, and the timetable prints this as the success time (#2634).
                 current["stages"][stage]["at"] = previous["at"]
+            if stage == "primary_delivery" and status == "success" and report_upgrade_llm:
+                # A confirmed full report supersedes the data block. Publish
+                # the new verdicts together before the data-plane work begins.
+                stages["primary_delivery"]["report_upgraded"] = True
+                llm_status, llm_details = report_upgrade_llm
+                stages["llm"] = _stage(
+                    llm_status, at=now.isoformat(), **without_host_paths_in_json(llm_details))
+                stages["postflight"] = _stage(
+                    "pending", at=now.isoformat(), delivered="full report")
             current["updated_at"] = now.isoformat()
             current["final_product"] = _derive_final(current)
             records.append(current)
