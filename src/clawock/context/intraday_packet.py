@@ -1,4 +1,4 @@
-"""Lossless transport for the model-facing intraday context."""
+"""Bounded, generation-scoped transport for scheduled market context."""
 
 import hashlib
 import json
@@ -16,10 +16,10 @@ MAX_PARTS = 6
 KEEP_SECONDS = 2 * 24 * 60 * 60
 
 
-def packet_dir(tmp, market, context_id):
+def packet_dir(tmp, market, context_id, *, namespace='intraday-packets'):
     if market not in {'hk', 'us'} or not re.fullmatch(r'[A-Za-z0-9_-]+', context_id or ''):
         raise ValueError('invalid market or context_id')
-    return Path(tmp) / 'intraday-packets' / f'{market}-{context_id}'
+    return Path(tmp) / namespace / f'{market}-{context_id}'
 
 
 def _json(value):
@@ -89,8 +89,18 @@ def write_packet(tmp, packet, audit_payload):
              'plan_context')
     ordered = {key: packet[key] for key in first if key in packet}
     ordered.update(packet)
-    parts = _parts(ordered, identity)
     target = packet_dir(tmp, identity['market'], identity['context_id'])
+    entries = publish_parts(target, ordered, identity, audit_payload)
+    return {'status': 'ok', **identity, 'delivery_mode': packet['delivery_mode'],
+            'part_bytes_max': PART_BYTES, 'parts_max': MAX_PARTS, 'parts': entries,
+            'complete': True,
+            'prose_path': str(target / f"intraday-prose-{identity['market']}.md"),
+            'sidecar_path': str(target / f"intraday-insights-{identity['date']}.json")}
+
+
+def publish_parts(target, packet, identity, audit_payload):
+    """Write a complete bounded generation before returning any read paths."""
+    parts = _parts(packet, identity)
     entries = [
         {'path': str(target / f'core-{number}.json'), 'bytes': len(part.encode()),
          'sha256': hashlib.sha256(part.encode()).hexdigest()}
@@ -114,8 +124,4 @@ def write_packet(tmp, packet, audit_payload):
                 if Path(entry['path']).read_text() != part:
                     raise ValueError('published core part differs from its generation')
     _expire_packets(target)
-    return {'status': 'ok', **identity, 'delivery_mode': packet['delivery_mode'],
-            'part_bytes_max': PART_BYTES, 'parts_max': MAX_PARTS, 'parts': entries,
-            'complete': True,
-            'prose_path': str(target / f"intraday-prose-{identity['market']}.md"),
-            'sidecar_path': str(target / f"intraday-insights-{identity['date']}.json")}
+    return entries

@@ -11,10 +11,10 @@ twenty-odd regression tests keep exercising exactly this code.
 """
 from __future__ import annotations
 
-
 from clawock import prose_claims
 from clawock.harness.validation import (
     FORBIDDEN_PHRASES,
+    PLAN_CONSISTENCY,
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,
     check_identifier_leak,
@@ -24,11 +24,20 @@ from clawock.harness.validation import (
     check_plan_consistency,
     has_section_marker,
     is_hard_char_limit,
+    section_body,
     mentions_ticker,
     validate_forbidden_phrases,
 )
 
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
+_SECTION_SOURCES = {
+    '▎技术面': ('quote_coverage', 'signal_count', 'index_direction', 'holdings', 'peer_scan'),
+    '▎操作建议': ('plan_context',),
+    '▎风险提示': ('risk_debts', 'risk_followups', 'session_review'),
+}
+_COVERAGE_ISSUE = '正文覆盖不足'
+_ANOMALY_ISSUE = '异动归因漏写'
+_NEWS_ISSUE = '逐票资讯漏引'
 
 def _unusable_context(ctx):
     """Reason string if the context can't back a report, else None.
@@ -116,13 +125,23 @@ def validate(body, ctx, model_text):
     elif n_chars > soft:
         issues.append(f'报告长度 {n_chars} 字 > {soft} 软上限 (warn)')
 
-    # 4. 异动票必须被提到（模型文本 —— 数据块里本就有票代码，不能拿它顶）
-    anomalies = ctx.get('anomalies', [])
-    if anomalies:
-        mentioned = [a['ticker'] for a in anomalies if mentions_ticker(checked, a['ticker'])]
-        if not mentioned:
-            tickers = ', '.join(a['ticker'] for a in anomalies)
-            issues.append(f'preflight 标了 {len(anomalies)} 个 ≥3% 异动票 ({tickers}) 但报告全部未提及')
+    # The generated data block already names movers. Each belongs in the
+    # sentiment narrative, where the reader can see what explains the move.
+    sentiment = section_body(checked, '▎情绪面')
+    missing = [row['ticker'] for row in (ctx.get('anomalies') or [])
+               if not mentions_ticker(sentiment, row['ticker'])]
+    if missing:
+        issues.append(f'{_ANOMALY_ISSUE}（情绪面）：{"、".join(missing)}')
+
+    if prose_claims.enabled(ctx):
+        sections = [*REQUIRED_SECTIONS, '▎风险提示'] if ctx.get('needs_risk_section') else REQUIRED_SECTIONS
+        for section in sections:
+            prose = section_body(checked, section)
+            if has_section_marker(checked, section) and sum(c.isalpha() for c in prose) < 4:
+                issues.append(f'{_COVERAGE_ISSUE}：{section}')
+        for extra in ('▎异动归因', '▎证据'):
+            if has_section_marker(checked, extra):
+                issues.append(f'{_COVERAGE_ISSUE}：把 {extra} 写入对应段落')
 
     # 5. 敷衍 phrases（模型文本）
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
@@ -145,19 +164,71 @@ def validate(body, ctx, model_text):
     return issues
 
 
+def live_news_references(ctx):
+    """Exact report pointers for current per-holding news, preferring filings."""
+    references = {}
+    for ticker, rows in ((ctx.get('live_information') or {}).get('summary') or {}).items():
+        # Same-day filings with incomplete clock precision have stale=None.
+        # Retain them without treating them as intraday news.
+        current = [i for i, row in enumerate(rows) if row.get('cite')
+                   and (row.get('stale') is False
+                        or (row.get('stale') is None and row.get('filed_date')))]
+        primary = [i for i in current if rows[i].get('grade') == 'primary']
+        if current:
+            escaped = ticker.replace('~', '~0').replace('/', '~1')
+            references[ticker] = [f'/ctx/live_information/summary/{escaped}/{i}'
+                                  for i in (primary or current)]
+    return references
+
+
+def _live_news_coverage(refs, ctx):
+    missing = [ticker for ticker, paths in live_news_references(ctx).items()
+               if not any(path + suffix in refs for path in paths for suffix in ('|cite', '/cite'))]
+    return [f'{_NEWS_ISSUE}（情绪面）：{"、".join(missing)}'] if missing else []
+
+
+def _reference_coverage(draft, ctx, renderer):
+    sentiment = prose_claims.resolved_in(section_body(draft, '▎情绪面'), renderer)
+    issues = _live_news_coverage(sentiment, ctx)
+    # Successful ticker refs bind the visible subject to its same-generation row.
+    movers = [row['ticker'] for i, row in enumerate(ctx.get('anomalies') or [])
+              if f'/ctx/anomalies/{i}/ticker' not in sentiment
+              and f"/ctx/holdings/{row['ticker']}/ticker" not in sentiment]
+    if movers:
+        issues.append(f'{_ANOMALY_ISSUE}（情绪面缺异动标的引用）：{"、".join(movers)}')
+    for section, fields in _SECTION_SOURCES.items():
+        if section == '▎风险提示' and not ctx.get('needs_risk_section'):
+            continue
+        # Generations preceding this contract and narrow CLI fixtures may lack
+        # these roots. Choose obligations from actual data availability.
+        required = fields[0]
+        if required not in ctx:
+            continue
+        rendered = prose_claims.resolved_in(section_body(draft, section), renderer)
+        roots = {token.split('|', 1)[0].split('/')[2] for token in rendered
+                 if token.startswith('/ctx/')}
+        if not roots.intersection(fields):
+            issues.append(f'{_COVERAGE_ISSUE}：{section} 需要本代 {required} 的引用或确认')
+    return issues
+
+
 def prepare_report(ctx, draft, workspace, *, validator=validate):
     """Resolve authored references before assembling and checking the reader text."""
     ctx = with_compute_receipts(ctx, workspace)
     issues = []
     if prose_claims.enabled(ctx):
         renderer = prose_claims.ClaimRenderer(ctx, receipts=ctx.get('compute_receipts', ()))
-        draft = renderer.render(draft, '报告')
-        issues = [*renderer.issues, *renderer.advisories]
+        authored = draft
+        draft = renderer.render(authored, '报告')
+        issues = [*renderer.issues, *renderer.advisories, *_reference_coverage(authored, ctx, renderer)]
     body = assemble_message(ctx, draft)
     return body, [*issues, *validator(body, ctx, draft)]
 
 
-CRITICAL_KEYWORDS = ['缺段标记', '敷衍词', 'needs_risk_section=true', prose_claims.ISSUE]
+CRITICAL_KEYWORDS = [
+    '缺段标记', '敷衍词', 'needs_risk_section=true', prose_claims.ISSUE,
+    PLAN_CONSISTENCY, '仓位支配度不符', _COVERAGE_ISSUE, _ANOMALY_ISSUE, _NEWS_ISSUE,
+]
 
 
 def categorize(issues):

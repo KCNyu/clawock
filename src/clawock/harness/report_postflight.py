@@ -43,6 +43,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
+from clawock.context.intraday_packet import packet_dir
 from clawock.safe_io import safe_write_text
 from clawock import sessions as trading_calendar
 
@@ -362,6 +363,19 @@ def _skip_delivered_slot(args, today, failure, issue):
     return 0
 
 
+def _claim_packet_revision(market, context_id, text_file):
+    if not text_file:
+        return False
+    try:
+        generation = packet_dir(TMP, market, context_id, namespace='report-packets')
+        if Path(text_file).resolve() != (generation / 'report-prose.md').resolve():
+            return False
+        (generation / 'revise').touch(exist_ok=False)
+    except (ValueError, OSError):
+        return False
+    return True
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -471,6 +485,15 @@ def main(argv=None):
     # distinction: an advisory-only slot delivers a clean report and must not be
     # filed as a degraded product (#764).
     escalating, advisories = split_advisory(issues)
+    if (status == 'fail' and not stale_generation and not shipped
+            and _claim_packet_revision(args.market, ctx['context_id'], args.text_file)):
+        print(json.dumps({
+            'status': 'revise', 'context_id': ctx['context_id'], 'issues': escalating[:10],
+            'wechat_sent': None, 'telegram_sent': None, 'commit_ok': False,
+            'instruction': '按 issues 修订同一正文一次，使用同一条 postflight 命令。未送达。',
+        }, ensure_ascii=False, indent=2))
+        return 0
+
     # What shipped, not what the checker noticed — see product_status (#1076).
     product = product_status(status, escalating)
     wechat_prefix = ''

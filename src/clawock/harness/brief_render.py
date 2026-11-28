@@ -30,9 +30,12 @@ import json
 import re
 from datetime import date as _date
 from pathlib import Path
+from urllib.parse import quote as quote_url, urlsplit
 
 from clawock.decision import brief_prose, receipts
 from clawock.harness import brief_sidecars
+from clawock.market_data.sentiment import news_headline_is_usable
+from clawock.portfolio.breakeven_claims import DRAG_SUM_FIELD, drag_by_ticker
 from clawock import prose_claims
 from clawock import sessions as _cal, instruments as instrument_registry
 from clawock.portfolio.math import ledger_rows, session_change_pct
@@ -549,13 +552,13 @@ def _standing_entries(guard, plan):
 
 def breakeven_section(context):
     math_block = context.get("breakeven_math") or {}
+    measured = drag_by_ticker(math_block.get("rows") or [])
     rows = []
     for row in (math_block.get("rows") or []):
         rows.append([
             text(row.get("ticker")),
             pct(row.get("pnl_pct")),
-            pct(row.get("chop_drag_pct_per_month"), sign=False)
-            if row.get("chop_drag_pct_per_month") is not None else MISSING,
+            pct(measured.get(row.get("ticker")), sign=False),
             pct(row.get("breakeven_need_pct")),
             pct(row.get("underlying_need_2x_6m_pct"))
             if row.get("underlying_need_2x_6m_pct") is not None else MISSING,
@@ -566,7 +569,10 @@ def breakeven_section(context):
            table(["Ticker", "浮%", "2x chop drag/月", "回本需", "半年窗含 drag 等效标的需"], rows)]
     for row in (math_block.get("rows") or []):
         if row.get("vol_unavailable_reason"):
-            out += ["", f"{text(row.get('ticker'))}：{text(row['vol_unavailable_reason'])}"]
+            out += ["", f"{text(row.get('ticker'))}：这只的衰减算不出来（{text(row['vol_unavailable_reason'])}）"]
+    if math_block.get(DRAG_SUM_FIELD) is not None:
+        names = "、".join(math_block.get("priced_chop_drag_tickers") or [])
+        out += ["", f"已测算标的（{names}）的月衰减算术和为 {pct(math_block[DRAG_SUM_FIELD], sign=False)}。"]
     note = math_block.get("note")
     if note:
         out += ["", f"注：{text(note)}"]
@@ -661,9 +667,15 @@ def tier1_section(context, judgment):
     judgments = _judgments(judgment)
     quant = _quant_rows(context)
     pnl = _pnl_by_ticker(context)
+    live = context.get("live_information")
+    renderer = prose_claims.ClaimRenderer(context) if live is not None else None
     rows = []
-    for ticker in sorted(judgments):
-        row = judgments[ticker]
+    for ticker in sorted(set(judgments) | (set(pnl) if renderer else set())):
+        row = judgments.get(ticker) or {}
+        source = _brief_live_citation(context, ticker, renderer) if renderer else None
+        sentiment = text(row.get("sentiment_read"))
+        if source and source not in sentiment:
+            sentiment = f"{sentiment}　{source}" if sentiment != MISSING else source
         signal = quant.get(ticker) or {}
         stale = signal.get("status") not in (None, "fresh")
         market = " / ".join(filter(None, [
@@ -678,7 +690,7 @@ def tier1_section(context, judgment):
             "title": f"**{ticker}**",
             "meta": [market],
             "fields": [("Fundamentals", text(row.get("fundamentals"))),
-                       ("Sentiment", text(row.get("sentiment_read"))),
+                       ("Sentiment", sentiment),
                        ("Cross-Market", text(row.get("cross_market")))],
         })
     return "### 分析师四格\n\n" + entries(rows)
@@ -733,6 +745,7 @@ def judge_section(plan, judgment=None):
     already say (`_unsaid`), under 判定; the falsifier stays whole.
     """
     judgments = _judgments(judgment or {})
+    displayed = set()
     rows = []
     for decision in (plan.get("decisions") or []):
         ticker = str(decision.get("ticker"))
@@ -742,13 +755,12 @@ def judge_section(plan, judgment=None):
         rationale = text(decision.get("rationale"))
         fields = [("理由", rationale)]
         for label, key in (("评估", "assessment"), ("最强反方", "counterargument"),
-                           ("下一证据", "next_evidence")):
+                           ("下一证据", "next_evidence"), ("判定", "rationale")):
             extra = _unsaid(row.get(key), decision.get("rationale"))
-            if extra:
+            identity = (ticker, label, extra)
+            if extra and identity not in displayed:
                 fields.append((label, text(extra)))
-        extra = _unsaid(row.get("rationale"), decision.get("rationale"))
-        if extra:
-            fields.append(("判定", text(extra)))
+                displayed.add(identity)
         if row.get("falsifier"):
             fields.append(("证伪条件", text(row.get("falsifier"))))
         if decision.get("hypothesis"):
@@ -840,7 +852,7 @@ def _drop_quoted_figure(attribution, figure):
     return "".join(kept).strip().rstrip("，,；;").strip(), dropped
 
 
-def bind_sector_self(sector_scan, context):
+def bind_sector_self(sector_scan, context, *, rank_updates=None):
     """Put the session's own change on each held row of the sector sweep.
 
     The model writes `sectors[].self[].pct` under a 「上一场收盘」 label, and on
@@ -869,6 +881,14 @@ def bind_sector_self(sector_scan, context):
             if not isinstance(own, dict):
                 continue
             ticker = str(own.get("ticker") or "")
+            source = (context.get("peer_scan") or {}).get(ticker) or {}
+            rank = brief_sidecars.sector_rank(
+                ticker, source.get("self_pct_1d"),
+                [*(source.get("listed_peers") or []), *(source.get("auto_peers") or [])])
+            if own.get("rank_text") != rank:
+                own["rank_text"] = rank
+                if rank_updates is not None:
+                    rank_updates.append(ticker)
             if ticker in sessions and own.get("pct") != sessions[ticker]:
                 written = own.get("pct")
                 own["pct"] = sessions[ticker]
@@ -982,15 +1002,53 @@ def macro_section(context, judgment):
     ])
 
 
+def _news_headline(item):
+    if not isinstance(item, dict):
+        return _inline(item) if item else ''
+    title = _inline(item.get("title") or item.get("headline") or "")
+    if not title:
+        return ''
+    url = item.get("url")
+    if isinstance(url, str):
+        try:
+            parts = urlsplit(url)
+            if parts.scheme in ("http", "https") and parts.hostname and not parts.username:
+                target = quote_url(url, safe=":/?#&=+%@,;~")
+                title = f"[{title}]({target})"
+        except ValueError:
+            pass
+    source = _inline(item["source"]) if item.get("source") else ''
+    published = _inline(item["published"]) if item.get("published") else ''
+    byline = " · ".join(filter(None, (source, published)))
+    return f"{title}（{byline}）" if byline else title
+
+
+def _brief_live_citation(context, ticker, renderer):
+    for market, payload in (context.get("live_information") or {}).items():
+        rows = (payload.get("summary") or {}).get(ticker) or []
+        eligible = [i for i, row in enumerate(rows) if row.get("cite")
+                    and news_headline_is_usable(row)]
+        if eligible:
+            # Use this holding's actual context record. Live collection already
+            # orders fresh/primary stories, preserving precision in cite.
+            key = ticker.replace("~", "~0").replace("/", "~1")
+            pointer = f"/ctx/live_information/{market}/summary/{key}/{eligible[0]}"
+            return renderer.render(f"[[{pointer}|cite]]", "逐票实时资讯")
+    return "没有可用新闻" if (context.get("live_information") or {}) else None
+
+
 def sentiment_section(context, judgment):
     judgments = _judgments(judgment)
     rows = []
+    renderer = prose_claims.ClaimRenderer(context)
     for row in ((context.get("sentiment") or {}).get("tickers") or []):
         ticker = str(row.get("ticker"))
-        keywords = "、".join(
-            str((item.get("title") or item.get("headline") or "")
-                if isinstance(item, dict) else item)[:36]
-            for item in (row.get("news_top") or [])[:3])
+        news = [item for item in row.get("news_top") or [] if news_headline_is_usable(item)]
+        headlines = "；".join(filter(None, map(_news_headline, news[:3])))
+        if len(news) < 3:
+            live = _brief_live_citation(context, ticker, renderer)
+            if live and live != "没有可用新闻":
+                headlines = "；".join(filter(None, (headlines, _inline(live))))
         reddit_label = "Reddit 7 日标题样本" if row.get("reddit_sampled") else "Reddit 7d"
         mentions = (f"{reddit_label} {row['reddit_mentions_7d']} mentions"
                     if row.get("reddit_mentions_7d") is not None else MISSING)
@@ -1002,7 +1060,7 @@ def sentiment_section(context, judgment):
         rows.append({
             "title": f"**{ticker}** · 近 {sessions} 日 {move}",
             "meta": [mentions],
-            "fields": [("新闻", _inline(keywords) if keywords else MISSING),
+            "fields": [("新闻", headlines or "没有可用新闻"),
                        ("信号判断", text((judgments.get(ticker) or {}).get("sentiment_read")))],
         })
     if not rows:
@@ -1500,13 +1558,23 @@ def render_from_workspace(workspace, date, *, context=None, plan=None, judgment=
         # when the renderer is invoked without postflight's publication gate.
         return conflicts, None
 
+    if not prose_claims.enabled(context):
+        findings = brief_prose.legacy_drag_issues(context, plan, judgment)
+        if findings:
+            return findings, None
+
     # The sector sweep is optional: a day the search quota was spent still has
     # to publish, with the section carrying the model's read and no table.
     # Note a missing scan so the caller can count days without a table.
     if prose_claims.enabled(context):
+        if claims is None:
+            claims = prose_claims.ClaimRenderer(context)
+        issue_start = len(claims.issues)
         sector_scan = brief_sidecars.sector_scan(
             context, paths["sector_scan"].with_name(f'brief-sector-draft-{date}.json'), claims,
             narrative=_narrative(judgment).get('sector_read'))
+        if findings := claims.issues[issue_start:]:
+            return findings, None
     else:
         try:
             sector_scan = _load(paths["sector_scan"])
@@ -1518,15 +1586,16 @@ def render_from_workspace(workspace, date, *, context=None, plan=None, judgment=
         if write:
             safe_write_json(str(paths["sector_scan"]), sector_scan)
     else:
-        rebound = bind_sector_self(sector_scan, context)
+        rank_updates = []
+        rebound = bind_sector_self(sector_scan, context, rank_updates=rank_updates)
         if rebound:
             issues.append("板块全景 持仓涨跌改用场次口径（模型所写→场次）: " + "；".join(
                 f"{ticker} {written}→{bound}" + (
                     f"（归因删去「{'；'.join(dropped)}」）" if dropped else "")
                 for ticker, written, bound, dropped in rebound))
             # The dashboard card reads this file, so it says the same number.
-            if write:
-                safe_write_json(str(paths["sector_scan"]), sector_scan)
+        if write and (rebound or rank_updates):
+            safe_write_json(str(paths["sector_scan"]), sector_scan)
 
     body = render_brief(context, judgment, plan, date=date, sector_scan=sector_scan)
     card = render_card(context, judgment, plan, date=date, page_url=page_url)

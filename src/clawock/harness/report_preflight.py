@@ -16,11 +16,11 @@ Each invocation:
   5. Writes memory/.tmp/report-context-{market}-{phase}-{date}.json, where {date}
      is the RUN date (not the market-session date), and drops this market+phase's
      contexts from every other date
-  6. Prints that context to stdout, then the absolute path as the final line
+  6. Prints the full context or a receipt for bounded, lossless file parts,
+     then the absolute canonical context path as the final line
 
-stdout and the file are the SAME JSON — no abridged second view to drift. It is
-small because peer_scan is trimmed at the source (see trim_peer_scan), not
-because the print is truncated. The model writes prose only and echoes
+The model-facing parts contain the same fields as the saved context. Scheduled
+authors read the parts in parallel and write only prose. The model echoes
 `context_id` back to postflight, which refuses to assemble prose against a
 context that has since been replaced.
 
@@ -57,6 +57,7 @@ from clawock.safe_io import safe_write_text
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
 from clawock.harness.deadline import supervise_preflight
+from clawock.harness.report import live_news_references
 
 import argparse
 import os
@@ -67,13 +68,14 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 from clawock import prose_claims
+from clawock.context.intraday_packet import packet_dir, publish_parts
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 from clawock.decision import intraday_policy
 from clawock.decision import plans as plan_surface
 from clawock.decision import risk as risk_ledger
 from clawock.evidence import live_sources, research_surface
-from clawock.market_data import mover_evidence as mover_news
+from clawock.market_data import known_catalysts, mover_evidence as mover_news
 from clawock.market_data import peer_scan
 
 WS = workspace_root()
@@ -334,6 +336,7 @@ def _parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
+    parser.add_argument('--packet-files', action='store_true')
     return parser.parse_args(argv)
 
 
@@ -526,6 +529,8 @@ def _collect(argv=None):
         'risk_followups':     followups,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
+        'known_catalysts':    known_catalysts.for_movers(
+            [a['ticker'] for a in anomalies], today=today, tmp_dir=TMP),
         # Live filings and news per holding (cite carries each item's own
         # time); `degraded` names a source that did not answer.
         'live_information':   live_ctx,
@@ -540,12 +545,41 @@ def _collect(argv=None):
     TMP.mkdir(parents=True, exist_ok=True)
     drop_stale_contexts(args.market, args.phase, today)
     out_path = context_path(args.market, args.phase, today)
-    safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
+    audit = json.dumps(result, ensure_ascii=False, indent=2)
+    safe_write_text(str(out_path), audit)
+    if args.packet_files:
+        try:
+            model_output = write_report_packet(TMP, result, audit)
+        except (OSError, ValueError) as exc:
+            detail = str(exc)[:400]
+            record_preflight('failed', reason=detail, failure_stage='core_packet')
+            print(json.dumps({'status': 'preflight_failed', 'context_id': result['context_id'],
+                              'error': detail}, ensure_ascii=False))
+            announce_context_path(out_path)
+            return 2
+    else:
+        model_output = result
     record_preflight('success', context_id=result['context_id'])
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(model_output, ensure_ascii=False, indent=2))
     announce_context_path(out_path)
     return 0
+
+
+def write_report_packet(tmp, context, audit):
+    """Return paths for one parallel read batch, bound to this report run."""
+    identity = {key: context[key] for key in ('context_id', 'market', 'phase', 'date')}
+    target = packet_dir(tmp, identity['market'], identity['context_id'], namespace='report-packets')
+    parts = publish_parts(target, context, identity, audit)
+    refs = live_news_references(context)
+    return {'status': 'ok', **identity, 'parts': parts, 'complete': True,
+            'prose_path': str(target / 'report-prose.md'),
+            'coverage_refs': {field: f'[[/ctx/{field}|ack]]'
+                              for field in ('quote_coverage', 'plan_context', 'risk_debts')
+                              if field in context},
+            'news_cites': {ticker: f'[[{paths[0]}|cite]]' for ticker, paths in refs.items()},
+            'mover_tickers': [f'[[/ctx/anomalies/{i}/ticker]]'
+                              for i, _ in enumerate(context.get('anomalies') or [])]}
 
 
 def main(argv=None):

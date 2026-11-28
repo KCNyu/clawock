@@ -34,8 +34,8 @@ sys.path.insert(0, str(ROOT))
 from clawock.harness import validation as val  # noqa: E402
 
 
-ADVISORY = f"07226 6200 股 未在 context 中 {val.ADVISORY_MARK}"
-ADVISORY_2 = f"区间 +0.3~-0.4% 自相矛盾 {val.ADVISORY_MARK}"
+ADVISORY = val.Advisory("07226 6200 股 未在 context 中")
+ADVISORY_2 = val.Advisory("区间 +0.3~-0.4% 自相矛盾")
 
 
 # --------------------------------------------------------------------------
@@ -161,5 +161,6 @@ def test_the_skill_tells_the_model_what_an_error_means():
     """A context field nothing reads is the same as no field at all."""
     for skill in ("hk-stock-analysis", "us-stock-analysis"):
         body = (ROOT / "skills" / skill / "SKILL.md").read_text()
-        assert "`error` 字段" in body
-        assert "今日计划未取到" in body
+        assert "report-prose-rules.md" in body
+    rules = (ROOT / "skills/_shared/report-prose-rules.md").read_text()
+    assert all(fragment in rules for fragment in ("plan_context", "未取到计划", "未对账", "计划为空"))

@@ -189,7 +189,7 @@ def test_naming_an_anomaly_does_not_excuse_the_signals(pf):
     assert not [i for i in issues if '未提任何异动票' in i], issues
     missed = [i for i in issues if '未提任何信号票' in i]
     assert len(missed) == 1 and 'RKLX' in missed[0] and 'CRCL' in missed[0], issues
-    assert pf.ADVISORY_MARK not in missed[0]
+    assert not missed[0].endswith("(advisory)")
 
 
 def test_length_limit_measures_the_delivered_body(pf):
@@ -651,7 +651,7 @@ def test_the_trigger_nag_is_advisory_never_a_block(pf):
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
 
     flagged = [i for i in issues if '计划触发线' in i]
-    assert all(pf.ADVISORY_MARK in i for i in flagged), flagged
+    assert flagged and all(i.endswith("(advisory)") for i in flagged), flagged
 
 
 def test_wechat_bolds_the_new_rows_and_both_channels_carry_the_same_table_bytes(

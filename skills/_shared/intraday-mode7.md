@@ -4,9 +4,9 @@
 > 下文 `{market}` 取该命令中的 `hk` 或 `us`。`hk-stock-analysis` / `us-stock-analysis` 的
 > Mode 7 只是指回这里的路由，规则只改这一份。
 >
-> 必读闭包：本文件、`skills/_shared/intraday-status-sidecar.md`（第 4 步写 sidecar 的规范）、Step 1 的核心包。
+> 必读闭包：本文件、`skills/_shared/intraday-status-sidecar.md`（第 4 步写 sidecar 的规范）、本市场的 `skills/_shared/report-analysis-{market}.md`、Step 1 的核心包。
 > 市场 SKILL 的 Modes 1–6、报告模板和其他 skill 不属于本任务，不用读。skills catalog 只是索引，
-> 这两份正文要真的 `read` 进来才算加载。
+> 这三份正文要真的 `read` 进来才算加载。
 
 当前 `config/intraday-delivery.json` 的 `always_full: true` 要求每档完整卡，无变化也正常发；以 preflight 本档 `delivery_mode` 为准。以下 `no_change` / `review_candidate` 静默分支仅在 operator 显式改为 false 时启用（权威契约见 `docs/architecture/intraday-agent.md`），不得自行切换。
 
@@ -19,7 +19,7 @@
 
 ## 步骤
 
-写判断或面板文字前，读 workspace 的 `src/clawock/trading-prose.md`。变了才展开，没变可以说一句。另列的「下一触发」交给程序填价，别在判断段重新报一遍。
+用首轮读到的市场分析准则判断本档变化，语气和证据按 workspace 的 `src/clawock/trading-prose.md`。有变化时，至少引用一条本代标的、变化或资料缺口，说明选这条视角的理由；可用 `[[/ctx/quote_coverage|ack]]` 确认数据缺口。缺可比场次、波动率或流量读数时说明缺口。要写当前价，用本代同标的字段；要看代理，写清代理的名字。语义未变时，可以简短交代本档状态。下一触发是单独一行，价位由程序生成。
 
 1. 执行 cron 任务正文的 Step 1 原命令，保留其中的 `--cron-job`。按回执在同一轮读取所有同档核心包 JSON，保留回执的文件路径。计划（含 0 股观察）、观察线、分析器原文、来源与失败状态都在核心包。参考层按 `index.references` 的同代命令取。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成实时。
 2. `delivery_mode=no_change`：健康且语义未变，直接 `clawock intraday postflight --market {market} --context-id <id>`；postflight 记审计心跳并静默，不写散文/sidecar；若健康闸或发布闸失败，watchdog 仍兜底。`review_candidate` 只因新软候选唤醒：模型判断无需发时，prose 文件只写 `SILENT` 并带 `--text-file` 调 postflight，不写 sidecar；值得说则按 full_delta 写。`full_delta` 才必须写 `▎我的看法`，1–3 行：变化、判断；另起一行写 `下一触发：[[/ctx/trigger_prices/07226/0|above]]`，多项用「；」分隔。`above` 表示站上，`below` 表示跌破。代码与下标取 `trigger_prices` 原表，代理沿代理标的引用。若确需前瞻位，可写 `|above=3.02` 或 `|below=3.02`，该行必须是同标的 `current: true`，程序核对本档现价 ±5% 再生成卡片。先读 `semantic_delta`、`plan_triggers`、`anomalies`、一级事件，再看相关 `mover_news` / `peer_scan` / `add_side_reads`。三态都不是下单授权。`strategy_conflicts` 是旧计划与当前持仓策略的未解冲突，只据事实说明，不复述被策略禁止的旧减仓建议，也不擅自改写 risk_rule 为择时。`risk_debts` 是风控账本里未了结（未执行、未确认、未豁免）的违规，简报集中列未结事项，盘中「风险待复查」只列新增或变化；计划持有的票的 STOP 不进「待你处理」。判断不复述这些行，也不说反话（账本里硬止损开着不写「纪律不触发」，策略不设硬止损的票不写「硬止损挂着」，计划持有的票不下砍仓指令）；postflight 会记录并退回改写一次。只说相关票；旧计划、旧新闻和持仓表不复述。模型负责取舍和归因，消息短不等于删模型上下文；看完整 `plan_context`、`watch_levels` 与各来源失败状态（都在核心包里）。参考层按判断需要取，不必每档全取：要说同业/板块背离或轮动，取相关票的 `peer_scan`（要做全持仓比较才取整份）；要追溯持仓策略过滤前的信号或解释策略冲突，取 `source_signals_detail`（普通信号理由已在 `analyzer_block`）；要核对摘要里没有的来源、时间或原文，取 `information_full`；其余条目按具体判断取对应切片。没取的条目不当作已看过，也不据它下结论。这条取用规则只写在这里，cron 任务正文只引用。判断和面板正文用 `[[/ctx/full_holdings/0/pct_1d]]` 这类字段引用，数组从零编号；包里查到的参考层也用 `/ctx/参考层名/…`。代码含数字时引用该行的 `ticker`；新闻用整条记录的 `|cite`，来源/时间也可引用原字段；状态用 `|status`，列表计数用 `|count`。数值和单位由程序生成，别在旁边再写单位。`index.rule_outputs` 列出哪些字段是登记规则的结论（筛选、评分、候选），其余是观测：规则结论可以采纳也可以不同意，不同意时写依据。判断需要包内没有的量（另一个窗口、两只票的比值、相对强弱）时用 `clawock tool compute --arg 'expression=…'` 让系统在日线上算，用 `[[/compute/回执ID/value_pct]]`（按返回字段名）引用并说明它是什么；要看规则结论底下的原始日线/因子逐项/全部事件用 `clawock tool observations --arg ticker=<代码> --arg kind=bars|factors|events`。

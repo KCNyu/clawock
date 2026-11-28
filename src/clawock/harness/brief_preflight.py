@@ -1606,7 +1606,7 @@ def news_evidence_node():
             )
             decision_fields = (
                 'event_id', 'ticker', 'reported_ticker', 'event_type',
-                'title', 'publication_time', 'event_time', 'source_type',
+                'title', 'publication_time', 'event_time', 'source_type', 'primary_source', 'source_url',
                 'source_reliability', 'novelty_score', 'novelty_reason',
                 'status', 'expires_at', 'impact_direction', 'confirmation',
                 'high_impact', 'actionable_escalation',

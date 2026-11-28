@@ -17,12 +17,31 @@ def _draft(path, context):
     return {}
 
 
-def _commentary(value, label, renderer):
+def _commentary(value, label, renderer, *, ticker=None):
     if not isinstance(value, str) or not value.strip():
         return None
     start = len(renderer.issues)
-    text = renderer.render(value, label)
+    text = renderer.render(value, label, ticker=ticker)
     return text if len(renderer.issues) == start else None
+
+
+def sector_rank(ticker, current, peers):
+    """Position in this holding's own audited same-session comparison set."""
+    current = to_strict_finite_number(current)
+    values = {}
+    for peer in peers:
+        name, change = peer.get('ticker'), to_strict_finite_number(peer.get('pct_1d'))
+        if name and name != ticker and change is not None:
+            values.setdefault(name, change)
+    if current is None or not values:
+        return None
+    ahead = sum(change > current for change in values.values())
+    rank = f'第 {ahead + 1}/{len(values) + 1}'
+    if all(change < current for change in values.values()):
+        return f'领涨 · {rank}'
+    if ahead == len(values):
+        return f'落后 · {rank}'
+    return rank
 
 
 def sector_scan(context, attribution_path, renderer, *, narrative=None):
@@ -49,14 +68,9 @@ def sector_scan(context, attribution_path, renderer, *, narrative=None):
                     'ticker': peer['ticker'], 'name': peer.get('name'), 'pct': pct,
                     'source': peer.get('quote_source'),
                 })
-        rank = None
-        if peers and current is not None:
-            ahead = sum(row['pct'] > current for row in peers.values())
-            rank = f'第 {ahead + 1}/{len(peers) + 1}'
-            if all(row['pct'] < current for row in peers.values()):
-                rank = f'领涨 · {rank}'
-            elif ahead == len(peers):
-                rank = f'落后 · {rank}'
+        rank = sector_rank(ticker, current, [
+            *(source.get('listed_peers') or []), *(source.get('auto_peers') or []),
+        ])
         theme = (_commentary(themes.get(ticker), f'板块主题 {ticker}', renderer)
                  or source.get('theme'))
         region, session = source.get('region'), source.get('self_session')
@@ -70,7 +84,7 @@ def sector_scan(context, attribution_path, renderer, *, narrative=None):
             group['peers'].setdefault(peer_ticker, peer)
         group['self'].append({
             'ticker': ticker, 'pct': current, 'rank_text': rank,
-            'attribution': _commentary(attribution.get(ticker), f'板块归因 {ticker}', renderer),
+            'attribution': _commentary(attribution.get(ticker), f'板块归因 {ticker}', renderer, ticker=ticker),
         })
     if not groups:
         return None

@@ -37,3 +37,23 @@ def test_no_long_instruction_paragraph_is_hand_mirrored():
         f"{len(common)} long instruction paragraph(s) are byte-identical in both "
         f"market skills again; move the text to skills/_shared/ and route both"
     )
+
+
+def test_mode6_news_is_inline_and_distinguishes_confirmed_sources():
+    text = (ROOT / 'skills/_shared/report-prose-rules.md').read_text()
+    sentiment = text.split('## 异动与实时消息都放在情绪面', 1)[1].split('## 数值和引用', 1)[0]
+    for field in ('anomalies', 'mover_news.halts', 'tier=primary', 'signal=interrupt',
+                  'tier=supporting', 'source_class', 'live_information.summary',
+                  'live_information.degraded', 'mover_thesis', 'known_catalysts'):
+        assert f'`{field}`' in sentiment
+    assert '证据紧挨' in sentiment and '出处和时点' in sentiment
+    assert '**▎证据**' not in text and '**▎异动归因**' not in text
+
+
+def test_shared_prose_routes_numeric_facts_to_the_available_surface():
+    prose = (ROOT / 'src/clawock/trading-prose.md').read_text()
+    interactive = (ROOT / 'skills/_shared/interactive-mode-reads.md').read_text()
+    risk = (ROOT / 'skills/portfolio-risk-review/SKILL.md').read_text()
+    assert '直聊和手写表格' in prose and '本次 compute 回执' in prose
+    assert '来源、场次和单位' in interactive
+    assert '手写表格时填入核过的行情和盈亏' in risk

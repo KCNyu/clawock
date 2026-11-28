@@ -267,14 +267,14 @@ def test_the_prose_is_held_to_the_plan_the_ledger_and_the_strategy():
     assert _issues('07226 硬止损 2.156 未破，纪律未触发。', HK_PLAN, risk_debts=debts)
 
 
-def test_a_consistency_finding_warns_on_the_report_and_is_revised_once_intraday():
+def test_a_consistency_finding_blocks_the_report_and_is_revised_once_intraday():
     from clawock.decision import risk
     from clawock.harness import intraday_postflight as post
     ctx = {'title': 't', 'raw_wechat_block': HK_CLOSE, 'plan_context': HK_PLAN,
            'risk_debts': risk.open_debts([_ledger_record()], leg='HK')}
     prose = ('▎情绪面\n恒科偏弱。\n▎技术面\n07226 跟随指数。\n' + HK_PROSE)
     issues = report.validate(report.assemble_message(ctx, prose), ctx, prose)
-    assert report.categorize([i for i in issues if '不一致' in i]) == 'warn'
+    assert report.categorize([i for i in issues if '不一致' in i]) == 'fail'
     judgment = '▎我的看法\n07226 收盘仍在破位线上方，纪律不触发，维持不动。' + '其余票按计划等待。' * 6
     found = [i for i in post.validate(post.assemble_message(ctx, judgment), ctx, judgment)
              if '不一致' in i]

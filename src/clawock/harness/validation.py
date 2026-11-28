@@ -15,7 +15,8 @@ from functools import lru_cache
 
 from clawock import prose_claims
 from clawock.prose_validation import (
-    ADVISORY_MARK,
+    ADVISORY_MARK as ADVISORY_MARK,
+    Advisory,
     PIPELINE_TERMS as PIPELINE_TERMS,
     check_identifier_leak as check_identifier_leak,
     check_pipeline_self_reference as check_pipeline_self_reference,
@@ -116,6 +117,19 @@ def section_marker_end(text, marker):
         if match := pattern.match(line):
             return offset + match.end()
     return -1
+
+
+def section_body(text, marker):
+    """Reader prose below a named section, ending at the next card heading."""
+    start = section_marker_end(text, marker)
+    if start < 0:
+        return ''
+    lines = []
+    for offset, line in section_prose_lines(text[start:]):
+        if offset and re.match(r'^\s*(?:#{1,6}\s+|\*\*)?▎', line):
+            break
+        lines.append(line.removeprefix('**') if not offset else line)
+    return '\n'.join(lines).strip()
 
 
 def has_section_marker(text, marker):
@@ -681,7 +695,7 @@ def check_numeric_claims(text, ctx, *, scoped_prose=()):
         parts.append(f'区间自相矛盾: {", ".join(impossible)}')
     if not parts:
         return concentration_issues
-    return concentration_issues + [f'{"；".join(parts)} —— 数字只能引用 context，不许心算 {ADVISORY_MARK}']
+    return concentration_issues + [Advisory(f'{"；".join(parts)} —— 数字只能引用 context，不许心算')]
 
 
 
@@ -696,7 +710,7 @@ def is_advisory(issue):
     line categorised as `warn`. An advisory heuristic that can silently cost kcn a
     report is worse than the cosmetic problem it reports.
     """
-    return ADVISORY_MARK in issue
+    return isinstance(issue, Advisory)
 
 
 def split_advisory(issues):

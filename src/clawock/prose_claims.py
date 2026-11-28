@@ -5,24 +5,22 @@ import re
 from decimal import Decimal, InvalidOperation
 from math import isfinite
 
-from clawock.prose_validation import MEASUREMENT, check_storytelling
+from clawock.portfolio.breakeven_claims import validate_drag
+from clawock.prose_validation import Advisory, CITATION, MEASUREMENT, check_storytelling
 
 VERSION = 1
 FIELD = 'prose_claims_version'
 ISSUE = '事实引用'
 TOKEN = re.compile(r'\[\[([^\[\]\r\n]+)\]\]')
-# These are vocabulary, rather than measurements (P0 policy, T+1 horizon,
-# MA200 indicator, 7×24 feed). Tickers containing digits use a ticker ref.
-_VOCABULARY = re.compile(
-    r'(?<![A-Za-z0-9])(?:P0|T[+-](?:0|1|2|3|5|10|20)|MA(?:5|10|20|50|60|100|120|200|250)'
-    r'|MACD|RSI(?:14)?|7[×x]24)(?![A-Za-z0-9])', re.I)
-_LITERAL = re.compile(
-    r'\d+(?:[.,:：]\d+)*'
-    r'|[零〇一二两三四五六七八九十百千万亿]+(?:点[零一二三四五六七八九]+)?'
-    r'(?=\s*(?:股(?!东|权|价|票|指|息)|手(?!段|续)|倍|个?百分点|元|美元|港元|港币'
-    r'|个交易日|个基点|年|月|日|点钟|时[整分]|分钟|小时|条|宗|份|个(?!股|人|性|体|别)|只(?!有|是|因|看|要)|次|%|％|成(?!交|本|熟|长|员|立|功|果)))'
-    r'|百分之[零〇一二两三四五六七八九十百千万亿点]+'
-)
+# Unbound numeric units are editorial diagnostics. Claims authorized for
+# publication are detected by the reference grammar, not by this pattern.
+_UNBOUND_UNIT = re.compile(
+    r'(?<![A-Za-z0-9_.])\d+(?:[.,]\d+)*\s*(?:[%％]|港元|美元|HKD|USD|股(?!票|东))')
+_ACK_FIELDS = {
+    'quote_coverage', 'plan_context', 'risk_debts', 'risk_followups', 'session_review',
+    'semantic_state', 'semantic_delta', 'signal_count', 'strategy_checks', 'index_direction',
+    'bundle_evidence', 'snapshots', 'decision_metrics', 'decision_episodes', 'current_risk', 'plans',
+}
 _AMOUNT = re.compile(r'[+-]?[0-9]+(?:\.[0-9]+)?')
 _ESCAPED_POINTER = re.compile(r'~(?![01])')
 _CITE_ROOTS = {
@@ -32,7 +30,7 @@ _CITE_ROOTS = {
 }
 _SOURCE_FIELDS = {
     'source', 'source_name', 'provider', 'publisher', 'data_source', 'quote_source',
-    'exchange', 'venue', 'time_source', 'source_label',
+    'exchange', 'venue', 'time_source', 'source_label', 'primary_source',
 }
 _TIME_FIELDS = {
     'asof', 'as_of', 'asofdate', 'capturedat', 'captured_at', 'date', 'fetched_at',
@@ -114,21 +112,32 @@ def _numeric_display(value, path, roots):
     return text
 
 
+_MOVER_SOURCES = {
+    'exchange_filing': '交易所公告', 'hkexnews_filing': '港交所公告',
+    'sec_filing': 'SEC 文件', 'sec_filing_mirror': 'SEC 文件', 'sec_fulltext': 'SEC 文件',
+    'finnhub_filing': '公司公告（Finnhub）', 'market_flash': '市场快讯',
+}
+
+
 def _citation(row):
     if not isinstance(row, dict):
         raise ValueError('需要一条来源记录')
     if row.get('cite'):
         return _inline(row['cite'])
-    title = _inline(row.get('title') or row.get('headline'))
-    source = _inline(next((row[key] for key in sorted(_SOURCE_FIELDS)
+    title = _inline(row.get('title') or row.get('headline') or row.get('detail'))
+    source = _inline(_MOVER_SOURCES.get(row.get('source_class')) or
+                     next((row[key] for key in sorted(_SOURCE_FIELDS)
                            if isinstance(row.get(key), str) and row[key].strip()), None))
     clocks = (
         ('published_at', '发布'), ('publishedAt', '发布'), ('published_date', '发布'),
         ('capturedAt', '采集'), ('captured_at', '采集'), ('observed_at', '观测'),
         ('date', '来源日期'), ('as_of', '截至'), ('asOf', '截至'),
     )
+    published = (row.get('publication_time') or {}).get('iso')
     when = next((f'{kind} {row[key]}' for key, kind in clocks
-                 if isinstance(row.get(key), str) and _TIME_VALUE.fullmatch(row[key])), '时间未知')
+                 if isinstance(row.get(key), str) and _TIME_VALUE.fullmatch(row[key])),
+                f'发布 {published}' if isinstance(published, str) and _TIME_VALUE.fullmatch(published)
+                else '时间未知')
     return f'《{title[:60]}》（{source}，{when}）'
 
 
@@ -167,6 +176,8 @@ class ClaimRenderer:
         self.issues = []
         self.advisories = []
         self.references = []
+        self.resolved_tokens = set()
+        self.measurements_by_scope = {}
 
     def _claim(self, token, roots):
         pointer, _, mode = token.partition('|')
@@ -181,6 +192,10 @@ class ClaimRenderer:
                 raise ValueError('需要资讯来源字段')
             return _citation(_resolve(roots, path)), False
         value = _resolve(roots, path)
+        if mode == 'ack' and len(path) == 2 and path[0] == 'ctx' and field in _ACK_FIELDS:
+            if value is None or isinstance(value, (dict, list)):
+                return '', False
+            raise ValueError('确认字段需要本代状态对象或列表')
         if mode == 'count':
             if isinstance(value, list):
                 return str(len(value)), True
@@ -202,18 +217,27 @@ class ClaimRenderer:
             return value, False
         return _numeric_display(value, path, roots), True
 
-    def render(self, text, label, *, decision=None, dense_measurements=True):
+    def render(self, text, label, *, decision=None, ticker=None, scope=None, dense_measurements=True):
         if not isinstance(text, str):
             return text
         roots = self.roots if decision is None else {**self.roots, 'decision': decision}
 
         measurements = {}
+        citations = set()
+        numerical_keys = []
 
         def replace(match):
             try:
                 value, measurement = self._claim(match[1], roots)
+                self.resolved_tokens.add(match[1])
                 if measurement:
                     measurements[match.start()] = match[1]
+                    numerical_keys.append((match[1], value))
+                    if value.endswith('%') and text[match.end():match.end() + 1] in ('%', '％'):
+                        value = value[:-1]
+                pointer, _, mode = match[1].partition('|')
+                if mode == 'cite' or pointer.endswith('/cite'):
+                    citations.add(match.start())
                 if match[1].startswith(('/decision/trim_at_mark/', '/decision/trim_at_trigger/')):
                     self.references.append(match[1].partition('|')[0])
                 return value
@@ -222,18 +246,28 @@ class ClaimRenderer:
                 return '—'
 
         raw = TOKEN.sub('', text)
-        bad = _LITERAL.search(_VOCABULARY.sub('', raw))
-        if bad:
-            self.issues.append(f'{ISSUE} {label} 手写数值「{bad[0]}」，请引用同代字段')
+        if bad := _UNBOUND_UNIT.search(raw):
+            self.advisories.append(Advisory(f'{label}含未绑定读数「{bad[0]}」，请核同代字段'))
         if '[[' in raw or ']]' in raw:
             self.issues.append(f'{ISSUE} {label} 引用格式不完整')
         result = TOKEN.sub(replace, text)
+        owner = ticker or (decision or {}).get('ticker')
+        if 'breakeven_math' in roots['ctx']:
+            pointers = {token.partition('|')[0] for token, _ in numerical_keys}
+            self.issues.extend(f'{ISSUE} {label} {issue}' for issue in
+                               validate_drag(result, roots['ctx'], ticker=owner, references=pointers))
+        repeated = len(set(numerical_keys)) < len(numerical_keys)
+        if scope or owner:
+            prior = self.measurements_by_scope.setdefault(scope or owner, set())
+            repeated |= any(key in prior for key in numerical_keys)
+            prior.update(numerical_keys)
         # Strip reference syntax and quoted news from the style check. The
         # pattern sees only the author's words and the positions of measurements.
-        draft = TOKEN.sub(lambda match: MEASUREMENT if match.start() in measurements else ' ', text)
+        draft = TOKEN.sub(lambda match: MEASUREMENT if match.start() in measurements
+                          else CITATION if match.start() in citations else ' ', text)
         self.advisories.extend(check_storytelling(
             draft, label, dense_measurements=dense_measurements,
-            repeated_measurement=len(set(measurements.values())) < len(measurements)))
+            repeated_measurement=repeated))
         return result
 
     def triggers(self, line, prefix):
@@ -251,3 +285,8 @@ class ClaimRenderer:
             except ValueError as exc:
                 self.issues.append(f'{ISSUE} 下一触发：{exc}')
         return prefix + '；'.join(rows) if rows else ''
+
+
+def resolved_in(text, renderer):
+    """Reference tokens successfully resolved in this authored section."""
+    return {match[1] for match in TOKEN.finditer(text) if match[1] in renderer.resolved_tokens}

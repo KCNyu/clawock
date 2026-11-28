@@ -2,21 +2,23 @@
 import json
 
 from clawock.harness.brief_postflight import (
-    _judgment_identifier_issues, _plan_self_reference_issues,
+    _judgment_identifier_issues, _plan_self_reference_issues, categorize,
+    split_advisory,
 )
 
 
-def test_rationale_identifier_is_reported_without_blocking_the_daily_brief():
+def test_rationale_identifier_counts_toward_the_brief_warning_budget():
     plan = {"decisions": [{"rationale": "结算仍在进行（session_not_final），复挂风险单", 
                            "condition": {"description": "transaction_group_id=swap"}}]}
     issues = _plan_self_reference_issues(plan)
     assert len(issues) == 1
     assert "session_not_final" in issues[0]
     assert "transaction_group_id" in issues[0]
-    assert issues[0].endswith("(advisory)")
+    assert split_advisory(issues) == (issues, [])
+    assert categorize(issues + ["warning"] * 4) == "fail"
 
 
-def test_published_judgment_prose_reports_identifiers_as_advisory(tmp_path):
+def test_published_judgment_identifiers_are_escalating(tmp_path):
     path = tmp_path / 'judgment.json'
     path.write_text(json.dumps({
         'portfolio_assessment': '其他仓位 may_stand=true，维持 hold_and_watch',
@@ -28,7 +30,7 @@ def test_published_judgment_prose_reports_identifiers_as_advisory(tmp_path):
     assert len(issues) == 1
     assert all(name in issues[0] for name in
                ('may_stand', 'hold_and_watch', 'regime_delever', 'allowed_actions'))
-    assert issues[0].endswith('(advisory)')
+    assert split_advisory(issues) == (issues, [])
 
     path.write_text(json.dumps({
         'portfolio_assessment': '其他仓位可继续持有',

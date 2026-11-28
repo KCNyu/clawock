@@ -1018,8 +1018,9 @@ def categorize(issues):
     return categorize_issues(issues, CRITICAL_KEYWORDS, warn_max=4)
 
 
+from clawock.prose_validation import peer_style_issues
 from clawock.harness.validation import (
-    ADVISORY_MARK,
+    Advisory,
     FORBIDDEN_PHRASES,  # one table for all three entries
     categorize_issues,
     check_identifier_leak,
@@ -1664,8 +1665,7 @@ def _judgment_identifier_issues(judgment_path):
     if not isinstance(overlay, dict):
         return []
     prose = _judgment_text(overlay)
-    return [f'{issue} {ADVISORY_MARK}' for issue in
-            check_identifier_leak(prose, label='简报判断正文')]
+    return check_identifier_leak(prose, label='简报判断正文')
 
 
 # Published plan prose: rationale/condition also flow through `decision.plans._entry`
@@ -1691,8 +1691,7 @@ def _plan_self_reference_issues(plan):
                 texts.append(node)
     prose = '\n'.join(texts)
     return (check_pipeline_self_reference(prose, label='plan 理由/触发条件')
-            + [f'{issue} {ADVISORY_MARK}' for issue in
-               check_identifier_leak(prose, label='plan 理由/触发条件')])
+            + check_identifier_leak(prose, label='plan 理由/触发条件'))
 
 
 def _brief_numeric_issues(judgment_path, plan, context, *, overlay=None):
@@ -1862,8 +1861,7 @@ def main(argv=None):
             judgment_path, normalized_plan, context, overlay=resolved_judgment))
         issues.extend(check_pipeline_self_reference(
             resolved_judgment.get('portfolio_assessment') or '', label='微信卡核心结论'))
-        issues.extend(f'{issue} {ADVISORY_MARK}' for issue in
-                      check_identifier_leak(_judgment_text(resolved_judgment), label='简报判断正文'))
+        issues.extend(check_identifier_leak(_judgment_text(resolved_judgment), label='简报判断正文'))
         issues.extend(_peer_divergence_issues(judgment_path, context, overlay=resolved_judgment))
     elif not structured:
         issues.extend(_judgment_gap_issues(judgment_path, decision_packet))
@@ -1872,6 +1870,16 @@ def main(argv=None):
         issues.extend(_peer_divergence_issues(judgment_path, context or {}))
         issues.extend(_brief_numeric_issues(judgment_path, normalized_plan, context))
     issues.extend(_plan_self_reference_issues(normalized_plan))
+    peer_overlay = resolved_judgment if structured else None
+    if peer_overlay is None:
+        try:
+            peer_overlay = json.loads(judgment_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            peer_overlay = {}
+    if isinstance(peer_overlay, dict):
+        for row in peer_overlay.get('ticker_judgments') or []:
+            if isinstance(row, dict):
+                issues.extend(peer_style_issues(row.get('peer_read')))
 
     # Both the rendered report and the Pages projection must be current before
     # the off-host committer can publish (#520). Clear any previous verdict first.
@@ -1882,6 +1890,7 @@ def main(argv=None):
     # brief_render for why). Rendering after normalization is deliberate: the
     # published tables then show the same decisions the ledger records.
     rendered_markdown = None
+    render_issue_start = len(renderer.issues) if renderer is not None else 0
     try:
         if structured and (not resolved_judgment or authored_plan_path is plan_path
                            or any(issue.startswith(prose_claims.ISSUE) for issue in issues)):
@@ -1897,6 +1906,7 @@ def main(argv=None):
         render_issues = [f'{type(exc).__name__}: {exc}']
     if renderer is not None:
         issues.extend(renderer.advisories)
+        issues.extend(renderer.issues[render_issue_start:])
     render_failed = rendered_markdown is None
     if render_failed:
         issues.append(f"简报渲染失败: {'；'.join(render_issues) or '未生成正文'}")
@@ -1943,13 +1953,19 @@ def main(argv=None):
     if structured and status in ('pass', 'warn') and not args.dry_run:
         safe_write_json(str(plan_path), normalized_plan)
         sidecars = judgment_path.parent
+        insights_issue_start = len(renderer.issues)
+        insights_advisory_start = len(renderer.advisories)
         try:
             insights = brief_sidecars.insights(sidecars / f'brief-insights-draft-{today}.json',
                                                context, renderer)
             if insights is not None:
                 safe_write_json(str(sidecars / f'insights-{today}.json'), insights)
         except (OSError, ValueError, TypeError, KeyError) as exc:
-            print(f'warn: 简报复盘不可用：{exc}', file=sys.stderr)
+            issues.append(Advisory(f'简报复盘不可用：{exc}'))
+        issues.extend(Advisory(f'简报复盘侧卡正文省略：{issue}')
+                      for issue in renderer.issues[insights_issue_start:])
+        issues.extend(renderer.advisories[insights_advisory_start:])
+        status = categorize(issues)
     # Keep what is about to be delivered as an immutable version. This runs
     # before the card is composed (it needs the id) and before the revision
     # notice (which compares the delivered version with this one). It fails

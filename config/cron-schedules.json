@@ -18,16 +18,18 @@
       "message_template": "config/cron-payloads/report.md",
       "delivery_mode": "none",
       "required_substrings": [
-        "skills/{skill}/SKILL.md",
-        "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/{skill}/SKILL.md` 与 Step 1 preflight",
-        "skills catalog 只有索引，不含 SKILL.md 正文",
+        "skills/_shared/report-prose-rules.md",
+        "并行调用两个 `read` 读取 `/root/.openclaw/workspace/skills/_shared/report-prose-rules.md` 与 `/root/.openclaw/workspace/skills/_shared/report-analysis-{market}.md`",
+        "skills catalog 只有索引，不含共用写作正文",
         "判断只沿本档输入协议取证",
         "探测「东西在不在」的命令必须整条链退出 0",
-        "clawock report preflight --market {market} --phase {phase}",
+        "clawock report preflight --market {market} --phase {phase} --packet-files",
+        "parts[].path",
+        "yieldMs: 120000",
         "context_id",
         "clawock report postflight --market {market} --phase {phase} --context-id",
         "--text-file",
-        "report-prose-{market}-{phase}.md",
+        "prose_path",
         ">5000 warn",
         ">6000 fail",
         "唯一微信路径",
@@ -66,7 +68,7 @@
       "delivery_mode": "none",
       "required_substrings": [
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/_shared/intraday-mode7.md`",
-        "`/root/.openclaw/workspace/skills/_shared/intraday-status-sidecar.md`（sidecar 规范）与 Step 1 preflight",
+        "`/root/.openclaw/workspace/skills/_shared/intraday-status-sidecar.md`（sidecar 规范）和 `/root/.openclaw/workspace/skills/_shared/report-analysis-{market}.md`",
         "skills catalog 只有索引，不含 SKILL.md 正文",
         "判断只沿本档输入协议取证",
         "探测「东西在不在」的命令必须整条链退出 0",
@@ -220,10 +222,8 @@
       "payload_vars": {
         "market": "us",
         "market_name": "美股",
-        "market_rule": "杠杆 ETF (SOXL/MSFU/RKLX/PLTU) 不读 SEC EDGAR，看 underlying 走势",
         "phase": "close",
-        "session_label": "美股收盘（16:00 ET）",
-        "skill": "us-stock-analysis"
+        "session_label": "美股收盘（16:00 ET）"
       },
       "seasonal_schedules": {
         "daylight": {
@@ -304,10 +304,8 @@
       "payload_vars": {
         "market": "hk",
         "market_name": "港股",
-        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "open",
-        "session_label": "港股开盘（09:30 HKT）",
-        "skill": "hk-stock-analysis"
+        "session_label": "港股开盘（09:30 HKT）"
       },
       "schedule": {
         "kind": "cron",
@@ -361,10 +359,8 @@
       "payload_vars": {
         "market": "hk",
         "market_name": "港股",
-        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "mid",
-        "session_label": "港股午盘（12:00 HKT）",
-        "skill": "hk-stock-analysis"
+        "session_label": "港股午盘（12:00 HKT）"
       },
       "schedule": {
         "kind": "cron",
@@ -395,10 +391,8 @@
       "payload_vars": {
         "market": "hk",
         "market_name": "港股",
-        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "pm",
-        "session_label": "港股午后（13:30 HKT）",
-        "skill": "hk-stock-analysis"
+        "session_label": "港股午后（13:30 HKT）"
       },
       "schedule": {
         "kind": "cron",
@@ -425,10 +419,8 @@
       "payload_vars": {
         "market": "hk",
         "market_name": "港股",
-        "market_rule": "00100 MINIMAX 只有 Tencent 一个源，失败必须明说\"实时价获取失败\"",
         "phase": "close",
-        "session_label": "港股收盘（16:00 HKT）",
-        "skill": "hk-stock-analysis"
+        "session_label": "港股收盘（16:00 HKT）"
       },
       "schedule": {
         "kind": "cron",
@@ -455,10 +447,8 @@
       "payload_vars": {
         "market": "us",
         "market_name": "美股",
-        "market_rule": "杠杆 ETF (SOXL/MSFU/RKLX/PLTU) 不读 SEC EDGAR，看 underlying 走势",
         "phase": "open",
-        "session_label": "美股开盘（09:30 ET）",
-        "skill": "us-stock-analysis"
+        "session_label": "美股开盘（09:30 ET）"
       },
       "seasonal_schedules": {
         "daylight": {

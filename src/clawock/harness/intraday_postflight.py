@@ -54,7 +54,7 @@ from clawock.context.intraday_packet import packet_dir
 from clawock.harness import risk_notices
 from clawock.harness.intraday_trigger_prices import price_number, subject_code, trigger_prices
 from clawock.harness.validation import (
-    ADVISORY_MARK,
+    Advisory,
     FORBIDDEN_PHRASES,
     PLAN_CONSISTENCY,
     REPORT_CHAR_LIMITS,
@@ -66,12 +66,11 @@ from clawock.harness.validation import (
     with_compute_receipts,
     check_pipeline_self_reference,
     has_section_marker,
-    section_prose_lines,
+    section_body,
     is_hard_char_limit,
     mentions_ticker,
     postflight_exit_code,
     product_status,
-    section_marker_end,
     split_advisory,
     validate_forbidden_phrases,
 )
@@ -531,7 +530,7 @@ def validate(text, ctx, model_text):
       signal tickers must be named in prose) live here, because naming what
       fired is what an alert slot is for, and so do context field names in the
       prose (an identifier is never trading language);
-    - advisory (`ADVISORY_MARK`): logged, never counted — secondary reads such as
+    - advisory: logged, never counted — secondary reads such as
       plan triggers and add-side verdicts, numeric provenance, pipeline jargon.
 
     `fail` is never silence: it delivers the fail-closed data block with a
@@ -548,30 +547,20 @@ def validate(text, ctx, model_text):
     if not has_section_marker(checked, REQUIRED_SECTION):
         issues.append(f'缺段标记 "{REQUIRED_SECTION}"')
     else:
-        # 我的看法 段必须 ≥ 60 字（否则就是敷衍 1 句结案）
-        start = section_marker_end(judgment, REQUIRED_SECTION)
-        section_body = judgment[start:].strip() if start >= 0 else ''
-        # cut to next section (▎XXX) or end
-        next_marker = section_body.find('\n▎')
-        if next_marker > 0:
-            section_body = section_body[:next_marker]
-        section_body = section_body.strip()
-        # An unchanged slot (always_full on) is honest in one line: "本档无实质
-        # 变化，下一触发 X". The 60-char floor would push it into padding or an
-        # invented move, so a short body passes only when it says no change.
+        prose = section_body(judgment, REQUIRED_SECTION)
         honest_quiet = bool(ctx.get('semantic_unchanged')) and re.search(
-            r'无实质性?变化|没(?:有)?(?:实质性?|新)?变化|无新变化|无变化|与上次一致|无新增(?:变化|异动)', section_body)
+            r'无实质性?变化|没(?:有)?(?:实质性?|新)?变化|无新变化|无变化|与上次一致|无新增(?:变化|异动)', prose)
         if prose_claims.enabled(ctx):
-            if not any(re.search(r'[^\W\d_]', line) for _, line in section_prose_lines(section_body)):
-                issues.append(f'缺段标记 "{REQUIRED_SECTION}" 的正文')
-        elif len(section_body) < 60 and not honest_quiet:
+            if not honest_quiet and sum(c.isalpha() for c in prose) < 4:
+                issues.append(f'缺段标记 "{REQUIRED_SECTION}" 的正文须说明本档变化、关注条件或数据缺口')
+        elif len(prose) < 60 and not honest_quiet:
             issues.append(
-                f'"{REQUIRED_SECTION}" 段仅 {len(section_body)} 字，太敷衍 '
+                f'"{REQUIRED_SECTION}" 段仅 {len(prose)} 字，太敷衍 '
                 f'(< 60 软下限)；需引用具体票 + 一行判断'
             )
 
     if ctx.get('semantic_unchanged') and re.search(r'新异动|新触发|本档新', checked):
-        issues.append('语义未变的档位，判断却写了新异动/新触发 (advisory)')
+        issues.append(Advisory('语义未变的档位，判断却写了新异动/新触发'))
 
     # Judgment length measures the model slot. The channel limit measures
     # the complete card, including the harness-owned table.
@@ -626,14 +615,12 @@ def validate(text, ctx, model_text):
     if trigger_rows and not any(mentions_ticker(checked, row.get('ticker')) for row in trigger_rows):
         named = '/'.join(
             f"{row['ticker']} {row['condition_price']:g}" for row in trigger_rows[:3])
-        issues.append(
-            f'计划触发线已破但报告一个都没写 ({named}) {ADVISORY_MARK}')
+        issues.append(Advisory(f'计划触发线已破但报告一个都没写 ({named})'))
 
     add_rows = (ctx.get('add_side_reads') or {}).get('rows') or []
     if add_rows and not any(mentions_ticker(checked, row.get('ticker')) for row in add_rows):
         verdicts = '/'.join(f"{row['ticker']} {row['verdict']}" for row in add_rows[:3])
-        issues.append(
-            f'加仓侧读数非空但报告一个都没写 ({verdicts}) {ADVISORY_MARK}')
+        issues.append(Advisory(f'加仓侧读数非空但报告一个都没写 ({verdicts})'))
 
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
@@ -942,7 +929,12 @@ def main(argv=None):
             renderer = prose_claims.ClaimRenderer(ctx, receipts=receipts)
             trigger, judgment = split_next_trigger(model_text)
             trigger = renderer.triggers(trigger, NEXT_TRIGGER)
-            judgment = renderer.render(judgment, '盘中判断')
+            authored = judgment
+            judgment = renderer.render(authored, '盘中判断')
+            if ctx.get('full_holdings') and not ctx.get('semantic_unchanged'):
+                refs = prose_claims.resolved_in(section_body(authored, REQUIRED_SECTION), renderer)
+                if not refs:
+                    issues.append(f'{prose_claims.ISSUE} 盘中判断需引用本代标的、变化或数据缺口')
             model_text = '\n'.join(part for part in (judgment, trigger) if part)
             issues.extend([*renderer.issues, *renderer.advisories])
         text = assemble_message(ctx, model_text)

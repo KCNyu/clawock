@@ -83,76 +83,21 @@ In this order:
 
 本节只是路由。Mode 7 正文两市场共用一份：`skills/_shared/intraday-mode7.md`；cron 任务（`config/cron-payloads/intraday.md`，market=hk）第一轮直接 `read` 那份正文和 `skills/_shared/intraday-status-sidecar.md`，不读本文件。盘中规则只改那一份，这里不复述；人工对话里被问到盘中盯盘规则时也去读它。
 
-### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
-**When:** 港股开盘/午盘/午后/收盘 4 个 cron job 全部走这个 mode。
+### Mode 6 — 定时市场报告
 
-**Harness 4-step**（preflight → 散文 → postflight 拼装+投递 → 存档）：
+港股开盘、午盘、午后和收盘共用。对应市场怎么看，见 `../_shared/report-analysis-hk.md`；写法见 `../_shared/report-prose-rules.md`。定时执行、投递和故障恢复按 `config/cron-payloads/report.md`。
 
 #### Step 1: 跑 preflight
-```bash
-clawock report preflight --market hk --phase {open|mid|pm|close}
-```
-内部跑 `clawock analyze-hk --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
+
+手工运行用 `clawock report preflight --market hk --phase {open|mid|pm|close}` 并保留同代 `context_id`。
 
 #### Step 2: 只写分析散文
 
-**正文规则**：写散文前先读 `../_shared/report-prose-rules.md`，再读其中指向的通用写作标准。 散文事实引用按共用规则用 `[[/ctx/…]]`、`[[/compute/…]]` 和 `|cite`。禁止重述持仓股数和未成交计划的尺寸。
-
-**你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
-
-⚠️ **`plan_context` 对账（非空时 ▎操作建议 必写，写在该段最前）**：里面是 盘前简报为本腿定下、**还没成交**的决策（`open[]`：`ticker`/`action`/`shares`/`pct`/`condition`/`confidence`/`driven_by`/`rationale`，外加 `exec_mode` 当日执行方式、`carried_over` 有几条是往日挂到今天的）。
-- **新建议与旧计划不同，要明确说明变了什么**。`driven_by=risk_rule` 的是**纪律动作不是择时**——给它加「等回踩 / 等反弹 / 等站稳」这类条件就是推翻简报，2026-07-27 09:30 就这么把一条 4 重 breach 的 swap 写成了「回踩 -1% 再减」（issue #119）。要推翻必须明写理由和新证据。
-- `exec_mode.today_override` 说了 MOO 就不许改写成限价单口径。
-- 每条带股数的未成交决策，harness 已在数据块的「📋 未成交计划」里印出票、动作、股数、条件和挂起日期。散文只写对账结论（哪条仍挂着、今天怎么执行、有没有新证据改变它），**不重述股数和比例**。
-- `plan_context` 为 `{}` 说明今天本腿没有未完成决策，按正常写，不要编一个计划出来。
-- `plan_context` 里带 `error` 字段说明**计划没读出来，不是今天没有计划**（issue #136）。此时必须在 ▎操作建议 开头写一行「今日计划未取到（{error}），以下建议未与 盘前简报对账」，并且**不许**顺势断言「今天没有未完成决策」。
-- 卡片怎么分（harness 按计划、风控账本和持仓策略确定性地分，不由正文决定）：「待你处理」只列今天要动的单；计划裁定持有观望的票，分析器的 STOP 只印在「信号」里并标「计划持有」，不是待办；`risk_debts` 是风控账本里还没了结（未执行、未确认、未豁免）的违规，简报集中列未结事项，报告「风险待复查」只列新增或变化；`holding_policies` 里豁免成本线信号的票，信号和被策略禁止的减仓单都不印（冲突在 `strategy_conflicts`），与盘中卡一致。正文不复述这些行，但**不能说反话**：账本里硬止损还开着就不能写「纪律不触发」，持仓策略不设硬止损的票不能写「硬止损挂着」，计划持有的票不能下砍仓指令；postflight 对照计划、账本和策略记录核验结果。▎操作建议 逐票对账只写与计划不同、或今天条件变了的票，计划持有且没有新变化的票合成一句即可。
-- 可选键（#605/#609）：`overridden_by_user` = 用户已 override 的 risk_rule 砍单（已隐藏并结案，**不要再提「该砍未砍」**）；`reinvest_candidates` = 砍/trim 的弹药去向候选（仅当 `open[]` 真有 cut/trim 时出现；是观察不是授权，配对话术照抄候选 ticker 与 trigger，不许虚构「砍 X 的弹药」当 `open[]` 里没有 X）。
-
-行情补查优先内置搜索或 DeepSeek。Tavily 只在开盘/收盘或真事件用，带 `--bucket report`。
-
-写这几段，**存成 `memory/.tmp/report-prose-hk-{phase}.md`**：
-```
-▎情绪面
-{什么消息或板块变化值得看，它对手里的仓位有什么影响。用 peer_scan 对照场次和同业，挑会改变判断的一个对比。}
-
-▎技术面
-{选一个会改变看法的价格行为，说清为什么现在需要多看一眼。}
-
-▎操作建议
-{plan_context 非空时先写计划对账（哪条已成交/仍挂着 + 今天怎么执行），再说接下来等哪个信号或为什么照原计划走}
-
-▎风险提示（仅当 needs_risk_section=true）
-```
+按上面的分析和写作指针完成正文，保存到 Step 3 使用的文本路径。
 
 #### Step 3: 跑 postflight
-```bash
-clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-hk-{phase}.md
-```
-`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发。返回 JSON 含 `status` (pass/warn/fail)。pass/warn 自动拼装+发送+刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publish/safe_push.sh` 推送。
 
-⏱ postflight 等待、恢复与收尾按任务消息 Step 3（`config/cron-payloads/report.md`）。
-
-#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
-**唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
-把 postflight 返回的 `status` + `issues` 作为**本回合最终文本回复**输出即可（仅留痕）。
-**不要调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
-补投 Telegram，不重发微信。
-
-**标题模板**（preflight 已生成在 context.json，直接用）：
-- 开盘 09:30 HKT：`📊 港股开盘快报｜{date} 09:30`
-- 午盘 12:00 HKT：`☕ 港股午盘快报｜{date} 12:00`
-- 午后 13:30 HKT：`🌤 港股午后快报｜{date} 13:30`
-- 收盘 16:00 HKT：`🔔 港股收盘日报｜{date}`
-
-**硬性规则**：
-- ⚠️ 数据缺口必须明说，禁止编造（postflight 会扫敷衍词）
-- **00100 MINIMAX 只有 Tencent 一个源**，失败必须明说"实时价获取失败"
-- 不用 `message` 工具 — 微信由 Step 3 的 `report_postflight` fresh-token 主发（cron `--no-deliver`），手动再调会和 postflight 双发；本回合回复文本仅存档
-- 不简单复述数字，必须做模型自己的解读
-- 异动票（anomalies 字段）**必须在报告里被提到**（postflight 强制）
-- 不设字数目标；拼装全文只有一道防复读死循环的天花板（>5000 warn，>6000 fail）
+`clawock report postflight --market hk --phase {phase} --context-id <context_id> --text-file <正文路径>`。最终回执和等待方式见报告任务正文 Step 3–4。
 
 ### Mode 5 — Sentiment / 情绪面 Read
 **When:** "市场怎么看 X" / "雪球怎么聊 00100" / "港股情绪" / before sizing
@@ -191,30 +136,9 @@ Output:
 - 老千股嫌疑标的（频繁配股 / 长期阴跌）在雪球往往有专门骂帖，这些是早期信号
 - 00100 这种新 IPO 在雪球评论区流量大但样本偏，给情绪打分时降权
 
-## HK-specific concepts to apply
+## 港股判断框架与数据陷阱
 
-| Concept | When to use | How to apply |
-|---|---|---|
-| **南向资金** | Tone-setting for HK sessions | 流入 → 内资定价权强 / 流出 → 外资抛压. Quote daily net figure when available. |
-| **HIBOR / 港元汇率** | Liquidity environment | HIBOR 升 = 流动性收紧 = 港股估值压力, 尤其打击高估值科技股 |
-| **恒科 vs 纳指联动** | 03032 / 07226 / 03033 / 09988 / 00700 etc. | 美股科技夜盘强 → 次日恒科开盘往往跟随；联动断裂时单独分析 |
-| **T+0 + 无涨跌幅** | Risk sizing on all HK | 单日波动可远超 A 股. 杠杆 ETF（07226 2x）单日 ±5-10% 是常态 |
-| **老千股警惕** | 任何新接触的小市值标的 | 频繁配股 / 1-供-N / 历史多次合股 / 股价长期阴跌 → 排除. 现役持仓不在此列 |
-| **杠杆 ETF 衰减** | 07226 (2x恒科), 类似 SOXL/TQQQ | 震荡市衰减明显, 强趋势市才适合多日持有. 默认按短线对待 |
-
-## Output style (kcn-tuned)
-
-- **直接判断, 不绕弯.** "07226 RSI 76 短期太高, 反弹位减仓"  优于 "may be approaching overbought territory"
-- **表格优先.** 3 个以上数据点必用表
-- **数据时效必须标注.** 收盘后给数据要说"收盘价"; 盘中给要说"实时"
-- **失败要明说.** Tencent 挂了 → "00100 取价失败, 以下基于昨日收盘"
-
-## Critical reminders (从 workspace MEMORY 同步)
-
-- 港股交易时段: HKT 09:30-12:00 / 13:00-16:00 (北京时间同)
-- 北京时间 16:02 = 港股刚收盘 (不是 still trading)
-- 00100 是新 IPO, 数据源单一; PLTU/RKLX 这类美股新 IPO 同理但有 Nasdaq 兜底
-- 港股核心驱动 (per MEMORY.md): 恒科指数方向 + 个股逻辑 (00100 AI / 02208 风电政策)
+见 [港股定时报告分析准则](../_shared/report-analysis-hk.md)，用于报告和直接分析。直聊输出和工作流按对应 Mode。
 
 ## Examples
 

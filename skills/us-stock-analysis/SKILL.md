@@ -82,75 +82,21 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 
 本节只是路由。Mode 7 正文两市场共用一份：`skills/_shared/intraday-mode7.md`；cron 任务（`config/cron-payloads/intraday.md`，market=us）第一轮直接 `read` 那份正文和 `skills/_shared/intraday-status-sidecar.md`，不读本文件。盘中规则只改那一份，这里不复述；人工对话里被问到盘中盯盘规则时也去读它。
 
-### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
-**When:** 美股开盘 / 美股收盘 两个 cron 走这个 mode。
+### Mode 6 — 定时市场报告
 
-**Harness 4-step**：
+美股开盘和收盘共用。对应市场怎么看，见 `../_shared/report-analysis-us.md`；写法见 `../_shared/report-prose-rules.md`。定时执行、投递和故障恢复按 `config/cron-payloads/report.md`。
 
 #### Step 1: 跑 preflight
-```bash
-clawock report preflight --market us --phase {open|close}
-```
-跑 `clawock analyze-us --wechat --md-table` + 抽信号 + 异动，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
+
+手工运行用 `clawock report preflight --market us --phase {open|close}` 并保留同代 `context_id`。
 
 #### Step 2: 只写分析散文
 
-**正文规则**：写散文前先读 `../_shared/report-prose-rules.md`，再读其中指向的通用写作标准。 散文事实引用按共用规则用 `[[/ctx/…]]`、`[[/compute/…]]` 和 `|cite`。禁止重述持仓股数和未成交计划的尺寸。
-
-**你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
-
-⚠️ **`plan_context` 对账（非空时 ▎操作建议 必写，写在该段最前）**：里面是 盘前简报为本腿定下、**还没成交**的决策（`open[]`：`ticker`/`action`/`shares`/`pct`/`condition`/`confidence`/`driven_by`/`rationale`，外加 `exec_mode` 当日执行方式、`carried_over` 有几条是往日挂到今天的）。
-- **新建议与旧计划不同，要明确说明变了什么**。`driven_by=risk_rule` 的是**纪律动作不是择时**——给它加「等回踩 / 等反弹 / 等站稳」这类条件就是推翻简报（issue #119）。要推翻必须明写理由和新证据。
-- `exec_mode.today_override` 说了 MOO 就不许改写成限价单口径。
-- 每条带股数的未成交决策，harness 已在数据块的「📋 未成交计划」里印出票、动作、股数、条件和挂起日期。散文只写对账结论（哪条仍挂着、今天怎么执行、有没有新证据改变它），**不重述股数和比例**。
-- `plan_context` 为 `{}` 说明今天本腿没有未完成决策，按正常写，不要编一个计划出来。
-- `plan_context` 里带 `error` 字段说明**计划没读出来，不是今天没有计划**（issue #136）。此时必须在 ▎操作建议 开头写一行「今日计划未取到（{error}），以下建议未与 盘前简报对账」，并且**不许**顺势断言「今天没有未完成决策」。
-- 卡片怎么分（harness 按计划、风控账本和持仓策略确定性地分，不由正文决定）：「待你处理」只列今天要动的单；计划裁定持有观望的票，分析器的 STOP 只印在「信号」里并标「计划持有」，不是待办；`risk_debts` 是风控账本里还没了结（未执行、未确认、未豁免）的违规，简报集中列未结事项，报告「风险待复查」只列新增或变化；`holding_policies` 里豁免成本线信号的票，信号和被策略禁止的减仓单都不印（冲突在 `strategy_conflicts`），与盘中卡一致。正文不复述这些行，但**不能说反话**：账本里硬止损还开着就不能写「纪律不触发」，持仓策略不设硬止损的票不能写「硬止损挂着」，计划持有的票不能下砍仓指令；postflight 对照计划、账本和策略记录核验结果。▎操作建议 逐票对账只写与计划不同、或今天条件变了的票，计划持有且没有新变化的票合成一句即可。
-- 可选键（#605/#609）：`overridden_by_user` = 用户已 override 的 risk_rule 砍单（已隐藏并结案，**不要再提「该砍未砍」**）；`reinvest_candidates` = 砍/trim 的弹药去向候选（仅当 `open[]` 真有 cut/trim 时出现；是观察不是授权，配对话术照抄候选 ticker 与 trigger，不许虚构「砍 X 的弹药」当 `open[]` 里没有 X）。
-
-行情补查优先内置搜索或 DeepSeek。Tavily 只在开盘/收盘或真事件用，带 `--bucket report`。
-
-写这几段，**存成 `memory/.tmp/report-prose-us-{phase}.md`**：
-```
-▎情绪面
-{什么消息或板块变化值得看，它对手里的仓位有什么影响。用 peer_scan 对照场次和同业，挑会改变判断的一个对比。}
-
-▎技术面
-{选一个会改变看法的价格行为，说清为什么现在需要多看一眼。}
-
-▎操作建议
-{plan_context 非空时先写计划对账（哪条已成交/仍挂着 + 今天怎么执行），再说接下来等哪个信号或为什么照原计划走}
-
-▎风险提示（仅当 needs_risk_section=true）
-```
+按上面的分析和写作指针完成正文，保存到 Step 3 使用的文本路径。
 
 #### Step 3: 跑 postflight
-```bash
-clawock report postflight --market us --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-us-{phase}.md
-```
-`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发（防重发上个 slot 的旧文本）。
-pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publish/safe_push.sh` 推送。
 
-⏱ postflight 等待、恢复与收尾按任务消息 Step 3（`config/cron-payloads/report.md`）。
-
-#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-
-微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
-**唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
-把 postflight 返回的 `status` + `issues` 作为**本回合最终文本回复**输出即可（仅留痕）。
-**不要自己调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
-补投 Telegram，不重发微信。
-
-**Title template**（preflight 已生成）：
-- 开盘 09:30 ET：`🌅 美股开盘快报｜{date} 09:30 ET`
-- 收盘 16:00 ET：`🌙 美股收盘日报｜{date}`
-
-**Hard rules:**
-- ⚠️ data gaps must be stated explicitly, never fabricate (postflight 扫敷衍词)
-- ❌ **禁止调用 `message`/send 工具发报告** — 微信由 Step 3 的 `report_postflight` 用 fresh-token 主发（cron `--no-deliver`，不 announce），手动再调 message 会**和 postflight 撞成双发**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停；`report_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
-- No simple number recitation — model must add interpretation
-- 异动票 (anomalies) **必须在报告里提到** (postflight 强制)
-- 不设字数目标；拼装全文只有一道防复读死循环的天花板（>5000 warn，>6000 fail）
+`clawock report postflight --market us --phase {phase} --context-id <context_id> --text-file <正文路径>`。最终回执和等待方式见报告任务正文 Step 3–4。
 
 ### Mode 5 — Sentiment Read
 **When:** "市场情绪怎么样" / "推上怎么说 X" / "Reddit 怎么聊 X" / before a sizing decision
