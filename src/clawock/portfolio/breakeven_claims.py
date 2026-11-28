@@ -9,6 +9,7 @@ DRAG_SUM_FIELD = 'priced_chop_drag_sum_pct_per_month'
 ISSUE = '横盘衰减与测算不符'
 _DRAG = ('衰减', '耗损', '损耗', 'decay', 'drag')
 _MONTH = ('每月', '每个月', '月度', '月均', '月衰减', '月损耗', '/月', '/ 月', 'per month', 'monthly')
+_DAILY = ('当日衰减', '日内衰减', '每日衰减', '每天衰减', 'daily drag', 'daily decay')
 _SUM = ('合计', '合付', '总计', '总共', '合起来', '加在一起', '加总', '之和', '算术和')
 _BOUNDARY = str.maketrans({char: '\n' for char in '。！？；;'})
 _DECIMAL_CHARS = frozenset('0123456789.+-')
@@ -51,6 +52,8 @@ def _claims(text):
         clauses = sentence.replace('，', ',').split(',')
         aggregate = _find(sentence, _SUM) is not None
         for index, clause in enumerate(clauses):
+            if _find(clause, _DAILY) is not None and _find(clause, _MONTH) is None:
+                continue
             position = _find(clause, _DRAG)
             if position is None and _find(sentence, ('两倍腿', '杠杆', 'etf')) is not None:
                 position = _find(clause, ('合付', '白付', '付掉', '合计'))
@@ -62,10 +65,15 @@ def _claims(text):
                     readings, key=lambda reading: min(abs(reading[0] - position),
                                                       abs(reading[1] - position)))
                 yield value, aggregate
-            elif index + 1 < len(clauses) and _find(clauses[index + 1], _MONTH) is not None:
-                adjacent = next(_percentages(clauses[index + 1]), None)
-                if adjacent:
-                    yield adjacent[2], aggregate
+            elif index + 1 < len(clauses):
+                adjacent = clauses[index + 1]
+                month = _find(adjacent, _MONTH)
+                other_readings = list(_percentages(adjacent)) if month is not None else []
+                if other_readings:
+                    _, _, value = min(
+                        other_readings, key=lambda reading: min(abs(reading[0] - month),
+                                                               abs(reading[1] - month)))
+                    yield value, aggregate
 
 
 def validate_drag(text, context, *, ticker=None, references=None):

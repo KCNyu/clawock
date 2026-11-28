@@ -23,6 +23,10 @@ def test_monthly_decay_does_not_borrow_other_tickers_or_guess_missing_volatility
     assert any('07709 这只的衰减算不出来' in i for i in
                drag.validate_drag('07709 的两倍腿每月白付 4.4% 的横盘衰减。', CTX))
     assert not drag.validate_drag('SPCH 的横盘衰减为每月 4.4%。', CTX)
+    assert not drag.validate_drag(
+        'SPCH 标的涨 12%，两倍腿先扣掉当日衰减，标的反弹 10% 在 4.4% 月衰减下未必够。', CTX)
+    assert drag.validate_drag(
+        '07709 标的涨 12%，两倍腿先扣掉当日衰减，标的反弹 10% 在 4.4% 月衰减下未必够。', CTX)
     assert drag.validate_drag('RKLX 的横盘衰减为每月 4.4%。', CTX)
     assert drag.validate_drag('07709 有横盘衰减，每月 4.4%。', CTX)
     assert drag.validate_drag('三只两倍腿每月合付 16.67% 的横盘衰减。', CTX)
