@@ -900,11 +900,11 @@ def test_cli_render_writes_the_custom_card_footer(tmp_path):
     for name, data in (("context", CONTEXT), ("judgment", _judgment())):
         (cache / f"brief-{name}-2026-08-31.json").write_text(json.dumps(data))
     (tmp_path / "memory" / "2026-08-31-plan.json").write_text(json.dumps(PLAN))
-    profile = tmp_path / "config/profiles/kcnyu/profile.json"
+    profile = tmp_path / "config/profiles/two-market/profile.json"
     profile.parent.mkdir(parents=True)
-    profile.write_text((ROOT / "config/profiles/kcnyu/profile.json").read_text())
+    profile.write_text((ROOT / "examples/profiles/two-market/profile.json").read_text())
     assert main(["brief", "render", "--workspace", str(tmp_path),
-                 "--profile", "kcnyu",
+                 "--profile", "two-market",
                  "--date", "2026-08-31", "--page-url",
                  "https://example.invalid/custom-brief"]) == 0
     card = (cache / "brief-card-2026-08-31.txt").read_text()

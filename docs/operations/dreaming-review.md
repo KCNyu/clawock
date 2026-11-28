@@ -23,10 +23,10 @@ The host uses one promotion engine with two independent outputs:
   `ops/host/shared-memory/scripts/publish.py --write` to regenerate `MEMORY.md` and
   `publish-manifest.json`. If generation or its post-check fails, it restores the previous pair
   and returns non-zero.
-- `ops/host/commit_dreaming.sh` runs the promotion and `review_dreams.py` independently, then
-  commits the projection pair and `DREAMS.md` in separate commits. A MEMORY failure still lets a
-  reviewed DREAMS append commit, and a DREAMS failure does not block a reviewed projection.
-  Neither failed side is published.
+- `ops/host/commit_dreaming.sh` runs the promotion and diary checks independently
+  in the 03:00–06:00 HKT maintenance window. The resulting views stay local.
+  Review failure in one view does not stop the other. `DREAMING_REVIEW_PAUSED=1`
+  pauses the nightly review without stopping market reports.
 - `ops/host/review_dreams.py` reviews the DREAMS diary append against a private baseline. Existing
   entries are grandfathered once; a new entry must be clean under the same deterministic rules and
   carry an exact hash-bound receipt, or it is removed from DREAMS and preserved in ignored
@@ -96,7 +96,7 @@ An approved conclusion becomes one new topic:
 
 The 14 sections already in `MEMORY.md` correspond to existing public topics and are never
 recreated. Promotion only handles new candidates. The marker is the idempotency key: a repeated
-run sees it in the committed projection or in the store, writes no second topic, and regenerates
+run sees it in the local projection or in the store, writes no second topic, and regenerates
 nothing when the projection already contains it. A candidate whose content changes after
 promotion is refused rather than rewritten. Legacy dated promotion sections, if an old runtime
 left one, are copied to the private legacy candidate file before the projection drops them.
@@ -120,8 +120,8 @@ decisions and the slugs it would write, without touching the store or the reposi
   before-image. The reviewed topic stays in the store, so the next run retries the projection
   without another review. The restored file is the previous injectable version, not an empty or
   partially generated one.
-- **One side fails in `commit_dreaming.sh`:** each side is reviewed and committed separately; the
-  other side still commits and pushes. The failing side is named in the cron log.
+- **One side fails in `commit_dreaming.sh`:** each side is reviewed separately; the
+  other view can still update. The failing side is named in the cron log.
 
 No gateway restart is needed for a change to this host-side Python or shell gate. The dist patch
 that feeds direct-chat sessions into the corpus does need an idle-gateway restart; its selection
@@ -132,7 +132,7 @@ separate review.
 
 ### DREAMS.md diary append
 
-`DREAMS.md` is tracked and published, so its raw narrative is a public memory path.
+`DREAMS.md` is the local reviewed narrative view.
 `review_dreams.py` parses the entries inside the dreaming diary markers:
 
 - On the first run it writes `memory/.dreams/dreams-review.json` with every current
@@ -144,14 +144,12 @@ separate review.
   held for confirmation on kcn's explicit instruction. The remaining 36 entries
   carry a reusable conclusion, decision basis or incident context. The private
   baseline keeps the removed hashes; the remaining entries were not rewritten.
-- A later entry whose hash is not in the baseline is kept only when the
-  deterministic contamination rules pass **and** `memory/.dreams/dreams-approvals.json`
-  has a receipt for its exact normalized SHA256 (reviewer, rationale, reviewed_on
-  within 30 days, durable). Otherwise it is removed from `DREAMS.md` and appended
-  to ignored `memory/.dreams/dreams-quarantine.jsonl` with the reason.
-- `review_dreams.py --list` prints quarantined hashes. An operator can inspect the
-  text and run `review_dreams.py --approve <sha256> --reviewer ... --rationale ...`;
-  the next review records it as approved. A contaminated entry cannot be approved.
+- A later entry enters the private quarantine even when its content passes the deterministic
+  checks. With `--list`, an operator can inspect quarantined hashes and use
+  `--approve <sha256> --reviewer ... --rationale ...`. The command screens the content, records
+  the reviewer and exact entry hash in `dreams-review.json`, then restores the approved text.
+  The former standalone approval file is retired. Existing approved and grandfathered ledger
+  entries remain valid.
 - `--check` fails if the baseline is missing, if DREAMS contains an unreviewed
   entry, or if a quarantined entry is present. No path, marker or site input moves.
 
@@ -159,7 +157,7 @@ separate review.
 
 After an upgrade, run the patch with `--check`. After the 03:00 HKT dreaming run,
 confirm new candidates went to the private candidate file and no dated promotion
-section appeared in MEMORY. After 03:20, check the dreaming commit log for review
+section appeared in MEMORY. After 03:20, check the dreaming review log for review
 decision counts and run:
 
 ```bash
@@ -227,3 +225,19 @@ is refused. No-candidate runs still validate the public projection against its
 manifest and store; they cannot authorize a hand-edited MEMORY.md. The generation
 transaction restores both output files on a post-generation verify/doctor failure
 as well as a generator failure. Reviewed store topics remain for an audited retry.
+
+## Audit before retiring legacy recall
+
+Use the read-only audit before removing legacy Markdown or dreaming/light from recall:
+
+```bash
+python3 ops/host/memory_migration_report.py --workspace "$WORKSPACE" --store "$STORE"
+```
+
+The report counts candidate paragraphs from legacy and light files, ranked
+promotion candidates and diary entries. It excludes existing scheduled briefs
+from the legacy scan. Duplicate means an exact normalized body match against
+the shared store or another eligible candidate. Discard includes transient
+narrative, protected content and numbers without a ledger binding. Extractable
+entries still need semantic review. Paths and hashes are diagnostic output for
+the local operator. Keep the report in the instance's private scratch storage.

@@ -22,8 +22,9 @@ def test_explicit_workspace_owns_inputs_and_artifacts(tmp_path, monkeypatch, com
         (root / 'memory' / '.tmp' / f'brief-context-{TODAY}.json').write_text(
             json.dumps({'date': TODAY}))
     for directory in [root, away]:
-        for name in ['SOUL.md', 'BOOTSTRAP.md', 'skills/daily-deep-brief/SKILL.md']:
-            (directory / name).write_text('chosen-book' if directory == root else 'wrong-cwd')
+        (directory / 'skills/daily-deep-brief/SKILL.md').write_text(
+            'chosen-book' if directory == root else 'wrong-cwd'
+        )
     # A tempting cwd context must not override the selected book.
     (away / 'memory' / '.tmp' / f'brief-context-{TODAY}.json').write_text(json.dumps({
         'status': 'market_closed'}))
@@ -33,7 +34,8 @@ def test_explicit_workspace_owns_inputs_and_artifacts(tmp_path, monkeypatch, com
 
     def chat(**kwargs):
         assert complete, 'incomplete context must not call a provider'
-        assert 'chosen-book' in kwargs['system'] and 'chosen-book' in kwargs['user']
+        assert kwargs['system'] == bf.SINGLE_TURN_ADAPTER
+        assert 'chosen-book' in kwargs['user']
         assert 'wrong-cwd' not in kwargs['system'] + kwargs['user']
         return model_reply(packet, TODAY)
 

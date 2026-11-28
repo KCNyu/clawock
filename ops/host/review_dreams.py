@@ -7,7 +7,7 @@ reviews every diary entry appended after its private baseline:
 
 * existing entries are grandfathered once (a one-time bootstrap, no rewrite);
 * a new entry must be free of the deterministic contamination rules and have an
-  exact hash-bound receipt in memory/.dreams/dreams-approvals.json;
+  exact hash-bound receipt in the private review ledger;
 * anything else is removed from DREAMS.md and preserved in the private
   memory/.dreams/dreams-quarantine.jsonl, never silently published.
 
@@ -88,22 +88,16 @@ def rebuild(parsed, kept):
 def load_json(path: Path, default):
     try:
         return json.loads(path.read_text())
-    except (OSError, ValueError):
+    except FileNotFoundError:
         return default
 
 
-def valid_receipt(receipt, expected_hash: str) -> bool:
-    if not isinstance(receipt, dict):
+def receipt_matches(entry, known):
+    """Retain prior approvals and bind new approvals to exact entry bytes."""
+    if not known or known.get('status') not in ('grandfathered', 'approved'):
         return False
-    try:
-        reviewed_on = date.fromisoformat(receipt['reviewed_on'])
-    except (KeyError, TypeError, ValueError):
-        return False
-    return (receipt.get('sha256') == expected_hash
-            and bool(receipt.get('reviewer'))
-            and bool(receipt.get('rationale'))
-            and receipt.get('durable') is True
-            and 0 <= (date.today() - reviewed_on).days <= 30)
+    expected = known.get('content_sha256')
+    return expected is None or expected == hashlib.sha256(entry['text'].encode()).hexdigest()
 
 
 def append_quarantine(path: Path, rows) -> int:
@@ -148,7 +142,6 @@ def review(workspace: Path, check_only: bool = False, store: Path | None = None)
         raise ValueError('DREAMS.md has no diary markers')
     private = workspace / 'memory/.dreams'
     ledger_path = private / 'dreams-review.json'
-    approvals_path = private / 'dreams-approvals.json'
     quarantine_path = private / 'dreams-quarantine.jsonl'
     ledger = load_json(ledger_path, None)
     if ledger is None:
@@ -161,39 +154,29 @@ def review(workspace: Path, check_only: bool = False, store: Path | None = None)
         atomic_write(ledger_path, json.dumps(ledger, ensure_ascii=False, indent=1) + '\n', True)
         print(f'dreams review: bootstrapped {len(entries)} existing entries; no rewrite')
         return 0
-    ledger_entries = ledger.setdefault('entries', {})
-    approvals = load_json(approvals_path, {})
-    kept, quarantined, report = [], [], []
+    if not isinstance(ledger, dict) or not isinstance(ledger.get('entries'), dict):
+        raise ValueError('invalid dreams review ledger')
+    ledger_entries = ledger['entries']
+    kept, quarantined = [], []
     for entry in parsed['entries']:
         key = entry['sha256']
         known = ledger_entries.get(key)
-        if known and known.get('status') in ('grandfathered', 'approved'):
+        if receipt_matches(entry, known):
             kept.append(entry)
             continue
-        why = reasons(entry['body'])
-        why = [*why, *private_copy_reasons(entry['body'], store)]
-        receipt = approvals.get(key)
-        if not why and valid_receipt(receipt, key):
-            ledger_entries[key] = {'date': entry['date'], 'status': 'approved',
-                                   'reviewed_on': receipt['reviewed_on']}
-            kept.append(entry)
-            report.append({'sha256': key, 'date': entry['date'], 'decision': 'approved'})
-        else:
-            if not why:
-                why = ['unreviewed']
-            elif receipt is not None:
-                why = [*why, 'receipt_rejected_by_contamination']
+        why = [*reasons(entry['body']), *private_copy_reasons(entry['body'], store)]
+        if not why:
+            why = ['approval_hash_mismatch' if known and known.get('status') == 'approved'
+                   else 'unreviewed']
+        if not known or known.get('status') != 'approved':
             ledger_entries[key] = {'date': entry['date'], 'status': 'quarantined',
                                    'reasons': why}
-            quarantined.append({'sha256': key, 'date': entry['date'], 'text': entry['text'],
-                                'body': entry['body'],
-                                'reasons': why, 'quarantined_at': date.today().isoformat()})
-            report.append({'sha256': key, 'date': entry['date'], 'decision': 'quarantined',
-                           'reasons': why})
+        quarantined.append({'sha256': key, 'date': entry['date'], 'text': entry['text'],
+                            'body': entry['body'], 'reasons': why,
+                            'quarantined_at': date.today().isoformat()})
     if check_only:
-        pending = [r for r in report if r['decision'] != 'approved']
-        if pending or quarantined:
-            raise ValueError(f'{len(pending)} unreviewed DREAMS entry(ies) remain')
+        if quarantined:
+            raise ValueError(f'{len(quarantined)} unreviewed DREAMS entry(ies) remain')
         print('dreams review: DREAMS has no unreviewed append')
         return 0
     private.mkdir(parents=True, exist_ok=True)
@@ -204,8 +187,7 @@ def review(workspace: Path, check_only: bool = False, store: Path | None = None)
         text = text[:start] + region + text[end:]
         atomic_write(dreams_path, text)
     atomic_write(ledger_path, json.dumps(ledger, ensure_ascii=False, indent=1) + '\n', True)
-    print(json.dumps({'decisions': {d: sum(1 for r in report if r['decision'] == d)
-                                    for d in ('approved', 'quarantined')},
+    print(json.dumps({'decisions': {'quarantined': len(quarantined)},
                       'dreams_sha256': digest(text)}, ensure_ascii=False))
     return 0
 
@@ -226,24 +208,32 @@ def approve(workspace: Path, target: str, reviewer: str, rationale: str,
     if not rows:
         raise ValueError(f'no quarantined DREAMS entry {target}')
     row = rows[-1]
-    why = reasons(row.get('body', row['text']))
-    why = [*why, *private_copy_reasons(row.get('body', row['text']), store)]
+    text_to_approve = row['text']
+    if digest(text_to_approve) != target:
+        raise ValueError('quarantined entry no longer matches its hash')
+    body = '\n'.join(text_to_approve.splitlines()[1:]).strip()
+    why = [*reasons(body), *private_copy_reasons(body, store)]
     if why:
         raise ValueError(f'entry still matches contamination rules: {", ".join(why)}')
-    approvals_path = private / 'dreams-approvals.json'
-    approvals = load_json(approvals_path, {})
-    approvals[target] = {'sha256': target, 'reviewer': reviewer,
-                         'rationale': rationale, 'durable': True,
-                         'reviewed_on': date.today().isoformat()}
-    atomic_write(approvals_path, json.dumps(approvals, ensure_ascii=False, indent=1) + '\n', True)
-    # Reinsert before the diary end marker; the next review records it as approved.
+    ledger_path = private / 'dreams-review.json'
+    ledger = load_json(ledger_path, None)
+    if not isinstance(ledger, dict) or not isinstance(ledger.get('entries'), dict):
+        raise ValueError('dreams review baseline missing; run review once')
     dreams_path = workspace / 'DREAMS.md'
     text = dreams_path.read_text()
-    if DIARY_END not in text:
-        raise ValueError('DREAMS.md has no diary end marker')
-    text = text.replace(DIARY_END, f'\n---\n\n{row["text"]}\n\n{DIARY_END}', 1)
-    atomic_write(dreams_path, text)
-    print(f'dreams review: approved {target}; rerun review to record it')
+    parsed = parse(text)
+    if parsed is None:
+        raise ValueError('DREAMS.md has no diary markers')
+    ledger['entries'][target] = {
+        'date': row['date'], 'status': 'approved', 'reviewer': reviewer,
+        'rationale': rationale, 'reviewed_on': date.today().isoformat(),
+        'content_sha256': hashlib.sha256(text_to_approve.encode()).hexdigest(),
+    }
+    atomic_write(ledger_path, json.dumps(ledger, ensure_ascii=False, indent=1) + '\n', True)
+    if not any(entry['text'] == text_to_approve for entry in parsed['entries']):
+        text = text.replace(DIARY_END, f'\n---\n\n{text_to_approve}\n\n{DIARY_END}', 1)
+        atomic_write(dreams_path, text)
+    print(f'dreams review: approved {target}')
     return 0
 
 

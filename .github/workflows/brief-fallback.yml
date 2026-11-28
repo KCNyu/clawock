@@ -87,7 +87,7 @@ jobs:
     # plus the supervised preflight (600s) and local reserve (300s).
     timeout-minutes: 55
     env:
-      CLAWOCK_PROFILE: kcnyu
+      CLAWOCK_PROFILE: examples/profiles/two-market/profile.json
       CLAWOCK_WORKSPACE: ${{ github.workspace }}
       # The whole provider chain must finish inside this job, and `timeout` alone
       # cannot say that: timeout=900 x MAX_RETRIES=3 is a 45-minute budget for

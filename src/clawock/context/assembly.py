@@ -97,8 +97,11 @@ def assemble(workspace, *, skills=(), profile: str | None = None) -> ContextBund
     root = Path(workspace).expanduser().resolve()
     manifest = load_manifest()
     _, contract = _profile(manifest, profile)
+    local = set(manifest["local_projections"])
     documents = tuple(
-        _read_required(root / name, name) for name in contract["bootstrap"]
+        _read_required(root / name, name)
+        for name in contract["bootstrap"]
+        if name not in local or (root / name).exists()
     )
     selected = []
     pattern = manifest["skills"]["body_pattern"]
@@ -139,18 +142,7 @@ def assemble_explicit(workspace, documents) -> ContextBundle:
 
 
 def audit_all(workspace) -> dict:
-    """Audit every context profile, and pass only if all of them pass.
-
-    `audit()` answers for one profile, which made the obvious command the unsafe
-    one: with no `--profile` it resolved to the manifest default — isolated-cron,
-    five bootstrap files — so emptying `MEMORY.md`, which only the seven-file
-    interactive profile requires, produced `ok: true` and exit 0. A required
-    context file could be gone with the audit that exists to notice it reporting
-    green (#380).
-
-    Auditing one profile is still the right operation when you mean one profile.
-    Defaulting to one profile was the bug.
-    """
+    """Audit all profiles and include their required and local-only gaps."""
     root = Path(workspace).expanduser().resolve()
     names = list(load_manifest()["profiles"])
     profiles = {name: audit(root, profile=name) for name in names}
@@ -166,6 +158,9 @@ def audit_all(workspace) -> dict:
         "missing_capabilities": sorted(
             f"{name}:{item}"
             for name, r in profiles.items() for item in r["missing_capabilities"]),
+        "missing_local_projections": sorted(
+            f"{name}:{item}" for name, r in profiles.items()
+            for item in r["missing_local_projections"]),
         "ok": all(r["ok"] for r in profiles.values()),
     }
 
@@ -175,16 +170,24 @@ def audit(workspace, *, profile: str | None = None) -> dict:
     root = Path(workspace).expanduser().resolve()
     manifest = load_manifest()
     profile_name, contract = _profile(manifest, profile)
+    local = set(manifest["local_projections"])
     missing, empty, missing_capabilities = [], [], []
+    missing_local = set()
     for name in contract["bootstrap"]:
         path = root / name
         if not path.is_file():
-            missing.append(name)
+            if name in local and not path.exists():
+                missing_local.add(name)
+            else:
+                missing.append(name)
         elif not path.read_text(encoding="utf-8").strip():
             empty.append(name)
     for relative in contract.get("capability_paths", []):
         if not (root / relative).exists():
-            missing_capabilities.append(relative)
+            if relative in local:
+                missing_local.add(relative)
+            else:
+                missing_capabilities.append(relative)
     return {
         "runtime_contract": manifest["runtime_contract"],
         "verified_against": manifest["verified_against"],
@@ -201,6 +204,7 @@ def audit(workspace, *, profile: str | None = None) -> dict:
         "missing": missing,
         "empty": empty,
         "missing_capabilities": missing_capabilities,
+        "missing_local_projections": sorted(missing_local),
         "ok": not missing and not empty and not missing_capabilities,
     }
 

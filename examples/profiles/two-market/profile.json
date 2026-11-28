@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "id": "kcnyu",
+  "id": "two-market",
   "locale": "zh-CN",
   "timezone": "Asia/Hong_Kong",
   "markets": {
@@ -20,17 +20,26 @@
   "workflows": {
     "brief": {
       "enabled": true,
-      "markets": ["hk", "us"],
+      "markets": [
+        "hk",
+        "us"
+      ],
       "policy": "brief"
     },
     "report": {
       "enabled": true,
-      "markets": ["hk", "us"],
+      "markets": [
+        "hk",
+        "us"
+      ],
       "policy": "report"
     },
     "intraday": {
       "enabled": true,
-      "markets": ["hk", "us"],
+      "markets": [
+        "hk",
+        "us"
+      ],
       "policy": "intraday"
     }
   },
@@ -42,8 +51,12 @@
   "delivery": {
     "provider": "openclaw",
     "targets": {
-      "wechat": {"source": "runtime_job"},
-      "telegram": {"source": "static", "value": "2033937852"}
+      "wechat": {
+        "source": "disabled"
+      },
+      "telegram": {
+        "source": "disabled"
+      }
     }
   }
 }

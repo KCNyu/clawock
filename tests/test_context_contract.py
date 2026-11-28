@@ -30,11 +30,6 @@ def test_live_openclaw_profiles_distinguish_chat_cron_and_heartbeat():
         "interactive", "isolated-cron", "heartbeat-full", "heartbeat-light",
         "bootstrap-pending", "subagent",
     }
-    # Every context file a profile names is shipped in the repository again
-    # (#1074): MEMORY.md is clawock runtime state, not coding-agent prose, so
-    # there is no host-local gap left to tolerate. Kept over every profile
-    # rather than the original four — the wider sweep was the one good thing
-    # #1072 left behind.
     for profile in profile_names():
         result = audit(ROOT, profile=profile)
         assert result["ok"], result
@@ -73,7 +68,8 @@ def test_audit_fails_when_lazy_memory_or_skill_capability_would_be_lost(tmp_path
     result = audit(tmp_path, profile="isolated-cron")
 
     assert not result["ok"]
-    assert result["missing_capabilities"] == ["skills", "MEMORY.md", "memory"]
+    assert result["missing_capabilities"] == ["skills", "memory"]
+    assert result["missing_local_projections"] == ["MEMORY.md"]
 
 
 def test_prompt_report_comparison_catches_tool_capability_loss():
@@ -353,3 +349,25 @@ def test_a_skill_symlink_inside_the_workspace_is_still_usable(tmp_path):
     skill.write_text("skill body", encoding="utf-8")
     os.symlink(workspace / "skills" / "demo", workspace / "skills" / "alias")
     assert "skill body" in assemble(workspace, skills=["alias"]).text
+
+
+def test_local_memory_is_optional_when_missing_but_used_when_available(tmp_path):
+    for name in INTERACTIVE[:-1]:
+        (tmp_path / name).write_text(f"body:{name}")
+    (tmp_path / "skills").mkdir()
+    (tmp_path / "memory").mkdir()
+
+    report = audit(tmp_path, profile="interactive")
+    assert report["ok"]
+    assert report["missing_local_projections"] == ["MEMORY.md"]
+    assert [doc.name for doc in assemble(tmp_path, profile="interactive").documents] == INTERACTIVE[:-1]
+
+    projection = tmp_path / "MEMORY.md"
+    projection.write_text("generated memory\n")
+    bundle = assemble(tmp_path, profile="interactive")
+    assert bundle.documents[-1].text == "generated memory\n"
+
+    projection.write_text("")
+    assert not audit(tmp_path, profile="interactive")["ok"]
+    with pytest.raises(ValueError, match="MEMORY.md is empty"):
+        assemble(tmp_path, profile="interactive")

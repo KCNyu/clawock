@@ -8,11 +8,11 @@ from clawock import scheduling
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_kcnyu_profile_drives_the_schedule_resource():
-    profile = load_profile(ROOT, "kcnyu")
-    contract = scheduling.load_contract(workspace=ROOT, profile="kcnyu")
+def test_two_market_example_drives_the_schedule_resource():
+    profile = load_profile(ROOT, "examples/profiles/two-market/profile.json")
+    contract = scheduling.load_contract(workspace=ROOT, profile="examples/profiles/two-market/profile.json")
 
-    assert profile.profile_id == "kcnyu"
+    assert profile.profile_id == "two-market"
     assert profile.markets["us"].timezone == "America/New_York"
     assert contract.workspace == ROOT
     assert len(contract["jobs"]) == 12
@@ -89,7 +89,7 @@ def test_a_payload_fragment_is_rendered_into_every_template_that_includes_it(tmp
 
 
 def test_the_three_strategy_payloads_carry_the_same_exec_contract():
-    contract = scheduling.load_contract(workspace=ROOT, profile="kcnyu")
+    contract = scheduling.load_contract(workspace=ROOT, profile="examples/profiles/two-market/profile.json")
     fragment = (ROOT / "config/cron-payloads/_exec-contract.md").read_text().rstrip("\n")
     rendered = {
         job["payload_profile"]: scheduling.render_payload_message(contract, job)

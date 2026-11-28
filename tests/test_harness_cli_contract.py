@@ -23,7 +23,7 @@ def test_cli_dispatches_a_preflight_in_process(monkeypatch):
 
     monkeypatch.setattr(runner, "run_phase", fake)
     assert main([
-        "intraday", "preflight", "--market", "hk", "--profile", "kcnyu"
+        "intraday", "preflight", "--market", "hk", "--profile", "two-market"
     ]) == 0
     assert seen == {"workflow": "intraday", "phase": "preflight",
                     "argv": ["--market", "hk"]}

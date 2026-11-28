@@ -44,7 +44,7 @@ BRIEF_LLM_TIMEOUT_SECONDS = 900
 #: requires, so a perfect reply still failed the next step. Every place the two
 #: differ is resolved here, once, in the direction of the skill's own artifacts.
 SINGLE_TURN_ADAPTER = """你在离机兜底环境里单轮生成今天的盘前深度简报：没有任何工具，不能查询、不能写文件、不能跑命令。
-分析方法、plan 的 schema（Step 4 的 B）和 judgment 的字段规则（Step 4 的 C）以下面的 SKILL.md 为准；SKILL.md 里凡是要求调用工具、查询 packet、读写文件或跑 preflight/postflight 的地方，在这里一律按下面三条执行：
+分析方法、plan 的 schema（Step 4 的 B）和 judgment 的字段规则（Step 4 的 C）以下面的 SKILL.md 为准；SKILL.md 里凡是要求调用工具、查询 packet、读写文件或跑 preflight/postflight 的地方，在这里一律按下面四条执行：
 1. 输入已经全部内联：本次 generation 的 decision packet（SKILL 所说的 summary 与逐票查询的全部内容）和完整 preflight context。数字只取自这两份，取不到就写进 data_holes，不要编。
 2. 只输出一个 JSON 对象：{"plan": {...}, "judgment": {...}}。不要输出 markdown 报告、微信卡、insights 或任何客套话——报告与微信卡由 harness 从 plan 和 judgment 渲染。
 3. judgment 以下面的「judgment 模板」为骨架原样填空：不增删键，不改 ticker 列表、schema_version 与 context_generation_id；文字字段是纯文本，不含 |、#、**、```、▎，行首不带列表符或引用符。
@@ -286,25 +286,6 @@ def fail_closed_artifacts(today, prepared):
     if generation_id:
         plan['context_generation_id'] = generation_id
     return md, plan
-
-
-def build_system_prompt(soul: str, bootstrap: str) -> str:
-    """The off-host brief writer's system prompt: both files WHOLE.
-
-    This used to be `{soul[:1000]}\\n\\n{bootstrap[:2000]}` — slice sizes picked
-    when the files were smaller and never revisited. On committed 2026-08 text
-    the SOUL cut landed right before `## Operating mode (this workspace)`
-    ("Have a view, name the trade" / "Cite numbers, not vibes") and kept 39% of
-    the file; the BOOTSTRAP cut landed mid-sentence inside C+.2 and dropped C+.3
-    risk alerts, B+ research lifecycle and all of C. 输出约束 — the exact
-    constraint list postflight validates the fallback's output against
-    (#962). Same defect class as #959/#961, one layer up: never slice a
-    whole document into a prompt. Both files together are ~7.6KB against a
-    400KB context budget, so there is no size pressure to manage — any future
-    budget belongs in prepare_context, which trims structurally and declares
-    what it dropped.
-    """
-    return f"You are Rick, kcn's stock analyst. {soul.strip()}\n\n{bootstrap.strip()}"
 
 
 def _sha256(path):
@@ -549,17 +530,9 @@ def main(argv=None):
     generation_id = (packet.get('_meta') or {}).get('generation_id')
 
     skill = _read_brief_skill(root)
-    soul = (root / 'SOUL.md').read_text()
-    # BOOTSTRAP.md goes in whole. Its brief rules (§B.3, §C) name judgment
-    # fields, not report sections: this turn can only return plan + judgment,
-    # so an instruction to write a section here is one the reply cannot follow
-    # (#3117).
-    bootstrap = (root / 'BOOTSTRAP.md').read_text()
-
-    system = build_system_prompt(soul, bootstrap)
+    system = SINGLE_TURN_ADAPTER
     template = json.dumps(decision_packet.judgment_template(packet), ensure_ascii=False)
     user = (
-        f"{SINGLE_TURN_ADAPTER}\n\n"
         f"SKILL.md:\n{skill}\n\n"
         f"{storytelling_prompt()}\n\n"
         f"Decision packet (harness 编译的事实、风险与 action bounds):\n"

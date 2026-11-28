@@ -335,7 +335,7 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 - [**投研台怎么运转**](docs/how-the-desk-works.zh.md) —— 信息层、每种运行读什么、决策闸、打分规则与 12 条代码规矩。
 - [**盘中研究工作流**](docs/architecture/intraday-research-workflow.md) —— 盘中卡分开显示历史研究和供人工确认的条件下单建议，从不提交订单。
 - [**影响者雷达**](docs/how-the-desk-works.md#influencer-radar) —— 八个公开来源每个交易日扫两次并关联到持仓；落空也照实记空。
-- [**命令参考**](docs/reference/commands.md) · [**术语表**](docs/glossary.md) · [**全部项目文档**](docs/README.md) · [**参与开发**](AGENTS.md#code-changes)
+- [**命令参考**](docs/reference/commands.md) · [**术语表**](docs/glossary.md) · [**全部项目文档**](docs/README.md) · [**参与开发**](CONTRIBUTING.md)
 
 ### 研究入口
 

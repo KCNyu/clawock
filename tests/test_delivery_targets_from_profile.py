@@ -58,13 +58,21 @@ def test_the_reusable_package_names_no_desk_of_its_own():
     assert offenders == []
 
 
-def test_the_kcnyu_profile_declares_its_own_telegram_chat(monkeypatch):
-    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(ROOT))
-    monkeypatch.setenv("CLAWOCK_PROFILE", "kcnyu")
-    target = load_profile(ROOT, "kcnyu").delivery_targets["telegram"]
+def test_a_static_telegram_delivery_target_comes_from_the_selected_profile(tmp_path, monkeypatch):
+    workspace = _workspace(tmp_path, monkeypatch, {
+        "telegram": {"source": "static", "value": "4242"}})
+    target = load_profile(workspace, "desk").delivery_targets["telegram"]
 
     assert target.source == "static"
-    assert common.telegram_target() == target.value
+    assert common.telegram_target() == target.value == "4242"
+
+
+def test_neutral_two_market_profile_does_not_name_delivery_recipients():
+    profile = load_profile(ROOT, "examples/profiles/two-market/profile.json")
+
+    assert profile.delivery_targets
+    assert all(target.source == "disabled" and target.value is None
+               for target in profile.delivery_targets.values())
 
 
 def test_telegram_target_reads_the_variable_an_environment_target_names(
