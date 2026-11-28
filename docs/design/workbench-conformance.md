@@ -134,8 +134,8 @@ Earlier the page had 44/16/12 baselines; that is gone.
 
 ## Verification
 
-The [geometry](../../tests/workbench_overlap.spec.js) and
-[typography](../../tests/workbench_typography.spec.js) tests exercise the
+The [geometry](https://github.com/KCNyu/clawock/blob/master/tests/workbench_overlap.spec.js) and
+[typography](https://github.com/KCNyu/clawock/blob/master/tests/workbench_typography.spec.js) tests exercise the
 maintained visual rules against the current bundle.
 
 ## What is still different

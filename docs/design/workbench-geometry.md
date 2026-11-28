@@ -29,7 +29,7 @@ where the host hides the label, keeps only the non-numeric alert mark.
 
 ## Evidence
 
-Run the [Workbench geometry test](../../tests/workbench_overlap.spec.js) to
+Run the [Workbench geometry test](https://github.com/KCNyu/clawock/blob/master/tests/workbench_overlap.spec.js) to
 check the current bundle at the documented viewport sizes.
 
 ## Reading width and wrapping
