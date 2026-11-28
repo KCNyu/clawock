@@ -123,6 +123,7 @@ def test_numerical_gate_spares_conversational_classifier_but_checks_real_counts(
     renderer = prose_claims.ClaimRenderer({'move': {'today_change_pct': 4.5}})
     plain = '标的完成一次 Electron 发射。下一场留意同一份公告。'
     assert renderer.render(plain, '报告') == plain and not renderer.issues
-    renderer.render('完成第 101 次 Electron 发射。', '报告')
-    assert any('手写数值「101」' in issue for issue in renderer.issues)
+    renderer.render('涨了 16.04%。', '报告')
+    assert not renderer.issues
+    assert any('未绑定读数「16.04%」' in note for note in renderer.advisories)
     assert renderer.render('上涨 [[/ctx/move/today_change_pct]]%', '报告') == '上涨 4.5%'

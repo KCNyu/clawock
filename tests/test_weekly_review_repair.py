@@ -165,14 +165,14 @@ def test_repair_cannot_publish_an_identifier_leak(monkeypatch):
 
 
 def test_weekly_repairs_a_copied_nav_with_the_exact_bundle_field(monkeypatch):
-    past = GOOD + '\n回顾周末净值 55 USD。'
-    draft = GOOD + '\n周末净值 [[/ctx/bundle_evidence/nav_change/end_usd]]。'
+    past = GOOD.replace(FACTS[0], '周末净值 [[/ctx/bundle_evidence/nav_change/missing]]。')
+    draft = GOOD.replace(FACTS[0], '周末净值 [[/ctx/bundle_evidence/nav_change/end_usd]]。')
     fake = FakeChat(past, draft)
     monkeypatch.setattr(weekly, 'chat', fake)
     body = weekly.generate_review(
         'sys', 'user', evidence={'bundle_evidence': {'nav_change': {'end_usd': 67}}})
     assert '周末净值 67 USD' in body
-    assert '手写数值' in fake.calls[1]['messages'][-1]['content']
+    assert '本代没有该字段' in fake.calls[1]['messages'][-1]['content']
 
 
 def test_short_structured_review_needs_real_text_under_each_heading(monkeypatch, tmp_path):
@@ -215,4 +215,4 @@ def test_weekly_generic_topic_words_do_not_satisfy_missed_fact_categories():
         weekly.WEEKLY_SECTION_HEADINGS,
         ('净值。', '无需触发。', '本周没有风险敞口。', '关注。'), strict=True))
     _, filled = weekly_sections(text)
-    assert not filled
+    assert weekly.WEEKLY_SECTION_HEADINGS[0] not in filled

@@ -173,9 +173,10 @@ def test_both_postflights_run_the_gate(module_name):
 @pytest.mark.parametrize("skill", ["hk-stock-analysis", "us-stock-analysis"])
 def test_skill_states_the_reference_rule_the_gate_enforces(skill):
     text = (WS / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
-    assert "散文事实引用" in text
-    assert "[[/ctx/" in text and "[[/compute/" in text
-    assert "|cite" in text
+    assert "../_shared/report-prose-rules.md" in text
+    rules = (WS / "skills/_shared/report-prose-rules.md").read_text(encoding="utf-8")
+    assert "[[/ctx/" in rules and "clawock tool compute" in rules
+    assert "|cite" in rules
 
 
 def test_price_levels_are_not_treated_as_book_amounts(hc):

@@ -11,8 +11,6 @@ twenty-odd regression tests keep exercising exactly this code.
 """
 from __future__ import annotations
 
-import re
-
 from clawock import prose_claims
 from clawock.harness.validation import (
     FORBIDDEN_PHRASES,
@@ -32,17 +30,11 @@ from clawock.harness.validation import (
 )
 
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
-_SECTION_COVERAGE = {
-    '▎情绪面': re.compile(
-        r'消息|新闻|公告|停牌|异动|财报|板块|同业|同行|指数|市场|盘面|港股|美股|涨|跌|利率|成交|行情|未取到|《'),
-    '▎技术面': re.compile(
-        r'行情|报价|横盘|跳空|开盘|收盘|均线|涨|跌|破位|冲高|回落|回踩|反弹|高点|低点|'
-        r'支撑|压力|量能|成交|走势|放量|缩量|波动|信号|趋势|整理|RSI|MA\d|突破|区间'),
-    '▎操作建议': re.compile(
-        r'计划|触发|持有|仓位|止损|卖|买|减仓|加仓|复核|订单|成交|观望|观察|等[^。！？\n]'),
-    '▎风险提示': re.compile(r'风险|敞口|失效|止损|回撤|杠杆|集中|红线|触发|停牌|未取到'),
+_SECTION_SOURCES = {
+    '▎技术面': ('quote_coverage', 'signal_count', 'index_direction', 'holdings', 'peer_scan'),
+    '▎操作建议': ('plan_context',),
+    '▎风险提示': ('risk_debts', 'risk_followups', 'session_review'),
 }
-_EMPTY_OBSERVATION = re.compile(r'^[\s*。！?！？、]+|[\s*。！?！？、]+$')
 _COVERAGE_ISSUE = '正文覆盖不足'
 _ANOMALY_ISSUE = '异动归因漏写'
 _NEWS_ISSUE = '逐票资讯漏引'
@@ -144,10 +136,8 @@ def validate(body, ctx, model_text):
     if prose_claims.enabled(ctx):
         sections = [*REQUIRED_SECTIONS, '▎风险提示'] if ctx.get('needs_risk_section') else REQUIRED_SECTIONS
         for section in sections:
-            prose = _EMPTY_OBSERVATION.sub('', section_body(checked, section))
-            anchors = _SECTION_COVERAGE[section]
-            if has_section_marker(checked, section) and (
-                    not anchors.search(prose) or anchors.fullmatch(prose)):
+            prose = section_body(checked, section)
+            if has_section_marker(checked, section) and sum(c.isalpha() for c in prose) < 4:
                 issues.append(f'{_COVERAGE_ISSUE}：{section}')
         for extra in ('▎异动归因', '▎证据'):
             if has_section_marker(checked, extra):
@@ -191,12 +181,35 @@ def live_news_references(ctx):
     return references
 
 
-def _live_news_coverage(draft, ctx):
-    sentiment = section_body(draft, '▎情绪面')
-    refs = {match[1] for match in prose_claims.TOKEN.finditer(sentiment)}
+def _live_news_coverage(refs, ctx):
     missing = [ticker for ticker, paths in live_news_references(ctx).items()
                if not any(path + suffix in refs for path in paths for suffix in ('|cite', '/cite'))]
     return [f'{_NEWS_ISSUE}（情绪面）：{"、".join(missing)}'] if missing else []
+
+
+def _reference_coverage(draft, ctx, renderer):
+    sentiment = prose_claims.resolved_in(section_body(draft, '▎情绪面'), renderer)
+    issues = _live_news_coverage(sentiment, ctx)
+    # Successful ticker refs bind the visible subject to its same-generation row.
+    movers = [row['ticker'] for i, row in enumerate(ctx.get('anomalies') or [])
+              if f'/ctx/anomalies/{i}/ticker' not in sentiment
+              and f"/ctx/holdings/{row['ticker']}/ticker" not in sentiment]
+    if movers:
+        issues.append(f'{_ANOMALY_ISSUE}（情绪面缺异动标的引用）：{"、".join(movers)}')
+    for section, fields in _SECTION_SOURCES.items():
+        if section == '▎风险提示' and not ctx.get('needs_risk_section'):
+            continue
+        # Generations preceding this contract and narrow CLI fixtures may lack
+        # these roots. Choose obligations from actual data availability.
+        required = fields[0]
+        if required not in ctx:
+            continue
+        rendered = prose_claims.resolved_in(section_body(draft, section), renderer)
+        roots = {token.split('|', 1)[0].split('/')[2] for token in rendered
+                 if token.startswith('/ctx/')}
+        if not roots.intersection(fields):
+            issues.append(f'{_COVERAGE_ISSUE}：{section} 需要本代 {required} 的引用或确认')
+    return issues
 
 
 def prepare_report(ctx, draft, workspace, *, validator=validate):
@@ -205,9 +218,9 @@ def prepare_report(ctx, draft, workspace, *, validator=validate):
     issues = []
     if prose_claims.enabled(ctx):
         renderer = prose_claims.ClaimRenderer(ctx, receipts=ctx.get('compute_receipts', ()))
-        news_findings = _live_news_coverage(draft, ctx)
-        draft = renderer.render(draft, '报告')
-        issues = [*renderer.issues, *renderer.advisories, *news_findings]
+        authored = draft
+        draft = renderer.render(authored, '报告')
+        issues = [*renderer.issues, *renderer.advisories, *_reference_coverage(authored, ctx, renderer)]
     body = assemble_message(ctx, draft)
     return body, [*issues, *validator(body, ctx, draft)]
 

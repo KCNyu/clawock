@@ -574,6 +574,9 @@ def write_report_packet(tmp, context, audit):
     refs = live_news_references(context)
     return {'status': 'ok', **identity, 'parts': parts, 'complete': True,
             'prose_path': str(target / 'report-prose.md'),
+            'coverage_refs': {field: f'[[/ctx/{field}|ack]]'
+                              for field in ('quote_coverage', 'plan_context', 'risk_debts')
+                              if field in context},
             'news_cites': {ticker: f'[[{paths[0]}|cite]]' for ticker, paths in refs.items()},
             'mover_tickers': [f'[[/ctx/anomalies/{i}/ticker]]'
                               for i, _ in enumerate(context.get('anomalies') or [])]}

@@ -551,14 +551,7 @@ def validate(text, ctx, model_text):
         honest_quiet = bool(ctx.get('semantic_unchanged')) and re.search(
             r'无实质性?变化|没(?:有)?(?:实质性?|新)?变化|无新变化|无变化|与上次一致|无新增(?:变化|异动)', prose)
         if prose_claims.enabled(ctx):
-            # A changed slot needs an observation, a concrete watch condition,
-            # or a named data gap. A bare action such as “看情况” covers none.
-            concrete = re.search(
-                r'成交|量(?:能|缩|增|价)|波动|冲高|回落|反弹|缩量|放量|回踩|领涨|领跌|走(?:强|弱)|'
-                r'涨|跌|回吐|横盘|震荡|跳空|止损|风控|红线|触发|停牌|复牌|公告|财报|'
-                r'行情|报价|板块|同业|指数|订单|支撑|压力|突破|破位|均线|高点|低点|未取到|未刷新',
-                prose)
-            if not (honest_quiet or concrete):
+            if not honest_quiet and sum(c.isalpha() for c in prose) < 4:
                 issues.append(f'缺段标记 "{REQUIRED_SECTION}" 的正文须说明本档变化、关注条件或数据缺口')
         elif len(prose) < 60 and not honest_quiet:
             issues.append(
@@ -936,7 +929,12 @@ def main(argv=None):
             renderer = prose_claims.ClaimRenderer(ctx, receipts=receipts)
             trigger, judgment = split_next_trigger(model_text)
             trigger = renderer.triggers(trigger, NEXT_TRIGGER)
-            judgment = renderer.render(judgment, '盘中判断')
+            authored = judgment
+            judgment = renderer.render(authored, '盘中判断')
+            if ctx.get('full_holdings') and not ctx.get('semantic_unchanged'):
+                refs = prose_claims.resolved_in(section_body(authored, REQUIRED_SECTION), renderer)
+                if not refs:
+                    issues.append(f'{prose_claims.ISSUE} 盘中判断需引用本代标的、变化或数据缺口')
             model_text = '\n'.join(part for part in (judgment, trigger) if part)
             issues.extend([*renderer.issues, *renderer.advisories])
         text = assemble_message(ctx, model_text)

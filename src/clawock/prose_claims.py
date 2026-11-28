@@ -6,26 +6,21 @@ from decimal import Decimal, InvalidOperation
 from math import isfinite
 
 from clawock.portfolio.breakeven_claims import validate_drag
-from clawock.prose_validation import CITATION, MEASUREMENT, check_storytelling
+from clawock.prose_validation import Advisory, CITATION, MEASUREMENT, check_storytelling
 
 VERSION = 1
 FIELD = 'prose_claims_version'
 ISSUE = '事实引用'
 TOKEN = re.compile(r'\[\[([^\[\]\r\n]+)\]\]')
-# These are vocabulary, rather than measurements (P0 policy, T+1 horizon,
-# MA200 indicator, 7×24 feed). Tickers containing digits use a ticker ref.
-_VOCABULARY = re.compile(
-    r'(?<![A-Za-z0-9])(?:P0|T[+-](?:0|1|2|3|5|10|20)|MA(?:5|10|20|50|60|100|120|200|250)'
-    r'|MACD|RSI(?:14)?|7[×x]24)(?![A-Za-z0-9])'
-    r'|(?:上|下|前|同|这|那|另)一(?:场|份|次|只|个|侧|笔|条|档|周)'
-    r'|(?:完成|进行|发生|出现)一次(?=\s*[A-Za-z\u4e00-\u9fff])', re.I)
-_LITERAL = re.compile(
-    r'\d+(?:[.,:：]\d+)*'
-    r'|[零〇一二两三四五六七八九十百千万亿]+(?:点[零一二三四五六七八九]+)?'
-    r'(?=\s*(?:股(?!东|权|价|票|指|息)|手(?!段|续)|倍|个?百分点|元|美元|港元|港币'
-    r'|个交易日|个基点|年|月|日|点钟|时[整分]|分钟|小时|条|宗|份|个(?!股|人|性|体|别)|只(?!有|是|因|看|要)|次|%|％|成(?!交|本|熟|长|员|立|功|果)))'
-    r'|百分之[零〇一二两三四五六七八九十百千万亿点]+'
-)
+# Unbound numeric units are editorial diagnostics. Claims authorized for
+# publication are detected by the reference grammar, not by this pattern.
+_UNBOUND_UNIT = re.compile(
+    r'(?<![A-Za-z0-9_.])\d+(?:[.,]\d+)*\s*(?:[%％]|港元|美元|HKD|USD|股(?!票|东))')
+_ACK_FIELDS = {
+    'quote_coverage', 'plan_context', 'risk_debts', 'risk_followups', 'session_review',
+    'semantic_state', 'semantic_delta', 'signal_count', 'strategy_checks', 'index_direction',
+    'bundle_evidence', 'snapshots', 'decision_metrics', 'decision_episodes', 'current_risk', 'plans',
+}
 _AMOUNT = re.compile(r'[+-]?[0-9]+(?:\.[0-9]+)?')
 _ESCAPED_POINTER = re.compile(r'~(?![01])')
 _CITE_ROOTS = {
@@ -181,6 +176,7 @@ class ClaimRenderer:
         self.issues = []
         self.advisories = []
         self.references = []
+        self.resolved_tokens = set()
         self.measurements_by_scope = {}
 
     def _claim(self, token, roots):
@@ -196,6 +192,10 @@ class ClaimRenderer:
                 raise ValueError('需要资讯来源字段')
             return _citation(_resolve(roots, path)), False
         value = _resolve(roots, path)
+        if mode == 'ack' and len(path) == 2 and path[0] == 'ctx' and field in _ACK_FIELDS:
+            if value is None or isinstance(value, (dict, list)):
+                return '', False
+            raise ValueError('确认字段需要本代状态对象或列表')
         if mode == 'count':
             if isinstance(value, list):
                 return str(len(value)), True
@@ -229,6 +229,7 @@ class ClaimRenderer:
         def replace(match):
             try:
                 value, measurement = self._claim(match[1], roots)
+                self.resolved_tokens.add(match[1])
                 if measurement:
                     measurements[match.start()] = match[1]
                     numerical_keys.append((match[1], value))
@@ -245,9 +246,8 @@ class ClaimRenderer:
                 return '—'
 
         raw = TOKEN.sub('', text)
-        bad = _LITERAL.search(_VOCABULARY.sub('', raw))
-        if bad:
-            self.issues.append(f'{ISSUE} {label} 手写数值「{bad[0]}」，请引用同代字段')
+        if bad := _UNBOUND_UNIT.search(raw):
+            self.advisories.append(Advisory(f'{label}含未绑定读数「{bad[0]}」，请核同代字段'))
         if '[[' in raw or ']]' in raw:
             self.issues.append(f'{ISSUE} {label} 引用格式不完整')
         result = TOKEN.sub(replace, text)
@@ -285,3 +285,8 @@ class ClaimRenderer:
             except ValueError as exc:
                 self.issues.append(f'{ISSUE} 下一触发：{exc}')
         return prefix + '；'.join(rows) if rows else ''
+
+
+def resolved_in(text, renderer):
+    """Reference tokens successfully resolved in this authored section."""
+    return {match[1] for match in TOKEN.finditer(text) if match[1] in renderer.resolved_tokens}

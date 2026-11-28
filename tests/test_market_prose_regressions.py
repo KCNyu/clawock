@@ -156,3 +156,23 @@ def test_report_packet_round_trips_every_field_in_bounded_same_generation_parts(
         **context, 'context_id': '0123456789ac',
     }, audit)
     assert second['prose_path'] != first['prose_path']
+
+
+def test_report_coverage_requires_resolved_same_section_references(tmp_path):
+    ctx = {
+        **STRUCTURED, 'anomalies': [{'ticker': 'CRCL'}],
+        'quote_coverage': {}, 'plan_context': {}, 'risk_debts': [],
+        'needs_risk_section': True,
+    }
+    draft = BODY + '\n▎风险提示\n观察风险敞口。'
+    _, issues = report.prepare_report(ctx, draft, tmp_path)
+    assert any('情绪面缺异动标的引用' in issue for issue in issues)
+    assert sum('正文覆盖不足' in issue for issue in issues) == 3
+    anchored = draft.replace('CRCL', '[[/ctx/anomalies/0/ticker]]').replace(
+        '成交缩量', '[[/ctx/quote_coverage|ack]]成交缩量').replace(
+        '按原计划持有', '[[/ctx/plan_context|ack]]按原计划持有').replace(
+        '观察风险敞口', '[[/ctx/risk_debts|ack]]观察风险敞口')
+    body, issues = report.prepare_report(ctx, anchored, tmp_path)
+    assert not issues and '|ack' not in body and 'CRCL' in body
+    moved = anchored.replace('[[/ctx/risk_debts|ack]]', '') + '\n▎证据\n[[/ctx/risk_debts|ack]]'
+    assert report.categorize(report.prepare_report(ctx, moved, tmp_path)[1]) == 'fail'

@@ -83,50 +83,21 @@ In this order:
 
 本节只是路由。Mode 7 正文两市场共用一份：`skills/_shared/intraday-mode7.md`；cron 任务（`config/cron-payloads/intraday.md`，market=hk）第一轮直接 `read` 那份正文和 `skills/_shared/intraday-status-sidecar.md`，不读本文件。盘中规则只改那一份，这里不复述；人工对话里被问到盘中盯盘规则时也去读它。
 
-### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
-**When:** 港股开盘/午盘/午后/收盘 4 个 cron job 全部走这个 mode。
+### Mode 6 — 定时市场报告
 
-**Harness 4-step**（preflight → 散文 → postflight 拼装+投递 → 存档）：
+港股开盘、午盘、午后和收盘共用。对应市场怎么看，见 `../_shared/report-analysis-hk.md`；写法见 `../_shared/report-prose-rules.md`。定时执行、投递和故障恢复按 `config/cron-payloads/report.md`。
 
 #### Step 1: 跑 preflight
-```bash
-clawock report preflight --market hk --phase {open|mid|pm|close}
-```
-内部跑 `clawock analyze-hk --wechat`，抽信号 (WATCH/STOP/TRIM 计数) + 异动 (≥3% 涨跌) + 恒指/恒科方向，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
+
+手工运行用 `clawock report preflight --market hk --phase {open|mid|pm|close}` 并保留同代 `context_id`。
 
 #### Step 2: 只写分析散文
 
-读 `../_shared/report-analysis-hk.md` 做本市场判断，再按 `../_shared/report-prose-rules.md` 写正文。
-报告 cron 首轮直接读这两份规则并跑 preflight。人工运行按 preflight 的输出保留同代 `context_id`；只写散文，保存到 Step 3 使用的文本路径。
+按上面的分析和写作指针完成正文，保存到 Step 3 使用的文本路径。
 
 #### Step 3: 跑 postflight
-```bash
-clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-hk-{phase}.md
-```
-`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发。返回 JSON 含 `status` (pass/warn/fail)。pass/warn 自动拼装+发送+刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publish/safe_push.sh` 推送。
 
-⏱ postflight 等待、恢复与收尾按任务消息 Step 3（`config/cron-payloads/report.md`）。
-
-#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
-**唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
-把 postflight 返回的 `status` + `issues` 作为**本回合最终文本回复**输出即可（仅留痕）。
-**不要调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
-补投 Telegram，不重发微信。
-
-**标题模板**（preflight 已生成在 context.json，直接用）：
-- 开盘 09:30 HKT：`📊 港股开盘快报｜{date} 09:30`
-- 午盘 12:00 HKT：`☕ 港股午盘快报｜{date} 12:00`
-- 午后 13:30 HKT：`🌤 港股午后快报｜{date} 13:30`
-- 收盘 16:00 HKT：`🔔 港股收盘日报｜{date}`
-
-**硬性规则**：
-- ⚠️ 数据缺口必须明说，禁止编造（postflight 会扫敷衍词）
-- **00100 MINIMAX 只有 Tencent 一个源**，失败必须明说"实时价获取失败"
-- 不用 `message` 工具 — 微信由 Step 3 的 `report_postflight` fresh-token 主发（cron `--no-deliver`），手动再调会和 postflight 双发；本回合回复文本仅存档
-- 不简单复述数字，必须做模型自己的解读
-- 异动票（anomalies 字段）**必须在报告里被提到**（postflight 强制）
-- 不设字数目标；拼装全文只有一道防复读死循环的天花板（>5000 warn，>6000 fail）
+`clawock report postflight --market hk --phase {phase} --context-id <context_id> --text-file <正文路径>`。最终回执和等待方式见报告任务正文 Step 3–4。
 
 ### Mode 5 — Sentiment / 情绪面 Read
 **When:** "市场怎么看 X" / "雪球怎么聊 00100" / "港股情绪" / before sizing

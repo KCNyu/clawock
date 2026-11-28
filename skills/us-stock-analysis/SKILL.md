@@ -82,49 +82,21 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 
 本节只是路由。Mode 7 正文两市场共用一份：`skills/_shared/intraday-mode7.md`；cron 任务（`config/cron-payloads/intraday.md`，market=us）第一轮直接 `read` 那份正文和 `skills/_shared/intraday-status-sidecar.md`，不读本文件。盘中规则只改那一份，这里不复述；人工对话里被问到盘中盯盘规则时也去读它。
 
-### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
-**When:** 美股开盘 / 美股收盘 两个 cron 走这个 mode。
+### Mode 6 — 定时市场报告
 
-**Harness 4-step**：
+美股开盘和收盘共用。对应市场怎么看，见 `../_shared/report-analysis-us.md`；写法见 `../_shared/report-prose-rules.md`。定时执行、投递和故障恢复按 `config/cron-payloads/report.md`。
 
 #### Step 1: 跑 preflight
-```bash
-clawock report preflight --market us --phase {open|close}
-```
-跑 `clawock analyze-us --wechat --md-table` + 抽信号 + 异动，写 context 文件，并把**同一份 JSON** 打到 stdout（含 `context_id`；末行是 `context_path:`）。若输出 `market_closed`，本回合到此结束。
+
+手工运行用 `clawock report preflight --market us --phase {open|close}` 并保留同代 `context_id`。
 
 #### Step 2: 只写分析散文
 
-读 `../_shared/report-analysis-us.md` 做本市场判断，再按 `../_shared/report-prose-rules.md` 写正文。
-报告 cron 首轮直接读这两份规则并跑 preflight。人工运行按 preflight 的输出保留同代 `context_id`；只写散文，保存到 Step 3 使用的文本路径。
+按上面的分析和写作指针完成正文，保存到 Step 3 使用的文本路径。
 
 #### Step 3: 跑 postflight
-```bash
-clawock report postflight --market us --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-us-{phase}.md
-```
-`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发（防重发上个 slot 的旧文本）。
-pass/warn 自动刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publish/safe_push.sh` 推送。
 
-⏱ postflight 等待、恢复与收尾按任务消息 Step 3（`config/cron-payloads/report.md`）。
-
-#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-
-微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
-**唯一微信路径**（cron 设 `--no-deliver`，不再 announce），同时会镜像 Telegram。
-把 postflight 返回的 `status` + `issues` 作为**本回合最终文本回复**输出即可（仅留痕）。
-**不要自己调 `message`/send 工具**；`report_watchdog` 只在 Telegram marker 缺失/失败时
-补投 Telegram，不重发微信。
-
-**Title template**（preflight 已生成）：
-- 开盘 09:30 ET：`🌅 美股开盘快报｜{date} 09:30 ET`
-- 收盘 16:00 ET：`🌙 美股收盘日报｜{date}`
-
-**Hard rules:**
-- ⚠️ data gaps must be stated explicitly, never fabricate (postflight 扫敷衍词)
-- ❌ **禁止调用 `message`/send 工具发报告** — 微信由 Step 3 的 `report_postflight` 用 fresh-token 主发（cron `--no-deliver`，不 announce），手动再调 message 会**和 postflight 撞成双发**（2026-06-03 美股开盘连发两次的根因：模型在"已完成"叙述的同一 turn 又调了一次 send）。整轮只输出一次，发完即停；`report_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
-- No simple number recitation — model must add interpretation
-- 异动票 (anomalies) **必须在报告里提到** (postflight 强制)
-- 不设字数目标；拼装全文只有一道防复读死循环的天花板（>5000 warn，>6000 fail）
+`clawock report postflight --market us --phase {phase} --context-id <context_id> --text-file <正文路径>`。最终回执和等待方式见报告任务正文 Step 3–4。
 
 ### Mode 5 — Sentiment Read
 **When:** "市场情绪怎么样" / "推上怎么说 X" / "Reddit 怎么聊 X" / before a sizing decision

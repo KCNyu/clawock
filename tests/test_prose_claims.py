@@ -25,8 +25,8 @@ def test_exact_paths_keep_subject_measure_and_capture_time_together():
     assert not renderer.issues
     renderer.render('现持30股，较另一期多十股。', '报告')
     renderer.render('现持[[/ctx/holdings/00100/size]]。', '报告')
-    assert len(renderer.issues) == 2
-    assert '手写数值' in renderer.issues[0] and '本代没有' in renderer.issues[1]
+    assert len(renderer.issues) == 1 and '本代没有' in renderer.issues[0]
+    assert any('未绑定读数' in note for note in renderer.advisories)
 
 
 def test_structured_trigger_holds_exact_owner_and_only_current_may_anchor_forecast():
@@ -49,7 +49,7 @@ def test_new_report_uses_reference_gate_while_historical_report_can_still_be_rea
     scoped = {**ctx, prose_claims.FIELD: prose_claims.VERSION}
     good, findings = prepare_report(scoped, draft + '持有[[/ctx/holdings/00700/shares]]。', tmp_path)
     assert '持有30 股' in good and categorize(findings) == 'pass'
-    _, findings = prepare_report(scoped, draft + '持有30股。', tmp_path)
+    _, findings = prepare_report(scoped, draft + '持有[[/ctx/holdings/00700/missing]]。', tmp_path)
     assert categorize(findings) == 'fail'
     _, findings = prepare_report(ctx, draft + '持有30股。', tmp_path)
     assert categorize(findings) == 'pass'
@@ -119,7 +119,7 @@ def test_structured_sector_scan_keeps_grouped_context_and_audited_commentary(tmp
         'attribution': {'A': '受板块带动'},
         'themes': {'B': '太空'},
         'catalysts': {'C': '来自[[/ctx/peer_scan/A/listed_peers/0/quote_source]]',
-                      'D': '手写 2 条', 'UNSEEN': '未知'},
+                      'D': '来自[[/ctx/peer_scan/D/missing]]', 'UNSEEN': '未知'},
     }))
     renderer = prose_claims.ClaimRenderer(ctx)
     scan = sector_scan(ctx, draft, renderer, narrative='板块走强')

@@ -280,8 +280,10 @@ def test_skill_instructs_the_turn_to_reconcile(skill):
     # changelog line. What has to exist is the instruction: the key and the ban
     # on contradicting a risk_rule decision.
     text = (WS / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
-    assert text.count("`plan_context`") >= 2, "context key not named in both modes"
-    assert "driven_by=risk_rule" in text, "no rule against re-timing a discipline action"
+    assert "../_shared/report-prose-rules.md" in text
+    for name in ("report-prose-rules.md", "intraday-mode7.md"):
+        rules = (WS / "skills/_shared" / name).read_text()
+        assert "plan_context" in rules and "risk_rule" in rules
 
 
 # ── the card prints the orders (#2840) ────────────────────────────────────
@@ -381,10 +383,10 @@ def test_skill_does_not_ask_the_model_to_restate_a_printed_size(skill):
     (07226: 6200 held, 1000 swapped). Both are printed by the harness now, so
     the prose restates neither and no exception to that rule exists."""
     text = (WS / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
-    assert "禁止重述持仓股数" in text
-    assert "📋 未成交计划" in text, "the skill does not point at the printed order block"
-    assert "例外且仅此一个" not in text
-    assert "照抄 `shares`" not in text
+    assert "../_shared/report-prose-rules.md" in text
+    rules = (WS / "skills/_shared/report-prose-rules.md").read_text()
+    assert "股数和触发位" in rules and "不在散文重复报" in rules
+    assert "📋 未成交计划" in rules
 
 
 # ── the condition's own price (2026-09-07) ────────────────────────────────

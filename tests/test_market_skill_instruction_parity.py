@@ -41,12 +41,12 @@ def test_no_long_instruction_paragraph_is_hand_mirrored():
 
 def test_mode6_news_is_inline_and_distinguishes_confirmed_sources():
     text = (ROOT / 'skills/_shared/report-prose-rules.md').read_text()
-    sentiment = text.split('**▎情绪面**', 1)[1].split('**▎技术面**', 1)[0]
+    sentiment = text.split('## 异动与实时消息都放在情绪面', 1)[1].split('## 数值和引用', 1)[0]
     for field in ('anomalies', 'mover_news.halts', 'tier=primary', 'signal=interrupt',
                   'tier=supporting', 'source_class', 'live_information.summary',
                   'live_information.degraded', 'mover_thesis', 'known_catalysts'):
         assert f'`{field}`' in sentiment
-    assert '出处和时点嵌在对应句子里' in sentiment
+    assert '证据紧挨' in sentiment and '出处和时点' in sentiment
     assert '**▎证据**' not in text and '**▎异动归因**' not in text
 
 

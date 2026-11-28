@@ -163,4 +163,4 @@ def test_the_skill_tells_the_model_what_an_error_means():
         body = (ROOT / "skills" / skill / "SKILL.md").read_text()
         assert "report-prose-rules.md" in body
     rules = (ROOT / "skills/_shared/report-prose-rules.md").read_text()
-    assert "没取到就明说未对账" in rules
+    assert all(fragment in rules for fragment in ("plan_context", "未取到计划", "未对账", "计划为空"))
