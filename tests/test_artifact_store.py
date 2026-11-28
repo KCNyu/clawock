@@ -48,10 +48,8 @@ def _branch_tree(repo, branch):
     return {n: _git(repo, "show", f"origin/{branch}:{n}") for n in names}
 
 
-def test_the_data_branch_is_a_snapshot_not_a_log(repo):
-    """Force-updated and parentless: the branch holds the current generation and
-    nothing else. If publishing appended, this branch would grow the same 72
-    commits/day that put the outputs on `master` in the first place."""
+def test_the_current_branch_tree_contains_the_current_generation(repo):
+    """The payload paths and latest tree stay stable as the branch fast-forwards."""
     store = GitBranchStore(repo, "data-plane")
 
     store.publish(GENERATION, label="first")
@@ -59,7 +57,7 @@ def test_the_data_branch_is_a_snapshot_not_a_log(repo):
                   label="second")
     _git(repo, "fetch", "origin", "data-plane")
 
-    assert _git(repo, "rev-list", "--count", "origin/data-plane") == "1"
+    assert _git(repo, "rev-list", "--count", "origin/data-plane") == "2"
     assert _branch_tree(repo, "data-plane") == {
         "assets/data/dashboard.json": '{"totals": 2}',
         "assets/data/overview.json": '{"generation_id": "one"}',
@@ -243,7 +241,7 @@ def test_a_generation_the_branch_does_not_carry_is_refused(repo, tmp_path):
 def test_a_branch_that_is_built_on_is_refused(repo, branch):
     """Every publish discards the target's history. Pointed at `master` that is
     not a bad publish, it is the repository."""
-    with pytest.raises(ValueError, match="force-update"):
+    with pytest.raises(ValueError, match="protected branch"):
         GitBranchStore(repo, branch).publish(GENERATION, label="x")
 
 
@@ -261,7 +259,7 @@ def test_the_default_branch_is_refused_under_any_name(repo, tmp_path):
     assert "origin/HEAD" not in _git(repo, "branch", "-r"), (
         "the local remote-HEAD ref must be absent, or this proves nothing")
 
-    with pytest.raises(ValueError, match="force-update"):
+    with pytest.raises(ValueError, match="protected branch"):
         GitBranchStore(repo, "trunk").publish(GENERATION, label="x")
 
 
@@ -410,7 +408,7 @@ def test_the_outer_publish_budget_can_actually_hold_the_retry_ladder():
 
     They only agreed by coincidence until 2026-09-07 — both were the literal
     120, so the budget for the WHOLE publish script equalled the budget for one
-    of the five network calls inside it. A first call that hung consumed the
+    of the network calls inside it. A first call that hung consumed the
     entire outer allowance and the ladder below it was unreachable by
     construction.
     """
@@ -440,3 +438,91 @@ def test_a_publish_names_the_generation_it_replaced_and_can_read_it(repo):
     assert second.changed and second.previous == first.receipt
     assert store.read(second.previous, "assets/data/dashboard.json") == '{"totals": 1}'
     assert store.read(second.previous, "assets/data/missing.json") is None
+
+
+def test_archive_and_dashboard_publications_share_a_fast_forward_branch(repo, tmp_path):
+    from clawock.publish import brief_archive
+
+    store = GitBranchStore(repo, "data-plane")
+    brief = "memory/2026-11-27-pre-open.md"
+    body = "# Existing report\n"
+    files = {brief: body}
+    seeded = store.publish({**files, brief_archive.INDEX: brief_archive.update_index(None, files)}, overlay=True)
+    updated = store.publish(GENERATION, overlay=True)
+    assert updated.previous == seeded.receipt
+    assert _git(repo, "rev-parse", f"{updated.receipt}^") == seeded.receipt
+
+    dest = tmp_path / "published"
+    store.fetch(dest, validate=brief_archive.verify)
+    assert (dest / brief).read_text() == body
+    assert set(brief_archive.index_entries((dest / brief_archive.INDEX).read_text())) == {brief}
+
+    store.publish({brief: "mismatched body\n"}, overlay=True)
+    rejected = tmp_path / "rejected"
+    with pytest.raises(ValueError, match="brief archive entry missing or corrupt"):
+        store.fetch(rejected, validate=brief_archive.verify)
+    assert not rejected.exists()
+
+
+def test_overlay_retries_on_the_current_parent_without_losing_another_writer(repo, monkeypatch):
+    from clawock.publish import store as store_module
+
+    publisher = GitBranchStore(repo, 'data-plane')
+    other = GitBranchStore(repo, 'data-plane')
+    original = publisher.publish(GENERATION)
+    actual_git = publisher._git
+    competing = None
+
+    def race(*args, **kwargs):
+        nonlocal competing
+        if args[0] == 'push' and competing is None:
+            competing = other.publish({'memory/weekly/2026-W48.md': 'published\n'}, overlay=True)
+        return actual_git(*args, **kwargs)
+
+    monkeypatch.setattr(publisher, '_git', race)
+    monkeypatch.setattr(store_module.time, 'sleep', lambda _: None)
+    updated = publisher.publish({'assets/data/dashboard.json': '{"totals": 2}'}, overlay=True)
+    assert competing.previous == original.receipt
+    assert updated.previous == competing.receipt
+    assert _branch_tree(repo, 'data-plane') == {
+        'assets/data/dashboard.json': '{"totals": 2}',
+        'assets/data/overview.json': GENERATION['assets/data/overview.json'],
+        'memory/weekly/2026-W48.md': 'published',
+    }
+
+
+def test_daily_publish_updates_dashboard_and_archive_together(repo, tmp_path):
+    from ops.publish import publish_data_branch
+    from clawock.publish import brief_archive
+
+    publisher = ROOT / "ops/publish/publish_data_branch.py"
+    fetcher = ROOT / "ops/pages/fetch_data_plane.py"
+    current = "memory/2026-11-28-pre-open.md"
+    previous = {"memory/weekly/2026-W47.md": "# Last week's review\n"}
+    (repo / current).parent.mkdir()
+    (repo / current).write_text("# Validated brief\n")
+    for name in publish_data_branch.DATA_PLANE_FILES:
+        target = repo / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("{}\n")
+
+    store = GitBranchStore(repo, "data-plane")
+    seeded = store.publish({**previous, brief_archive.INDEX: brief_archive.update_index(None, previous)})
+    subprocess.run([sys.executable, str(publisher), "--root", str(repo),
+                    "--brief", current], check=True, capture_output=True)
+    _git(repo, "fetch", "origin", "data-plane")
+    assert _git(repo, "rev-parse", "origin/data-plane^") == seeded.receipt
+
+    dashboard_cache = tmp_path / "dashboard"
+    subprocess.run([sys.executable, str(fetcher), "--repo", str(repo), "--into",
+                    str(dashboard_cache)], check=True, capture_output=True)
+    assert not (dashboard_cache / "memory").exists()
+
+    pages_source = tmp_path / "pages"
+    subprocess.run([sys.executable, str(fetcher), "--repo", str(repo), "--into",
+                    str(pages_source), "--expect-brief-archive"], check=True, capture_output=True)
+    assert (pages_source / current).read_bytes() == (repo / current).read_bytes()
+    for name, body in previous.items():
+        assert (pages_source / name).read_text() == body
+    for name in publish_data_branch.DATA_PLANE_FILES:
+        assert (pages_source / name).read_bytes() == (repo / name).read_bytes()

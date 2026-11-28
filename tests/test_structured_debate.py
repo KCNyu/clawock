@@ -174,7 +174,7 @@ def test_the_skill_documents_the_field_it_asks_the_model_to_emit():
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[1]
-    skill = (root / "skills" / "daily-deep-brief" / "SKILL.md").read_text(
+    skill = (root / "skills" / "daily-deep-brief" / "references" / "plan-schema.md").read_text(
         encoding="utf-8")
 
     assert '"debate"' in skill, "an undocumented field is never emitted"

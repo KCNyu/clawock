@@ -29,5 +29,10 @@ cd "$WS_ROOT" || exit 1
 # Not `exec`: that replaces this shell, and with it the EXIT trap
 # publish_identity.sh registered to wipe an Actions deploy key from the
 # runner's temp directory (#1880). `set -e` still exits with its status.
-python3 "$WS_ROOT/ops/publish/publish_data_branch.py" \
-  --deploy --remote "${PUBLISH_REMOTE:-origin}"
+if [ "${1:-}" = "--archive-only" ]; then
+  shift
+  publisher=publish_brief_archive.py
+else
+  publisher=publish_data_branch.py
+fi
+python3 "$WS_ROOT/ops/publish/$publisher" --deploy --remote "${PUBLISH_REMOTE:-origin}" "$@"

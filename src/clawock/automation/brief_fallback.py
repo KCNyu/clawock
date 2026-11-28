@@ -468,6 +468,25 @@ def repair_prompt(user, out, reason):
     )
 
 
+_BRIEF_REFERENCE = re.compile(
+    r"^\[[^\]\n]+\]\(references/(?P<name>packet|swarm|plan-schema|style)\.md\)$",
+    re.MULTILINE,
+)
+
+
+def _read_brief_skill(root):
+    """Resolve the staged references for the single-turn fallback prompt."""
+    directory = root / "skills/daily-deep-brief"
+    entry = (directory / "SKILL.md").read_text(encoding="utf-8")
+
+    def include(match):
+        name = match["name"]
+        return (directory / "references" / f"{name}.md").read_text(encoding="utf-8").strip()
+
+    return _BRIEF_REFERENCE.sub(include, entry)
+
+
+
 def main(argv=None):
     """Generate today's fallback brief; `--verify-receipt` only checks one was written.
 
@@ -529,7 +548,7 @@ def main(argv=None):
         raise SystemExit(f'decision packet unavailable for {today}: {exc}')
     generation_id = (packet.get('_meta') or {}).get('generation_id')
 
-    skill = (root / 'skills/daily-deep-brief/SKILL.md').read_text()
+    skill = _read_brief_skill(root)
     soul = (root / 'SOUL.md').read_text()
     # BOOTSTRAP.md goes in whole. Its brief rules (§B.3, §C) name judgment
     # fields, not report sections: this turn can only return plan + judgment,

@@ -114,13 +114,10 @@ def test_rendering_changes_only_double_brace_contract_tokens():
     intraday = next(
         job for job in data["jobs"] if job["name"] == "美股盘中盯盘"
     )
-    brief = next(job for job in data["jobs"] if job["name"] == "盘前深度简报")
     intraday_message = cron_contract.render_payload_message(data, intraday)
-    brief_message = cron_contract.render_payload_message(data, brief)
 
     assert "{{" not in intraday_message
     assert "{CTXID}" in intraday_message
-    assert "brief-sent-{date}.json" in brief_message
 
     missing = copy.deepcopy(intraday)
     missing["payload_vars"].pop("market_name")

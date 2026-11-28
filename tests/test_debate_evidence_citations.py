@@ -143,7 +143,7 @@ def test_no_context_prunes_nothing():
 def test_the_skill_documents_the_namespaces_it_will_be_held_to():
     """The model writes this field; a contract it cannot read is not a contract."""
     root = Path(__file__).resolve().parents[1]
-    skill = (root / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+    skill = (root / 'skills' / 'daily-deep-brief' / 'references' / 'plan-schema.md').read_text(
         encoding='utf-8')
 
     from clawock.decision import ledger
@@ -263,7 +263,7 @@ def test_every_row_the_producer_emits_advertises_an_id_the_resolver_accepts():
         assert advertised.count(':') == 2, advertised
 
     skill = (Path(__file__).resolve().parents[1]
-             / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+             / 'skills' / 'daily-deep-brief' / 'references' / 'plan-schema.md').read_text(
                  encoding='utf-8')
     assert '`evidence_id`' in skill, (
         'the skill must tell the model which field to copy')
@@ -403,7 +403,7 @@ def test_every_namespace_the_skill_teaches_says_copy_not_compose():
     reference IS composed, from a ticker and a field the model reads off the
     row, and both halves are legible — nothing opaque to copy wrong."""
     skill = (Path(__file__).resolve().parents[1]
-             / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+             / 'skills' / 'daily-deep-brief' / 'references' / 'plan-schema.md').read_text(
                  encoding='utf-8')
     block = skill[skill.index('`evidence_ids`（≤6 条'):]
     block = block[:block.index('**没有可引的证据就不填**')]

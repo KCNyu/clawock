@@ -68,7 +68,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 from clawock import prose_claims
-from clawock.context.intraday_packet import packet_dir, publish_parts
+from clawock.context.intraday_packet import packet_dir, parts_budget, publish_parts
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 from clawock.decision import intraday_policy
@@ -573,6 +573,7 @@ def write_report_packet(tmp, context, audit):
     parts = publish_parts(target, context, identity, audit)
     refs = live_news_references(context)
     return {'status': 'ok', **identity, 'parts': parts, 'complete': True,
+            'context_budget': parts_budget(parts),
             'prose_path': str(target / 'report-prose.md'),
             'coverage_refs': {field: f'[[/ctx/{field}|ack]]'
                               for field in ('quote_coverage', 'plan_context', 'risk_debts')

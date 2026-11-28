@@ -48,6 +48,7 @@ on:
       - 'src/clawock/publish/outcomes.py'
       - 'src/clawock/publish/outputs.py'
       - 'src/clawock/publish/store.py'
+      - 'src/clawock/publish/brief_archive.py'
       - 'src/clawock/run_budgets.py'
       - 'src/clawock/safe_io.py'
       - 'src/clawock/scheduling.py'
@@ -90,6 +91,7 @@ on:
       - 'src/clawock/publish/outcomes.py'
       - 'src/clawock/publish/outputs.py'
       - 'src/clawock/publish/store.py'
+      - 'src/clawock/publish/brief_archive.py'
       - 'src/clawock/run_budgets.py'
       - 'src/clawock/safe_io.py'
       - 'src/clawock/scheduling.py'
@@ -143,7 +145,7 @@ jobs:
       # checkout happened to carry is how a site serves a stale generation with
       # every gate still green.
       - name: Fetch the published generation
-        run: python3 ops/pages/fetch_data_plane.py
+        run: python3 ops/pages/fetch_data_plane.py --expect-brief-archive
 
       - name: Stage the owned website source
         run: python3 ops/pages/stage_site.py --output-dir _site-source

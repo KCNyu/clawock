@@ -108,6 +108,10 @@
    "owner": "product and operator documentation",
    "consumer": "GitHub and Pages staging"
   },
+  "evals": {
+   "owner": "brief behavior evaluation",
+   "consumer": "CI deterministic replay and prompt change audits"
+  },
   "examples": {
    "owner": "runnable proofs that the published package works without this checkout",
    "consumer": ".github/workflows/release.yml"

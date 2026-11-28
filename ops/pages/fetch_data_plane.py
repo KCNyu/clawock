@@ -36,7 +36,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "ops" / "publish"))
 
-from clawock.publish import GitBranchStore  # noqa: E402
+from clawock.publish import GitBranchStore, brief_archive  # noqa: E402
 from publish_data_branch import DATA_BRANCH, DATA_PLANE_FILES  # noqa: E402
 
 
@@ -116,17 +116,27 @@ def main() -> int:
                         help="directory to materialise into (default: --repo)")
     parser.add_argument("--branch", default=DATA_BRANCH)
     parser.add_argument("--remote", default="origin")
+    parser.add_argument("--expect-brief-archive", action="store_true",
+                        help="fail unless the branch carries the indexed brief archive")
     args = parser.parse_args()
 
     store = GitBranchStore(args.repo, args.branch, remote=args.remote)
-    names = list(DATA_PLANE_FILES)
+    def names(commit, listed):
+        names = list(DATA_PLANE_FILES)
+        if args.expect_brief_archive:
+            if brief_archive.INDEX not in listed:
+                raise FileNotFoundError("published brief archive index is missing")
+            names.append(brief_archive.INDEX)
+            names.extend(brief_archive.index_entries(store._git_blob(commit, brief_archive.INDEX)))
+        return names
+
     try:
         excused = []
         def allow_missing(commit, missing):
             excused.extend(pre_split_members(store, missing, commit))
             return excused
         written = store.fetch(args.into or args.repo, names=names,
-                              allow_missing=allow_missing)
+                              allow_missing=allow_missing, validate=brief_archive.verify)
         if excused:
             print(f"· data-plane: the published generation predates {excused} "
                   "(its parent still carries the sections) — materialising the rest and "
@@ -147,7 +157,7 @@ def main() -> int:
               f"{detail.strip() or exc}", file=sys.stderr)
         note_failure("git could not read the branch")
         return 1
-    except FileNotFoundError as exc:
+    except (FileNotFoundError, ValueError) as exc:
         print(f"✗ data-plane: {exc}", file=sys.stderr)
         note_failure("the branch does not carry every file of a generation")
         return 1

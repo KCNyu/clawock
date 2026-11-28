@@ -106,3 +106,22 @@ input, structural limits, adoption record and reversal mechanism.
 Artifact source paths are restricted to the workspace. The external runtime
 retains responsibility for its own credentials and permissions; clawock neither
 starts it nor receives its provider stderr.
+
+### Context budget receipts
+
+The brief preflight prints a structured `context_budget` receipt alongside
+the selected generation. It reports the core and manifest byte limit, the
+measured core boundary and token estimate, the lazy bundle sizes, and the
+existing trim order. Only permitted lazy fields and the low-ranked,
+non-actionable news tail are eligible for trimming. The audit copy and the
+required core keep their existing contents.
+
+Report and intraday packet receipts expose the shared per-part byte and
+part-count limits, and the measured total. Their packet protocol is lossless:
+a packet exceeding those limits fails before it is handed to the writer.
+
+Postflight records the prompt tokens observed in the live runtime when the
+delivery card is assembled. The local `logs/cron-context-usage.log` separates
+those measurements from preflight estimates. No row is recorded for an
+unavailable sample. The observation precedes the end of the model turn and
+does not claim to measure later completion tokens.

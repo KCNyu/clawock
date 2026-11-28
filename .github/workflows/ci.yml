@@ -25,6 +25,7 @@ on:
     paths:
       - 'src/**'
       - 'ops/**'
+      - 'evals/**'
       - 'pyproject.toml'
       # pytest.ini carries test options; a change there can change what the
       # suite enforces just like pyproject.toml can.
@@ -749,10 +750,24 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
+  behavior-evals:
+    needs: scope
+    if: needs.scope.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/clawock-python
+        with:
+          install: '.[test]'
+      - name: Replay brief harness regressions and capabilities
+        shell: bash
+        run: python3 evals/run.py --trials 3 | tee "$GITHUB_STEP_SUMMARY"
+
   validate:
     # Required context: neither failed/skipped dependencies nor a missing shard
     # may turn the aggregate green. Floors apply to combined coverage only.
-    needs: [scope, checks, unit-tests, browser-tests, workbench-overlap]
+    needs: [scope, checks, unit-tests, behavior-evals, browser-tests, workbench-overlap]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -765,6 +780,7 @@ jobs:
           CHECKS: ${{ needs.checks.result }}
           CODE: ${{ needs.scope.outputs.code }}
           UNIT: ${{ needs.unit-tests.result }}
+          EVALS: ${{ needs.behavior-evals.result }}
           UI: ${{ needs.scope.outputs.ui }}
           BROWSER: ${{ needs.browser-tests.result }}
           DSPLUGIN: ${{ needs.scope.outputs.dsplugin }}
@@ -772,7 +788,10 @@ jobs:
         run: |
           test "$SCOPE" = success
           test "$CHECKS" = success
-          if [ "$CODE" = true ]; then test "$UNIT" = success; fi
+          if [ "$CODE" = true ]; then
+            test "$UNIT" = success
+            test "$EVALS" = success
+          fi
           if [ "$UI" = true ]; then test "$BROWSER" = success; fi
           if [ "$DSPLUGIN" = true ]; then test "$WORKBENCH" = success; fi
       - uses: actions/checkout@v7

@@ -81,7 +81,7 @@ def _run_publisher_with(monkeypatch, tmp_path, failure):
         def __init__(self, *a, **k):
             pass
 
-        def publish(self, files, label=None):
+        def publish(self, files, **kwargs):
             raise failure
 
     monkeypatch.setattr(module, 'GitBranchStore', Store)

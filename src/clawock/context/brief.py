@@ -142,6 +142,23 @@ BUNDLE_TRIM_ORDER = {
 }
 
 
+def context_budget(manifest: dict) -> dict:
+    """Describe the enforced sizes and lazy-field rules for one generation."""
+    budget = manifest["budget"]
+    return {
+        "max": {"always_on_bytes": budget["max_always_loaded_bytes"],
+                "lazy_member_bytes": budget["max_single_bundle_bytes"]},
+        "always_on": {"bytes": budget["always_loaded_bytes"],
+                      "estimated_tokens": budget["estimated_tokens"]},
+        "lazy": {name: entry["bytes"] for name, entry in manifest["bundles"].items()},
+        "truncate_order": {
+            **{name: list(fields) for name, fields in BUNDLE_TRIM_ORDER.items()},
+            "evidence": ["news_evidence_graph.events.non_actionable_tail"],
+        },
+    }
+
+
+
 def _compact(value) -> str:
     safe, _ = json_safe(value)
     return json.dumps(

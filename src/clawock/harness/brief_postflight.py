@@ -1224,7 +1224,7 @@ def maybe_commit(status, today, dry_run=False, *, after_delivery=False):
         return False, 'ledger booking blocked: plan.json decisions were not booked (see stderr)'
     record_risk_stances(today)
     record_strategy_lab()
-    rebuild_dashboard()
+    rebuild_dashboard(brief_path=f'memory/{today}-pre-open.md')
 
     msg_suffix = ' (validation warnings)' if status == 'warn' else ''
     # risk.json / lev_regime.json / benchmark.json are rebuilt fresh by this

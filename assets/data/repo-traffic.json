@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T14:13:40Z",
+  "generated_at": "2026-11-28T12:15:54Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -547,6 +547,26 @@
       "timestamp": "2026-11-23T00:00:00Z",
       "count": 15,
       "uniques": 8
+    },
+    {
+      "timestamp": "2026-11-24T00:00:00Z",
+      "count": 15,
+      "uniques": 14
+    },
+    {
+      "timestamp": "2026-11-25T00:00:00Z",
+      "count": 23,
+      "uniques": 16
+    },
+    {
+      "timestamp": "2026-11-26T00:00:00Z",
+      "count": 36,
+      "uniques": 31
+    },
+    {
+      "timestamp": "2026-11-27T00:00:00Z",
+      "count": 22,
+      "uniques": 21
     }
   ],
   "clones": [
@@ -1094,6 +1114,26 @@
       "timestamp": "2026-11-23T00:00:00Z",
       "count": 892,
       "uniques": 156
+    },
+    {
+      "timestamp": "2026-11-24T00:00:00Z",
+      "count": 1346,
+      "uniques": 199
+    },
+    {
+      "timestamp": "2026-11-25T00:00:00Z",
+      "count": 889,
+      "uniques": 179
+    },
+    {
+      "timestamp": "2026-11-26T00:00:00Z",
+      "count": 733,
+      "uniques": 200
+    },
+    {
+      "timestamp": "2026-11-27T00:00:00Z",
+      "count": 2381,
+      "uniques": 234
     }
   ],
   "referrers_snapshots": [
@@ -2029,6 +2069,32 @@
           "referrer": "code.jiangshu.ai",
           "count": 1,
           "uniques": 1
+        },
+        {
+          "referrer": "skill.miyucaicai.cn",
+          "count": 1,
+          "uniques": 1
+        },
+        {
+          "referrer": "vuink.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-11-28T12:15:54Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 23,
+          "uniques": 18
+        },
+        {
+          "referrer": "Google",
+          "count": 9,
+          "uniques": 9
         },
         {
           "referrer": "skill.miyucaicai.cn",
@@ -4023,6 +4089,72 @@
           "uniques": 1
         }
       ]
+    },
+    {
+      "captured_at": "2026-11-28T12:15:54Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 50,
+          "uniques": 43
+        },
+        {
+          "path": "/KCNyu/clawock/pull/1437",
+          "title": "/pull/1437",
+          "count": 6,
+          "uniques": 6
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master",
+          "title": "/tree/master",
+          "count": 3,
+          "uniques": 3
+        },
+        {
+          "path": "/KCNyu/clawock/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "title": "/commit/0e5355ee894e9e82d057f163a0d961147922cce2",
+          "count": 3,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "count": 3,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/scrapling/SKILL.md",
+          "title": "/blob/master/skills/scrapling/SKILL.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/src/clawock/workspace.py",
+          "title": "/blob/master/src/clawock/workspace.py",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/discussions/3234",
+          "title": "/discussions/3234",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master/src/clawock/providers",
+          "title": "/tree/master/src/clawock/providers",
+          "count": 2,
+          "uniques": 1
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -4214,6 +4346,13 @@
       "forks": 0,
       "watchers": 0,
       "open_issues": 2
+    },
+    {
+      "captured_at": "2026-11-28T12:15:54Z",
+      "stargazers": 27,
+      "forks": 0,
+      "watchers": 0,
+      "open_issues": 12
     }
   ],
   "package_downloads": [
@@ -4569,6 +4708,19 @@
         "downloads": 1226,
         "start": "2026-10-25",
         "end": "2026-11-23"
+      }
+    },
+    {
+      "captured_at": "2026-11-28T12:15:54Z",
+      "pypi": {
+        "last_day": 0,
+        "last_month": 392,
+        "last_week": 33
+      },
+      "npm": {
+        "downloads": 1118,
+        "start": "2026-10-29",
+        "end": "2026-11-27"
       }
     }
   ]

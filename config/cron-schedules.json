@@ -132,6 +132,10 @@
       "delivery_mode": "none",
       "required_substrings": [
         "skills/daily-deep-brief/SKILL.md",
+        "skills/daily-deep-brief/references/packet.md",
+        "skills/daily-deep-brief/references/swarm.md",
+        "skills/daily-deep-brief/references/style.md",
+        "skills/daily-deep-brief/references/plan-schema.md",
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/daily-deep-brief/SKILL.md` 与 Step 1 preflight",
         "skills catalog 只有索引，不含 SKILL.md 正文",
         "判断只沿本档输入协议取证",
@@ -142,8 +146,6 @@
         "首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换",
         "唯一微信路径",
         "同步 Telegram",
-        "猜错了不许全盘扫描",
-        "不需要 kill",
         "绝不要",
         "message",
         "涉及 kcn 的偏好、纪律或历史决策时，先查共享记忆",
@@ -152,6 +154,20 @@
         "不要凭常识推断他的看法",
         "publish: public"
       ],
+      "required_documents": {
+        "skills/daily-deep-brief/SKILL.md": [
+          "猜错了不许全盘扫描",
+          "不需要 kill",
+          "不套 shell `timeout`",
+          "`commit_ok` 判完成",
+          "一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error",
+          "`commit_ok: false` 表示尚未入库"
+        ],
+        "skills/daily-deep-brief/references/swarm.md": [
+          "`memory/peer-map.json` 的动态 `theme`",
+          "`clawock web-search --bucket brief`"
+        ]
+      },
       "forbidden_substrings": [
         "唯一投递路径",
         "clawock calendar hk",

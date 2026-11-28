@@ -78,7 +78,7 @@ def test_generation_instructions_hand_the_report_to_the_harness():
     that still asks for a hand-written report is how the model spends a morning
     producing a file postflight will overwrite.
     """
-    skill = (ROOT / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+    skill = (ROOT / 'skills' / 'daily-deep-brief' / 'references' / 'plan-schema.md').read_text(
         encoding='utf-8')
     report = skill.split('#### A. 报告与微信卡', 1)[1].split(
         '#### B. 结构化 plan', 1)[0]
