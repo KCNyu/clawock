@@ -542,6 +542,8 @@ def _render_review(draft, evidence):
     if renderer.issues:
         raise LLMOutputError('；'.join(renderer.issues[:5]))
     _, sections = weekly_sections(rendered)
+    _, authored_sections = weekly_sections(draft)
+    sections &= authored_sections
     missing = [heading for heading in WEEKLY_SECTION_HEADINGS if heading not in sections]
     for heading, authored in weekly_section_bodies(draft).items():
         roots = {token.split('|', 1)[0].split('/')[2]

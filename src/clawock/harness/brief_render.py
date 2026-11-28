@@ -670,8 +670,7 @@ def tier1_section(context, judgment):
     live = context.get("live_information")
     renderer = prose_claims.ClaimRenderer(context) if live is not None else None
     rows = []
-    for ticker in sorted(set(judgments) | (set(pnl) if renderer else set())):
-        row = judgments.get(ticker) or {}
+    for ticker, row in sorted(judgments.items()):
         source = _brief_live_citation(context, ticker, renderer) if renderer else None
         sentiment = text(row.get("sentiment_read"))
         if source and source not in sentiment:

@@ -45,7 +45,7 @@ def test_structured_trigger_holds_exact_owner_and_only_current_may_anchor_foreca
 
 def test_new_report_uses_reference_gate_while_historical_report_can_still_be_read(tmp_path):
     ctx = {'raw_wechat_block': 'data', 'holdings': {'00700': {'shares': 30}}}
-    draft = '▎情绪面\n指数还没有方向。\n▎技术面\n等收盘确认。\n▎操作建议\n腾讯继续持有。'
+    draft = '▎情绪面\n指数还没有方向。\n▎技术面\n等收盘再确认。\n▎操作建议\n腾讯继续持有。'
     scoped = {**ctx, prose_claims.FIELD: prose_claims.VERSION}
     good, findings = prepare_report(scoped, draft + '持有[[/ctx/holdings/00700/shares]]。', tmp_path)
     assert '持有30 股' in good and categorize(findings) == 'pass'

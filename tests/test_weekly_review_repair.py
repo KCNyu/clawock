@@ -216,3 +216,27 @@ def test_weekly_generic_topic_words_do_not_satisfy_missed_fact_categories():
         ('净值。', '无需触发。', '本周没有风险敞口。', '关注。'), strict=True))
     _, filled = weekly_sections(text)
     assert weekly.WEEKLY_SECTION_HEADINGS[0] not in filled
+
+
+@pytest.mark.parametrize('gate', ['generation', 'pages'])
+def test_weekly_rejects_74_char_ack_only_stub(gate, monkeypatch, tmp_path):
+    from clawock.publish.artifacts import validate_weekly_review
+
+    roots = ('bundle_evidence', 'decision_episodes', 'current_risk', 'plans')
+    rendered = '\n\n'.join(f'{heading}\n今天没数据。' for heading in weekly.WEEKLY_SECTION_HEADINGS)
+    assert len(rendered) == 74
+    authored = '\n\n'.join(f'{heading}\n今天没数据。[[/ctx/{root}|ack]]'
+                           for heading, root in zip(weekly.WEEKLY_SECTION_HEADINGS, roots, strict=True))
+    if gate == 'generation':
+        fake = FakeChat(authored, authored)
+        monkeypatch.setattr(weekly, 'chat', fake)
+        with pytest.raises(LLMOutputError, match='对应事实'):
+            weekly.generate_review('sys', 'user', evidence=dict.fromkeys(roots, {}))
+        assert len(fake.calls) == 2
+    else:
+        path = tmp_path / '2026-W48.md'
+        front = '---\nlayout: default\ntitle: 周复盘 · 2026-W48\n---\n\n'
+        for body in (rendered, authored):
+            path.write_text(front + body)
+            with pytest.raises(AssertionError, match='missing section prose'):
+                validate_weekly_review(path)

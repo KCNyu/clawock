@@ -12,6 +12,7 @@ twenty-odd regression tests keep exercising exactly this code.
 from __future__ import annotations
 
 from clawock import prose_claims
+from clawock.prose_validation import has_han_narrative
 from clawock.harness.validation import (
     FORBIDDEN_PHRASES,
     PLAN_CONSISTENCY,
@@ -137,7 +138,7 @@ def validate(body, ctx, model_text):
         sections = [*REQUIRED_SECTIONS, '▎风险提示'] if ctx.get('needs_risk_section') else REQUIRED_SECTIONS
         for section in sections:
             prose = section_body(checked, section)
-            if has_section_marker(checked, section) and sum(c.isalpha() for c in prose) < 4:
+            if has_section_marker(checked, section) and not has_han_narrative(prose):
                 issues.append(f'{_COVERAGE_ISSUE}：{section}')
         for extra in ('▎异动归因', '▎证据'):
             if has_section_marker(checked, extra):
@@ -170,9 +171,17 @@ def live_news_references(ctx):
     for ticker, rows in ((ctx.get('live_information') or {}).get('summary') or {}).items():
         # Same-day filings with incomplete clock precision have stale=None.
         # Retain them without treating them as intraday news.
-        current = [i for i, row in enumerate(rows) if row.get('cite')
-                   and (row.get('stale') is False
-                        or (row.get('stale') is None and row.get('filed_date')))]
+        current = []
+        for i, row in enumerate(rows):
+            if not row.get('cite') or not (row.get('stale') is False
+                                          or (row.get('stale') is None and row.get('filed_date'))):
+                continue
+            try:
+                prose_claims.citation(row, market=ctx.get('market'))
+            except ValueError:
+                # A row that cannot be cited cannot be a mandatory reference.
+                continue
+            current.append(i)
         primary = [i for i in current if rows[i].get('grade') == 'primary']
         if current:
             escaped = ticker.replace('~', '~0').replace('/', '~1')
@@ -187,9 +196,13 @@ def _live_news_coverage(refs, ctx):
     return [f'{_NEWS_ISSUE}（情绪面）：{"、".join(missing)}'] if missing else []
 
 
-def _reference_coverage(draft, ctx, renderer):
+def _reference_coverage(draft, rendered, ctx, renderer):
     sentiment = prose_claims.resolved_in(section_body(draft, '▎情绪面'), renderer)
     issues = _live_news_coverage(sentiment, ctx)
+    for section in (*REQUIRED_SECTIONS, '▎风险提示'):
+        if (has_han_narrative(section_body(rendered, section))
+                and not has_han_narrative(section_body(draft, section))):
+            issues.append(f'{_COVERAGE_ISSUE}：{section} 需有自己的判断')
     # Successful ticker refs bind the visible subject to its same-generation row.
     movers = [row['ticker'] for i, row in enumerate(ctx.get('anomalies') or [])
               if f'/ctx/anomalies/{i}/ticker' not in sentiment
@@ -220,7 +233,7 @@ def prepare_report(ctx, draft, workspace, *, validator=validate):
         renderer = prose_claims.ClaimRenderer(ctx, receipts=ctx.get('compute_receipts', ()))
         authored = draft
         draft = renderer.render(authored, '报告')
-        issues = [*renderer.issues, *renderer.advisories, *_reference_coverage(authored, ctx, renderer)]
+        issues = [*renderer.issues, *renderer.advisories, *_reference_coverage(authored, draft, ctx, renderer)]
     body = assemble_message(ctx, draft)
     return body, [*issues, *validator(body, ctx, draft)]
 

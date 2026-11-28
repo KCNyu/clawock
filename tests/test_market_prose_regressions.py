@@ -176,3 +176,98 @@ def test_report_coverage_requires_resolved_same_section_references(tmp_path):
     assert not issues and '|ack' not in body and 'CRCL' in body
     moved = anchored.replace('[[/ctx/risk_debts|ack]]', '') + '\n▎证据\n[[/ctx/risk_debts|ack]]'
     assert report.categorize(report.prepare_report(ctx, moved, tmp_path)[1]) == 'fail'
+
+
+def test_report_rejects_generic_no_data_even_with_resolved_coverage(tmp_path):
+    context = {**STRUCTURED, 'quote_coverage': {}, 'plan_context': {},
+               'needs_risk_section': True, 'risk_debts': []}
+    draft = ('▎情绪面\n指数回落，同业跟着走弱。\n'
+             '▎技术面\n今天没数据。[[/ctx/quote_coverage|ack]]\n'
+             '▎操作建议\n今天没数据。[[/ctx/plan_context|ack]]\n'
+             '▎风险提示\n今天没数据。[[/ctx/risk_debts|ack]]')
+    _, issues = report.prepare_report(context, draft, tmp_path)
+    assert report.categorize(issues) == 'fail'
+    assert sum('正文覆盖不足' in issue for issue in issues) == 3
+
+
+@pytest.mark.parametrize('surface', ['report', 'intraday'])
+def test_market_numbers_need_a_same_generation_cite_containing_the_value(surface, tmp_path):
+    row = {'title': '港交所公布南向净买入 23 亿港元', 'source': 'HKEX',
+           'published_at': '2026-11-27T10:30:00+08:00', 'url': 'https://source.example/flows'}
+    context = {**STRUCTURED, 'market': 'hk', 'market_readings': {'other_pct': 8.3},
+               'live_information': {'rows': [row]}}
+    cite = '[[/ctx/live_information/rows/0|cite]]'
+
+    def render(prose, ctx=context):
+        if surface == 'report':
+            return report.prepare_report(ctx, BODY.replace('CRCL 随同业', prose + '\nCRCL 随同业'), tmp_path)
+        renderer = prose_claims.ClaimRenderer(ctx)
+        return renderer.render(prose, '盘中判断'), renderer.issues
+
+    for unsupported in ('南向资金净买入 83 亿港元' + cite,
+                        '南向净流入 1,230亿，核对来源。',
+                        '南向净流入二十三亿港元。',
+                        'HIBOR 报 4.72%，暂无已核来源。',
+                        'USDHKD 报 7.85，报价需要确认。',
+                        'HIBOR 报 [[/ctx/market_readings/other_pct]]。'):
+        _, issues = render(unsupported)
+        assert any('外部市场读数' in issue for issue in issues)
+    honest, issues = render('南向数据未取到。HIBOR 未取到同场读数。')
+    assert '未取到' in honest and not issues
+    source, issues = render(cite)
+    assert not issues and '23 亿港元' in source and row['url'] in source
+    missing_url = {**context, 'live_information': {'rows': [{**row, 'url': None}]}}
+    _, issues = render(cite, missing_url)
+    assert any('来源、日期和链接' in issue for issue in issues)
+    _, issues = render('[[/ctx/live_information/rows/0/cite]]', {
+        **context, 'live_information': {'rows': [{**row, 'cite': '《南向净买入23亿港元》'}]},
+    })
+    assert any('外部市场读数' in issue for issue in issues)
+
+
+def test_four_grid_has_only_judged_positions_even_with_live_news():
+    context = {
+        'portfolio': {'portfolios': {'us_stocks': {'holdings': [
+            {'ticker': 'CRCL', 'shares': 1}, {'ticker': 'NVDA', 'shares': 1},
+        ]}}},
+        'live_information': {'us': {'summary': {
+            'CRCL': [{'title': '公司披露本季度收入', 'cite': '《公司披露本季度收入》（公司）'}],
+            'NVDA': [{'title': '公司提交新公告', 'cite': '《公司提交新公告》（交易所）'}],
+        }}},
+    }
+    body = brief_render.tier1_section(context, {'ticker_judgments': [
+        {'ticker': 'CRCL', 'fundamentals': '等披露兑现。'},
+    ]})
+    assert '**CRCL**' in body and '公司披露本季度收入' in body
+    assert '**NVDA**' not in body and '公司提交新公告' not in body
+
+
+def test_unverifiable_market_headline_is_never_required_for_mover_coverage():
+    row = {'title': '港交所公布南向净买入 23 亿港元', 'source': 'HKEX',
+           'cite': '《南向净买入 23 亿港元》（HKEX）', 'stale': False}
+    context = {'market': 'hk', 'live_information': {'summary': {'00700': [
+        row, {'title': '公司提交公告', 'cite': '《公司提交公告》（港交所）', 'stale': False},
+    ]}}}
+    assert report.live_news_references(context) == {
+        '00700': ['/ctx/live_information/summary/00700/1'],
+    }
+
+
+def test_report_framework_only_promises_auditable_market_readings_and_scope():
+    shared = Path(__file__).resolve().parents[1] / 'skills' / '_shared'
+    hk = (shared / 'report-analysis-hk.md').read_text()
+    us = (shared / 'report-analysis-us.md').read_text()
+    assert '有可核的南向资金读数时' in hk
+    assert 'HIBOR 和港元汇率有同代可核读数时' in hk
+    assert '`|cite`' in hk and '来源、日期和链接' in hk
+    assert '单票月衰减' in us and 'breakeven_math.priced_chop_drag_sum_pct_per_month' in us
+
+
+def test_citations_and_ack_do_not_count_as_report_narrative(tmp_path):
+    ctx = {**STRUCTURED, 'plan_context': {},
+           'live_information': {'rows': [{'cite': '《港交所公布可以凑夠汉字的新闻》（来源）'}]}}
+    citation = '[[/ctx/live_information/rows/0|cite]]'
+    authored = BODY.replace('按原计划持有。', f'今天没数据。{citation}[[/ctx/plan_context|ack]]')
+    _, issues = report.prepare_report(ctx, authored, tmp_path)
+    assert report.categorize(issues) == 'fail'
+    assert any('覆盖不足' in issue and '▎操作建议' in issue for issue in issues)
