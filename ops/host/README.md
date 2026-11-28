@@ -319,12 +319,10 @@ reviewer now writes those receipts for clean candidates, and a separate private 
 distils dispatch briefs and finished task reports. Installation, review, verification
 and rollback: [dreaming review](../../docs/operations/dreaming-review.md).
 
-## Versioned OpenClaw patch kit
+## Verify a fork maintenance package
 
-`openclaw-patches/manifest.json` owns the ordered dist adaptations and per-target
-postconditions. `manage_openclaw_patches.py` rehearses the complete set in isolated
-copies, then journals and installs verified edits with guarded recovery. The
-upgrade wrapper no longer executes host-local patch sources. Use
-`reapply_openclaw_patches.sh --plan` before applying, and `--check-only` afterward.
-See `docs/operations/openclaw-patch-kit.md` for receipts, recovery and the separate
-idle-gateway/restart requirement.
+The maintenance artifact includes the adapted bundles and their build receipt.
+Use `reapply_openclaw_patches.sh --install "$CANDIDATE" --commit "$EXPECTED_COMMIT"`
+when staging a package. Use `--check-only` to verify the current selection.
+See [the operations guide](../../docs/operations/openclaw-patch-kit.md) for
+artifact identity, extension installation and legacy transaction recovery.

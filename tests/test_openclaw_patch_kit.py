@@ -271,3 +271,34 @@ def test_manifest_cannot_select_outside_the_package(tmp_path, installation):
         {'id': 'escape', 'targets': [{'path': '../package.json'}]}]}))
     with pytest.raises(ValueError, match='unsafe patch path'):
         kit.resolve_targets(installation / 'dist', kit.load_manifest(path))
+
+
+def test_verify_fork_matches_build_commit_directory_and_bundle_hash(tmp_path):
+    commit = 'a' * 40
+    install = tmp_path / f'.openclaw-kcn-{commit}'
+    dist = install / 'dist'
+    dist.mkdir(parents=True)
+    bundle = dist / 'target.js'
+    bundle.write_text('const patched = true;\n')
+    (install / 'package.json').write_text(json.dumps({'version': 'test'}))
+    (dist / 'build-info.json').write_text(json.dumps({'commit': commit}))
+    manifest = tmp_path / 'manifest.json'
+    manifest.write_text(json.dumps({
+        'schema': 1,
+        'validated_versions': ['test'],
+        'patches': [{'id': 'test', 'targets': [{'path': 'target.js'}]}],
+    }))
+    receipt = dist / 'kcn-patches.json'
+    receipt.write_text(json.dumps({
+        'schema': 1, 'version': 'test', 'commit': commit, 'patches': ['test'],
+        'files': {bundle.name: kit.sha(bundle.read_bytes())},
+    }))
+    before = {path: path.read_bytes() for path in install.rglob('*') if path.is_file()}
+
+    assert kit.verify_fork(install, manifest, commit)['status'] == 'verified'
+    assert {path: path.read_bytes() for path in before} == before
+    with pytest.raises(ValueError, match='directory or expected commit'):
+        kit.verify_fork(install, manifest, 'b' * 40)
+    bundle.write_text('const patched = false;\n')
+    with pytest.raises(ValueError, match='bundle hash mismatch'):
+        kit.verify_fork(install, manifest, commit)

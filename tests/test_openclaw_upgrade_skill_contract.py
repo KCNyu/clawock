@@ -8,9 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "skills" / "openclaw-upgrade" / "SKILL.md"
 WRAPPER = ROOT / "ops" / "host" / "reapply_openclaw_patches.sh"
 
-def test_upgrade_skill_patches_after_update_and_before_restart():
+def test_upgrade_skill_verifies_the_fork_before_restart():
     text = SKILL.read_text()
-    update_at = text.index("openclaw update --tag <version> --no-restart --yes")
+    update_at = text.index("## 2. Stage the fork artifact")
     patch_at = text.index("bash ops/host/reapply_openclaw_patches.sh")
     restart_at = text.index("openclaw gateway restart")
 
@@ -20,12 +20,11 @@ def test_upgrade_skill_patches_after_update_and_before_restart():
     assert "ops/host/openclaw-patches/manifest.json" in text
 
 
-def test_wrapper_routes_all_dist_work_through_the_versioned_kit():
+def test_wrapper_only_verifies_fork_package_identity():
     text = WRAPPER.read_text()
-    assert 'manage_openclaw_patches.py" apply' in text
-    assert 'manage_openclaw_patches.py" check' in text
-    assert 'manage_openclaw_patches.py" plan' in text
-    assert '/root/tools/openclaw/current' not in text
+    assert 'manage_openclaw_patches.py" verify-fork "$@"' in text
+    assert 'install_skillhub_plugin.sh' not in text
+    assert 'install_memory_corpus_plugin.sh' not in text
     assert 'gateway restart' not in text
 
 

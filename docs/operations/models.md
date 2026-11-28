@@ -26,7 +26,7 @@ Common changes:
 Then:
 
 ```
-python3 ops/host/manage_openclaw_patches.py apply  # stage/verify the complete dist kit first
+bash ops/host/reapply_openclaw_patches.sh       # verify the selected fork build first
 python3 ops/host/sync_models.py --apply           # OpenClaw + dsh on this host
 python3 ops/host/sync_cron_payloads.py --apply    # if a cron chain changed
 openclaw gateway restart                          # no cron in flight; dsh: restart if its profile changed

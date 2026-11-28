@@ -1,9 +1,26 @@
-# OpenClaw patch kit
+# OpenClaw maintenance package verification
 
-The dist adaptations are a versioned unit under `ops/host/`, not instructions to
-edit an installed package from untracked host scripts. The upgrade entry remains
-`reapply_openclaw_patches.sh`; it invokes `manage_openclaw_patches.py` and then the
-two existing host-extension installers. Gateway restart remains a separate step.
+The KCN maintenance workflow applies its version-pinned adapters before it
+packs the fork artifact. The build receipt in `dist/kcn-patches.json` records
+the version, complete build commit, ordered patch IDs and adapted files'
+SHA-256 values. Installation and verification are separate operations.
+
+```bash
+bash ops/host/reapply_openclaw_patches.sh --install "$CANDIDATE" --commit "$EXPECTED_COMMIT"
+bash ops/host/reapply_openclaw_patches.sh --check-only
+```
+
+The candidate and the resolved active install are named
+`.openclaw-kcn-<commit>`. The check verifies the directory and build identities,
+supported version, adaptation set and bundle hashes. `--plan` checks the same
+candidate identity. Install the two host extensions through
+`install_skillhub_plugin.sh` and `install_memory_corpus_plugin.sh` before
+the idle-gateway restart. Keep the prior package selection for rollback.
+
+## Legacy transaction recovery
+
+Use this section to recover an older host-applied package and existing
+transaction receipts. The fork upgrade path uses the verifier above.
 
 ## Ownership
 
@@ -31,20 +48,12 @@ explicit staging directory and must not be called directly against live files.
 Provider latency measurement is not part of patch application; no credentials,
 model requests, cron edits or package downloads are needed for a plan.
 
-## Plan, check, apply
+Run the legacy manager explicitly when inspecting an older installation:
 
 ```bash
-bash ops/host/reapply_openclaw_patches.sh --plan
-bash ops/host/reapply_openclaw_patches.sh --check-only
-# After the upgrade runbook's no-in-flight check:
-bash ops/host/reapply_openclaw_patches.sh
+python3 ops/host/manage_openclaw_patches.py plan --install "$LEGACY_INSTALL"
+python3 ops/host/manage_openclaw_patches.py check --install "$LEGACY_INSTALL"
 ```
-
-A plan resolves all targets, copies only those files into an isolated package,
-runs all adapters there, and checks postconditions, JSON and JavaScript syntax.
-Failure discards the stage and leaves installed bytes untouched. Check performs
-the same rehearsal and exits 1 for any pending edit, 2 on an error. It does not
-write installed files. The wrapper also checks the installed host extensions.
 
 The JSON report includes package version, manifest and adapter SHA256s, ordered
 patch IDs and per-file before/after hashes. `validated_versions` records the

@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -196,14 +197,46 @@ def commit(install, report, originals, updated, state):
     return report
 
 
+def verify_fork(install, manifest_path, expected_commit=None):
+    """Check the release identity and immutable files selected by the fork build."""
+    manifest = load_manifest(manifest_path)
+    version = json.loads((install / 'package.json').read_text()).get('version')
+    if version not in manifest.get('validated_versions', []):
+        raise ValueError(f'unsupported KCN package version: {version}')
+    dist = install / 'dist'
+    commit = json.loads((dist / 'build-info.json').read_text()).get('commit')
+    if not isinstance(commit, str) or not re.fullmatch(r'[0-9a-f]{40}', commit):
+        raise ValueError('invalid fork build commit')
+    if install.name != f'.openclaw-kcn-{commit}' or (
+            expected_commit is not None and expected_commit != commit):
+        raise ValueError(f'KCN installation directory or expected commit differs from {commit}')
+
+    receipt = json.loads((dist / 'kcn-patches.json').read_text())
+    ids = [patch['id'] for patch in manifest['patches']]
+    identity = {'schema': 1, 'version': version, 'commit': commit, 'patches': ids}
+    if not isinstance(receipt, dict) or any(receipt.get(key) != value for key, value in identity.items()):
+        raise ValueError('KCN build receipt identity or adaptation set differs')
+
+    targets = resolve_targets(dist, manifest)
+    expected_paths = {name for _, entries in targets for name, _ in entries}
+    digests = receipt.get('files')
+    if not isinstance(digests, dict) or digests.keys() != expected_paths:
+        raise ValueError('KCN build receipt covers different bundle paths')
+    for name, digest in digests.items():
+        if sha(inside(dist, name).read_bytes()) != digest:
+            raise ValueError(f'KCN bundle hash mismatch: {name}')
+    return {**identity, 'install': str(install), 'status': 'verified'}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=['plan', 'check', 'apply', 'rollback'])
+    parser.add_argument('mode', choices=['plan', 'check', 'apply', 'rollback', 'verify-fork'])
     parser.add_argument('--install', type=Path)
     parser.add_argument('--manifest', type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument('--scratch', type=Path, default=Path.home() / 'scratch/openclaw-patches')
     parser.add_argument('--state', type=Path, default=Path.home() / 'logs/openclaw-patches')
     parser.add_argument('--receipt', type=Path)
+    parser.add_argument('--commit', help='expected full fork commit for verify-fork')
     args = parser.parse_args()
     if args.mode == 'rollback':
         if args.receipt is None:
@@ -215,6 +248,9 @@ def main():
     if args.install is None:
         parser.error('OpenClaw installation missing; pass --install')
     install = args.install.resolve()
+    if args.mode == 'verify-fork':
+        print(json.dumps(verify_fork(install, args.manifest, args.commit), indent=2))
+        return 0
     args.scratch.mkdir(parents=True, exist_ok=True)
     # All modes share a lock per installation, not per checkout or patch version.
     lock_path = args.scratch / (sha(str(install).encode()) + '.lock')

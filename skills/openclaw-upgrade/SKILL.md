@@ -1,6 +1,6 @@
 ---
 name: openclaw-upgrade
-description: Safe OpenClaw version upgrade with regression checklist. Use when kcn says "升级 openclaw" / "openclaw 有没有更新" / "/openclaw-upgrade", or after noticing a newer npm version. Checks for in-flight crons, uses the built-in updater, reapplies all host-local dist patches, and runs the full regression gate without reducing context, skills, tools, thinking, or token budgets. Different from `openclaw-tune` (periodic maintenance, no version bump).
+description: Safe OpenClaw version upgrade with regression checklist. Use when kcn says "升级 openclaw" / "openclaw 有没有更新" / "/openclaw-upgrade", or after noticing a newer npm version. Checks for in-flight crons, installs a pinned fork artifact, verifies its built adaptations, and runs the full regression gate without reducing context, skills, tools, thinking, or token budgets. Different from `openclaw-tune` (periodic maintenance, no version bump).
 ---
 
 # OpenClaw Safe Upgrade
@@ -23,55 +23,26 @@ If this is not `true`, wait. A SIGTERM mid-run can orphan the cron into
 permanent `running`. Use `--no-restart` and pick a quiet window between slots
 (`bash ops/host/check_crons.sh --timeline`).
 
-## 2. Update (built-in updater, since 6.x)
-```
-openclaw update --tag <version> --no-restart --yes
-```
-This auto-reinstalls/links managed plugins (weixin, llama-cpp, codex) — no manual `pnpm add`, no systemd edits, no `restore-llama-embeddings.sh` needed. (Pre-6.x manual flow is in the memory file.)
+## 2. Stage the fork artifact
 
-## 3. 🔴 Reapply all upgrade-sensitive local patches before restart
-The updater replaces the installed `dist/` tree. From the live workspace run:
+Download the maintenance artifact for the full target commit. Verify its archive
+checksum, extract it to a candidate directory named `.openclaw-kcn-<commit>`,
+and check the package dependency contract against the existing installation.
+Keep the running package selected until stage and verification pass.
+
+## 3. Verify the staged package and replay host extensions
 
 ```bash
-bash ops/host/reapply_openclaw_patches.sh
+bash ops/host/reapply_openclaw_patches.sh --install "$CANDIDATE" --commit "$EXPECTED_COMMIT"
+bash ops/host/install_skillhub_plugin.sh
+bash ops/host/install_memory_corpus_plugin.sh
 ```
 
-The versioned patch kit owns the entire dist edit set. Its ordered inventory and
-per-bundle postconditions are in `ops/host/openclaw-patches/manifest.json`; source
-adapters live beside it (the two Python dreaming adapters remain under `ops/host/`).
-The historical scripts under `/root/tools/openclaw/current/` are not upgrade inputs.
-Do not edit or invoke them to update the managed kit.
-
-Run `bash ops/host/reapply_openclaw_patches.sh --plan` first to rehearse against
-isolated copies. It resolves each bundle unambiguously, runs every manifest adapter and
-checks postconditions and JavaScript syntax before any installed bundle is written.
-`apply` retains a transaction receipt and recovery copies; on write failure it
-restores the pre-run bytes. A process kill can leave a prepared receipt: use the
-hash-guarded rollback command in `docs/operations/openclaw-patch-kit.md` before
-retrying. A multi-file install is not one atomic filesystem operation; keep the
-gateway idle and do not restart until the whole wrapper succeeds.
-
-The JSON report identifies the package version, manifest and adapter hashes, patch
-IDs, and before/after bundle hashes. A version outside `validated_versions` is a
-compatibility-review signal, not automatic proof of safety from passing anchors.
-For supported native upstream fixes, record the accepted postconditions in the
-manifest; do not delete a failing patch just to pass the gate.
-
-MiniMax `service_tier: "priority"` was retired on 2026-10-19: MiniMax bills it at
-1.5x the standard rate against the Token Plan. Do not reapply
-`patch-minimax-m3-priority.sh`.
-
-It also replays `ops/host/install_skillhub_plugin.sh` and `ops/host/install_memory_corpus_plugin.sh`, restoring the two versioned host extensions outside pnpm. The skill registry policy is stable system context, never a user-turn prefix. `--check-only` verifies the installed extension bytes as well.
-
-The kit checks each patch on its specific bundle (including the header deadline value
-and every dreaming race forwarding hop), then runs `node --check`. It does **not**
-restart the gateway. `--check-only` rehearses the kit without writing installed files;
-any proposed edit means the installation is not yet aligned.
-
-Any missing script, changed source anchor, syntax error, or missing marker is a
-hard stop: do not restart and do not declare the upgrade complete. Inspect the
-new OpenClaw source, revise the relevant patch script deliberately, and rerun
-the wrapper. Never skip a failed patch just to make the new version start.
+The wrapper checks the resolved directory name, version, build commit and every
+adapted bundle against the fork build receipt. The ordered IDs match
+`ops/host/openclaw-patches/manifest.json`. A missing receipt or mismatch stops
+the upgrade. Retain the previous package selection for rollback. For details see
+`docs/operations/openclaw-patch-kit.md`.
 
 ## 4. Restart once, in a clean window
 Re-run the structured no-in-flight check from step 1, then:
@@ -87,7 +58,7 @@ bash ops/host/reapply_openclaw_patches.sh --check-only
 | version | `openclaw --version` | shows target |
 | **cron contract** | `openclaw cron list --json`; `clawock system check`; `bash ops/host/check_crons.sh --timeline` | names, schedules, enabled state, payloads and host triggers match `config/cron-schedules.json`; inspect the cron runtime/watchdog contract results, not only the total count |
 | embedding | `openclaw memory search "<q>" --max-results 2 --json` | returns results, no `Unknown memory embedding provider` (6.8 has no `--limit`) |
-| local patches | `bash ops/host/reapply_openclaw_patches.sh --check-only` | all local patches' markers and JS/Python syntax pass |
+| fork artifact | `bash ops/host/reapply_openclaw_patches.sh --check-only` | selected package matches the build receipt |
 | MiniMax transport | transport log + fallback smoke | Anthropic protocol; retired `service_tier: "priority"` absent; transport/timeouts match `config/models.toml` and the manifest postconditions |
 | weixin delivery | tail `/tmp/openclaw/openclaw-*.log` | `weixin monitor started` + `gateway ready`, no crash loop |
 | model chain | the cron run log / a throwaway `openclaw agent` call | a model answers (⚠️ see note) |
