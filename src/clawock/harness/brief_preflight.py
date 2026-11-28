@@ -2341,6 +2341,8 @@ def _collect(argv=None):
     # off-host fallback inlines the whole packet and can still write the brief.
     print(f'\n═════ preflight done | {len(issues)} issues ═════')
     print(f'context: {ctx_path}')
+    print(json.dumps({'context_budget': brief_context.context_budget(bundle_manifest)},
+                     ensure_ascii=False))
     print(
         'model context: '
         f'{bundle_manifest["budget"]["always_loaded_bytes"]:,} / '

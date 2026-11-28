@@ -16,6 +16,16 @@ MAX_PARTS = 6
 KEEP_SECONDS = 2 * 24 * 60 * 60
 
 
+def parts_budget(parts):
+    """Describe the lossless report and intraday packet limit."""
+    return {
+        "max": {"part_bytes": PART_BYTES, "parts": MAX_PARTS},
+        "always_on": {"bytes": sum(part["bytes"] for part in parts), "parts": len(parts)},
+        "lazy": {},
+        "truncate_order": [],
+    }
+
+
 def packet_dir(tmp, market, context_id, *, namespace='intraday-packets'):
     if market not in {'hk', 'us'} or not re.fullmatch(r'[A-Za-z0-9_-]+', context_id or ''):
         raise ValueError('invalid market or context_id')
@@ -93,6 +103,7 @@ def write_packet(tmp, packet, audit_payload):
     entries = publish_parts(target, ordered, identity, audit_payload)
     return {'status': 'ok', **identity, 'delivery_mode': packet['delivery_mode'],
             'part_bytes_max': PART_BYTES, 'parts_max': MAX_PARTS, 'parts': entries,
+            'context_budget': parts_budget(entries),
             'complete': True,
             'prose_path': str(target / f"intraday-prose-{identity['market']}.md"),
             'sidecar_path': str(target / f"intraday-insights-{identity['date']}.json")}
