@@ -53,6 +53,8 @@ def test_report_checks_every_mover_inside_sentiment_and_fails_one_plan_conflict(
 def test_report_rejects_shell_without_enforcing_length_or_extra_sections():
     stub = '▎情绪面\n跌\n▎技术面\n弱\n▎操作建议\n等'
     assert report.categorize(report.validate(stub, STRUCTURED, stub)) == 'fail'
+    stub = BODY.replace('CRCL 随同业回落，暂未找到独立催化。', '涨。')
+    assert report.categorize(report.validate(stub, STRUCTURED, stub)) == 'fail'
     assert not report.validate(BODY, STRUCTURED, BODY)
     extra = BODY + '\n▎证据\n原公告在此。'
     assert report.categorize(report.validate(extra, STRUCTURED, extra)) == 'fail'
@@ -62,8 +64,10 @@ def test_report_live_news_requires_each_name_and_prefers_current_filings(tmp_pat
     ctx = {**STRUCTURED, 'live_information': {'summary': {
         'CRCL': [{'cite': '《公司披露》（SEC，本场）', 'grade': 'primary', 'stale': False},
                  {'cite': '《同业观察》（报社，本场）', 'grade': 'soft', 'stale': False}],
-        'NVDA': [{'cite': '《新订单》（报社，时点未知）', 'stale': None}],
+        'NVDA': [{'cite': '《新订单》（SEC，提交时点未知）', 'stale': None,
+                  'filed_date': '2026-11-27', 'grade': 'primary'}],
         'AMD': [{'cite': '《旧闻》（报社，上场）', 'stale': True}],
+        'META': [{'cite': '《时点未核实》（报社）', 'stale': None}],
     }}}
     refs = '[[/ctx/live_information/summary/CRCL/1|cite]]'
     wrong = BODY.replace('▎技术面', refs + '\n▎技术面')

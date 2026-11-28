@@ -116,6 +116,7 @@ portfolio -> safe_io
 portfolio -> sessions
 portfolio -> workspace
 providers -> safe_io
+prose_claims -> portfolio
 prose_claims -> prose_validation
 publish -> decision
 publish -> evaluation

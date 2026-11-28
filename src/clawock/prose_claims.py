@@ -5,6 +5,7 @@ import re
 from decimal import Decimal, InvalidOperation
 from math import isfinite
 
+from clawock.portfolio.breakeven_claims import validate_drag
 from clawock.prose_validation import CITATION, MEASUREMENT, check_storytelling
 
 VERSION = 1
@@ -15,7 +16,9 @@ TOKEN = re.compile(r'\[\[([^\[\]\r\n]+)\]\]')
 # MA200 indicator, 7×24 feed). Tickers containing digits use a ticker ref.
 _VOCABULARY = re.compile(
     r'(?<![A-Za-z0-9])(?:P0|T[+-](?:0|1|2|3|5|10|20)|MA(?:5|10|20|50|60|100|120|200|250)'
-    r'|MACD|RSI(?:14)?|7[×x]24)(?![A-Za-z0-9])', re.I)
+    r'|MACD|RSI(?:14)?|7[×x]24)(?![A-Za-z0-9])'
+    r'|(?:上|下|前|同|这|那|另)一(?:场|份|次|只|个|侧|笔|条|档|周)'
+    r'|(?:完成|进行|发生|出现)一次(?=\s*[A-Za-z\u4e00-\u9fff])', re.I)
 _LITERAL = re.compile(
     r'\d+(?:[.,:：]\d+)*'
     r'|[零〇一二两三四五六七八九十百千万亿]+(?:点[零一二三四五六七八九]+)?'
@@ -178,6 +181,7 @@ class ClaimRenderer:
         self.issues = []
         self.advisories = []
         self.references = []
+        self.measurements_by_scope = {}
 
     def _claim(self, token, roots):
         pointer, _, mode = token.partition('|')
@@ -213,19 +217,23 @@ class ClaimRenderer:
             return value, False
         return _numeric_display(value, path, roots), True
 
-    def render(self, text, label, *, decision=None, dense_measurements=True):
+    def render(self, text, label, *, decision=None, ticker=None, scope=None, dense_measurements=True):
         if not isinstance(text, str):
             return text
         roots = self.roots if decision is None else {**self.roots, 'decision': decision}
 
         measurements = {}
         citations = set()
+        numerical_keys = []
 
         def replace(match):
             try:
                 value, measurement = self._claim(match[1], roots)
                 if measurement:
                     measurements[match.start()] = match[1]
+                    numerical_keys.append((match[1], value))
+                    if value.endswith('%') and text[match.end():match.end() + 1] in ('%', '％'):
+                        value = value[:-1]
                 pointer, _, mode = match[1].partition('|')
                 if mode == 'cite' or pointer.endswith('/cite'):
                     citations.add(match.start())
@@ -243,13 +251,21 @@ class ClaimRenderer:
         if '[[' in raw or ']]' in raw:
             self.issues.append(f'{ISSUE} {label} 引用格式不完整')
         result = TOKEN.sub(replace, text)
+        owner = ticker or (decision or {}).get('ticker')
+        self.issues.extend(f'{ISSUE} {label} {issue}'
+                           for issue in validate_drag(result, roots['ctx'], ticker=owner))
+        repeated = len(set(numerical_keys)) < len(numerical_keys)
+        if scope or owner:
+            prior = self.measurements_by_scope.setdefault(scope or owner, set())
+            repeated |= any(key in prior for key in numerical_keys)
+            prior.update(numerical_keys)
         # Strip reference syntax and quoted news from the style check. The
         # pattern sees only the author's words and the positions of measurements.
         draft = TOKEN.sub(lambda match: MEASUREMENT if match.start() in measurements
                           else CITATION if match.start() in citations else ' ', text)
         self.advisories.extend(check_storytelling(
             draft, label, dense_measurements=dense_measurements,
-            repeated_measurement=len(set(measurements.values())) < len(measurements)))
+            repeated_measurement=repeated))
         return result
 
     def triggers(self, line, prefix):

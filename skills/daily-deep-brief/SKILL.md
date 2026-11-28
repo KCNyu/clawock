@@ -183,7 +183,7 @@ summary 包含 book/concentration、每票 deterministic status、技术/因子�
 
 可选 section：`facts|technical|thesis|execution|quant|sentiment|history|information|evidence|risk|status|constraints`。
 
-**实时消息面**：summary 每票的 `live` 是 preflight 刚抓的实时公告/新闻（HKEXnews、SEC 全文检索、Google 新闻、Yahoo，上次收盘以来）前两条 cite，全部条目在 `--section information` 的 `information.live`；引用用同一资讯行的 `[[/packet/…|cite]]`（含发布时间与「上次收盘后」/「上次收盘前旧闻」，SEC 全文检索只有提交日、「时刻未知」）。summary 顶层 `live_information.<hk|us>.degraded` 非空＝该源没取到，简报里写「X 未取到」，不许写成没有消息。实时条目是消息面证据，不是加仓授权。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
+**实时消息面**：summary 每票的 `live` 是 preflight 刚抓的实时公告/新闻（HKEXnews、SEC 全文检索、Google 新闻、Yahoo，上次收盘以来）前两条 cite，全部条目在 `--section information` 的 `information.live`；引用用同一资讯行的 `[[/packet/…|cite]]`（含发布时间与「上次收盘后」/「上次收盘前旧闻」，SEC 全文检索只有提交日、「时刻未知」）。summary 顶层 `live_information.<hk|us>.degraded` 非空＝该源没取到，简报里写「X 未取到」，不许写成没有消息。逐票判断解释真正有用的消息。分析师四格会按持仓从 `live_information` 同票记录填一条有出处的新闻；旧闻保留时效，没可用项会注明。实时条目是消息面证据，不是加仓授权。一次查询硬上限 24 KiB，并同时校验 manifest hash 与 generation。正常分析禁止 `cat brief-context-{date}.json`，也禁止为了省一次查询而整份读 core/research/market bundle。
 
 > **为什么走 `clawock tool`**：工具注册表是这套上下文协议唯一机器可读的定义（`clawock tool --list` 直接吐 JSON schema），而 24 KiB 预算是在注册表里强制的。协议实现随 `clawock` wheel 安装；workspace 只提供本次生成的数据，不再提供可执行 Python 源码。输出含 `_meta.generation_id` 代次钉扎。
 
@@ -432,7 +432,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
     (再深 10pp / 需减额 1.5 倍 / 严重度升级,或距上次重提满 28 天)。
   - 选择由 postflight 记进账本(`adaptive.stances`),你不写账本、不编 id。
 - 若 `breach_count=0` → 本段写"✅ 仓位硬闸无触发",照常决策。
-- **解套/回本数字只准引用 `context.breakeven_math`**(preflight 已算好:每只浮亏持仓回本所需涨幅、2x 的横盘 decay ≈σ²/12 每月、半年窗含 drag 等效标的涨幅),禁止自己心算或编造。解读纪律见其 `note`:直线涨→2x 回本更快;横盘→2x 每月白付 decay;再跌→2x 双倍挨打——换 1x 买的是后两种情景的保护,不是回本速度,别说反。
+- **解套/回本数字只准引用 `context.breakeven_math`**(preflight 已算好:每只浮亏持仓回本所需涨幅、同票已测算的月衰减、半年窗含 drag 等效标的涨幅),禁止自己心算或编造。摘要合计只引用 `[[/ctx/breakeven_math/priced_chop_drag_sum_pct_per_month]]`，限已测算标的的算术和，不能当组合损耗。某票带 `vol_unavailable_reason` 时写「这只的衰减算不出来」。不要用其他票、其他场次或 compute 推导替代。同票衰减用对应行 `chop_drag_pct_per_month`。解读纪律见其 `note`:直线涨→2x 回本更快;横盘→2x 每月白付 decay;再跌→2x 双倍挨打——换 1x 买的是后两种情景的保护,不是回本速度,别说反。
 - **技术面数值引用 `context.quant_signals` 中 `status=fresh` 的行，或本次 compute 的带日期回执**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算)；`stale/missing/retired` 行只用于披露数据缺口，禁止据此形成判断，也禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 说明这条规则的前瞻对账不支持它，引用时必须写明；它不妨碍你使用同一组观测形成自己的判断。`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面的评级同理：`sample_sufficient=true AND edge_supported=true` 之外的评级是未获对账支持的规则意见，引用时写明；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得据此自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。
 - **跨截面因子读 `context.cross_sectional_factor`**。这是同行/1x 标的的行业中性研究层。`activation.usable_for_decisions` 说的是**那个预注册 composite 的前瞻验证有没有通过**，不是其中每个测量值能不能用：单项测量（动量、相对强度、波动、回撤、质量）是核实过的观测，可以进入你的判断；composite 分数和排名是一种登记过的加权意见。为 false 时，引用 composite 或排名必须同句写明「该组合打分未通过前瞻验证」，不得把 retrospective CI 说成 prospective 证据，也不得把它写成已验证的优势。
 - **同行残差读 `context.peer_residual`**。leader continuation、laggard avoidance、mean reversion 三条规则各自的 `rule_activation.<rule>.usable_for_decisions` 说的是那条规则的样本够不够，不得互相借样本。残差本身是测量值，可以用；规则未激活时引用它的触发要写明「该规则样本未达标」，由你判断这次是否仍然成立并给出理由。港股 peer 只能来自人工 `peer-map.json`，禁止补写或调用自动 HK 同行发现。

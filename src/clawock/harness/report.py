@@ -37,11 +37,12 @@ _SECTION_COVERAGE = {
         r'消息|新闻|公告|停牌|异动|财报|板块|同业|同行|指数|市场|盘面|港股|美股|涨|跌|利率|成交|行情|未取到|《'),
     '▎技术面': re.compile(
         r'行情|报价|横盘|跳空|开盘|收盘|均线|涨|跌|破位|冲高|回落|回踩|反弹|高点|低点|'
-        r'支撑|压力|量能|放量|缩量|波动|信号|趋势|整理|RSI|MA\d|突破|区间'),
+        r'支撑|压力|量能|成交|走势|放量|缩量|波动|信号|趋势|整理|RSI|MA\d|突破|区间'),
     '▎操作建议': re.compile(
         r'计划|触发|持有|仓位|止损|卖|买|减仓|加仓|复核|订单|成交|观望|观察|等[^。！？\n]'),
     '▎风险提示': re.compile(r'风险|敞口|失效|止损|回撤|杠杆|集中|红线|触发|停牌|未取到'),
 }
+_EMPTY_OBSERVATION = re.compile(r'^[\s*。！?！？、]+|[\s*。！?！？、]+$')
 _COVERAGE_ISSUE = '正文覆盖不足'
 _ANOMALY_ISSUE = '异动归因漏写'
 _NEWS_ISSUE = '逐票资讯漏引'
@@ -143,8 +144,10 @@ def validate(body, ctx, model_text):
     if prose_claims.enabled(ctx):
         sections = [*REQUIRED_SECTIONS, '▎风险提示'] if ctx.get('needs_risk_section') else REQUIRED_SECTIONS
         for section in sections:
-            if has_section_marker(checked, section) and not _SECTION_COVERAGE[section].search(
-                    section_body(checked, section)):
+            prose = _EMPTY_OBSERVATION.sub('', section_body(checked, section))
+            anchors = _SECTION_COVERAGE[section]
+            if has_section_marker(checked, section) and (
+                    not anchors.search(prose) or anchors.fullmatch(prose)):
                 issues.append(f'{_COVERAGE_ISSUE}：{section}')
         for extra in ('▎异动归因', '▎证据'):
             if has_section_marker(checked, extra):
@@ -177,7 +180,9 @@ def live_news_references(ctx):
     for ticker, rows in ((ctx.get('live_information') or {}).get('summary') or {}).items():
         # Same-day filings with incomplete clock precision have stale=None.
         # Retain them without treating them as intraday news.
-        current = [i for i, row in enumerate(rows) if row.get('cite') and row.get('stale') is not True]
+        current = [i for i, row in enumerate(rows) if row.get('cite')
+                   and (row.get('stale') is False
+                        or (row.get('stale') is None and row.get('filed_date')))]
         primary = [i for i in current if rows[i].get('grade') == 'primary']
         if current:
             escaped = ticker.replace('~', '~0').replace('/', '~1')

@@ -28,6 +28,8 @@ line and the preflight issue they always produced.
 """
 from __future__ import annotations
 
+from clawock.market_data.sentiment import news_headline_is_usable
+
 import math
 
 import json
@@ -180,6 +182,7 @@ class Sentiment:
                 # dropping it would hide the outage (#1237).
                 if not mentions and reddit_status == 'ok' and not english and not chinese:
                     continue
+                headlines = [item for item in english + chinese if news_headline_is_usable(item)]
                 rows.append({
                     'ticker': row.get('ticker'),
                     'name': row.get('name'),
@@ -191,7 +194,7 @@ class Sentiment:
                                    for post in (row.get('reddit_posts') or [])[:3]],
                     'news_top': [{key: item[key] for key in ('title', 'source', 'url', 'published')
                                   if item.get(key)}
-                                 for item in (english + chinese)[:3] if item.get('title')],
+                                 for item in headlines[:3]],
                     'recent_move': moves.get(row.get('ticker')),
                 })
             reading = {

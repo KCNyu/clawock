@@ -1018,6 +1018,7 @@ def categorize(issues):
     return categorize_issues(issues, CRITICAL_KEYWORDS, warn_max=4)
 
 
+from clawock.prose_validation import peer_style_issues
 from clawock.harness.validation import (
     Advisory,
     FORBIDDEN_PHRASES,  # one table for all three entries
@@ -1869,6 +1870,16 @@ def main(argv=None):
         issues.extend(_peer_divergence_issues(judgment_path, context or {}))
         issues.extend(_brief_numeric_issues(judgment_path, normalized_plan, context))
     issues.extend(_plan_self_reference_issues(normalized_plan))
+    peer_overlay = resolved_judgment if structured else None
+    if peer_overlay is None:
+        try:
+            peer_overlay = json.loads(judgment_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            peer_overlay = {}
+    if isinstance(peer_overlay, dict):
+        for row in peer_overlay.get('ticker_judgments') or []:
+            if isinstance(row, dict):
+                issues.extend(peer_style_issues(row.get('peer_read')))
 
     # Both the rendered report and the Pages projection must be current before
     # the off-host committer can publish (#520). Clear any previous verdict first.
@@ -1895,10 +1906,7 @@ def main(argv=None):
         render_issues = [f'{type(exc).__name__}: {exc}']
     if renderer is not None:
         issues.extend(renderer.advisories)
-        # Optional commentary with broken references is omitted by the sidecar
-        # renderer. Keep the omission visible in postflight's diagnostics.
-        issues.extend(Advisory(f'简报板块侧卡正文省略：{issue}')
-                      for issue in renderer.issues[render_issue_start:])
+        issues.extend(renderer.issues[render_issue_start:])
     render_failed = rendered_markdown is None
     if render_failed:
         issues.append(f"简报渲染失败: {'；'.join(render_issues) or '未生成正文'}")

@@ -637,12 +637,10 @@ def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
     jobs = {job['name']: job for job in data['jobs']}
 
     report = cron_contract.render_payload_message(data, jobs['美股开盘报告'])
-    assert (
-        '并行调用 `read` 读取 '
-        '`/root/.openclaw/workspace/skills/_shared/report-prose-rules.md` '
-        '与 Step 1 preflight'
-    ) in report
-
+    assert '并行调用两个 `read`' in report
+    assert 'skills/_shared/report-prose-rules.md' in report
+    assert 'skills/_shared/report-analysis-us.md' in report
+    assert 'us-stock-analysis/SKILL.md' not in report
     assert '--packet-files' in report
     assert 'parts[].path' in report and 'yieldMs: 120000' in report
     assert '按标的合批并行' in report
@@ -686,13 +684,14 @@ def test_every_intraday_slot_reads_the_same_mode7_body_and_its_dependency():
         message = cron_contract.render_payload_message(data, job)
         first_batch = next(line for line in message.splitlines()
                            if line.startswith('第一轮'))
-        first_batches[job['name']] = re.findall(
-            rf'`{re.escape(prefix)}(skills/[^`]+\.md)`', first_batch)
+        first_batches[job['name']] = (job['payload_vars']['market'], re.findall(
+            rf'`{re.escape(prefix)}(skills/[^`]+\.md)`', first_batch))
         assert f"market={job['payload_vars']['market']}" in first_batch
     assert len(first_batches) == 3
-    for name, paths in first_batches.items():
+    for name, (market, paths) in first_batches.items():
         assert paths == ['skills/_shared/intraday-mode7.md',
-                         'skills/_shared/intraday-status-sidecar.md'], name
+                         'skills/_shared/intraday-status-sidecar.md',
+                         f'skills/_shared/report-analysis-{market}.md'], name
         assert all((ROOT / path).is_file() for path in paths), name
     body = (ROOT / 'skills/_shared/intraday-mode7.md').read_text()
     assert 'cron 任务正文的 Step 1' in body and '--cron-job' in body
@@ -1386,3 +1385,22 @@ def test_heartbeat_job_identities_match_intraday_contract():
         declared = {job['name'] for job in contract()['jobs']
                     if job.get('payload_profile') == 'intraday' and job.get('market') == market}
         assert emitted == declared
+
+
+def test_report_crons_load_market_analysis_alongside_writing_rules():
+    data = contract()
+    for job in data['jobs']:
+        if job.get('payload_profile') not in ('report', 'intraday'):
+            continue
+        market = job['payload_vars']['market']
+        name = f'skills/_shared/report-analysis-{market}.md'
+        analysis = (ROOT / name).read_text()
+        message = cron_contract.render_payload_message(data, job)
+        assert name in message
+        if job['payload_profile'] == 'report':
+            assert 'skills/_shared/report-prose-rules.md' in message
+        assert 30 <= len(analysis.splitlines()) <= 50
+        assert '杠杆 ETF 衰减' in analysis
+        if market == 'hk':
+            for topic in ('南向资金', 'HIBOR', '恒科与纳指联动', 'T+0', '老千股', '00100 MINIMAX'):
+                assert topic in analysis

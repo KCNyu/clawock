@@ -367,6 +367,7 @@ def test_sector_claim_dropped_during_render_is_reported(desk, capsys, monkeypatc
 
     monkeypatch.setattr(postflight.brief_render, 'render_from_workspace', render)
     code, result = desk.run(capsys, '--dry-run')
-    assert code == 0
-    assert any('侧卡正文省略' in issue and '板块归因 CRCL' in issue
+    assert code == 2 and result['status'] == 'fail'
+    assert any('事实引用' in issue and '板块归因 CRCL' in issue
                for issue in result['issues'])
+    assert not desk.sends

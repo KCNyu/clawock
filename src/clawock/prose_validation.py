@@ -136,3 +136,17 @@ def section_prose_lines(text):
         else:
             yield offset, line
         offset += len(raw_line)
+
+
+_PEER_NAG = (
+    (re.compile(r'^\s*(?:题材|板块|同业)\s*[加减强弱+−-][，,、 /]+(?:自己|个股|自身)\s*[加减强弱+−-]'), '用实际同业差别代替四选一开头'),
+    (re.compile(r'^\s*(?:这一格还是老样子[，,]\s*)?(?:继续观察|维持观望|看情况)[。！\s]*$'), '写明继续观察的具体条件'),
+    (re.compile(r'^\s*(?:被市场抛售[，,]\s*所以掉队|跟板块\s*beta[，,]\s*没有自己的消息)[。！\s]*$', re.I), '指出判断所依据的成交、同行或消息'),
+)
+
+
+def peer_style_issues(value):
+    if not isinstance(value, str):
+        return []
+    return [Advisory(f'简报同业判断：{note}') for pattern, note in _PEER_NAG
+            if pattern.search(value)]

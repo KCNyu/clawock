@@ -206,3 +206,13 @@ def test_weekly_58_char_stub_fails_generation_and_pages(monkeypatch, tmp_path):
     path.write_text('---\nlayout: default\ntitle: 周复盘 · 2026-W48\n---\n\n' + stub)
     with pytest.raises(AssertionError, match='missing section prose'):
         validate_weekly_review(path)
+
+
+def test_weekly_generic_topic_words_do_not_satisfy_missed_fact_categories():
+    from clawock.weekly_contract import weekly_sections
+
+    text = '\n\n'.join(f'{title}\n{body}' for title, body in zip(
+        weekly.WEEKLY_SECTION_HEADINGS,
+        ('净值。', '无需触发。', '本周没有风险敞口。', '关注。'), strict=True))
+    _, filled = weekly_sections(text)
+    assert not filled

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from clawock.decision import ledger
 from clawock.portfolio.guardrail import plan_trim_projections
+from clawock.portfolio.breakeven_claims import validate_drag
 
 PLAN_TEXT_PATHS = (
     ('rationale',), ('condition', 'description'), ('size', 'note'),
@@ -64,18 +65,39 @@ def render_judgment(overlay, renderer):
     out = deepcopy(overlay)
     for key in ('portfolio_assessment', 'portfolio_counterargument'):
         if key in out:
-            out[key] = renderer.render(out[key], f'judgment {key}')
+            out[key] = renderer.render(out[key], f'judgment {key}', scope='portfolio')
     narrative = out.get('narrative')
     if isinstance(narrative, dict):
         for key, value in narrative.items():
             if key == 'risk_voice_first':
                 continue
             label = f'judgment narrative.{key}'
-            narrative[key] = ([renderer.render(item, label) for item in value]
-                              if isinstance(value, list) else renderer.render(value, label))
+            narrative[key] = ([renderer.render(item, label, scope='portfolio') for item in value]
+                              if isinstance(value, list) else renderer.render(value, label, scope='portfolio'))
     for index, row in enumerate(out.get('ticker_judgments') or []):
         if isinstance(row, dict):
             for key in ROW_TEXT_FIELDS:
                 if key in row:
-                    row[key] = renderer.render(row[key], f'judgment ticker_judgments[{index}].{key}')
+                    row[key] = renderer.render(row[key], f'judgment ticker_judgments[{index}].{key}', ticker=row.get('ticker'))
     return out
+
+
+def legacy_drag_issues(context, plan, judgment):
+    """Validate older archived prose using its own book data and row subjects."""
+    issues = set()
+    for row in plan.get('decisions') or []:
+        for path in PLAN_TEXT_PATHS:
+            node = row
+            for key in path:
+                node = node.get(key) if isinstance(node, dict) else None
+            issues.update(validate_drag(node, context, ticker=row.get('ticker')))
+    for key in ('portfolio_assessment', 'portfolio_counterargument'):
+        issues.update(validate_drag(judgment.get(key), context))
+    narrative = judgment.get('narrative') or {}
+    for value in narrative.values() if isinstance(narrative, dict) else ():
+        for entry in value if isinstance(value, list) else [value]:
+            issues.update(validate_drag(entry, context))
+    for row in judgment.get('ticker_judgments') or []:
+        for value in row.values():
+            issues.update(validate_drag(value, context, ticker=row.get('ticker')))
+    return sorted(issues)

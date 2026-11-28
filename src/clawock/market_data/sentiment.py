@@ -215,6 +215,19 @@ def google_news_url(query, hl='en-US', gl='US', ceid=None):
     return f'https://news.google.com/rss/search?q={quote(query)}&hl={hl}&gl={gl}&ceid={ceid}'
 
 
+_NEWS_BOILERPLATE = re.compile(
+    r'\b(?:option chain|options?$|stock price, analysis, news and trading ideas|'
+    r'stock quote|share price (?:and|&|\|) news|historical data|'
+    r'(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+'
+    r'(?:\d{1,2}\s+)?20\d{2}\s+\d+(?:\.\d+)?\s+(?:call|put))\b', re.I)
+
+
+def news_headline_is_usable(item):
+    """Distinguish headlines from quoted instrument and navigational pages."""
+    title = (item.get('title') or item.get('headline') or '') if isinstance(item, dict) else item
+    return isinstance(title, str) and bool(title.strip()) and not _NEWS_BOILERPLATE.search(title)
+
+
 def parse_google_news(text, limit=8):
     """Headlines from one Google News RSS answer (raises on a non-feed body)."""
     root = ET.fromstring(text)

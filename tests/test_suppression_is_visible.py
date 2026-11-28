@@ -161,5 +161,6 @@ def test_the_skill_tells_the_model_what_an_error_means():
     """A context field nothing reads is the same as no field at all."""
     for skill in ("hk-stock-analysis", "us-stock-analysis"):
         body = (ROOT / "skills" / skill / "SKILL.md").read_text()
-        assert "`error` 字段" in body
-        assert "今日计划未取到" in body
+        assert "report-prose-rules.md" in body
+    rules = (ROOT / "skills/_shared/report-prose-rules.md").read_text()
+    assert "没取到就明说未对账" in rules

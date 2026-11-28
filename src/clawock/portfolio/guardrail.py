@@ -14,6 +14,7 @@ several tests refer to them there.
 from __future__ import annotations
 
 from clawock.safe_io import to_number as _share_number
+from clawock.portfolio.breakeven_claims import DRAG_SUM_FIELD, drag_by_ticker, priced_drag_total
 
 from clawock.portfolio.math import active_holdings, ledger_rows
 from clawock.portfolio.math import carried_value
@@ -611,7 +612,9 @@ def compute_breakeven_math(hk_holdings, us_holdings, lev_regime=None):
     rows.sort(key=lambda r: r['pnl_pct'])
     return {
         'rows': rows,
-        'note': ('回本涨幅=成本/现价−1。2x 行加印：标的σ、横盘 decay≈σ²/12 每月、半年窗含 drag '
-                 '的等效标的涨幅。解读纪律：直线涨→2x 回本更快；横盘→2x 每月白付 decay；'
+        DRAG_SUM_FIELD: priced_drag_total(rows),
+        'priced_chop_drag_tickers': list(drag_by_ticker(rows)),
+        'note': ('每行分别给出回本涨幅、已测算的月衰减与半年窗等效标的涨幅。'
+                 '合计仅为已测算行的算术和，没有按组合仓位加权。解读纪律：直线涨→2x 回本更快；横盘→2x 每月白付 decay；'
                  '再跌→2x 双倍挨打。换 1x 买的是后两种情景的保护，不是回本速度。'),
     }

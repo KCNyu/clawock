@@ -2,7 +2,7 @@
 
 按 Mode 6 报告流程：
 
-**第一轮强制动作（不能跳过）**：在同一条回复中并行调用 `read` 读取 `/root/.openclaw/workspace/skills/_shared/report-prose-rules.md` 与 Step 1 preflight。`read` 成功前不得生成分析；skills catalog 只有索引，不含共用写作正文。
+**第一轮强制动作（不能跳过）**：在同一条回复中并行调用两个 `read` 读取 `/root/.openclaw/workspace/skills/_shared/report-prose-rules.md` 与 `/root/.openclaw/workspace/skills/_shared/report-analysis-{{market}}.md`，并运行 Step 1 preflight。`read` 成功前不得生成分析；skills catalog 只有索引，不含共用写作正文。
 
 {{include:_memory-lookup.md}}
 
@@ -16,7 +16,7 @@ preflight exec 用 `timeout: 300`、`yieldMs: 120000`。若返回 `market_closed
 
 **Step 2 - 只写分析散文**
 - 先从这一代上下文列出要讲的各票及已取得的证据。需要补查时按标的合批并行，只查影响判断的缺口；已有行情、同业和新闻直接引用。行情来源和标的须匹配，代理标的价位不能写成持仓价位。
-- 写 ▎情绪面 / ▎技术面 / ▎操作建议，`needs_risk_section=true` 时加 ▎风险提示。按第一轮读取的写作规则成稿，标题、表格和数据块由 postflight 拼装。
+- 写 ▎情绪面 / ▎技术面 / ▎操作建议，`needs_risk_section=true` 时加 ▎风险提示。用本市场的分析准则判断，按共用写作规则成稿，标题、表格和数据块由 postflight 拼装。
 - 用一个 `write` 把完整正文存入回执的 `prose_path`。逐票资讯直接用回执 `news_cites` 里的现成引用，异动代码可用 `mover_tickers`。写完直接执行 Step 3。
 
 **Step 3 - Postflight**
@@ -43,5 +43,4 @@ clawock report postflight --market {{market}} --phase {{phase}} --context-id <St
 **铁律**：
 - ⚠️ 数据缺口必说，禁止编造（postflight 扫敷衍词）
 - 拼装全文的篇幅闸为 >5000 warn、>6000 fail，优先保留有依据的解读
-- {{market_rule}}
 - 直接回复文本
