@@ -152,7 +152,7 @@ def prepare_report(ctx, draft, workspace, *, validator=validate):
     if prose_claims.enabled(ctx):
         renderer = prose_claims.ClaimRenderer(ctx, receipts=ctx.get('compute_receipts', ()))
         draft = renderer.render(draft, '报告')
-        issues = renderer.issues
+        issues = [*renderer.issues, *renderer.advisories]
     body = assemble_message(ctx, draft)
     return body, [*issues, *validator(body, ctx, draft)]
 

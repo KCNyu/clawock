@@ -170,3 +170,21 @@ def test_weekly_repairs_a_copied_nav_with_the_exact_bundle_field(monkeypatch):
         'sys', 'user', evidence={'bundle_evidence': {'nav_change': {'end_usd': 67}}})
     assert '周末净值 67 USD' in body
     assert '手写数值' in fake.calls[1]['messages'][-1]['content']
+
+
+def test_short_structured_review_needs_real_text_under_each_heading(monkeypatch, tmp_path):
+    from clawock.publish.artifacts import validate_weekly_review
+
+    body = '\n\n'.join(f'{heading}\n{prose}' for heading, prose in zip(
+        weekly.WEEKLY_SECTION_HEADINGS,
+        ('港股拖了后腿。', '那笔没成交，我先查下单时间。', '手里几只票可能一起跌。',
+         '我想看海力士能不能止跌，再决定仓位。'), strict=True))
+    heading = weekly.WEEKLY_SECTION_HEADINGS[2]
+    empty_risk = body.replace(f'{heading}\n手里几只票可能一起跌。', heading + '\n```\n有正文？\n```')
+    fake = FakeChat(empty_risk, body)
+    monkeypatch.setattr(weekly, 'chat', fake)
+    assert weekly.generate_review('sys', 'user', evidence={}) == body
+    assert '风险演变' in fake.calls[1]['messages'][-1]['content']
+    path = tmp_path / '2026-W48.md'
+    path.write_text('---\nlayout: default\ntitle: 周复盘 · 2026-W48\n---\n\n' + body)
+    validate_weekly_review(path)

@@ -17,6 +17,7 @@ automation -> publish
 automation -> safe_io
 automation -> scheduling
 automation -> sessions
+automation -> weekly_contract
 automation -> workspace
 cli -> config
 cli -> context
@@ -115,6 +116,7 @@ portfolio -> safe_io
 portfolio -> sessions
 portfolio -> workspace
 providers -> safe_io
+prose_claims -> prose_validation
 publish -> decision
 publish -> evaluation
 publish -> history_store
@@ -128,6 +130,7 @@ publish -> safe_io
 publish -> scorecard_provenance
 publish -> scheduling
 publish -> sessions
+publish -> weekly_contract
 publish -> workspace
 scheduling -> config
 scheduling -> sessions
@@ -160,6 +163,7 @@ tools -> context
 tools -> decision
 tools -> market_data
 tools -> sessions
+weekly_contract -> prose_validation
 workflows -> publish
 workflows -> runtime_model
 harness -> run_budgets

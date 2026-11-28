@@ -209,6 +209,16 @@ After the stated horizon, record price/FX outcome evidence and run
 The result reconciles price and FX before assigning a basis-point score — it
 is evidence for the next decision, not portfolio P&L.
 
+## Write the decision as you would explain it to the reader
+
+Start with what swayed you on this position. Explain what the trade depends on
+and what you'd need to see to change your mind. Keep the evidence IDs attached.
+A short first-person sentence is fine. Use the order and evidence fields for
+quantities, prices and arithmetic. Skip canned contrasts, tidy three-part
+lists and closing lines that repeat the decision. In a saved decision trace,
+write what you knew at the time. The fill and the later result come from the
+ledger.
+
 ## Record conversation verdicts
 
 A conversation verdict (加仓/减仓/建仓/清仓/观望) is a decision — write it
@@ -220,11 +230,11 @@ settlement round-trips it:
 clawock record \
   --subject 00100 --market HK --currency HKD \
   --action reject --confidence 0.65 --driven-by fundamental \
-  --bull "营收 +159% YoY,入通/海外霸榜催化" \
-  --bear "净利率 -2368%,资不抵债,z+2.8σ 反转" \
-  --thesis "高增长救不了资不抵债,先活下来" \
-  --invalidation "站回 340" --invalidation "缩量企稳" \
-  --emotion averaging_down --note "浮亏 -40% 的摊本冲动被压过,忍住没加"
+  --bull "海外用户增长很快，我会看收入能不能跟上" \
+  --bear "现金撑多久我还没把握，先等等下一份财报" \
+  --thesis "我先观望。增长有了，离自己养活自己还远" \
+  --invalidation "下次财报显示经营现金流转正" \
+  --emotion averaging_down --note "看到跌了还想摊成本。想了下，我对现金那块还是没把握"
 ```
 
 `--source` defaults to `conversation` for DSH; other harnesses pass their

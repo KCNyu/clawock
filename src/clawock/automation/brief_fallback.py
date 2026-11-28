@@ -20,6 +20,7 @@ from copy import deepcopy
 
 from clawock import prose_claims, sessions
 from clawock.decision import brief_prose
+from clawock.prose_validation import storytelling_prompt
 from clawock.automation.llm import chat
 from clawock.automation.llm import DEADLINE_ENV
 from clawock.decision import ledger as decision_v2
@@ -541,6 +542,7 @@ def main(argv=None):
     user = (
         f"{SINGLE_TURN_ADAPTER}\n\n"
         f"SKILL.md:\n{skill}\n\n"
+        f"{storytelling_prompt()}\n\n"
         f"Decision packet (harness 编译的事实、风险与 action bounds):\n"
         f"```json\n{_compact(packet)}\n```\n\n"
         f"judgment 模板:\n```json\n{template}\n```\n\n"

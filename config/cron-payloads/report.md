@@ -16,7 +16,8 @@ stdout 就是 context 本身（与落盘同一份 JSON），含 `context_id`、s
 若返回 `market_closed`：**立即结束本回合**——不写散文、不调 postflight，只回一句「{{market_name}}今日休市，跳过」。
 
 **Step 2 - 只写分析散文**
-- 只写 ▎情绪面 / ▎技术面 / ▎操作建议 三段（共 4-6 行）；`needs_risk_section=true` 时补 ▎风险提示 段
+- 只写 ▎情绪面 / ▎技术面 / ▎操作建议 三段；`needs_risk_section=true` 时补 ▎风险提示 段
+- 写之前按 Mode 6 加载共享写作标准，重点讲本档改变了什么。
 - **不要写标题、不要写数据块、不要写表格** —— postflight 自己从 context 拼进消息开头，你写了会重复
 - `anomalies` 非空时，散文必须提到至少一个异动票
 - 正文是给 kcn 看的交易语言：context 的字段名与枚举值（任何带下划线的英文标识，如 hold_and_watch、sec_filing，以及 verdict=wait 这类“键=值”）一律不写进正文，翻译成中文说法；postflight 在校验结果里记录

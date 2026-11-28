@@ -9,7 +9,7 @@ from clawock.portfolio.guardrail import plan_trim_projections
 
 PLAN_TEXT_PATHS = (
     ('rationale',), ('condition', 'description'), ('size', 'note'),
-    ('hypothesis',), ('method',), ('thesis_reset', 'reason'),
+    ('hypothesis',), ('method',), ('thesis_invalidation',), ('thesis_reset', 'reason'),
     *(('debate', field) for field in ledger.DEBATE_TEXT_FIELDS),
 )
 

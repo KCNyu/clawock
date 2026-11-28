@@ -1,5 +1,11 @@
 """Pure trading-prose checks shared by workflow and harness output gates."""
 import re
+from importlib.resources import files
+
+
+def storytelling_prompt():
+    return files('clawock').joinpath('trading-prose.md').read_text(encoding='utf-8').strip()
+
 
 ADVISORY_MARK = '(advisory)'
 
@@ -69,3 +75,54 @@ def check_identifier_leak(text, label='判断段'):
         return []
     return [f'{label}出现字段名/内部标识（{", ".join(found[:4])}）—— 读者看不到 context，'
             f'改写成交易语言']
+
+
+# These are editorial hints. They must never make an otherwise correct report
+# drop its judgment or make the editor touch the source data.
+_STOCK_CONTRAST = re.compile(r'不是[^，。！？；\n]{1,24}[，,]\s*而是')
+_VAGUE_AUTHORITY = re.compile(r'业内普遍认为|业内认为|市场普遍认为|专家普遍认为')
+_STOCK_CLOSER = re.compile(r'^\s*(?:总而言之|综上所述|归根结底)[，,]')
+MEASUREMENT = '\uFFF0'
+_SENTENCE_END = re.compile(r'[。！？；!?;\n]')
+
+
+def check_storytelling(draft, label, *, dense_measurements=True, repeated_measurement=False):
+    """Flag rhetorical tics and strings of measurements in authored prose."""
+    findings = []
+    if _STOCK_CONTRAST.search(draft):
+        findings.append('套用「不是……而是……」')
+    if _VAGUE_AUTHORITY.search(draft):
+        findings.append('归因没说是谁')
+    if any(_STOCK_CLOSER.match(line) for line in draft.splitlines()):
+        findings.append('套话收尾')
+    if any(sentence.count('——') > 1 for sentence in _SENTENCE_END.split(draft)):
+        findings.append('一句里连用破折号')
+    if dense_measurements and any(sentence.count(MEASUREMENT) >= 3
+                                  for sentence in _SENTENCE_END.split(draft)):
+        findings.append('一句里连报多项读数')
+    if repeated_measurement:
+        findings.append('重复引用同一数值字段')
+    if not findings:
+        return []
+    return [f'{label}写作提示（{"、".join(findings)}），留下影响判断的那件事 {ADVISORY_MARK}']
+
+
+_FENCE_LINE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
+
+
+def section_prose_lines(text):
+    """Yield (offset, line) for lines outside Markdown fenced code blocks."""
+    fence = None
+    offset = 0
+    for raw_line in (text or '').splitlines(keepends=True):
+        line = raw_line.rstrip('\r\n')
+        match = _FENCE_LINE.match(line)
+        if fence:
+            if (match and match[1][0] == fence[0] and len(match[1]) >= len(fence)
+                    and not match[2].strip(' \t')):
+                fence = None
+        elif match and (match[1][0] == '~' or '`' not in match[2]):
+            fence = match[1]
+        else:
+            yield offset, line
+        offset += len(raw_line)

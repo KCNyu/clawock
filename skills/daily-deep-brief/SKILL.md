@@ -229,6 +229,8 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 ### Step 3: Swarm 分析（你的创造性工作）
 
+写任何给读者看的判断前，先读 `src/clawock/trading-prose.md`（workspace 根目录下）。适用于导语、逐票判断、板块与复盘侧卡，也适用于会被 DSH 决策轨迹引用的 plan 理由、正反方和证伪条件。逐票写清当时怎么想；有订单尺寸、条件价和信心字段时，理由不再列一遍。
+
 按下面这个 3-tier 流程做分析。所有数字只能从本次 generation 的 packet 查询、确有必要时加载的 bundle、或本次运行内 `clawock tool compute` / `observations` 的返回取；风险分类和 action bounds 引用 harness 结果。packet 给的技术指标和因子分数是固定窗口下的一种算法，你可以用 `compute` 换窗口、换比较对象或定义新的量，但不心算。
 
 #### Required reads
@@ -298,9 +300,9 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 #### Tier 2 — Bull vs Bear（必须有真分歧）
 
-两段，各 80-120 字。Bull 用 Tier 1 数据组装"持有 + 加仓"案；Bear 用 Tier 1 数据组装"减仓 + 砍仓"案。**至少在 1 个仓位上观点不同** — 完全一致说明辩论失败。
+各写一段，讲到分歧在哪儿就够。Bull 用 Tier 1 数据组装"持有 + 加仓"案；Bear 用 Tier 1 数据组装"减仓 + 砍仓"案。**至少在 1 个仓位上观点不同** — 完全一致说明辩论失败。
 
-引用：每方至少引 2 个具体 Tier 1 数据点（不是 vibes）。
+双方各用本代可查的证据说明理由。表里已有的数字只在会改变分歧时引用。
 
 **Devil's advocate（#1101）**：Bear 除组装"减仓 + 砍仓"案外，必须**点名攻击当前最强共识**——即 Tier 1 表里最被看好的票 / 最强势的多头论点，并写明攻击的是哪个结论。不许只挑软柿子；若确实无强共识，明说"无强共识，攻击次强"并给出理由。目的：压制群体思维与锚定，别让辩论顺着第一个观点滑下去。
 
@@ -386,7 +388,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
   - `forced`(杠杆硬止损、`regime_delever`):规则自己给了去处(`required_reduction.swap_to`),必须在 Judge 段落出对应动作(cut,或 regime 的 trim/cut),不准"观望"。**唯一例外**是下面「长期不执行的建议」里 `adaptive.may_stand=true` 的那几条,以及 durable override 生效的。
   - `respond`(`single_name` / `leveraged_exposure` / `factor_concentration` / `beta` 四类上限):规则只说要减多少、没说钱去哪,所以**不强制卖**。每条都要回应:减仓(trim/cut),或 `hold_and_watch` 并在 rationale 写明今天为什么不减、什么情况下会减。不许不提,也不许只写一句「继续观察」。**超限期间该票加仓关闭**,持有不等于可以加。postflight 把这次选择记进风险账本。
   - 卖出不是默认答案。比较减仓后持有现金与换仓的机会成本；现金也可以是有理由的选择。强制义务只核应减数量，不强迫同时写买腿。引用 `risk_rule` 换仓买腿时，仍须遵守指定目标与配对金额。
-- 每条 open 记录必须引用 `breach_id + age_days + acknowledgement/execution 状态`；引用 `age_days` 时注明口径（`breaches[]` 按简报记录数，`records[]` 按日历天）。未确认的老 breach 要明确升级，不得每天当新提醒重写。
+- 逐条核对 open 记录的 `breach_id`、`age_days`、确认与成交状态。风控区由程序列编号和触发事实。正文说哪些状态或处置变了，未确认的老问题明确升级。只有挂了多久会影响处置时才引用天数，并注明是简报记录数还是日历天。
 - 当天 plan 内的 `override.status=active` **不能**豁免硬闸。只有 durable ledger 里带非空 reason 且未过 TTL 的 `status=overridden` 才有效；创建例外必须由用户明确决定，可用 `/root/.local/bin/clawock risk override BREACH_ID --reason '...' --ttl-hours N`。确认已看见用 `risk ack ... --note '...'`，成交证据用 `risk confirm ... --evidence '...'`；这些命令只记账，绝不下单。
 - 任何 critical/high breach 未关闭且未 durable override 时，禁止新增同一标的、杠杆或因子暴露。卖出不受阻；同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对换仓不受阻。
 - 这些减仓及其风控换仓买腿 **strategy_id=`risk_rebalance`、driven_by=`risk_rule`**（纪律性再平衡，不是择时预测），并在 rationale 注明组合政策依据。
@@ -538,23 +540,17 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 #### 同行扫描：每票 `peer_read`
 
-一句判断，按题材与自己的方向四选一起头：
-- 题材+ 自己+ → "alpha 抓住了"
-- 题材+ 自己- → "考虑切换：peer 比我强"
-- 题材- 自己- → "持有合理，等题材轮回"
-- 题材- 自己+ → "稀有，珍惜"
-
-出现「考虑切换」→ Tier 3 Judge 给 rotation trigger（例："00100 反弹至 800 减 20 股，换入 0020 商汤"）。
+写同业比较怎样改变了对这笔仓位的判断。先对齐市场场次，再考虑板块同涨同跌、公司自己的消息或杠杆放大。只要事实还分不清，就说要等什么。轮动建议仍要在 Judge 里给出可复查的触发条件。
 
 #### 大盘速读：`macro_read` 与 `regime_read`
 
-`macro_read` 不超过 5 句，每句一个指标 + 它对**当前持仓**意味什么（不是教科书定义）。Fed 最新发布
+`macro_read` 不超过 5 句，围绕最影响当前持仓的一两个变化讲明白。Fed 最新发布
 与利率无关（如人事任命）时不提。
 
 - `context.macro` 为空 = preflight 判过期（超过 36h，或指数收盘落后最近一场已收盘 session）或缺失：`macro_read` 只写一句"⚠️ 宏观快照过期，本段不印读数"，不引用任何指数读数；postflight 不 fail
 
 **🧭 Regime guard（REQUIRED）**：`context.macro.regime` 给出 `label`(risk_on/neutral/risk_off)+ `reasons`。
-页眉由 harness 印 label；`regime_read` 写 reasons 拼成的一句 → 该 regime 下的决策默认。据 regime 收敛主动操作：
+页眉由 harness 印 label；`regime_read` 写当下环境为什么改变你愿意承担的风险或交易节奏。据 regime 收敛主动操作：
 - **risk_on** → core_position 默认 HOLD；择时 cut/trim 要说明证据与机会成本，偏离登记策略照收照档。`risk_rebalance` 是独立策略，可因组合政策在 risk_on 中减杠杆，不与 core thesis 混为一谈。
 - **neutral** → 正常按 frame 判断,无额外封顶。
 - **risk_off** → 防御优先,cut/trim 门槛放宽(可信度提高),add 需更强触发;杠杆仓位优先减。
@@ -584,9 +580,9 @@ ARK 日度调仓 + Serenity 选股帖，LLM 已筛市场相关性并交叉匹配
 #### 决策校准：`calibration_read`
 
 calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条件实际触发**的决策；同一 `ticker + strategy_id` 的连续同类决策合并为一个 episode，只取一次代表样本，避免每日重复建议放大样本量。校准表由 harness 印；`calibration_read` 写你从表里读出的结论：
-- 主动决策 n、平均 benefit、date-cluster CI；主动口径信心校准对 `brier_baseline_loo` 的比较
-- 按 strategy / action / driven_by 点出最强与最弱各一项
-- 执行状态：**要动手的**与**不用动的**两条腿分开写，执行率不等于建议质量。两条腿各自的 `stranded` **必须同句写出来**（「另有 N 条永远验不了，不在分母」）——那是窗口早已关闭、`_detect_followed` 每次重试都答 unknown 的行，标的从没进过 holdings，被丢掉的样本偏向「没执行」，所以裸报的执行率系统性偏高
+- 说明主动决策的样本和不确定性怎样影响你对策略的信任；信心校准只与 `brier_baseline_loo` 比较
+- 只挑会改变下一次做法的发现，用对应 strategy / action / driven_by 定位
+- 执行状态：**要动手的**与**不用动的**两条腿分开写，执行率不等于建议质量。若在正文报执行率，必须同句交代该腿的 `stranded`（「另有 N 条永远验不了，不在分母」）——那是窗口早已关闭、`_detect_followed` 每次重试都答 unknown 的行，标的从没进过 holdings，被丢掉的样本偏向「没执行」，所以裸报的执行率系统性偏高
 - 昨日 plan 兑现度的教训 1-2 句：什么 trigger 设过紧/松；什么 thesis 站住/破；哪个 confidence 区间过自信。trigger 未触发的机会成本可能为正（错过 alpha）或负（躲过损失）
 
 规则：
@@ -605,7 +601,7 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 
 `context.reflections[ticker]` 是每个持仓的历史同类决策战绩(`bucket_history` 如 "清×9 胜3" / `recent` / `lesson`)。**给某标的下主动 call 前必须先看它的 reflection**:
 - 若该票的某个 action 桶样本很少(如 `n=1`/`n=2`)，先读同一 `reflection` 里的 `cross_ticker`：它给出**其他票**在同 action 桶的样本量与胜率(已剔除本票)，用来看这个动作在全账本上的基础率。它是基础率，不是本票的证据，不能拿它替代本票的 `bucket_history`。
-- 若该票 `bucket_history` 显示你**反复做某动作且多半错**(如 ROBN "清×9 胜3")→ 这次别再机械重复,要么换论据要么降级为 hold,并在 rationale 里引"过去 N 次清 ROBN 错 M 次"。
+- 若该票 `bucket_history` 显示你**反复做某动作且多半错**(如 ROBN "清×9 胜3")→ 这次别再机械重复,要么换论据要么降级为 hold,并在 rationale 说明这次与过去的错误有何不同。
 - `win_rate < 0.5` 的票 → 主动 call 需要比平时更强的新证据才出手。
 
 #### 下一时段：`narrative.next_session`（可交易，不是观察清单）
@@ -654,7 +650,7 @@ clawock brief render --dry-run
 
 #### 在散文中引用事实
 
-计划的理由、条件描述、尺寸说明、辩论、判断和面板侧卡使用 `[[/ctx/字段/...]]`（同代 context 或 bundle）或 `[[/packet/字段/...]]`（decision packet）引用原字段。数组从零编号。写 **`[[/packet/tickers/00100/facts/session_change_pct]]`** 即可，程序填值与百分号。代码含数字时引用对应行的 `ticker` 字段。来源和时间引用明确字段，新闻用资讯行的 `[[/ctx/.../0|cite]]` 生成标题、来源和时间；状态用 `|status`，列表计数用 `|count`。调用 compute 后用 `[[/compute/回执ID/value_pct]]` 等引用返回字段。
+计划的理由、条件描述、证伪条件、尺寸说明、辩论、判断和面板侧卡按需使用 `[[/ctx/字段/...]]`（同代 context 或 bundle）或 `[[/packet/字段/...]]`（decision packet）引用原字段。数组从零编号。写 **`[[/packet/tickers/00100/facts/session_change_pct]]`** 即可，程序填值与百分号。代码含数字时引用对应行的 `ticker` 字段。来源和时间引用明确字段，新闻用资讯行的 `[[/ctx/.../0|cite]]` 生成标题、来源和时间；状态用 `|status`，列表计数用 `|count`。调用 compute 后用 `[[/compute/回执ID/value_pct]]` 等引用返回字段。
 
 计划每条理由还可用 `[[/decision/size/shares]]`、`[[/decision/condition/price]]`、`[[/decision/trim_at_trigger/post_trim_weight_pct]]`、`[[/decision/trim_at_mark/shares_to_review_line]]` 引用本条已登记的尺寸、条件和对应卖出情景。股数、百分比及带币种字段的单位随值渲染。散文中不手写数字、股数、金额、占比、来源或时间；缺字段时说明缺口。机器字段仍按 schema 写 JSON 数字，例如 `size.shares`、`condition.price`、`confidence`。
 
@@ -889,7 +885,7 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
   "behavioral_review": {
     "verdict": "一句话总评 ≤40字，点出最核心的行为问题",
     "points": [
-      {"text": "具体行为偏差，必引 context 里的真实数字，≤55字", "tag": "edge|bias|warning"}
+      {"text": "具体行为偏差，必要时引用证据，≤55字", "tag": "edge|bias|warning"}
     ]
   },
   "bear_cases": [

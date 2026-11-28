@@ -175,6 +175,8 @@ End the report with a confidence score per major call, 0-100%:
 
 ## Final output structure
 
+写组合研判前读 workspace 的 `src/clawock/trading-prose.md`。各观点讲自己的证据和取舍，Judge 交代怎么决定。
+
 ### Header
 - Regime: {trending up / trending down / range / volatile}
 - Data freshness: timestamp + any stale ticker flagged with ⚠️

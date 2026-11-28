@@ -1825,6 +1825,7 @@ def main(argv=None):
     structured = prose_claims.enabled(context)
     judgment_path = WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json'
     resolved_judgment = None
+    renderer = None
     authored_plan_path = plan_path
     if structured:
         try:
@@ -1894,6 +1895,8 @@ def main(argv=None):
                 write=not args.dry_run, **render_input)
     except Exception as exc:
         render_issues = [f'{type(exc).__name__}: {exc}']
+    if renderer is not None:
+        issues.extend(renderer.advisories)
     render_failed = rendered_markdown is None
     if render_failed:
         issues.append(f"简报渲染失败: {'；'.join(render_issues) or '未生成正文'}")

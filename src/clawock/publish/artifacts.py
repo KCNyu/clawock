@@ -23,6 +23,7 @@ from pathlib import Path
 
 
 from clawock.sessions import HKT
+from clawock.weekly_contract import WEEKLY_SECTION_HEADINGS, weekly_sections
 from clawock.workspace import workspace_root
 
 ROOT = workspace_root()
@@ -576,6 +577,13 @@ def validate_weekly_review(
 
     assert metadata.get('layout') == 'default', 'unexpected weekly review layout'
     assert metadata.get('title') == f'周复盘 · {week_id}', 'weekly review title/week mismatch'
+    exact, filled = weekly_sections(body)
+    if exact == set(WEEKLY_SECTION_HEADINGS):
+        empty = [heading for heading in WEEKLY_SECTION_HEADINGS if heading not in filled]
+        assert not empty, f'weekly review missing section prose: {empty}'
+        print(f'weekly review validation OK: {path} ({len(body)} chars)')
+        return
+    # Historical reviews used several heading formats.
     assert len(body) >= 1000, f'weekly review implausibly short: {len(body)} chars'
     # Four required sections, each proven by a distinct SECTION MARKER (a markdown
     # heading `## …` OR a bold label `**…**` — the prompt asks for bold, MiniMax

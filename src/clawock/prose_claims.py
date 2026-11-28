@@ -5,6 +5,8 @@ import re
 from decimal import Decimal, InvalidOperation
 from math import isfinite
 
+from clawock.prose_validation import MEASUREMENT, check_storytelling
+
 VERSION = 1
 FIELD = 'prose_claims_version'
 ISSUE = '事实引用'
@@ -163,6 +165,7 @@ class ClaimRenderer:
             row['receipt_id']: row for row in receipts if isinstance(row.get('receipt_id'), str)
         }}
         self.issues = []
+        self.advisories = []
         self.references = []
 
     def _claim(self, token, roots):
@@ -176,37 +179,41 @@ class ClaimRenderer:
                        or path[0] == 'packet' and 'evidence' in path[1:-1])
             if not allowed:
                 raise ValueError('需要资讯来源字段')
-            return _citation(_resolve(roots, path))
+            return _citation(_resolve(roots, path)), False
         value = _resolve(roots, path)
         if mode == 'count':
             if isinstance(value, list):
-                return str(len(value))
+                return str(len(value)), True
             raise ValueError('计数需要一个结构化列表')
         if mode == 'status' and field in {'status', 'state', 'delivery_state', 'delivery_mode'}:
             if isinstance(value, str) and value in _STATUS_WORDS:
-                return _STATUS_WORDS[value]
+                return _STATUS_WORDS[value], False
             raise ValueError('缺已登记的状态')
         if mode:
             raise ValueError('未知显示方式')
         if field == 'cite' and any(part in _CITE_ROOTS for part in path[1:-1]):
-            return _inline(value)
+            return _inline(value), False
         if field in _SOURCE_FIELDS:
-            return _inline(value)
+            return _inline(value), False
         if isinstance(value, str) and (
                 (field == 'decision_id' and _DECISION_ID.fullmatch(value))
                 or (field in _ID_FIELDS and _ID_VALUE.fullmatch(value))
                 or (field in _TIME_FIELDS and _TIME_VALUE.fullmatch(value))):
-            return value
-        return _numeric_display(value, path, roots)
+            return value, False
+        return _numeric_display(value, path, roots), True
 
-    def render(self, text, label, *, decision=None):
+    def render(self, text, label, *, decision=None, dense_measurements=True):
         if not isinstance(text, str):
             return text
         roots = self.roots if decision is None else {**self.roots, 'decision': decision}
 
+        measurements = {}
+
         def replace(match):
             try:
-                value = self._claim(match[1], roots)
+                value, measurement = self._claim(match[1], roots)
+                if measurement:
+                    measurements[match.start()] = match[1]
                 if match[1].startswith(('/decision/trim_at_mark/', '/decision/trim_at_trigger/')):
                     self.references.append(match[1].partition('|')[0])
                 return value
@@ -220,7 +227,14 @@ class ClaimRenderer:
             self.issues.append(f'{ISSUE} {label} 手写数值「{bad[0]}」，请引用同代字段')
         if '[[' in raw or ']]' in raw:
             self.issues.append(f'{ISSUE} {label} 引用格式不完整')
-        return TOKEN.sub(replace, text)
+        result = TOKEN.sub(replace, text)
+        # Strip reference syntax and quoted news from the style check. The
+        # pattern sees only the author's words and the positions of measurements.
+        draft = TOKEN.sub(lambda match: MEASUREMENT if match.start() in measurements else ' ', text)
+        self.advisories.extend(check_storytelling(
+            draft, label, dense_measurements=dense_measurements,
+            repeated_measurement=len(set(measurements.values())) < len(measurements)))
+        return result
 
     def triggers(self, line, prefix):
         if not line:
