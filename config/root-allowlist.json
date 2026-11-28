@@ -36,6 +36,10 @@
    "consumer": "Claude Code entry context",
    "baseline": true
   },
+  "CONTRIBUTING.md": {
+   "owner": "public contributor workflow",
+   "consumer": "README and GitHub contribution guides"
+  },
   "DREAMS.md": {
    "owner": "runtime compatibility",
    "consumer": "OpenClaw dreaming promotion (03:00 HKT) appends it; commit_dreaming.sh commits it"

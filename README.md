@@ -335,7 +335,7 @@ The whole run inside Claude Code, from the [`examples/claude-code`](https://gith
 - [**How the desk works**](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md) — the information layers, what each run reads, decision gates, grading rules and the twelve code-enforced rules.
 - [**Intraday research workflow**](https://github.com/KCNyu/clawock/blob/master/docs/architecture/intraday-research-workflow.md) — intraday cards keep historical research apart from conditional order suggestions for manual confirmation; no order is ever submitted.
 - [**Influencer radar**](https://github.com/KCNyu/clawock/blob/master/docs/how-the-desk-works.md#influencer-radar) — eight public sources scanned twice a trading day and linked to holdings; misses are published as misses.
-- [**Command reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md) · [**glossary**](https://github.com/KCNyu/clawock/blob/master/docs/glossary.md) · [**all project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) · [**contributing**](https://github.com/KCNyu/clawock/blob/master/AGENTS.md#code-changes)
+- [**Command reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md) · [**glossary**](https://github.com/KCNyu/clawock/blob/master/docs/glossary.md) · [**all project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) · [**contributing**](https://github.com/KCNyu/clawock/blob/master/CONTRIBUTING.md)
 
 ### Research surfaces
 
