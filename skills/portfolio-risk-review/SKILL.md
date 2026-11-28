@@ -102,6 +102,8 @@ policy-tranche departures are recorded. Loss alone is not evidence of a good ent
 
 ## Output structure
 
+写组合研判前读 workspace 的 `src/clawock/trading-prose.md`。表里已经有行情与盈亏，逐票判断讲会影响动作的原因。
+
 ### Portfolio snapshot
 - 总 US PnL / 总 HK PnL
 - 最大盈利位 / 最大亏损位
