@@ -1,0 +1,158 @@
+[
+  {
+    "track": "regression",
+    "dimension": "context",
+    "node": "tests/test_brief_context_bundle.py::test_news_heavy_day_drops_tail_events_instead_of_the_brief",
+    "fixture_commit": "ed8273b263a612b2ad637669477a07e78507cb0a"
+  },
+  {
+    "track": "regression",
+    "dimension": "context",
+    "node": "tests/test_brief_context_bundle.py::test_fit_does_not_ignore_the_dropped_list_in_its_own_estimate",
+    "fixture_commit": "eb476091026da2e6e9ae46a1b431e02123fa50a3"
+  },
+  {
+    "track": "regression",
+    "dimension": "context",
+    "node": "tests/test_brief_context_bundle.py::test_bundle_read_and_postflight_reject_cross_generation",
+    "fixture_commit": "e3dde34848e858a4c193306da71b82c08af6f757"
+  },
+  {
+    "track": "regression",
+    "dimension": "context",
+    "node": "tests/test_brief_context_bundle.py::test_missing_core_field_fails_publication_even_with_consistent_hashes",
+    "fixture_commit": "fa105dd382e4ea4496bd7d24e2412ea8f3ea63e6"
+  },
+  {
+    "track": "regression",
+    "dimension": "context",
+    "node": "tests/test_context_contract.py::test_verify_fails_a_session_that_silently_lost_its_skills",
+    "fixture_commit": "5f882e6bbd0799e0bd03e806aed9277c3b306e41"
+  },
+  {
+    "track": "regression",
+    "dimension": "publication",
+    "node": "tests/test_brief_fallback_artifacts.py::test_a_context_without_its_packet_is_refused_before_the_model_is_called",
+    "fixture_commit": "425ab42dba5b34708c99a444f4284255dfaa1d20"
+  },
+  {
+    "track": "regression",
+    "dimension": "publication",
+    "node": "tests/test_brief_fallback_artifacts.py::test_a_receipt_stops_vouching_once_a_file_is_replaced",
+    "fixture_commit": "425ab42dba5b34708c99a444f4284255dfaa1d20"
+  },
+  {
+    "track": "regression",
+    "dimension": "publication",
+    "node": "tests/test_brief_fallback_artifacts.py::test_no_repair_turn_is_started_without_budget_left",
+    "fixture_commit": "f2cd2cd39d4542ae8d4b99036432f0d8fb22868f"
+  },
+  {
+    "track": "regression",
+    "dimension": "publication",
+    "node": "tests/test_brief_fallback_artifacts.py::test_fallback_cross_checks_remaining_share_targets",
+    "fixture_commit": "c359310aad2d5ca86e63c740adf3eb4424dfa352"
+  },
+  {
+    "track": "regression",
+    "dimension": "publication",
+    "node": "tests/test_report_assembly.py::test_incident_replay_stale_prose_is_refused_not_married_to_fresh_numbers",
+    "fixture_commit": "202b63781ceb1d794081d042a86060cbf8b48f30"
+  },
+  {
+    "track": "regression",
+    "dimension": "publication",
+    "node": "tests/test_report_watchdog_retry_parity.py::test_stale_body_behind_a_fresh_marker_still_gets_a_backstop",
+    "fixture_commit": "2d6991ac73928e2f6b27fe3703ba63e940273f6a"
+  },
+  {
+    "track": "regression",
+    "dimension": "publication",
+    "node": "tests/test_cron_contracts.py::test_watchdog_delivery_does_not_hide_a_publication_failure",
+    "fixture_commit": "820837206aace3e837afe357d94e86484330a8a5"
+  },
+  {
+    "track": "regression",
+    "dimension": "citation_accuracy",
+    "node": "tests/test_debate_evidence_citations.py::test_a_debate_that_cited_only_fiction_loses_the_field_entirely",
+    "fixture_commit": "034c073c42309cb89e760e2744d197df470a78e2"
+  },
+  {
+    "track": "regression",
+    "dimension": "citation_accuracy",
+    "node": "tests/test_debate_evidence_citations.py::test_explicit_quiet_generation_prunes_invented_refs",
+    "fixture_commit": "eb43a87f4d9ef020c0676ace54c4124c13df08aa"
+  },
+  {
+    "track": "regression",
+    "dimension": "citation_accuracy",
+    "node": "tests/test_debate_evidence_citations.py::test_a_mixed_list_lends_its_name_to_nobody",
+    "fixture_commit": "f5aefcbca46ac6454250f6768defa3add3fa6d3a"
+  },
+  {
+    "track": "regression",
+    "dimension": "citation_accuracy",
+    "node": "tests/test_thesis_registry.py::test_changed_dimension_rejects_stale_evidence",
+    "fixture_commit": "5d9511445fe2816231cd7cf9e7ba8fa75ea386b5"
+  },
+  {
+    "track": "regression",
+    "dimension": "citation_accuracy",
+    "node": "tests/test_brief_shared_memory_sources.py::test_a_brief_that_transcribes_a_private_topic_is_critical",
+    "fixture_commit": "70aa09a396b9d8e8996348e92db630a77430ec23"
+  },
+  {
+    "track": "regression",
+    "dimension": "instructions",
+    "node": "tests/test_cron_contracts.py::test_brief_repair_uses_whole_file_write_instead_of_brittle_edit",
+    "fixture_commit": "83f91d346b33da0d1109ea1304c076a98285f835"
+  },
+  {
+    "track": "regression",
+    "dimension": "instructions",
+    "node": "tests/test_cron_contracts.py::test_every_agent_payload_requires_probe_chains_to_exit_zero",
+    "fixture_commit": "e6b14fddf48f5229c95842d54c96bb7925304f5a"
+  },
+  {
+    "track": "regression",
+    "dimension": "instructions",
+    "node": "tests/test_cron_contracts.py::test_strategy_crons_require_skill_body_read_in_first_tool_batch",
+    "fixture_commit": "580096260062ca44b7731e0339d0260443445f46"
+  },
+  {
+    "track": "regression",
+    "dimension": "instructions",
+    "node": "tests/test_cron_contracts.py::test_brief_leaves_the_calendar_gate_to_preflight",
+    "fixture_commit": "d1a2214f6db2812a8bf3e4ba2845694a40eb3705"
+  },
+  {
+    "track": "regression",
+    "dimension": "instructions",
+    "node": "tests/test_report_length_ceiling.py::test_a_repeat_loop_still_fails_closed",
+    "fixture_commit": "ec3e1658a06603643be6e91017d34aed7d710daa"
+  },
+  {
+    "track": "capability",
+    "dimension": "context",
+    "node": "tests/test_brief_context_bundle.py::test_same_fixture_reduces_always_loaded_input_and_preserves_action_fields",
+    "fixture_commit": "e3dde34848e858a4c193306da71b82c08af6f757"
+  },
+  {
+    "track": "capability",
+    "dimension": "publication",
+    "node": "tests/test_brief_fallback_artifacts.py::test_a_good_reply_yields_the_artifacts_postflight_consumes",
+    "fixture_commit": "425ab42dba5b34708c99a444f4284255dfaa1d20"
+  },
+  {
+    "track": "capability",
+    "dimension": "citation_accuracy",
+    "node": "tests/test_debate_evidence_citations.py::test_every_guardrail_row_the_producer_emits_can_be_cited",
+    "fixture_commit": "5b1b268135fa264b4d79204fec48d0c805487559"
+  },
+  {
+    "track": "capability",
+    "dimension": "instructions",
+    "node": "tests/test_brief_fallback_workspace.py::test_single_turn_fallback_inlines_the_same_skill_references",
+    "fixture_commit": "a63ca1e76b615ceb126c0cb8af52a73a4456ff9a"
+  }
+]

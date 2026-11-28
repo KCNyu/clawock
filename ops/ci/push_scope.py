@@ -52,6 +52,7 @@ CODE_GLOBS = [
     "src/*",
     "ops/*",
     "tests/*",
+    "evals/*",
     ".githooks/*",
     ".devcontainer/*",
     "pyproject.toml",
