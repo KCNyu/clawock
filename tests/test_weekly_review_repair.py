@@ -236,7 +236,9 @@ def test_weekly_rejects_74_char_ack_only_stub(gate, monkeypatch, tmp_path):
     else:
         path = tmp_path / '2026-W48.md'
         front = '---\nlayout: default\ntitle: 周复盘 · 2026-W48\n---\n\n'
-        for body in (rendered, authored):
+        for body in (rendered, authored, rendered.replace('今天没数据。', (
+                '今天没数据。[来源](https://example.org/(x)这只是链接地址)'
+                ' https://example.org/这也只是一个网址'))):
             path.write_text(front + body)
             with pytest.raises(AssertionError, match='missing section prose'):
                 validate_weekly_review(path)
