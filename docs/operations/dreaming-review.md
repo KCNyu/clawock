@@ -23,10 +23,10 @@ The host uses one promotion engine with two independent outputs:
   `ops/host/shared-memory/scripts/publish.py --write` to regenerate `MEMORY.md` and
   `publish-manifest.json`. If generation or its post-check fails, it restores the previous pair
   and returns non-zero.
-- `ops/host/commit_dreaming.sh` runs the promotion and `review_dreams.py` independently, then
-  commits the projection pair and `DREAMS.md` in separate commits. A MEMORY failure still lets a
-  reviewed DREAMS append commit, and a DREAMS failure does not block a reviewed projection.
-  Neither failed side is published.
+- `ops/host/commit_dreaming.sh` runs the promotion and diary checks independently
+  in the 03:00–06:00 HKT maintenance window. The resulting views stay local.
+  Review failure in one view does not stop the other. `DREAMING_REVIEW_PAUSED=1`
+  pauses the nightly review without stopping market reports.
 - `ops/host/review_dreams.py` reviews the DREAMS diary append against a private baseline. Existing
   entries are grandfathered once; a new entry must be clean under the same deterministic rules and
   carry an exact hash-bound receipt, or it is removed from DREAMS and preserved in ignored
@@ -96,7 +96,7 @@ An approved conclusion becomes one new topic:
 
 The 14 sections already in `MEMORY.md` correspond to existing public topics and are never
 recreated. Promotion only handles new candidates. The marker is the idempotency key: a repeated
-run sees it in the committed projection or in the store, writes no second topic, and regenerates
+run sees it in the local projection or in the store, writes no second topic, and regenerates
 nothing when the projection already contains it. A candidate whose content changes after
 promotion is refused rather than rewritten. Legacy dated promotion sections, if an old runtime
 left one, are copied to the private legacy candidate file before the projection drops them.
@@ -120,8 +120,8 @@ decisions and the slugs it would write, without touching the store or the reposi
   before-image. The reviewed topic stays in the store, so the next run retries the projection
   without another review. The restored file is the previous injectable version, not an empty or
   partially generated one.
-- **One side fails in `commit_dreaming.sh`:** each side is reviewed and committed separately; the
-  other side still commits and pushes. The failing side is named in the cron log.
+- **One side fails in `commit_dreaming.sh`:** each side is reviewed separately; the
+  other view can still update. The failing side is named in the cron log.
 
 No gateway restart is needed for a change to this host-side Python or shell gate. The dist patch
 that feeds direct-chat sessions into the corpus does need an idle-gateway restart; its selection
@@ -132,7 +132,7 @@ separate review.
 
 ### DREAMS.md diary append
 
-`DREAMS.md` is tracked and published, so its raw narrative is a public memory path.
+`DREAMS.md` is the local reviewed narrative view.
 `review_dreams.py` parses the entries inside the dreaming diary markers:
 
 - On the first run it writes `memory/.dreams/dreams-review.json` with every current
@@ -157,7 +157,7 @@ separate review.
 
 After an upgrade, run the patch with `--check`. After the 03:00 HKT dreaming run,
 confirm new candidates went to the private candidate file and no dated promotion
-section appeared in MEMORY. After 03:20, check the dreaming commit log for review
+section appeared in MEMORY. After 03:20, check the dreaming review log for review
 decision counts and run:
 
 ```bash
