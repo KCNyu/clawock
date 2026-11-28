@@ -160,7 +160,12 @@
           "不需要 kill",
           "不套 shell `timeout`",
           "`commit_ok` 判完成",
-          "一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error"
+          "一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error",
+          "`commit_ok: false` 表示尚未入库"
+        ],
+        "skills/daily-deep-brief/references/swarm.md": [
+          "`memory/peer-map.json` 的动态 `theme`",
+          "`clawock web-search --bucket brief`"
         ]
       },
       "forbidden_substrings": [

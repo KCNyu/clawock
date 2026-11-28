@@ -135,6 +135,8 @@ clawock brief postflight
 用 `write` 完整覆盖需要修的文件，再运行一次正式 postflight。一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error。
 如果仍返回 `fail`，用最终状态和剩余问题结束本轮，由既有 watchdog 接管。
 
+`commit_ok: false` 表示尚未入库。按 `commit_msg` 定位失败，再跑正式 postflight 并等到完整结果。
+
 **`warn` 和 `pass` 一样是终态（`commit_ok: true` 时）：已 commit、已尝试投递，不要为了变成 pass 再跑 postflight。**
 重跑不会再投递（当天已有投递记录就跳过），只会多一次 commit + push + dashboard 重建，
 报告正文也不会因此更好。具体到 warn 里的各条：

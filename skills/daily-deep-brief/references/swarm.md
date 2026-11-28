@@ -79,6 +79,9 @@
 
 #### ⚡ 板块全景
 
+按 `memory/peer-map.json` 的动态 `theme` 逐板块运行 `clawock web-search --bucket brief`。
+比较本代榜单的领先、落后或中位，并补一句催化时点、早盘抛压或 β 错配等归因。
+
 以本次 `peer_scan` 的 `listed_peers`、`auto_peers` 与 `self_pct_1d` 判断持仓相对强弱。表格的标的、涨跌与同业相对名次由程序从这份快照生成，默认按快照主题分组；外部搜索用于补归因。未入本代结构化输入的搜索信息可作为核查线索。
 
 板块叙事写到 `judgment.narrative.sector_read`，简报和面板共用。逐票归因写到 `peer_read`。如需为面板补充逐票归因与同业催化，另写 `memory/.tmp/brief-sector-draft-{date}.json`，包含本代 `context_generation_id`、`attribution`（持仓代码到归因文字）和 `catalysts`（同业代码到催化文字）。`themes` 可选，按持仓代码填写专题名。同市场同场次的同名主题会合并展示。价位、涨跌、来源和时间用 Step 4 的事实引用。
