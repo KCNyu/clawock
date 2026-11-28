@@ -95,7 +95,7 @@ clawock report preflight --market us --phase {open|close}
 
 #### Step 2: 只写分析散文
 
-**正文规则**：写散文前先读 `../_shared/report-prose-rules.md`，再读其中指向的通用写作标准。
+**正文规则**：写散文前先读 `../_shared/report-prose-rules.md`，再读其中指向的通用写作标准。 散文事实引用按共用规则用 `[[/ctx/…]]`、`[[/compute/…]]` 和 `|cite`。禁止重述持仓股数和未成交计划的尺寸。
 
 **你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
 
