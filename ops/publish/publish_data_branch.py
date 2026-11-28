@@ -61,8 +61,8 @@ DATA_PLANE_EXTRA = (
 # on a different cadence from the rest: the validation ledger (rebuilt daily by
 # brief preflight) and nothing else.
 #
-# It is kept out of `DATA_PLANE_FILES` deliberately. The branch is replaced
-# wholesale, so the publisher refuses when a member cannot be read — correct for
+# It is kept out of `DATA_PLANE_FILES` deliberately. The publisher refuses
+# when a required member cannot be read — correct for
 # the files that share a tick, fatal for this one. A file that appears weekly, and
 # that does not exist after a fresh checkout of the branch, would make every
 # 20-minute tick refuse to publish the *entire* dashboard until the next Monday.
@@ -114,7 +114,7 @@ def note_failure(kind: str, reason: str) -> None:
 def credential_findings(files: dict[str, str]) -> list[str]:
     """`path: kind` for every credential-shaped value in the generation.
 
-    The generation is force-pushed to a public branch and never passes
+    The generation is pushed to a public branch and never passes
     `safe_push.sh` or CI, the two places the scan otherwise runs (#2335). The
     pre-push hook scans it too; this one also covers a checkout without hooks.
     The value itself is not returned: this goes to a log.
@@ -216,9 +216,7 @@ def main() -> int:
         try:
             files[path] = (root / path).read_text(encoding="utf-8")
         except OSError as exc:
-            # Refuse rather than publish a partial generation: the branch is
-            # replaced wholesale, so a missing member is not "unchanged", it is
-            # deleted from the data plane.
+            # Fail the generation rather than pair new outputs with stale required files.
             print(f"✗ data-plane: cannot read {path}: {exc}", file=sys.stderr)
             note_failure(PUBLISH_FAILED, "an output file could not be read")
             return 1
@@ -257,8 +255,8 @@ def main() -> int:
         author_name=BOT_NAME, author_email=BOT_EMAIL,
     )
     try:
-        result = store.publish_updates(
-            files, label=generation_label(root), remove=DATA_PLANE_OPTIONAL)
+        result = store.publish(
+            files, label=generation_label(root), overlay=True, remove=DATA_PLANE_OPTIONAL)
     except subprocess.TimeoutExpired as exc:
         # A timeout is a diagnosis, not a crash. It is a SIBLING of
         # CalledProcessError, so before 2026-09-07 it fell through every handler

@@ -26,7 +26,7 @@ def pub_briefs(store: GitBranchStore, files: dict[str, str]):
             index = store._git_blob(previous, brief_archive.INDEX)
         return {brief_archive.INDEX: brief_archive.update_index(index, files)}
 
-    return store.publish_updates(files, label="data: brief archive", expand=expand)
+    return store.publish(files, label="data: brief archive", overlay=True, expand=expand)
 
 
 def tracked_briefs(store: GitBranchStore, ref: str) -> dict[str, str]:

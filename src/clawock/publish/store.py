@@ -7,8 +7,8 @@ seam:
   configuring anything. Writing the files where they were built is a store, not
   the absence of one; a clawock that defaults to pushing somewhere would be
   wrong.
-* `GitBranchStore` — one instance configuration. An orphan, force-updated ref in
-  a repository, built entirely with plumbing so it never touches the caller's
+* `GitBranchStore` — an instance deployment. A fast-forwarded ref built
+  entirely with plumbing so it never touches the caller's
   index or worktree. That constraint is not stylistic: the live publisher runs
   inside the workspace checkout, which must stay on `master` and keeps a dirty
   tree of other in-flight files while it publishes.
@@ -193,30 +193,21 @@ class FilesystemStore:
 from clawock.run_budgets import (  # noqa: E402,F401
     GIT_CALL_TIMEOUT_SECONDS, PUSH_ATTEMPTS, PUSH_RETRY_BACKOFF_STEP_SECONDS,
     PUBLISH_NETWORK_CALLS, PUBLISH_BUDGET_SECONDS, DEPLOY_REQUEST_TIMEOUT_SECONDS,
+    PUBLISH_LOOKUP_TIMEOUT_SECONDS,
 )
 
 
 class GitBranchStore:
-    """An orphan, force-updated branch: the generation, and nothing else.
+    """Publish a repository generation without changing the caller's checkout.
 
-    Force-updated because this branch is state, not history. Each publish is a
-    parentless commit whose tree is exactly the generation, so the branch never
-    accumulates the 72 commits/day that put the outputs on `master` in the first
-    place. Nothing rebases onto it and nothing merges it, which is what makes
-    discarding its history safe — and what makes pointing it at a branch someone
-    *does* build on catastrophic, hence `_reject_protected`.
-
-    Everything is built with plumbing (`hash-object`, `update-index` against a
-    throwaway index file, `write-tree`, `commit-tree`), so the caller's index,
-    worktree, HEAD and stash are untouched. The live publisher calls this from
-    inside the workspace checkout while that checkout is on `master` with a dirty
-    tree; a `checkout`/`add`/`commit` implementation would be publishing by
-    disturbing the thing it publishes from.
+    The store uses a private index and fast-forwards from the fetched commit.
+    Overlay callers manage only their issued paths so independent publishers
+    can share a branch with one retry contract.
     """
 
     name = "git-branch"
 
-    # Never force-update a branch other refs are built on. `HEAD` is here
+    # Do not publish artifact trees to a branch other refs are built on. `HEAD` is here
     # because it is accepted where a branch name is expected and would resolve
     # to whatever the repository is currently on.
     ALWAYS_PROTECTED = frozenset({"master", "main", "HEAD"})
@@ -245,13 +236,14 @@ class GitBranchStore:
             identity += ["-c", f"user.email={self.author_email}"]
         return ["git", "-C", str(self.repo), *identity, *args]
 
-    def _git(self, *args: str, env: dict | None = None, stdin: str | None = None) -> str:
+    def _git(self, *args: str, env: dict | None = None, stdin: str | None = None,
+             timeout=GIT_CALL_TIMEOUT_SECONDS) -> str:
         result = subprocess.run(
             self._argv(*args),
             input=stdin, capture_output=True, text=True, env=env, check=True,
             # A hung git remote must fail the publish, not park the process
             # forever (#848).
-            timeout=GIT_CALL_TIMEOUT_SECONDS,
+            timeout=timeout,
         )
         return result.stdout.strip()
 
@@ -283,7 +275,8 @@ class GitBranchStore:
         source.
         """
         try:
-            listing = self._git("ls-remote", "--symref", self.remote, "HEAD")
+            listing = self._git("ls-remote", "--symref", self.remote, "HEAD",
+                                timeout=PUBLISH_LOOKUP_TIMEOUT_SECONDS)
         except subprocess.CalledProcessError:
             listing = ""
         for line in listing.splitlines():
@@ -310,21 +303,20 @@ class GitBranchStore:
             protected.add(default)
         if self.branch in protected:
             raise ValueError(
-                f"refusing to force-update {self.branch!r}: this store replaces "
-                f"the branch's entire history on every publish")
+                f"refusing to publish artifacts to protected branch {self.branch!r}")
 
     @contextmanager
-    def _fetched_commit(self):
+    def _fetched_commit(self, *, timeout=GIT_CALL_TIMEOUT_SECONDS):
         """Pin one remote generation without touching the caller's FETCH_HEAD.
 
         A fetch by another process can change FETCH_HEAD between any two git
-        calls. A private ref also keeps this parentless commit reachable until
+        calls. A private ref also keeps the commit reachable until
         every blob has been read. Full depth avoids making the caller shallow.
         """
         ref = f"refs/clawock/fetch/{uuid4().hex}"
         try:
             self._git("fetch", "--no-write-fetch-head", self.remote,
-                      f"+refs/heads/{self.branch}:{ref}")
+                      f"+refs/heads/{self.branch}:{ref}", timeout=timeout)
             yield self._git("rev-parse", f"{ref}^{{commit}}")
         finally:
             self._git("update-ref", "-d", ref)
@@ -332,16 +324,16 @@ class GitBranchStore:
     def _stored_generation(self) -> tuple[str, str] | None:
         """(commit, tree) for one fetched generation, or None on a missing read."""
         try:
-            with self._fetched_commit() as commit:
+            with self._fetched_commit(timeout=PUBLISH_LOOKUP_TIMEOUT_SECONDS) as commit:
                 return commit, self._git("rev-parse", f"{commit}^{{tree}}")
         except subprocess.CalledProcessError:
             return None
 
-    def publish_updates(self, files: Mapping[str, str], *, label: str = "",
-                        remove=(), expand=None, attempts: int = PUSH_ATTEMPTS) -> PublishResult:
+    def publish(self, files: Mapping[str, str], *, label: str = "", overlay=False,
+                remove=(), expand=None, attempts: int = PUSH_ATTEMPTS) -> PublishResult:
         """Fast-forward one branch, merging with the latest tree on each retry.
 
-        The caller owns the paths it updates or explicitly drops. A caller
+        Overlay writers own the paths they update or explicitly drop. A caller
         supplying `expand` can update a manifest from this exact parent.
         """
         self._reject_protected()
@@ -355,7 +347,7 @@ class GitBranchStore:
                 _check_names(removals)
             with tempfile.TemporaryDirectory() as tmp:
                 env = {**os.environ, "GIT_INDEX_FILE": str(Path(tmp) / "index")}
-                self._git("read-tree", previous or "--empty", env=env)
+                self._git("read-tree", previous if overlay and previous else "--empty", env=env)
                 for name in removals:
                     self._git("update-index", "--force-remove", "--", name, env=env)
                 entries = []
@@ -377,60 +369,6 @@ class GitBranchStore:
             else:
                 return PublishResult(commit, changed=True, previous=previous)
         raise ValueError("publication requires a positive attempt count")
-
-    # ── ArtifactStore ───────────────────────────────────────────────────────
-    def publish(self, files: Mapping[str, str], *, label: str = "",
-                attempts: int = PUSH_ATTEMPTS) -> PublishResult:
-        _check_names(files)
-        self._reject_protected()
-
-        with tempfile.TemporaryDirectory() as tmp:
-            # A scratch index, so `update-index` cannot touch the real one. It
-            # also builds subdirectory trees for us, which hand-rolled `mktree`
-            # would not.
-            env = {**os.environ, "GIT_INDEX_FILE": str(Path(tmp) / "index")}
-            for name, text in sorted(files.items()):
-                blob = self._git("hash-object", "-w", "--stdin", stdin=text)
-                self._git("update-index", "--add",
-                          "--cacheinfo", f"100644,{blob},{name}", env=env)
-            tree = self._git("write-tree", env=env)
-
-        # Compare against what the BRANCH holds, not against what the caller
-        # thinks changed. Those are different questions, and the difference is
-        # the only thing that makes a failed publish self-healing: a caller that
-        # skipped this tick because "nothing changed locally" would never notice
-        # that last tick's generation never arrived, and the branch would sit
-        # stale until the next genuine change — indefinitely, on a quiet day.
-        # It also covers the first publish, where there is no branch at all.
-        stored = self._stored_generation()
-        if stored is not None and stored[1] == tree:
-            return PublishResult(stored[0], changed=False)
-
-        # No `-p`: parentless, so the branch is a snapshot and not a log.
-        commit = self._git("commit-tree", tree, "-m", label or "generation")
-        # Retried like every other publish here. There is nothing to rebase onto
-        # a force-updated orphan ref, so `safe_push.sh`'s rebase machinery has
-        # nothing to do — but its retry answers the transient failure that would
-        # otherwise leave the branch a generation behind.
-        for attempt in range(1, attempts + 1):
-            try:
-                self._git("push", "--force", self.remote,
-                          f"{commit}:refs/heads/{self.branch}")
-                break
-            # TIMEOUTS ARE THE FAILURE THIS LOOP EXISTS FOR (2026-09-07).
-            # `subprocess.TimeoutExpired` is a SIBLING of `CalledProcessError`,
-            # not a subclass, so catching only the latter meant a push that hung
-            # to the cap raised straight out of the retry — the one failure mode
-            # this ladder was written to survive was the one it could not see.
-            # Every publish failure logged on 2026-09-07 (12 across the day, 6
-            # intraday slots recorded `publish_failed`) was a timeout, so not one
-            # of them was ever retried; they surfaced as raw tracebacks.
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-                if attempt == attempts:
-                    raise
-                time.sleep(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS)
-        return PublishResult(commit, changed=True,
-                             previous=stored[0] if stored is not None else None)
 
     def read(self, receipt: str, name: str) -> str | None:
         """One file of a stored generation by receipt, or None when it is absent."""

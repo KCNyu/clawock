@@ -7,13 +7,13 @@ The public dashboard has two delivery surfaces with different jobs:
   build a site, upload a Pages artifact, then deploy it with `deploy-pages`.
 - The browser's later polls read the current seven required generation files from the
   `data-plane` branch through `raw.githubusercontent.com`. The branch is an
-  orphan snapshot: it is replaced rather than appended, because it is state and
+  publication branch. Its branch tip represents the latest public state, and
   not an audit log. An eighth file, `evidence.json`, is published when available
   on its own cadence.
 
 ## Status: a GitHub-only compatibility layer
 
-The orphan branch is **not a GitHub Pages recommended data-plane pattern**.
+The publication branch is **not a GitHub Pages recommended data-plane pattern**.
 GitHub documents two Pages publishing sources: a source branch for simple sites,
 or a custom Actions workflow using a Pages artifact and `deploy-pages` when a
 build is required. GitHub does not document `raw.githubusercontent.com` as a
