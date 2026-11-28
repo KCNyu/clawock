@@ -28,10 +28,12 @@ clawock brief preflight; echo "EXIT=$?"
 {{include:_exec-contract.md}}
 
 **Step 3 - Swarm 分析（你的创造性工作）**
+- 本段开始后，读取 `skills/daily-deep-brief/references/swarm.md` 和 `skills/daily-deep-brief/references/style.md`，再写判断。
 - ⚡ **板块全景**（必跑 `clawock web-search --bucket brief`）：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓动态，不要写死任何 ticker），每个板块拉今日 Top 涨幅榜 + 你持仓在榜单的位置（领涨/落后/中位）+ 1 句归因（催化时点/早盘抛压/β 错配）
 - Regime、Tier 1 四个 analyst、Tier 2 Bull vs Bear、Tier 3 三声 + Judge、Confidence、Next-session plan 的做法与字数都按 SKILL.md「Step 3」；结论只通过 Step 4 的产物进入报告
 
-**Step 4 - 写产物：文件集合与 schema 只按 SKILL.md「Step 4」**
+**Step 4 - 写产物**
+- 写文件前读取 `skills/daily-deep-brief/references/plan-schema.md`，按该文件的输出协议。
 - 你写 plan、受限 judgment 和 insights 三份 JSON；**报告 markdown 与微信卡由 postflight 渲染，不要手写**（写了会被覆盖）。
 - 首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换，一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error。若 postflight 返回 fail，按 SKILL.md Step 5 一次处理本次返回的阻断项。
 

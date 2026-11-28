@@ -33,12 +33,12 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / 'skills' / 'daily-deep-brief' / 'SKILL.md'
+OUTPUT_REFERENCE = ROOT / 'skills/daily-deep-brief/references/plan-schema.md'
 
 
 def _example_plan() -> dict:
     """The plan JSON the skill shows the model, parsed from the skill itself."""
-    text = SKILL.read_text(encoding='utf-8')
+    text = OUTPUT_REFERENCE.read_text(encoding='utf-8')
     for block in re.findall(r'```json\n(.*?)```', text, re.S):
         if '"decisions"' not in block:
             continue

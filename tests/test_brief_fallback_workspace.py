@@ -1,5 +1,6 @@
 """The fallback reads and writes the selected book from an unrelated cwd."""
 import json
+from pathlib import Path
 
 import pytest
 
@@ -60,3 +61,14 @@ def test_only_the_selected_workspace_needs_a_context(tmp_path, monkeypatch):
     bf.main([])
     assert (root / 'memory' / f'{TODAY}-plan.json').exists()
     assert not (away / 'memory').exists()
+
+
+def test_single_turn_fallback_inlines_the_same_skill_references():
+    from clawock.automation.brief_fallback import _read_brief_skill
+
+    root = Path(__file__).resolve().parents[1]
+    skill = root / 'skills/daily-deep-brief'
+    prompt = _read_brief_skill(root)
+    for name in ('swarm', 'style', 'plan-schema'):
+        reference = (skill / 'references' / f'{name}.md').read_text(encoding='utf-8').strip()
+        assert reference in prompt
