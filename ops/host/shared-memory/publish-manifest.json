@@ -3,8 +3,8 @@
   "generated_by": "ops/host/shared-memory/scripts/publish.py",
   "header_lines": 4,
   "header_sha256": "6d0fa618b0c6f7a259a6ef641e6be293ca4cb5a0da218cdfcf915c3ddc48a778",
-  "content_sha256": "3ea0e8c99b8a072c176461b9735208f9da67132cc5ff9e5fd185975f61e2654a",
-  "bytes": 17794,
+  "content_sha256": "27f5a13953acabaf1a1727ca2fa2f10b7117ca5ded9f41995723b72e4f398297",
+  "bytes": 18378,
   "sections": [
     {
       "slug": "feedback-investment-preferences",
@@ -230,6 +230,24 @@
       "heading": "# 工程标准应统一结构化数据对账、确定性渲染与来源追溯",
       "lines": 5,
       "sha256": "c391e71e2cff81b184784c743cd8bd02a749d4d2f4a05002528a943df1dffc4e"
+    },
+    {
+      "slug": "feedback-market-prose-storytelling",
+      "order": 26,
+      "publish": "public",
+      "separator": true,
+      "heading": "# 市场报告须以连贯人话叙事呈现，并校验引用、复述和结构",
+      "lines": 5,
+      "sha256": "eed75853f29487a81819346476ee13fda91a68fc54ba948dcb6938fb60cfec7e"
+    },
+    {
+      "slug": "feedback-market-report-data-availability",
+      "order": 27,
+      "publish": "public",
+      "separator": true,
+      "heading": "# 市场简报仅呈现实际取得的字段，缺失数据须明确注明未取到。",
+      "lines": 5,
+      "sha256": "df0353881bb0b5019b00b38bf2d762be546b1fc26860b5371b41d626210f90c0"
     }
   ]
 }
