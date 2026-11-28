@@ -7,13 +7,13 @@ The public dashboard has two delivery surfaces with different jobs:
   build a site, upload a Pages artifact, then deploy it with `deploy-pages`.
 - The browser's later polls read the current seven required generation files from the
   `data-plane` branch through `raw.githubusercontent.com`. The branch is an
-  orphan snapshot: it is replaced rather than appended, because it is state and
+  publication branch. Its branch tip represents the latest public state, and
   not an audit log. An eighth file, `evidence.json`, is published when available
   on its own cadence.
 
 ## Status: a GitHub-only compatibility layer
 
-The orphan branch is **not a GitHub Pages recommended data-plane pattern**.
+The publication branch is **not a GitHub Pages recommended data-plane pattern**.
 GitHub documents two Pages publishing sources: a source branch for simple sites,
 or a custom Actions workflow using a Pages artifact and `deploy-pages` when a
 build is required. GitHub does not document `raw.githubusercontent.com` as a
@@ -88,3 +88,21 @@ Overview carries only first-paint evidence; detail metrics and degradation prose
 full payload. The leverage dial's top-level `as_of` remains HSTECH's date. Each US
 name and reentry radar row carries its own source-bar `as_of`; missing dates are
 shown as unverified and are never borrowed from HK or the separate proxy history.
+
+## Brief archive migration
+
+The data plane can carry daily briefs and weekly reviews at their existing
+`memory/` paths. The archive index binds the list and every published body
+with SHA-256. The reader checks those hashes on the same pinned ref as the
+Dashboard files before writing any staging input.
+
+Seed the archive from a committed revision using
+`ops/publish/publish_brief_archive.py --seed-ref <commit>`. A validated
+daily or weekly publication can update its own entry with `--brief <path>`.
+Each update preserves the other publisher's paths and fast-forwards from
+the current branch tip. A competing update retries against the new tip.
+
+Use `fetch_data_plane.py --expect-brief-archive` in the Pages build at cutover.
+Before enabling it, verify the complete seeded index and route both scheduled
+writers to the archive publisher. Retain existing URLs and remove the old
+source-branch write path in the same cutover.
