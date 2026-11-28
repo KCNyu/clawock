@@ -1,0 +1,97 @@
+路径	现有行数	决定	条件和理由
+AGENTS.md	204	保留	运行时自动注入原文；贡献文档另写，TOOLS 路由拆分待独立验证
+CLAUDE.md	16	保留	运行时自动注入原文；贡献文档另写，TOOLS 路由拆分待独立验证
+README.md	371	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+README.zh.md	371	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+TOOLS.md	59	保留	运行时自动注入原文；贡献文档另写，TOOLS 路由拆分待独立验证
+config/cron-payloads/_analysis-inputs.md	1	保留	共享契约的权威入口，切换时核消费方和 required_substrings
+config/cron-payloads/_exec-contract.md	5	保留	共享契约的权威入口，切换时核消费方和 required_substrings
+config/cron-payloads/_memory-lookup.md	1	保留	共享契约的权威入口，切换时核消费方和 required_substrings
+config/cron-payloads/brief.md	48	重写	R2 R4：重复解释可迁操作文档；动作、共享 include 与 guard 的规则保留
+config/cron-payloads/intraday.md	40	重写	R2 R4：重复解释可迁操作文档；动作、共享 include 与 guard 的规则保留
+config/cron-payloads/report.md	46	重写	R2 R4：重复解释可迁操作文档；动作、共享 include 与 guard 的规则保留
+docs/README.md	153	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/agent-memory-unified.md	200	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+docs/architecture/brief-versions.md	193	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/data-plane.md	90	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+docs/architecture/decision-architecture.md	417	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/dispatch-memory-intake.md	258	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/harness.md	661	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/intraday-agent.md	426	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/intraday-research-workflow.md	354	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/memory-components.md	174	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/openclaw-adapter.md	101	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/runtime-protocol.md	108	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/session-reviews.md	79	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/stock-discovery.md	247	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/strategy-plugins.md	643	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/architecture/task-queue.md	945	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/decision-map.md	79	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/decision-mind-ledger.md	159	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/design/data-health.md	71	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/design-system.md	450	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/intraday-strategy-research.md	11	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/task-chip-patrol.md	11	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/task-chip-stats.md	11	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/task-chip.md	169	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/workbench-conformance.md	164	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/workbench-geometry.md	80	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/design/workbench-type.md	75	保留	待边界清单逐个核引用；仍保留的契约不通过改写去除约束
+docs/glossary.md	220	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/how-the-desk-works.md	203	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/how-the-desk-works.zh.md	148	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/influencer-radar.md	12	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/legal/third-party-data.md	68	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/operations/agent-discovery.md	157	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/operations/cron-schedules.md	90	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/operations/dreaming-review.md	229	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+docs/operations/memory-recall-performance.md	11	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/operations/models.md	105	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/operations/openclaw-patch-kit.md	92	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+docs/operations/release.md	326	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+docs/operations/research-cadence.md	70	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/operations/skills-store-policy.md	18	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/operations/sqlite-maintenance.md	116	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/reference/commands.md	283	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/reference/data-coverage.md	159	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/reference/product-profile-operations.md	126	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/reference/scripts.md	20	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/reference/tool-operations.md	70	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/research/dsh-superagent-adoption.md	12	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+docs/research/intraday-strategies.md	93	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+examples/README.md	90	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+examples/dsh/README.md	53	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+examples/dsh/packages/clawock-dsh/README.md	692	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+site/faq.md	104	仅改一处	保留产品说明，集中替换发生变化的边界或运行入口
+skills/_shared/interactive-mode-reads.md	12	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/_shared/intraday-mode7.md	49	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/_shared/intraday-status-sidecar.md	24	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/_shared/report-analysis-hk.md	35	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/_shared/report-analysis-us.md	35	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/_shared/report-prose-rules.md	26	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/_shared/stock-analysis-output.md	24	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/daily-deep-brief/SKILL.md	1045	重写	R1 R4：缩短编排入口；分析、输出与写作按步骤载入
+skills/daily-deep-brief/references/technical-playbooks.md	59	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/earnings-review/SKILL.md	109	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/entry-gate/SKILL.md	104	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/hk-stock-analysis/SKILL.md	163	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/openclaw-tune/SKILL.md	52	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/openclaw-upgrade/SKILL.md	123	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/portfolio-risk-review/SKILL.md	136	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/portfolio-swarm-review/SKILL.md	214	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/scrapling/SKILL.md	37	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/serenity-skill/README.md	21	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/SKILL.md	235	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/serenity-skill/assets/thesis-template.md	81	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/evals/test-cases.md	97	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/examples/a-share-ai-semiconductor-demo.md	33	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/examples/ai-infrastructure-chokepoint-demo.md	38	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/examples/demo-conversation.md	53	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/references/deep-research-workflow.md	216	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/references/evidence-ladder.md	77	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/references/market-source-playbook.md	134	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/references/public-profile-and-evaluation.md	66	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/references/research-sources.md	47	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/serenity-skill/references/risk-and-compliance.md	75	保留	现行产品、操作、架构或参考合同仍有相应消费者；证据、示例或接口不在本次职责变更中
+skills/tavily-search/SKILL.md	45	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
+skills/us-stock-analysis/SKILL.md	176	仅改一处	保留操作步骤与输出契约；补明确不适用情形及路由覆盖
