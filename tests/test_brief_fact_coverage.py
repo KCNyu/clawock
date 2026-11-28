@@ -24,6 +24,7 @@ def test_monthly_decay_does_not_borrow_other_tickers_or_guess_missing_volatility
                drag.validate_drag('07709 的两倍腿每月白付 4.4% 的横盘衰减。', CTX))
     assert not drag.validate_drag('SPCH 的横盘衰减为每月 4.4%。', CTX)
     assert drag.validate_drag('RKLX 的横盘衰减为每月 4.4%。', CTX)
+    assert drag.validate_drag('07709 有横盘衰减，每月 4.4%。', CTX)
     assert drag.validate_drag('三只两倍腿每月合付 16.67% 的横盘衰减。', CTX)
     assert drag.validate_drag('三只两倍腿每月合付 16.67%。', CTX)
     assert not drag.validate_drag('已测的合计月衰减算术和为每月 17.07%。', CTX)
@@ -47,6 +48,12 @@ def test_structured_plan_and_judgment_check_same_ticker_and_repeat_across_fields
         {'ticker': '07709', 'assessment': f'每月 {cite} 的横盘衰减。'},
     ]}, renderer)
     assert any('07709 这只的衰减算不出来' in i for i in renderer.issues)
+
+
+def test_structured_drag_rejects_same_number_from_another_field():
+    renderer = prose_claims.ClaimRenderer({**CTX, 'unrelated_pct': 4.4})
+    renderer.render('SPCH 的横盘衰减为每月 [[/ctx/unrelated_pct]]。', '简报')
+    assert any('须引用同票测算字段' in i for i in renderer.issues)
 
 
 def test_legacy_unverified_decay_refuses_workspace_publication(tmp_path):

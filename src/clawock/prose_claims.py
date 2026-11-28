@@ -252,8 +252,10 @@ class ClaimRenderer:
             self.issues.append(f'{ISSUE} {label} 引用格式不完整')
         result = TOKEN.sub(replace, text)
         owner = ticker or (decision or {}).get('ticker')
-        self.issues.extend(f'{ISSUE} {label} {issue}'
-                           for issue in validate_drag(result, roots['ctx'], ticker=owner))
+        if 'breakeven_math' in roots['ctx']:
+            pointers = {token.partition('|')[0] for token, _ in numerical_keys}
+            self.issues.extend(f'{ISSUE} {label} {issue}' for issue in
+                               validate_drag(result, roots['ctx'], ticker=owner, references=pointers))
         repeated = len(set(numerical_keys)) < len(numerical_keys)
         if scope or owner:
             prior = self.measurements_by_scope.setdefault(scope or owner, set())
