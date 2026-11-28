@@ -1,12 +1,15 @@
 # 阶段 1：公开仓库边界复核稿
 
-基线为 `cf5c75ce2`。`phase-1-file-inventory.tsv` 对该提交的 2,089 条 Git 路径逐条列出类别、建议、理由和影响面。清单中的动作是切换建议。本 PR 只增加复核材料，保留工作区文件、跟踪规则及现行发布链。
+基线为 `cf5c75ce2`。`phase-1-file-inventory.tsv` 对该提交的 2,089 条 Git 路径逐条列出类别、建议、理由和影响面。清单中的动作是切换建议。代码、测试和文档各有一栏，标明是否沿用现行契约或需在切换前核验。README 明确列出的能力按产品保留，包括 DSH 派发队列、agent-dispatch runner、回收单元、六个 runner 测试和对应 CI。本 PR 只增加复核材料，保留工作区文件、跟踪规则及现行发布链。
 
 ## 跟踪规则草案
 
-以下规则随对应文件和写入者迁移后启用。以精确路径检查覆盖范围。启动模板、许可、示例、覆盖率徽标及产品证据附件仍可加入仓库。原 `memory/*-pre-open.md` 和 `logs/dashboard_build_status.json` 的放行项随迁移退役。对不公开内容增加提交和 CI 闸，覆盖强制添加的情况。
+以下规则随对应文件和写入者迁移后启用。以精确路径检查覆盖范围。启动模板、许可、示例、覆盖率徽标及产品证据附件仍可加入仓库。上述简报规则在 data-plane 完整上线后启用于 master。原放行项随迁移退役。对不公开内容增加提交和 CI 闸，覆盖强制添加的情况。
 
 ```gitignore
+/AGENTS.md
+/CLAUDE.md
+/TOOLS.md
 /MEMORY.md
 /DREAMS.md
 /SOUL.md
@@ -20,10 +23,9 @@
 /ops/host/shared-memory/publish-manifest.json
 /ops/ci/legacy_plan_book_values.json
 /logs/
-/memory/*
-!/memory/backtests/
-/memory/backtests/*
-# 将通过 R&D 审核的产品证据迁到合成示例或证据目录。
+/memory/*-pre-open.md
+/memory/weekly/
+# 按逐文件清单处理其他实例状态，保留公开可复算的输入。
 /assets/data/*
 !/assets/data/coverage.json
 ```
@@ -34,23 +36,32 @@
 
 | 文件 | 改法 |
 |---|---|
-| `AGENTS.md` | 用“实例账本、计划、原始简报、记忆和回执保存在本地部署目录。站点通过约定的发布数据接口读取展示产物”替换 Runtime commits 的公开承诺与直推表。Memory 节以 shared store 为真源、两个本地投影和三个审核去向为准。|
-| `CLAUDE.md`、`TOOLS.md`、`BOOTSTRAP.md`、`INVESTMENT_SOP.md` | 公开 agent 命令和初始化步骤改为参数化工作区；将个人约束、主机绝对路径与账号相关示例迁到本地。|
-| `README.md`、`README.zh.md`、`docs/how-the-desk-works*.md`、`docs/decision-mind-ledger.md` | “账本全部公开”“公开账本”“从公开分支复算”改为“使用自有账本或合成示例复算”。保留评分公式、命令和页面链接；同步两版 README。|
+| `AGENTS.md`、`CLAUDE.md`、`TOOLS.md`、`SOUL.md`、`IDENTITY.md`、`USER.md`、`HEARTBEAT.md` | 原样留在本地并退出跟踪。CLAUDE 仍然指向本地 AGENTS，保留现有运行时行为。BOOTSTRAP 与 INVESTMENT_SOP 的切换同样先查运行消费者。编写独立的 `CONTRIBUTING.md`，补贡献流程、worktree、分支、定向与 CI 验证。同步 README、CI 触发项和根 allowlist。 |
+| `README.md`、`README.zh.md`、`docs/how-the-desk-works*.md`、`docs/decision-mind-ledger.md` | 说明 Dashboard 发布数据可用于核算。当前保留可独立复算的决策账本、bars、snapshots 和计划，原始持仓账本私有化。保留 Daily briefs 链接与评分公式，更新两版 README 的投影与贡献说明。|
 | `docs/architecture/{agent-memory-unified,memory-components,dispatch-memory-intake}.md`、`docs/operations/dreaming-review.md`、共享记忆维护说明 | 将 `publish: public` 描述为本地面向助手的投影级别；两个根投影、清单和审阅回执归实例目录。说明迁移报告、召回退出步骤、运行窗口和回滚开关。|
 | `docs/architecture/{data-plane,harness,brief-versions}.md`、`docs/reference/{data-coverage,product-profile-operations}.md`、`site/{README,faq,briefs}.md`、`ops/publish/README.md` | 写清 runtime、Pages 和既有 data-plane 的来源与责任。公开最新简报的页面和 JSON 按现网契约保留，源文件由部署通道供给。保留数值、缺失语义、窗口及所有公开 URL。|
 | `docs/README.md`、`docs/design/workbench-conformance.md` | 清理待删除设计对照的链接和图表。保留仍有回归引用的布局契约。|
 | `docs/operations/{openclaw-patch-kit,release}.md`、`skills/openclaw-upgrade/SKILL.md` | 记录 fork 源码与已安装产物身份校验，以及主机专用配置的重放入口。使用变量说明路径。|
 
-## Dashboard 切换前提
+## 切换前的代码、测试和文档勾选
 
-- `memory/snapshots`、`memory/bars/*.json`、`memory/decisions.jsonl`、`portfolio.json`、`assets/data` 及现有 `data-plane` 都有读者。保留目录、内容和保留窗口。按 `config/pages-public.json` 同步浏览器数据清单。
-- Pages 先取 data-plane，再由 `ops/pages/stage_site.py` 枚举 `memory/*-pre-open.md` 和 `memory/weekly` 以及复制 `assets/data`。仅取消跟踪会让最新简报和历史简报消失，且让若干面板数据路径变空。应先在隔离构建中证明现有 Pages 发布来源可替换。
-- `scorecard_provenance.dashboard_source` 目前用 `git show` 取 `origin/master` 的原始账本，`verify_public_source` 检查该引用祖先关系；决策卡会显示核验状态。换本地来源需要固定快照身份，并保持旧发布代与新发布代的验证语义和字段。若要保留公众对新增评分的独立复算，必须明确其可访问证据。
-- 风险、计划、周复盘和回退 workflow 仍读取或提交原始实例数据，CI 也从根账本校验。先迁移 writer、CI 夹具、GitHub Actions 输入及健康回执。用干净 clone 和暂存站点抽查 latest-brief、组合曲线、回撤、β/Vol、决策卡。用同一输入、水位和时钟生成五份 Dashboard JSON，逐字段对比。
-- 验证任何一项数字、窗口、缺失标记或页面有变化，保持现行读写路径并撤回切换。直接运行常规 live 快进，Git 可能移除已取消跟踪的路径。部署先备份、按路径恢复、核字节与权限，然后才接回调度。
+| 路径或能力 | 代码 | 测试 | 文档 |
+|---|---|---|---|
+| Dispatch runner、回收 service/timer、六个 runner 测试、DSH 示例 | ✓ 保留入口 | ✓ 保留测试和 CI | ✓ README 的 Harness 界面与后台工作 |
+| `memory/decisions.jsonl`、bars、snapshots、计划 | ✓ 保留现有公开溯源与读取 | ✓ 现行 CI | ☐ README 区分公开决策数据与原始持仓账本 |
+| 日简报及周复盘 | ☐ data-plane 同代写入、回填、Pages 严格读取 | ☐ 条目数、5 篇正文、最新链接、失败路径 | ☐ URL 保留，更新来源说明 |
+| `portfolio.json` | ☐ 三个 postflight、Actions 回退和发布先脱离公开原始账本 | ☐ 持仓更新时效、Dashboard 和 cron 回归 | ☐ 账本路径保持本地 |
+| `config/profiles/kcnyu/profile.json` | ☐ 保持本地解析，公开仅留中性 profile 和 schema | ☐ conftest 和 delivery profile 改用中性数据 | ☐ 更换公开示例链接 |
+| `MEMORY.md`、`DREAMS.md` 与运行时根文件 | ☐ context manifest、assembly、system_check、git guard 和 allowlist 同步 | ☐ 缺省可启动、本机投影与 store 一致、运行时原文逐字节一致 | ☐ CONTRIBUTING 独立和双语 README 同步 |
+| 设计稿和图 | ☐ 删除清单逐项核引用 | ☐ 查断链，保留产品图和测试引用 | ☐ 索引和设计契约同次更新 |
+
+简报与周复盘以现有 public Markdown 原文迁 data-plane。建立完整归档索引和摘要后再切换写入，Pages 从同一 ref 拉取归档和面板数据。拉取不全立即失败。保持目前的 URL 和正文；最终验收在实际页面点开最新一期，核条目数及 5 篇样本。基线盘点为每日 136 篇、每周 27 篇，共 163 篇。已知并接受简报和卡片继续公开股数、成本、浮盈金额。
+
+原始账本不能通过 `git add -f` 重新提交到 public master。先让三条 postflight 分别提交剩余公开产物，在本地保留持仓路径，同时为离机校验、回退和 Dashboard 更新接通所需输入。不同路径的移出与 allowlist、CI、代码、测试同步验证后实施。任何破坏数值、更新时效、90 天窗口、缺失标记或导航的切换都撤回。
 
 ## 本地工作区
+
+本机另盘点到 6,115 条未跟踪文件和链接（含忽略项；Git 元数据库单列）。完整路径和大小审计留在本机。
 
 | 路径 | 大小（磁盘，基线） | 实际读者、保留建议和恢复方式 |
 |---|---:|---|
@@ -61,4 +72,4 @@
 | `logs/` | 3.4 MiB | Cron 健康、发布诊断及故障审计有读者。现有 `gc_sessions.py` 已按大小和尾部窗口裁剪 append-only 日志，同时保留状态文件。继续沿用，保留目录。 |
 | `.data-plane.cache/` | 1.2 MiB | 定时发布将上一代用作缺输入时的卡片恢复和语义对比基线。保留；可从受验证的发布分支重建。 |
 
-上述目录没有满足“无读者、可重建、非运行输入”三项的整体删除候选。逐文件确认读者和恢复方式后再评估清理。后续若有精确到文件的候选，采用同一输入的 Dashboard 对拍和 cron 档冒烟复核。
+清理候选另包括 `memory/brief-versions`、`memory/dreaming/light` 及逐个确认的旧日志或媒体。Brief versions 有版本恢复读者，light 仍是召回来源，scorecard-inputs 仍是复算输入。每项要先核引用或结束读者迁移，确认可恢复备份后再按文件清理。删除验收需 Dashboard 对拍和 cron 档冒烟。
