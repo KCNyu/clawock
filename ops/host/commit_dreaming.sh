@@ -2,7 +2,8 @@
 # The nightly job reviews candidates and updates the two local views.
 set -uo pipefail
 
-WS="${DREAMING_WORKSPACE:-/root/.openclaw/workspace}"
+LIVE=/root/.openclaw/workspace
+WS="${DREAMING_WORKSPACE:-$LIVE}"
 STORE="${SHARED_MEMORY_DIR:-$HOME/.shared-memory}"
 # The cron PATH has no node and no pnpm prefix. The model review and intake
 # shells run the OpenClaw CLI; give them the same prefix the gateway uses.
@@ -13,7 +14,7 @@ if [ "${DREAMING_REVIEW_PAUSED:-0}" = 1 ]; then
   echo "dreaming-review: paused"
   exit 0
 fi
-if [ "$(pwd -P)" = /root/.openclaw/workspace ]; then
+if [ "$(pwd -P)" = "$LIVE" ]; then
   hour=$(TZ=Asia/Hong_Kong date +%-H)
   if [ "$hour" -lt 3 ] || [ "$hour" -ge 6 ]; then
     echo "dreaming-review: outside the 03:00–06:00 HKT maintenance window"
