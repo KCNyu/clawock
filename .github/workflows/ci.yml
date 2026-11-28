@@ -788,7 +788,10 @@ jobs:
         run: |
           test "$SCOPE" = success
           test "$CHECKS" = success
-          if [ "$CODE" = true ]; then test "$UNIT" = success && test "$EVALS" = success; fi
+          if [ "$CODE" = true ]; then
+            test "$UNIT" = success
+            test "$EVALS" = success
+          fi
           if [ "$UI" = true ]; then test "$BROWSER" = success; fi
           if [ "$DSPLUGIN" = true ]; then test "$WORKBENCH" = success; fi
       - uses: actions/checkout@v7
