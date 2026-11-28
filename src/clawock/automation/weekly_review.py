@@ -527,8 +527,7 @@ def _chain_deadline():
 
 def _render_review(draft, evidence):
     if evidence is None:
-        return validate_sections(draft, label='weekly review', required=WEEKLY_REQUIRED_SECTIONS,
-                                 min_chars=1000, trading_prose=True)
+        return draft
     renderer = prose_claims.ClaimRenderer(evidence)
     rendered = '\n'.join(
         line if line.strip() in WEEKLY_SECTION_HEADINGS else
@@ -542,8 +541,7 @@ def _render_review(draft, evidence):
         raise LLMOutputError('周复盘缺少标题或正文：' + '、'.join(missing))
     for advisory in dict.fromkeys(renderer.advisories):
         print(advisory, file=sys.stderr)
-    return validate_sections(rendered, label='weekly review', required=WEEKLY_REQUIRED_SECTIONS,
-                             min_chars=1, trading_prose=True)
+    return rendered
 
 
 def generate_review(system, user, *, clock=time.monotonic, evidence=None):
@@ -556,6 +554,7 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
     only what the first turn left — so the job still fits its timeout and
     test_llm_workflow_deadlines' one-chain accounting stays true.
     """
+    min_chars = 1000 if evidence is None else 1
     started = clock()
     messages = [{'role': 'system', 'content': system},
                 {'role': 'user', 'content': user}]
@@ -566,7 +565,9 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
     # Refuse before writing (#1263): a blank or off-prompt reply used to be
     # published as that week's review, and nothing downstream re-reads it.
     try:
-        return _render_review(out, evidence)
+        return validate_sections(_render_review(out, evidence), label='weekly review',
+                                 required=WEEKLY_REQUIRED_SECTIONS, min_chars=min_chars,
+                                 trading_prose=True)
     except LLMOutputError as rejection:
         _log_rejection(out, rejection)
         budget = _chain_deadline()
@@ -588,7 +589,9 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
             print(f'  ⚠️ repair turn failed: {exc}', file=sys.stderr)
             raise rejection from exc
         try:
-            return _render_review(repaired, evidence)
+            return validate_sections(_render_review(repaired, evidence), label='weekly review',
+                                     required=WEEKLY_REQUIRED_SECTIONS, min_chars=min_chars,
+                                     trading_prose=True)
         except LLMOutputError as exc:
             _log_rejection(repaired, exc)
             raise
