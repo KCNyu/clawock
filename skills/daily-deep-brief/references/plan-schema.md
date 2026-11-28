@@ -1,5 +1,14 @@
 ### Step 4: 写输出文件（B plan / C judgment / D insights —— A 报告与 E 微信卡由 harness 渲染）
 
+## 目录
+
+- [自动渲染](#output-render)
+- [计划](#output-plan)
+- [判断](#output-judgment)
+- [复盘](#output-insights)
+
+<a id="output-render"></a>
+
 #### A. 报告与微信卡：**你不写，harness 渲染**
 
 `memory/{YYYY-MM-DD}-pre-open.md` 与 `memory/.tmp/brief-card-{YYYY-MM-DD}.txt`
@@ -36,6 +45,8 @@ clawock brief render --dry-run
 计划的理由、条件描述、证伪条件、尺寸说明、辩论、判断和面板侧卡按需使用 `[[/ctx/字段/...]]`（同代 context 或 bundle）或 `[[/packet/字段/...]]`（decision packet）引用原字段。数组从零编号。写 **`[[/packet/tickers/00100/facts/session_change_pct]]`** 即可，程序填值与百分号。代码含数字时引用对应行的 `ticker` 字段。来源和时间引用明确字段，新闻用资讯行的 `[[/ctx/.../0|cite]]` 生成标题、来源和时间；状态用 `|status`，列表计数用 `|count`。调用 compute 后用 `[[/compute/回执ID/value_pct]]` 等引用返回字段。
 
 计划每条理由还可用 `[[/decision/size/shares]]`、`[[/decision/condition/price]]`、`[[/decision/trim_at_trigger/post_trim_weight_pct]]`、`[[/decision/trim_at_mark/shares_to_review_line]]` 引用本条已登记的尺寸、条件和对应卖出情景。股数、百分比及带币种字段的单位随值渲染。散文中不手写数字、股数、金额、占比、来源或时间；缺字段时说明缺口。机器字段仍按 schema 写 JSON 数字，例如 `size.shares`、`condition.price`、`confidence`。
+
+<a id="output-plan"></a>
 
 #### B. 结构化 plan → `memory/.tmp/{YYYY-MM-DD}-plan-draft.json`
 
@@ -171,6 +182,8 @@ book 的两腿与 `fx_rate_usdhkd` 从 core 原样抄入；两种合计由宿主
 
 禁止输出顶层 `actions`。postflight 会生成稳定的 `decision_id` / `episode_id` 并写入 `memory/decisions.jsonl`。**不要自己写这两个字段**（也不要从昨天的 plan 抄）：写了也会被丢弃重算 —— 它们是台账的键，由台账按规则判定是否延续同一 episode。同股同日的不同 strategy 必须保留为不同 decision；同策略连续同 action 才可归入同一 episode。
 
+<a id="output-judgment"></a>
+
 #### C. 受限判断 overlay → `memory/.tmp/brief-judgment-{YYYY-MM-DD}.json`
 
 先生成模板，再只回填观点字段：
@@ -255,6 +268,8 @@ portfolio_counterargument/narrative/ticker_judgments`。
 postflight 严格校验后才把这些文字并入 `assets/data/brief_projection.json`；
 overlay 缺失/非法时 Pages 仍发布 deterministic rows，只把 `judgment_status` 标为
 missing/invalid——但报告的辩论段会因此空着，所以这不是"可选项"。
+
+<a id="output-insights"></a>
 
 #### D. LLM 复盘草稿 → `memory/.tmp/brief-insights-draft-{YYYY-MM-DD}.json`
 

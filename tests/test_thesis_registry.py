@@ -273,7 +273,7 @@ def test_validator_fails_closed_on_malformed_nested_json():
 def test_preflight_and_review_skills_are_read_only_registry_consumers():
     preflight = (ROOT / "src" / "clawock" /
                  "harness" / "brief_preflight.py").read_text()
-    daily = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text()
+    daily = (ROOT / "skills" / "daily-deep-brief" / "references" / "swarm.md").read_text()
     review = (ROOT / "skills" / "portfolio-risk-review" / "SKILL.md").read_text()
     assert "'thesis_registry': thesis_registry_ctx" in preflight
     assert "'thesis_id':                action.get('thesis_id')" in preflight

@@ -469,7 +469,7 @@ def repair_prompt(user, out, reason):
 
 
 _BRIEF_REFERENCE = re.compile(
-    r"^\[[^\]\n]+\]\(references/(?P<name>swarm|plan-schema|style)\.md\)$",
+    r"^\[[^\]\n]+\]\(references/(?P<name>packet|swarm|plan-schema|style)\.md\)$",
     re.MULTILINE,
 )
 

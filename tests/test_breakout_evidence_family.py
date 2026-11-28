@@ -155,7 +155,7 @@ def test_the_skill_tells_the_writer_the_third_family_exists():
     The same anti-inert assertion #1075 needed: the packet can publish a family
     the plan writer has never been told to read.
     """
-    skill = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text(
+    skill = (ROOT / "skills" / "daily-deep-brief" / "references" / "packet.md").read_text(
         encoding="utf-8")
     for token in ("technical_breakout", "technical_reasons",
                   "early_no_chase_zscore"):

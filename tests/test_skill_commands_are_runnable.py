@@ -89,7 +89,7 @@ def test_the_documented_section_list_is_one_the_tool_accepts():
     sys.path.insert(0, str(ROOT / "src"))
     from clawock.decision import packet as packet_mod
 
-    text = (SKILLS / "daily-deep-brief" / "SKILL.md").read_text(encoding="utf-8")
+    text = (SKILLS / "daily-deep-brief" / "references" / "packet.md").read_text(encoding="utf-8")
     match = re.search(r"可选 section：`([^`]+)`", text)
     assert match, "the skill no longer documents the section list"
     documented = match.group(1).split("|")

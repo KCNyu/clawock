@@ -430,7 +430,7 @@ def test_the_skill_documents_a_load_command_for_every_loadable_bundle():
     """
     import re
 
-    skill = (ROOT / "skills/daily-deep-brief/SKILL.md").read_text(encoding="utf-8")
+    skill = (ROOT / "skills/daily-deep-brief/references/packet.md").read_text(encoding="utf-8")
     documented = set(re.findall(r"--arg bundle=([a-z_]+)", skill))
 
     assert documented == set(brief_context.BUNDLE_FIELDS), (

@@ -378,7 +378,7 @@ def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():
     assert "decision_v2.compute_metrics" in computed
     assert "dashboard.json" not in computed, "the brief must not source metrics from the trimmed payload"
 
-    skill = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text()
+    skill = (ROOT / "skills" / "daily-deep-brief" / "references" / "swarm.md").read_text()
     assert "current_group_calibrators" in skill
 
 

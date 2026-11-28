@@ -14,8 +14,8 @@ clawock brief preflight; echo "EXIT=$?"
 ```
 内部会刷 US/HK 价 + FX + 快照 + HHI + SEC EDGAR + retrospective，编译本次 generation 的 context 与 decision packet。preflight 自己按简报的 HKT 日期判断休市，返回 `market_closed` 就结束，不写产物、不调 postflight。exec 的 timeout 设 630 秒，若返回后台 session，只用 `process poll` 等本次结果。
 
-**Step 2 - 输入：只按 SKILL.md「Step 2 / Step 2.5」读**
-输入协议只有 SKILL.md 那一份，这里不另写：常驻输入是 decision packet summary，分析某票时按票 / section 查询，bundle 按需取。**不要整份读 `memory/.tmp/brief-context-{date}.json`**（审计全量，供 postflight 校验）。
+**Step 2 - 输入：preflight 通过后读取 `skills/daily-deep-brief/references/packet.md`**
+输入协议只在该 reference，这里不另写：常驻输入是 decision packet summary，分析某票时按票 / section 查询，bundle 按需取。**不要整份读 `memory/.tmp/brief-context-{date}.json`**（审计全量，供 postflight 校验）。
 **持仓相关数字**（FX、book USD/HKD、concentration HHI、retrospective、单股 RSI/MA/PnL）只取自本次 generation 的 packet / bundle，不要凭空造。
 **板块全景/同行涨幅榜**用本代 peer_scan。需要额外核查催化时按 SKILL Step 3 检索。
 

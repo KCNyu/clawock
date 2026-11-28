@@ -69,6 +69,27 @@ def test_single_turn_fallback_inlines_the_same_skill_references():
     root = Path(__file__).resolve().parents[1]
     skill = root / 'skills/daily-deep-brief'
     prompt = _read_brief_skill(root)
-    for name in ('swarm', 'style', 'plan-schema'):
+    for name in ('packet', 'swarm', 'style', 'plan-schema'):
         reference = (skill / 'references' / f'{name}.md').read_text(encoding='utf-8').strip()
         assert reference in prompt
+
+
+def test_brief_skill_exposes_small_runtime_entry_and_indexed_references():
+    import re
+
+    root = Path(__file__).resolve().parents[1]
+    skill = root / 'skills/daily-deep-brief'
+    entry = (skill / 'SKILL.md').read_text(encoding='utf-8')
+    assert len(entry.splitlines()) < 500
+    assert 'manual' in entry.lower() or '手动复盘' in entry
+    assert '工作日简报任务是正例' in entry
+    paths = re.findall(r'\]\((references/[^/)]+\.md)\)', entry)
+    assert set(paths) == {
+        'references/packet.md', 'references/swarm.md', 'references/style.md',
+        'references/plan-schema.md', 'references/technical-playbooks.md',
+    }
+    for relative in paths:
+        reference = (skill / relative).read_text(encoding='utf-8')
+        if len(reference.splitlines()) > 100:
+            assert '## 目录' in reference
+        assert '](references/' not in reference

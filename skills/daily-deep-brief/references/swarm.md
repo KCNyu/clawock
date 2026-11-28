@@ -1,8 +1,18 @@
 ### Step 3: Swarm 分析（你的创造性工作）
 
+## 目录
+
+- [必读输入](#swarm-inputs)
+- [市场判断](#swarm-regime)
+- [分工与三层分析](#swarm-roles)
+- [仓位与杠杆](#swarm-risk)
+- [交给 harness 的判断](#swarm-judgment)
+
 写任何给读者看的判断前，先读 `src/clawock/trading-prose.md`（workspace 根目录下）。适用于导语、逐票判断、板块与复盘侧卡，也适用于会被 DSH 决策轨迹引用的 plan 理由、正反方和证伪条件。逐票写清当时怎么想；有订单尺寸、条件价和信心字段时，理由不再列一遍。
 
 按下面这个 3-tier 流程做分析。所有数字只能从本次 generation 的 packet 查询、确有必要时加载的 bundle、或本次运行内 `clawock tool compute` / `observations` 的返回取；风险分类和 action bounds 引用 harness 结果。packet 给的技术指标和因子分数是固定窗口下的一种算法，你可以用 `compute` 换窗口、换比较对象或定义新的量，但不心算。
+
+<a id="swarm-inputs"></a>
 
 #### Required reads
 
@@ -23,6 +33,8 @@
 
 当前持仓 thesis 只读 `context.thesis_registry`，daily brief 不在每天晨报里重写 canonical baseline。`status=unknown` 只表示缺基线，不得靠模型记忆或昨天文案补造历史；需要变更时必须走 registry validator/drift evaluator，并为每个 improved/weakened 维度附本次新增 evidence ID。
 
+<a id="swarm-regime"></a>
+
 #### Regime detection（先跑，定调）
 
 | Regime | 触发 | sizing 含义 |
@@ -35,6 +47,8 @@
 **两个市场分开判**（kcn book 是港股 + 美股 mismatch 是常态）：
 - US: 用 QQQ / SOX 走势
 - HK: 用 ^HSTECH / 恒指
+
+<a id="swarm-roles"></a>
 
 #### Tier 1 — 4 个分析师角度（独立思考、合并成一张大表）
 
@@ -142,6 +156,8 @@ Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 - 复盘时按 `strategy_id` 分层看牛熊适应性；在 v2 尚无足够 regime episode 样本前，保留定性判断并注明样本不足，绝不引用旧 v1 的静态百分比冒充当前结果。
 
 这意味着“牛市 core 持有 + 同日 intraday T”“熊市 core 未证伪 + risk_rebalance 降杠杆”都可以同时成立；它们是不同策略，不是自相矛盾。
+
+<a id="swarm-risk"></a>
 
 #### 🚦 仓位/杠杆硬闸(REQUIRED — 优先级高于 driven_by 与 regime guard)
 
@@ -292,6 +308,8 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 | 40-59% | analyst 分裂，regime 混乱，或 1 段数据 stale |
 | 20-39% | 信号冲突，疑似 regime change，多段数据 stale |
 | < 20% | 不要按这个 read 行动；等清晰 |
+
+<a id="swarm-judgment"></a>
 
 #### 报告各段：harness 印数据，你只写判断字段
 

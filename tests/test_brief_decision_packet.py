@@ -1085,7 +1085,9 @@ def test_an_unescalated_event_is_an_objection_and_an_invented_one_is_an_error():
 def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     ui = (ROOT / "site" / "assets" / "js" / "dashboard.ui.js").read_text()
     renderer = (ROOT / "site" / "assets" / "js" / "dashboard.render.js").read_text()
-    skill = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text()
+    references = ROOT / "skills/daily-deep-brief/references"
+    packet_doc = (references / "packet.md").read_text()
+    output_doc = (references / "plan-schema.md").read_text()
 
     assert 'brief_projection: "drill"' in ui
     assert 'safe(DATA, "brief_projection")' in renderer
@@ -1107,9 +1109,9 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     assert "v.txt" not in renderer
     # Both reads go through package-owned tool contracts; neither requires a
     # Python source file in the KCNyu workspace.
-    assert "decision_packet_summary" in skill
-    assert "decision_packet_judgment_template" in skill
-    assert "禁止加入价格、RSI、MA" in skill
+    assert "decision_packet_summary" in packet_doc
+    assert "decision_packet_judgment_template" in output_doc
+    assert "禁止加入价格、RSI、MA" in output_doc
 
 
 def _book_with(n_holdings: int):

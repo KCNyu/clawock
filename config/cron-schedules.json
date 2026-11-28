@@ -132,6 +132,7 @@
       "delivery_mode": "none",
       "required_substrings": [
         "skills/daily-deep-brief/SKILL.md",
+        "skills/daily-deep-brief/references/packet.md",
         "skills/daily-deep-brief/references/swarm.md",
         "skills/daily-deep-brief/references/style.md",
         "skills/daily-deep-brief/references/plan-schema.md",
