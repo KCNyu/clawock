@@ -568,3 +568,18 @@ def test_failed_attempt_does_not_supply_the_live_models_identity(tmp_path):
     ], header=f'[cron:job-1 {JOB}] brief')
 
     assert provider.current_cron_run_usage(paths=paths, now_ms=NOW, job=JOB) is None
+
+
+def test_postflight_keeps_observed_token_counts_in_local_log(tmp_path, monkeypatch):
+    from clawock.harness import run_usage
+    from clawock.providers import openclaw
+
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
+    sample = openclaw.RunUsage('model', 'provider', None, None, None, None, prompt_tokens=1536)
+    monkeypatch.setattr(openclaw, 'current_cron_run_usage', lambda **kwargs: sample)
+    run_usage.footer(job='brief')
+
+    path = tmp_path / 'logs/cron-context-usage.log'
+    row = json.loads(path.read_text())
+    assert row['prompt_tokens'] == 1536
+    assert row['job'] == 'brief'

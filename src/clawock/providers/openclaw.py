@@ -762,6 +762,7 @@ class RunUsage:
     day_usd: float | None
     cache_hit_pct: int | None
     context_pct: int | None
+    prompt_tokens: int | None = None
 
 
 @dataclass(frozen=True)
@@ -1134,6 +1135,7 @@ def _usage_for_session(paths: OpenClawPaths, *, session_id, job_id, started_at,
         day_usd=day_usd,
         cache_hit_pct=scan.cache_hit_pct,
         context_pct=context_pct,
+        prompt_tokens=scan.prompt_tokens,
     )
 
 

@@ -78,6 +78,11 @@ def test_same_fixture_reduces_always_loaded_input_and_preserves_action_fields(tm
     assert manifest["budget"]["always_loaded_bytes"] <= 128 * 1024
     assert manifest["budget"]["actual_reduction_pct"] >= 60
     assert manifest["budget"]["target_met"] is True
+    budget = brief_context.context_budget(manifest)
+    assert budget["max"]["always_on_bytes"] == brief_context.ALWAYS_LOADED_BUDGET_BYTES
+    assert budget["always_on"]["bytes"] == manifest["budget"]["always_loaded_bytes"]
+    assert budget["lazy"]["evidence"] == manifest["bundles"]["evidence"]["bytes"]
+    assert budget["truncate_order"]["research"] == list(brief_context.BUNDLE_TRIM_ORDER["research"])
     for field in brief_context.CORE_FIELDS:
         assert core[field] == stamped[field], field
     assert "new_feature_surface" not in core
