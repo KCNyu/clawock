@@ -20,6 +20,13 @@ def load(name):
     return module
 
 
+@pytest.fixture(autouse=True)
+def isolate_cron_from_host_memory(tmp_path, monkeypatch):
+    monkeypatch.setenv('SHARED_MEMORY_SKILL_DIR', str(tmp_path / 'no-host-skill'))
+    monkeypatch.setenv('SHARED_MEMORY_DIR', str(tmp_path / 'store'))
+    monkeypatch.setenv('SHARED_MEMORY_STATE', str(tmp_path / 'state'))
+
+
 gate = load('review_dreaming')
 dreams = load('review_dreams')
 patch = load('patch_dreaming_review')
