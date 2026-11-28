@@ -171,6 +171,20 @@ def test_dreams_new_entry_is_quarantined_until_a_hash_bound_receipt(tmp_path):
     assert 'A clean new entry.' in path.read_text()
     subprocess.run(command + ['--check'], check=True, capture_output=True)
 
+    private = tmp_path / 'memory/.dreams'
+    assert not (private / 'dreams-approvals.json').exists()
+    ledger = json.loads((private / 'dreams-review.json').read_text())
+    approval = ledger['entries'][rows[-1]['sha256']]
+    assert approval['status'] == 'approved'
+    assert approval['reviewer'] == 'test'
+    assert len(approval['content_sha256']) == 64
+
+    approved_text = path.read_text()
+    path.write_text(approved_text.replace('A clean new entry.', 'A CLEAN new entry.'))
+    check = subprocess.run(command + ['--check'], capture_output=True, text=True)
+    assert check.returncode == 1
+    assert 'unreviewed DREAMS entry' in check.stderr
+
 
 def test_dreams_contaminated_entry_cannot_be_approved(tmp_path):
     path = tmp_path / 'DREAMS.md'

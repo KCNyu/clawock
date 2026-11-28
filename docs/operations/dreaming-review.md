@@ -144,14 +144,12 @@ separate review.
   held for confirmation on kcn's explicit instruction. The remaining 36 entries
   carry a reusable conclusion, decision basis or incident context. The private
   baseline keeps the removed hashes; the remaining entries were not rewritten.
-- A later entry whose hash is not in the baseline is kept only when the
-  deterministic contamination rules pass **and** `memory/.dreams/dreams-approvals.json`
-  has a receipt for its exact normalized SHA256 (reviewer, rationale, reviewed_on
-  within 30 days, durable). Otherwise it is removed from `DREAMS.md` and appended
-  to ignored `memory/.dreams/dreams-quarantine.jsonl` with the reason.
-- `review_dreams.py --list` prints quarantined hashes. An operator can inspect the
-  text and run `review_dreams.py --approve <sha256> --reviewer ... --rationale ...`;
-  the next review records it as approved. A contaminated entry cannot be approved.
+- A later entry enters the private quarantine even when its content passes the deterministic
+  checks. With `--list`, an operator can inspect quarantined hashes and use
+  `--approve <sha256> --reviewer ... --rationale ...`. The command screens the content, records
+  the reviewer and exact entry hash in `dreams-review.json`, then restores the approved text.
+  The former standalone approval file is retired. Existing approved and grandfathered ledger
+  entries remain valid.
 - `--check` fails if the baseline is missing, if DREAMS contains an unreviewed
   entry, or if a quarantined entry is present. No path, marker or site input moves.
 
