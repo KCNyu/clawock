@@ -440,3 +440,27 @@ def test_a_publish_names_the_generation_it_replaced_and_can_read_it(repo):
     assert second.changed and second.previous == first.receipt
     assert store.read(second.previous, "assets/data/dashboard.json") == '{"totals": 1}'
     assert store.read(second.previous, "assets/data/missing.json") is None
+
+
+def test_archive_and_dashboard_publications_share_a_fast_forward_branch(repo, tmp_path):
+    from clawock.publish import brief_archive
+
+    store = GitBranchStore(repo, "data-plane")
+    brief = "memory/2026-11-27-pre-open.md"
+    body = "# Existing report\n"
+    files = {brief: body}
+    seeded = store.publish_updates({**files, brief_archive.INDEX: brief_archive.update_index(None, files)})
+    updated = store.publish_updates(GENERATION)
+    assert updated.previous == seeded.receipt
+    assert _git(repo, "rev-parse", f"{updated.receipt}^") == seeded.receipt
+
+    dest = tmp_path / "published"
+    store.fetch(dest, validate=brief_archive.verify)
+    assert (dest / brief).read_text() == body
+    assert set(brief_archive.index_entries((dest / brief_archive.INDEX).read_text())) == {brief}
+
+    store.publish_updates({brief: "mismatched body\n"})
+    rejected = tmp_path / "rejected"
+    with pytest.raises(ValueError, match="brief archive entry missing or corrupt"):
+        store.fetch(rejected, validate=brief_archive.verify)
+    assert not rejected.exists()

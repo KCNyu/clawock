@@ -257,7 +257,8 @@ def main() -> int:
         author_name=BOT_NAME, author_email=BOT_EMAIL,
     )
     try:
-        result = store.publish(files, label=generation_label(root))
+        result = store.publish_updates(
+            files, label=generation_label(root), remove=DATA_PLANE_OPTIONAL)
     except subprocess.TimeoutExpired as exc:
         # A timeout is a diagnosis, not a crash. It is a SIBLING of
         # CalledProcessError, so before 2026-09-07 it fell through every handler

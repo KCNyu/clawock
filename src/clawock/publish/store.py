@@ -112,7 +112,7 @@ def _check_names(files: Mapping[str, str]) -> None:
         raise ValueError("refusing to publish an empty generation")
     for name in files:
         path = Path(name)
-        if path.is_absolute() or ".." in path.parts:
+        if path.is_absolute() or ".." in path.parts or "\0" in name:
             raise ValueError(
                 f"generation member must be a relative path inside the store: {name!r}")
 
@@ -337,6 +337,47 @@ class GitBranchStore:
         except subprocess.CalledProcessError:
             return None
 
+    def publish_updates(self, files: Mapping[str, str], *, label: str = "",
+                        remove=(), expand=None, attempts: int = PUSH_ATTEMPTS) -> PublishResult:
+        """Fast-forward one branch, merging with the latest tree on each retry.
+
+        The caller owns the paths it updates or explicitly drops. A caller
+        supplying `expand` can update a manifest from this exact parent.
+        """
+        self._reject_protected()
+        for attempt in range(1, attempts + 1):
+            stored = self._stored_generation()
+            previous = stored[0] if stored else None
+            writes = {**files, **(expand(previous) if expand else {})}
+            _check_names(writes)
+            removals = {name: "" for name in remove if name not in writes}
+            if removals:
+                _check_names(removals)
+            with tempfile.TemporaryDirectory() as tmp:
+                env = {**os.environ, "GIT_INDEX_FILE": str(Path(tmp) / "index")}
+                self._git("read-tree", previous or "--empty", env=env)
+                for name in removals:
+                    self._git("update-index", "--force-remove", "--", name, env=env)
+                entries = []
+                for name, body in sorted(writes.items()):
+                    blob = self._git("hash-object", "-w", "--stdin", stdin=body)
+                    entries.append(f"100644 {blob}\t{name}\0")
+                self._git("update-index", "-z", "--index-info", env=env, stdin="".join(entries))
+                tree = self._git("write-tree", env=env)
+            if stored and tree == stored[1]:
+                return PublishResult(previous, changed=False)
+            parent = ("-p", previous) if previous else ()
+            commit = self._git("commit-tree", tree, *parent, "-m", label or "generation")
+            try:
+                self._git("push", self.remote, f"{commit}:refs/heads/{self.branch}")
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+                if attempt == attempts:
+                    raise
+                time.sleep(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS)
+            else:
+                return PublishResult(commit, changed=True, previous=previous)
+        raise ValueError("publication requires a positive attempt count")
+
     # ── ArtifactStore ───────────────────────────────────────────────────────
     def publish(self, files: Mapping[str, str], *, label: str = "",
                 attempts: int = PUSH_ATTEMPTS) -> PublishResult:
@@ -398,7 +439,7 @@ class GitBranchStore:
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
             return None
 
-    def fetch(self, into: Path | str, *, names=None, allow_missing=None) -> list[str]:
+    def fetch(self, into: Path | str, *, names=None, allow_missing=None, validate=None) -> list[str]:
         """Materialise the stored generation into a directory.
 
         The read side of the same seam. Two callers need it and neither wants a
@@ -421,7 +462,8 @@ class GitBranchStore:
         with self._fetched_commit() as commit:
             listed = self._git("ls-tree", "-r", "--name-only", commit).split("\n")
             listed = [name for name in listed if name]
-            wanted = list(names) if names is not None else listed
+            selected = names(commit, listed) if callable(names) else names
+            wanted = list(selected) if selected is not None else listed
             missing = [name for name in wanted if name not in listed]
             if missing:
                 excused = allow_missing(commit, missing) if allow_missing else []
@@ -429,8 +471,9 @@ class GitBranchStore:
                     raise FileNotFoundError(
                         f"{self.remote}/{self.branch} does not carry {missing}")
                 wanted = [name for name in wanted if name not in missing]
+            files = {name: self._git_blob(commit, name) for name in wanted}
+            if validate is not None:
+                validate(files)
             into = Path(into)
-            write_generation({
-                str(into / name): self._git_blob(commit, name) for name in wanted
-            })
+            write_generation({str(into / name): body for name, body in files.items()})
         return wanted
