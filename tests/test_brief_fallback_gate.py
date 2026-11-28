@@ -62,7 +62,7 @@ def test_fallback_requires_both_publication_receipts(tmp_path):
     (tmp_path / 'logs').mkdir()
     day = '2026-11-28'
     gate = tmp_path / 'logs' / 'brief_postflight_status.json'
-    body = _workflow_step_run('Validate and publish brief')
+    body = _workflow_step_run('Commit + push')
     result = {'date': day, 'commit_ok': True, 'data_plane_status': 'published'}
     approved = {'today': day, 'publish_ok': True}
     cases = [

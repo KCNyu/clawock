@@ -2,7 +2,7 @@
 from pathlib import Path
 
 from workflow_contract_helpers import (
-    assert_validator_step, step_block, step_run, steps)
+    assert_validator_step, step_block, step_run, steps, staged_paths)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,9 +24,10 @@ def test_weekly_review_is_validated_and_exactly_staged_before_publish():
     assert_validator_step(WORKFLOW, 'Validate generated review', 'weekly-review')
 
     assert 'memory/weekly/${WEEK_ID}.md' in _step_run('Compose the commit target')
-    publish = _step_run('Commit + push')
+    assert names.index('Validate generated review') < names.index('Publish validated review to the archive')
+    publish = step_block(WORKFLOW, 'Publish validated review to the archive')
     assert 'publish_generation.sh --archive-only --brief "$COMMIT_PATHS"' in publish
-    assert 'gha_commit_push.sh "$COMMIT_MESSAGE" "$COMMIT_PATHS"' in publish
+    assert staged_paths(WORKFLOW, 'Commit + push') == ['memory/weekly/${WEEK_ID}.md']
 
 
 def test_review_check_and_commit_name_the_one_resolved_week():

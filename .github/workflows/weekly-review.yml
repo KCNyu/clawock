@@ -18,7 +18,7 @@ concurrency:
 jobs:
   review:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
@@ -76,10 +76,15 @@ jobs:
           echo "COMMIT_PATHS=memory/weekly/${WEEK_ID}.md" >> "$GITHUB_ENV"
           echo "COMMIT_MESSAGE=memory: weekly review ${WEEK_ID}" >> "$GITHUB_ENV"
 
+      - name: Publish validated review to the archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash ops/publish/publish_generation.sh --archive-only --brief "$COMMIT_PATHS"
+
       - name: Commit + push
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          bash ops/publish/publish_generation.sh --archive-only --brief "$COMMIT_PATHS"
-          bash ops/publish/gha_commit_push.sh "$COMMIT_MESSAGE" "$COMMIT_PATHS"
+        uses: ./.github/actions/clawock-commit
+        with:
+          paths: ${{ env.COMMIT_PATHS }}
+          message: ${{ env.COMMIT_MESSAGE }}

@@ -257,7 +257,7 @@ jobs:
           git checkout -- . 2>/dev/null || true
           git clean -fd memory assets/data 2>/dev/null || true
 
-      - name: Validate and publish brief
+      - name: Commit + push
         if: steps.check.outputs.skip != 'true' && steps.check.outputs.branch != 'rehearsal'
         # Postflight owns the exact git paths and the safe_push.sh retry. The
         # workflow authenticates only this deterministic publication step.

@@ -17,7 +17,7 @@ import pytest
 import yaml
 
 from clawock.automation import llm
-from clawock.run_budgets import PUSH_TIMEOUT_SECONDS, POST_DELIVERY_BUDGET_SECONDS, pre_delivery_reserve_seconds
+from clawock.run_budgets import PUSH_TIMEOUT_SECONDS, POST_DELIVERY_BUDGET_SECONDS, PUBLISH_BUDGET_SECONDS, pre_delivery_reserve_seconds
 
 ROOT = Path(__file__).resolve().parents[1]
 DEADLINE_KEY = "CLAWOCK_LLM_DEADLINE_SECONDS"
@@ -135,7 +135,13 @@ def test_the_provider_chain_fits_inside_the_job(workflow_name, job_id, chains):
         if 'gha_commit_push.sh' in steps:
             helper = (ROOT / 'ops/publish/gha_commit_push.sh').read_text()
             pushes += sum('bash \"$SAFE_PUSH\"' in line for line in helper.splitlines() if not line.lstrip().startswith('#'))
+        archive = 'publish_generation.sh --archive-only' in steps
+        if archive and any(step.get('uses', '').endswith('/clawock-commit')
+                           for step in job.get('steps', [])):
+            pushes += 1
         reserve = PUSH_TIMEOUT_SECONDS * pushes + 60
+        if archive:
+            reserve += PUBLISH_BUDGET_SECONDS
     assert job_seconds - budget >= reserve, (
         f"{workflow_name}: setup, validation and commit still have to fit in "
         f"what is left of the job"
