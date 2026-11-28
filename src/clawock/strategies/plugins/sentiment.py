@@ -108,7 +108,7 @@ SIGNAL_SOURCE = {
         _out('attention.tickers[].reddit_mentions_7d', 'posts', '7 days before the scan',
              'null when Reddit did not answer for the name, with reddit_status saying so; '
              'zero when the selected sample contained no match'),
-        _out('attention.tickers[].news_top', 'up to 3 titles', 'the scan\'s Google News answer',
+        _out('attention.tickers[].news_top', 'up to 3 headlines with source metadata', 'the scan\'s Google News answer',
              'empty list when the scan returned none'),
         _out('attention.tickers[].recent_move', 'percent over n sessions', '5 closed sessions',
              'null when the store has too few closes for the name'),
@@ -189,8 +189,9 @@ class Sentiment:
                     **({'reddit_sampled': True} if row.get('reddit_sampled') is True else {}),
                     'reddit_top': [{'title': post.get('title'), 'url': post.get('url')}
                                    for post in (row.get('reddit_posts') or [])[:3]],
-                    'news_top': [item.get('title') for item in (english + chinese)[:3]
-                                 if item.get('title')],
+                    'news_top': [{key: item[key] for key in ('title', 'source', 'url', 'published')
+                                  if item.get(key)}
+                                 for item in (english + chinese)[:3] if item.get('title')],
                     'recent_move': moves.get(row.get('ticker')),
                 })
             reading = {

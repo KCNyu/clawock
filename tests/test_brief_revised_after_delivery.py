@@ -343,3 +343,30 @@ def test_watchdog_mirror_during_validation_skips_only_telegram(desk, capsys, mon
     else:
         assert 'delivery' not in index['versions'][0]
         assert receipt['report_sha256'] is None
+
+
+def test_sector_claim_dropped_during_render_is_reported(desk, capsys, monkeypatch):
+    from clawock import prose_claims
+
+    generation = 'generation-fixture'
+    (desk.tmp / f'brief-context-{TODAY}.json').write_text(json.dumps({
+        'generation_id': generation, prose_claims.FIELD: prose_claims.VERSION,
+    }))
+    overlay = _filled_judgment()
+    overlay['context_generation_id'] = generation
+    (desk.tmp / f'brief-judgment-{TODAY}.json').write_text(json.dumps(overlay))
+    plan = postflight.brief_prose.plan_draft_path(desk.tmp.parent.parent, TODAY)
+    plan.write_text(json.dumps({'context_generation_id': generation, 'decisions': []}))
+    monkeypatch.setattr(postflight.brief_decision_packet, 'validate_judgment_overlay',
+                        lambda *_: [])
+    original = postflight.brief_render.render_from_workspace
+
+    def render(*args, **kwargs):
+        kwargs['claims'].render('[[/ctx/missing|cite]]', '板块归因 CRCL')
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(postflight.brief_render, 'render_from_workspace', render)
+    code, result = desk.run(capsys, '--dry-run')
+    assert code == 0
+    assert any('侧卡正文省略' in issue and '板块归因 CRCL' in issue
+               for issue in result['issues'])

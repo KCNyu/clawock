@@ -639,9 +639,13 @@ def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
     report = cron_contract.render_payload_message(data, jobs['美股开盘报告'])
     assert (
         '并行调用 `read` 读取 '
-        '`/root/.openclaw/workspace/skills/us-stock-analysis/SKILL.md` '
+        '`/root/.openclaw/workspace/skills/_shared/report-prose-rules.md` '
         '与 Step 1 preflight'
     ) in report
+
+    assert '--packet-files' in report
+    assert 'parts[].path' in report and 'yieldMs: 120000' in report
+    assert '按标的合批并行' in report
 
     intraday = cron_contract.render_payload_message(data, jobs['美股盘中盯盘'])
     assert (
@@ -656,9 +660,10 @@ def test_strategy_crons_require_skill_body_read_in_first_tool_batch():
         '与 Step 1 preflight'
     ) in brief
 
+    assert 'skills catalog 只有索引，不含共用写作正文' in report
     assert all(
         'skills catalog 只有索引，不含 SKILL.md 正文' in message
-        for message in (report, intraday, brief)
+        for message in (intraday, brief)
     )
 
 
@@ -760,15 +765,15 @@ def test_brief_leaves_the_calendar_gate_to_preflight():
     assert 'trading_calendar.py' not in message
 
 
-def test_report_payload_only_recovers_when_the_exited_process_left_no_result():
+def test_report_payload_waits_on_original_process_and_leaves_recovery_to_watchdog():
     data = contract()
     for job in data['jobs']:
         if job.get('payload_profile') != 'report':
             continue
         message = cron_contract.render_payload_message(data, job)
-        assert '只用 `process` poll 等它返回结果 JSON' in message
-        assert '进程已经退出而你没拿到带 `status` 和 `commit_ok` 的结果 JSON' in message
-        assert '第二次仍没有结果就报告失败并结束' in message
+        assert '`process` poll 等同一 session' in message
+        assert '进程退出却没有带 `status` 和 `commit_ok` 的结果 JSON' in message
+        assert '记录实际退出码和错误后结束，由 watchdog 兜底' in message
         assert '`wechat_sent` 或 `telegram_sent` 为 true' in message
         assert '`data_plane_status: committed_local`' in message
         assert '直接进入 Step 4 并结束' in message

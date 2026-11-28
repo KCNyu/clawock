@@ -726,7 +726,8 @@ def _event_view(event: dict) -> dict:
             "confidence_tier",
             "actionable_escalation",
             "actionable_reasons",
-            "source_type", "primary_source", "direction",
+            "source_type", "primary_source", "source_url", "title",
+            "publication_time", "status", "direction",
         )
         if event.get(key) not in (None, "", [])
     }

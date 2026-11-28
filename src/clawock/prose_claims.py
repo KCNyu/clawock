@@ -5,7 +5,7 @@ import re
 from decimal import Decimal, InvalidOperation
 from math import isfinite
 
-from clawock.prose_validation import MEASUREMENT, check_storytelling
+from clawock.prose_validation import CITATION, MEASUREMENT, check_storytelling
 
 VERSION = 1
 FIELD = 'prose_claims_version'
@@ -32,7 +32,7 @@ _CITE_ROOTS = {
 }
 _SOURCE_FIELDS = {
     'source', 'source_name', 'provider', 'publisher', 'data_source', 'quote_source',
-    'exchange', 'venue', 'time_source', 'source_label',
+    'exchange', 'venue', 'time_source', 'source_label', 'primary_source',
 }
 _TIME_FIELDS = {
     'asof', 'as_of', 'asofdate', 'capturedat', 'captured_at', 'date', 'fetched_at',
@@ -114,21 +114,32 @@ def _numeric_display(value, path, roots):
     return text
 
 
+_MOVER_SOURCES = {
+    'exchange_filing': '交易所公告', 'hkexnews_filing': '港交所公告',
+    'sec_filing': 'SEC 文件', 'sec_filing_mirror': 'SEC 文件', 'sec_fulltext': 'SEC 文件',
+    'finnhub_filing': '公司公告（Finnhub）', 'market_flash': '市场快讯',
+}
+
+
 def _citation(row):
     if not isinstance(row, dict):
         raise ValueError('需要一条来源记录')
     if row.get('cite'):
         return _inline(row['cite'])
-    title = _inline(row.get('title') or row.get('headline'))
-    source = _inline(next((row[key] for key in sorted(_SOURCE_FIELDS)
+    title = _inline(row.get('title') or row.get('headline') or row.get('detail'))
+    source = _inline(_MOVER_SOURCES.get(row.get('source_class')) or
+                     next((row[key] for key in sorted(_SOURCE_FIELDS)
                            if isinstance(row.get(key), str) and row[key].strip()), None))
     clocks = (
         ('published_at', '发布'), ('publishedAt', '发布'), ('published_date', '发布'),
         ('capturedAt', '采集'), ('captured_at', '采集'), ('observed_at', '观测'),
         ('date', '来源日期'), ('as_of', '截至'), ('asOf', '截至'),
     )
+    published = (row.get('publication_time') or {}).get('iso')
     when = next((f'{kind} {row[key]}' for key, kind in clocks
-                 if isinstance(row.get(key), str) and _TIME_VALUE.fullmatch(row[key])), '时间未知')
+                 if isinstance(row.get(key), str) and _TIME_VALUE.fullmatch(row[key])),
+                f'发布 {published}' if isinstance(published, str) and _TIME_VALUE.fullmatch(published)
+                else '时间未知')
     return f'《{title[:60]}》（{source}，{when}）'
 
 
@@ -208,12 +219,16 @@ class ClaimRenderer:
         roots = self.roots if decision is None else {**self.roots, 'decision': decision}
 
         measurements = {}
+        citations = set()
 
         def replace(match):
             try:
                 value, measurement = self._claim(match[1], roots)
                 if measurement:
                     measurements[match.start()] = match[1]
+                pointer, _, mode = match[1].partition('|')
+                if mode == 'cite' or pointer.endswith('/cite'):
+                    citations.add(match.start())
                 if match[1].startswith(('/decision/trim_at_mark/', '/decision/trim_at_trigger/')):
                     self.references.append(match[1].partition('|')[0])
                 return value
@@ -230,7 +245,8 @@ class ClaimRenderer:
         result = TOKEN.sub(replace, text)
         # Strip reference syntax and quoted news from the style check. The
         # pattern sees only the author's words and the positions of measurements.
-        draft = TOKEN.sub(lambda match: MEASUREMENT if match.start() in measurements else ' ', text)
+        draft = TOKEN.sub(lambda match: MEASUREMENT if match.start() in measurements
+                          else CITATION if match.start() in citations else ' ', text)
         self.advisories.extend(check_storytelling(
             draft, label, dense_measurements=dense_measurements,
             repeated_measurement=len(set(measurements.values())) < len(measurements)))

@@ -30,6 +30,7 @@ import json
 import re
 from datetime import date as _date
 from pathlib import Path
+from urllib.parse import quote as quote_url, urlsplit
 
 from clawock.decision import brief_prose, receipts
 from clawock.harness import brief_sidecars
@@ -982,15 +983,33 @@ def macro_section(context, judgment):
     ])
 
 
+def _news_headline(item):
+    if not isinstance(item, dict):
+        return _inline(item) if item else ''
+    title = _inline(item.get("title") or item.get("headline") or "")
+    if not title:
+        return ''
+    url = item.get("url")
+    if isinstance(url, str):
+        try:
+            parts = urlsplit(url)
+            if parts.scheme in ("http", "https") and parts.hostname and not parts.username:
+                target = quote_url(url, safe=":/?#&=+%@,;~")
+                title = f"[{title}]({target})"
+        except ValueError:
+            pass
+    source = _inline(item["source"]) if item.get("source") else ''
+    published = _inline(item["published"]) if item.get("published") else ''
+    byline = " · ".join(filter(None, (source, published)))
+    return f"{title}（{byline}）" if byline else title
+
+
 def sentiment_section(context, judgment):
     judgments = _judgments(judgment)
     rows = []
     for row in ((context.get("sentiment") or {}).get("tickers") or []):
         ticker = str(row.get("ticker"))
-        keywords = "、".join(
-            str((item.get("title") or item.get("headline") or "")
-                if isinstance(item, dict) else item)[:36]
-            for item in (row.get("news_top") or [])[:3])
+        headlines = "；".join(filter(None, map(_news_headline, (row.get("news_top") or [])[:3])))
         reddit_label = "Reddit 7 日标题样本" if row.get("reddit_sampled") else "Reddit 7d"
         mentions = (f"{reddit_label} {row['reddit_mentions_7d']} mentions"
                     if row.get("reddit_mentions_7d") is not None else MISSING)
@@ -1002,7 +1021,7 @@ def sentiment_section(context, judgment):
         rows.append({
             "title": f"**{ticker}** · 近 {sessions} 日 {move}",
             "meta": [mentions],
-            "fields": [("新闻", _inline(keywords) if keywords else MISSING),
+            "fields": [("新闻", headlines or MISSING),
                        ("信号判断", text((judgments.get(ticker) or {}).get("sentiment_read")))],
         })
     if not rows:

@@ -45,7 +45,7 @@ def test_structured_trigger_holds_exact_owner_and_only_current_may_anchor_foreca
 
 def test_new_report_uses_reference_gate_while_historical_report_can_still_be_read(tmp_path):
     ctx = {'raw_wechat_block': 'data', 'holdings': {'00700': {'shares': 30}}}
-    draft = '▎情绪面\n等待方向。\n▎技术面\n等收线。\n▎操作建议\n腾讯继续持有。'
+    draft = '▎情绪面\n指数还没有方向。\n▎技术面\n等收盘确认。\n▎操作建议\n腾讯继续持有。'
     scoped = {**ctx, prose_claims.FIELD: prose_claims.VERSION}
     good, findings = prepare_report(scoped, draft + '持有[[/ctx/holdings/00700/shares]]。', tmp_path)
     assert '持有30 股' in good and categorize(findings) == 'pass'
@@ -150,7 +150,7 @@ def test_repeated_readings_and_stock_phrases_are_advisory_for_a_report(tmp_path)
     changed = '[[/ctx/holdings/07709/today_change_pct]]'
     shares = '[[/ctx/holdings/07709/shares]]'
     _, issues = prepare_report(ctx, base + f'业内认为，{changed}，{shares}，{price}。'
-                                f'再看看{price}。' + closing, tmp_path)
+                                f'再看看支撑能不能守住{price}。' + closing, tmp_path)
     assert len(issues) == 1 and categorize(issues) == 'warn'
     assert '一句里连报多项读数' in issues[0]
     assert '重复引用同一数值字段' in issues[0]

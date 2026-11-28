@@ -496,6 +496,7 @@ def build_user_prompt(payload):
         "有待验证的解释就说什么会推翻它。\n"
         "3. **风险演变**。说组合眼下最怕什么。风险快照缺历史比较时，写清目前看到的范围。\n"
         "4. **下周关注**。写有机会改变仓位的那几件事，带上标的、触发条件和仓位影响。\n\n"
+        "每节交代该类事实；缺数据时，写清缺的是哪项、因此不能判断什么。\n"
         "四个小节的二级标题必须逐字使用下面四行：\n"
         + '\n'.join(WEEKLY_SECTION_HEADINGS) + "\n\n"
         f"数据 bundle (JSON):\n```json\n{_compact(payload)}\n```\n\n"
@@ -538,7 +539,7 @@ def _render_review(draft, evidence):
     _, sections = weekly_sections(rendered)
     missing = [heading for heading in WEEKLY_SECTION_HEADINGS if heading not in sections]
     if missing:
-        raise LLMOutputError('周复盘缺少标题或正文：' + '、'.join(missing))
+        raise LLMOutputError('周复盘缺少标题或对应事实（也可写具体缺口）：' + '、'.join(missing))
     for advisory in dict.fromkeys(renderer.advisories):
         print(advisory, file=sys.stderr)
     return rendered
@@ -554,7 +555,8 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
     only what the first turn left — so the job still fits its timeout and
     test_llm_workflow_deadlines' one-chain accounting stays true.
     """
-    min_chars = 1000 if evidence is None else 1
+    # Structured reviews already check four distinct fact categories.
+    min_chars = 1000 if evidence is None else 0
     started = clock()
     messages = [{'role': 'system', 'content': system},
                 {'role': 'user', 'content': user}]

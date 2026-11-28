@@ -19,7 +19,10 @@ def _review(*names):
     return '\n\n'.join(f'## {i}. {name}\n{FILLER}' for i, name in enumerate(names, 1))
 
 
-GOOD = _review(*weekly.WEEKLY_REQUIRED_SECTIONS)
+FACTS = ('港股拖了后腿。', '那笔没成交，我先查下单时间。', '手里几只票可能一起跌。',
+         '我想看海力士能不能止跌，再决定仓位。')
+GOOD = '\n\n'.join(f'{heading}\n{fact}\n{FILLER}' for heading, fact in zip(
+    weekly.WEEKLY_SECTION_HEADINGS, FACTS, strict=True))
 # The 09-13 shape: a real-length review whose headings lack `下周关注` (what the
 # model wrote instead was not logged — _log_rejection now records it).
 NO_NEXT_WEEK = _review('本周净值', '决策兑现', '风险演变', '下周 Watchlist')
@@ -55,7 +58,7 @@ def test_prompt_demands_the_exact_headings_both_gates_look_for(tmp_path):
 
     # A reply that follows the prompt literally passes the in-process gate and
     # the workflow's sidecar validator — the two must not disagree.
-    body = '\n\n'.join(f'{h}\n{FILLER}' for h in weekly.WEEKLY_SECTION_HEADINGS)
+    body = GOOD
     validate_sections(body, label='weekly review',
                       required=weekly.WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
     path = tmp_path / 'memory' / 'weekly' / '2026-W37.md'
@@ -188,3 +191,18 @@ def test_short_structured_review_needs_real_text_under_each_heading(monkeypatch,
     path = tmp_path / '2026-W48.md'
     path.write_text('---\nlayout: default\ntitle: 周复盘 · 2026-W48\n---\n\n' + body)
     validate_weekly_review(path)
+
+
+def test_weekly_58_char_stub_fails_generation_and_pages(monkeypatch, tmp_path):
+    from clawock.publish.artifacts import validate_weekly_review
+    stub = '\n\n'.join(f'{heading}\n好。' for heading in weekly.WEEKLY_SECTION_HEADINGS)
+    assert len(stub) == 58
+    fake = FakeChat(stub, stub)
+    monkeypatch.setattr(weekly, 'chat', fake)
+    with pytest.raises(LLMOutputError, match='对应事实'):
+        weekly.generate_review('sys', 'user', evidence={'week': '2026-W48'})
+    assert len(fake.calls) == 2
+    path = tmp_path / '2026-W48.md'
+    path.write_text('---\nlayout: default\ntitle: 周复盘 · 2026-W48\n---\n\n' + stub)
+    with pytest.raises(AssertionError, match='missing section prose'):
+        validate_weekly_review(path)

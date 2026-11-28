@@ -21,6 +21,8 @@ import json
 from datetime import date
 from pathlib import Path
 
+from clawock.prose_validation import Advisory
+
 import pytest
 
 
@@ -127,7 +129,7 @@ def test_content_rules_run_on_prose_not_the_prepended_block(pf):
     assert 'CRCL' in assembled  # the table carries it
 
     issues = pf.validate(assembled, ctx, prose)
-    assert any('异动票' in i and 'CRCL' in i for i in issues)
+    assert any('异动归因漏写' in i and 'CRCL' in i for i in issues)
     # and the bug: validating the assembled body would MISS it
     assert not any('异动票' in i for i in pf.validate(assembled, ctx, assembled))
 
@@ -420,7 +422,7 @@ def test_delivered_report_keeps_local_commit_and_original_push_error(
 
 
 def test_report_advisories_are_logged_without_preceding_the_card(pf, run_main, sent, monkeypatch):
-    monkeypatch.setattr(pf, 'validate', lambda *_: ['model diagnostic (advisory)'])
+    monkeypatch.setattr(pf, 'validate', lambda *_: [Advisory('model diagnostic')])
     rc, out = run_main(PROSE, context_id='abc123def456')
 
     assert rc == 0 and out['status'] == 'warn' and out['narrative_status'] == 'success'

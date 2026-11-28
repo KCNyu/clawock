@@ -67,13 +67,14 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 from clawock import prose_claims
+from clawock.context.intraday_packet import packet_dir, publish_parts
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 from clawock.decision import intraday_policy
 from clawock.decision import plans as plan_surface
 from clawock.decision import risk as risk_ledger
 from clawock.evidence import live_sources, research_surface
-from clawock.market_data import mover_evidence as mover_news
+from clawock.market_data import known_catalysts, mover_evidence as mover_news
 from clawock.market_data import peer_scan
 
 WS = workspace_root()
@@ -334,6 +335,7 @@ def _parse_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
+    parser.add_argument('--packet-files', action='store_true')
     return parser.parse_args(argv)
 
 
@@ -526,6 +528,8 @@ def _collect(argv=None):
         'risk_followups':     followups,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
+        'known_catalysts':    known_catalysts.for_movers(
+            [a['ticker'] for a in anomalies], today=today, tmp_dir=TMP),
         # Live filings and news per holding (cite carries each item's own
         # time); `degraded` names a source that did not answer.
         'live_information':   live_ctx,
@@ -540,12 +544,35 @@ def _collect(argv=None):
     TMP.mkdir(parents=True, exist_ok=True)
     drop_stale_contexts(args.market, args.phase, today)
     out_path = context_path(args.market, args.phase, today)
-    safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
+    audit = json.dumps(result, ensure_ascii=False, indent=2)
+    safe_write_text(str(out_path), audit)
+    if args.packet_files:
+        try:
+            model_output = write_report_packet(TMP, result, audit)
+        except (OSError, ValueError) as exc:
+            detail = str(exc)[:400]
+            record_preflight('failed', reason=detail, failure_stage='core_packet')
+            print(json.dumps({'status': 'preflight_failed', 'context_id': result['context_id'],
+                              'error': detail}, ensure_ascii=False))
+            announce_context_path(out_path)
+            return 2
+    else:
+        model_output = result
     record_preflight('success', context_id=result['context_id'])
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(model_output, ensure_ascii=False, indent=2))
     announce_context_path(out_path)
     return 0
+
+
+def write_report_packet(tmp, context, audit):
+    """Return paths for one parallel read batch, bound to this report run."""
+    identity = {key: context[key] for key in ('context_id', 'market', 'phase', 'date')}
+    target = packet_dir(tmp, identity['market'], identity['context_id'])
+    target = target.parent.with_name('report-packets') / target.name
+    parts = publish_parts(target, context, identity, audit)
+    return {'status': 'ok', **identity, 'parts': parts, 'complete': True,
+            'prose_path': str(target / 'report-prose.md')}
 
 
 def main(argv=None):

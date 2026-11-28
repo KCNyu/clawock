@@ -399,7 +399,7 @@ def _title_key(title):
 GRADE_ORDER = {'primary': 0, 'authoritative': 1, 'soft': 2}
 FRESH_ORDER = {False: 0, None: 1, True: 2}
 SUMMARY_KEYS = ('grade', 'source', 'title', 'published_at', 'filed_date', 'signal',
-                'stale', 'cite')
+                'stale', 'cite', 'url')
 
 
 def summarize(tickers, *, per_ticker=4):

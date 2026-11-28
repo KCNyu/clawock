@@ -127,6 +127,14 @@ implementation but no user's portfolio or generated state.
 
 ## Output validation
 
+The program supplies computable facts, including price and P&L, exposure and
+concentration, factor values and rank, triggers, date differences, risk
+statistics, receipts and counts. Authored claims about those values resolve to
+the matching observation or a current compute receipt. Models choose the
+factors, interpret sentiment and news, and explain attribution, counterarguments,
+invalidation, confidence and actions. These judgments name their evidence.
+Sentiment numbers follow the same reference contract as market numbers.
+
 The brief validates the plan and judgment artifacts before rendering. The
 decision packet binds structured actions to the generation's evidence,
 positions, triggers and sizing limits. Provider-native structured output and

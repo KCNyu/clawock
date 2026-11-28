@@ -242,7 +242,7 @@ PHASE_FLAGS = {
     ("brief", "preflight"): (),
     ("brief", "postflight"): ("--dry-run",),
     ("brief", "render"): ("--date", "--dry-run", "--page-url"),
-    ("report", "preflight"): ("--market", "--phase"),
+    ("report", "preflight"): ("--market", "--phase", "--packet-files"),
     ("report", "postflight"): ("--market", "--phase", "--context-id", "--text-file"),
     ("intraday", "preflight"): ("--market", "--judgment-packet", "--packet-files", "--cron-job"),
     ("intraday", "postflight"): ("--market", "--context-id", "--text-file"),
@@ -676,6 +676,8 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--context-id", help="accepted by " + _flag_phases("report", "--context-id"))
     report.add_argument("--text-file", type=Path,
                         help="accepted by " + _flag_phases("report", "--text-file"))
+    report.add_argument("--packet-files", action="store_true",
+                        help="preflight: write bounded JSON parts and print their receipt")
     report.add_argument("--workspace", type=Path, default=None)
     report.add_argument(
         "--profile", dest="runtime_profile",

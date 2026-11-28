@@ -11,10 +11,12 @@ twenty-odd regression tests keep exercising exactly this code.
 """
 from __future__ import annotations
 
+import re
 
 from clawock import prose_claims
 from clawock.harness.validation import (
     FORBIDDEN_PHRASES,
+    PLAN_CONSISTENCY,
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,
     check_identifier_leak,
@@ -24,11 +26,25 @@ from clawock.harness.validation import (
     check_plan_consistency,
     has_section_marker,
     is_hard_char_limit,
+    section_body,
     mentions_ticker,
     validate_forbidden_phrases,
 )
 
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
+_SECTION_COVERAGE = {
+    '▎情绪面': re.compile(
+        r'消息|新闻|公告|停牌|异动|财报|板块|同业|同行|指数|市场|盘面|港股|美股|涨|跌|利率|成交|行情|未取到|《'),
+    '▎技术面': re.compile(
+        r'行情|报价|横盘|跳空|开盘|收盘|均线|涨|跌|破位|冲高|回落|回踩|反弹|高点|低点|'
+        r'支撑|压力|量能|放量|缩量|波动|信号|趋势|整理|RSI|MA\d|突破|区间'),
+    '▎操作建议': re.compile(
+        r'计划|触发|持有|仓位|止损|卖|买|减仓|加仓|复核|订单|成交|观望|观察|等[^。！？\n]'),
+    '▎风险提示': re.compile(r'风险|敞口|失效|止损|回撤|杠杆|集中|红线|触发|停牌|未取到'),
+}
+_COVERAGE_ISSUE = '正文覆盖不足'
+_ANOMALY_ISSUE = '异动归因漏写'
+_NEWS_ISSUE = '逐票资讯漏引'
 
 def _unusable_context(ctx):
     """Reason string if the context can't back a report, else None.
@@ -116,13 +132,23 @@ def validate(body, ctx, model_text):
     elif n_chars > soft:
         issues.append(f'报告长度 {n_chars} 字 > {soft} 软上限 (warn)')
 
-    # 4. 异动票必须被提到（模型文本 —— 数据块里本就有票代码，不能拿它顶）
-    anomalies = ctx.get('anomalies', [])
-    if anomalies:
-        mentioned = [a['ticker'] for a in anomalies if mentions_ticker(checked, a['ticker'])]
-        if not mentioned:
-            tickers = ', '.join(a['ticker'] for a in anomalies)
-            issues.append(f'preflight 标了 {len(anomalies)} 个 ≥3% 异动票 ({tickers}) 但报告全部未提及')
+    # The generated data block already names movers. Each belongs in the
+    # sentiment narrative, where the reader can see what explains the move.
+    sentiment = section_body(checked, '▎情绪面')
+    missing = [row['ticker'] for row in (ctx.get('anomalies') or [])
+               if not mentions_ticker(sentiment, row['ticker'])]
+    if missing:
+        issues.append(f'{_ANOMALY_ISSUE}（情绪面）：{"、".join(missing)}')
+
+    if prose_claims.enabled(ctx):
+        sections = [*REQUIRED_SECTIONS, '▎风险提示'] if ctx.get('needs_risk_section') else REQUIRED_SECTIONS
+        for section in sections:
+            if has_section_marker(checked, section) and not _SECTION_COVERAGE[section].search(
+                    section_body(checked, section)):
+                issues.append(f'{_COVERAGE_ISSUE}：{section}')
+        for extra in ('▎异动归因', '▎证据'):
+            if has_section_marker(checked, extra):
+                issues.append(f'{_COVERAGE_ISSUE}：把 {extra} 写入对应段落')
 
     # 5. 敷衍 phrases（模型文本）
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
@@ -145,19 +171,41 @@ def validate(body, ctx, model_text):
     return issues
 
 
+def _live_news_coverage(draft, ctx):
+    """Require one current attributable item per holding that has one."""
+    sentiment = section_body(draft, '▎情绪面')
+    refs = {match[1] for match in prose_claims.TOKEN.finditer(sentiment)}
+    missing = []
+    for ticker, rows in ((ctx.get('live_information') or {}).get('summary') or {}).items():
+        # Same-day filings with incomplete clock precision have stale=None.
+        # Retain them without treating them as intraday news.
+        current = [i for i, row in enumerate(rows) if row.get('cite') and row.get('stale') is not True]
+        primary = [i for i in current if rows[i].get('grade') == 'primary']
+        escaped = ticker.replace('~', '~0').replace('/', '~1')
+        if current and not any(
+                f'/ctx/live_information/summary/{escaped}/{i}{suffix}' in refs
+                for i in (primary or current) for suffix in ('|cite', '/cite')):
+            missing.append(ticker)
+    return [f'{_NEWS_ISSUE}（情绪面）：{"、".join(missing)}'] if missing else []
+
+
 def prepare_report(ctx, draft, workspace, *, validator=validate):
     """Resolve authored references before assembling and checking the reader text."""
     ctx = with_compute_receipts(ctx, workspace)
     issues = []
     if prose_claims.enabled(ctx):
         renderer = prose_claims.ClaimRenderer(ctx, receipts=ctx.get('compute_receipts', ()))
+        news_findings = _live_news_coverage(draft, ctx)
         draft = renderer.render(draft, '报告')
-        issues = [*renderer.issues, *renderer.advisories]
+        issues = [*renderer.issues, *renderer.advisories, *news_findings]
     body = assemble_message(ctx, draft)
     return body, [*issues, *validator(body, ctx, draft)]
 
 
-CRITICAL_KEYWORDS = ['缺段标记', '敷衍词', 'needs_risk_section=true', prose_claims.ISSUE]
+CRITICAL_KEYWORDS = [
+    '缺段标记', '敷衍词', 'needs_risk_section=true', prose_claims.ISSUE,
+    PLAN_CONSISTENCY, '仓位支配度不符', _COVERAGE_ISSUE, _ANOMALY_ISSUE, _NEWS_ISSUE,
+]
 
 
 def categorize(issues):
