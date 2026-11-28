@@ -462,3 +462,30 @@ def test_archive_and_dashboard_publications_share_a_fast_forward_branch(repo, tm
     with pytest.raises(ValueError, match="brief archive entry missing or corrupt"):
         store.fetch(rejected, validate=brief_archive.verify)
     assert not rejected.exists()
+
+
+def test_overlay_retries_on_the_current_parent_without_losing_another_writer(repo, monkeypatch):
+    from clawock.publish import store as store_module
+
+    publisher = GitBranchStore(repo, 'data-plane')
+    other = GitBranchStore(repo, 'data-plane')
+    original = publisher.publish(GENERATION)
+    actual_git = publisher._git
+    competing = None
+
+    def race(*args, **kwargs):
+        nonlocal competing
+        if args[0] == 'push' and competing is None:
+            competing = other.publish({'memory/weekly/2026-W48.md': 'published\n'}, overlay=True)
+        return actual_git(*args, **kwargs)
+
+    monkeypatch.setattr(publisher, '_git', race)
+    monkeypatch.setattr(store_module.time, 'sleep', lambda _: None)
+    updated = publisher.publish({'assets/data/dashboard.json': '{"totals": 2}'}, overlay=True)
+    assert competing.previous == original.receipt
+    assert updated.previous == competing.receipt
+    assert _branch_tree(repo, 'data-plane') == {
+        'assets/data/dashboard.json': '{"totals": 2}',
+        'assets/data/overview.json': GENERATION['assets/data/overview.json'],
+        'memory/weekly/2026-W48.md': 'published',
+    }
