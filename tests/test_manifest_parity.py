@@ -67,10 +67,10 @@ def test_baseline_tracked_is_derived_not_retyped():
 
 def test_every_baseline_file_is_owned_tracked_and_present():
     baseline = system_check.BASELINE_TRACKED
-    assert len(baseline) >= 9, (
-        f"only {len(baseline)} baseline files — the registry flag stopped "
-        f"matching, and check_baseline_files now watches almost nothing"
-    )
+    declared = {name for name, meta in ALLOWLIST["entries"].items() if meta.get("baseline")}
+    assert declared
+    assert set(baseline) == declared
+    assert "MEMORY.md" not in baseline
     tracked = set(subprocess.run(
         ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True,
     ).stdout.split())
