@@ -44,7 +44,7 @@ def test_combined_gate_requires_every_shard_and_original_floors():
     assert jobs['unit-tests']['strategy']['matrix']['shard'] == [0, 1, 2, 3]
     assert jobs['unit-tests']['strategy']['fail-fast'] is False
     gate = jobs['validate']
-    assert set(gate['needs']) == {'scope', 'checks', 'unit-tests', 'browser-tests', 'workbench-overlap'}
+    assert set(gate['needs']) == {'scope', 'checks', 'unit-tests', 'behavior-evals', 'browser-tests', 'workbench-overlap'}
     steps = {s.get('name'): s for s in gate['steps']}
     assert 'test "$UNIT" = success' in steps['Require all selected lanes']['run']
     combine = steps['Coverage floors']['run']
@@ -57,19 +57,21 @@ def test_combined_gate_requires_every_shard_and_original_floors():
                    for s in jobs['checks']['steps'])
 
 
-@pytest.mark.parametrize('scope,checks,code,unit,ok', [
-    ('success', 'success', 'true', 'success', True),
-    ('success', 'success', 'false', 'skipped', True),
-    ('failure', 'skipped', 'false', 'skipped', False),
-    ('success', 'failure', 'false', 'skipped', False),
-    ('success', 'success', 'true', 'failure', False),
-    ('success', 'success', 'true', 'skipped', False),
+@pytest.mark.parametrize('scope,checks,code,unit,evals,ok', [
+    ('success', 'success', 'true', 'success', 'success', True),
+    ('success', 'success', 'false', 'skipped', 'skipped', True),
+    ('failure', 'skipped', 'false', 'skipped', 'skipped', False),
+    ('success', 'failure', 'false', 'skipped', 'skipped', False),
+    ('success', 'success', 'true', 'failure', 'success', False),
+    ('success', 'success', 'true', 'skipped', 'success', False),
+    ('success', 'success', 'true', 'success', 'failure', False),
+    ('success', 'success', 'true', 'success', 'skipped', False),
 ])
-def test_required_gate_executes_fail_closed(scope, checks, code, unit, ok):
+def test_required_gate_executes_fail_closed(scope, checks, code, unit, evals, ok):
     jobs = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())['jobs']
     script = jobs['validate']['steps'][0]['run']
     result = subprocess.run(['bash', '-e', '-c', script], env=dict(
-        os.environ, SCOPE=scope, CHECKS=checks, CODE=code, UNIT=unit, UI="false", BROWSER="skipped"))
+        os.environ, SCOPE=scope, CHECKS=checks, CODE=code, UNIT=unit, EVALS=evals, UI="false", BROWSER="skipped"))
     assert (result.returncode == 0) == ok
 
 
@@ -87,7 +89,7 @@ def test_required_gate_requires_selected_browser_shards(browser, ok):
     assert jobs['browser-tests']['strategy']['matrix']['shard'] == [0, 1, 2, 3]
     script = jobs['validate']['steps'][0]['run']
     result = subprocess.run(['bash', '-e', '-c', script], env=dict(
-        os.environ, SCOPE='success', CHECKS='success', CODE='true', UNIT='success',
+        os.environ, SCOPE='success', CHECKS='success', CODE='true', UNIT='success', EVALS='success',
         UI='true', BROWSER=browser))
     assert (result.returncode == 0) == ok
 
