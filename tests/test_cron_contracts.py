@@ -1060,7 +1060,7 @@ def test_no_llm_slot_is_scheduled_on_the_hour_or_half_hour():
     Controlling for prefix-cache warmth by counting only the *opening* request
     of a run leaves the same split (40.4% vs 1.7%). MiniMax holds an overloaded
     request 100-143s before it returns a 429 (see the calibration notes in
-    patch-minimax-response-header-timeout.sh), so our 60s header deadline turns
+    the frozen fork transport), so its 60s header deadline turns
     the top-of-the-hour crowd into a two-minute dead run; the watchdog then
     re-dispatches off the boundary and succeeds. 港股收盘报告 moved to :10 on
     2026-08-25 for an unrelated reason (the HKEX CAS window) and has not timed

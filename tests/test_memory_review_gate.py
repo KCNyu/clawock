@@ -22,7 +22,6 @@ def load(name):
 
 gate = load('review_dreaming')
 dreams = load('review_dreams')
-patch = load('patch_dreaming_review')
 
 
 def candidate(text, line=1, source='memory/example.md'):
@@ -276,50 +275,6 @@ def test_commit_dreaming_commits_memory_and_dreams_separately(tmp_path):
                               capture_output=True, text=True, check=True).stdout.split()
     assert newest == ['DREAMS.md']
     assert previous == ['MEMORY.md']
-
-
-def test_patch_report_names_the_private_file():
-    """The deep-sleep report must not claim MEMORY.md when it writes .dreams/."""
-    original = patch.OLD_REPORT_BLOCK
-    modified = patch.patch_report(original)
-    assert patch.REPORT_MARKER in modified
-    assert patch.NEW_REPORT_LINE in modified
-    assert patch.OLD_REPORT_LINE not in modified
-    assert patch.patch_report(modified) == modified
-
-
-def test_patch_executes_with_private_path_and_no_budget_eviction():
-    original = (ROOT / 'tests/fixtures/openclaw_promotion.js').read_text()
-    modified = patch.patch(original)
-    assert patch.patch(modified) == modified
-    with pytest.raises(ValueError, match='anchor'):
-        patch.patch(original.replace(patch.OLD_PATH, 'changed'))
-    script = r'''
-const path = {join: (...p) => p.join('/'), dirname: p => p.slice(0,p.lastIndexOf('/'))};
-const writes = [];
-const fs = {mkdir: async()=>{}, readFile: async()=>'', writeFile: async(p,t)=>writes.push([p,t])};
-const resolveMemoryCoreNowMs = () => 0, resolveMemoryCoreTimestamp = () => 'now';
-const toFiniteScore = (v,d)=>v??d, toFiniteNonNegativeInt = (v,d)=>v??d;
-const DEFAULT_PROMOTION_MIN_SCORE = 0;
-const withShortTermLock = async(_,f)=>f();
-const readStore = async()=>({entries:{}}), writeStore = async()=>{};
-const isContaminatedDreamingSnippet = ()=>false;
-const rehydratePromotionCandidate = async(_,c)=>c;
-const extractPromotionMarkers = ()=>new Set();
-const buildPromotionSection = ()=>'candidate', withTrailingNewline = s=>s;
-const compactMemoryForBudget = p=>{
- if(p.budgetChars !== Number.MAX_SAFE_INTEGER) throw Error('pending eviction');
- return {compacted:p.existingMemory,droppedDates:[]};
-};
-const appendMemoryHostEvent = async()=>{};
-await applyShortTermPromotions({workspaceDir:'/isolated',minRecallCount:0,minUniqueQueries:0,
- candidates:[{key:'x',snippet:'text',score:1,signalCount:0,uniqueQueries:0,recallDays:[]}]});
-console.log(JSON.stringify(writes));
-'''
-    result = subprocess.run(['node', '--input-type=module'], input=modified + script,
-                            capture_output=True, text=True, check=True)
-    assert json.loads(result.stdout) == [['/isolated/memory/.dreams/promotion-candidates.md',
-                                         '# Long-Term Memory\n\ncandidate']]
 
 
 def audit_text():

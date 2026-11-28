@@ -1,6 +1,6 @@
 ---
 name: openclaw-tune
-description: OpenClaw host maintenance for session backup growth, disk usage, model/cron drift and memory health. Use for periodic maintenance or a specific health symptom. Version upgrades use openclaw-upgrade; repository document/skill cleanup follows AGENTS.md and its worktree/PR workflow.
+description: OpenClaw host maintenance for session backup growth, disk usage, model/cron drift and memory health. Use for periodic maintenance or a specific health symptom. Use openclaw-upgrade for reinstalling the frozen fork. Repository changes follow the worktree and PR workflow.
 ---
 
 # OpenClaw host maintenance
@@ -18,8 +18,8 @@ model choices. Workspace documentation changes follow `AGENTS.md` § Code change
 | Injected context | `config/context-manifest.json` plus actual `systemPromptReport`, file sizes and truncation | Remove duplicate ownership only after checking consumers. Preserve concrete incident rules, scheduled input contracts and tool/skill availability. No byte target justifies dropping required context. |
 | Model/fallback drift | `python3 ops/host/sync_models.py --effective`; compare with `config/models.toml` | `docs/operations/models.md` owns parameters, chains and synchronization. Report failing hops; do not reorder providers or change thinking/budgets as a cleanup. |
 | Cron drift | `openclaw cron list --json`, `bash ops/host/check_crons.sh --timeline`, `clawock system check` | Compare identities, schedules, enabled state, payloads and host triggers with `config/cron-schedules.json`; `docs/operations/cron-schedules.md` is generated. Change runtime cron only via supported CLI/sync tools. |
-| Recall / dreaming | Latest diagnostics and source dates, not just file counts or trading keywords | `docs/operations/dreaming-review.md` owns candidate review and promotion; `docs/operations/sqlite-maintenance.md` owns recall maintenance, its performance boundary and the KNN patch. Never prune a live recall store by keyword or promote daily prices as durable lessons. |
-| After an upgrade | Installed version, patch-kit checks, actual agent context and delivery | Follow `../openclaw-upgrade/SKILL.md`; do not duplicate its update/restart sequence here. |
+| Recall / dreaming | Latest diagnostics and source dates, not just file counts or trading keywords | `docs/operations/dreaming-review.md` owns candidate review and promotion; `docs/operations/sqlite-maintenance.md` owns recall maintenance, and its performance boundary. Never prune a live recall store by keyword or promote daily prices as durable lessons. |
+| Frozen reinstall | Build identity, actual agent context and delivery | Follow `../openclaw-upgrade/SKILL.md`; do not duplicate its update/restart sequence here. |
 
 ## Apply only the evidenced cleanup
 

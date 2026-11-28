@@ -7,10 +7,8 @@
 
 The main index uses offline checkpoint and compaction; subsequent runs use
 incremental vacuum unless `--full` is requested. The state store is checkpointed
-only. KNN oversampling is owned by the manifest's
-`ops/host/openclaw-patches/patch-vector-knn-oversample.sh`, which retains the
-model-filter underfill widening. Apply it through the
-[patch kit](openclaw-patch-kit.md), not directly against installed bundles.
+only. The [frozen fork](openclaw-frozen-build.md) widens KNN when filtering
+underfills the query.
 
 Keep the embedding model, dimension and thread settings independent of database
 maintenance. `journal_size_limit` is connection-local and does not fix a reader
@@ -68,8 +66,7 @@ systemctl --user start openclaw-gateway.service
 curl -sS http://127.0.0.1:18789/health
 ```
 
-状态库同理（备份文件名 `openclaw.sqlite`）。补丁回滚用
-`python3 ops/host/manage_openclaw_patches.py rollback --receipt <receipt.json>`。
+状态库使用同样的恢复步骤，备份名为 `openclaw.sqlite`。
 
 ## Recall diagnosis
 

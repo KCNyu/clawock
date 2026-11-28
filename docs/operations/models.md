@@ -26,7 +26,6 @@ Common changes:
 Then:
 
 ```
-bash ops/host/reapply_openclaw_patches.sh       # verify the selected fork build first
 python3 ops/host/sync_models.py --apply           # OpenClaw + dsh on this host
 python3 ops/host/sync_cron_payloads.py --apply    # if a cron chain changed
 openclaw gateway restart                          # no cron in flight; dsh: restart if its profile changed
@@ -40,25 +39,11 @@ retryable model failure. Luna runs through the Codex login/runtime with its
 per-model `thinking = "max"`; no OpenAI API key is required. Chat, ordinary
 subagents and the memory-promotion cron keep their own chains.
 
-OpenClaw 2026.7.1-2 does not implement an ordered diary fallback list. Its
-`subagent.allowedModels` is only an authorization list, and its built-in diary
-retry covers unavailable models, not exhausted quotas. The host backport
-`ops/host/patch_dreaming_fallbacks.py` adds `dreaming.fallbacks` to the plugin
-schema and consumes it in the narrative loop. `sync_models.py` renders both the
-ordered fallback list and the allowlist from the registry. Each attempt still
-uses the native plugin subagent authorization, runtime and thinking selection.
-
-The backport retries model-unavailable, rate-limit/quota and selected transient
-server errors, with one fresh session per candidate. It does not retry policy
-denials or a wait timeout while the first run may still be active. Exhaustion
-keeps the existing placeholder behavior. An explicit empty fallback list means
-no retry; an absent list preserves upstream's session-default retry behavior.
-Promotion and the diary commit schedule are unchanged.
-
-Install the backport before rendering this config and restarting the idle
-gateway. The upgrade wrapper reapplies/checks it; changed upstream anchors fail
-closed for review. `sync_models.py --effective` reports the diary chain and
-plugin authorization alongside model thinking defaults.
+The frozen fork implements `dreaming.fallbacks`. `sync_models.py` derives the
+ordered fallback list and subagent allowlist from the registry. The fork retries
+model-unavailable, rate-limit, quota, and selected transient server failures in
+fresh sessions. Policy denials and genuinely running attempts stay visible.
+Read the active chain using `sync_models.py --effective`.
 
 ## MiniMax thinking
 
@@ -76,8 +61,7 @@ So there are two knobs, and they are set in different places:
 
 - **Level** (OpenClaw's `/think`, `params.thinking`, a chain's `thinking`,
   `talk.consultThinkingLevel`): OpenClaw offers `off` and `adaptive` for M3.x
-  and clamps any other level, with a warning, to `adaptive`. The host patch
-  `patch-minimax-m3x-adaptive-thinking.sh` sends `{"type": "adaptive"}` whatever
+  and clamps other levels to `adaptive`. The frozen fork sends `{"type": "adaptive"}` whatever
   the level and OpenClaw sends no effort, so every OpenClaw turn on M3.1 runs at
   the endpoint's default `max`. Write `adaptive` wherever only M3.1 reads the
   value. The strategy cron payload retains `max` as its chain default.
