@@ -40,6 +40,9 @@ commit+push 都成了，但一条读「可能不存在的文件」的 exec 非�
 - **业务步骤**（preflight / postflight）的结果必须原样可见：不接管道、不补 `|| true` /
   `; true`，只允许 `; echo "EXIT=$?"`。preflight 退 2 就是失败，不是「今天还没产出」。
 
+- 命令与路径按本指引输入，猜错了不许全盘扫描。可长跑的独立探测用 `timeout` 收口，让它自己结束，不需要 kill。
+- 正式 `clawock brief postflight` 不套 shell `timeout`，不 kill。它先投递后入账与发布，早停会让页面或账本落后。用本次输出的 `commit_ok` 判完成，投递标记单独出现不代表入库。
+
 配套的窄规则见 Step 5 的「送达确认铁律」（#558）：那条禁的是 postflight 之后再去读
 marker 确认送达。
 
@@ -88,7 +91,7 @@ preflight。fallback 会拒绝生成，postflight 也会阻止发布。其他资
 
 [需要时阅读登记的技术形态](references/technical-playbooks.md)。
 
-摘要为唯一常驻事实输入。按票和按 section 查同代数据。若 preflight 为休市或失败，按 Step 1 停止。
+摘要为唯一常驻事实输入。按票和按 section 查同代数据，不自行重刷行情或重跑已通过的 preflight。若 preflight 为休市或失败，按 Step 1 停止。
 
 ### Step 3: Swarm 分析
 
@@ -129,7 +132,7 @@ clawock brief postflight
 （`缺失` / `解析失败` / `表格 #`）或 issues > 4 条触发；其余都是 warn，照样 commit + 投递。
 
 **`fail` 才需要修**：按 `issues` 一次修正本次阻断项。保留已通过的字段，
-用 `write` 完整覆盖需要修的文件，再运行一次正式 postflight。
+用 `write` 完整覆盖需要修的文件，再运行一次正式 postflight。一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error。
 如果仍返回 `fail`，用最终状态和剩余问题结束本轮，由既有 watchdog 接管。
 
 **`warn` 和 `pass` 一样是终态（`commit_ok: true` 时）：已 commit、已尝试投递，不要为了变成 pass 再跑 postflight。**

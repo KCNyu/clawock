@@ -146,8 +146,6 @@
         "首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换",
         "唯一微信路径",
         "同步 Telegram",
-        "猜错了不许全盘扫描",
-        "不需要 kill",
         "绝不要",
         "message",
         "涉及 kcn 的偏好、纪律或历史决策时，先查共享记忆",
@@ -156,6 +154,15 @@
         "不要凭常识推断他的看法",
         "publish: public"
       ],
+      "required_documents": {
+        "skills/daily-deep-brief/SKILL.md": [
+          "猜错了不许全盘扫描",
+          "不需要 kill",
+          "不套 shell `timeout`",
+          "`commit_ok` 判完成",
+          "一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error"
+        ]
+      },
       "forbidden_substrings": [
         "唯一投递路径",
         "clawock calendar hk",
