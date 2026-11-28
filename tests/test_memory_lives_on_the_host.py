@@ -262,44 +262,11 @@ def test_a_missing_index_is_itself_the_warning(system_check, live):
     assert "MEMORY.md is missing" in message
 
 
-def test_the_health_gate_requires_the_index_in_every_checkout(
-        system_check, monkeypatch, tmp_path):
-    """One tier again, because there is one truth again (#1074).
-
-    The two-tier split existed only because #1072 untracked the index: keeping
-    the allowlist entries then reported "missing: DREAMS.md, MEMORY.md" as
-    CRITICAL — and pre-push runs this file, so the 20-minute publisher, every
-    watchdog and every agent push were blocked at once (#1073). With the files
-    tracked, the allowlist entries are correct and the baseline is required
-    everywhere, worktrees included, since every checkout ships them.
-    """
-    import json as _json
-    entries = _json.loads(
-        (ROOT / "config" / "root-allowlist.json").read_text(encoding="utf-8"))["entries"]
-    for name in ("MEMORY.md", "DREAMS.md"):
-        assert name in entries, (
-            f"{name} is tracked at the repository root, so the allowlist must "
-            f"own it or `root ownership` reports it as unowned")
-
-    assert "MEMORY.md" in system_check.BASELINE_TRACKED
-    assert not hasattr(system_check, "BASELINE_HOST_LOCAL"), (
-        "the host-local tier was #1073's workaround for #1072; it must not "
-        "outlive the mistake it worked around")
-
-    # Any checkout at all — worktree or live box — with the full baseline: OK.
-    elsewhere = tmp_path / "worktree"
-    elsewhere.mkdir()
+def test_baseline_audit_allows_a_missing_local_projection(system_check, monkeypatch, tmp_path):
+    assert "MEMORY.md" not in system_check.BASELINE_TRACKED
     for name in system_check.BASELINE_TRACKED:
-        (elsewhere / name).write_text("x", encoding="utf-8")
-    monkeypatch.setattr(system_check, "WS", elsewhere)
-    monkeypatch.setattr(system_check, "LIVE_WORKSPACE", tmp_path / "live")
+        (tmp_path / name).write_text("fixture\n", encoding="utf-8")
+    monkeypatch.setattr(system_check, "WS", tmp_path)
     result = system_check.Result()
     system_check.check_baseline_files(result)
     assert result.checks[0][1] == system_check.OK, result.checks
-
-    # And the index missing is CRITICAL there too, not only on the live box.
-    (elsewhere / "MEMORY.md").unlink()
-    result = system_check.Result()
-    system_check.check_baseline_files(result)
-    assert result.checks[0][1] == system_check.CRITICAL
-    assert "MEMORY.md" in result.checks[0][2]

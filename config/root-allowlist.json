@@ -59,8 +59,7 @@
   },
   "MEMORY.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw main-session memory; named as the authority by eight tracked instruction files",
-   "baseline": true
+   "consumer": "Local OpenClaw main-session memory projection"
   },
   "NOTICE": {
    "owner": "legal",

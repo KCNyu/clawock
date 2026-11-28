@@ -10,6 +10,7 @@
     "prepareClaudeCliSkillsPlugin"
   ],
   "default_profile": "isolated-cron",
+  "local_projections": ["MEMORY.md", "DREAMS.md"],
   "profiles": {
     "interactive": {
       "description": "Normal user-facing chat after workspace bootstrap is complete.",
@@ -24,7 +25,7 @@
       ],
       "excluded": ["BOOTSTRAP.md"],
       "conversation_history": "runtime session transcript",
-      "memory": "MEMORY.md is injected; memory_search reads MEMORY.md and memory/*.md",
+      "memory": "Local MEMORY.md is injected when present; memory_search reads MEMORY.md and memory/*.md",
       "capability_paths": ["skills", "MEMORY.md", "memory"]
     },
     "isolated-cron": {
@@ -54,7 +55,7 @@
       ],
       "excluded": ["BOOTSTRAP.md"],
       "conversation_history": "main or configured heartbeat session",
-      "memory": "MEMORY.md is injected; memory_search reads MEMORY.md and memory/*.md",
+      "memory": "Local MEMORY.md is injected when present; memory_search reads MEMORY.md and memory/*.md",
       "capability_paths": ["skills", "MEMORY.md", "memory"]
     },
     "heartbeat-light": {
