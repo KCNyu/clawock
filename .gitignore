@@ -200,3 +200,6 @@ portfolio.json.bak
 
 # Licensed HK discovery inputs and private permission receipts.
 /.cache/hk-discovery/
+
+# Instance delivery targets stay in the local desk profile.
+/config/profiles/kcnyu/
