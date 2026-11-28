@@ -617,7 +617,7 @@ def freshly_built_generation(tmp_path_factory):
     subprocess.run([sys.executable, "-m", "clawock.publish.dashboard",
                     "--out-dir", str(out)],
                    cwd=ROOT, check=True, capture_output=True,
-                   env={**os.environ, "CLAWOCK_PROFILE": "kcnyu",
+                   env={**os.environ, "CLAWOCK_PROFILE": "examples/profiles/two-market/profile.json",
                         "PYTHONPATH": str(ROOT / "src")})
     return out
 

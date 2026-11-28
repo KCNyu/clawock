@@ -65,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     from clawock.harness.runner import PHASE_MODULES
 
     env = dict(os.environ)
-    env.setdefault("CLAWOCK_PROFILE", "kcnyu")
+    env.setdefault("CLAWOCK_PROFILE", "examples/profiles/two-market/profile.json")
 
     failures = []
     for workflow, phase in sorted(PHASE_MODULES):
