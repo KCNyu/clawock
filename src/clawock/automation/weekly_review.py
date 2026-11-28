@@ -25,19 +25,14 @@ from clawock.automation.output_validate import (
     LLMOutputError, escape_raw_html, validate_sections,
 )
 from clawock.decision import ledger as decision_v2
+from clawock.prose_validation import storytelling_prompt
 from clawock.safe_io import safe_write_text
+from clawock.weekly_contract import (
+    WEEKLY_REQUIRED_SECTIONS as WEEKLY_REQUIRED_SECTIONS,
+    WEEKLY_SECTION_HEADINGS as WEEKLY_SECTION_HEADINGS,
+    weekly_sections,
+)
 from clawock.workspace import workspace_root
-
-# The four questions build_user_prompt asks for, checked on the way out (#1263).
-WEEKLY_REQUIRED_SECTIONS = ('本周净值', '决策兑现', '风险演变', '下周关注')
-
-# The heading lines the prompt demands, verbatim. The prompt used to ask for four
-# bold labels and leave the headings to the model; W30-W36 happened to write
-# `## 4. 下周关注 …`, but on 2026-09-13 (run 34770674373) a full-length reply came
-# back without that section, the gate refused it, and 2026-W37 was lost. Asking
-# for the exact line the gates look for leaves the model nothing to paraphrase.
-WEEKLY_SECTION_HEADINGS = tuple(
-    f'## {i}. {name}' for i, name in enumerate(WEEKLY_REQUIRED_SECTIONS, 1))
 
 # Seconds of the chain deadline a repair turn needs to be worth starting. The
 # repair re-emits the whole review; the 2026-09-13 reply took 44s, and a turn
@@ -493,16 +488,14 @@ def build_user_prompt(payload):
     the sanity bound was not the bound of what actually left the door."""
     return (
         f"根据这一周（{payload['week']}）的 brief / plan / decision v2 / risk 数据, "
-        f"写一篇 markdown 周复盘。长度自己判断，不设字数目标。"
-        "\n\n"
-        "1. **本周净值**: 周初/周末/涨跌三个数 harness 已算好在 "
-        "`bundle_evidence.nav_change`（口径=期末减期初 NAV, 含期内任何出入金）——"
-        "用事实引用，主要贡献者与拖累由你归因。\n"
-        "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
-        "点名可核验的代表决策及结果，用日期、标的和决策编号定位。"
-        "对仍未解决或连续多次出现的判断错误，写明待验证的反证和下一复查条件；只引用包内有记录的研究。\n"
-        "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
-        "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
+        f"写一篇 markdown 周复盘。\n\n{storytelling_prompt()}\n\n"
+        "1. **本周净值**。说哪件事对组合影响最大。净值需要举数字时引用 "
+        "`bundle_evidence.nav_change`（期末减期初 NAV，含期内出入金）。\n"
+        "2. **决策兑现**。挑最值得回看的例子，对比当时的判断、是否成交和后来发生了什么。"
+        "用日期、标的和决策编号定位。重复跟踪按同一个 episode 看。"
+        "有待验证的解释就说什么会推翻它。\n"
+        "3. **风险演变**。说组合眼下最怕什么。风险快照缺历史比较时，写清目前看到的范围。\n"
+        "4. **下周关注**。写有机会改变仓位的那几件事，带上标的、触发条件和仓位影响。\n\n"
         "四个小节的二级标题必须逐字使用下面四行：\n"
         + '\n'.join(WEEKLY_SECTION_HEADINGS) + "\n\n"
         f"数据 bundle (JSON):\n```json\n{_compact(payload)}\n```\n\n"
@@ -510,7 +503,7 @@ def build_user_prompt(payload):
         "相关小节必须如实写数据缺口，禁止编造。\n\n"
         "标题之外用 [[/ctx/字段/...]] 引用包内事实，数组从零编号。数字、股数、金额、占比、"
         "日期、时间、标的与决策编号都由程序从字段生成；状态用 |status，列表计数用 |count。"
-        "用短横线列条目。正文其他部分写交易语言，避免内部字段名。"
+        "正文用交易语言。只有确实需要列项时才用列表。\n\n"
 
         "直接出 markdown, 不要客套."
     )
@@ -533,14 +526,24 @@ def _chain_deadline():
 
 
 def _render_review(draft, evidence):
-    if evidence is not None:
-        renderer = prose_claims.ClaimRenderer(evidence)
-        draft = '\n'.join(
-            line if line in WEEKLY_SECTION_HEADINGS else renderer.render(line, '周复盘')
-            for line in (draft or '').splitlines())
-        if renderer.issues:
-            raise LLMOutputError('；'.join(renderer.issues[:5]))
-    return draft
+    if evidence is None:
+        return validate_sections(draft, label='weekly review', required=WEEKLY_REQUIRED_SECTIONS,
+                                 min_chars=1000, trading_prose=True)
+    renderer = prose_claims.ClaimRenderer(evidence)
+    rendered = '\n'.join(
+        line if line.strip() in WEEKLY_SECTION_HEADINGS else
+        renderer.render(line, '周复盘', dense_measurements=False)
+        for line in (draft or '').splitlines())
+    if renderer.issues:
+        raise LLMOutputError('；'.join(renderer.issues[:5]))
+    _, sections = weekly_sections(rendered)
+    missing = [heading for heading in WEEKLY_SECTION_HEADINGS if heading not in sections]
+    if missing:
+        raise LLMOutputError('周复盘缺少标题或正文：' + '、'.join(missing))
+    for advisory in dict.fromkeys(renderer.advisories):
+        print(advisory, file=sys.stderr)
+    return validate_sections(rendered, label='weekly review', required=WEEKLY_REQUIRED_SECTIONS,
+                             min_chars=1, trading_prose=True)
 
 
 def generate_review(system, user, *, clock=time.monotonic, evidence=None):
@@ -562,12 +565,8 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
                thinking_effort=WEEKLY_LLM_THINKING_EFFORT)
     # Refuse before writing (#1263): a blank or off-prompt reply used to be
     # published as that week's review, and nothing downstream re-reads it.
-    # Anchors are the four questions build_user_prompt asks for; the floor is
-    # ~1/10th of a real review (2026-W34 is 11KB).
     try:
-        return validate_sections(_render_review(out, evidence), label='weekly review',
-                                 required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
-                                 trading_prose=True)
+        return _render_review(out, evidence)
     except LLMOutputError as rejection:
         _log_rejection(out, rejection)
         budget = _chain_deadline()
@@ -589,9 +588,7 @@ def generate_review(system, user, *, clock=time.monotonic, evidence=None):
             print(f'  ⚠️ repair turn failed: {exc}', file=sys.stderr)
             raise rejection from exc
         try:
-            return validate_sections(_render_review(repaired, evidence), label='weekly review',
-                                     required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000,
-                                     trading_prose=True)
+            return _render_review(repaired, evidence)
         except LLMOutputError as exc:
             _log_rejection(repaired, exc)
             raise

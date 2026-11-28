@@ -157,6 +157,7 @@ include = ["clawock*"]
 [tool.setuptools.package-data]
 clawock = [
     "context/manifest.json",
+    "trading-prose.md",
     "config/*.schema.json",
     "workflows/packs/*/*.json",
     "workflows/packs/*/*.md",

@@ -135,3 +135,38 @@ def test_structured_sector_scan_keeps_grouped_context_and_audited_commentary(tmp
     stale = sector_scan({**ctx, 'generation_id': 'new'}, draft, renderer)
     assert stale['sectors'][0]['self'][0]['attribution'] is None
     assert not any('catalyst' in row for row in stale['sectors'][0]['top_movers'])
+
+
+def test_repeated_readings_and_stock_phrases_are_advisory_for_a_report(tmp_path):
+    ctx = {
+        prose_claims.FIELD: prose_claims.VERSION,
+        'raw_wechat_block': '程序生成的行情',
+        'holdings': {'07709': {'ticker': '07709', 'current_price': 11.39,
+                              'today_change_pct': 5.46, 'shares': 200}},
+    }
+    base = '▎情绪面\n韩国那边还在跌。\n▎技术面\n'
+    closing = '\n▎操作建议\n我会等港股开出来看看。'
+    price = '[[/ctx/holdings/07709/current_price]]'
+    changed = '[[/ctx/holdings/07709/today_change_pct]]'
+    shares = '[[/ctx/holdings/07709/shares]]'
+    _, issues = prepare_report(ctx, base + f'业内认为，{changed}，{shares}，{price}。'
+                                f'再看看{price}。' + closing, tmp_path)
+    assert len(issues) == 1 and categorize(issues) == 'warn'
+    assert '一句里连报多项读数' in issues[0]
+    assert '重复引用同一数值字段' in issues[0]
+    assert '归因没说是谁' in issues[0]
+
+    body, issues = prepare_report(ctx, base + f'港股上一场还涨了 {changed}。' + closing, tmp_path)
+    assert '涨了 5.46%' in body
+    assert not issues
+
+
+def test_plan_invalidation_prose_resolves_before_reaching_decision_trace():
+    renderer = prose_claims.ClaimRenderer({'watch': {'price': 130.87}})
+    plan = {'decisions': [{'ticker': '07709', 'condition': {'type': 'open'},
+                          'size': {'shares': 200},
+                          'thesis_invalidation': 'ADR 收回 [[/ctx/watch/price]] 就重新评估。'}]}
+    row = brief_prose.render_plan(plan, renderer)['decisions'][0]
+    assert row['thesis_invalidation'] == 'ADR 收回 130.87 就重新评估。'
+    assert row['size'] == plan['decisions'][0]['size']
+    assert not renderer.issues

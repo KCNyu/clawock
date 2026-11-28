@@ -95,7 +95,7 @@ clawock report preflight --market us --phase {open|close}
 
 #### Step 2: 只写分析散文
 
-**正文规则**：字段清单、异动归因、管线词与长度四段两市场共用一份：写散文前先 read `../_shared/report-prose-rules.md`。
+**正文规则**：写散文前先读 `../_shared/report-prose-rules.md`，再读其中指向的通用写作标准。
 
 **你不写数据块、不写表格、不写标题** —— postflight 自己从 context 拼。2026-07-24 之前是让模型 verbatim 拷贝数据块，结果模型读错 context 就把一天前的数字发了出去；现在那条回路已经拆掉，数字在发送时刻直接取自 context 文件。
 
@@ -110,24 +110,20 @@ clawock report preflight --market us --phase {open|close}
 
 🔢 **散文事实引用**：用 `[[/ctx/字段/...]]` 或 `[[/compute/回执ID/返回字段]]` 引用同代数据。新闻用资讯行的 `|cite`，程序填入标题、来源和时间。详细格式见 cron 任务正文。
 - **禁止重述持仓股数、持仓市值、浮盈金额** —— 这些 postflight 已经拼在消息开头了，重述一遍只会多一次说错的机会（2026-07-27 就把 6200 股的仓位写成 1000 股）。这一单动多少股由数据块的「📋 未成交计划」给出，散文同样不重述：07226 持仓 6200 股、当日 swap 单 1000 股，同一天同一只票，两个数都不该出现在散文里。
-- 前瞻性数字（「再跌 2% 会亏多少」）要么**别写**，要么写出算式让人能验；拍一个量级出来是 2026-07-27「再伤 1.5-2 万 HK$」（真实约 1 千）那条 issue #120 的原型。
-- 需要 context 里没有的量（别的窗口的涨跌、波动、两只票的比值或相关性）用 `clawock tool compute --arg 'expression=ret(close("<票>"), 20)'` 让系统在日线上算，原样引用返回值并说明它是什么；postflight 认本次运行内算出的结果。
-- 差值 / 倍数 / 距离可以算，但要把两个操作数写在同一句、结果前面（「SPCX $148.18 距前高 152.3 还有 2.8%」）；乘积写完整的「操作数 × 操作数 ≈ 结果」。postflight 只核算这种写出来的算术，心算只给结果仍会标出。
-- 区间必须真实存在：`+0.3~-0.4%` 这种正负打架的区间是编的，postflight 会直接标出来。
+- 判断确实要用到 context 里没有的量时，用 `clawock tool compute` 取本次回执后引用。找不到同代数据就说缺在哪里。
 
-
-异动归因与管线词按 `../_shared/report-prose-rules.md` 写。
+行情补查优先内置搜索或 DeepSeek。Tavily 只在开盘/收盘或真事件用，带 `--bucket report`。
 
 写这几段，**存成 `memory/.tmp/report-prose-us-{phase}.md`**：
 ```
 ▎情绪面
-{Finnhub news + 纳指 tone → market direction；⚡ **板块全景**：用 peer_scan 写对应主题今日 Top 5 + 你持仓位置 + 1 句归因。行情优先内置 web search 与 `clawock web-search --providers deepseek`；Tavily 侧仅开盘/收盘或真事件用，带 `--bucket report`，盘中常规盯盘不烧 Tavily}
+{什么消息或板块变化值得看，它对手里的仓位有什么影响。用 peer_scan 对照场次和同业，挑会改变判断的一个对比。}
 
 ▎技术面
-{RSI / MA stance → overbought/oversold/breakout}
+{选一个会改变看法的价格行为，说清为什么现在需要多看一眼。}
 
 ▎操作建议
-{plan_context 非空时先写计划对账（哪条已成交/仍挂着 + 今天怎么执行），再写具体票 + 价位}
+{plan_context 非空时先写计划对账（哪条已成交/仍挂着 + 今天怎么执行），再说接下来等哪个信号或为什么照原计划走}
 
 ▎风险提示（仅当 needs_risk_section=true）
 ```

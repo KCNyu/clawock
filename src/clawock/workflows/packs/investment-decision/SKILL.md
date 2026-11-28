@@ -38,6 +38,16 @@ The final receipt is the proof that one workflow version, certified context, and
 artifact generation passed the deterministic gates. It is supporting evidence,
 not a substitute for the decision itself.
 
+## Write the decision as you would explain it to the reader
+
+Start with what swayed you on this position. Explain what the trade depends on
+and what you'd need to see to change your mind. Keep the evidence IDs attached.
+A short first-person sentence is fine. Use the order and evidence fields for
+quantities, prices and arithmetic. Skip canned contrasts, tidy three-part
+lists and closing lines that repeat the decision. In a saved decision trace,
+write what you knew at the time. The fill and the later result come from the
+ledger.
+
 ## Learn from outcomes
 
 After the stated horizon, record broker, exchange, or market-data evidence using

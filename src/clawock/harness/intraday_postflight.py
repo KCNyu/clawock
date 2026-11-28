@@ -66,6 +66,7 @@ from clawock.harness.validation import (
     with_compute_receipts,
     check_pipeline_self_reference,
     has_section_marker,
+    section_prose_lines,
     is_hard_char_limit,
     mentions_ticker,
     postflight_exit_code,
@@ -231,6 +232,8 @@ def normalize_intraday_insights(path, generated_at=None, *, written_after=None, 
                                      for ticker, prose in payload['movers'].items()}
             if renderer.issues:
                 raise ValueError('；'.join(renderer.issues))
+            for advisory in renderer.advisories:
+                print(advisory, file=sys.stderr)
         canonical = {
             **normalize_status(payload),
             'generated_at': generated_at or datetime.now(timezone.utc).isoformat(
@@ -558,7 +561,10 @@ def validate(text, ctx, model_text):
         # invented move, so a short body passes only when it says no change.
         honest_quiet = bool(ctx.get('semantic_unchanged')) and re.search(
             r'无实质性?变化|没(?:有)?(?:实质性?|新)?变化|无新变化|无变化|与上次一致|无新增(?:变化|异动)', section_body)
-        if len(section_body) < 60 and not honest_quiet:
+        if prose_claims.enabled(ctx):
+            if not any(re.search(r'[^\W\d_]', line) for _, line in section_prose_lines(section_body)):
+                issues.append(f'缺段标记 "{REQUIRED_SECTION}" 的正文')
+        elif len(section_body) < 60 and not honest_quiet:
             issues.append(
                 f'"{REQUIRED_SECTION}" 段仅 {len(section_body)} 字，太敷衍 '
                 f'(< 60 软下限)；需引用具体票 + 一行判断'
@@ -938,7 +944,7 @@ def main(argv=None):
             trigger = renderer.triggers(trigger, NEXT_TRIGGER)
             judgment = renderer.render(judgment, '盘中判断')
             model_text = '\n'.join(part for part in (judgment, trigger) if part)
-            issues.extend(renderer.issues)
+            issues.extend([*renderer.issues, *renderer.advisories])
         text = assemble_message(ctx, model_text)
         issues.extend(validate(text, ctx, model_text))
     status = 'fail' if stale_generation else categorize(issues)

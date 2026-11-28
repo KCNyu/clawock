@@ -19,6 +19,7 @@ from clawock.prose_validation import (
     PIPELINE_TERMS as PIPELINE_TERMS,
     check_identifier_leak as check_identifier_leak,
     check_pipeline_self_reference as check_pipeline_self_reference,
+    section_prose_lines as section_prose_lines,
 )
 
 
@@ -100,27 +101,6 @@ def mentions_ticker(text, ticker):
         kind = r'A-Za-z0-9'
     pattern = rf'(?<![{kind}]){code}(?![{kind}])'
     return re.search(pattern, text or '') is not None
-
-
-_FENCE_LINE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
-
-
-def section_prose_lines(text):
-    """Yield (offset, line) for lines outside Markdown fenced code blocks."""
-    fence = None
-    offset = 0
-    for raw_line in (text or '').splitlines(keepends=True):
-        line = raw_line.rstrip('\r\n')
-        match = _FENCE_LINE.match(line)
-        if fence:
-            if (match and match[1][0] == fence[0] and len(match[1]) >= len(fence)
-                    and not match[2].strip(' \t')):
-                fence = None
-        elif match and (match[1][0] == '~' or '`' not in match[2]):
-            fence = match[1]
-        else:
-            yield offset, line
-        offset += len(raw_line)
 
 
 def section_marker_end(text, marker):
