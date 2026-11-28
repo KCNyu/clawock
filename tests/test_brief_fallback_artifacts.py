@@ -32,8 +32,7 @@ def write_generation(root, today=TODAY, *, ticker_rows=None, structured=False):
     """A workspace holding one real preflight generation; returns its packet."""
     (root / 'memory' / '.tmp').mkdir(parents=True, exist_ok=True)
     (root / 'skills' / 'daily-deep-brief').mkdir(parents=True, exist_ok=True)
-    for name in ('SOUL.md', 'BOOTSTRAP.md', 'skills/daily-deep-brief/SKILL.md'):
-        (root / name).write_text('fixture', encoding='utf-8')
+    (root / 'skills/daily-deep-brief/SKILL.md').write_text('fixture', encoding='utf-8')
     context = _context()
     context['date'] = today
     if structured:
@@ -182,8 +181,6 @@ def test_a_reply_without_both_objects_writes_nothing(workspace, monkeypatch, rep
 
 def test_a_context_without_its_packet_is_refused_before_the_model_is_called(workspace, monkeypatch):
     (workspace / 'memory' / '.tmp').mkdir(parents=True)
-    for name in ('SOUL.md', 'BOOTSTRAP.md'):
-        (workspace / name).write_text('fixture')
     (workspace / 'memory' / '.tmp' / f'brief-context-{TODAY}.json').write_text(json.dumps(
         {'portfolio': {'portfolios': {'hk_stocks': {}, 'us_stocks': {}}}}))
     monkeypatch.setattr(bf, 'chat', lambda **_kw: pytest.fail('model called without a packet'))
