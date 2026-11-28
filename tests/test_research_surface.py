@@ -370,7 +370,7 @@ def test_brief_preflight_puts_the_surface_in_the_daily_context():
 
 
 def test_daily_brief_skill_tells_the_model_what_to_do_with_it():
-    skill = (ROOT / "skills" / "daily-deep-brief" / "SKILL.md").read_text()
+    skill = (ROOT / "skills" / "daily-deep-brief" / "references" / "swarm.md").read_text()
     assert "research_surface" in skill
     for key in ("reviews_due", "overdue_commitments", "ungated_positions"):
         assert key in skill

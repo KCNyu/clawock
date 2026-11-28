@@ -132,6 +132,10 @@
       "delivery_mode": "none",
       "required_substrings": [
         "skills/daily-deep-brief/SKILL.md",
+        "skills/daily-deep-brief/references/packet.md",
+        "skills/daily-deep-brief/references/swarm.md",
+        "skills/daily-deep-brief/references/style.md",
+        "skills/daily-deep-brief/references/plan-schema.md",
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/daily-deep-brief/SKILL.md` 与 Step 1 preflight",
         "skills catalog 只有索引，不含 SKILL.md 正文",
         "判断只沿本档输入协议取证",
