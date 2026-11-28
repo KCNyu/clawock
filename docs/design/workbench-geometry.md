@@ -29,13 +29,8 @@ where the host hides the label, keeps only the non-numeric alert mark.
 
 ## Evidence
 
-The screenshots are WebKit at 390x844 with the real bundle and the
-host-like 36px sidebar; the after column is the fixed bundle. The sidebar
-pair is a 2x crop of the same viewport; the task pair is the full viewport.
-
-![Sidebar before/after](workbench-overlap-sidebar.png)
-
-![Closing report before/after](workbench-overlap-detail.png)
+Run the [Workbench geometry test](https://github.com/KCNyu/clawock/blob/master/tests/workbench_overlap.spec.js) to
+check the current bundle at the documented viewport sizes.
 
 ## Reading width and wrapping
 

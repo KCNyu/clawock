@@ -12,8 +12,6 @@ from the live DOM with `getComputedStyle` at 390x844.
 
 ## Measured host (Automation tasks)
 
-![Automation tasks, the reference](workbench-host-reference-390.png)
-
 | Host element | Measured value |
 |---|---|
 | Page content | `padding: 0 20px 48px` at <=767px; width 960px max |
@@ -134,13 +132,11 @@ chrome starts at 20; row text starts at 28 because the host row itself has
 
 Earlier the page had 44/16/12 baselines; that is gone.
 
-## Screenshots
+## Verification
 
-| Width | Home | History | Detail | Brief sheet | Dark |
-|---|---|---|---|---|---|
-| 390 | ![](workbench-conformance-390.png) | ![](workbench-conformance-history-390.png) | ![](workbench-conformance-detail-390.png) | ![](workbench-conformance-brief-390.png) | ![](workbench-conformance-dark-390.png) |
-| 375 | ![](workbench-conformance-375.png) | (same Row, 62px) | (same) | (same) | (same tokens) |
-| 320 | ![](workbench-conformance-320.png) | (same) | (same) | (same) | (same tokens) |
+The [geometry](https://github.com/KCNyu/clawock/blob/master/tests/workbench_overlap.spec.js) and
+[typography](https://github.com/KCNyu/clawock/blob/master/tests/workbench_typography.spec.js) tests exercise the
+maintained visual rules against the current bundle.
 
 ## What is still different
 
