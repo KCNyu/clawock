@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from decimal import Decimal, InvalidOperation
 from math import isfinite
+from urllib.parse import quote as quote_url, urlsplit
 
 from clawock.portfolio.breakeven_claims import validate_drag
 from clawock.prose_validation import Advisory, CITATION, MEASUREMENT, check_storytelling
@@ -16,6 +17,15 @@ TOKEN = re.compile(r'\[\[([^\[\]\r\n]+)\]\]')
 # publication are detected by the reference grammar, not by this pattern.
 _UNBOUND_UNIT = re.compile(
     r'(?<![A-Za-z0-9_.])\d+(?:[.,]\d+)*\s*(?:[%％]|港元|美元|HKD|USD|股(?!票|东))')
+_MARKET_TOPIC = re.compile(
+    r'南向|港股通|HIBOR|香港银行同业拆息|港元拆息|港[元币]汇[率价]|'
+    r'(?:USD/?HKD|HKD/?USD)|(?:美元兑港元|港元兑美元)', re.I)
+_MARKET_NUMBER = re.compile(
+    r'\d+(?:,\d{3})*(?:\.\d+)?\s*(?:[%％万亿兆]|港元|港币|美元|个基点|基点|bp|HKD|USD)'
+    r'|[零〇一二两三四五六七八九十百千万]+(?:点[零〇一二两三四五六七八九]+)?\s*(?:亿元|亿港元|万港元|个基点|基点|个百分点)'
+    r'|百分之[零〇一二两三四五六七八九十点]+'
+    r'|\d+\.\d+|(?:净买入|净卖出|净流[入出]|报|为|升至|降至)\s*[+-]?\d+(?![\d年月日时周天])', re.I)
+_MARKET_CLAUSE = re.compile(r'[。；;！？!?，\n]')
 _ACK_FIELDS = {
     'quote_coverage', 'plan_context', 'risk_debts', 'risk_followups', 'session_review',
     'semantic_state', 'semantic_delta', 'signal_count', 'strategy_checks', 'index_direction',
@@ -142,6 +152,51 @@ def _citation(row):
 
 
 
+def _has_market_reading(text):
+    return isinstance(text, str) and _MARKET_TOPIC.search(text) and _MARKET_NUMBER.search(text)
+
+
+def _market_citation(row, citation):
+    """Bind an HK liquidity reading to its actual same-generation source title."""
+    title = row.get('title') or row.get('headline') or ''
+    if not (_has_market_reading(title) or _has_market_reading(citation)):
+        return citation
+    url = row.get('url') or row.get('source_url')
+    try:
+        parsed = urlsplit(url) if isinstance(url, str) else None
+        good_url = (parsed is not None and parsed.scheme in ('https', 'http')
+                    and parsed.hostname and not parsed.username and not any(c.isspace() for c in url))
+    except ValueError:
+        good_url = False
+    source = next((row[key] for key in ('publisher', 'source', 'source_name', 'primary_source', 'provider')
+                   if isinstance(row.get(key), str) and row[key].strip()), None)
+    timestamp = (row.get('published_at') or row.get('filed_date') or row.get('published_date')
+                 or row.get('date') or (row.get('publication_time') or {}).get('iso'))
+    if not (good_url and source and isinstance(timestamp, str) and _TIME_VALUE.fullmatch(timestamp)
+            and _has_market_reading(title)):
+        raise ValueError('外部市场读数需要同代原始标题中的数值、来源、日期和链接')
+    target = quote_url(url, safe=":/?#&=+%@,;~")
+    freshness = '，旧闻' if row.get('stale') is True else ''
+    return f'《{_inline(title)}》（{_inline(source)}，{timestamp}{freshness}，{target}）'
+
+
+def citation(row, *, market=None):
+    value = _citation(row)
+    return _market_citation(row, value) if market in ('hk', 'us') else value
+
+
+def _has_unbound_market_reading(text, measurements):
+    for clause in _MARKET_CLAUSE.split(text):
+        raw = TOKEN.sub('', clause)
+        if not _MARKET_TOPIC.search(raw):
+            continue
+        if _MARKET_NUMBER.search(raw):
+            return True
+        if any(match[1] in measurements for match in TOKEN.finditer(clause)):
+            return True
+    return False
+
+
 def _trigger(roots, path, spec):
     if len(path) != 4 or path[:2] != ['ctx', 'trigger_prices']:
         raise ValueError('触发位需要指定标的及其 trigger_prices 行')
@@ -190,7 +245,7 @@ class ClaimRenderer:
                        or path[0] == 'packet' and 'evidence' in path[1:-1])
             if not allowed:
                 raise ValueError('需要资讯来源字段')
-            return _citation(_resolve(roots, path)), False
+            return citation(_resolve(roots, path), market=roots['ctx'].get('market')), False
         value = _resolve(roots, path)
         if mode == 'ack' and len(path) == 2 and path[0] == 'ctx' and field in _ACK_FIELDS:
             if value is None or isinstance(value, (dict, list)):
@@ -207,6 +262,8 @@ class ClaimRenderer:
         if mode:
             raise ValueError('未知显示方式')
         if field == 'cite' and any(part in _CITE_ROOTS for part in path[1:-1]):
+            if roots['ctx'].get('market') in ('hk', 'us') and _has_market_reading(value):
+                raise ValueError('外部市场读数请用原始记录的 |cite')
             return _inline(value), False
         if field in _SOURCE_FIELDS:
             return _inline(value), False
@@ -251,6 +308,9 @@ class ClaimRenderer:
         if '[[' in raw or ']]' in raw:
             self.issues.append(f'{ISSUE} {label} 引用格式不完整')
         result = TOKEN.sub(replace, text)
+        if roots['ctx'].get('market') in ('hk', 'us') and _has_unbound_market_reading(
+                text, set(measurements.values())):
+            self.issues.append(f'{ISSUE} {label} 外部市场读数须使用本代源记录的 |cite，缺资料请说明')
         owner = ticker or (decision or {}).get('ticker')
         if 'breakeven_math' in roots['ctx']:
             pointers = {token.partition('|')[0] for token, _ in numerical_keys}

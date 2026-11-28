@@ -91,6 +91,32 @@ _ATTRIBUTION = re.compile(r'据\s*[^，。！？；：,:]{1,40}|[^，。！？�
 _QUOTED = re.compile(r'《[^》\n]*》|“[^”\n]*”|「[^」\n]*」|『[^』\n]*』|"[^"\n]*"')
 _STOCK_CLOSER = re.compile(r'^\s*(?:总而言之|综上所述|归根结底)[，,]\s*(.+)')
 _GENERIC_CLOSER = re.compile(r'(?:仍需|继续|保持|建议|需要|应当)?\s*(?:谨慎|关注|观望|观察|耐心|跟踪)[。！!\s]*$')
+# Plumbing and evidence do not count as the author's own explanation.
+_PROSE_DECORATION = re.compile(
+    r'\[\[[^\r\n]*?\]\]|<!--.*?-->|&lt;!--.*?-->|'
+    r'!?\[[^\]\n]*\]\((?:[^()\n]|\([^()\n]*\))*\)|'
+    r'https?://[^\s<>，。！？；「」《》]+|`[^`\n]*`|'
+    r'《[^》\n]*》(?:[ \t]*（[^）\n]*）)?|'
+    r'“[^”\n]*”|「[^」\n]*」|『[^』\n]*』',
+    re.DOTALL,
+)
+_PLACEHOLDER_TEXT = re.compile(
+    r'(?:今天|本档|本周|目前|暂时)?(?:没(?:有)?|暂无|无)(?:可用(?:的)?)?数据|'
+    r'(?:今天|本档|本周)?数据(?:尚)?未取到|'
+    r'看情况|继续观察|维持观望|后续再看|总而言之|综上所述|归根结底'
+)
+_HAN = re.compile(r'[\u3400-\u4dbf\u4e00-\u9fff\U00020000-\U000323af]')
+MIN_NARRATIVE_HAN = 6
+
+
+def has_han_narrative(text):
+    """Count a small floor of author-written Han characters outside references."""
+    plain = '\n'.join(line for _, line in section_prose_lines(text)
+                      if not line.lstrip().startswith(('>', '#')))
+    plain = _PROSE_DECORATION.sub(' ', plain)
+    return len(_HAN.findall(_PLACEHOLDER_TEXT.sub(' ', plain))) >= MIN_NARRATIVE_HAN
+
+
 MEASUREMENT = '\uFFF0'
 CITATION = '\uFFF1'
 _SENTENCE_END = re.compile(r'[。！？；!?;\n]')

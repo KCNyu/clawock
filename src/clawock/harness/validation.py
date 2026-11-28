@@ -610,6 +610,8 @@ def check_numeric_claims(text, ctx, *, scoped_prose=()):
 
     Explicit concentration and execution contradictions retain their own verdict.
     Legacy prose also gets one advisory for unknown values or reversed ranges.
+    Structured drafts check external market readings while resolving their
+    citations, before this rendered-text check.
     """
     concentration_issues = _concentration_claim_issues(text, ctx or {}, scoped_prose)
     if scoped_prose:
