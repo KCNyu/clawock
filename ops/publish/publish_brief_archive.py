@@ -5,10 +5,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import subprocess
+import sys
 
-from publish_data_branch import BOT_EMAIL, BOT_NAME, DATA_BRANCH, ROOT, credential_findings
-from clawock.publish import GitBranchStore
-from clawock.publish import brief_archive
+_CHECKOUT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_CHECKOUT))
+sys.path.insert(0, str(_CHECKOUT / "src"))
+
+from publish_data_branch import BOT_EMAIL, BOT_NAME, DATA_BRANCH, ROOT, credential_findings  # noqa: E402
+from clawock.publish import GitBranchStore, brief_archive  # noqa: E402
 
 
 def pub_briefs(store: GitBranchStore, files: dict[str, str]):
