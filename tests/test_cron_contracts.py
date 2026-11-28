@@ -712,7 +712,8 @@ def test_brief_repair_uses_whole_file_write_instead_of_brittle_edit():
 
     assert rule in profile['required_substrings']
     assert rule in message
-    assert '一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error' in message
+    skill = (ROOT / 'skills/daily-deep-brief/SKILL.md').read_text()
+    assert '一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error' in skill
 
 
 def test_every_agent_payload_requires_probe_chains_to_exit_zero():
@@ -1404,3 +1405,14 @@ def test_report_crons_load_market_analysis_alongside_writing_rules():
         if market == 'hk':
             for topic in ('南向资金', 'HIBOR', '恒科与纳指联动', 'T+0', '老千股', '00100 MINIMAX'):
                 assert topic in analysis
+
+
+def test_payload_document_guards_follow_the_rule_owner():
+    data = contract()
+    for profile in data['payload_profiles'].values():
+        for path, rules in profile.get('required_documents', {}).items():
+            document = (ROOT / path).resolve()
+            assert document.is_relative_to(ROOT)
+            text = document.read_text(encoding='utf-8')
+            assert all(rule in text for rule in rules), path
+    assert data['payload_profiles']['brief']['required_documents']
