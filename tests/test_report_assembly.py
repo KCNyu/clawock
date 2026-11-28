@@ -500,15 +500,34 @@ def test_failed_narrative_still_commits_the_money_file_and_nothing_ignored(pf, m
     )
 
 
-def test_a_failed_slot_can_be_superseded_once_then_locks(run_main, sent, pf):
+def test_a_failed_slot_can_be_superseded_once_then_locks(run_main, sent, pf, monkeypatch):
     """Fail-closed is only acceptable if the corrected report can still land."""
+    job = '美股收盘报告'
+    slot = pf.workflow_outcomes.slot_for_job(job)
+    pf.workflow_outcomes.record_stage(job, 'preflight', 'success', slot=slot)
     bad = '▎情绪面\n' + '数据待获取，等待数据回补后再补充解读。' * 3 + '\n'
     rc1, out1 = run_main(bad, context_id='abc123def456')
     # banner names the offending phrase; the BODY must stop at the data block
     assert out1['status'] == 'fail'
     assert sent['messages'][0].endswith(FRESH_BLOCK.strip().splitlines()[-1])
 
-    rc2, out2 = run_main(PROSE, context_id='abc123def456')
+    def during_upgrade_commit(*_):
+        [record] = pf.workflow_outcomes.load_ledger()['records']
+        stages = record['stages']
+        assert stages['llm']['status'] == 'success'
+        assert stages['postflight']['status'] == 'pending'
+        assert stages['postflight']['delivered'] == 'full report'
+        assert stages['primary_delivery']['deterministic_fallback'] is False
+        pf.workflow_outcomes.record_stage(job, 'postflight', 'warning', slot=slot,
+                                         delivered='data-block only (prose rejected)')
+        return True, 'committed + pushed'
+
+    monkeypatch.setattr(pf, 'maybe_commit', during_upgrade_commit)
+    rc2, out2 = run_main(PROSE, context_id='abc123def456', real_commit=True)
+    [record] = pf.workflow_outcomes.load_ledger()['records']
+    assert record['stages']['postflight']['status'] == 'success'
+    assert record['stages']['postflight']['delivered'] == 'full report'
+    assert record['final_product']['status'] == 'success'
     assert out2['status'] == 'pass' and out2['wechat_sent'] is True
     assert len(sent['messages']) == 2 and '**情绪面**' in sent['messages'][1]
 
@@ -723,3 +742,39 @@ def test_report_ignores_section_markers_in_fences(pf):
     prose += "````\n" + PROSE
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
     assert not any('缺段标记' in issue for issue in issues)
+
+
+def test_failed_upgrade_preserves_confirmed_fallback(run_main, sent, pf, monkeypatch):
+    bad = '▎情绪面\n' + '数据待获取，等待数据回补后再补充解读。' * 3 + '\n'
+    run_main(bad, context_id='abc123def456')
+    before = pf.workflow_outcomes.load_ledger()['records']
+    marker = sent['tmp'] / 'report-sent-us-close-2026-07-24.json'
+    previous_receipt = marker.read_bytes()
+    monkeypatch.setattr(pf, 'send_wechat', lambda *_: (False, 'failure'))
+    monkeypatch.setattr(pf, 'cosend_telegram', lambda *_, **__: (False, 'failure'))
+    _, result = run_main(PROSE, context_id='abc123def456')
+    assert result['send_claim'] == 'upgrade'
+    assert result['delivered'] == 'upgrade not delivered; prior data block retained'
+    assert not result['wechat_sent'] and not result['telegram_sent']
+    assert marker.read_bytes() == previous_receipt
+    assert pf.workflow_outcomes.load_ledger()['records'] == before
+
+
+
+def test_legacy_mixed_report_row_surfaces_confirmed_delivery(pf):
+    from clawock.publish.cron_schedule import _narrate_degraded
+
+    record = {'stages': {
+        'preflight': {'status': 'success'},
+        'llm': {'status': 'failed'},
+        'postflight': {'status': 'warning', 'delivered': 'data-block only (prose rejected)'},
+        'primary_delivery': {'status': 'success', 'wechat_ok': True,
+                             'deterministic_fallback': False},
+        'watchdog_delivery': {'status': 'not_required'},
+    }}
+    record['final_product'] = pf.workflow_outcomes._derive_final(record)
+    assert record['final_product']['status'] == 'degraded'
+    assert '完整报告已重投送达' in record['final_product']['reason']
+    assert _narrate_degraded(record)['disposition'] == 'watch'
+    record['stages']['primary_delivery']['deterministic_fallback'] = True
+    assert _narrate_degraded(record)['disposition'] == 'needs_action'

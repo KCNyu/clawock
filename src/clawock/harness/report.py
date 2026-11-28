@@ -127,9 +127,8 @@ def validate(body, ctx, model_text):
     # 5. 敷衍 phrases（模型文本）
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
-    # 6. 数字必须来自 context（模型文本）—— 一条聚合 warn，见 check_numeric_claims
-    if not prose_claims.enabled(ctx):
-        issues.extend(check_numeric_claims(checked, ctx))
+    # 6. Reconcile explicit numeric fields. Legacy prose also gets a provenance advisory.
+    issues.extend(check_numeric_claims(checked, ctx))
 
     # 7. 管线术语（模型文本）—— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))

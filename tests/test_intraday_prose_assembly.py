@@ -229,7 +229,7 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     """Drive the real main(). Helper-only tests do not guard the wiring — the
     2026-07-23 input_error fix needed the same lesson (a perfect
     read_report_text() still went green while main() ignored its error)."""
-    monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda *_a, **_k: None)
+    monkeypatch.setattr(pf.trading_calendar, 'intraday_closed_reason', lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, 'record', lambda *a, **k: None)
     monkeypatch.setattr(pf, 'publish_data_plane', lambda market, **_: ('published', True, None))
 
@@ -373,7 +373,7 @@ def test_unchanged_receipt_needs_no_dummy_prose_file(pf, sent, monkeypatch, tmp_
     monkeypatch.setattr(pf, "run_usage_append", lambda text, **_kw: text)
     monkeypatch.setattr(pf, "TMP", tmp_path)
     monkeypatch.setattr(pf, "WS", tmp_path)
-    monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
+    monkeypatch.setattr(pf.trading_calendar, "intraday_closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
     monkeypatch.setattr(pf, "publish_data_plane", lambda _m, **_: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
@@ -397,7 +397,7 @@ def test_receipt_ignores_irrelevant_context_id_mismatch(
         should_alert=False, semantic_state={"session": "us:2026-08-13"},
     )
     (tmp_path / "intraday-context-us-latest.json").write_text(json.dumps(ctx))
-    monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
+    monkeypatch.setattr(pf.trading_calendar, "intraday_closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
     monkeypatch.setattr(pf, "publish_data_plane", lambda _m, **_: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [
@@ -425,7 +425,7 @@ def test_unchanged_receipt_does_not_refresh_an_old_dashboard_narrative(
     sidecar.write_text(json.dumps(old))
     monkeypatch.setattr(pf, "TMP", tmp_path)
     monkeypatch.setattr(pf, "WS", tmp_path)
-    monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda *_a, **_k: None)
+    monkeypatch.setattr(pf.trading_calendar, "intraday_closed_reason", lambda *_a, **_k: None)
     monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
     monkeypatch.setattr(pf, "publish_data_plane", lambda _m, **_: ("current", False, None))
     monkeypatch.setattr(sys, "argv", [

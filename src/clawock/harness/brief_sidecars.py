@@ -11,18 +11,33 @@ def _draft(path, context):
         value = json.loads(path.read_text(encoding='utf-8'))
     except (OSError, ValueError):
         return {}
-    if isinstance(value, dict) and value.get('context_generation_id') == context.get('generation_id'):
+    generation = context.get('generation_id')
+    if generation and isinstance(value, dict) and value.get('context_generation_id') == generation:
         return value
     return {}
 
 
-def sector_scan(context, attribution_path, renderer):
-    """Quote the peer feeds in the generation and rank within the observed peers."""
+def _commentary(value, label, renderer):
+    if not isinstance(value, str) or not value.strip():
+        return None
+    start = len(renderer.issues)
+    text = renderer.render(value, label)
+    return text if len(renderer.issues) == start else None
+
+
+def sector_scan(context, attribution_path, renderer, *, narrative=None):
+    """Group the generation's observations and attach rendered commentary."""
     draft = _draft(attribution_path, context)
     attribution = draft.get('attribution')
     if not isinstance(attribution, dict):
         attribution = {}
-    sectors = []
+    catalysts = draft.get('catalysts')
+    if not isinstance(catalysts, dict):
+        catalysts = {}
+    themes = draft.get('themes')
+    if not isinstance(themes, dict):
+        themes = {}
+    groups = {}
     sessions = {}
     for ticker, source in (context.get('peer_scan') or {}).items():
         current = to_strict_finite_number(source.get('self_pct_1d'))
@@ -34,28 +49,44 @@ def sector_scan(context, attribution_path, renderer):
                     'ticker': peer['ticker'], 'name': peer.get('name'), 'pct': pct,
                     'source': peer.get('quote_source'),
                 })
-        ranked = sorted(peers.values(), key=lambda row: (-row['pct'], row['ticker']))
         rank = None
-        if ranked and current is not None:
-            rank = ('领涨' if current > ranked[0]['pct']
-                    else '落后' if current < ranked[-1]['pct'] else '区间内')
-        text = attribution.get(ticker)
-        start = len(renderer.issues)
-        text = renderer.render(text, f'板块归因 {ticker}')
-        if len(renderer.issues) != start:
-            text = None
-        if source.get('region') and source.get('self_session'):
-            sessions[source['region'].lower()] = source['self_session']
-        sectors.append({
-            'theme': source.get('theme'), 'tickers_in_book': [ticker],
-            'top_movers': ranked[:3],
-            'self': [{'ticker': ticker, 'pct': current, 'rank_text': rank, 'attribution': text}],
+        if peers and current is not None:
+            ahead = sum(row['pct'] > current for row in peers.values())
+            rank = f'第 {ahead + 1}/{len(peers) + 1}'
+            if all(row['pct'] < current for row in peers.values()):
+                rank = f'领涨 · {rank}'
+            elif ahead == len(peers):
+                rank = f'落后 · {rank}'
+        theme = (_commentary(themes.get(ticker), f'板块主题 {ticker}', renderer)
+                 or source.get('theme'))
+        region, session = source.get('region'), source.get('self_session')
+        if region and session:
+            sessions[region.lower()] = session
+        group = groups.setdefault((region, session, theme or ticker), {
+            'theme': theme, 'tickers_in_book': [], 'peers': {}, 'self': [],
         })
-    if not sectors:
+        group['tickers_in_book'].append(ticker)
+        for peer_ticker, peer in peers.items():
+            group['peers'].setdefault(peer_ticker, peer)
+        group['self'].append({
+            'ticker': ticker, 'pct': current, 'rank_text': rank,
+            'attribution': _commentary(attribution.get(ticker), f'板块归因 {ticker}', renderer),
+        })
+    if not groups:
         return None
+
+    sectors = []
+    for group in groups.values():
+        ranked = sorted(group.pop('peers').values(), key=lambda row: (-row['pct'], row['ticker']))
+        group['top_movers'] = ranked[:5]
+        for row in group['top_movers']:
+            ticker = row['ticker']
+            if text := _commentary(catalysts.get(ticker), f'板块催化 {ticker}', renderer):
+                row['catalyst'] = text
+        sectors.append(group)
     return {'date': context.get('date'), 'generated_at': context.get('generated_at'),
             'context_generation_id': context.get('generation_id'), '_sessions': sessions,
-            'sectors': sectors}
+            'narrative': narrative, 'sectors': sectors}
 
 
 def _exposure(selection, context):

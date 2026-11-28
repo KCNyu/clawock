@@ -1502,12 +1502,11 @@ def render_from_workspace(workspace, date, *, context=None, plan=None, judgment=
 
     # The sector sweep is optional: a day the search quota was spent still has
     # to publish, with the section carrying the model's read and no table.
-    # Optional is not the same as unremarkable, though — the file is written by
-    # the model, and it stopped after 2026-08-27 without anything noticing for
-    # eight sessions. Say so; the caller counts it.
+    # Note a missing scan so the caller can count days without a table.
     if prose_claims.enabled(context):
         sector_scan = brief_sidecars.sector_scan(
-            context, paths["sector_scan"].with_name(f'brief-sector-draft-{date}.json'), claims)
+            context, paths["sector_scan"].with_name(f'brief-sector-draft-{date}.json'), claims,
+            narrative=_narrative(judgment).get('sector_read'))
     else:
         try:
             sector_scan = _load(paths["sector_scan"])

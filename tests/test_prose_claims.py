@@ -97,3 +97,41 @@ def test_delivery_proof_is_shared_and_artifact_proof_detects_rewrite(tmp_path):
     assert brief_versions.artifacts_verified(tmp_path, day)
     (memory / f'{day}-plan.json').write_text('another plan')
     assert not brief_versions.artifacts_verified(tmp_path, day)
+
+
+def test_structured_sector_scan_keeps_grouped_context_and_audited_commentary(tmp_path):
+    from clawock.harness.brief_sidecars import sector_scan
+
+    peers = [
+        {'ticker': 'C', 'pct_1d': 5, 'quote_source': 'feed'},
+        {'ticker': 'D', 'pct_1d': -2},
+        {'ticker': 'E', 'pct_1d': 2},
+    ]
+    common = {'theme': '太空', 'region': 'us', 'self_session': '2026-11-27',
+              'listed_peers': peers}
+    ctx = {'generation_id': 'current', 'peer_scan': {
+        'A': {**common, 'self_pct_1d': 4},
+        'B': {**common, 'theme': '卫星', 'self_pct_1d': 1},
+    }}
+    draft = tmp_path / 'draft.json'
+    draft.write_text(json.dumps({
+        'context_generation_id': 'current',
+        'attribution': {'A': '受板块带动'},
+        'themes': {'B': '太空'},
+        'catalysts': {'C': '来自[[/ctx/peer_scan/A/listed_peers/0/quote_source]]',
+                      'D': '手写 2 条', 'UNSEEN': '未知'},
+    }))
+    renderer = prose_claims.ClaimRenderer(ctx)
+    scan = sector_scan(ctx, draft, renderer, narrative='板块走强')
+    assert scan['narrative'] == '板块走强'
+    [group] = scan['sectors']
+    assert group['tickers_in_book'] == ['A', 'B']
+    assert group['self'][0]['rank_text'] == '第 2/4'
+    assert group['self'][0]['attribution'] == '受板块带动'
+    assert group['top_movers'][0]['catalyst'] == '来自feed'
+    assert group['top_movers'][0]['pct'] == 5
+    assert not any('catalyst' in row for row in group['top_movers'][1:])
+    assert renderer.issues
+    stale = sector_scan({**ctx, 'generation_id': 'new'}, draft, renderer)
+    assert stale['sectors'][0]['self'][0]['attribution'] is None
+    assert not any('catalyst' in row for row in stale['sectors'][0]['top_movers'])

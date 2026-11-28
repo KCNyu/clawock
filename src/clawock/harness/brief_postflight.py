@@ -1008,7 +1008,7 @@ CRITICAL_KEYWORDS = [
     '缺失', '解析失败', '表格 #', 'generation_id', '敷衍词',
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
     'book inputs invalid', 'book totals mismatch:',
-    '仓位支配度不符', '判断与计划股数冲突',
+    '仓位支配度不符', '判断与计划股数冲突', '执行计数口径不符',
     'plan.json watch_levels', '[RATIONALE_PRICE_SCALE]',
     '引用了 private topic', prose_claims.ISSUE,
 ]  # table mismatch, cross-generation output and placeholder prose are critical
@@ -1695,14 +1695,15 @@ def _plan_self_reference_issues(plan):
                check_identifier_leak(prose, label='plan 理由/触发条件')])
 
 
-def _brief_numeric_issues(judgment_path, plan, context):
+def _brief_numeric_issues(judgment_path, plan, context, *, overlay=None):
     """Check all published model prose, with each ticker row's identity intact."""
     from clawock.portfolio.guardrail import plan_trim_projections
     context = {**(context or {}), 'plan_trim_projections': [], 'plan_book_trim_projections': []}
-    try:
-        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
-    except (OSError, ValueError):
-        overlay = {}
+    if overlay is None:
+        try:
+            overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            overlay = {}
     texts = []
     if isinstance(overlay, dict):
         texts.extend(overlay.get(key) for key in
@@ -1741,9 +1742,10 @@ def _brief_numeric_issues(judgment_path, plan, context):
     if own_fields and isinstance(context, dict):
         context = {**context, 'plan_decision_sizes': own_fields}
     from clawock.decision.plan_prose import judgment_plan_share_conflicts
+    numeric_context = context if prose_claims.enabled(context) else with_compute_receipts(context, WS)
     return (judgment_plan_share_conflicts(plan, overlay)
             + check_numeric_claims('\n'.join(value for value in texts if isinstance(value, str)),
-                                   with_compute_receipts(context, WS), scoped_prose=scoped_prose))
+                                   numeric_context, scoped_prose=scoped_prose))
 
 
 def main(argv=None):
@@ -1855,8 +1857,8 @@ def main(argv=None):
     )
     issues += normalization_issues
     if structured and resolved_judgment is not None:
-        from clawock.decision.plan_prose import judgment_plan_share_conflicts
-        issues.extend(judgment_plan_share_conflicts(normalized_plan, resolved_judgment))
+        issues.extend(_brief_numeric_issues(
+            judgment_path, normalized_plan, context, overlay=resolved_judgment))
         issues.extend(check_pipeline_self_reference(
             resolved_judgment.get('portfolio_assessment') or '', label='微信卡核心结论'))
         issues.extend(f'{issue} {ADVISORY_MARK}' for issue in

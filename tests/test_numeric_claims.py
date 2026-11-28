@@ -545,3 +545,16 @@ def test_negated_waiting_is_not_placeholder_but_a_later_placeholder_still_is():
         assert not validate_forbidden_phrases(prefix + '等待数据回档，按计划执行。', FORBIDDEN_PHRASES)
     for text in ('等待数据', '并非无需等待数据', '无需等待数据；另一票等待数据', '无需 TODO'):
         assert validate_forbidden_phrases(text, FORBIDDEN_PHRASES)
+
+
+def test_active_execution_counts_use_the_active_population(hc):
+    ctx = {'decision_metrics': {
+        'execution': {'followed': 127, 'not_followed': 49, 'unknown': 40},
+        'execution_by_kind': {'active': {'followed': 0, 'not_followed': 48, 'unknown': 26}},
+    }}
+    wrong = '账户上已知主动建议执行 127 次、未执行 49 次、判不了 27 次。'
+    right = '已知主动建议执行 0 次、未执行 48 次、判不了 26 次。'
+    assert len(hc.check_numeric_claims(wrong, ctx)) == 3
+    assert not hc.check_numeric_claims(right, ctx)
+    assert not hc.check_numeric_claims('共执行 127 次。', ctx)
+    assert not hc.check_numeric_claims('主动建议执行 0 次；被动建议执行 127 次。', ctx)

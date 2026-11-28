@@ -475,3 +475,23 @@ def test_named_unreviewed_position_does_not_inherit_another_positions_numbers(
     monkeypatch.setattr(dashboard.decision_v2, 'load_decisions', lambda: [row])
     [timeline] = dashboard.compute_plan_timeline([], context=ctx)
     assert not timeline['plan_warnings']
+
+
+def test_review_only_claims_bind_the_review_weight_and_explicit_price():
+    from clawock.harness.validation import _concentration_claim_issues
+
+    ctx = {'risk_guardrail': {'concentration_reviews': [{
+        'ticker': 'TEST', 'weight_pct': 42, 'review_pct': 35,
+        'trim_to_review_line': {'price': 110.1, 'shares_to_review_line': 40,
+                                'post_trim_weight_pct': 34.2, 'target_pct': 35},
+    }]}}
+    check = lambda prose: _concentration_claim_issues(prose, ctx)
+    assert '34.2%' in check('TEST 卖到复核线后占比 20%。')[0]
+    assert not check('TEST 减到复核线后占比是 34.2%。')
+    assert not check('TEST 卖 90 股后占比降到 20%。')
+    assert '无法核对' in check('按 999 港元重算，TEST 卖到复核线需卖 40 股。')[0]
+    assert '需卖 40 股' in check('按 110.1 港元重算，TEST 卖到复核线需卖 10 股。')[0]
+    assert not check('按 110.1 港元重算，TEST 卖到复核线需卖 40 股。')
+    assert not check('按 999 港元重算，TEST 估值仍过高。')
+    assert '34.2%' in check_numeric_claims(
+        'TEST 卖到复核线后占比 20%。', {**ctx, 'prose_claims_version': 1})[0]

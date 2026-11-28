@@ -177,7 +177,7 @@ def claim_upgrade(market, phase, date):
 
 def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='delivered',
                    context_id=None, context_generated_at=None, claim_path=None,
-                   telegram_done=False):
+                   telegram_done=False, upgrading=False):
     """Primary WeChat send for staged reports — fresh-token `openclaw message send`,
     decoupled from the cron's announce.
 
@@ -229,6 +229,9 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
 
     def write_receipt(result):
         sent_ok, out, tg_ok = result
+        if upgrading and not (sent_ok or tg_ok):
+            # A failed upgrade leaves the original delivery receipt valid.
+            return True
         safe_write_text(str(marker), json.dumps(delivery_receipts.build_receipt(
             ts=int(datetime.now().timestamp() * 1000),
             sent_ok=sent_ok,
@@ -524,20 +527,14 @@ def main(argv=None):
     # still commits the data plane, but its verdict on its own prose is not
     # what kcn received: filed, a rejected rewrite named the delivered report
     # 「模型链失败后兜底出货」, the #2961 shape through the validation door.
+    llm_status = 'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed')
+    llm_details = dict(context_id=ctx.get('context_id'), issue_count=len(issues),
+                       escalating_count=len(escalating), advisory_count=len(advisories))
     if blocked:
         print(f'idempotency: {args.market}-{args.phase} already delivered — this attempt '
               f'({status}) files no stage over the delivered slot', file=sys.stderr)
-    else:
-        workflow_outcomes.record_stage(
-            job_name,
-            'llm',
-            'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed'),
-            slot=slot,
-            context_id=ctx.get('context_id'),
-            issue_count=len(issues),
-            escalating_count=len(escalating),
-            advisory_count=len(advisories),
-        )
+    elif not upgrading:
+        workflow_outcomes.record_stage(job_name, 'llm', llm_status, slot=slot, **llm_details)
 
     send_claim = 'not-required'
     # True when claim_send refused this process the send right: it then holds no
@@ -565,7 +562,8 @@ def main(argv=None):
         wechat_sent, send_out = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
                                         delivery_state=delivery_state,
                                         context_id=ctx.get('context_id'),
-                                        context_generated_at=ctx.get('generated_at'))
+                                        context_generated_at=ctx.get('generated_at'),
+                                        upgrading=True)
     else:
         # The marker only proves a send that FINISHED. A concurrent postflight
         # that is still mid-send leaves no marker at all, so the claim is what
@@ -604,8 +602,12 @@ def main(argv=None):
     # A declined claim process records nothing: the concurrent holder owns this
     # verdict, and a late false `failed` would stand forever because receipt
     # reconciliation only fills unknown stages (#1006).
-    _, telegram_ok = delivery_receipts.channels(delivery_receipts.read_receipt(report_marker))
-    if not claim_declined and not blocked:
+    receipt = delivery_receipts.read_receipt(report_marker)
+    _, telegram_ok = delivery_receipts.channels(receipt)
+    if upgrading and (receipt or {}).get('delivery_state') != 'delivered':
+        telegram_ok = False
+    upgrade_delivered = upgrading and (wechat_sent or telegram_ok)
+    if not claim_declined and not blocked and (not upgrading or upgrade_delivered):
         if wechat_sent or telegram_ok:
             risk_notices.record(WS, ctx.get('risk_followups'), body)
         workflow_outcomes.record_primary_delivery(
@@ -616,11 +618,15 @@ def main(argv=None):
             # Kept only on failure: a reason on a send that worked is noise.
             wechat_detail=send_out or 'no output from the transport',
             deterministic_fallback=(status == 'fail'),
+            **({'report_upgrade_llm': (llm_status, llm_details)} if upgrade_delivered else {}),
         )
 
     commit_ok, commit_msg = maybe_commit(product, ctx['commit_msg'])
     data_plane_status = classify_data_plane(commit_ok, commit_msg)
 
+    delivered = 'data-block only (prose rejected)' if status == 'fail' else 'full report'
+    if upgrading and not upgrade_delivered:
+        delivered = 'upgrade not delivered; prior data block retained'
     result = {
         'status':        status,
         'market':        args.market,
@@ -634,7 +640,7 @@ def main(argv=None):
         # So a re-run that correctly declined to double-send says so in its own
         # output instead of looking like a send failure to whoever reads Step 4.
         'send_claim':    send_claim,
-        'delivered':     'data-block only (prose rejected)' if status == 'fail' else 'full report',
+        'delivered':     delivered,
         'commit_ok':     commit_ok,
         'commit_msg':    commit_msg,
         'data_plane_status': data_plane_status,
@@ -646,7 +652,7 @@ def main(argv=None):
     # Even a rejected prose report can have a successful postflight: the harness
     # deliberately delivers its deterministic data block. Preserve that degraded
     # product instead of collapsing it into the LLM's failure.
-    if not blocked:
+    if not blocked and not claim_declined and (not upgrading or upgrade_delivered):
         workflow_outcomes.record_stage(
             job_name,
             'postflight',
@@ -654,6 +660,8 @@ def main(argv=None):
             if product == 'pass' and data_plane_status in {'published', 'current'}
             else 'warning',
             slot=slot,
+            finish_report_upgrade=upgrade_delivered,
+            context_id=ctx.get('context_id'),
             delivered=result['delivered'],
             data_plane_status=data_plane_status,
             reason=commit_msg if data_plane_status == 'committed_local' else None,

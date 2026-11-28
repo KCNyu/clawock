@@ -268,9 +268,9 @@
   white-space:nowrap
 }.dmt .sv.focus{
   font-weight:var(--fw-bold);font-size:var(--fs-2xl);line-height:var(--lh-tight);font-family:var(--font);
-}.dmt .sv.up{
+}.dmt .sv.up, .dmt .sv > .up{
   color:var(--ok)
-}.dmt .sv.down{
+}.dmt .sv.down, .dmt .sv > .down{
   color:var(--bad)
 }.dmt .bar{
   box-sizing:border-box;
