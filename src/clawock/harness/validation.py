@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 
+from clawock import prose_claims
 from clawock.prose_validation import (
     ADVISORY_MARK,
     PIPELINE_TERMS as PIPELINE_TERMS,
@@ -613,14 +614,16 @@ def execution_count_issues(text, context):
 def check_numeric_claims(text, ctx, *, scoped_prose=()):
     """Reconcile bound concentration claims and aggregate weak provenance clues.
 
-    Unknown unit-bearing values or reversed ranges generate at most one
-    advisory. Explicit concentration contradictions retain their own verdict.
+    Explicit concentration and execution contradictions retain their own verdict.
+    Legacy prose also gets one advisory for unknown values or reversed ranges.
     """
     concentration_issues = _concentration_claim_issues(text, ctx or {}, scoped_prose)
     if scoped_prose:
         text = '\n'.join([text, *(f"- **{ticker or ''}** ·\n{prose}"
                                   for ticker, prose, _, _ in scoped_prose)])
     concentration_issues.extend(execution_count_issues(text, ctx or {}))
+    if prose_claims.enabled(ctx):
+        return concentration_issues
     known = _context_numbers(ctx)
     shown_products = _shown_product_results(text, known)
     unverified = []

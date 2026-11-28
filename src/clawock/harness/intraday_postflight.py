@@ -632,8 +632,10 @@ def validate(text, ctx, model_text):
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
     # Older contexts still carry authored amounts, trigger lines and citations.
-    if not prose_claims.enabled(ctx):
-        issues.extend(check_numeric_claims(checked, with_compute_receipts(ctx, WS)))
+    structured = prose_claims.enabled(ctx)
+    numeric_context = ctx if structured else with_compute_receipts(ctx, WS)
+    issues.extend(check_numeric_claims(checked, numeric_context))
+    if not structured:
         issues.extend(check_next_trigger(checked, ctx))
         issues.extend(check_stale_citation(checked, ctx))
 

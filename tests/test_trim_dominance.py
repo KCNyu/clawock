@@ -493,3 +493,5 @@ def test_review_only_claims_bind_the_review_weight_and_explicit_price():
     assert '需卖 40 股' in check('按 110.1 港元重算，TEST 卖到复核线需卖 10 股。')[0]
     assert not check('按 110.1 港元重算，TEST 卖到复核线需卖 40 股。')
     assert not check('按 999 港元重算，TEST 估值仍过高。')
+    assert '34.2%' in check_numeric_claims(
+        'TEST 卖到复核线后占比 20%。', {**ctx, 'prose_claims_version': 1})[0]
