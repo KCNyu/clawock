@@ -7,11 +7,14 @@ def storytelling_prompt():
     return files('clawock').joinpath('trading-prose.md').read_text(encoding='utf-8').strip()
 
 
+ADVISORY_MARK = '(advisory)'
+
+
 class Advisory(str):
     """A finding whose severity is assigned by the validator, not its wording."""
 
     def __new__(cls, message):
-        return super().__new__(cls, f'{message} (advisory)')
+        return super().__new__(cls, f'{message} {ADVISORY_MARK}')
 
 # Words that only exist on the writer's side of the prompt. kcn reads the pushed
 # message; he never sees a preflight, a decision packet or a context file, so a

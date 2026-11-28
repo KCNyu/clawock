@@ -16,10 +16,10 @@ MAX_PARTS = 6
 KEEP_SECONDS = 2 * 24 * 60 * 60
 
 
-def packet_dir(tmp, market, context_id):
+def packet_dir(tmp, market, context_id, *, namespace='intraday-packets'):
     if market not in {'hk', 'us'} or not re.fullmatch(r'[A-Za-z0-9_-]+', context_id or ''):
         raise ValueError('invalid market or context_id')
-    return Path(tmp) / 'intraday-packets' / f'{market}-{context_id}'
+    return Path(tmp) / namespace / f'{market}-{context_id}'
 
 
 def _json(value):

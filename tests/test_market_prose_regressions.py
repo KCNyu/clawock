@@ -124,10 +124,17 @@ def test_report_packet_round_trips_every_field_in_bounded_same_generation_parts(
     context = {'context_id': '0123456789ab', 'market': 'hk', 'phase': 'close',
                'date': '2026-11-27', 'status': 'ok',
                'news': {str(i): ['实盘公告' * 720] for i in range(7)},
-               'plan_context': {'open': [{'ticker': '00700', 'shares': 300}]}}
+               'plan_context': {'open': [{'ticker': '00700', 'shares': 300}]},
+               'anomalies': [{'ticker': '00700'}],
+               'live_information': {'summary': {'00700': [
+                   {'cite': '《旧闻》', 'stale': True},
+                   {'cite': '《新公告》', 'stale': False, 'grade': 'primary'},
+               ]}}}
     audit = json.dumps(context, ensure_ascii=False)
     first = report_preflight.write_report_packet(tmp_path, context, audit)
     assert first['complete'] and len(first['parts']) > 1
+    assert first['mover_tickers'] == ['[[/ctx/anomalies/0/ticker]]']
+    assert first['news_cites'] == {'00700': '[[/ctx/live_information/summary/00700/1|cite]]'}
     values = {}
     for part in first['parts']:
         raw = Path(part['path']).read_bytes()

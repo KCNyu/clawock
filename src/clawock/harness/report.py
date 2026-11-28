@@ -171,21 +171,26 @@ def validate(body, ctx, model_text):
     return issues
 
 
-def _live_news_coverage(draft, ctx):
-    """Require one current attributable item per holding that has one."""
-    sentiment = section_body(draft, '▎情绪面')
-    refs = {match[1] for match in prose_claims.TOKEN.finditer(sentiment)}
-    missing = []
+def live_news_references(ctx):
+    """Exact report pointers for current per-holding news, preferring filings."""
+    references = {}
     for ticker, rows in ((ctx.get('live_information') or {}).get('summary') or {}).items():
         # Same-day filings with incomplete clock precision have stale=None.
         # Retain them without treating them as intraday news.
         current = [i for i, row in enumerate(rows) if row.get('cite') and row.get('stale') is not True]
         primary = [i for i in current if rows[i].get('grade') == 'primary']
-        escaped = ticker.replace('~', '~0').replace('/', '~1')
-        if current and not any(
-                f'/ctx/live_information/summary/{escaped}/{i}{suffix}' in refs
-                for i in (primary or current) for suffix in ('|cite', '/cite')):
-            missing.append(ticker)
+        if current:
+            escaped = ticker.replace('~', '~0').replace('/', '~1')
+            references[ticker] = [f'/ctx/live_information/summary/{escaped}/{i}'
+                                  for i in (primary or current)]
+    return references
+
+
+def _live_news_coverage(draft, ctx):
+    sentiment = section_body(draft, '▎情绪面')
+    refs = {match[1] for match in prose_claims.TOKEN.finditer(sentiment)}
+    missing = [ticker for ticker, paths in live_news_references(ctx).items()
+               if not any(path + suffix in refs for path in paths for suffix in ('|cite', '/cite'))]
     return [f'{_NEWS_ISSUE}（情绪面）：{"、".join(missing)}'] if missing else []
 
 

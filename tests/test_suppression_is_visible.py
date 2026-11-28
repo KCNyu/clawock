@@ -34,8 +34,8 @@ sys.path.insert(0, str(ROOT))
 from clawock.harness import validation as val  # noqa: E402
 
 
-ADVISORY = f"07226 6200 股 未在 context 中 {val.ADVISORY_MARK}"
-ADVISORY_2 = f"区间 +0.3~-0.4% 自相矛盾 {val.ADVISORY_MARK}"
+ADVISORY = val.Advisory("07226 6200 股 未在 context 中")
+ADVISORY_2 = val.Advisory("区间 +0.3~-0.4% 自相矛盾")
 
 
 # --------------------------------------------------------------------------

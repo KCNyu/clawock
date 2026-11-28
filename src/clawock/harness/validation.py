@@ -15,6 +15,7 @@ from functools import lru_cache
 
 from clawock import prose_claims
 from clawock.prose_validation import (
+    ADVISORY_MARK as ADVISORY_MARK,
     Advisory,
     PIPELINE_TERMS as PIPELINE_TERMS,
     check_identifier_leak as check_identifier_leak,

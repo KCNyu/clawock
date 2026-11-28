@@ -327,10 +327,10 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     monkeypatch.setattr(pf.trading_calendar, 'phase_session', lambda m, p: 'x')
     monkeypatch.setattr(pf.trading_calendar, 'hkt_today', lambda: date(2026, 7, 24))
     monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda m, session=None: None)
-    def run(prose, *, context_id, ctx=None, age_minutes=0, real_commit=False):
+    def run(prose, *, context_id, ctx=None, age_minutes=0, real_commit=False, body=None):
         (tmp_path / f'report-context-us-close-{pf.trading_calendar.hkt_today()}.json'
          ).write_text(json.dumps(ctx or _ctx(), ensure_ascii=False))
-        body = tmp_path / 'body.md'
+        body = body or tmp_path / 'body.md'
         body.write_text(prose)
         if age_minutes:
             import os
@@ -780,3 +780,21 @@ def test_legacy_mixed_report_row_surfaces_confirmed_delivery(pf):
     assert _narrate_degraded(record)['disposition'] == 'watch'
     record['stages']['primary_delivery']['deterministic_fallback'] = True
     assert _narrate_degraded(record)['disposition'] == 'needs_action'
+
+
+@pytest.mark.parametrize('finish_with_good_prose', [True, False])
+def test_packet_report_gets_one_revision_before_any_delivery(
+    run_main, sent, pre, finish_with_good_prose,
+):
+    ctx = _ctx()
+    receipt = pre.write_report_packet(sent['tmp'], ctx, json.dumps(ctx))
+    path = Path(receipt['prose_path'])
+    invalid = PROSE.replace('▎技术面', '盘面')
+    code, first = run_main(invalid, context_id=ctx['context_id'], ctx=ctx, body=path)
+    assert code == 0 and first['status'] == 'revise'
+    assert not sent.get('messages')
+    final = PROSE if finish_with_good_prose else invalid
+    _, second = run_main(final, context_id=ctx['context_id'], ctx=ctx, body=path)
+    assert second['status'] == ('pass' if finish_with_good_prose else 'fail')
+    assert len(sent['messages']) == 1
+    assert ('稳定币板块' in sent['messages'][0]) == finish_with_good_prose

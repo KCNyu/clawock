@@ -16,11 +16,11 @@ Each invocation:
   5. Writes memory/.tmp/report-context-{market}-{phase}-{date}.json, where {date}
      is the RUN date (not the market-session date), and drops this market+phase's
      contexts from every other date
-  6. Prints that context to stdout, then the absolute path as the final line
+  6. Prints the full context or a receipt for bounded, lossless file parts,
+     then the absolute canonical context path as the final line
 
-stdout and the file are the SAME JSON — no abridged second view to drift. It is
-small because peer_scan is trimmed at the source (see trim_peer_scan), not
-because the print is truncated. The model writes prose only and echoes
+The model-facing parts contain the same fields as the saved context. Scheduled
+authors read the parts in parallel and write only prose. The model echoes
 `context_id` back to postflight, which refuses to assemble prose against a
 context that has since been replaced.
 
@@ -57,6 +57,7 @@ from clawock.safe_io import safe_write_text
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
 from clawock.harness.deadline import supervise_preflight
+from clawock.harness.report import live_news_references
 
 import argparse
 import os
@@ -568,11 +569,14 @@ def _collect(argv=None):
 def write_report_packet(tmp, context, audit):
     """Return paths for one parallel read batch, bound to this report run."""
     identity = {key: context[key] for key in ('context_id', 'market', 'phase', 'date')}
-    target = packet_dir(tmp, identity['market'], identity['context_id'])
-    target = target.parent.with_name('report-packets') / target.name
+    target = packet_dir(tmp, identity['market'], identity['context_id'], namespace='report-packets')
     parts = publish_parts(target, context, identity, audit)
+    refs = live_news_references(context)
     return {'status': 'ok', **identity, 'parts': parts, 'complete': True,
-            'prose_path': str(target / 'report-prose.md')}
+            'prose_path': str(target / 'report-prose.md'),
+            'news_cites': {ticker: f'[[{paths[0]}|cite]]' for ticker, paths in refs.items()},
+            'mover_tickers': [f'[[/ctx/anomalies/{i}/ticker]]'
+                              for i, _ in enumerate(context.get('anomalies') or [])]}
 
 
 def main(argv=None):

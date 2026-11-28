@@ -82,8 +82,9 @@ def test_intraday_trigger_and_add_side_rows_need_their_own_code():
 def test_report_anomaly_is_not_covered_by_a_longer_ticker():
     report = importlib.import_module('clawock.harness.report')
     ctx = {'anomalies': [{'ticker': 'QQQ', 'move_pct': -3.1}]}
-    issues = report.validate(TQQQ_ONLY, ctx, TQQQ_ONLY)
-    assert [i for i in issues if '异动票' in i], issues
+    prose = f'▎情绪面\n{TQQQ_ONLY}'
+    issues = report.validate(prose, ctx, prose)
+    assert any('异动归因漏写' in i and 'QQQ' in i for i in issues), issues
 
 
 def test_brief_divergence_ticker_needs_its_own_mention(tmp_path):
