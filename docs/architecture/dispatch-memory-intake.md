@@ -192,10 +192,9 @@ An unreachable model leaves candidates pending and raw items queued. A malformed
 reply writes nothing. The deterministic gate keeps rejecting contamination even
 when a receipt exists. No new timer or second dreaming job was added.
 
-## 7. Session ingestion patch
+## 7. Session ingestion
 
-`ops/host/openclaw-patches/patch-dreaming-session-ingestion.py` is a versioned dist
-patch in the existing kit. It changes selection only:
+The [frozen fork](../operations/openclaw-frozen-build.md) owns selection:
 
 - sweep cap 240 → 4000, per-file cap 80 → 400, and each changed session gets the
   per-file cap instead of a 1–2 message share;
@@ -203,11 +202,7 @@ patch in the existing kit. It changes selection only:
 - `:direct:` and `:main` sessions sort before cron sessions, so the owner's own
   words cannot be starved by briefs.
 
-It does not change scores, prompts, candidate selection, review rules or narrative
-generation. It is pinned to OpenClaw `2026.7.1-2`: reapply it after an upgrade
-(`reapply_openclaw_patches.sh`) and restart an idle gateway, because the old process
-keeps the bytes it loaded. `system_check.py` and the patch receipt name a missing
-half; the adapter refuses incomplete anchors rather than guessing.
+The selected messages enter the existing scoring, review and narrative pipeline.
 
 ## Verification
 
@@ -238,8 +233,6 @@ promotion check. An empty batch is not evidence.
 
 ## Remaining limits
 
-- The dist patch is tied to the reviewed OpenClaw version. A new bundle layout fails
-  the patch plan closed; it is not silently skipped.
 - The model call is an external provider request. Raw queue items are private, but
   the curator sees the owner's words and the final report; the dreaming reviewer
   sees public-source brief text. Do not capture a task whose prompt contains a

@@ -54,7 +54,7 @@ def _write_index(db: Path, sources: dict[str, int]) -> None:
 
 @pytest.fixture
 def box(tmp_path, sc, monkeypatch):
-    """A healthy live box: workspace, index, both dist patches, fresh reindex."""
+    """A healthy live box: workspace, index and fresh reindex."""
     workspace = tmp_path / "workspace"
     (workspace / "memory" / "dreaming").mkdir(parents=True)
     (workspace / "logs").mkdir()
@@ -69,27 +69,14 @@ def box(tmp_path, sc, monkeypatch):
         "memory/dreaming/2026-07-26.md": len("dreamt\n"),
     })
 
-    dist = tmp_path / "openclaw" / "dist"
-    dist.mkdir(parents=True)
-    (dist / "embeddings-aaa.js").write_text("const o = { threads: 1, batchSize: 512 };")
-    (dist / "tools-bbb.js").write_text("const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 60000;")
-    (dist / "short-term-promotion-ccc.js").write_text(
-        "// clawock-dreaming-review-v1: private candidates\n")
-    (dist / "dreaming-ddd.js").write_text(
-        "reportLines.push(`- Promoted N candidate(s) into "
-        "memory/.dreams/promotion-candidates.md (pending review).`);\n")
-    (dist / "dreaming-phases-eee.js").write_text(
-        "// clawock-dreaming-session-ingestion-v1: direct chats first\n")
-
     log = workspace / "logs" / "memory_index.log"
     stamp = (datetime.now().astimezone() - timedelta(hours=3)).isoformat(timespec="seconds")
     log.write_text(f"{stamp} reindex done in 15s: indexed=3/3 counts=(9, 3) (chunk delta 0)\n")
 
     monkeypatch.setattr(sc, "LIVE_WORKSPACE", workspace)
     monkeypatch.setattr(sc, "MEMORY_INDEX_DB", db)
-    monkeypatch.setattr(sc, "OPENCLAW_INSTALL", tmp_path / "openclaw")
     monkeypatch.setattr(sc, "MEMORY_INDEX_LOG", log)
-    return {"workspace": workspace, "db": db, "dist": dist, "log": log}
+    return {"workspace": workspace, "db": db, "log": log}
 
 
 def _predating_reindex(path: Path, text: str) -> Path:
@@ -155,47 +142,6 @@ def test_gitignored_trees_count_as_index_scope(sc, box):
     assert "memory/.tmp/report-prose-hk-open.md" in message
 
 
-def test_wiped_timeout_patch_is_reported(sc, box):
-    """Every openclaw upgrade restores the stock 15s deadline this box cannot meet."""
-    (box["dist"] / "tools-bbb.js").write_text("const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 15e3;")
-    severity, message = _run(sc)
-    assert severity == sc.WARNING
-    assert "stock 15s" in message
-
-
-def test_wiped_threads_patch_is_reported(sc, box):
-    (box["dist"] / "embeddings-aaa.js").write_text("const o = { threads: 4 };")
-    severity, message = _run(sc)
-    assert severity == sc.WARNING
-    assert "threads:1" in message
-
-
-def test_wiped_dreaming_review_patch_is_reported(sc, box):
-    """An upgrade restores the stock MEMORY.md write path; audit names it."""
-    (box["dist"] / "short-term-promotion-ccc.js").write_text("// stock promote path\n")
-    severity, message = _run(sc)
-    assert severity == sc.WARNING
-    assert "dreaming-review patch missing" in message
-
-
-def test_wiped_session_ingestion_patch_is_reported(sc, box):
-    """An upgrade restores the stock 240-message sweep and the first-N cursor."""
-    (box["dist"] / "dreaming-phases-eee.js").write_text(
-        "const SESSION_INGESTION_MAX_MESSAGES_PER_SWEEP = 240;\n")
-    severity, message = _run(sc)
-    assert severity == sc.WARNING
-    assert "session-ingestion patch missing" in message
-
-
-def test_wrong_promotion_report_target_is_reported(sc, box):
-    """The report must name the private review file, not MEMORY.md (#dreaming)."""
-    (box["dist"] / "dreaming-ddd.js").write_text(
-        "reportLines.push(`- Promoted N candidate(s) into MEMORY.md.`);\n")
-    severity, message = _run(sc)
-    assert severity == sc.WARNING
-    assert "promotion report still names MEMORY.md" in message
-
-
 def test_stalled_nightly_reindex_is_reported(sc, box):
     """The drain is a cron job; if it stops, the backlog returns silently."""
     stamp = (datetime.now().astimezone() - timedelta(hours=40)).isoformat(timespec="seconds")
@@ -242,8 +188,6 @@ def test_check_can_never_block_a_push(sc, box):
     publish over it would trade a real invariant for a soft one.
     """
     (box["workspace"] / "memory" / "unembedded.md").write_text("new\n")
-    (box["dist"] / "tools-bbb.js").write_text("const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 15e3;")
-    (box["dist"] / "embeddings-aaa.js").write_text("const o = { threads: 4 };")
     box["log"].unlink()
 
     r = sc.Result()

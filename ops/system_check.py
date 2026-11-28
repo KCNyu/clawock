@@ -75,7 +75,6 @@ def clawock_argv(*args, env=None):
     return [sys.executable, '-m', 'clawock.cli', *args], env
 
 
-OPENCLAW_INSTALL = _OPENCLAW_PATHS.install_dir
 LIVE_WORKSPACE = _OPENCLAW_PATHS.workspace
 MEMORY_INDEX_DB = _OPENCLAW_PATHS.memory_index_db
 OPENCLAW_CONFIG = _OPENCLAW_PATHS.config_file
@@ -1943,40 +1942,6 @@ def _written_since_last_reindex(paths, age_hours):
     return backlog, churn
 
 
-def _memory_index_patch_gaps():
-    """Local dist patches openclaw upgrades wipe, both silent at the point of use."""
-    if OPENCLAW_INSTALL is None:
-        return ['openclaw install root unresolved; set CLAWOCK_OPENCLAW_INSTALL_DIR']
-    try:
-        dist = OPENCLAW_INSTALL.resolve() / 'dist'
-    except OSError as e:  # noqa: BLE001
-        return [f'cannot resolve openclaw install: {e}']
-    if not dist.is_dir():
-        return [f'openclaw dist not found at {dist}']
-
-    def contains(pattern, needle):
-        for path in dist.glob(pattern):
-            try:
-                if needle in path.read_text(encoding='utf-8', errors='replace'):
-                    return True
-            except OSError:
-                continue
-        return False
-
-    gaps = []
-    if not contains('embeddings-*.js', 'threads: 1, batchSize: 512'):
-        gaps.append('threads:1 embedding patch missing (local embedding can deadlock)')
-    if contains('tools-*.js', 'MEMORY_SEARCH_TOOL_TIMEOUT_MS = 15e3;'):
-        gaps.append('memory_search deadline back to stock 15s (this box needs ~27s cold)')
-    if not contains('short-term-promotion-*.js', 'clawock-dreaming-review-v1'):
-        gaps.append('dreaming-review patch missing: automatic promotions would write MEMORY.md')
-    if not contains('dreaming-*.js', 'memory/.dreams/promotion-candidates.md (pending review)'):
-        gaps.append('dreaming promotion report still names MEMORY.md instead of the private review file')
-    if not contains('dreaming-phases-*.js', 'clawock-dreaming-session-ingestion-v1'):
-        gaps.append('session-ingestion patch missing: direct chats will not reach dreaming')
-    return gaps
-
-
 def _memory_reindex_age_hours():
     """Hours since the nightly reindex last finished, or None if it never has."""
     if not MEMORY_INDEX_LOG.exists():
@@ -2027,7 +1992,6 @@ def check_memory_index(r):
         problems.append(f'{len(missing)} file(s) never embedded (e.g. {missing[0]})')
     if stale:
         problems.append(f'{len(stale)} file(s) changed since indexing (e.g. {stale[0]})')
-    problems += _memory_index_patch_gaps()
 
     if age is None:
         problems.append('nightly reindex has never completed')
@@ -2042,7 +2006,7 @@ def check_memory_index(r):
         r.add('memory index', WARNING, '; '.join(problems) + churn_note)
     else:
         r.add('memory index', OK,
-              f'{indexed} files embedded · patches applied · '
+              f'{indexed} files embedded · '
               f'reindex {age:.0f}h ago{churn_note}')
 
 

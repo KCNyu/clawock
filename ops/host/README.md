@@ -217,8 +217,7 @@ notes into the public `MEMORY.md`. Install with `install_memory_corpus_plugin.sh
 `--rollback`) into `$OPENCLAW_STATE_DIR/extensions/shared-memory-corpus`, add that directory to
 `plugins.load.paths`, set `plugins.entries.shared-memory-corpus.enabled=true` (optional
 `config.root`, default `~/.shared-memory`), and restart the gateway once through the same gate as
-any restart (no cron run in flight). `reapply_openclaw_patches.sh` reinstalls and checks it after
-an upgrade. Tests: `tests/test_shared_memory_corpus.py`.
+any restart (no cron run in flight). Tests: `tests/test_shared_memory_corpus.py`.
 
 ## Skill registry host extension
 
@@ -235,7 +234,7 @@ In host `openclaw.json`, add the installed extension directory to `plugins.load.
 
 The installer does not restart or edit config. Before activation, check `runningAtMs != null` via `openclaw cron list --json`, recompute the timeline with `check_crons.sh --timeline`, inspect `dispatch.sh status` and active gateway runs, and wait until other work is safe. Record the gateway PID/start time, then `systemctl --user restart openclaw-gateway.service`. Verify a changed PID, `/health`, `NRestarts=0`, unchanged version and enabled cron identities, and a new multi-turn session: zero policy blocks in user prompts, exactly one in system context, real primary search execution/output, no progress `message` calls. Do not send test messages to live chat recipients.
 
-Upgrades do not replace this extension, and `reapply_openclaw_patches.sh` replays/verifies it before restart. A future SDK incompatibility is a hard failure to investigate, not permission to drop a rule. `SKILLHUB_PLUGIN_DIR` provides an isolated install target for tests. Rollback: `bash ops/host/install_skillhub_plugin.sh --rollback`; restore the policy document matching that generation if its template changed, then use the same safe restart gate. `.before-update` copies remain on the host and are not published.
+The host extension is installed separately from the frozen fork. `SKILLHUB_PLUGIN_DIR` provides an isolated install target for tests. Rollback: `bash ops/host/install_skillhub_plugin.sh --rollback`; restore the policy document matching that generation if its template changed, then use the same safe restart gate. `.before-update` copies remain on the host and are not published.
 
 ## Automatic free-model selection
 
@@ -319,12 +318,7 @@ reviewer now writes those receipts for clean candidates, and a separate private 
 distils dispatch briefs and finished task reports. Installation, review, verification
 and rollback: [dreaming review](../../docs/operations/dreaming-review.md).
 
-## Versioned OpenClaw patch kit
+## Frozen OpenClaw
 
-`openclaw-patches/manifest.json` owns the ordered dist adaptations and per-target
-postconditions. `manage_openclaw_patches.py` rehearses the complete set in isolated
-copies, then journals and installs verified edits with guarded recovery. The
-upgrade wrapper no longer executes host-local patch sources. Use
-`reapply_openclaw_patches.sh --plan` before applying, and `--check-only` afterward.
-See `docs/operations/openclaw-patch-kit.md` for receipts, recovery and the separate
-idle-gateway/restart requirement.
+Follow the [fork build runbook](../../docs/operations/openclaw-frozen-build.md)
+for approved source, artifact identity, installation and runtime smoke.

@@ -8,15 +8,9 @@ with the projection generator ([memory components](../architecture/memory-compon
 
 The host uses one promotion engine with two independent outputs:
 
-- `ops/host/patch_dreaming_review.py` redirects only the promotion writer into ignored
-  `memory/.dreams/promotion-candidates.md`. Pending candidates are not evicted by the upstream
-  MEMORY character budget. The same adapter rewrites the deep-sleep report line so it names that
-  private file instead of claiming the candidates went into `MEMORY.md`; the stock line is
-  misleading even when the private writer is active. The patch validates exact anchors, is
-  idempotent, saves a pre-patch backup, and supports `--check`. `reapply_openclaw_patches.sh`
-  reapplies it after upgrades; `system_check.py` reports a missing half under `memory index`.
-  An idle gateway must be restarted after installation; checking files alone does not prove
-  activation.
+- The [frozen OpenClaw fork](openclaw-frozen-build.md) writes ranked candidates to
+  `memory/.dreams/promotion-candidates.md` for review and names that destination in the
+  run report. The local candidate queue retains pending entries.
 - `ops/host/promote_dreaming.py` applies `review_dreaming.py`'s hash-bound decisions. It writes
   only approved conclusions as new public store topics, snapshots the store first, requires
   `memctl verify` and `memctl doctor` to pass, then calls
@@ -123,12 +117,8 @@ decisions and the slugs it would write, without touching the store or the reposi
 - **One side fails in `commit_dreaming.sh`:** each side is reviewed and committed separately; the
   other side still commits and pushes. The failing side is named in the cron log.
 
-No gateway restart is needed for a change to this host-side Python or shell gate. The dist patch
-that feeds direct-chat sessions into the corpus does need an idle-gateway restart; its selection
-rules and the dispatch/task intake are described in
-[`../architecture/dispatch-memory-intake.md`](../architecture/dispatch-memory-intake.md). Never
-publish private archives, approval files, or candidate text. Private storage pruning requires
-separate review.
+The [session-ingestion and dispatch intake notes](../architecture/dispatch-memory-intake.md)
+describe how input reaches the gate. Keep private archives, review receipts and candidates local.
 
 ### DREAMS.md diary append
 
@@ -157,13 +147,12 @@ separate review.
 
 ## Verification and recovery
 
-After an upgrade, run the patch with `--check`. After the 03:00 HKT dreaming run,
+After the 03:00 HKT dreaming run,
 confirm new candidates went to the private candidate file and no dated promotion
 section appeared in MEMORY. After 03:20, check the dreaming commit log for review
 decision counts and run:
 
 ```bash
-python3 ops/host/patch_dreaming_review.py --check
 python3 ops/host/review_dreaming.py --workspace /root/.openclaw/workspace --check
 python3 ops/host/review_dreaming_llm.py --workspace /root/.openclaw/workspace --store ~/.shared-memory --check
 python3 ops/host/review_dreams.py --workspace /root/.openclaw/workspace --check --store ~/.shared-memory
